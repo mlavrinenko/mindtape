@@ -47,7 +47,7 @@
 - `crates/*/Cargo.toml`: only if autodiscovery needs a `[[test]]` entry.
 - Justfile, `.mmz/config.yaml`, `outdatty.yaml`, `.cargo/mutants.toml`, coverage ignores: paths that name test files.
 - Shared helpers declared with `mod common;` in each file become one `mod common;` in `tests/it/main.rs` and `use crate::common::...` in each file. `include_str!`, `include_bytes!` and `#[path]` are relative to the source file, so fix them after the move. `env!("CARGO_MANIFEST_DIR")` paths keep working.
-- Nextest filters and overrides that name a binary (`binary(<file>)`) become `binary(it)` plus `test(...)`. Same for Justfile `--test <name>` flags.
+- The nextest filters and overrides that name a binary (`binary(<file>)`) become `binary(it)` plus `test(...)`. Same for Justfile `--test <name>` flags.
 - Check: the same test count before and after (`cargo nextest list --workspace`), and one integration executable per crate from `cargo test --no-run`.
 
 == Rollback

@@ -22,7 +22,7 @@ examples below run against `examples/api-service/`, a sample backend project.
 
 = Give your agent the skill
 
-The #mindtape repository ships an agent skill in
+The #mindtape repository includes an agent skill in
 #link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. Its `SKILL.md`
 tells an agent to use `mt --help`, `mt explain` and the files in `references/`
 instead of repeating what the CLI says. The skill uses the
@@ -106,12 +106,13 @@ one applies. The agent writes the values as YAML or JSON and passes them with
 #link(u("/templates/"))[Templates & slots] covers the slots and the other ways
 to fill them.
 
-When stdin or stdout isn't a terminal, `mt add` opens no editor. A slot left
-empty fails the add, and the error names every missing slot:
+When stdin or stdout isn't a terminal, `mt add` doesn't open an editor. A slot
+left empty fails the add, and the error lists every missing slot:
 
 #terminal("api-service-add-refused")
 
-It exits with code #exit-code("api-service-add-refused") and writes nothing.
+It exits with code #exit-code("api-service-add-refused") and doesn't write
+anything.
 With `--json`, the shorthand for `--format json`, a successful add prints an
 object whose first key is `$schema`, then `outcome` (`wrote`, `skipped` or
 `suffixed`), `path` and `slug`, its stem hash, the short name every command
@@ -121,12 +122,12 @@ accepts. `--format path` and `--format path0` still print just the path.
 
 `mt` exits with 0 when a command succeeds, 1 when it fails and 2 when the
 command line is wrong, and it prints the reason on stderr. Every command that
-writes a task checks the result first and writes nothing if the check fails,
-so an agent can fix its input and run the command again.
+writes a task checks the result first and leaves the file untouched if the
+check fails. An agent can fix its input and run the command again.
 
 - `mt check` exits with 1 when a task breaks a rule of severity `error`, and
   names the file and the line. Run it in CI or a pre-commit hook.
-- A #link(u("/hooks/"))[flip hook] can run your tests when a task is closed,
+- A #link(u("/hooks/"))[flip hook] can run your tests when you close a task,
   and refuse to close it while they fail.
 - `mt` colors stdout and stderr only when each one is a terminal, and on
   stderr only the `error:`, `warning:`, `hint:` and `note:` prefix.
@@ -136,14 +137,14 @@ so an agent can fix its input and run the command again.
 
 Tasks are files, so each git worktree has its own copy of the backlog. An
 agent in its own worktree sets its task's status there, and that change merges
-with the code that does the work. There's no server or index to update.
+with the code that makes it. There's no server or index to update.
 
 `mt` reads only the worktree it runs in. Two agents in two worktrees don't see
 each other's status changes until their branches merge, so decide which agent
 takes which task before they start.
 
 To run `mt` on a worktree from another directory, pass `-w <path>` or set
-`MINDTAPE_WORKTREE`. To name your projects and read several at once, see
+`MINDTAPE_WORKTREE`. To name your projects and read more than one at once, see
 #link(u("/read-many-projects/"))[Read many projects].
 
 = Pin today's date

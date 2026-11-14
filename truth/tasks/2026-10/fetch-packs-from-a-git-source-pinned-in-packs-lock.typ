@@ -40,7 +40,7 @@
 
 == AS-IS
 
-+ Keep a team's packs in their own git repository and adopt them in several projects.
++ Keep a team's packs in their own git repository and adopt them in more than one project.
 + 🔴 An `extends` entry is a built-in name or a path inside the project, so each project carries the packs as a submodule or a copy, and every `just fork` worktree must initialise the submodule again.
 + 🔴 Nothing records which revision a project adopted, or notices a hand-edited copy.
 

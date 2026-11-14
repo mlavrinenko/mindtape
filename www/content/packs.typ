@@ -7,7 +7,7 @@
   route: "/packs/",
   label: "Packs",
   title: "Packs",
-  summary: "How a project adopts and tunes packs, how their rules merge, and the rules and parameters of the packs `mt` ships.",
+  summary: "How a project adopts and tunes packs, how their rules merge, and the rules and parameters of the built-in packs.",
 )
 #metadata(meta) <page-meta>
 
@@ -18,7 +18,7 @@ rules, its priority framework, its views, whatever you'd otherwise copy around.
 Each project can still change any of it locally.
 #link(u("/config/"))[Configuration] lists the `extends` and `disable` keys.
 This page covers how `mt` finds and merges a pack, and lists the rules of the
-packs `mt` ships: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`,
+built-in packs: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`,
 `mindtape:ice`, `mindtape:wip-caps`, `mindtape:budget`, `mindtape:tweaks` and
 `mindtape:commits`.
 
@@ -53,12 +53,12 @@ A name replaces a rule only across sources. Two rules with one name in the
 same file are a config error, as #link(u("/config/"))[Configuration]
 describes.
 
-= What a pack may hold
+= Keys a pack may hold
 
 Any config key, except seven. `extends` and `disable` belong to the project,
 so a pack can't extend another pack and there's only ever one level to
-resolve. `[pack-sources]` belongs to the project too, so every source sits in
-one file. `project.code` is the project's own name. `tasks.roots`,
+resolve. `[pack-sources]` belongs to the project too, which keeps every source
+in one file. `project.code` is the project's own name. `tasks.roots`,
 `templates.dirs` and `[typst]` point into the project's own tree, which a
 shared file can't know. `mt` refuses a pack that declares one of them and
 names the pack and the key:
@@ -69,7 +69,7 @@ names the pack and the key:
 pack's parameters, which `mt` writes into the pack's expressions and never
 merges into the config.
 
-= Where a pack comes from
+= Pack sources
 
 An `extends` entry with no `/` in it is `<source>:<pack>`. `mindtape` is the
 one source `mt` knows without a declaration. It holds the built-in packs listed
@@ -94,14 +94,14 @@ Your team's packs can be in a git repository of their own. Declare it as
 `[pack-sources.<name>]` in the project's `.mindtape/config.toml`, with `git`
 for the repository and `ref` for a tag, branch or commit, and adopt a pack
 from it as `<name>:<pack>`. Only the project config declares a source or adopts
-a pack from one, so a clone resolves the same packs on every machine. The name
-`mindtape` is taken.
+a pack from one. A clone then resolves the same packs on every machine. `mt`
+reserves the name `mindtape`.
 
 `.mindtape/packs.lock` pins each source to the commit its `ref` named and a
 hash of the files there, and you commit it beside the config. Every command
-that reads the config checks the lock against the sources first. A source the
-lock lacks, or pins from another `git` or `ref`, is refused, here after a bump
-from `v1` to `v2`.
+that reads the config checks the lock against the sources first. `mt` refuses a
+source the lock lacks, or one pinned from another `git` or `ref`, as here after
+a bump from `v1` to `v2`.
 
 #terminal("packs-stale")
 
@@ -114,17 +114,17 @@ from a repository beside the project:
 
 Name sources, as in `mt packs update acme`, to move only those. A source whose
 `ref` still names the locked commit prints `up to date` and keeps its entry,
-and an entry no source declares is dropped. Read the lock's diff before you
-commit it, since the new commit is the config every clone gets.
+and `mt` drops an entry that has no declaring source. Read the lock's diff
+before you commit it, since the new commit is the config every clone gets.
 
 Under each source it moves, `mt packs update` prints what the move changes,
-compared as parsed TOML, so a reformatted pack reads as unchanged. Each line
+compared as parsed TOML. A reformatted pack reads as unchanged. Each line
 names a pack, a key, a rule or another array entry, marked `+` for added,
 `~` for changed and `-` for removed. Every new `run` or `editor` line prints
 in full under its entry, and it still runs only once you `mt allow` it. Any
 other file of the source, such as a template or a check module, prints as
-`file <path>`. When your cache lacks the old tree, it fetches it by its
-commit, from the new `git` if the old one fails, and if both fail it warns
+`file <path>`. When your cache lacks the old tree, it fetches it by its commit
+from the old `git`, or from the new one if that fails. If both fail, it warns
 and lists the new tree as all added. Here the project bumps `ref` to `v2`, whose commit tightens a
 rule, gates a close on a `run` line and adds a pack:
 
@@ -141,10 +141,10 @@ Every load hashes the cached tree again and refuses one that doesn't match the
 lock, naming its directory, so a file edited by hand there can't slip in. It
 hashes each source once, however many of its packs you adopt. Every command
 computes that hash, so keep a pack source small: a repository that holds
-packs and nothing else. A pack from a source names its dictionary files only
-inside the source's tree.
-Only `mt packs` touches the network, so every other command refuses a source
-the cache lacks, with a hint to fetch it:
+packs and nothing else. A pack from a source can only reference dictionary
+files inside the source's tree.
+Only `mt packs` touches the network. Every other command refuses a source the
+cache lacks, with a hint to fetch it:
 
 #terminal("packs-not-installed")
 
@@ -163,13 +163,13 @@ In CI, run `mt packs install && mt check`.
 A pack with files needs a folder. Name the folder in `extends`, and
 `mt` reads `pack.toml` inside it. The folder's `templates/` joins
 `[templates] dirs` behind your own directories, so `mt add -t feat` finds a
-template the pack ships, and a template of yours with the same name wins.
+template the pack provides, and a template of yours with the same name wins.
 `mt add --list` lists both:
 
 #terminal("packs-dir")
 
-The folder can sit anywhere, inside the project or not. When two packs ship a
-template with one name, the pack of the later layer wins, and within a layer
+The folder can sit anywhere, inside the project or not. When two packs include
+a template with one name, the pack of the later layer wins, and within a layer
 the one listed last. If a `team.toml` sits beside a `team/` folder,
 `extends = ["./team"]` could mean either, so `mt` refuses it and names both:
 
@@ -188,9 +188,9 @@ file. So a pack in `team/` finds `team/check.typ` and
 A pack's check file runs in a Typst world rooted at that directory. It imports
 the pack's other files and `@local` packages, and it can't import a file of
 the project. So `mt` refuses a `check` path that leaves the pack's directory.
-A rule and a dictionary that the project declares itself resolve
-from the project root, and so does a rule that replaces a
-pack's rule by name. The built-in packs name no files.
+A rule and a dictionary that the project declares resolve from the project
+root, and so does a rule that replaces a pack's rule by name. The built-in
+packs don't reference any files.
 
 = Drop a rule
 
@@ -226,16 +226,15 @@ the nearest one:
 
 #terminal("packs-params-unknown")
 
-It also refuses a value of another type than the default, a `param()` that
-names no parameter, and one pack listed twice in one `extends`, even by two
-paths to the same file. A `param()`
-in a layer's own expression is refused too, since only a pack has
-parameters.
+It also refuses a value of another type than the default. It refuses a
+`param()` that doesn't specify a parameter, and one pack listed twice in one
+`extends`, even by two paths to the same file. `mt` also refuses a `param()`
+in a layer's own expression, since only a pack has parameters.
 
 = A mistake in a pack
 
-An error names the file that contains the mistake, with the line, so you open
-the pack and not your own config. That goes for a path pack, a directory pack,
+An error points at the file that contains the mistake, with the line, so you
+open the pack and not your own config. That goes for a path pack, a directory pack,
 a source's pack and the `defaults.toml` of a parent folder alike. An unknown
 key:
 
@@ -250,8 +249,7 @@ the key alone.
 
 = Merge order
 
-`mt` merges each config layer in turn, and each layer's packs merge just below
-it. Tables merge key by key, and an array or a scalar replaces the value under
+`mt` merges each config layer, and each layer's packs merge just below it. Tables merge key by key, and an array or a scalar replaces the value under
 it whole, the same as between two layers. So a project's `[tasks.priority]`
 keeps the framework a pack picked, and the floor fills in what neither sets:
 
@@ -266,8 +264,8 @@ packs:
 
 #terminal("packs-conflict")
 
-Set that key in the layer that adopts both packs and the clash is gone, since
-the layer's value wins anyway. Equal values agree, so two packs can both set
+Set that key in the layer that adopts both packs and the clash disappears,
+since the layer's value wins anyway. Equal values agree, so two packs can both set
 the same dictionary. Packs adopted by two different layers never clash: the
 higher layer wins.
 
@@ -277,9 +275,9 @@ arrays, `[[commits.rules]]`, `[[on.flip]]`, `[[on.add]]` and
 layer's packs in `extends` order, then the layer's own, and an entry replaces
 an earlier one with the same `name` in its place. A flip or add hook with no
 `name` appends and nothing can replace it, so a pack's hook that the project
-should be able to change needs one. After every layer
-is merged, `mt` drops the rules named in any layer's `disable`. A name listed
-in two layers is dropped once.
+should be able to change needs one. After every layer merges, `mt` drops the
+rules named in any layer's `disable`. `mt` drops a name listed in two layers
+once.
 
 = Read `mt config show --origin`
 
@@ -311,8 +309,8 @@ each rule's severity and message as well, run
 
 After the rules come the other keys a pack set, as `key <dotted path>:
 <origin>`, and the parameters packs declare, as `param <name> = <value>: <set
-by>, for pack <pack>`. A key names the layer instead of the pack when the layer
-replaced the value, as `dicts.product.values` shows. `<set by>` is the layer
+by>, for pack <pack>`. A key reports the layer instead of the pack when the
+layer replaced the value, as `dicts.product.values` shows. `<set by>` is the layer
 whose `with` set the parameter, such as `project` for `max-files`, or
 `default` for a parameter no one set.
 
@@ -330,14 +328,14 @@ Changes and Out of scope. A `fix` adds Environment, a `feat` or a `decision`
 adds Alternatives, a `docs` task adds Source of truth, and a task tagged
 `stateful` adds Rollback. The pack also declares the `kind` field the rules
 read, with `feat`, `fix`, `refactor`, `docs`, `test`, `dev`, `decision` and
-`milestone`. It requires the field of an open task and forbids a comment in a
+`milestone`. It requires the field of an open task and rejects a comment in a
 task file. The `statefulness` and `examples` parameters, both off, gate the
-tag rule and the two fenced-example rules; a project turns them on in `with`. The
-tables below are read from
+tag rule and the two fenced-example rules. A project turns them on in `with`.
+The tables below come from
 #link(REPO + "/blob/main/crates/mindtape/src/packs/tasks.toml")[the
   pack file], and each message is the text `mt check` prints. The
 `start-title-with-verb` rule reads the `verbs` dictionary, which the pack
-builds from the two word lists `mt` ships.
+builds from the two word lists `mt` provides.
 
 #let pack = toml("../generated/packs/tasks.toml")
 
@@ -384,8 +382,8 @@ These run on a commit from `mt check --commit-msg` and on a range from
 = The rules in `mindtape:wip-caps`
 
 `extends = ["mindtape:wip-caps"]` keeps one milestone and one other task open
-at a time. Both rules are errors, so a flip that would open a second one
-is refused. Each cap is a parameter, read from
+at a time. Both rules are errors, so `mt` refuses a flip that would open a
+second one. Each cap is a parameter, read from
 #link(REPO + "/blob/main/crates/mindtape/src/packs/wip-caps.toml")[the pack file]:
 
 #let caps = toml("../generated/packs/wip-caps.toml")
@@ -431,8 +429,8 @@ a project. `file-tweak-done` refuses a tweak that isn't terminal, and
 `keep-tweak-to-one-source-file` refuses a commit that closes a tweak and
 changes more than one file of the `source` path set. The pack leaves the `tweak` tag to the
 project: list it in `[tasks.tags]` if that table limits the tags. It sets
-`[dicts.source]` to `**`, the same as `mindtape:budget`, so a project adopts
-both and the two agree. Your own `[dicts.source]` replaces it for both.
+`[dicts.source]` to `**`, the same as `mindtape:budget`. A project can adopt
+both, and the two agree. Your own `[dicts.source]` replaces it for both.
 
 #let tweaks = toml("../generated/packs/tweaks.toml")
 
@@ -451,9 +449,9 @@ autosquash folds it into a commit that has one.
 `start-named-task-in-its-commit` refuses a commit whose `Refs:` task isn't
 `wip` or terminal in the staged tree.
 
-The pack sets `[dicts.product]` to `**`, so every file counts as product.
+The pack sets `[dicts.product]` to `**`. Every file counts as product.
 Replace it with your own `[dicts.product]`, such as `crates/**` and
-`!**/*_tests.rs`, to say what ships to a user. A project that keeps its
+`!**/*_tests.rs`, to say what reaches a user. A project that keeps its
 changelog elsewhere overrides the rule by name.
 
 #let commits = toml("../generated/packs/commits.toml")
@@ -481,14 +479,14 @@ lists one name apart.
 `extends = ["mindtape:flow"]` gives you the six statuses of the floor, with the
 moves between them. A task goes `proposed`, `accepted`, `wip`, then `done`,
 `cancelled` or `failed`, and a closed task reopens into `wip`. `wip` and `done`
-refuse a task whose `depends-on` target is unfinished. The pack also adds the
+refuse a task whose `depends-on` target lacks a terminal status. The pack also adds the
 `review-stale-task-before-starting` hook, which refuses to start a task
 untouched for `days` days until `mt review` stamps it. The default is 30 days.
 
 #let flow = toml("../generated/packs/flow.toml")
 
 #param-table(flow.params, (
-  days: "How many days a task may sit untouched before starting it is refused.",
+  days: "How many days a task may sit untouched before mt refuses to start it.",
 ))
 
 #table(
@@ -514,7 +512,7 @@ your project may lack. See #link(u("/hooks/"))[Hooks] for writing one.
 
 `extends = ["mindtape:ice"]` scores priority with the ICE framework. It sets
 `framework = "ice"`, `allow-manual = false`, `required = "!terminal"` and
-`example = 3` under `[tasks.priority]`, so an open task calls `ice(...)` and a
-raw number is refused. The pack sets nothing else: the shipped 0 to 9 scale and
-its three bands show through, and a `[[tasks.priority.bands]]` of yours
-replaces them. See #link(u("/priority/"))[Priority] for the frameworks.
+`example = 3` under `[tasks.priority]`. An open task then calls `ice(...)`.
+`mt` refuses a raw number. The pack sets only those keys. The default 0 to 9
+scale and its three bands show through, and a `[[tasks.priority.bands]]` of
+yours replaces them. See #link(u("/priority/"))[Priority] for the frameworks.

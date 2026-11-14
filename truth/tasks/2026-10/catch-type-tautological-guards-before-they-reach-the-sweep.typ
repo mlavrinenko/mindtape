@@ -38,11 +38,11 @@
 
 + Read `.cargo/mutants.toml`'s `exclude_re` entry for `replace > with >= in resolve_and_select`.
 + 🔴 The sweep reached a `usize` compared `>= 0` and hand-excluded it as provably equivalent: no test can distinguish it, so the mutant is a doomed triage cycle. The same shape produced the `parse_batch` `<`→`<=` exclusion.
-+ Clippy's correctness lints do not see a mutated comparison, and no source lint can: the equivalence is between the mutant and the source, not inside the source.
++ The clippy correctness lints do not see a mutated comparison, and no source lint can: the equivalence is between the mutant and the source, not inside the source.
 
 == TO-BE
 
-- 🟢 The source forms whose mutants are unkillable on unsigned or bounded types are known, written down, and preferred against in review (e.g. `x != 0` over `x > 0` where `x` is a count, so the mutant flips killably).
+- 🟢 The source forms whose mutants are unkillable on unsigned or bounded types are known, written down, and preferred against in review (for example `x != 0` over `x > 0` where `x` is a count, so the mutant flips killably).
 - 🟢 Whichever check can be automated (a lint for literal tautologies in source, an ast-grep pattern run over `crates/**/*.rs`) runs where cheap; the rest is recorded as a review rule beside the mutation-testing deep dive.
 
 == Changes

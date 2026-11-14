@@ -26,7 +26,7 @@ function next to the goals it checks:
 
 #fixture-slice("goals")
 
-A task names every goal, one line each, with `helps[...]`, `hurts[...]` or
+A task rates every goal, one line each, with `helps[...]`, `hurts[...]` or
 `neutral`:
 
 #fixture-slice("goals-short")
@@ -39,7 +39,7 @@ says how it helps:
 
 #terminal("tie-work-to-goals")
 
-= Deep dive
+= Check functions
 
 `check` runs a Typst function you write on one field of each task the rule's
 `when` matches. Each string the function returns is one error, so `mt` names

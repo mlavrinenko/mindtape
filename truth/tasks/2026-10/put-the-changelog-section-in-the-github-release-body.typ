@@ -56,7 +56,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `.github/workflows/release.yml`: extract the tag's section from `CHANGELOG.md` into a file and pass it as `body_path`, in place of `generate_release_notes`.
+- `.github/workflows/release.yml`: copy the tag's section from `CHANGELOG.md` into a file and pass it as `body_path`, in place of `generate_release_notes`.
 
 
 == Rollback

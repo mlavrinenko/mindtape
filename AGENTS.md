@@ -2,9 +2,9 @@
 
 # Mindtape: AI Agent Context
 
-@CONTRIBUTING.md says how work is done here. This file says what Mindtape is and where to find each part. Fork parallel work with `just fork` and land it with `just land`.
+@CONTRIBUTING.md says how work happens here. This file says what Mindtape is and where to find each part. Fork parallel work with `just fork` and land it with `just land`.
 
-## What is this?
+## Overview
 
 Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task.with(...)`), named by its filename stem. Every `mt` command evaluates the task files under its roots through the Typst compiler crates, with no daemon or database. A content-hash cache in `.mindtape/cache/` skips unchanged files.
 
@@ -12,8 +12,8 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
 
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task DSL.
 - `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
-- `truth/tasks/`: Mindtape’s own backlog, one folder per filing month plus a `swept/` inbox, read with the in-tree `lib/`. Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and run `mt explain` for the rules, tags, views and dictionaries this repo declares. Edit the file by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
-- `truth/goals.typ` and `truth/process-goals.typ`: the product and process goals. Each open task rates every goal in `x-goals`; `give-every-goal-verdict` checks that.
+- `truth/tasks/`: Mindtape’s own backlog, a folder per month plus a `swept/` inbox, read with the in-tree `lib/`. Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and run `mt explain` for the rules, tags, views and dictionaries this repo declares. Edit the file by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
+- `truth/goals.typ` and `truth/process-goals.typ`: the product and process goals. Each open task rates every goal in `x-goals`. The `give-every-goal-verdict` rule checks that.
 - `www/content/*.typ`: the docs site, built with tola.
 - `docs/src/*.typ`: the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/`: the agent skill for driving `mt`, with its references and evals.
@@ -33,15 +33,15 @@ The cargo workspace has a virtual root manifest and two crates:
 - `crates/mindtape`: the domain library: config, task model, filter language, validation and project loader, which speconaut and other tools depend on.
 - `crates/mindtape-cli`: the thin `mt` binary, built on clap.
 
-The Typst plumbing comes from seven crates.io dependencies, whose source is under `~/.cargo/registry/src/` at the versions `Cargo.lock` pins. `HVal`, the value every task field passes through, is `typst_world::value::HVal`.
+The Typst plumbing comes from seven crates.io dependencies, under `~/.cargo/registry/src/` at the versions `Cargo.lock` pins. `HVal`, the value every task field passes through, is `typst_world::value::HVal`.
 
-- `artifact-gate`: the rule engine behind `mt check`’s body header rules
-- `swhid-mint`: mints the SWHID a tombstone records
-- `typst-cleanup`: retires a tracked file with a dirty-tree guard, a tombstone, and link rewriting
-- `typst-cst`: reads a file’s heading tree by parsing, without evaluating
-- `typst-edit`: rewrites a file in place at known spans
-- `typst-harvest`: evaluates a file and collects the data it marks for export
-- `typst-world`: the eval-only Typst World the others share
+- `artifact-gate`: the rule engine behind `mt check`’s body header rules.
+- `swhid-mint`: mints the SWHID a tombstone records.
+- `typst-cleanup`: retires a tracked file with a dirty-tree guard, a tombstone, and link rewriting.
+- `typst-cst`: reads a file’s heading tree by parsing, without evaluating.
+- `typst-edit`: rewrites a file in place at known spans.
+- `typst-harvest`: evaluates a file and collects the data it marks for export.
+- `typst-world`: the eval-only Typst World the others share.
 
 ## Architecture
 
@@ -51,7 +51,7 @@ The Typst plumbing comes from seven crates.io dependencies, whose source is unde
 
 `schema/output/` holds the committed schema of every `--json` output, generated from the Rust types. When an output’s structure changes, bump its version and run `mt schema --write`. `mt schema --check` runs in the gates.
 
-## Task DSL (lib/prelude.typ)
+## Task definition language (lib/prelude.typ)
 
 ```typ
 #import "@local/mindtape:0.4.0": *
@@ -67,10 +67,10 @@ The Typst plumbing comes from seven crates.io dependencies, whose source is unde
 )
 ```
 
-`task` declares each core field as a named parameter, and its `..meta` sink takes only `x-<ns>` slots, so a misspelled field fails.
+`task` declares each core field as a named parameter, and its `..meta` sink takes only `x-<ns>` slots. A misspelled field fails.
 
 A field value is plain data that Rust interprets. `ice(...)` and the other framework helpers build a `(framework, inputs)` dict, `every(...)` and `rrule(...)` build a recurrence dict, and `depends-on("a.typ") + related("b.typ")[why]` builds typed edges. Rust does all math and date arithmetic.
 
 ### Mechanism, not policy
 
-Rust ships mechanisms, and projects write policy as config expressions. Name no estimate unit, status, tag, path or threshold in Rust code. Write a new check as a `[[tasks.rules]]` entry. When the filter language cannot express it, extend the language with a field, predicate, aggregate or git state, never a config table or checker of its own. Put shipped defaults in the rule packs under `crates/mindtape/src/packs/`, where a project overrides a rule by name. `docs/contributing/validation-seam.md` says which layer a new check belongs in.
+Rust provides mechanisms, and projects write policy as config expressions. Name no estimate unit, status, tag, path or threshold in Rust code. Write a new check as a `[[tasks.rules]]` entry. When the filter language cannot express it, extend the language with a field, predicate, aggregate or git state, never a config table or checker of its own. Put built-in defaults in the rule packs under `crates/mindtape/src/packs/`, where a project overrides a rule by name. `docs/contributing/validation-seam.md` says which layer a new check belongs in.

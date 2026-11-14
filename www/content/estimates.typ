@@ -44,7 +44,7 @@ A task's estimate is a dict of units to numbers, such as
 than hours. `[tasks.estimate] units` lists the unit names you allow, and
 `required` says which tasks must have an estimate. An estimate is optional
 when `required` is false, as this repo and `examples/api-service` set it:
-their size rules read the paths a task's Changes section names, and
+their size rules read the paths a task's Changes section names.
 #link(u("/split-oversized-tasks/"))[Split oversized tasks] shows the rule. `mt` checks `units` on open tasks only, so a finished task
 keeps its unit after you drop it from the list.
 
@@ -55,7 +55,7 @@ keeps its unit after you drop it from the list.
 = Counting files with queries
 
 `count(n, ..queries)` adds the files your queries match to the `n` you'd
-write by hand, so the estimate tracks the code as it is today.
+write by hand. The estimate tracks the code as it is today.
 `[tasks.estimate.queries]` names the units that take it, each with the path
 set its files must fall in, a glob or a #link(u("/named-sets/"))[`@name` set]:
 
@@ -74,8 +74,8 @@ A task then writes the unit as a count:
 )
 
 Two files mention `HarvestCache` under `src/`, so `estimate.files` reads 4, and
-every rule sees that number. `mt eval` shows where the number comes from, so
-you can check a query that matches nothing before you start:
+every rule sees that number. `mt eval` shows where the number comes from. Check a query that doesn't match
+anything before you start:
 
 #terminal("estimates-eval")
 
@@ -86,29 +86,29 @@ Two queries build the count:
 
 - `grep(regex, glob)` matches the files whose text matches `regex`,
   in #link("https://docs.rs/regex/latest/regex/#syntax")[Rust regex syntax].
-  Write the regex as a raw block, so a backslash needs no escape. The
+  Write the regex as a raw block, where a backslash doesn't need an escape. The
   optional glob, or `@name` set, narrows it to the paths it admits.
 - `glob(pattern)` matches the files whose path matches `pattern`.
 
-A file several queries match counts once. When queries overlap, the breakdown
+A file that more than one query matches counts once. When queries overlap, the breakdown
 adds a `distinct across all queries` row counting the files the unit adds, so
 the total reads as the manual part plus that row. Queries read the files git
 lists:
 tracked ones and untracked ones `.gitignore` doesn't hide, with paths relative
 to the repository root, as `changed()` reads them. `mt` matches them itself
-and runs no shell, so the count comes out the same on every machine. A unit
+and doesn't run a shell. The count comes out the same on every machine. A unit
 with no `[tasks.estimate.queries]` entry takes a plain number only, and
 `mt check` refuses a count there.
 
-== Matching Rust structure
+== Structural matching
 
 `ast_grep(language, pattern, glob?)` matches code structure rather than text.
 It distinguishes a call from a definition, a comment or a string, and it sees
 no code a macro expands to. This build supports `rust` (alias `rs`), and a
 query reads only `.rs` files. Write the pattern in
 #link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep syntax],
-as a raw block so a backslash needs no escape. The optional glob or `@name`
-set narrows the unit's paths, as it does for `grep`.
+as a raw block, where a backslash doesn't need an escape. The optional glob or
+`@name` set narrows the unit's paths, as it does for `grep`.
 
 #raw(
   render-slices(
@@ -125,7 +125,7 @@ its query matches. `mt eval` shows the breakdown:
 
 #terminal("estimates-shape-eval")
 
-A file counts once however many call sites it holds, so the unit reads the
+A file counts once however many call sites it holds. The unit reads the
 number of distinct files. A pattern the grammar refuses, or a language this
 build does not support, leaves the unit unresolved. `mt check` reports why and
 `mt eval` prints the problem instead of a number. A glob that isn't a string
@@ -144,7 +144,7 @@ is a shape error at `estimate.<unit>.queries[i]`, which `mt check` and
 `!terminal` in each `when` leaves finished tasks alone. A breach at
 `severity = "error"` is a validation error, so every write command refuses it.
 Here `mt set` turns a mechanical task estimated at 12 files into judgment
-work, and the judgment cap of 5 refuses it. `mt` writes nothing and exits
+work, and the judgment cap of 5 refuses it. `mt` doesn't write the task file and exits
 #exit-code("estimates-cap"):
 
 #terminal("estimates-cap")
@@ -157,7 +157,7 @@ For `mt add` refusing a task over a cap, see
 A file count is an estimate a rule can compare with git, so you find out
 when a task grows past its plan. #link(u("/filters/"))[`changed()`] counts the
 paths git reports changed. The example rule compares that count with the
-estimate of each task in progress. The shipped `mindtape:budget` does not use
+estimate of each task in progress. The built-in `mindtape:budget` does not use
 the estimate. It compares the changed-path count with
 `count_paths(derived.changes, "@source")`, the paths the Changes section
 names. This example keeps an estimate-based rule to document the field.

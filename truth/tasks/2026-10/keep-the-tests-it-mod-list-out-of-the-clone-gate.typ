@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a gate fails only on a clone someone can extract],
+      enforced-practice: helps[a gate fails only on a clone someone can isolate],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Adding `release_notes_e2e` to `crates/mindtape-cli/tests/it/main.rs` for the release notes step
-+ 🔴 #raw("Justfile"): Every new `tests/it` module changes the fingerprint of `main.rs`'s `mod` list, which jscpd reads as a renamed clone of itself, so `just check-dry` fails until `just dry-baseline` re-mints the baseline. A `mod` list has no helper to extract
++ 🔴 #raw("Justfile"): Every new `tests/it` module changes the fingerprint of `main.rs`'s `mod` list, which jscpd reads as a renamed clone of itself, so `just check-dry` fails until `just dry-baseline` re-mints the baseline. A `mod` list has no helper to factor out
 
 ```
 crates/mindtape-cli/tests/it/main.rs:5: renamed clone of crates/mindtape-cli/tests/it/main.rs:6

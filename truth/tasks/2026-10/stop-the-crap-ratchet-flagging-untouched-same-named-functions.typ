@@ -44,7 +44,7 @@ Replayed, cache-imports regressed `TaskCache::get` and `TaskCache::open`; `Diag:
 == TO-BE
 
 - 🟢 A branch that leaves a file untouched never fails the crap gate on a function in that file.
-- 🟢 A real regression in one of several same-named functions still fails, naming it.
+- 🟢 A real regression in any of the same-named functions still fails, naming it.
 
   ```sh
   # crap.sh compares on (file, function, ordinal within file), not (file, function, line)

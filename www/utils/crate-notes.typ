@@ -9,7 +9,7 @@
 #let crate-notes = (
   "mindtape": [The domain library, with the config, the task model, the
     filter language, config-driven validation and the project loader. Other
-    tools (e.g. speconaut) depend on this, not on `mindtape-cli`.],
+    tools such as speconaut depend on this, not on `mindtape-cli`.],
   "mindtape-cli": [The thin `mt` binary (clap) over `mindtape`.],
   "typst-world": [A configurable eval-only `typst::World` over a file-provider
     trait, plus a Typst-free value tree. Every eval-only tool in this list
@@ -25,8 +25,8 @@
     tombstone that records the file's SWHID, and rewrites every inbound link
     in one pass. It works without knowing what consumes those links.],
   "swhid-mint": [Mints and resolves Software Heritage IDs (SWHID, ISO/IEC
-    18670:2025) for content-addressed artifact identity; a VCS-agnostic core
-    with a git backend.],
+    18670:2025) for content-addressed artifact identity, with a VCS-agnostic
+    core and a git backend.],
   "artifact-gate": [A structural rule engine that works on any tree of nodes.
     It checks a tree against require/forbid/order/allow path rules and emits
     diagnostics. `mt check`'s own structural rules run on it.],

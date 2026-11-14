@@ -72,7 +72,7 @@ $ mt packs install
 == Alternatives
 
 - Fold it into `mt install`: that command sets up the machine, while this one restores what one project pins.
-- Load the config first, as other commands do: the load fails on the very source this command installs.
+- Load the config first, as other commands do: the load fails on the exact source this command installs.
 
 
 == Out of scope

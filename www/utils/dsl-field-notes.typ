@@ -7,9 +7,8 @@
 #import "site.typ": u
 
 #let dsl-field-notes = (
-  "title": [The task's title. The built-in template asks for this field
-    alone.],
-  "status": [A status, the date it was set and an optional note:
+  "title": [The task's title. The built-in template includes only this field.],
+  "status": [A status, the date of the setting and an optional note:
     `wip(2026, 7, 6)[behind a flag]`. See "Writing a status" below.],
   "priority": [A number on the project's priority scale, or a framework call
     such as `ice(...)`. See #link(u("/priority/"))[Priority].],
@@ -28,8 +27,8 @@
     `depends-on("a.typ") + related("b.typ")[why]`. See
     #link(u("/links/"))[Task links].],
   "waits-on": [What the task waits on outside the repo, as `checker:id`
-    strings: `("locked:acme-pay@2.4.0",)`. A configured command answers each
-    one. See #link(u("/wait-on-upstream/"))[Wait on upstream].],
+    strings: `("locked:acme-pay@2.4.0",)`. The project configures a command for
+    each one. See #link(u("/wait-on-upstream/"))[Wait on upstream].],
   "tags": [An array of strings: `("backend", "auth")`. One tag needs a
     trailing comma, `("backend",)`, because `("backend")` is a string.],
   "due": [The task's deadline, a date.],

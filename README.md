@@ -80,7 +80,7 @@ No rule is hardcoded in Mindtape. Every check is a few lines of config, either y
 | [Tie work to your goals](https://mlavrinenko.github.io/mindtape/tie-work-to-goals/) | Make each milestone say how it serves your goals, and refuse one that helps none of them. | `error: <new task from template 'milestone'>:2: rules.goals: it helps no goal, so name one it helps or drop it` |
 | [Limit work in progress](https://mlavrinenko.github.io/mindtape/limit-work-in-progress/) | Allow one milestone and one task in progress, and refuse to start a task before the tasks it depends on are done. | `error: tasks/add-redis-client.typ:2: rules.one-task: finish the task in progress before you start another` |
 | [Wait on upstream](https://mlavrinenko.github.io/mindtape/wait-on-upstream/) | Hold a task until a command says the release it needs has landed, and free it the moment it has. | `error: status requires an unblocked task: 'wip'` |
-| [Trace commits to tasks](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/) | Refuse a commit that names no task, then ask which tasks changed a file before you edit it. | `error: .git/COMMIT_EDITMSG: commits.rules.name-task-in-refs-trailer: name the task this commit works on in a` `Refs: <stem>` `footer` |
+| [Trace commits to tasks](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/) | Refuse a commit that doesn’t point at a task, then ask which tasks changed a file before you edit it. | `error: .git/COMMIT_EDITMSG: commits.rules.name-task-in-refs-trailer: name the task this commit works on in a` `Refs: <stem>` `footer` |
 
 ## The elephant in the room: Typst vs Markdown + frontmatter
 

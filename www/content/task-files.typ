@@ -52,14 +52,14 @@ name the prelude defines: `task`, the status functions such as `wip`, and the
 link functions such as `depends-on`.
 
 `@local` means the Typst packages installed on this machine. This `mt` reads
-the prelude at `0.2.0`, `0.3.0` and `0.4.0`, and its copy of each ships in the
-binary, so a task file loads anywhere. `mt install` puts all three there for
+the prelude at `0.2.0`, `0.3.0` and `0.4.0`, and it embeds a copy of each. A
+task file loads anywhere. `mt install` puts all three there for
 your editor and `typst`, as the #link(u("/quickstart/"))[Quickstart] shows. An
 import at any other version fails once per version, naming the file, the
 version and the set. The error gives a rewrite hint for an older version and
 an upgrade hint for a newer one. `mt fix` rewrites an older unsupported pin in
 your task roots and template dirs. `mt fix --all --check` exits 1 while one
-remains, so CI can gate it. A supported older pin is kept. To point the import
+remains, so CI can gate it. `mt` keeps a supported older pin. To point the import
 at a prelude in the project's own tree instead, see
 #link(u("/config/"))[Configuration].
 
@@ -129,8 +129,8 @@ markup. A note passed as a string fails:
 == Join links with `+`
 
 Each link function returns an array of links, and `+` joins two arrays into
-one. A comma ends the `links` field instead, so the second call turns into an
-unnamed argument of `task`:
+one. A comma ends the `links` field instead. The second call then turns into
+an unnamed argument of `task`:
 
 #pair("links")
 

@@ -47,7 +47,7 @@
 == TO-BE
 
 - 🟢 Bare `mt ls` ends with `default view · 2 of 2 tasks`: the source, then the rows shown of the tasks in the project.
-- 🟢 Each other source has the same shape: `your filter`, `your filter and sort`, `release rule`, `sort and columns from inbox view` when several sources share the listing, and `release rule overridden` when every facet of a matched rule lost.
+- 🟢 Each other source has the same shape: `your filter`, `your filter and sort`, `release rule`, `sort and columns from inbox view` when more than one source shares the listing, and `release rule overridden` when every facet of a matched rule lost.
 - 🟢 A listing nothing shaped prints just the count, `2 of 2 tasks`.
 - 🟢 A cut listing adds `1 more · next page: mt ls '' -n 1 --skip 1`.
 - 🟢 `--json` keeps its envelope.

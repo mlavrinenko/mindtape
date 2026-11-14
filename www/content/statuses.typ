@@ -66,7 +66,7 @@ is legal.
 
 = Writing a status
 
-A task's `status:` has a value, the date it was set, and an optional note.
+A task's `status:` has a value, the date of the setting, and an optional note.
 The prelude has a constructor for common values such as `wip` and `done`,
 which takes the note as a trailing block. For any other value, use
 `status(...)`, which takes the note as its `note` argument:
@@ -123,11 +123,11 @@ already has is always allowed, and so is the first status of a task that has
 none. An entry with an empty `to` is a sink, which a task leaves only with
 `--force`, like `cancelled` above.
 
-`mt check` reports a task whose status can't be reached from the initial
-status, the first entry that isn't terminal. It checks only the current
-status, because a task file keeps no history of earlier statuses.
+`mt check` reports a task whose status the `to` edges can't reach from the
+initial status, the first entry that isn't terminal. It checks only the current
+status, because a task file stores only the current status.
 
-To get the shipped six statuses with a transition graph, extend the
+To get the built-in six statuses with a transition graph, extend the
 #link(u("/packs/#the-rules-in-mindtape-flow"))[`mindtape:flow`] pack. Your own
 `[[tasks.status]]` replaces its legend whole, and `mt check` validates the
 `to` edges of whichever legend wins.

@@ -28,9 +28,9 @@ lists every failure.
 
 A test of a config command passes on Windows only if it's portable. A string
 `run` must mean the same to `sh -c` and `cmd /C`, as the stub checkers in
-`tests/it/waits_e2e.rs` do. An array `run` needs no shell, so
+`tests/it/waits_e2e.rs` do. An array `run` doesn't need a shell, so
 `tests/it/argv_run_e2e.rs` spawns `mt` itself, the one program every runner
-has. #mindtape's own presets and packs ship gates with no `run` at all, and
+has. #mindtape's own presets and packs include gates with no `run` at all, and
 `no_builtin_declares_a_command`, `no_answer_set_declares_a_command` and
 `no_embedded_pack_declares_a_command` keep it that way.
 
@@ -41,9 +41,10 @@ there, though every line matches. So such a file gets `text eol=lf` in
 
 On Windows, `dirs` reads the data path from a system API that no environment
 variable overrides. A test that sets `XDG_DATA_HOME` would test a path `mt`
-never reads there. That's why `MINDTAPE_CONFIG_HOME`, `MINDTAPE_DATA_HOME` and
-`MINDTAPE_CACHE_HOME` exist, and why `support::isolated_env` sets all three.
-`tests/it/packs_cache_e2e.rs` fills the pack cache under the last one.
+never reads there. The `MINDTAPE_CONFIG_HOME`, `MINDTAPE_DATA_HOME` and
+`MINDTAPE_CACHE_HOME` variables exist for that reason, and
+`support::isolated_env` sets all three. `tests/it/packs_cache_e2e.rs` fills
+the pack cache under the cache variable.
 `tests/it/install_e2e.rs` sets them to check both where `mt install`
 writes the `@local/mindtape` package and where loading a project finds it.
 `tests/it/install_package_path_e2e.rs` leaves `MINDTAPE_DATA_HOME` unset and

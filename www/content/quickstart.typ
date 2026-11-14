@@ -25,7 +25,7 @@ Install the CLI crate from crates.io:
 // docs:hand-typed the crate name comes from the release workflow, and the build does not run cargo install
 #raw("cargo install " + cli-crate, lang: "sh", block: true)
 
-Each tagged release also ships a binary for #release-targets.len() platforms.
+Each tagged release also includes a binary for #release-targets.len() platforms.
 Grab yours from the #link(REPO + "/releases")[Releases page]:
 
 #list(..release-targets.map(t => raw(t.artifact)))
@@ -85,7 +85,7 @@ Following #mindtape's `nixpkgs` keeps the build the one its CI pushes to
 `https://mlavrinenko.cachix.org`, whose key is
 `mlavrinenko.cachix.org-1:vNcY3Nf5Y1J0D30uNAwrw44CBHbHDd1tGiA18ANz4XY=`.
 
-Or build it from source with a Rust toolchain. The binary is written to
+Or build it from source with a Rust toolchain. Cargo writes the binary to
 `target/release/mt`:
 
 // docs:hand-typed the build does not clone the repository it runs in
@@ -97,7 +97,7 @@ cd mindtape && cargo build --release
 = Set up the environment
 
 Task files import a Typst prelude. `mt` has its own copy, so a CI runner
-or a fresh clone needs no setup. Your editor and `typst` look for the prelude
+or a fresh clone doesn't need setup. Your editor and `typst` look for the prelude
 on the machine, and `mt install` puts it there. Run it once per machine:
 
 #terminal("qs-install")
@@ -124,8 +124,8 @@ and #link(u("/config/"))[Configuration] covers what the file can contain.
 = File your first task
 
 A task is a plain text file, so you can write one in any editor. Or let
-`mt add` fill in a template for you. The default template only asks for a
-title:
+`mt add` fill in a template for you. The default template has only a title
+slot:
 
 #terminal("qs-add")
 
@@ -135,8 +135,7 @@ title:
 
 #link(u("/task-files/"))[Task files] walks through each line.
 #link(u("/templates/"))[Templates & slots] covers editor mode, named templates
-and templates that ask for more than a title. Each value a template asks for
-is a slot.
+and templates with more than a title. Each value a template takes is a slot.
 
 = List and query
 
@@ -157,8 +156,8 @@ formats for other programs. To search by text, use
 
 = Change status
 
-Your project's config sets which statuses exist and which transitions between
-them are allowed. It is all in `.mindtape/config.toml`. Each status is also a
+Your project's config sets which statuses exist and allows which transitions
+between them. It is all in `.mindtape/config.toml`. Each status is also a
 command that sets the status and stamps today's date. The `flow` preset won't
 let you jump from proposed straight to done:
 

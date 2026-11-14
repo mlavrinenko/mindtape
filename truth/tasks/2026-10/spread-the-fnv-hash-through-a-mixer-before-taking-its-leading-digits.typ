@@ -49,7 +49,7 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 Sequential and dated stems get hashes as short as unrelated ones: 2000 `task-NNNNN` stems are mostly 3 characters.
+- 🟢 Sequential and dated stems get hashes as short as unrelated ones: 1854 of 2000 `task-NNNNN` stems are 3 characters.
 - 🟢 Every hash is minted anew once; nothing pre-release keeps the old ones.
 
 

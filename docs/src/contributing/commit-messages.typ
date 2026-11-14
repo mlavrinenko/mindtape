@@ -33,8 +33,8 @@ per-commit `[[commits.rules]]` of the `mindtape:tasks` pack
 (`crates/mindtape/src/packs/tasks.toml`).
 
 `mt check` skips a merge commit by default. A merge only joins commits that
-were checked on their own, and its index repeats the merged branch. Pass
-`--check-merges` to check one anyway.
+each went through `mt check` on their own, and its index repeats the merged
+branch. Pass `--check-merges` to check one anyway.
 
 - `name-task-in-refs-trailer` refuses a commit with no `Refs:` trailer, unless
   every file it changes is a `.typ` file under a task root. This repo's only task
@@ -46,13 +46,13 @@ were checked on their own, and its index repeats the merged branch. Pass
   `mt check --commits` only, so run `git rebase -i --autosquash` before
   #just.land().
 - `flip-task-with-its-work` checks each task a commit flips into `wip` or
-  `done`. The commit's `Refs:` must name the task. The commit must also change
-  a file outside the task root. Three commits are exempt from the second half:
-  one that retires another task with `mt rm`, one for a task of kind
-  `decision`, which has no code to commit with it, and one for a milestone,
-  which ends through its leaves.
+  `done`. The commit's `Refs:` must refer to the task. The commit must also change
+  a file outside the task root. Three commits are exempt from the second half.
+  One retires another task with `mt rm`. One is for a task of kind `decision`,
+  which has no code to commit with it. One is for a milestone, which ends
+  through its leaves.
 - `finish-named-task-at-tip` is a `scope = "tip"` rule, which runs only
-  under `mt check --commits <range>`. It refuses a range whose commits name a
+  under `mt check --commits <range>`. It refuses a range whose commits refer to a
   task that's still `wip` in the newest commit, and prints the stems. So you
   put the `done` flip in the task's last commit. The `pre-merge` hook of
   #just.land() runs
@@ -68,11 +68,12 @@ one more rule:
   commit passes, since its staged status is `done`.
 
 `mt check --commit-msg` also refuses a `Refs:` value that's a path to a task,
-or names no task. A repo that tracks work elsewhere can accept the second kind
-instead: `[commits] external-refs` lists regexes, and a value that names no
-task but matches one is an external ref, kept opaque. A value may list several
-refs, split on commas or whitespace, and a ref that contains either goes in
-double quotes or escapes that character with a backslash.
+or that doesn't refer to a task. A repo that tracks work elsewhere can accept
+the second kind instead. Its `[commits] external-refs` key lists regexes, and
+a value that doesn't refer to a task but matches one is an external ref, kept
+opaque. A value may list more than one ref, split on commas or whitespace, and
+a ref that contains either goes in double quotes or escapes that character
+with a backslash.
 
 Last, `.just/scripts/outdatty-review-trailer.sh` requires a re-record to have
 the `Docs-Unaffected:` footer CONTRIBUTING.md's Dependency Drift section asks
@@ -80,7 +81,7 @@ for. It refuses a commit whose staged `.config/outdatty.lock` changes a group's
 source hash while the commit changes none of that group's dependents, unless a
 footer names the group. A dependent hash that the re-record includes doesn't
 count, since no one edited that file. A merge commit passes, because the
-merged commits have their own footers. A rebase pick runs no hook at all.
+merged commits have their own footers. A rebase pick doesn't run a hook at all.
 
 That check is a script, not a `[[commits.rules]]` entry, because a commit rule
 reads the commit's `files` and `trailers` but no file's content. It can't

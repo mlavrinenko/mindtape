@@ -66,7 +66,7 @@
 
 - One sort merged across projects: priority scales differ per project, so it would compare ICE scores with plain numbers.
 - One table per project: the header repeats, and the output no longer reads as one list.
-- `-n` as a total: `mt @home ls -n 10` would show mostly the first project.
+- `-n` as a total: `mt @home ls -n 10` would show the first project's tasks.
 
 
 == Out of scope

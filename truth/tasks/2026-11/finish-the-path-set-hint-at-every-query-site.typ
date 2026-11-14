@@ -41,7 +41,7 @@
 + Verifying the fixes for the ast-grep review
 + 🔴 #raw("crates/mindtape/src/estimate_queries.rs"): A config-level `[tasks.estimate.queries]` path set still drops the nearest-name hint, and a collector hint omits the `@`.
 
-With `[dicts.source]` declared and the unit path set set to `@sorce`:
+With `[dicts.source]` declared and the unit path set to `@sorce`:
 
 ```
 $ mt check

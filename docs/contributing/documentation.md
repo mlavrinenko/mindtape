@@ -7,19 +7,19 @@ The doc gates catch mechanical errors:
 - `just docs check` finds a dead link.
 - `just docs facts` finds a derived fact with no entry.
 - `just docs recipes` finds a hand-typed recipe name.
-- `just docs vale-prose` finds history words, shouting, an em dash or a typed name in Typst prose.
-- `just docs prose` finds the same four in Markdown, comments, schema descriptions and help text, where Vale does not read.
+- `just docs vale-prose` holds Typst prose to the Vale style.
+- `just docs prose` finds history words, shouting, an em dash or a typed name in Markdown, comments, schema descriptions and help text, where Vale does not read.
 - `just docs blocks` finds a hand-typed code block.
 
 No gate finds duplicated prose or a page that doesn’t help its reader. The rules below cover what the gates can’t.
 
-The span, recipe, prose and block gates read the Typst sources through one extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with `typstyle --ast` and prints each inline raw, block raw line, comment line and prose line with its file and line, so a fence inside a string hides nothing. The same file lists the sources the gates read, and fails when an entry matches no file.
+The span, recipe, prose and block gates read the Typst sources through one extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with `typstyle --ast` and prints each inline raw, block raw line, comment line and prose line with its file and line. A fence inside a string then hides nothing. The same file lists the sources the gates read, and fails when an entry matches no file.
 
-The span gate passes each `mt` command line it finds in a span to `mt _cli --check-argv`. It finds them after a `$ ` prompt, `VAR=value` words or `&&`. That runs the `@name` rewrite, clap and the status-verb parser that `mt` itself runs, so the gate holds no copy of the command grammar. A missing required argument passes, because a span shows part of a command.
+The span gate passes each `mt` command line it finds in a span to `mt _cli --check-argv`. It finds them after a `$ ` prompt, `VAR=value` words or `&&`. That runs the `@name` rewrite, clap and the status-verb parser that `mt` itself runs. The gate reuses the command grammar instead of copying it. A missing required argument passes, because a span shows part of a command.
 
 It reads a config key span, such as `[ls] hyperlinks`, against `schema/config.schema.json`, or against `schema/at.schema.json` when the span’s first segment is an `at.toml` key such as `[board]` or `[at.<name>]`. A key that neither schema has fails with the closest one.
 
-## Where the docs live
+## Doc sources
 
 - `www/content/**/*.typ` is the docs site, and `www/utils/*.typ` holds the notes its generated references render.
 - Each `mt` command has a page, `www/content/cli/<command>.typ`, which renders the command from `www/utils/cli-ref.typ` and can add prose of its own. `just docs coverage` fails on a command with no page or no `www/utils/cli-notes.typ` entry.
@@ -40,12 +40,12 @@ The docs never mention a bug or a workaround. When writing a page turns up behav
 
 ## State each fact once
 
-A generated fact (`www/generated/*.json`, read by both render paths) can’t drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the tagline, the recipe table and the Typst section in README and on the site root, is defined once in a module both call (`www/utils/demo.typ`).
+A generated fact (`www/generated/*.json`, read by both render paths) can’t drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. State a fact on one page and link to it from the others. Content that both render paths show lives once in a module both call (`www/utils/demo.typ`). That covers the tagline, the recipe table and the Typst section in README and on the site root.
 
 The `just docs dup-prose` audit reports two kinds of repeat that are deliberate:
 
 - A document an agent reads whole (AGENTS.md, the skill and its references) keeps its own copy of what it needs, because its reader may have no site access.
-- Shared code, such as a render loop or a crate table, may be extracted or copied. Never paraphrase it, because reworded code is worse than either.
+- You may move shared code into one place, such as a render loop or a crate table. Never paraphrase it, because reworded code is worse than either.
 
 ## Use checked examples
 
@@ -55,15 +55,15 @@ A code block in the docs comes from a real file under `examples/` that `mt check
 - The DSL page’s field table is `lib/prelude.typ`’s own signature.
 - To show a run, use a capture. `www/capture.sh` writes a record of each command the build ran in a terminal, what it printed and its exit code. A page shows the record with `terminal(<slug>)`, or `commands(<slug>)` for the commands alone. Both print each command from the record, so a page can’t show a command that didn’t run.
 
-`exit-code(<slug>)` prints the exit code of a refusal the page shows, the last command that exited non-zero. For a capture with two refusals, pick one with `step: <n>`, the command’s index from 0. The build fails when that command passed or doesn’t exist. A step that exits with an unexpected code fails the build. Every refusal exits 1 and every usage error 2, so a refusal capture also names its reason with `--expect <regex>`, and the build fails unless the output, without its color, matches it. It also fails on a non-zero `--exit` with no `--expect`.
+`exit-code(<slug>)` prints the exit code of a refusal the page shows, the last command that exited non-zero. For a capture with two refusals, pick one with `step: <n>`, the command’s index from 0. The build fails when that command passed or doesn’t exist. A step that exits with an unexpected code fails the build. Every refusal exits 1 and every usage error 2. A refusal capture gives its reason with `--expect <regex>`, and the build fails unless the output, without its color, matches it. It also fails on a non-zero `--exit` with no `--expect`.
 
 To quote one line of what a capture printed, such as an `error:` or `hint:` line, write `capture-line(<slug>, <regex>)`. It renders the first line of the capture that matches the regex, and the build fails when none does. The span gate fails on an inline span that starts with `error:`, `warning:`, `hint:` or `note:` followed by text, because a hand-typed copy goes stale when the message changes.
 
-`just docs blocks` fails on a fenced block, or a block `raw(...)`, whose text is written in the source. If no fixture can hold a block, such as a grammar sketch, put `// docs:hand-typed <reason>` on the line above it. The gate lists the sources not yet converted. A listed source with no hand-typed block left fails, so the list only shrinks.
+`just docs blocks` fails on a fenced block, or a block `raw(...)`, whose text you write in the source. If no fixture can hold a block, such as a grammar sketch, put `// docs:hand-typed <reason>` on the line above it. The gate lists the sources not yet converted. A listed source with no hand-typed block left fails. The list only shrinks.
 
 ## Voice
 
-Write the way an engineer explains a tool to a peer: say “you”, use contractions, open with what the reader wants to do, show the command and what it prints, and say what a choice costs. Don’t assume a team, because the reader may work alone, with agents, or both.
+Write the way an engineer explains a tool to a peer. Say “you”, use contractions, open with what the reader wants to do, and show the command and what it prints. Say what a choice costs. Don’t assume a team, because the reader may work alone, with agents, or both.
 
 - Bad: “Each task is a Typst file in your repository. `mt` checks every task and commit against the rules your team writes in `.mindtape/config.toml`.”
 - Good: “Your tasks are Typst files in the repo, one per task. Rules go in `.mindtape/config.toml`, and `mt` refuses any edit or commit that breaks them.”
@@ -73,33 +73,108 @@ Each kind of reader gets its own register:
 - **The site, README, `CONTRIBUTING.md` and the `docs/contributing/*.md` deep dives** use the voice above.
 - **`--help` text** says in one or two sentences what the flag does, from the user’s side. It leaves out internals such as config tables the user never sees.
 - **An error message** names what failed, quotes the value that failed, and says what to try next on a `hint:` line when there’s an obvious next step. It’s one line that starts with `error:`. Build it with the `Diag` builder in `crates/mindtape-cli/src/diag/`, whose module docs hold the format.
-- **AGENTS.md, SKILL.md and the skill’s references** are read by agents, any agent and not one vendor’s. They’re imperative: one situation, one action, the exact command. They state the rules an agent must follow, such as making changes through `mt` commands, which a human page leaves as a choice.
+- **AGENTS.md, SKILL.md and the skill’s references** target any agent, not one vendor’s. They’re imperative: one situation, one action, the exact command. They state the rules an agent must follow, such as making changes through `mt` commands, which a human page leaves as a choice.
 
 ## Plain prose
 
-Write for a busy engineer who reads each sentence once. The rules apply to comments in doc sources too: a comment says what the code does and why, in as few lines as it takes.
+Write for a busy engineer who reads each sentence once. The voice rules apply to comments in doc sources too: a comment says what the code does and why, in as few lines as it takes.
 
-The Vale style in `.config/vale/styles/Prose/` checks the mechanical part of Typst prose:
+### The Vale gate
 
-- `Prose.History` finds the history words `now`, `used to`, `no longer`, `anymore` and `formerly`.
-- `Prose.Shouting` finds an all-caps word outside the exception list in `Shouting.yml`.
-- `Prose.EmDash` finds an em dash.
-- `Prose.ProductName` finds the product’s name typed out in a docs source, which writes `#mindtape` instead.
+`just docs vale-prose` runs Vale over `docs/src`, `www/content` and `www/utils`, using the style in `.config/vale.ini` and `.config/vale/styles/Prose/`. Every rule sits at `error`, so one alert fails the gate. The rules come from Microsoft, Google and write-good, from the ai-tells package, and from this repo. The repo vendors them all. A run works offline.
 
-`just docs vale-prose` runs those rules over `docs/src`, `www/content` and `www/utils`. `just docs vale-tasks` runs `Shouting` and `EmDash` over a task body, because a task records a change: `now` and `no longer` name its AS-IS and TO-BE, and a task has no `#mindtape` constant. That arm carries no `gate` tag, since `mt flip` writes the task file it would read.
+A new rule starts at `warning`. Clear its alerts over the docs, then move its level to `error` in `.config/vale.ini`. The level lives in the config, not in the rule file. When the prose can’t satisfy a rule, drop the rule by name and write the reason beside its level block.
 
-`just docs prose` keeps the same four rules for Markdown, the full-line comments of every tracked shell script, YAML file and Justfile, both schema descriptions and every `mt _cli --json` help string. It also checks a shell constant, written as `$NAME`, `${NAME}` or `NAME=`, and a lone capital beside an all-caps word. A quoted example passes in both gates. The word lists are in `.just/scripts/_doc-prose-lib.sh`, and what the scan skips is argued in `.just/scripts/check-doc-prose.sh`.
+### Rules the prose follows
+
+Every rule sits at `error`. The example shows what the rule flags.
+
+#### Sentence shape
+
+| Rule | Flags | Example |
+| --- | --- | --- |
+| `Prose.SentenceLength` | more than 30 words | “one clause, then a second, then a third that runs the sentence past the limit” |
+| `Prose.PassiveVoice` | a passive clause | “the file is written” |
+| `Prose.Semicolon` | a semicolon | “a; b” |
+| `Prose.ConsequenceClause` | a `so` clause | “the loader sorts, so the first entry wins” |
+| `Prose.EmDash` | an em dash character | “the rule — and its reason” |
+| `Prose.DoubleHyphen` | a double hyphen outside code | `--verbose` |
+| `Prose.Latin` | a Latin abbreviation | “e.g., i.e., etc.” |
+| `Prose.HeadingPunctuation` | end punctuation in a heading | “How it works.” |
+| `Prose.HeadingCase` | Title Case in a heading | “How It Works” |
+
+#### Word choice
+
+| Rule | Flags | Example |
+| --- | --- | --- |
+| `Prose.Weasel` | an unquantified qualifier | “several or clearly” |
+| `Prose.Wordiness` | a longer phrase for a shorter one | “in order to” |
+| `Prose.FormalRegister` | a formal synonym | “utilize” |
+| `Prose.OverusedVocabulary` | an AI-favored word | “delve” |
+| `Prose.JourneyMetaphors` | a progress metaphor | “the journey” |
+| `Prose.AICompoundPhrases` | a stock phrase | “a rich tapestry” |
+| `Prose.UrgencyInflation` | invented stakes | “cannot be overstated” |
+| `Prose.PromotionalPuffery` | a stock scenic phrase | “nestled in the heart of” |
+| `Prose.SycophancyMarkers` | flattery | “great question” |
+| `Prose.HedgingPhrases` | throat-clearing | “it’s worth noting” |
+| `Prose.FillerPhrases` | a phrase you can delete | “at the end of the day” |
+| `Prose.OpeningCliches` | a generic opener | “In today’s fast-paced world” |
+| `Prose.ClosingPleasantries` | a sign-off | “Happy coding” |
+| `Prose.ConclusionMarkers` | a conclusion announcement | “In conclusion” |
+| `Prose.RestatementMarkers` | a restatement frame | “In other words” |
+| `Prose.StructureAnnouncements` | a narration of the page | “Let’s dive in” |
+| `Prose.UnpackExplore` | an explainer prompt | “let’s unpack” |
+| `Prose.VagueAttributions` | an unnamed source | “experts say” |
+| `Prose.FalseExclusivity` | insider framing | “not just a tool” |
+| `Prose.FormalTransitions` | an essay connector | “Moreover” |
+
+#### Sentence frames
+
+| Rule | Flags | Example |
+| --- | --- | --- |
+| `Prose.ServesAsDodge` | an inflated copula | “serves as a” |
+| `Prose.PseudoCleft` | a `What ... is` frame | “What matters is the order” |
+| `Prose.ShellNounCopula` | a shell noun | “the problem is that” |
+| `Prose.LabelAndExplain` | a label and a colon | “The result: the gate fails” |
+| `Prose.ExplainerLeads` | an announcement of what follows | “Here’s how it works” |
+| `Prose.NegatedObject` | a shifted `no` | “allows no override” |
+| `Prose.NegatedSubject` | an absence as subject | “No rule reads it” |
+| `Prose.BareNames` | a designation verb | “the field names the target” |
+| `Prose.AnthropomorphicCognition` | cognition given to a tool | “the gate knows” |
+| `Prose.AnthropomorphicJustification` | volition given to a tool | “because the code wants” |
+| `Prose.ShipOveruse` | `ship` as a verb | “ships with” |
+| `Prose.ExplainerHeadings` | a question heading | “Why a hook fires” |
+
+#### Names and spelling
+
+| Rule | Flags | Example |
+| --- | --- | --- |
+| `Prose.History` | an old state | “no longer” |
+| `Prose.Shouting` | all caps | “MUST” |
+| `Prose.ProductName` | a typed product name | “Mind tape” |
+| `Prose.Spelling` | an unknown word | “retreive” |
+| `Vale.Terms` | a wrong case for a name | “Github” |
+| `Vale.Avoid` | a rejected spelling | “E-mail” |
+| `Vale.Repetition` | a word typed twice | “the the” |
+
+### Task bodies
+
+`just docs vale-tasks` runs the same style over `truth/tasks`. Thirty-two AI-tell rules stay off until the task prose passes them. Seven more stay off because a task record differs from a page, and `.config/vale.ini` argues each one. A task records a change, and `Prose.History` would flag its AS-IS and TO-BE. The task shape mandates headings such as `AS-IS` and `TO-BE`, which `Prose.HeadingCase` would rename. A task has no `#mindtape` constant for `Prose.ProductName`. It quotes identifiers in bare prose, which `Prose.Spelling` doesn’t know. The three sentence rules, `SentenceLength`, `PassiveVoice` and `Semicolon`, read a task bullet as a page sentence. A bullet is a record. That arm carries no `gate` tag, since `mt flip` writes the task file it would read.
+
+### Prose gate coverage
+
+`just docs prose` keeps four older checks for Markdown, the full-line comments of every tracked shell script, YAML file and Justfile, both schema descriptions and every `mt _cli --json` help string. It also checks a shell constant, written as `$NAME`, `${NAME}` or `NAME=`, and a lone capital beside an all-caps word. A quoted example passes in both gates. The word lists are in `.just/scripts/_doc-prose-lib.sh`, and `.just/scripts/check-doc-prose.sh` argues what the scan skips.
 
 The rest needs a reader’s judgment:
 
-1. State the rule and its reason, so a reader can apply it to a case it doesn’t name.
+1. State the rule and its reason, so a reader can apply it to another case.
 2. Use the literal word: a figure of speech reads differently to each reader.
-3. Make the actor the subject: name the program or person that acts, not the file or field.
+3. Make the actor the subject: the program or person that acts, not the file or field.
 4. Drop the “not Y” half when no reader asked about Y.
 5. Put one idea in each sentence: split at a semicolon or a colon that announces a claim.
 6. Open with the fact, not a question or a staged scene.
-7. Keep the fact at its real size: name what a thing does, not that it is the whole gate.
-8. Stop when the point is made; a closing sentence that restates the section adds nothing.
+7. Keep the fact at its real size: say what a thing does, not that it is the whole gate.
+8. Stop when the point stands. Delete a closing sentence that repeats the section.
 9. Use a list for parallel cases: three or more cases in one sentence are hard to scan.
 
 ## The duplicate-prose audit

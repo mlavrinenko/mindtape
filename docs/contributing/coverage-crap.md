@@ -6,17 +6,17 @@ Why `just cover` and `just crap check` work the way they do. Read this before yo
 
 ## Coverage
 
-`just cover` runs the suite under `cargo-llvm-cov` in the last stage of `just check`, after every other gate passed. llvm-cov merges the profile of every process, so the end-to-end tests that spawn `mt` count toward the command code they run. The recipe writes `target/coverage/lcov.info` for `just crap check` and fails below 90% of lines. `main.rs` is excluded, so keep it thin.
+`just cover` runs the suite under `cargo-llvm-cov` in the last stage of `just check`, after every other gate passed. llvm-cov merges the profile of every process, so the end-to-end tests that spawn `mt` count toward the command code they run. The recipe writes `target/coverage/lcov.info` for `just crap check` and fails below 90% of lines. The recipe excludes `main.rs`, so keep it thin.
 
-The workspace total can stay green while one file’s coverage drops, so the recipe also gates each production file. It fails a file below 88% line coverage that has 5 or more uncovered lines, and names it with its percentage and its unreached line count. Test files don’t count as production. The recipe reads each record’s `LF` and `LH` from the lcov, not `cargo llvm-cov report --json`, whose summary counts a line once per compiled copy of the `mt` crate and shows a fully covered file at 75%.
+The workspace total can stay green while one file’s coverage drops, so the recipe also gates each production file. It fails a file below 88% line coverage that has 5 or more uncovered lines, and names it with its percentage and its unreached line count. Test files don’t count as production. The recipe reads each record’s `LF` and `LH` from the lcov. It doesn’t read `cargo llvm-cov report --json`, whose summary counts a line once per compiled copy of the `mt` crate and shows a fully covered file at 75%.
 
-88% is about 1.5 standard deviations below the per-file mean (95.97%, sd 5.32 over 125 files when measured). That flags the files far below the mean, while a file a point or two under the average passes. The 5-line minimum keeps a small file out of the gate when 3 lines of tty or stdio wiring lower its percentage. The fix is a test. If the lines can’t be tested, add the file to `ignore` in `.just/scripts/cover.sh` with the reason beside it.
+88% is about 1.5 standard deviations below the per-file mean (95.97%, sd 5.32 over 125 files when measured). That flags the files far below the mean, while a file a point or two under the average passes. The 5-line minimum keeps a small file out of the gate when 3 lines of tty or stdio wiring lower its percentage. The fix is a test. If a test can’t reach the lines, add the file to `ignore` in `.just/scripts/cover.sh` with the reason beside it.
 
 ## Changed lines
 
-`just cover` also gates the lines changed since `main`. `diff-cover` reads the same lcov and fails when any added or edited line is uncovered, so a branch cannot sit above both absolute floors while its new guards are untested. The diff is `git diff main`, not `main...HEAD`, so staged and working-tree lines count too. On `main` itself the diff is empty and the check is inert; a checkout without the ref skips it with a note. Set `MINDTAPE_COVER_BASE` to compare against another ref.
+`just cover` also gates the lines changed since `main`. `diff-cover` reads the same lcov and fails when any added or edited line lacks coverage, so a branch cannot sit above both absolute floors while its new guards go untested. The diff is `git diff main`, not `main...HEAD`, so staged and working-tree lines count too. On `main` itself the diff is empty and the check is inert. A checkout without the ref skips it with a note. Set `MINDTAPE_COVER_BASE` to compare against another ref.
 
-The output level is set in `.config/nextest.toml`, because `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it. With the flag alone, a green run prints one `PASS` line per test, over 2000 lines. `just test` and `just cover` both read the profile, so they print the same way.
+`.config/nextest.toml` sets the output level, because `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it. With the flag alone, a green run prints one `PASS` line per test, over 2000 lines. `just test` and `just cover` both read the profile, so they print the same way.
 
 ## Why cover starts clean
 
@@ -24,23 +24,23 @@ The output level is set in `.config/nextest.toml`, because `cargo llvm-cov nexte
 
 Inflated coverage hides the functions `just crap check` and the sweep’s undertested arm look for. Measured here, a session’s leftover profiles put a function that no test can call at 84% covered. A baseline minted from such an lcov fails dozens of functions on the next clean run. Don’t remove the clean to save time.
 
-## The CRAP threshold
+## The score threshold
 
 `just crap check` runs after `just cover` over the same `lcov.info`, in the same CI job. CRAP is `CC² × uncovered³ + CC`, and the gate fails a function that scores above 30. It refuses an lcov older than any source file, so run `just cover` first.
 
-It skips test modules (`*_tests.rs`, `tests.rs` and ejectest’s `*_tests_*.rs` and `tests_*.rs`). llvm-cov emits no coverage for them, so they’d score as undertested production code. `.just/scripts/crap.sh` lists every exclude and why each is spelled `**/…`.
+It skips test modules (`*_tests.rs`, `tests.rs` and ejectest’s `*_tests_*.rs` and `tests_*.rs`). llvm-cov doesn’t emit coverage for them, so they’d score as undertested production code. `.just/scripts/crap.sh` lists every exclude and the reason for its `**/…` spelling.
 
-Above about 90% coverage the cubed term vanishes, and a function scores its own cyclomatic complexity. That’s why a flat dispatcher scores near the threshold. If you add an arm to one, cover it in the same change.
+Above about 90% coverage the cubed term vanishes, and a function scores its own cyclomatic complexity. This makes a flat dispatcher score near the threshold. If you add an arm to one, cover it in the same change.
 
 The threshold does not catch every regression. `just crap check` also compares every function against `.config/crap-baseline.json`, a committed score per function, and fails any function whose score rose. A rise means complexity went up or coverage went down, at any score. That catches a complex, undertested function that scores well under 30. It also fails a function the baseline doesn’t list, and names it. Otherwise a new function stays unchecked until someone re-mints. That mint buries one real rise among every function added since.
 
-When you add a function or add complexity on purpose, run `just crap baseline` in the same commit, so the new score is recorded beside the reason for it. [docs/contributing/crap-baseline.md](docs/contributing/crap-baseline.md) covers the baseline file.
+When you add a function or add complexity on purpose, run `just crap baseline` in the same commit to record the new score beside the reason for it. [docs/contributing/crap-baseline.md](docs/contributing/crap-baseline.md) covers the baseline file.
 
-## Why a stale lcov is refused
+## The staleness check
 
 A function in a file written after the lcov has no coverage record. With `--missing` at its default, `pessimistic`, it scores as 0% covered. On a 10-day-old lcov, that default gave 28 failures, 27 of them false. A gate that reports false failures is worse than none, so `just crap check` refuses a stale lcov and names the recipe that refreshes it. Stale means a source is newer than the lcov, and `just cover` is not fresh for its content. A checkout or rebase that leaves the bytes alone does not make the lcov stale.
 
-## Why the sweep has no CRAP arm
+## The sweep’s checks
 
 A CRAP band below 30 would flag the wrong functions. Of the 15 functions here that score from 15 to 30, 11 are at least 90% covered. Of the 16 that are complex and undertested, 12 score below 15. So `just ask-refactoring` has no CRAP arm.
 
@@ -48,6 +48,6 @@ A CRAP band below 30 would flag the wrong functions. Of the 15 functions here th
 
 `just check` runs `just cover` and then `just crap check` as its last stage, so the pre-commit hook refuses a commit whose coverage or CRAP score was never measured. A CRAP gate that skipped on a stale lcov would skip on nearly every commit that changes code, and the baseline would drift unseen. The stage costs an instrumented clean rebuild, about two minutes, and runs only after the faster stages pass.
 
-## Where the tools come from
+## Tool sources
 
 `nix/dev/shell.nix` takes cargo-crap from qahq and supplies the LLVM tools `cargo-llvm-cov` needs, and its comments explain both.

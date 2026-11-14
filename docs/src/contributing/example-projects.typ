@@ -15,7 +15,7 @@
 How #just.check-examples() validates every example project against this
 checkout's own prelude.
 
-= Why the examples are gated
+= Gating the examples
 
 Other tools run `mt` against the example projects. `api-service` feeds the
 docs generator and the skill's triage evals, and `minimal` feeds the skill's
@@ -25,15 +25,15 @@ so #just.check-examples() runs `mt check` on each one.
 When you add an example, add it to the list in
 `.just/scripts/check-examples.sh` and to the `examples`
 scope in `.mmz/config.yaml`. mmz re-runs the gate only when a file in that
-scope changes, so an example outside it stops being checked.
+scope changes. mmz then stops checking an example outside the scope.
 
-= Why each example validates against this checkout
+= Validation against this checkout
 
 A task file imports `@local/mindtape`. Typst resolves that import from one
 directory per machine, which `mt install` fills from whichever checkout ran
 it last. A worktree's example would then validate against another checkout's
-prelude. The check would pass while testing nothing, in the case where a
-prelude change needs that validation.
+prelude. The check would pass even when a prelude change needs that
+validation, because it never tests the changed prelude.
 
 So each example's config points the import at this checkout's `lib/` with a
 `[[typst.local-packages]]` entry. The recipe also sets `MINDTAPE_DATA_HOME`

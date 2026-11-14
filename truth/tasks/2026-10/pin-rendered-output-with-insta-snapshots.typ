@@ -37,7 +37,7 @@
 == AS-IS
 
 + Read `/tmp/survivors.txt`'s render section from the 2026-09-30 scoped sweep.
-+ 🔴 `crates/mindtape-cli/src/render/link.rs:37:9 replace <impl fmt::Display for HyperlinkChoice>::fmt -> fmt::Result with Ok(Default::default())` survived into the sprint's survivor list: pinning one rendered shape takes several hand-written assertions per test.
++ 🔴 `crates/mindtape-cli/src/render/link.rs:37:9 replace <impl fmt::Display for HyperlinkChoice>::fmt -> fmt::Result with Ok(Default::default())` survived into the sprint's survivor list: pinning one rendered shape takes more than one hand-written assertion per test.
 + A snapshot pins the whole output in one reviewable artifact and kills every format/`Display` mutant in that shape at once.
 
 == TO-BE

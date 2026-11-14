@@ -29,10 +29,10 @@ on an open dependency, and `mt ls blocked` tells you which one:
 
 #terminal("limit-work-in-progress")
 
-= Deep dive
+= Rule details
 
-A milestone groups tasks and stays open until they're done, often across
-several sessions, so it has a cap of its own. The `one-milestone` rule uses
+A milestone groups tasks and stays open until they're done, and it can span
+sessions. It has a cap of its own. The `one-milestone` rule uses
 `count()` to count the milestones in `wip`, and fails when there's more than
 one. `one-task` does the same for every other task, one with no `kind`
 included, because a missing field equals no value. Every command that writes
@@ -40,7 +40,7 @@ a task checks the rules first. #link(u("/rules/"))[Rules] covers
 work-in-progress caps, and #link(u("/filters/"))[Filter language] covers
 `count()`.
 
-A task names its milestone with a `parent` link, and `mt ls` counts a
+A task records its milestone with a `parent` link, and `mt ls` counts a
 milestone's tasks in its `children` and `progress` columns.
 #link(u("/links/"))[Task links] covers the edge kinds.
 

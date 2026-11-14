@@ -40,7 +40,7 @@
 + Run `wc -c CONTRIBUTING.md`.
 + 🔴 It prints `29837`. The gate table is 18.5 KB of that, and every agent session here loads the whole file through `AGENTS.md`.
 + 🔴 The Notes cells for `fmt-check`, `test`, `check-secrets` and `script-scope-check` are 200-300 word arguments. `docs/contributing/gates.md` or the script header already makes most of them.
-+ Several rules appear in two or three files: no `Refs:` on a filing commit (`CONTRIBUTING.md:111`, `commit-messages.md:16`, `SKILL.md:67`); fork before flipping (`CONTRIBUTING.md:81`, `commit-messages.md:20`).
++ The rules listed here appear in two or three files: no `Refs:` on a filing commit (`CONTRIBUTING.md:111`, `commit-messages.md:16`, `SKILL.md:67`); fork before flipping (`CONTRIBUTING.md:81`, `commit-messages.md:20`).
 + The deep dives narrate history: `gates.md:43-49` calls itself "not a current reading".
 
 

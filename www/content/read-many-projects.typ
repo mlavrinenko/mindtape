@@ -26,7 +26,7 @@
 #let at-schema = json("../generated/at-schema.json")
 
 You keep a backlog in every repo, and `mt` reads the one you're standing in.
-That's fine until you want to know where you left off across all of them.
+That's fine until you want to know where you left off across them all.
 Name your projects once, and a leading `@name` reads every one of them.
 
 = Name your projects
@@ -122,7 +122,7 @@ takes one project and refuses a set with exit code
 = Forks
 
 A fork is a linked git worktree, the kind `git worktree add` makes. It holds a
-copy of its checkout's tasks, so a set leaves it out unless `forks` says
+copy of its checkout's tasks. A set leaves it out unless `forks` says
 otherwise:
 
 #raw(
@@ -141,4 +141,4 @@ directory name:
 
 #terminal("across-forks")
 
-`-w <path>` and `MINDTAPE_WORKTREE` always name one project, fork or not.
+`-w <path>` and `MINDTAPE_WORKTREE` always select one project, fork or not.

@@ -68,17 +68,17 @@ sample backend project's backlog:
 
   [`derived.<name>`],
   [A field a #link(u("/config/#derived-fields"))[collector] computes. A scalar
-    compares and sorts. A list or record does not; read a list's length with
+    compares and sorts. A list or record does not. Read a list's length with
     `len()` or its paths with `count_paths()`, and read a record field as
     `derived.<name>.<field>`.],
 
   [`x-<ns>`],
-  [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so use `has(field, value)` to read it. A dict takes only `has()` and `miss()`. If a filter in the config names an undeclared one while `[tasks.fields]` declares others, `mt` warns at load and suggests the nearest declared name.],
+  [An extension field, whether `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so use `has(field, value)` to read it. A dict takes only `has()` and `miss()`. If a filter in the config uses an undeclared one while `[tasks.fields]` declares others, `mt` warns at load and suggests the nearest declared name.],
 )
 
 A field name may contain `-` between two letters or digits, as in
 `estimate.src-files` and `x-goals`. Any other `-` is a minus sign. If you set
-`[tasks.estimate] units`, a filter may name only those units.
+`[tasks.estimate] units`, a filter may use only those units.
 
 `mt ls` shows a `file` column, but `file` isn't a field, and a filter that
 names it fails. Use `path`. `dir` is the folder part of `path`, from the
@@ -178,7 +178,7 @@ Two more test forms exist only in an #link(u("/hooks/#add-hooks"))[add hook]'s
 `when`. `template == "name"` and `template != "name"` compare the template
 `mt add` used, `from_template("name")` is the same test as `==`, and
 `old("field")` reads the task before any add hook ran. The three template
-tests are config errors anywhere else; `old()` refuses outside an add `when`.
+tests are config errors anywhere else. `old()` refuses outside an add `when`.
 
 One field may have `"alpha"` on one task and `("alpha", "gamma")` on
 another. `x-machine == "alpha"` matches only the first, and
@@ -216,7 +216,7 @@ as its first word, so the last example above lets `matches()` accept it.
 missing field or a word past the end of the title. That's how `==` reads one,
 so `!matches(...)` does match it. Anything else wrong is an error that names
 the problem, such as an unknown dictionary, a pattern `regex` refuses, a
-number where text is needed, or a wrong argument count. `mt ls` exits
+number where text belongs, or a wrong argument count. `mt ls` exits
 #exit-code("filters-unknown-dict"):
 
 #terminal("filters-unknown-dict")
@@ -224,16 +224,16 @@ number where text is needed, or a wrong argument count. `mt ls` exits
 `mt` also runs each filter saved in config once when it loads the config, so
 a view or rule with a bad expression fails by name before any listing. A
 status that no `[[tasks.status]]` entry declares is a bad expression too:
-`status == "wpi"` fails and suggests `wip`, rather than matching nothing.
+`status == "wpi"` fails and suggests `wip`, rather than returning an empty result.
 
 = Dependencies and counts
 
 `ready` matches an open task whose dependencies are all in a
-#link(u("/statuses/#the-default-legend"))[terminal] status, and whose
-#link(u("/wait-on-upstream/"))[`waits-on` checkers] all say the wait is over.
+#link(u("/statuses/#the-default-legend"))[terminal] status. Its
+#link(u("/wait-on-upstream/"))[`waits-on` checkers] must all say the wait is over.
 `blocked` matches an open task with at least one dependency that isn't,
-including one no loaded task answers to, or with a checker that says it still
-waits or can't tell. A task in a terminal status is neither, and `terminal`
+including a missing one, or with a checker that says it still waits or can't
+tell. A task in a terminal status is neither, and `terminal`
 matches it. `mt ls` lists ready tasks first.
 
 The `why` column lists what each blocked task waits on:
@@ -257,8 +257,8 @@ level.
 `blocks` counts the open tasks that wait on this one, directly or through
 other tasks. A priority framework scores each task on its own, so a cheap
 decision that five tasks wait on can score low. `blocks` shows what finishing
-it unblocks. A finished task blocks nothing, so `blocks` falls as work
-closes.
+it unblocks. A finished task doesn't block anything, and `blocks` falls as
+work closes.
 
 A dependency is a `depends-on` edge, or an edge of a
 #link(u("/links/"))[custom kind] marked `blocking = true`. `ready`, `blocked`,
@@ -283,7 +283,9 @@ commit rule can share one path list.
   columns: 2,
   table.header([State], [Counts a path that]),
   [`staged`], [differs in the index from `HEAD`.],
-  [`worktree`], [differs in the working tree from the index, or is untracked.],
+  [`worktree`],
+  [differs in the working tree from the index, or git doesn't track it.],
+
   [`staged+worktree`], [is in either. A path in both counts once.],
 )
 
@@ -299,27 +301,27 @@ path. The path is relative to the repository root:
 
 #terminal("filters-touches")
 
-A trailer may name a task by #link(u("/concepts/#identity"))[stem]
+A trailer may refer to a task by #link(u("/concepts/#identity"))[stem]
 (`Refs: parser`) or by path (`Refs: tasks/parser.typ`). A task `mt mv` renamed
-still matches its old stem, through the renames git records. A stem no loaded
-task answers to belongs to a retired task. It matches nothing, and
+still matches its old stem, through the renames git records. A stem outside the
+loaded set belongs to a retired task. It doesn't match anything, and
 `mt ls --json` lists it under `retired`. A ref that only matches
-#link(u("/commit-rules/#the-trailer"))[`[commits] external-refs`] names no task,
-so `touches()` ignores it.
+#link(u("/commit-rules/#the-trailer"))[`[commits] external-refs`] identifies no
+task, so `touches()` ignores it.
 
 The first `touches()` in a command reads the history with one `git log`. `mt`
 caches the result in `.mindtape/cache/` until `HEAD` or the trailer key
-changes. A command that doesn't call `touches()` runs no git.
+changes. A command that skips `touches()` doesn't run git.
 
 `changed()` and `touches()` need a git repository. Outside one, a filter typed
-on the command line fails and prints git's reason, and a rule that reads git
-is reported once as skipped. Loading a config never runs git. Git runs
+on the command line fails and prints git's reason, and `mt` reports a rule that
+reads git once as skipped. Loading a config never runs git. Git runs
 read-only (`--no-optional-locks`) and at most once per command.
 
 = Sort and limit
 
-`--sort` takes `field`, `field:asc` or `field:desc`. Repeat it to add keys,
-most significant first. Every field in the table sorts except
+`--sort` takes `field`, `field:asc` or `field:desc`. Repeat it to add keys:
+the first key is primary, and each later key breaks a tie. Every field in the table sorts except
 #unsorted-fields.map(raw).join([, ], last: [ and ]). An `x-<ns>` list or dict sorts as a missing
 value, last. `ready` sorts too: ready, then blocked, then terminal. Any other
 direction, such as `priority:up`, is an error. `[ls] default-sort` takes the
@@ -336,12 +338,12 @@ of the order you asked for:
 A bare `mt ls` tries the project's
 #link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]`] first. If none matches,
 it applies the default view: the view `[ls] default-view` names, or
-`[views.default]`. The shipped default view is
+`[views.default]`. The built-in default view is
 `!terminal && (miss(start) || start <= now())`, the open tasks whose start
 date has passed or that have none. An empty filter, `mt ls ''`, matches every
 task. A bare `mt rm` applies `[rm] default-filter`, which is `terminal`.
 
-The same language decides which tasks must have a field. See
+Required fields use the same language. See
 #link(u("/rules/"))[Required fields].
 
 #callout("note")[

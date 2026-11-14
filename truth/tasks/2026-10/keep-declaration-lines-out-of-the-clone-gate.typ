@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a gate fails only on a clone someone can extract],
+      enforced-practice: helps[a gate fails only on a clone someone can isolate],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -34,7 +34,7 @@
 == AS-IS
 
 + Adding a pack and its test module, as five agents did today for the packs milestone
-+ 🔴 #raw(".just/scripts/lint-dry.sh"): `just lint dry` reads a run of `mod`, `#[path] mod tests_*` and `include_str!` registry lines as a renamed clone of itself, so each new module or pack fails the gate until the baseline is re-minted. A declaration list has no helper to extract.
++ 🔴 #raw(".just/scripts/lint-dry.sh"): `just lint dry` reads a run of `mod`, `#[path] mod tests_*` and `include_str!` registry lines as a renamed clone of itself, so each new module or pack fails the gate until the baseline is re-minted. A declaration list has no helper to factor out.
 
 ```
 crates/mindtape/src/config/pack_registry.rs:23: renamed clone of crates/mindtape/src/config/pack_registry.rs:24

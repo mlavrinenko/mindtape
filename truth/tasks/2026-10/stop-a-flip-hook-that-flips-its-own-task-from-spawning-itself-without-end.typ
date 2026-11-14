@@ -54,7 +54,7 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 A hook that flips the very task and status it runs for gets a refusal naming the loop, in one hop.
+- 🟢 A hook that flips the same task and status it runs for gets a refusal naming the loop, in one hop.
 - 🟢 A hook that flips another task still runs that task's own hooks, so no gate is skipped.
 
 

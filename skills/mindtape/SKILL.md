@@ -11,13 +11,13 @@ description: 'Drive Mindtape, a file-based task tracker, through its `mt` CLI; e
 
 # Mindtape (`mt`)
 
-Change tasks with `mt` commands, not by hand: `references/hand-editing.md` covers the few fields no command writes.
+Change tasks with `mt` commands, not by hand. `references/hand-editing.md` covers the few fields that need a manual edit.
 
-## Is this a Mindtape project?
+## A Mindtape project
 
-It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory that holds it, or pass `-w <path>`. Run `mt explain` first: it names this project’s rules, tags, views and dicts. `mt <cmd> --help` lists every flag, and `mt explain rules --for <step>` or `mt explain tags --for <step>` lists what an add, flip or commit checks, and `mt explain add` lists the `[[on.add]]` hooks that fill a new task or choose its folder.
+It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory that holds it, or pass `-w <path>`. Run `mt explain` first: it lists this project’s rules, tags, views and dicts. `mt <cmd> --help` lists every flag, and `mt explain rules --for <step>` or `mt explain tags --for <step>` lists what an add, flip or commit checks, and `mt explain add` lists the `[[on.add]]` hooks that fill a new task or choose its folder.
 
-## What the config runs
+## Commands the config runs
 
 `mt` runs nothing from the config until the user allows it: not a `[[tasks.waits]]` checker, an `[[on.flip]]` `run`, or a `[go]` or `[add]` editor. Until then, a wait reads `unknown: not allowed`, a flip gate refuses with `gate not allowed`, and an editor falls back to `$VISUAL`, then `$EDITOR`. `mt` also prints one warning that lists the commands it did not run. Never run `mt allow`, and never pass `--force` past that refusal or a failing gate: those commands run with the user’s rights. `--force` also waives a failing `[[on.flip]]` gate, so use it only to fix a mistake. Pass that warning to the user.
 

@@ -211,7 +211,7 @@
             + name
             + " must call cli-command("
             + repr(name)
-            + ") once; it renders "
+            + ") once, and it renders "
             + repr(rendered),
         )
       }
@@ -234,11 +234,12 @@
   panic("cli-ref: unknown group " + title)
 }
 
-// The global flags, shown once on the index. clap's own `--help` repeats them
-// on every command.
+// The global flags, shown once on the index. clap's own help repeats them on
+// every command.
 #let render-globals(data) = _args-table(data.globals, "@global")
 
-// The closing lines of `mt --help`, one per line, with backtick spans as code.
+// The closing lines of the `mt` help output, one per line, with backtick spans
+// as code.
 #let render-after-help(data) = (
   data.after_help.split("\n").map(_inline).join(linebreak())
 )

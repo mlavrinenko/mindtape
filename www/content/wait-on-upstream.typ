@@ -13,10 +13,10 @@
 
 #show: page.with(..meta)
 
-Your code has a workaround for a bug in an external library, and the fix ships
+Your code has a workaround for a bug in an external library, and the fix lands
 in the next release. The task that drops the workaround looks ready, so an
 agent picks it up, finds the old version still locked and wastes an hour
-proving it. Or the workaround stays for a year after the bug is fixed.
+proving it. Or the workaround stays for a year after the library maintainers fix the bug.
 
 = Config
 
@@ -27,15 +27,15 @@ version an id names or a later one, and 1 while it pins an older one.
 
 = Behavior
 
-The task names what it waits on in `waits-on`. In a fresh clone `mt` runs no
-checker, so the task is blocked as unknown and `mt` asks you to allow the
-config's commands. Once you do, `why` quotes the script while the lockfile pins 2.3.2,
+The task records what it waits on in `waits-on`. In a fresh clone `mt` doesn't
+run a checker. It blocks the task as unknown and asks you to allow the config's
+commands. Once you do, `why` quotes the script while the lockfile pins 2.3.2,
 and `mt wip` won't start the task. Merge the dependency bot's branch, and the
 same listing lets it go:
 
 #terminal("wait-on-upstream")
 
-= Deep dive
+= Readiness checks
 
 Each `[[tasks.waits]]` entry names a checker command. A task lists
 `checker:id` entries in `waits-on`, and `mt` runs the checker's `run` from the
@@ -54,23 +54,22 @@ that bumps your lockfile.
 A checker can run `mt` too, say `mt ls ready` against the same project. That
 inner `mt` loads the project, so it would run the same checker, which starts
 another `mt`, and so on forever. It doesn't. Every checker runs with
-`MINDTAPE_WAITS_CHECKER=1` set, and an `mt` that sees it runs no checker at
-all. Its waits read `unknown: asked inside a checker`, and the outer `mt` gets
+`MINDTAPE_WAITS_CHECKER=1` set, and an `mt` that sees it doesn't run a checker
+at all. Its waits read `unknown: asked inside a checker`, and the outer `mt` gets
 its answer in one hop.
 
-In a string `run`, `{id}` is inserted into a shell line as is, so `mt check`
+In a string `run`, `mt` inserts `{id}` into a shell line as is. `mt check`
 refuses an id that a shell could read as more than a word. An id starts with a letter
 or digit and allows letters, digits and `._@/#:+-`. An array such as
 `run = ["scripts/locked", "{id}"]` fills `{id}` into each item on its own, and
-no shell reads it. The same id rule applies there, so an entry works under
-either form.
+`mt` passes each item to the command directly. The same id rule applies there.
+An entry works under either form.
 
 A checker runs with your full rights, like a `Justfile` recipe, and `mt ls`
 would run it the moment you clone. So `mt` runs none until
 #link(u("/cli/allow/"))[`mt allow`] records the config's commands for the
 repo. Until then each command warns once and lists them, every wait reads
-`unknown: not allowed`, and `mt wip --force` still starts a task. The approval
-is stored outside the repo and covers each of its worktrees. Change a `run`
+`unknown: not allowed`, and `mt wip --force` still starts a task. `mt` stores the approval outside the repo, and it covers each of its worktrees. Change a `run`
 and `mt` asks again.
 
 #link(u("/links/"))[Task links] covers `depends-on`, the blocker that waits on

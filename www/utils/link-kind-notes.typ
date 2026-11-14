@@ -9,10 +9,10 @@
 #import "site.typ": u
 
 #let link-kind-notes = (
-  "depends-on": [This task can't start until the target is finished.],
+  "depends-on": [This task can't start until the target finishes.],
   "parent": [This task is part of the target.],
   "recurred-from": [The target is the previous occurrence of this recurring task. `mt recur` writes it. See #link(u("/recurring/"))[Recurring tasks].],
   "supersedes": [This task replaces the target.],
   "duplicates": [This task is the same work as the target.],
-  "related": [The two tasks are connected. The edge needs a note that says how.],
+  "related": [The edge connects the two tasks. It needs a note that says how.],
 )

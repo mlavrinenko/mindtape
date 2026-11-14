@@ -52,7 +52,7 @@
 
 == Changes
 
-- An inventory of every message `mt` prints, grouped by where it is built, and one format for all of them, shown on three real messages.
+- An inventory of every message `mt` prints, grouped by where it is built, and one format for all, shown on three real messages.
 - A follow-up task for the mechanical rewrite of the rest.
 
 Proposed format, from the inventory in `target/error-inventory.md`:

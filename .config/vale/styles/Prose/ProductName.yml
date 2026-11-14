@@ -1,6 +1,5 @@
 extends: existence
 message: "Write the product's name as the rendered constant, not '%s'."
-level: error
 nonword: true
 tokens:
   - 'Mind[Tt]ape'

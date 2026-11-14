@@ -49,7 +49,7 @@ left in a closing report no one rereads. It belongs in
 == TO-BE
 
 - 🟢 `mt link we8 depends-on sde` links to the task whose hash is `sde` and writes its path, in an `--apply` map too.
-- 🟢 A hash that several tasks share is refused, as it is for the task argument.
+- 🟢 A hash shared by more than one task is refused, as it is for the task argument.
 - 🟢 Every `<task>` and link target resolves through `mindtape::resolve_ref`, from the working directory or the linking file. `rm` and `link` keep no rule of their own.
 - 🟢 A stem two folders share names the one beside the base, else is refused naming each path.
 - 🟢 One `From<RefError> for Diag` words every refusal.

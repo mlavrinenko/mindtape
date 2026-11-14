@@ -66,7 +66,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- `[[on.flip]]` commands. A gate running `mt flip` on its own task recurses too, but a hook may fairly flip another task, whose gates must still run, so it needs a guard of its own: `stop-a-flip-hook-that-flips-its-own-task-from-spawning-itself-without-end`.
+- `[[on.flip]]` commands. A gate running `mt flip` on its own task recurses too, but a hook may legitimately flip another task, whose gates must still run, so it needs a guard of its own: `stop-a-flip-hook-that-flips-its-own-task-from-spawning-itself-without-end`.
 
 
 == Dogfood

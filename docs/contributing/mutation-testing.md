@@ -17,7 +17,7 @@ Coverage shows that a line ran. Mutation testing shows that a test fails when th
 - A scoped run writes `target/mutants-scoped`, so it never overwrites `mutants.out`. The signal sweep’s mutants arm reads whichever ran last.
 - To see a running sweep’s progress and ETA, run `just mutants status`. It reads `mutants.out` unless you name another directory.
 
-`.config/mutants.toml` sets the file set, the excludes and the `mutants` build profile without debug info. cargo-mutants looks for its config in `.cargo/` only, so the recipes pass this one with `--config`, and a bare `cargo mutants` runs without it.
+`.config/mutants.toml` sets the file set, the excludes and the `mutants` build profile without debug info. cargo-mutants looks for its config in `.cargo/` only. The recipes pass this one with `--config`, and a bare `cargo mutants` runs without it.
 
 ## When to trust a verdict
 
@@ -34,7 +34,7 @@ Every mutant re-runs a suite with subprocess and PTY tests, and a shared CI runn
 Every survivor is a real gap or an equivalent mutant.
 
 - For a real gap, write a test that kills it. If you won’t fix it in this change, leave it to `just ask-refactoring`, which reads the last sweep’s outcomes and files one task per survivor.
-- An equivalent mutant changes nothing a test can observe. Record it in `.config/mutants.toml` under `exclude_re` or `exclude_globs`, and start its comment with the class name below, so you can grep each class.
+- An equivalent mutant doesn’t change anything a test can observe. Record it in `.config/mutants.toml` under `exclude_re` or `exclude_globs`, and start its comment with the class name below, so you can grep each class.
 
 The classes:
 
@@ -43,8 +43,8 @@ The classes:
 - discarded-effect: extra work a later step throws away, such as one more loop pass whose result a final `resize` drops. Exclude it, or rewrite the source so the extra step can’t happen.
 - aliased-input: two inputs that name the same thing, such as `""` and `"."` for the current directory. Exclude it.
 - same-call: the mutant replaces a body with the call it already is, such as `Default::default()` for `Self::default()`. Exclude it, or delete the function when it isn’t public API.
-- no-public-constructor: the branch needs a value the dependency gives no way to build. Exclude it.
+- no-public-constructor: the branch needs a value the dependency doesn’t provide a way to build. Exclude it.
 - platform-specific: the difference exists on another OS only. Exclude it, or gate a test to that platform.
 - entry-point: a thin `main.rs` with no logic to check. Exclude the file.
 
-Every name left on the sweep’s list has a stated reason, so leave no survivor untriaged.
+Every name left on the sweep’s list has a stated reason, and every survivor needs one.

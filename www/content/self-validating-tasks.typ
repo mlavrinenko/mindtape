@@ -58,7 +58,7 @@ an empty array when the task passes.
 
 = Turn it on
 
-Add a `[[tasks.rules]]` entry that names the module, the function and the
+Add a `[[tasks.rules]]` entry with the module, the function and the
 field to pass it. #link(u("/rules/"))[Rules] describes each key.
 
 #raw(

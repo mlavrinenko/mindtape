@@ -18,10 +18,10 @@ untracked ignored file does not.
 defines the set.
 
 `--sort` also takes a scalar `derived.<name>` a project's
-#link(u("/config/#derived-fields"))[collector] computes. A derived field that
-is a list or a record is refused.
+#link(u("/config/#derived-fields"))[collector] computes. `mt ls` refuses a
+derived field that is a list or a record.
 
-A listing has three facets: filter, sort and columns. An `[[ls.rules]]` entry,
+Filter, sort and columns are the three facets of a listing. An `[[ls.rules]]` entry,
 a view and a command-line argument each set only the facets they name.
 
 - A filter argument replaces the filter and keeps the sort and columns of the
@@ -62,7 +62,7 @@ below, and `mt` evaluates it against the rows it's about to print. A column
 with no `when` never shows. A #link(u("/config/#layers"))[config layer]
 replaces a `when` whole, so `when = 'false'` hides a column.
 
-The shipped expressions: `slug#` and `title` are `true`. `status`, `priority`
+The built-in expressions: `slug#` and `title` are `true`. `status`, `priority`
 and `due` are `nonempty()`. `assignee` is `contested()`, so it shows when the
 rows have different assignees. `ready` is `blocked()`. Naming the `assignee`
 column doesn't show it. Set `[ls.columns.assignee] when = 'true'` for that.
@@ -71,8 +71,8 @@ column doesn't show it. Set `[ls.columns.assignee] when = 'true'` for that.
 for them. `why` lists the unfinished blocking targets each task waits on, with
 their status. `mt ls blocked --columns title,why` tells you what to unblock
 without reading any links, and `--json` includes `why` on every task.
-`children` counts a task's `parent` children, and `progress` shows how many of
-them are finished, as `3/5`. See #link(u("/links/"))[Parents and progress].
+`children` counts a task's `parent` children, and `progress` shows the
+finished count, as `3/5`. See #link(u("/links/"))[Parents and progress].
 
 The `slug#` column is the task's stem hash. It's the shortest prefix, at least
 three characters long, of a hash of the
@@ -109,7 +109,7 @@ hash shares its prefix. On a terminal it shows when you name it, as in
 `file` when shown, into OSC 8 links to `[ls] hyperlink-target` (default
 `file://{abs}`). Each link is a URI, so it uses `/` and percent-encodes a
 space, whatever `--path-separator` says. On Windows the default reads
-`file:///C:/proj/tasks/a.typ`, and a UNC path names its server as the host.
+`file:///C:/proj/tasks/a.typ`, and a UNC path sets its server as the host.
 `--hyperlinks auto` turns them on for a terminal whose `TERM` isn't `dumb`. The default is `never`, because a terminal without OSC 8 support
 can print the link as garbage.
 
@@ -132,7 +132,7 @@ and `columns`. A matched entry ignores the default view.
 
 `mt` checks each entry when it loads the config. `condition` must parse and
 may use only the functions below, so a task field there is an error. Each
-`import-views` entry must name a declared view, and each override must be
+`import-views` entry must refer to a declared view, and each override must be
 valid.
 
 A `condition` and a column's `when` share one condition language. It has the
@@ -160,14 +160,14 @@ about the run instead of task fields:
   [Whether the caller named this column in `--columns`, a view's `columns` or an `[[ls.rules]]` override.],
 
   [`blocked()`],
-  [Whether any listed task is blocked. The filter field `blocked` is about one task.],
+  [Whether the listing contains a blocked task. The filter field `blocked` is about one task.],
 
   [`true`, `false`], [Constants.],
 )
 
 `nonempty()`, `contested()`, `named()` and `blocked()` describe the column
-being decided. In an `[[ls.rules]]` condition no column is being decided, so
-they're `false` there, and a rule can't pick its columns from `named()`.
+`mt` is deciding. In an `[[ls.rules]]` condition `mt` isn't deciding a column,
+so they're `false` there, and a rule can't pick its columns from `named()`.
 
 `on_branch()`, `tty()`, the four column functions, `true` and `false` are
 booleans, written bare (`!tty()`). `env()`, `weekday()`, `now()` and
@@ -179,7 +179,7 @@ The line under a table says where the rows came from and how many of the
 project's tasks it shows, as in `default view · 3 of 12 tasks`. When a rule
 sets the sort, its name follows, as in `inbox view · release sort · 3 of 12 tasks`.
 A filter you typed reads `your filter · 1 of 4 tasks`, and `mt ls --json`
-says where each facet came from. A listing that shows no row adds a `hint:`
+says where each facet came from. An empty listing adds a `hint:`
 line. It names `mt ls ''` for every task and `mt explain views` for a saved
 view. In `examples/api-service` no rule matches, so a bare `mt ls` applies the
 default view:
@@ -190,4 +190,4 @@ A task file that fails to load gets a warning naming it, and the line under
 the table counts it last, as in `default view · 1 of 2 tasks · 1 broken`.
 `mt ls` still lists the rest and exits 0. `mt check` fails on a broken file.
 A Typst warning repeated in the same message prints once, with its count and
-files; `-v` lists every site.
+files. `-v` lists every site.

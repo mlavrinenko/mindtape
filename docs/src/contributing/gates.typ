@@ -25,7 +25,7 @@ or runs `mt`, and they share one build. The last stage runs #just.cover() and
 then #just.crap-check(), because coverage pays for an instrumented clean rebuild.
 Within a stage the gates run in parallel. Name stages to run only those, such
 as #just.check("fast build"). CI does that to run `cover` in a job of its own,
-since it shares no build with the other two. To see the gates, ask `just` and
+because it doesn't share a build with the other two. To see the gates, ask `just` and
 mmz rather than a doc:
 
 // docs:hand-typed the commands that list the gates, run against the live Justfile
@@ -47,7 +47,7 @@ arm, #just.docs-vale-tasks(), carries no tag, and "Inputs a plain glob can't
 name" below says why.
 
 A passing #just.check() prints one line, such as
-`check: <n> gates passed (<ran> run, <cached> cached)`. An agent usually reads
+`check: <n> gates passed (<ran> run, <cached> cached)`. An agent reads
 the output once the run ends, and every line costs it context. For a reader
 that only sees the final output, a gate's progress lines and clean-tree report
 add nothing to the pass summary. A failing run prints the full log of each failed gate, then a verdict
@@ -57,8 +57,8 @@ before later stages.
 
 `.just/scripts/mmz-arm.sh` does the capture once for every arm, so no tool
 needs a quiet flag. It writes each arm's output to `target/check/<gate>.log`,
-and the log stays there after a pass. A cache hit prints nothing (`on_hit: ""`
-in `.mmz/config.yaml`), so the arm counts itself as run or cached from the
+and the log stays there after a pass. A cache hit doesn't print anything (`on_hit: ""`
+in `.mmz/config.yaml`). The arm counts itself as run or cached from the
 `skipped` or `ran` mmz writes to the file `MMZ_REPORT` names. Outside #just.check(), #just.mmz("<gate>") streams its
 output. #just.test("<filter>") runs outside mmz, so a filtered run never
 records a pass for the full suite.
@@ -80,13 +80,13 @@ would make the rule stale in the middle of the flip. So the `secrets-tree`
 scope is `**` with `exclude: ["truth/tasks"]`. The scan still reads the task
 files. A change to one doesn't re-run the arm.
 
-#just.docs-vale-tasks() names `truth/tasks/**` and carries no `gate` tag. It
-is the one arm whose inputs name a task file: #just.check() runs it, so a task
-body with a shouted word or an em dash fails the build, while the close
-predicate, `mmz --is-fresh --tag gate`, skips it. `mt flip` stamps the status
-into the file the arm reads, so a tagged record would go stale on the close
-that writes it, and the close could never pass. The price is that a close makes
-no claim about the task prose. The arm's last #just.check() does.
+#just.docs-vale-tasks() selects `truth/tasks/**` and carries no `gate` tag. It
+is the one arm whose inputs include a task file. #just.check() runs it, and a
+task body with a shouted word or an em dash fails the build. The close
+predicate, `mmz --is-fresh --tag gate`, skips the arm. `mt flip` stamps the
+status into the file the arm reads. A tagged record would go stale on the close
+that writes it, and the close could never pass. A close doesn't check the task
+prose. The arm's last #just.check() does.
 
 == Arms must not read what another arm writes
 
@@ -96,16 +96,16 @@ has to stay out of them or take the writer's lock.
 - `www/generate.sh` deletes and recreates `www/generated/` on every run. Every
   reader and writer of that directory holds the `target/www-generated.lock`
   flock for its whole run. The readers regenerate through
-  `mmz just docs::gen` inside that lock, so the generator runs once per tree.
+  `mmz just docs::gen` inside that lock. The generator runs once per tree.
 - #just.docs-pages-fixture() copies `www/` into a temporary replica. It
   skips `public/` and `.tola/`, which the #just.docs-check() arm writes, and
   regenerates `www/generated/` inside the lock.
 - #just.lint-secrets() derives a gitleaks allowlist from the paths git
-  ignores, so the scan skips `www/generated/` and `www/.tola/`. gitleaks
-  still stats the skipped directory itself, so the scan holds the lock too.
+  ignores. The scan skips `www/generated/` and `www/.tola/`. gitleaks
+  still stats the skipped directory itself, and the scan holds the lock too.
   `.just/scripts/check-secrets.sh` has the measurements.
 - mmz hashes a rule's inputs before it runs the rule, and aborts with exit 8
-  if a file vanishes during the hash. That's why `www/.gitignore` ignores the
+  if a file vanishes during the hash. So `www/.gitignore` ignores the
   temporary files the favicon conversion writes, and both mmz and the
   gitleaks bound read that file.
 
@@ -122,21 +122,21 @@ spawns `mt` in that window fails with `No such file or directory`.
 So every arm that builds `mt` runs `cargo build -p mindtape-cli --tests`,
 which builds the same binary as the test arm. #just.check-examples() builds
 that way and runs `./target/debug/mt`, because `cargo run` takes no
-`--tests`. A build with other features writes to another target directory,
-as #just.build-mt() does with `target/mt-dev`.
+`--tests`. A build with other features writes to another target directory.
+#just.build-mt() does that with `target/mt-dev`.
 
 #just.meta-gate-drift() fails naming file and line on any build of
 `mindtape-cli` that a #just.check() arm reaches without `--tests` or a flag
 that writes elsewhere.
 
-== Why each script has its own scope
+== One scope per script
 
-`.mmz/config.yaml` names one scope per file under `.just/scripts/`. A single
+`.mmz/config.yaml` sets one scope per file under `.just/scripts/`. A single
 glob over the directory would re-run every gate when one script changed. A
-list covers only the scripts someone added to it, so
-#just.meta-script-scope() fails on a script no scope names, on a rule that
-reaches a script its inputs miss, and on a script that's a source of no
-`.config/outdatty.yaml` group. Put a new script in the group of the doc that
+list covers only the scripts someone added to it. #just.meta-script-scope()
+fails on a script outside every scope, on a rule that reaches a script its
+inputs miss, and on a script that's a source of no `.config/outdatty.yaml`
+group. Put a new script in the group of the doc that
 restates it, or in the source-only group when no doc does.
 `.just/scripts/script-scope-check.sh` explains each arm.
 
@@ -159,7 +159,7 @@ fails on any one, not only the last: a bare `for` over the files keeps just the
 last body's exit status. #just.meta-fmt-fixture() runs that check over two
 drifted modules and a clean one that sorts last.
 
-= What the pre-commit hook asserts
+= Pre-commit assertions
 
 `.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then
 `.githooks/local-paths`, `typstyle --check truth`, `vale` over `truth/tasks`
@@ -177,6 +177,6 @@ has a matching `Gate-Scope: <reason>` trailer. So `git log` shows which
 commits skipped the gate. CONTRIBUTING.md says when you may use it.
 
 A commit that stages only files under `truth/tasks/` skips the first assertion
-too, with no trailer. No gate-tagged rule reads those files, and the Vale
+too, with no trailer. Every gate-tagged rule skips those files, and the Vale
 assertion reads their prose. So the freshness assertion could only fail where
 the gates never ran, such as a fresh #just.fork() filing its task.

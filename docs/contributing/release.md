@@ -4,7 +4,7 @@
 
 What `just release VERSION` runs, and how to finish a release that failed. The tag push is the only publish path, so don’t run `cargo publish` or push `main` by hand.
 
-## What the recipe runs
+## Recipe steps
 
 1. It runs [cargo-release](https://github.com/crate-ci/cargo-release) (`.config/release.toml`), which refuses a dirty tree or a branch other than `main`. cargo-release bumps the version, dates the entries under `[Unreleased]` and commits.
 2. Between the bump and the commit, cargo-release runs `.just/scripts/release-hook.sh`. The hook re-records the outdatty groups whose sources are the Cargo manifests, since the release commit reviews the bump. It runs `mt check --commit-msg` on the release commit’s message. It refuses a `Cargo.lock` pin to a yanked crate and the other failure states seen in earlier releases.
@@ -21,10 +21,10 @@ A release drops a version on purpose by removing it from `PRELUDE_SUPPORTED` and
 
 ## Build hosts
 
-The Rust grammar behind an ast-grep query is C, compiled through `cc` at build time, so every build host needs a C compiler, the Windows cross check included. `ast-grep-language`’s default `builtin-parser` feature would pull every grammar, so `crates/mindtape/Cargo.toml` keeps default features off and enables one grammar crate per language. Measure the binary before adding another.
+The Rust grammar behind an ast-grep query is C, compiled through `cc` at build time. Every build host needs a C compiler, the Windows cross check included. `ast-grep-language`’s default `builtin-parser` feature would pull every grammar, so `crates/mindtape/Cargo.toml` keeps default features off and enables one grammar crate per language. Measure the binary before adding another.
 
 ## After a failure
 
 After a red CI, fix `main` and re-run the recipe: the bump and the dating stay done.
 
-A release whose workflow failed is finished on the same tag with `gh workflow run release.yml -f tag=vVERSION`, which skips each crate crates.io already has. A pushed tag never moves.
+Finish a release whose workflow failed on the same tag with `gh workflow run release.yml -f tag=vVERSION`. It skips each crate crates.io already has. A pushed tag never moves.

@@ -5,19 +5,20 @@
 // meaning. `just docs::facts` fails on a kind in that list with no entry
 // here, and the page fails to build on the same gap.
 
-// Each note is a phrase without a final period: the page joins them into one
-// sentence as "`kind` is <note>".
+// Each note is a phrase without a final period, and some carry an internal
+// sentence break: the page joins them into one sentence as
+// "`kind` is <note>".
 
 #let slot-kind-notes = (
   "string": [a quoted string, and the default kind],
   "int": [a whole number],
   "float": [a decimal number],
-  "real": [a decimal number, kept apart from `float` so a `real` scale reads back as `real`],
+  "real": [a decimal number, kept apart from `float`. A `real` scale reads back as `real`],
   "bool": [`true` or `false`],
   "date": [a `YYYY-MM-DD` date],
   "list": [a list of strings],
   "text": [body markup that `mt add` escapes, so `#`, `*` and `_` print as typed],
-  "raw": [body markup pasted in as written, which `mt add` refuses if it doesn't parse],
+  "raw": [body markup pasted in as written. A parse failure makes `mt add` refuse it],
   "choice": [one of the slot's `choices`],
   "multichoice": [a list whose items are each one of the slot's `choices`],
   "links": [a list of typed edges, each a `{kind, task, note}` mapping],

@@ -56,7 +56,7 @@ Remove the two lines; the lints return to their warn-by-default state under `-D 
 
 == Out of scope
 
-- `clippy::pedantic`/`nursery` wholesale: separate decision, mostly noise.
+- `clippy::pedantic`/`nursery` wholesale: separate decision, noise.
 - A custom ast-grep pass: that is the tautology task, not this one.
 
 == Dogfood

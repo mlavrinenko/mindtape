@@ -24,17 +24,17 @@
       #link(u("/templates/"))[Templates & slots] describes all three.
       `--dedup` decides what happens when a task with the same
       #link(u("/concepts/#identity"))[stem] exists. `fail` stops before
-      writing, `skip` writes nothing and exits 0, and `add-suffix` adds `-2`,
+      writing, `skip` exits 0 without writing, and `add-suffix` adds `-2`,
       `-3` and so on. Your project sets the default in
       #link(u("/config/"))[`[tasks.naming] dedup`]. If it doesn't, the default
-      is `add-suffix` when a `stem` template is set and `fail` otherwise.
+      is `add-suffix` when you set a `stem` template and `fail` otherwise.
       `--format` prints the result as `text`, `path`, `path0` or `json`, and
       `--json` is the shorthand for `--format json` and wins when both are
       given. The JSON says whether `mt` wrote, skipped or suffixed the task,
       and opens with the URL of its schema. A `text`
       report ends on `next: mt eval <slug>`, the command that reads the task it
       named. The other formats contain no prose. `mt`
-      checks the task before it writes, so a refused add leaves no file.
+      checks the task before it writes. A refused add doesn't write a file.
       `--no-verify` skips the check.],
     outputs: ("add",),
   ),
@@ -61,14 +61,14 @@
   ),
   // ── Fields ──────────────────────────────────────────────────────────────────
   "set": (
-    prose: [`mt set` uses the same syntax as `mt add --set`. A name that has
-      its own command or add flag is refused, and the error names it: `status`
+    prose: [`mt set` uses the same syntax as `mt add --set`. `mt` refuses a
+      name that has its own command or add flag, and the error names it: `status`
       (`flip`), `links` (`link`), `reviewed` (`review`), `recur` (`recur`),
       `dir` (`--dir` when adding) and the id (`mv`). A
       #link(u("/priority/"))[framework priority] such as `ice(...)` and an
       #link(u("/estimates/"))[`estimate`] aren't single values, so `mt set`
       doesn't write them. Edit those in the file. Adding a value a list
-      already holds writes nothing, so you can safely run it again. A write
+      already holds doesn't write anything, so you can safely run it again. A write
       ends on `next: mt eval <task>`, the command that reads it back.],
     outputs: ("set",),
   ),
@@ -81,7 +81,7 @@
   ),
   "go": (
     prose: [`mt go` finds the task's file and opens it with `[go] editor`, or
-      `$VISUAL`, or `$EDITOR`. If none is set, it fails and asks you to set
+      `$VISUAL`, or `$EDITOR`. If you set none of them, it fails and asks you to set
       `[go] editor`. `mt` replaces a `{task}` token in the command with the
       path, or appends the path when there's no token. A project's
       `[go] editor` waits for #link(u("/cli/allow/"))[`mt allow`]; until then
@@ -114,12 +114,12 @@
       match in the project's default order. Every filter runs under that
       project's own config. A cell that fails prints `?` with a note under the
       table, and a project whose config won't load is a `⚠` row, after which
-      `mt` exits 1. This is the board `mt` ships:
+      `mt` exits 1. This is the board `mt` provides.
 
       #shipped-board
 
       `[board]` in `at.toml` changes the board for every entry, and
-      `[at.<name>.board]` changes it for one, key by key over the shipped
+      `[at.<name>.board]` changes it for one, key by key over the default
       board:
 
       #config-keys-table(at-schema, "board")
@@ -194,7 +194,7 @@
       lists each output, its version and the URL its `$schema` names.
       `mt schema <name>` prints one, and `--write` records every schema under
       `schema/output/` in the current directory. `--check` fails, names every
-      missing or changed copy, and writes nothing. It works outside a
+      missing or changed copy, and doesn't write anything. It works outside a
       project.],
   ),
   "config": (
@@ -217,9 +217,8 @@
   "fix": (:),
   "install": (
     prose: [`--no-lib`, `--no-defaults`, `--no-schema` and `--no-completions`
-      each skip one part. The generated JSON Schemas are refreshed on every
-      install, so a newer binary's schema reaches the installed copy without a
-      flag. `--force` overwrites an existing defaults file or hook. It also
+      each skip one part. `mt install` refreshes the generated JSON Schemas, so
+      a newer binary's schema reaches the installed copy without a flag. `--force` overwrites an existing defaults file or hook. It also
       replaces a package directory that is a symlink,
       which `mt install` otherwise leaves alone, so it never writes into the
       checkout the link points at. `mt` writes one completion hook per shell under
@@ -237,8 +236,8 @@
     prose: [Until you allow them, each command that would run one warns once
       and lists them. A task that waits on a checker stays blocked, its `why`
       reading `unknown: not allowed`, and `mt wip --force` still starts it. A
-      flip gate refuses the flip, and `--force` takes it past. A flip `run`
-      without `gate` is skipped. An editor that isn't allowed is skipped too.
+      flip gate refuses the flip, and `--force` takes it past. `mt` skips a flip
+      `run` without `gate`. It skips an editor that isn't allowed too.
       `mt go`, the `mt ls` picker and `mt add --edit` try `$VISUAL`, then
       `$EDITOR`. With neither, `mt go` fails and `mt add` opens `vi`. `mt allow` prints each command and records a hash of them all in
       `allowed/` under `mt`'s data directory, outside the repo, so no clone

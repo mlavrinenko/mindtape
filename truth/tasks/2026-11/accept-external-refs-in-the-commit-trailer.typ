@@ -50,7 +50,7 @@ error: msg.txt:3: Refs: `r#45782` names no task
 
 - 🟢 `[commits] external-refs` takes regexes. A token that names a task is a task ref; else a token matching one of the regexes is an external ref; else it is refused as today.
 - 🟢 A commit may name both kinds, and `has(refs)` is true when it names either.
-- 🟢 One trailer line may hold several refs split on commas or whitespace; repeated `Refs:` lines work too.
+- 🟢 One trailer line may hold more than one ref split on commas or whitespace; repeated `Refs:` lines work too.
 - 🟢 `touches()` indexes task refs only, and a `scope = "task"` rule skips external refs.
 
 ```toml

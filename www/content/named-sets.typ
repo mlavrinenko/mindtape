@@ -64,13 +64,13 @@ names.
 #terminal("named-sets-views")
 
 `mt` checks every view when it loads the config. Each `filter` must parse.
-Each `sort` and `columns` entry must name a known field or view, including a
-scalar `derived.<name>`. Each `@name` must name a view, and no view may
+Each `sort` and `columns` entry must refer to a known field or view, including a
+scalar `derived.<name>`. Each `@name` must refer to a view, and no view may
 reference itself through `@name`.
 
 = Dictionaries
 
-When several rules and allow-lists need the same list of words, keep it in
+When rules and allow-lists share a list of words, keep it in
 one place. `[dicts.<name>]` names a set of strings that rules, filters and
 allow-lists share:
 
@@ -92,7 +92,7 @@ so the title word `Rotate` matches the entry `rotate`. `exact` compares bytes.
 An included dictionary's entries compare under the including dictionary's
 `case`.
 
-`mt` ships two dictionaries you can use without declaring them:
+`mt` includes two dictionaries you can use without declaring them:
 
 - `mindtape-verbs`: the 500 most frequent English verbs, in base form.
 - `mindtape-dev-verbs`: verbs software work uses that the frequency list
@@ -103,7 +103,7 @@ is for the built-ins.
 
 `mt explain dicts` lists every dictionary with its entry count and case, the
 built-ins included. `mt explain dicts <name>` prints one dictionary's entries, one per
-line, after `include`, `values` and `path` are merged. That's the list a rule
+line, after `mt` merges `include`, `values` and `path`. That's the list a rule
 reading the dictionary accepts, and a `fold` dictionary prints it lowercase:
 
 #terminal("named-sets-dicts")
@@ -136,6 +136,6 @@ word the dictionary lacks and names up to three of its nearest entries, as in
 
 `mt` checks every dictionary when it loads the config. Each must have a
 source and resolve to at least one entry. Each `path` must be readable. Each
-`include` and `@<dict>` must name a dictionary. For an unknown name, `mt`
+`include` and `@<dict>` must refer to a dictionary. For an unknown name, `mt`
 suggests the closest match. No dictionary may include itself, directly or
 through others.

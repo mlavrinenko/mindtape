@@ -14,7 +14,7 @@
 #show: page.with(..meta)
 
 A backlog reads "Login redirect broken", "Redis" and "Audit log pagination".
-Each line names a thing, so you open the task to learn whether it's a bug, a
+Each line points at a thing, so you open the task to learn whether it's a bug, a
 feature or a question. Start each title with a verb, like "Fix the login
 redirect", "Add a Redis client" and "Paginate the audit log", and the list
 tells you what to do before you open anything.
@@ -32,14 +32,14 @@ tells you what to do before you open anything.
 
 `sections.yaml` contains the `AS-IS` and the other sections the template asks
 for, so only the title changes. `mt add` refuses a title that starts with no
-verb, names the nearest verbs, and writes no file. It files the ones that
+verb, names the nearest verbs, and doesn't write a file. It files the ones that
 start with a verb:
 
 #terminal("start-titles-with-a-verb")
 
-"Backport" is in neither shipped list. The `values` line adds it.
+"Backport" is in neither built-in list. The `values` line adds it.
 
-= Deep dive
+= Rule details
 
 `word(title, 1)` is the title's first word, and `in_dict()` looks it up in
 the `verbs` dictionary, ignoring case. A hyphenated word stays whole, so
@@ -47,7 +47,7 @@ the `verbs` dictionary, ignoring case. A hyphenated word stays whole, so
 old done task with a noun for a title doesn't fail `mt check`.
 #link(u("/filters/"))[Filter language] covers both functions.
 
-`include` pulls in the two word lists `mt` ships. `mindtape-verbs` contains the
+`include` pulls in the two word lists `mt` provides. `mindtape-verbs` contains the
 500 most frequent English verbs, and `mindtape-dev-verbs` adds the ones
 software work uses, like `refactor`, `deprecate` and `rate-limit`. Run
 `mt explain dicts verbs` to see every word the rule accepts, yours included.
@@ -57,7 +57,7 @@ longer list fits better in a file with one word per line, named by `path`.
 #link(u("/named-sets/"))[Views & dictionaries] covers every dictionary key.
 
 The example project extends the `mindtape:tasks` #link(u("/packs/"))[rule pack],
-which ships the rule and a `verbs` dictionary, so it only declares
+which provides the rule and a `verbs` dictionary, so it only declares
 `[dicts.verbs]`. That replaces the pack's dictionary by name, so keep the
 `include` line when you add words.
 

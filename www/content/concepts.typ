@@ -39,7 +39,7 @@ every field.
 A task source is a regular `.typ` file under a configured `[[tasks.roots]]`
 entry, outside every reserved component and template directory below. `mt`
 handles a path as text: it folds `.` and `..` without touching the
-filesystem. A root needs no trailing slash, and whether a file is a task
+filesystem. A root doesn't need a trailing slash, and whether a file is a task
 depends only on its resolved path. These rules narrow that base:
 
 - The extension is `.typ`, case-sensitive, so `TASK.TYP` is not a task.
@@ -49,12 +49,12 @@ depends only on its resolved path. These rules narrow that base:
   #link(u("/templates/"))[template] is a `.typ` file with `slot(...)` calls,
   and `mt check` checks it on its own.
 - The entry at the path must be a regular file. A symlink is never a task
-  source, even one whose target is a regular `.typ` file. No scan follows a
-  directory symlink.
+  source, even one whose target is a regular `.typ` file. The scan doesn't
+  follow a directory symlink.
 
-A working-tree config whose root is under `.mindtape` or `.git`, or whose
-template directory contains a root or the project root, is refused when it
-loads, because it could never yield a task.
+`mt` refuses a working-tree config when it loads the config. A config whose
+root is under `.mindtape` or `.git`, or whose template directory contains a
+root or the project root, could never yield a task.
 
 In a Git work tree, `mt` asks Git which paths are in the working tree: every
 tracked regular file and every untracked file Git does not ignore. That keeps
@@ -70,9 +70,9 @@ your global excludes file. The last two are machine-local, so two people can
 see different tasks in one clone.
 
 An untracked ignored path is not scanned at all. When an ignore rule starts
-matching an untracked task file, that task leaves the listing and its links
+matching an untracked task file, that task leaves the listing. Its links
 resolve as missing, but the file stays where it is: `mt` does not delete it.
-A tracked file is unaffected.
+An ignore rule doesn't affect a tracked file.
 
 A root outside the project is working-tree only. `mt` finds its files for
 `mt ls`, `mt check` and `mt fix`, and a commit state cannot list them, so
@@ -81,7 +81,7 @@ commit classification reads only paths inside the project.
 Outside a Git work tree, or on a machine without `git`, `mt` walks each root
 on disk with the same extension, reserved-name and template rules. The walk
 consults no ignore rules and does not follow a directory symlink. Any other
-Git failure stops the load with an error naming the root.
+Git failure stops the load with an error about the root.
 
 Four examples.
 
@@ -123,8 +123,8 @@ give a task a different id. `mt check` reports two tasks with the same id.
 A `links:` target is the path from the linking file to the target file. A task
 in the same folder is `"other.typ"`, and a task one folder over is
 `"../api/other.typ"`. `id:` plays no part in it. `mt check` reports a target
-that names no task file, so if you rename a file by hand, every link to it
-breaks:
+that doesn't point at a task file, so if you rename a file by hand, every link
+to it breaks:
 
 #terminal("concepts-mv-by-hand")
 
@@ -146,7 +146,7 @@ unchanged under `extras`.
 To have `mt` check one, declare it in `[tasks.fields.x-<ns>]`.
 #link(u("/config/#extension-fields"))[Configuration] covers the rest.
 
-= Where a mistake is caught
+= Mistake handling <where-a-mistake-is-caught>
 
 Typst stops a file before any rule runs. A misspelled field, or any other
 field `task` doesn't declare, fails with `unexpected argument: titel`. A helper

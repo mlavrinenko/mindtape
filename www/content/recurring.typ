@@ -53,7 +53,7 @@ to write the next one.
 `sun`, and needs a `weeks` period. Each occurrence falls on the next listed
 weekday in an on-week.
 
-Weeks run Monday to Sunday and are counted from Monday 2001-01-01. With
+Weeks run Monday to Sunday and count from Monday 2001-01-01. With
 `weeks: N`, every Nth week from that Monday is an on-week. So
 `every(weeks: 2, on: (mon, thu))` falls on Monday and Thursday of every second
 week. If you finish late in an off week, the next occurrence still falls on
@@ -102,7 +102,7 @@ file and leaves the task you ran it on alone:
 
 #terminal("recurring-spawn")
 
-The new task has a `recurred-from` edge to the one before it, so the series is
+The new task has a `recurred-from` edge to the one before it. The series forms
 a chain of files:
 
 #raw(

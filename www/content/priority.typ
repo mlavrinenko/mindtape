@@ -32,7 +32,7 @@
   ("ice-call",),
 )
 
-A task's `priority` is a number on a scale. `mt` labels each number with the
+A task's `priority` holds a number on a scale. `mt` labels each number with the
 band it falls in, and sorts and filters by the number. You can set the number
 by hand, such as `priority: 7`, or let a framework compute it from inputs like
 impact and effort. A hand-set number takes seconds. A framework takes more
@@ -41,15 +41,15 @@ compared.
 
 = Scale and bands
 
-The shipped scale runs from #scale-span(fw.scales.priority). Each band is a
+The default scale runs from #scale-span(fw.scales.priority). Each band is a
 `[[tasks.priority.bands]]` entry:
 
 #bands-table(fw)
 
 `[tasks.priority]` sets the scale with `kind` (`int` or `real`), `min` and
-`max`. `required` takes a filter naming the tasks that must have a priority.
-Bands you declare replace the shipped list. `mt config show --defaults`
-prints the shipped values, and #link(u("/config/"))[Configuration] lists every
+`max`. `required` takes a filter that selects the tasks that must have a priority.
+Bands you declare replace the default list. `mt config show --defaults`
+prints the default values, and #link(u("/config/"))[Configuration] lists every
 key.
 
 = Difficulty
@@ -89,8 +89,8 @@ filter such as `priority >= 7` read the score:
 
 #terminal("priority-ls")
 
-`allow-manual` decides whether a raw number is still accepted while a
-framework is enabled. It defaults to `true`. With `false`, every task must
+`allow-manual` decides whether `mt` still accepts a raw number while a
+framework is on. It defaults to `true`. With `false`, every task must
 call the framework, so `mt` refuses a raw number and exits
 #exit-code("priority-strict"):
 
@@ -98,7 +98,7 @@ call the framework, so `mt` refuses a raw number and exits
 
 To adopt exactly this setup without writing the keys, extend the
 #link(u("/packs/#the-rules-in-mindtape-ice"))[`mindtape:ice`] pack. It sets
-`framework`, `allow-manual = false`, `required` and `example`, and the shipped
+`framework`, `allow-manual = false`, `required` and `example`, and the default
 scale and bands stay.
 
 #link(u("/templates/"))[Templates & slots] shows how `mt add` fills a
@@ -111,10 +111,8 @@ framework's inputs.
 To write your own, declare `[tasks.priority.frameworks.<name>]` with its
 inputs, their types and bounds, and a score formula or categories. Then name it
 in `[tasks.priority] framework = "<name>"`, or `mt check` refuses a task that
-calls it with `no priority framework is configured`. The
-built-ins are declared the same way in
-`crates/mindtape/src/framework/frameworks.toml`, and you can override any of
-their keys. A task calls your framework with
+calls it with `no priority framework is configured`. `crates/mindtape/src/framework/frameworks.toml` sets the
+built-ins the same way, and you can override any of their keys. A task calls your framework with
 `framework("name", input: value, ...)`. A framework with categories instead of
 a formula sorts each task into a category, and each category has a fixed score
 on the scale.

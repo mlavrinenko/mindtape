@@ -43,7 +43,7 @@
 )
 // The rules of a kind, as the sentences that follow its note.
 #let kind-rules(kind) = {
-  if kind.blocking [ Until then the task is blocked.]
+  if kind.blocking [ Until then, `mt` blocks the task.]
   if kind.acyclic [ `mt check` refuses a cycle of these edges.]
   if (
     kind.max != none
@@ -64,12 +64,12 @@ Use `links:` to say how a task relates to others: it depends on one, it's
 part of another, it replaces a third. Each edge has a kind and a target. The
 target is the path from this file to the other task's file, as
 #link(u("/concepts/"))[Concepts] explains. `mt check` reports a target that
-names no task, a cycle, and an edge missing a note its kind requires.
+doesn't resolve to a task, a cycle, and an edge missing a note its kind requires.
 
 = Writing edges by hand
 
 Each kind has a helper that takes one or more targets and an optional
-trailing note. A helper returns an array, so you join several with `+`:
+trailing note. A helper returns an array. You join two or more with `+`:
 
 #raw(
   render-slices(slices, (
@@ -146,8 +146,8 @@ there, `mt link` leaves it alone:
 To add many edges at once, `mt link --apply <file>` merges a map of task to
 kind to targets, from YAML or JSON. Pass `-` to read it from stdin. A target
 is a stem string, or a `target` and `note` mapping when the edge needs a
-note. A kind with one target takes the bare string, and several take a
-list. A map and its run:
+note. A kind with one target takes the bare string, and a kind with two or more
+targets takes a list. A map and its run:
 
 #terminal("links-apply")
 

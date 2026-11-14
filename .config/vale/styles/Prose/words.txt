@@ -1,0 +1,36 @@
+# Technical words the built-in American dictionary does not hold. One word per
+# line, case-insensitive. A name with a required case belongs in the Prose
+# vocabulary instead.
+autosquash
+backticked
+cyclomatic
+dicts
+dirs
+eval
+evals
+fd
+fixup
+gitignored
+goldens
+just's
+kache
+killable
+lowercases
+markerless
+preset's
+pty
+qahq's
+recompiles
+refactorer's
+rescope
+rrule
+slugified
+tty
+UDAs
+undertested
+unfixable
+unignoring
+Unignore
+untriaged
+jscpd's
+Taskwarrior's

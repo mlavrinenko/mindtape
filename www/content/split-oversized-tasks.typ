@@ -19,8 +19,8 @@ review, and when a test fails, you can't tell which part broke it. A task that
 touches a few files gives you a diff you can read, and a failing test shows
 which part of that diff broke.
 
-A rename is different. It touches every file that names the type, but it's one
-decision, and splitting it only copies that decision into several tasks. So
+A rename is different. It touches every file that mentions the type, but it's one
+decision, and splitting it only copies that decision into more than one task. So
 the cap only applies to work that takes judgment.
 
 = Config
@@ -38,21 +38,21 @@ bullet, so `derived.changes` is the plan the task already has.
 = Behavior
 
 The sign-in task takes judgment and its Changes section names 7 source files,
-so `mt add` refuses it. The rename names its 12 files through one glob,
-`src/**/*.rs`, and is filed: a glob counts once, and mechanical work has no
-cap.
+so `mt add` refuses it. The rename covers its 12 files through one glob,
+`src/**/*.rs`, and `mt add` files it. A glob counts once, and mechanical work
+has no cap.
 
 #terminal("split-oversized-tasks")
 
-The refused `mt add` exits #exit-code("split-oversized-tasks") and writes no
-file.
+The refused `mt add` exits #exit-code("split-oversized-tasks") and doesn't write
+a file.
 
-= Deep dive
+= Rule details
 
 `difficulty` rates how much judgment a task takes, from 0 for a mechanical edit
-to 9 for an open question. The template asks for it and fills in 3 when you
-give no rating, so a task filed without one gets the cap. #link(u("/priority/#difficulty"))[Priority]
-covers the scale.
+to 9 for an open question. The template has a difficulty field and fills in 3
+when you don't rate the task. A task filed without a rating gets the cap.
+#link(u("/priority/#difficulty"))[Priority] covers the scale.
 
 The `judgment-stays-small` rule reads
 `count_paths(derived.changes, "@source")`: the distinct paths in the Changes

@@ -71,12 +71,12 @@ recipes:
 prose:
     bash .just/scripts/check-doc-prose.sh
 
-[doc("Lint Typst prose with Vale: history, shouting, an em dash or a typed name")]
+[doc("Lint Typst prose with the full Vale style")]
 [group("gate")]
 vale-prose:
     vale --no-global --config=.config/vale.ini docs/src www/content www/utils
 
-[doc("Lint a task body with Vale: shouting and an em dash")]
+[doc("Lint a task body with the Vale rules that fit a record")]
 [group("gate")]
 vale-tasks:
     vale --no-global --config=.config/vale.ini truth/tasks

@@ -39,34 +39,34 @@
     and the remedy stays the refactorer's call.
   ],
   "baseline": [
-    A percentage of each file's own cap, not a line count: the caps differ per
+    A percentage of each file's own cap, not a line count. The caps differ per
     language and per override, so the one number that means the same thing
-    everywhere is how much of a file's own budget is spent. It sits above
-    linecop's own `--baseline 85` reporting band, so the sweep files a task
-    strictly later than the number a contributor is told to watch.
+    everywhere is how much of its own budget a file uses. It sits above
+    linecop's own `--baseline 85` reporting band. The sweep then files a task
+    strictly later than the number linecop tells contributors to watch.
   ],
   "cc-floor": [
     It pairs with `--fn-coverage-floor`: the sweep reports only functions at
     or above this cyclomatic complexity and below the coverage floor.
     #just.crap-check() gates complexity separately, at its own threshold
     against a committed baseline. Below the floor, one uncovered line can
-    account for most of a low percentage; at or above it, whole branches went
+    account for most of a low percentage. At or above it, whole branches went
     untested.
   ],
   "fn-coverage-floor": [
     The other half of the pair, measured per function rather than per file. It
     is stricter than #just.cover()'s 88% per-file floor on purpose: a function
     is small enough that one unreached line moves its percentage by tens of
-    points, so the low-coverage tail starts further out. The pair has two edges
-    rather than one shared number because a function must be both complex
+    points. The low-coverage tail then starts further out. The pair has two
+    edges rather than one shared number because a function must be both complex
     enough and undertested enough.
   ],
   "repeat-gain": [
-    Tokens an extraction removes, net of the helper and its calls, so the same
+    Tokens an extraction removes, net of the helper and its calls. The same
     threshold covers both copy count and size: a big block clears it with two
-    copies, a one-liner clears it only at many copies. A count or a size alone
-    would file the common short call and miss the pasted setup. The number is
-    set so a batch stays small enough to work through before the next sweep.
+    copies, and a one-liner clears it only at many copies. A count or a size
+    alone would file the common short call and miss the pasted setup. The
+    threshold keeps a batch small enough to work through before the next sweep.
   ],
   "dry-gain": [
     The same measure as `--repeat-gain`, over the clones the jscpd baseline

@@ -349,7 +349,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
-      .just/docs.just: 7f9b1c906a505b6c7a7198eb5391a5150c7aa90455b2dcd2e7cf8c74a4b070b7
+      .just/docs.just: ec65b57f7b923535f236e6c95f54f99275cd9d78df20f83981ad0c18e3c168df
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
       .just/lint.just: 99732adbfd2bc38839d1152d5e958b2715f50a69c4514f295281c1564ac56797
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
@@ -365,17 +365,17 @@ groups:
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
       nix/dev/vale.nix: 81aea241ac2c1c09020609c048a00489a5ca04c9762289ee732ab1b39d31384c
     dependents:
-      docs/src/agents.typ: b0aed8ce8f4228560f6e2612e70a00db2364c4d8c6b36d99f7b88d93c2881824
-      docs/src/contributing.typ: 72fe5b5848940707a8754e218b5388d6a5108bd98a85dd077800d36b04872ded
-      docs/src/contributing/coverage-crap.typ: 99083836fd299023aee51504a8eadf3b610c25083c89695465e32da35b7987a8
-      docs/src/contributing/crap-baseline.typ: 47b261527cc3f8311ac91857162385b2b3bf6ab1d0ba85f214fbabd0f6c220a1
-      docs/src/contributing/docs-site-build.typ: e2b04abdf3e32e8ecfd9dff0b4c6c2c0f172c4ed6863f49562f4a0c2636b8f0e
-      docs/src/contributing/documentation.typ: 3f029fb701428c220be01405dd6406910f73722ab2e9f3651ac8b96383441d40
-      docs/src/contributing/example-projects.typ: f2be6fc1fb614aeae0133b4dc809574da293662f6d981b8b82fb9894cb6a7a04
-      docs/src/contributing/gates.typ: 6d817d1ec468ee3e3807d34eb77957690e11684ff2e964a560846cd29991af28
-      docs/src/contributing/mutation-testing.typ: 4921e1fc49e5b9b2415746b79889e3eea675bb5ea8346532cf64037fd38a3f83
-      docs/src/contributing/signal-sweep.typ: 39f9e4679964b636a89a3146911b593395570f86127123b2f7a0b9956ce1e01f
-      docs/src/contributing/windows.typ: d6d52acad9556c456ec278d33444580636b483ab155714546b24233899c50fd2
+      docs/src/agents.typ: 5e922561dc734ce8c98c0687172e3255f73cbb9beae73a07771a689c13790e9f
+      docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
+      docs/src/contributing/coverage-crap.typ: c4e809f14523f241190bc0d7684ae0f28ca83a6a4d7ea09da7913176a4d1b0d8
+      docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
+      docs/src/contributing/docs-site-build.typ: 6dee8629cb4d56d1eebb8b47f07c33859d4a00f1f6855f2f067383e0fd61d918
+      docs/src/contributing/documentation.typ: 47eace011e05dd0c74014ea7e7fbb4403102e6b333b508e8abe579e25899b4de
+      docs/src/contributing/example-projects.typ: ea12a8a93ac900912ef1fad437fc6727b7dc10233c5f3d1ae04687eaf28ac264
+      docs/src/contributing/gates.typ: e8981f7405c252c02c37db9c15fe1b1cbe3517150a3fea29016fc323e81acedc
+      docs/src/contributing/mutation-testing.typ: fd3b81fd022bbfbfd8161cdebc1b2fa65fcd0a9979ba455a384ca6a2b0e5dfb5
+      docs/src/contributing/signal-sweep.typ: 526ee365344240fa05b5035b8b3644c92a7cd0a490a988e7a2d1b2fc41e74f12
+      docs/src/contributing/windows.typ: 47d316719d329be2412a0a861228988e84a7d9b6cb6f478e727cd1aa32664467
   dict-words-docs:
     source:
       crates/mindtape/src/dicts/dev-verbs.txt: 1d44018123133b9cd533d473d9f9df0f24a44131e77961178424f7311782d648
@@ -389,7 +389,7 @@ groups:
   doc-gate-scripts-docs:
     source:
       .just/scripts/_doc-blocks-lib.sh: a33f51afe2298cdcd21584d3dd313f282249e001bde750f642afa591d28e158e
-      .just/scripts/_doc-prose-lib.sh: ab9c06fbed8104d1a190b64be5de7c2d5d8268f6a6418f4f4ba88e3b525b57a8
+      .just/scripts/_doc-prose-lib.sh: d3dfd9392263b2433a8f2dc8c772692488ab26e9dae05e793fe011ff337040b2
       .just/scripts/check-doc-blocks.sh: a0716896accb4fbde245e409d74c7b2468d380a4ab3d4fb723e840ddb8c7c1a5
       .just/scripts/check-doc-coverage.sh: 53d59ca20009df201bb0336f5723671e06a901f6d3eca7240217be0d3906bb46
       .just/scripts/check-doc-facts.sh: dfba4a6322799338f1a132fc448279f7c26065bf795314feaf4637741389ef84
@@ -400,8 +400,8 @@ groups:
       .just/scripts/check-doc-spans.sh: 746b4f2c77eef7d3db280b7d0fb842c054aabfcddd5879e94bd2ed31b2df132c
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: 3f029fb701428c220be01405dd6406910f73722ab2e9f3651ac8b96383441d40
-      docs/src/contributing/generated-docs.typ: a14280ad5a3330abc9b2c8bb00fe0a00cfc90e65070cd2bb72a73922d021d96b
+      docs/src/contributing/documentation.typ: 47eace011e05dd0c74014ea7e7fbb4403102e6b333b508e8abe579e25899b4de
+      docs/src/contributing/generated-docs.typ: 142dc4fcd0e0008fce4b4957181dc160cc4383976e3c244d007350870de84972
   filter-docs:
     source:
       crates/mindtape/src/filter/aggregate.rs: c781da697621b135445c41f5dd2f5baf80f538397725888aba3851cb580d8f68
@@ -650,14 +650,58 @@ groups:
       examples/task-files/tasks/log-failed-logins.typ: 30d1a0f50122d56da2a3039c3f3987f34f044d06e09dc840a36fdbd537adcb73
   vale-docs:
     source:
-      .config/vale.ini: 8d9663c097b629f8ad26db1c3aeefa98275b4c09c5573386aa66c81b9dc9c703
-      .config/vale/styles/Prose/EmDash.yml: 81235ee28dfc1b7e3e9c026bdcb7bff84d755d5c20d2f346bd393e199e43c063
-      .config/vale/styles/Prose/History.yml: 25db0fac304a93b06a4ec65c4463f078c7f09bdaa188be26feaed69feff98ed8
-      .config/vale/styles/Prose/ProductName.yml: 75e238d929ba80d3e01643c77aeeb3ec5173253026ab718c2d52f7e914b406a1
-      .config/vale/styles/Prose/Shouting.yml: a2cafbc7d2929a74d9cfc759a1496efba3e871af2a1d72f573fdc0ccd53f3957
+      .config/vale.ini: 30fe2867aa064e7a0eee75ac57d9ea80ec134467bd5cee35a32cea2fbc8002f2
+      .config/vale/styles/Prose/AICompoundPhrases.yml: 8b31276c40ada05b2d4f5018f1eceed1d0a553de2a901d8c49c66805f0d15a12
+      .config/vale/styles/Prose/AnthropomorphicCognition.yml: 216320ab43578e1f3539efedeac46e4c52ab20a6c3635327510700c701e1806e
+      .config/vale/styles/Prose/AnthropomorphicJustification.yml: e5941ff2931e5529c9337968423a7a568ec41167dac199829fe240967b9040bc
+      .config/vale/styles/Prose/BareNames.yml: 719b04eaebf740582995b511cb9e7d391bd9fa8f904aeae7d0dffda18af57d5a
+      .config/vale/styles/Prose/ClosingPleasantries.yml: 68ebcaa6faa70f02c3678273b924659ea85bd06c9af174dcad6936461398b949
+      .config/vale/styles/Prose/ConclusionMarkers.yml: 7ba2bcdfb4a57cf5ce56f0e0e1c5d409c4b3d4a3299c517cd9b4f7684e3ba6c6
+      .config/vale/styles/Prose/ConsequenceClause.yml: 9cca80a7458e62b32c0061757dcd662da2be3e6201b4f4faa4f97300b003bf30
+      .config/vale/styles/Prose/DoubleHyphen.yml: 4171b700551731969d3482118dc0ea0521c4c2902aeb6b3b413507f843eb7c60
+      .config/vale/styles/Prose/EmDash.yml: 75ca415e3ec91941a396856968f709b6ee74a284c7d54388f75177045044e0cf
+      .config/vale/styles/Prose/ExplainerHeadings.yml: 55d8c037905fa44bffa84484c6cc1a875abc69c1116b28a4e7a0f3f6b1e73909
+      .config/vale/styles/Prose/ExplainerLeads.yml: fe1cb466fe4f605c000fee8c53e612f4bb93de58b7b2fd8786ee8031b1ac7448
+      .config/vale/styles/Prose/FalseExclusivity.yml: c6fe0589e4e0c165cf24244247c62bd7d65a4af16a2fece2e269ab77a260bb60
+      .config/vale/styles/Prose/FillerPhrases.yml: 738b6c9fcbdaab0cecce00ec9be503ad2c55521f36b74c2d0237646ad51577ce
+      .config/vale/styles/Prose/FormalRegister.yml: f15489b6d2429b3f02701dd8c9c7246f62ea21a0f2f2e913bdcd7fe9731fe5c3
+      .config/vale/styles/Prose/FormalTransitions.yml: fc295f090caf82cc5358d905931e3a3dc5647d264a8b1e78fb732c198305ba24
+      .config/vale/styles/Prose/HeadingCase.yml: a95cf69ed363cf911cb65830846bdd543ae45d7195b8930aba79b48db38ca05d
+      .config/vale/styles/Prose/HeadingPunctuation.yml: 444099c106a459e160f77a978c64ff30f477738eef67891e8f7909cb19bf449e
+      .config/vale/styles/Prose/HedgingPhrases.yml: 9b209f6b3988d75b8a608e7eb0614a0b3597cce8adf1594a74f96d2875d89f65
+      .config/vale/styles/Prose/History.yml: c9c0b6fe2947c6c7155f4e2261bbda150695fc1112fbe713a176061de7e62df8
+      .config/vale/styles/Prose/JourneyMetaphors.yml: d8a12aca876e31547f5aa99de6774e57d90b08d3a95b439dd60fef7c205fbe8d
+      .config/vale/styles/Prose/LabelAndExplain.yml: 434df0af1c945596b06d0b0ac4a714aea0a7b0b7357041d31fee989b05bb9983
+      .config/vale/styles/Prose/Latin.yml: 2005ae97b9bd698124a7af7c9fa5b7972fbd435dd08309b7880a7142d423b5e7
+      .config/vale/styles/Prose/NegatedObject.yml: 798411d6459c272762029a3cfed215b353edfc5d35f1b4dfe2c2f3d87c54cb37
+      .config/vale/styles/Prose/NegatedSubject.yml: 942906da01d9a7fd123844fd7e05dfcdc4b98a45a1a02a778c0e6452c1011af9
+      .config/vale/styles/Prose/OpeningCliches.yml: ff8b9f747b7f0c3090d11a47bb9219142a92efc3efa361f7aad70631ddd2d9b1
+      .config/vale/styles/Prose/OverusedVocabulary.yml: c39aad7b60a6d9358fc39628565c3c735c82b3a82075ab236cb92750be6b21a9
+      .config/vale/styles/Prose/PassiveVoice.yml: ce8cb58fca0abd8178804e0d62cab3d1b0cbaaf6e2119c5a82e6e2df4460e40b
+      .config/vale/styles/Prose/ProductName.yml: 4010ddd31b30d18ad80acbd10b98cd5d45b8d7895a77709b803ff9afeaa95900
+      .config/vale/styles/Prose/PromotionalPuffery.yml: 2a552d8969c197b8d873bac4a69b099b2ccaf91ae78e6094ee5292887e5564a7
+      .config/vale/styles/Prose/PseudoCleft.yml: fe08c325f955e6a76823f8cfaa6490f8e97cb6ef1ab1c48517704ce98a9a8cdf
+      .config/vale/styles/Prose/RestatementMarkers.yml: 3c49a91e78258cf30119d3670833f663ec5b65412c74250a593c5fdc03447957
+      .config/vale/styles/Prose/Semicolon.yml: dd346432997caa2e9a270f55ddb1750efb80ca63526e4dd5c9017e2d5f4527db
+      .config/vale/styles/Prose/SentenceLength.yml: cf8f1d3e0053060d5e8cd741a53142fa3d0eb3335ed311fa21bfd86bf65b1951
+      .config/vale/styles/Prose/ServesAsDodge.yml: 817ac31bbdc7c4c260f017781872cd3484b92d2a0040314869bccc5ed0813e40
+      .config/vale/styles/Prose/ShellNounCopula.yml: 7ae7b7ef3bc92e5fe7be2ce02e98dc4226fc53fc8f1e3388dde5697dc47d39df
+      .config/vale/styles/Prose/ShipOveruse.yml: d4ec66bbc807c85b984958cdd2b1f717af3eef403228e297899f0f08e3ac4653
+      .config/vale/styles/Prose/Shouting.yml: ebe002358549c9c30d34331990219dc035b4c5c7a83e029708c1045301a8ef35
+      .config/vale/styles/Prose/Spelling.yml: e4bb507f460b884814fe3d551e2494e35966014ad1ddf9839c8d53c3a50afa35
+      .config/vale/styles/Prose/StructureAnnouncements.yml: 7304838565c78e779fdaea3af4bf86bec44b26ff849af4ce4480e07ea7d83e71
+      .config/vale/styles/Prose/SycophancyMarkers.yml: fd6ded038cfe242ba306d278da88b6119cffb40204d4dd536c9c0cef1a023d87
+      .config/vale/styles/Prose/UnpackExplore.yml: 36ca10c7c8f6dfa8c6c6b5dec4c03cf3a16465f68d240ba5461e9ff639a6498b
+      .config/vale/styles/Prose/UrgencyInflation.yml: 188cb3b94584d6c6742945abe33497bb40ab96f1daf1597833efe20a8f5b9249
+      .config/vale/styles/Prose/VagueAttributions.yml: 9c81c5d9b9be1eda376745d95693e9ed5bda9666acb06ea65807472b0db65051
+      .config/vale/styles/Prose/Weasel.yml: 9bd7b18c13c2a90f5cba024478e636af34241a10260714468e6fadbcd757709b
+      .config/vale/styles/Prose/Wordiness.yml: dbbd94d81b9588ab966a6567cdd97b2e254222171f3ce0aef93a6ca6a71fed83
+      .config/vale/styles/Prose/words.txt: 5d447d41c858cc86e3c802bb6641fc1df1f4729bc102f4c8f7ea5643993e3416
+      .config/vale/styles/config/vocabularies/Prose/accept.txt: b0bd78149f83d244df37be3005b7e10fdd73ed18b4572f3289230919f5c398fe
+      .config/vale/styles/config/vocabularies/Prose/reject.txt: cdfdcde6963710e94fbec497007690991983c01ab5e10caea8cb376a9ed71eb3
     dependents:
-      docs/src/contributing/documentation.typ: f736d99c8d194315e711264eeef70729760b056b8cc0c052a30c268f83c798b6
-      docs/src/contributing/gates.typ: c313dcc6c5dab34407e16925cb0db58a23eff59aca33c85b2d281f19c35182ec
+      docs/src/contributing/documentation.typ: 4c25475e3653baff92ba46fc08e9ab5b1336f54289456555b0e8397ec27759ae
+      docs/src/contributing/gates.typ: e8981f7405c252c02c37db9c15fe1b1cbe3517150a3fea29016fc323e81acedc
   waits-docs:
     source:
       crates/mindtape/src/graph/ready.rs: 9e712ad6a7783c09428bcd8f8516e81d7f66454b534405c75ddb2f3d65f4d7d1

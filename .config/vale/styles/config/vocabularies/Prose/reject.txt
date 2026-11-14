@@ -1,0 +1,7 @@
+# Spellings the project never uses. Vale.Avoid reports each one as an error.
+MindTape
+Github
+Javascript
+Typescript
+E-mail
+e-mail

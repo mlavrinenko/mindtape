@@ -26,7 +26,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 14),
+  status: done(2026, 11, 14),
 )
 
 == AS-IS
@@ -41,24 +41,27 @@
 
 == TO-BE
 
-- 🟢 `.config/vale.ini` enables a curated set: sentence length, passive voice, weasel words, wordiness, Latin abbreviations, heading punctuation, terms and casing, and spelling against a project dictionary.
+- 🟢 `.config/vale.ini` enables 48 rules: sentence shape, word choice, sentence frames, AI-tell patterns, and the repo's own name, spelling and punctuation rules. Microsoft, Google and write-good supply the base rules, `tbhb/vale-ai-tells` v1.37.0 the AI tells, and the repo vendors them all.
 - 🟢 A new rule starts at warning, its alerts are cleaned, and the rule moves to error; the level sits in the config, not in the rule file.
 - 🟢 A noisy rule is dropped by name, with its reason in a comment beside the line.
 - 🟢 `docs/src/contributing/documentation.typ` lists every enabled rule, its level and one example.
 
 ```ini
 [*.typ]
-BasedOnStyles = Prose
-Prose.SentenceLength = warning
+BasedOnStyles = Prose, Vale
+Prose.SentenceLength = error
 Prose.PassiveVoice = error
+Prose.OpeningCliches = error
+Vale.Terms = error
 ```
 
 == Changes
 
-- `.config/vale.ini`: the curated rule list and each rule's level, plus the per-month task overrides the new rules need.
-- `.config/vale/styles/Prose/`: one YAML per rule, the project dictionary the spelling rule reads, and the terms list.
-- `docs/src/contributing/documentation.typ`: a table of every enabled rule, its level and one quoted example, under Plain prose.
-- `.mmz/config.yaml`: the `docs::vale-prose` inputs, which already reach `docs` and `vale-config`; a rule file or a page outside them is added here.
+- `.config/vale.ini`: the 48 rules and their levels, the quoted-example and rule-table ignores, and the seven task-record exceptions with their reasons. The 32 AI-tell rules stay off for a task body until the task prose passes them.
+- `.config/vale/styles/Prose/`: one YAML per rule with its level line removed, `words.txt` for the spelling rule, and `NOTICE.md` with the source and licence of each rule. The vocabulary sits in `.config/vale/styles/config/vocabularies/Prose/`.
+- `docs/src/contributing/documentation.typ`: the 48-row rule table, and the prose of the page rewritten. The 62 files the old style flagged are at zero alerts.
+- `.config/outdatty.yaml`: the `vale-docs` group gains `words.txt` and the vocabulary, which decide what a rule flags.
+- `.config/linecop.yaml` and `.just/docs.just`: the page's cap grows for the table, and the two recipe descriptions name what each arm holds.
 
 == Alternatives
 
@@ -69,7 +72,8 @@ Prose.PassiveVoice = error
 
 - Code comments and commit messages, which have tasks of their own.
 - Replacing `check-doc-prose`; its Markdown, comment, schema and help readers stay.
+- The 32 AI-tell rules a task record still skips, which `hold-task-bodies-to-the-record-prose-rules` covers.
 
 == Dogfood
 
-The docs gates run the set on every `just check`, and `just docs vale-tasks` holds each task filed from 2026-10 onward to it.
+The docs gates run the set on every `just check`. `just docs vale-tasks` holds every task to the rules that fit a record, and the prose this task rewrote passes the full set.

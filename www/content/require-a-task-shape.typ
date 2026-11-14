@@ -34,7 +34,7 @@ one sentence instead of steps, and `mt add` refuses it again:
 
 #terminal("require-a-task-shape")
 
-Neither refusal writes a file. A missing slot exits
+`mt add` writes a file only after both checks pass. A missing slot exits
 #exit-code("require-a-task-shape", step: 0), and a broken rule exits
 #exit-code("require-a-task-shape", step: 1).
 
@@ -47,33 +47,34 @@ each one reads:
   columns: (auto, 1fr),
   table.header([Tag], [What it says]),
   [raw("stateful")],
-  [The change keeps state, so the task has one Rollback section saying how to undo it.],
+  [The change keeps state. The task has one Rollback section saying how to undo it.],
 
-  [raw("stateless")], [The change keeps no state, so the task has no Rollback.],
+  [raw("stateless")],
+  [The change doesn't keep state. The task has no Rollback.],
 
   [raw("no-repro")],
-  [The `AS-IS` has no runnable repro, so the fenced block is waived.],
+  [The `AS-IS` has no runnable repro. The tag waives the fenced block.],
 
   [raw("no-ui-ux")],
-  [The `TO-BE` has no screen or output to show, so the fenced example is waived.],
+  [The `TO-BE` has no screen or output to show. The tag waives the fenced
+    example.],
 )
 
 The `statefulness` and `examples` parameters turn the tag rule and the two
-fenced examples on. Both are off in the example, so a task without one of these
-tags still passes.
+fenced examples on. Both are off in the example. A task without one of these tags still passes.
 
-= Deep dive
+= Templates and rules
 
-The project's templates ask for each section as a slot, a value that `mt add`
+Each project template defines each section as a slot, a value that `mt add`
 fills in. `mt add` refuses a fill that leaves a slot out, and the pack's rules
 refuse one left empty. `mt add --describe` lists the slots, each with a prompt
 and an example. #link(u("/templates/"))[Templates & slots] covers both.
 
 `extends` adopts the `mindtape:tasks` #link(u("/packs/"))[rule pack], a
-set of rules that ships with `mt`. Its rules require `AS-IS`, `TO-BE`, Changes
+set of rules that comes with `mt`. Its rules require `AS-IS`, `TO-BE`, Changes
 and Out of scope, in that order. A `fix` also has Environment, a `feat`
 or a `decision` includes Alternatives, a `docs` task has Source of truth,
-and a task tagged `stateful` has Rollback. `AS-IS` must be numbered steps,
+and a task tagged `stateful` has Rollback. `AS-IS` must use numbered steps,
 with 🔴 on the step that shows the bug. Each `TO-BE` bullet opens with 🟢, and
 each Changes bullet starts with one backticked path. Changes is never empty. A question left in `TO-BE`, Changes or Out of
 scope fails, so ask it before you file, while a `?` in code passes. If you edit

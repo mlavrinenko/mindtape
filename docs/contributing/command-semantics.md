@@ -15,4 +15,4 @@ Only `mt recur` creates or refreshes a recurring instance. `mt done` closes a ta
 
 The authored tree is the task files and the config. A read can still write the git-ignored `.mindtape/cache/`, which holds derived state the way `target/` does.
 
-A read runs no `[[on.flip]]` action. The one command a read runs from the config is a `[[tasks.waits]]` checker, for an open task that names it in `waits-on`, because `ready` and `blocked` depend on its answer. A checker must answer from local state and write nothing in the authored tree. It runs only once `mt allow` has recorded the config’s commands for the repository, as a flip’s `run` action does. So a fresh clone runs nothing it ships.
+A read doesn’t run a `[[on.flip]]` action. The one command a read runs from the config is a `[[tasks.waits]]` checker, for an open task that names it in `waits-on`, because `ready` and `blocked` depend on its answer. A checker must answer from local state and write nothing in the authored tree. It runs only once `mt allow` has recorded the config’s commands for the repository, as a flip’s `run` action does. So a fresh clone runs none of the config’s commands.

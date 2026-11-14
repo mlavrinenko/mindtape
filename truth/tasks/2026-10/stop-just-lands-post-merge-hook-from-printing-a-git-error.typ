@@ -53,7 +53,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `.config/wt.toml`: none. Not reproducible from this repo. Worktrunk 0.74 runs `post-merge` as a background `wt hook run-pipeline` in the target worktree when the merge removes the branch's worktree, and every hook log under `.git/wt/logs/` is empty. Two lands (one rebased) printed no `fatal:` line. No hook or `.envrc` step here runs git from the removed directory, so a `fatal: not a git repository` comes from worktrunk's own runner or from the caller's shell, whose working directory is the removed worktree. Upstream, `wt merge` needs to start the background pipeline from the target worktree, not the removed one, and to print nothing from a runner that fails after the removal. This repo has no part to change.
+- `.config/wt.toml`: none. Not reproducible from this repo. worktrunk 0.74 runs `post-merge` as a background `wt hook run-pipeline` in the target worktree when the merge removes the branch's worktree, and every hook log under `.git/wt/logs/` is empty. Two lands (one rebased) printed no `fatal:` line. No hook or `.envrc` step here runs git from the removed directory, so a `fatal: not a git repository` comes from worktrunk's own runner or from the caller's shell, whose working directory is the removed worktree. Upstream, `wt merge` needs to start the background pipeline from the target worktree, not the removed one, and to print nothing from a runner that fails after the removal. This repo has no part to change.
 
 
 == Rollback

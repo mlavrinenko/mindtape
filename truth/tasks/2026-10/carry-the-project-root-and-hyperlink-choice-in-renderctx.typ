@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[render output stops depending on which project opened first, so one process can render several],
+      sound-codebase: helps[render output stops depending on which project opened first, so one process can render more than one],
       docs-match-code: neutral,
     ),
   ),

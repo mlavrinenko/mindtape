@@ -19,10 +19,10 @@ page works in both directions. `CanonicalTask` in
 
 = Fields
 
-A field is #strong[authored] when it has a value written in the task file.
-`mt import` writes each authored field back into the file it creates. A
-#strong[computed] field is derived from the file or the project, and
-`mt import` ignores it.
+A field counts as #strong[authored] when it has a value written in the task
+file. `mt import` writes each authored field back into the file it creates. A
+#strong[computed] field comes from the file or the project, and `mt import`
+ignores it.
 
 #table(
   columns: (auto, auto, 1fr),
@@ -76,12 +76,12 @@ A field is #strong[authored] when it has a value written in the task file.
   [`[{stem, status, kind}]`: the unfinished tasks a blocked task waits on.
     A `waits-on` entry the checker hasn't cleared shows up as
     `{stem: entry, status: the checker's line, kind: "waits-on"}`. Empty
-    unless the task is blocked, and always empty from `mt eval`, which reads
-    one file.],
+    unless the task waits on something, and always empty from `mt eval`,
+    which reads one file.],
 
   [`children`],
   [computed],
-  [How many tasks name this one in a `parent` link. `0` from `mt eval`.],
+  [How many tasks point at this one in a `parent` link. `0` from `mt eval`.],
 
   [`progress`],
   [computed],
@@ -110,7 +110,7 @@ A field is #strong[authored] when it has a value written in the task file.
 
   [`collector_problems`],
   [computed],
-  [Why a collector produced no value, one message per failure. `mt check`
+  [Why a collector didn't produce a value, one message per failure. `mt check`
     reports each as a `Collector` violation at `derived.<name>`.],
 )
 
@@ -154,8 +154,8 @@ prints the same bytes, so a program can check the URL it read. `mt import`
 accepts input without `$schema`, such as a bare array of records.
 
 Every object output has `$schema` first, with its payload keys flat
-beside it. `mt eval --json` wraps one task record under its own `eval` schema;
-the `task` schema describes the bare record `mt ls` puts in `tasks`.
+beside it. `mt eval --json` wraps one task record under its own `eval` schema.
+The `task` schema describes the bare record `mt ls` puts in `tasks`.
 
 `applied` says which #link(u("/named-sets/"))[view] or
 #link(u("/cli/ls/#conditional-rules"))[`[[ls.rules]]` entry] set the
@@ -184,16 +184,16 @@ It's `[]` when no filter calls `touches()`.
 
 The URL ends in `/schema/output/<name>/<version>.schema.json`. The version
 changes only when a change could break an earlier consumer. A compatible
-addition updates the file in place; an incompatible one adds a new version and
+addition updates the file in place. An incompatible one adds a new version and
 leaves the old file, so a stored URL still resolves after an upgrade. `task`
 describes one record.
 Every command output has its own file. The odd names map to their command:
 `preset-ls` is `mt preset ls --json`, `set-ls` is `mt @set ls --json`,
 `set-check` is `mt @name check --json`, `at-project` and `at-set` are the two
 `mt at <name> --json` shapes, `describe` is `mt add --describe=json`,
-`explain-add` is `mt explain add --json`, `config-show` is `mt config show --json`, `view` is
-`mt explain views <name> --json`, and `dict` is
-`mt explain dicts <name> --json`. The rest are named after their command: `ls`,
+`explain-add` is `mt explain add --json`, `config-show` is
+`mt config show --json`, `view` is `mt explain views <name> --json`, and `dict`
+is `mt explain dicts <name> --json`. The rest take their command's name: `ls`,
 `add`, `check`, `graph`, `explain`, `rules`, `tags`, `eval`, `board`, `at`,
 `packs`, `views` and `dicts`.
 
@@ -209,7 +209,7 @@ replaces the installed copy without `--force`.
 
 `mt schema --write` records every current schema under `schema/output/`, and
 `mt schema --check` fails, naming each missing or changed file. The test suite
-runs that check, and the docs gate fails when a doc or a capture names a schema
+runs that check. The docs gate fails when a doc or a capture points at a schema
 URL with no file, so a stale link cannot resolve.
 
 = Many projects

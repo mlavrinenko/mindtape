@@ -14,19 +14,19 @@ Without a flag, it scans every
 project template dir. `--all` scans every Git-visible `.typ` file in the
 project instead, non-task files such as `lib/` and docs included. Outside a
 Git work tree, `--all` walks the project with the `.git`, `target` and
-`.mindtape/cache` skips. Neither scope enters a symlinked directory, an
-untracked ignored file is in neither, and a tracked task under an ignore rule
-is in both. `--dry-run` prints each edit and writes nothing. `--check` prints
+`.mindtape/cache` skips. Both scopes skip a symlinked directory and leave out
+an untracked ignored file. Both include a tracked task under an ignore rule.
+`--dry-run` prints each edit and doesn't write anything. `--check` prints
 one diagnostic per unsupported version, names the first file that uses it and
 the versions this `mt` supports, and exits 1 while one remains, so CI can gate
 it with `mt fix --all --check`.
 
-An import of a supported older version, such as `0.2.0`, is kept and reported.
-A newer version is refused with an upgrade hint. A malformed spec, an
-unreadable file or a symlinked file with an edit is reported, and any of them
-stops the run before a file changes. A project-local
-`[[typst.local-packages]]` pin is never edited. When it declares the imported
-unsupported version, the import is reported unfixable. A successful write ends
-with `mt check`.
+`mt fix` keeps and reports an import of a supported older version, such as
+`0.2.0`. It refuses a newer version with an upgrade hint. It reports a
+malformed spec, an unreadable file or a symlinked file with an edit.
+Any of them stops the run before a file changes. `mt fix` never edits a
+project-local `[[typst.local-packages]]` pin. When it declares the imported
+unsupported version, `mt fix` reports the import as unfixable. A successful
+write ends with `mt check`.
 
 #cli-command("fix")

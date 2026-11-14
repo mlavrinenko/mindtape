@@ -45,7 +45,7 @@
 
 - 🟢 `/schema/` has a section on many projects, with captured runs of `mt @work ls --json` and `mt @work board --json`, cut down with `jq`, over `examples/across-projects/`.
 - 🟢 The section says what `cells` holds per column kind: a count, a task, `null` or an `error`.
-- 🟢 `/read-many-projects/` links that section in place of its sentence on `--json` and csv.
+- 🟢 `/read-many-projects/` links that section in place of its sentence on `--json` and CSV.
 
 
 == Source of truth

@@ -24,8 +24,8 @@ so each output on this page is what the command printed.
 each record against this project's config: the
 #link(u("/statuses/"))[status legend], the priority scale, the `kind` values
 and the allowed tags. It checks the batch as one set, so records that link
-to each other resolve. Then it writes the records that pass. A record
-that fails is reported and not written, and the rest are still written.
+to each other resolve. Then it writes the records that pass. It reports a
+record that fails and doesn't write it, and it still writes the rest.
 
 The report on standard error names each record, `filed` or `skipped`, with the
 reason for a skip. When a content rule's `message` replaces the check's own
@@ -37,8 +37,8 @@ can tell a partial import from a whole one.
 If the source's status names differ from your legend, `--map old=new` renames
 a status before the check. `--dir <path>` sends the whole batch to one
 directory instead of each record's `file`, resolved from the project root.
-`--dry-run` checks the batch and writes nothing. Its report says `would file`
-for each record that would be written and ends with `dry run: nothing
+`--dry-run` checks the batch and doesn't write anything. Its report says `would file`
+for each record it would write and ends with `dry run: nothing
 written`. The #link(u("/cli/import/"))[`mt import` page] lists every flag.
 
 The adapters in `contrib/jq/` read only the tracker's own export, not your
@@ -92,12 +92,13 @@ your file uses.
 
 An export imports back whole. `mt import` names each file from the record's
 `id`, so a link to a task still resolves. A record with no `id`, like the ones
-the jq adapters emit, or an `id` containing a `/` or a `.`, is named from its
-title, the way `mt add` names it. Without `--dir`, a record is
-written to the folder its `file` names if that folder is under a task root, so
-an export of several folders imports back as the same folders. If a name is taken anywhere in the project, it gets a
-`-2` suffix and the report says `alpha: filed as alpha-2`. A link to it
-doesn't follow the rename.
+the jq adapters emit, takes its name from its title, the way `mt add` names it.
+An `id` containing a `/` or a `.` follows the same rule. Without `--dir`,
+`mt import` writes a record to the folder its `file` names if that folder is
+under a task root. A multi-folder export then imports back as the same
+folders. If another task anywhere in the project already uses the name,
+`mt import` gives it a `-2` suffix and the report says
+`alpha: filed as alpha-2`. A link to it doesn't follow the rename.
 
 This exports `examples/round-trip/`, whose four tasks use every field the
 import writes:

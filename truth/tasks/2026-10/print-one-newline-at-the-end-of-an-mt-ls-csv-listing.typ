@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the printed csv matches what the render test pins],
+      sound-codebase: helps[the printed CSV matches what the render test pins],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Fixing the lone newline of an empty `--format path` listing in `mt ls`
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): `mt ls --format csv` prints a blank line after the last record, because the csv writer already ends each record with a newline and `println!` adds a second
++ 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): `mt ls --format csv` prints a blank line after the last record, because the CSV writer already ends each record with a newline and `println!` adds a second
 
 ```
 $ mt ls 'title == "zz"' --format csv | od -c

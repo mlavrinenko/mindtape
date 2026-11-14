@@ -34,12 +34,12 @@ merged config as TOML, and `--origin` lists the files it came from (see
 
 `mt` merges four layers, from lowest precedence to highest:
 
-+ the floor built into `mt`;
++ the floor built into `mt`
 + `mindtape/defaults.toml` in your config directory, such as
-  `~/.config/mindtape/defaults.toml` on Linux;
+  `~/.config/mindtape/defaults.toml` on Linux
 + each `.mindtape/defaults.toml` from the project root up to your home
-  directory, the farthest first, so the nearest one wins;
-+ the project's `.mindtape/config.toml`.
+  directory, farthest first, with the nearest one last
++ the project's `.mindtape/config.toml`
 
 Tables merge key by key, so if you set `[ls] hyperlinks`, you keep the
 floor's `[ls.columns]`. A scalar or an array replaces the lower layer's value
@@ -54,7 +54,7 @@ collect the entries of every layer and of every
 #link(u("/packs/"))[pack] a layer adopts. An entry replaces a lower
 layer's entry with the same `name`, in its place, so you can change one
 inherited rule and keep the rest. Two entries with the same `name` in one
-layer's array are a config error that names both. An `[[on.flip]]` or
+layer's array are a config error that reports both. An `[[on.flip]]` or
 `[[on.add]]` entry with no `name` always appends. `extends` and `disable`,
 which adopt a pack and drop a rule, are on #link(u("/packs/"))[Packs].
 
@@ -64,7 +64,7 @@ clone can't start a program before you have read it. Until then `mt` tries
 `$VISUAL`, then `$EDITOR`, and warns once with the command it is waiting to
 run. With neither set, `mt go` fails and `mt add` opens `vi` (`notepad` on
 Windows). An editor in
-your own `mindtape/defaults.toml` needs no approval. An ancestor's
+your own `mindtape/defaults.toml` doesn't need approval. An ancestor's
 `.mindtape/defaults.toml` does, since it can be inside a clone.
 
 A `run` in `[[tasks.waits]]` or `[[on.flip]]` takes a string, which runs
@@ -91,10 +91,10 @@ prints it after the rule's name, so phrase it as the action to take.
   [Replaces the cache directory. Each fetched #link(u("/packs/#packs-from-a-git-source"))[pack source] sits in its `mindtape/packs/`.],
 
   [`TYPST_PACKAGE_PATH`],
-  [Moves the package directory Typst reads, for `mt` too, unless `MINDTAPE_DATA_HOME` is set. See Local Typst packages below.],
+  [Moves the package directory Typst reads, for `mt` too, unless you set `MINDTAPE_DATA_HOME`. See Local Typst packages below.],
 
   [`MINDTAPE_NOW`],
-  [Sets today's date, which `mt` uses for status dates, for `now()` and `stale()` in filters, and in `mt recur`. Takes `YYYY-MM-DD` or an RFC 3339 timestamp, whose date part is used as written.],
+  [Sets today's date, which `mt` uses for status dates, for `now()` and `stale()` in filters, and in `mt recur`. Takes `YYYY-MM-DD` or an RFC 3339 timestamp, whose date part `mt` uses as written.],
 
   [`MINDTAPE_WORKTREE`],
   [Selects the project, like `-w`. See #link(u("/agents/"))[For AI agents].],
@@ -106,14 +106,15 @@ prints it after the rule's name, so phrase it as the action to take.
 The `MINDTAPE_` directory variables work on every platform. The platform's
 own lookup reads `XDG_CONFIG_HOME`, `XDG_DATA_HOME` and `XDG_CACHE_HOME` on Linux only, so for a
 test or a sandbox that must not see your own setup, set these instead. Set but
-empty, each one means there's no such directory. `mt` then reads no global
-layer, resolves no global package, or finds no pack source installed. #just.check-examples() runs that way, so
-each example project reads the prelude beside it.
+empty, each one means there's no such directory. `mt` then doesn't read a
+global layer, resolve a global package, or find an installed pack source.
+#just.check-examples() runs that way. Each example project then reads the
+prelude beside it.
 
 With `MINDTAPE_NOW` unset or empty, today is the system clock's local date,
 using `TZ` on Unix and the system time zone on Windows. A local date keeps a
-task filed at 01:00 on the day it was filed. A date in a task file has no
-time zone. A `MINDTAPE_NOW` that isn't a date is an error naming the
+task in the day you filed it, even at 01:00. A date in a task file has no
+time zone. A `MINDTAPE_NOW` that isn't a date is an error that reports the
 variable.
 
 = Local Typst packages
@@ -121,10 +122,10 @@ variable.
 A task file imports the DSL as `@local/mindtape`, and Typst resolves a
 `@local` package from one directory per machine. `mt install` fills that
 directory with every prelude version `mt` reads, and `mt`, `typst` and
-tinymist all read it. This `mt` reads `0.2.0`, `0.3.0` and `0.4.0`, and its copy of
-each ships in the binary, so a task file loads where the directory has none of
-them. An import at any other version is refused at load with the supported
-set and the hint that fits.
+tinymist all read it. This `mt` reads `0.2.0`, `0.3.0` and `0.4.0`, and the
+binary holds a copy of each. A task file then loads even where the directory
+has none of them. `mt` refuses an import at any other version at load, with
+the supported set and the hint that fits.
 
 #table(
   columns: 2,
@@ -140,7 +141,7 @@ A set `TYPST_PACKAGE_PATH` replaces it on every platform, for all three
 tools. `MINDTAPE_DATA_HOME` replaces it for `mt` alone, which suits a test
 but hides the package from your editor.
 
-So every checkout on that machine reads whichever `lib/` was installed last.
+So every checkout on that machine reads whichever `lib/` you installed last.
 To pin a project to its own copy, add a `[[typst.local-packages]]` entry. It
 resolves the package from a path in the project instead:
 
@@ -155,9 +156,9 @@ resolves the package from a path in the project instead:
 )
 
 `path` is relative to the project root and may point outside it. An entry
-wins over the machine directory for the version its `typst.toml` declares; a
-file importing a supported version the entry does not have falls through to
-the machine's copy, or the matching copy built into `mt`. It works for any
+wins over the machine directory for the version its `typst.toml` declares. A
+file that imports a supported version the entry doesn't have falls through to
+the machine's copy, or to the matching copy built into `mt`. It works for any
 `@local/<name>` a task file or an `x-<ns>` helper imports. This repository
 pins its own prelude to its `lib/` with one.
 
@@ -185,11 +186,11 @@ may have an `[overlay]` table, which `mt init` merges over the rest of the
 preset. Tables merge key by key, and any other value in the overlay replaces
 the preset's. You get one file, with no comments and no `[overlay]`.
 
-An answer you give `mt init` instead of a preset can adopt a
-#link(u("/packs/"))[pack] rather than copy its keys. `--priority ice-strict`
-writes `extends = ["mindtape:ice"]`, so the project gets the pack's fixes when
-`mt` upgrades. When several answers adopt packs, `mt init` folds them into one
-`extends` line near the top of the file.
+`mt init` can adopt a #link(u("/packs/"))[pack] from an answer instead of
+copying a preset's keys. `--priority ice-strict` writes
+`extends = ["mindtape:ice"]`. The project then gets the pack's fixes when `mt`
+upgrades. When the answers adopt more than one pack, `mt init` folds them into
+one `extends` line near the top of the file.
 
 = Sections
 
@@ -197,7 +198,7 @@ The table lists every top-level section, with the description `mt config schema`
 prints for it. The docs build fails if the schema has a section the table
 leaves out.
 
-// config-sections orders the rows and labels each in TOML syntax; the
+// config-sections orders the rows and labels each in TOML syntax. The
 // descriptions come from the schema. config-gate panics when a schema
 // property is missing here or a row names no property.
 #let schema = json("../generated/config-schema.json")
@@ -270,7 +271,7 @@ These sections have a page of their own:
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:
   #link(u("/cli/ls/"))[`mt ls`].
 
-A `[tasks] roots` entry names where task sources are;
+A `[tasks] roots` entry names where task sources are.
 #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
 says which files under a root `mt` reads.
 
@@ -294,7 +295,7 @@ returns = ["path"]
 
 `query` names what to read. A regex query takes `section`, one heading name or
 a heading path, and `pattern`. Each match yields its first capture group, or
-the whole match when the pattern has none; `group` picks one explicitly,
+the whole match when the pattern has none. `group` picks one explicitly,
 counting from 0. The section's text is everything under its heading down to the
 next heading of the same or a higher level, the same slice a content rule
 reads. A missing section yields an empty list.
@@ -336,14 +337,14 @@ uses:
 `.rs` files. `pattern` is an
 #link("https://ast-grep.github.io/guide/pattern-syntax.html")[ast-grep pattern],
 and `glob` is optional, a glob or a path-set name that narrows the files the
-query reads; without one it reads every file of that language git lists. Each
-matching file contributes its path once, so a rule reads
+query reads. Without one, it reads every file of that language git lists. Each
+matching file contributes its path once. A rule then reads
 `count_paths(derived.callers, "@source")` over a file count as it does for any
 path list. Paths are relative
 to the repository root, as `changed()` reads them, and the walk needs a git
 working tree. Outside one, `mt check` reports the collector problem and names
-`git init` as the fix. A bad pattern, an unknown language, a bad glob or a
-`returns` other than `["path"]` is a config error.
+`git init` as the fix. A bad pattern fails as a config error. So does an
+unknown language, a bad glob, or a `returns` other than `["path"]`.
 
 `returns` is a type expression. The atoms are `bool`, `int`, `number`,
 `string`, `path` and `date`. Wrap one in a one-element array for a list, as in
@@ -354,12 +355,12 @@ A regex query returns `["string"]` or `["path"]`, and an ast-grep query returns
 Collectors merge by name across layers and packs, exactly as rules do, and
 `disable` drops one by name. Two collectors with the same name in one source
 are a config error. `mt explain rules` lists each one with its origin, kind, type and
-the rules that read it. A Typst collector names its module and function; an
-ast-grep collector names its language, pattern and optional glob.
+the rules that read it. A Typst collector specifies its module and function.
+An ast-grep collector specifies its language, pattern and optional glob.
 
-`mindtape:budget` ships a `changes` collector over a task's Changes section,
+`mindtape:budget` includes a `changes` collector over a task's Changes section,
 and its rules read `count_paths(derived.changes, "@source")`. A project that
-sizes work that way sets `[tasks.estimate] required = false`; an estimate
+sizes work that way sets `[tasks.estimate] required = false`. An estimate
 stays optional, and #link(u("/split-oversized-tasks/"))[Split oversized tasks]
 shows the rule.
 
@@ -382,16 +383,16 @@ the role's name.
 
 `kind` is `human` or `llm`. Actor names and role names must be unique and
 not empty, and an actor may hold only declared roles. A task's `assignee:`
-names the actor working on it. If `[tasks.assignee] allowed` is set, each name
-in it must be a declared actor. In a filter, `assignee == "ada"` compares the
+names the actor working on it. If you set `[tasks.assignee] allowed`, each
+name in it must be a declared actor. In a filter, `assignee == "ada"` compares the
 name, and `role == "reviewer"` reads the assignee's roles from this list (see
 #link(u("/filters/"))[Filter language]).
 
-When an assignee is required, `mt add` asks for it in a
+When a project requires an assignee, `mt add` asks for it in a
 #link(u("/templates/"))[slot] that `MINDTAPE_PRINCIPAL` fills, so a harness
 that sets the variable files tasks without a prompt. With the variable unset,
-an interactive `mt add` prompts, and a non-interactive one fails naming the
-slot.
+an interactive `mt add` prompts, and a non-interactive one fails and reports
+the slot.
 
 = Task file names
 
@@ -430,8 +431,8 @@ A `{date:FMT}` format reads these tokens, longest first:
 )
 
 `[tasks.naming] dedup` decides what `mt add` does if the file already exists.
-`fail` stops before writing. `skip` writes nothing, exits 0 and reports the
-existing path. `add-suffix` appends `-2`, `-3` and so on until the name is
+`fail` stops before writing. `skip` leaves the file alone, exits 0 and reports
+the existing path. `add-suffix` appends `-2`, `-3` and so on until the name is
 free. If `dedup` is unset, it's `fail` when `stem` is unset and `add-suffix`
 when it's set. `mt add --dedup` overrides it for one run.
 

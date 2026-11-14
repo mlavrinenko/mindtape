@@ -14,7 +14,7 @@ JSON flag: `mt explain [<add|rules|tags|views|dicts>] [--json]`.
 
 `--json` prints the index as one object whose first key is `$schema`, the URL
 of the schema for that object. It keeps the fields each listing printed under
-its old command; views and dicts sit under `views` and `dicts`. The sections
+its old command. Views and dicts sit under `views` and `dicts`. The sections
 below say what they contain.
 
 = Add hooks
@@ -34,8 +34,8 @@ gives the rule's severity, its name as `mt config show --origin` prints it, and
 the message a breach prints. It lists what's left after packs, overrides and
 `disable`, so a project that extends a #link(u("/packs/"))[rule pack] sees the
 rules in effect. A flip gate shows up with or without a `message`, and
-any other flip action shows up only when it has one. Each is named by its
-place in `[[on.flip]]`.
+any other flip action shows up only when it has one. Each takes its name from
+its place in `[[on.flip]]`.
 
 A rule with no `severity` shows the level `mt` applies to it. That's `warn`
 for `[[tasks.rules]]` and `[[commits.rules]]`, and `error` for a body rule. A
@@ -45,7 +45,7 @@ source that supplies it.
 Under the rules, `mt explain rules` lists every derived field a
 #link(u("/config/#derived-fields"))[collector] computes: its type, its
 `derived.<name>`, its kind and origin, and the rules that read it. A Typst
-collector names its module and function; an ast-grep collector names its
+collector gives its module and function. An ast-grep collector gives its
 language, pattern and optional glob. `--for commit` omits that block, since a
 commit rule cannot read a derived field.
 
@@ -58,11 +58,11 @@ your #link(u("/commit-rules/"))[commit rules]. `--json` names its schema in
 
 `mt explain tags` lists every tag `[tasks.tags] allowed` permits, with the
 rules that read it. A rule reads a tag when its `when` or `assert` reads
-`has_tag("<tag>")` or `has(tags, "<tag>")`, however either is spaced, so a new
-rule needs no registration. Each rule shows the message `mt explain rules`
+`has_tag("<tag>")` or `has(tags, "<tag>")`. Spacing doesn't matter, and a new
+rule doesn't need registration. Each rule shows the message `mt explain rules`
 gives it, `(no message set)` included.
 
-Without `--for`, a tag that no rule reads is still a legal tag, so the listing
+Without `--for`, a tag that every rule skips is still a legal tag. The listing
 shows it with `area label` rather than dropping it. That covers tags a view or
 a person reads, such as the area labels a project keeps for grouping.
 
@@ -75,7 +75,7 @@ their messages, with its own `$schema`.
 = Views
 
 `mt explain views` lists the project's views, or shows one by name. `--json`
-wraps the list in `views` under `$schema`; one named view prints flat under
+wraps the list in `views` under `$schema`. One named view prints flat under
 `$schema`. To define a view, or to see what `@name` means in a listing, read
 #link(u("/named-sets/"))[Views and dictionaries].
 
@@ -83,7 +83,7 @@ wraps the list in `views` under `$schema`; one named view prints flat under
 
 `mt explain dicts` lists the project's dictionaries, or one dictionary's
 entries by name. `--json` wraps the list in `dicts`, each with its `case` and
-`count`, under `$schema`; one named dictionary prints flat under `$schema`.
+`count`, under `$schema`. One named dictionary prints flat under `$schema`.
 That's the list a rule reading the dictionary accepts. To declare a
 dictionary, or to see how its entries merge, read
 #link(u("/named-sets/#dictionaries"))[Views and dictionaries].

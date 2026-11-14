@@ -44,7 +44,7 @@
 == TO-BE
 
 - 🟢 `just ask-refactoring` has a `repeats` arm. It runs jscpd at 15 tokens, groups the pairs by snippet, drops `use`, `mod` and attribute lines, and scores each group by the tokens an extraction saves: `(copies - 1) × tokens - 5 × copies - 10`.
-- 🟢 Groups that mostly overlap a higher-scoring one fold into it, so one snippet files one task.
+- 🟢 Groups that overlap a higher-scoring one fold into it, so one snippet files one task.
 - 🟢 `--repeat-gain N` sets the bar, 300 by default, which files 12 tasks on today's tree.
 - 🟢 The arm says it is a stopgap, and `canibump.toml` says when jscpd's own clone classes can replace it.
 

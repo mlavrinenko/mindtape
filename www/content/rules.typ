@@ -47,8 +47,8 @@ those rules read, and the message each prints, run
 #link(u("/cli/explain/#tags"))[`mt explain tags`].
 
 A new check on an added task is a config expression, not Rust code. Write a
-`[[tasks.rules]]` assertion when the value must be checked, or an
-#link(u("/hooks/"))[`[[on.add]]`] action when it must have a default. A `dir`
+`[[tasks.rules]]` assertion to check a value, or an
+#link(u("/hooks/"))[`[[on.add]]`] action to set a default. A `dir`
 assertion holds the folder layout a hook chooses:
 
 // docs:hand-typed a sketch of a rule no fixture here declares
@@ -62,8 +62,8 @@ assert = 'dir == "tasks/fixes"'
 = Required fields
 
 `required` takes `true`, `false`, or a #link(u("/filters/"))[filter
-  expression]. With an expression, the field is required on exactly the tasks
-it matches. You can set it on `[tasks.priority]`, `[tasks.difficulty]`,
+  expression]. With an expression, the expression requires the field on exactly
+the tasks it matches. You can set it on `[tasks.priority]`, `[tasks.difficulty]`,
 `[tasks.estimate]`, `[tasks.assignee]` and each `[tasks.fields.<name>]`:
 
 #raw(
@@ -86,7 +86,7 @@ it matches. You can set it on `[tasks.priority]`, `[tasks.difficulty]`,
 #terminal("rules-required")
 
 `mt` parses each expression once, when it loads the config, so a broken one
-gives you one error that names the field.
+gives you one error that reports the field.
 
 = Assertions
 
@@ -105,7 +105,7 @@ a filter expression. Unlike `required`, it can test a field's value:
 
 #config-keys-table(schema, "tasks.rules")
 
-An `error` breach refuses the write, and nothing is written:
+An `error` breach refuses the write, and `mt` doesn't write the file:
 
 #terminal("rules-assert")
 
@@ -116,16 +116,16 @@ A `warn` breach prints a warning, and the write goes ahead:
 `mt check` reports the same breach at the line of the task's `task.with(…)`
 call. A rule with no `name` reports by its position, `rules[0]`, so you can
 always find the entry. `mt` runs each `assert` and `when` once against a
-sample task when it loads the config. So a rule that names an unknown field,
-#link(u("/named-sets/"))[view or dictionary] gives you one config error, not
-one breach per task.
+sample task when it loads the config. So a rule that references an unknown field,
+#link(u("/named-sets/"))[view or dictionary] gives you one config error. You
+don't get one breach per task.
 
 `mt check` also files each #link(u("/templates/"))[template] with its
-examples, and with its defaults under `[templates] check-defaults`, and
-checks each result as a task. A filled template is not a task file, though, so
-two kinds of rule have no answer for it. A rule that reads the whole set,
-such as a `count(...)` cap, and a rule that reads where the file lives, through
-`path` or `dir`, are left out of the template report. A rule about the
+examples, and with its defaults under `[templates] check-defaults`. It checks
+each result as a task. A filled template is not a task file, though, so two
+kinds of rule have no answer for it. `mt` leaves out of the template report a
+rule that reads the whole set, such as a `count(...)` cap. It also leaves out a
+rule that reads where the file lives, through `path` or `dir`. A rule about the
 template's own fields still reports, so a stale template cannot slip through.
 
 = Work-in-progress caps
@@ -145,14 +145,14 @@ many tasks can be in a set at once:
 )
 
 `when` repeats the counted filter on purpose. The comparison gives the same
-answer for every task, so the rule reports a breach on every task `when`
+answer for every task. The rule then reports a breach on every task `when`
 selects: the task moving into the set, and each task already in it. The second
 line below is the breach on the task already in flight, reported against the
 #link(u("/statuses/"))[flip] that caused it:
 
 #terminal("rules-wip-cap")
 
-The capped set can be any filter, so the same rule caps a view
+The capped set can be any filter. The same rule then caps a view
 (`when = '@stuck'`), a #link(u("/priority/"))[priority band] or a `kind`.
 
 = Derived fields
@@ -201,32 +201,32 @@ rule bound a file count the way it bounds a Changes list:
 )
 
 The query's optional `glob`, a glob or `@name` path set, narrows the files it
-reads; without one it reads every file of that language git lists. Paths are
+reads. Without one, it reads every file of that language git lists. Paths are
 relative to the repository root, as `changed()` reads them, so a nested project
-prefixes its directory, as in `sub/src/**`. A file query needs a git working tree: outside
-one, `mt check` reports the collector problem, and the error names `git init`
-as the fix. A file counts once however many matches it contains, so the rule
-bounds a file count, not a call-site count.
+prefixes its directory, as in `sub/src/**`. A file query needs a git working
+tree. Outside one, `mt check` reports the collector problem, and the error
+reports `git init` as the fix. A file counts once however many matches it
+contains. The rule then bounds a file count, not a call-site count.
 
 A Typst collector is the escape hatch for a structure a regex or a pattern
-cannot read: it calls a project function over the task, or over one field, and
+cannot read. It calls a project function over the task, or over one field, and
 the rule reads the value it returns. A failed call is a `Collector` violation
 at `derived.<name>`, so it fails `mt check` like any other breach.
 
 `mt explain rules` lists the collectors under the rules, each with its origin, kind,
-type and readers. A Typst collector names its module and function; an ast-grep
-collector names its language, pattern and optional glob. `--for commit` omits
+type and readers. A Typst collector specifies its module and function. An
+ast-grep collector specifies its language, pattern and optional glob. `--for commit` omits
 them, since a commit rule cannot read a derived field in this version. A rule
 whose filter names an undeclared `derived.<name>` fails config load, so a
-renamed collector cannot leave a rule reading nothing.
+renamed collector cannot leave a rule with nothing to read.
 
 = Typst checks
 
 The filter language reads an `x-<ns>` field's text, number or list, but
 can't look inside a dictionary. `[tasks.fields.x-<ns>]` only covers a list of
 strings and a `required` rule. For anything else, write a rule with `check`
-instead of `assert`. It calls a Typst function you ship in the project, with
-one field's value or the task:
+instead of `assert`. It calls a Typst function in the project, with one
+field's value or the task:
 
 #raw(
   render-slices(
@@ -247,10 +247,10 @@ is one breach, reported like an `assert` breach at the rule's `severity`:
 
 The value arrives as a Typst literal, and a content block in it as its plain
 text. A date in a `field` value arrives as a `datetime`. Without `field`, the
-function receives the same task object that `mt eval --json` prints, where a
-date is a `YYYY-MM-DD` string. A Typst error, a `panic()` in the function, or a return
-that isn't an array of strings counts as one breach with the message, and the
-rest of the project still loads.
+function receives the same task object that `mt eval --json` prints. In that
+object, a date is a `YYYY-MM-DD` string. A Typst error, a `panic()` in the
+function, or a return that isn't an array of strings counts as one breach with
+the message. The rest of the project still loads.
 
 When `mt` loads the config, it checks that the module exists and exports the
 function, and reports each failure as its own config error. It doesn't call
@@ -310,14 +310,14 @@ down to the next heading of the same or a higher level, subsections included.
   unit contains more than `max` matches. `per` is `section` (the default),
   `paragraph` or `sentence`. Paragraphs split at blank lines and at each list
   item. Sentences split after a `.`, `!` or `?` followed by a space or the
-  end. Code is removed first, fenced or inline, so a match inside a code
+  end. `mt` removes code first, fenced or inline, so a match inside a code
   sample or a backtick span never counts, and a span never splits a sentence.
 
 `mt` refuses a write that breaks a body rule, the same as a field rule.
 `mt check` reports a body violation at the heading's line, or at the
 `task.with(…)` line if a required section is missing, named
 `body.headers.rules.<name>` or `body.content.rules.<name>`. A content rule's
-`message` takes the line, and the check's default text is printed as a
+`message` takes the line, and `mt` prints the check's default text as a
 `note:` below it, so you still see which paragraph or sentence broke the rule. `--json` lists them
 in `notes`.
 
@@ -342,7 +342,7 @@ comment anywhere in a task file, inside `task.with(…)` or in the body:
 #config-values-table(schema, "CommentsPolicy")
 
 `allow-pattern` is a regex matched against the comment's text, trimmed and
-without its comment markers. Comments it matches are let through. `mt` finds
+without its comment markers. `mt` lets through the comments it matches. `mt` finds
 comments by parsing the file, so `//` inside a string or a raw block is never
 reported. Only `mt check` applies this policy. A write command won't refuse a
 task for a comment.

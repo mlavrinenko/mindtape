@@ -46,7 +46,7 @@ To turn them on for one root, set `derive-tags` on that root's
 globs. A glob limits derivation to the files whose path under the root matches
 it. A root without its own `derive-tags` follows `enabled`.
 
-= What each task gets
+= Tags per task
 
 These are the tags `mt` derives for each task in the example:
 

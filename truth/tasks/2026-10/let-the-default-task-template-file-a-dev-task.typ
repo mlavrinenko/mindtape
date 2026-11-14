@@ -49,7 +49,7 @@ left in a closing report no one rereads. It belongs in
 == TO-BE
 
 - 🟢 When `mt add` refuses a task, and the chosen template left a field to a slot that the caller filled, every other template that writes that field as the same literal gets a `hint:` line under the error, as #raw("hint: template `dev` files kind=dev: mt add -t dev ...").
-- 🟢 Several matching templates are each named. No match, no hint.
+- 🟢 Every matching template is named. No match, no hint.
 - 🟢 Nothing that is accepted today is refused. Only the failure text changes.
 
 

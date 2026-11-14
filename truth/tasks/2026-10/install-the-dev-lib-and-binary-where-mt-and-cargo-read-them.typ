@@ -33,7 +33,7 @@
 == AS-IS
 
 + Auditing the scripts and docs for paths that only hold on one machine
-+ 🔴 #raw(".just/scripts/_typst-package.sh"): \`just install-lib\` links the lib under a fixed \`\$HOME/.local/share\`, while \`mt\` reads \`\$MINDTAPE\_DATA\_HOME\`, else \`\$XDG\_DATA\_HOME\`, and \`just install-bin\` ignores \`\$CARGO\_HOME\`
++ 🔴 #raw(".just/scripts/_typst-package.sh"): \`just install-lib\` links the lib under a fixed \`\$HOME/.local/share\`, while \`mt\` reads `$MINDTAPE_DATA_HOME`, else \`\$XDG\_DATA\_HOME\`, and \`just install-bin\` ignores \`\$CARGO\_HOME\`
 
 ```
 .just/scripts/_typst-package.sh:7:TARGET="$HOME/.local/share/typst/packages/local/mindtape"

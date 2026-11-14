@@ -1,0 +1,7 @@
+# The built-in American English dictionary, plus the project words in
+# Prose/words.txt. The path is relative to <StylesPath>/config/ignore. Names
+# with a required case go in the Prose vocabulary instead.
+extends: spelling
+message: "Check '%s'. Fix a typo, or add a real word to Prose/words.txt."
+ignore:
+  - ../../Prose/words.txt

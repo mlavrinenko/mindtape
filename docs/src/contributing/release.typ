@@ -16,7 +16,7 @@ What #just.release("VERSION") runs, and how to finish a release that failed.
 The tag push is the only publish path, so don't run `cargo publish` or push
 `main` by hand.
 
-= What the recipe runs
+= Recipe steps
 
 + It runs #link("https://github.com/crate-ci/cargo-release")[cargo-release]
   (`.config/release.toml`), which refuses a dirty tree or a branch other than
@@ -55,7 +55,7 @@ stops reading the version everywhere, including a past commit in
 = Build hosts
 
 The Rust grammar behind an ast-grep query is C, compiled through `cc` at build
-time, so every build host needs a C compiler, the Windows cross check included.
+time. Every build host needs a C compiler, the Windows cross check included.
 `ast-grep-language`'s default `builtin-parser` feature would pull every
 grammar, so `crates/mindtape/Cargo.toml` keeps default features off and enables
 one grammar crate per language. Measure the binary before adding another.
@@ -65,6 +65,6 @@ one grammar crate per language. Measure the binary before adding another.
 After a red CI, fix `main` and re-run the recipe: the bump and the dating stay
 done.
 
-A release whose workflow failed is finished on the same tag with
-`gh workflow run release.yml -f tag=vVERSION`, which skips each crate
-crates.io already has. A pushed tag never moves.
+Finish a release whose workflow failed on the same tag with
+`gh workflow run release.yml -f tag=vVERSION`. It skips each crate crates.io
+already has. A pushed tag never moves.

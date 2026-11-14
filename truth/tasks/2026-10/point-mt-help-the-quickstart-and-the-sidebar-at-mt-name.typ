@@ -33,7 +33,7 @@
 
 == AS-IS
 
-+ Run `mt --help`, then open the home page, `/quickstart/` and `/cli/`, looking for a way to read several projects.
++ Run `mt --help`, then open the home page, `/quickstart/` and `/cli/`, looking for a way to read more than one project.
 + 🔴 `mt --help` ends on "Run `mt flip --list` to see them all.", and none of the four names `@name`.
 + 🔴 The page sits under the sidebar's "Integrate", the group `www/utils/site.typ` keeps for "wiring `mt` into a repo, a tool or another tracker".
 

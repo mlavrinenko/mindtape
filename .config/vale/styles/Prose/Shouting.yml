@@ -1,6 +1,5 @@
 extends: existence
 message: "Don't shout: '%s'. Use emphasis sparingly, or drop the word."
-level: error
 nonword: true
 tokens:
   - '\b[A-Z][A-Z-]*[A-Z]\b'

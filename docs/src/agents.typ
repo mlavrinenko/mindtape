@@ -35,11 +35,11 @@
 
 #doc-title[#mindtape: AI Agent Context]
 
-\@CONTRIBUTING.md says how work is done here. This file says what #mindtape is
+\@CONTRIBUTING.md says how work happens here. This file says what #mindtape is
 and where to find each part. Fork parallel work with #just.fork() and land it
 with #just.land().
 
-= What is this?
+= Overview
 
 #mindtape is a file-based task tracker. Each task is one Typst file
 (`#show: task.with(...)`), named by its filename stem. Every `mt` command
@@ -53,15 +53,15 @@ unchanged files.
   DSL.
 - `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each
   prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
-- `truth/tasks/`: #mindtape's own backlog, one folder per filing month plus a
+- `truth/tasks/`: #mindtape's own backlog, a folder per month plus a
   `swept/` inbox, read with the in-tree `lib/`.
   Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and
   run `mt explain` for the rules, tags, views and dictionaries this repo
   declares. Edit the file by hand only for the body, a framework priority,
   `estimate` and `x-goals`, then run `mt check`.
 - `truth/goals.typ` and `truth/process-goals.typ`: the product and process
-  goals. Each open task rates every goal in `x-goals`; `give-every-goal-verdict`
-  checks that.
+  goals. Each open task rates every goal in `x-goals`. The
+  `give-every-goal-verdict` rule checks that.
 - `www/content/*.typ`: the docs site, built with tola.
 - `docs/src/*.typ`: the sources of README.md, AGENTS.md, CONTRIBUTING.md,
   SKILL.md and the `docs/contributing/*.md` deep dives.
@@ -101,20 +101,20 @@ The cargo workspace has a virtual root manifest and
 ]
 
 #let substrate-roles = (
-  "typst-world": [the eval-only Typst World the others share],
+  "typst-world": [the eval-only Typst World the others share.],
   "typst-harvest": [evaluates a file and collects the data it marks for
-    export],
-  "typst-cst": [reads a file's heading tree by parsing, without evaluating],
-  "typst-edit": [rewrites a file in place at known spans],
+    export.],
+  "typst-cst": [reads a file's heading tree by parsing, without evaluating.],
+  "typst-edit": [rewrites a file in place at known spans.],
   "typst-cleanup": [retires a tracked file with a dirty-tree guard, a
-    tombstone, and link rewriting],
-  "swhid-mint": [mints the SWHID a tombstone records],
-  "artifact-gate": [the rule engine behind `mt check`'s body header rules],
+    tombstone, and link rewriting.],
+  "swhid-mint": [mints the SWHID a tombstone records.],
+  "artifact-gate": [the rule engine behind `mt check`'s body header rules.],
 )
 
 The Typst plumbing comes from #num-word(crate-map.at("substrate").len()) crates.io
-dependencies, whose source is under `~/.cargo/registry/src/` at the versions
-`Cargo.lock` pins. `HVal`, the value every task field passes through, is
+dependencies, under `~/.cargo/registry/src/` at the versions `Cargo.lock`
+pins. `HVal`, the value every task field passes through, is
 `typst_world::value::HVal`.
 
 #for c in crate-map.at("substrate") [
@@ -135,13 +135,13 @@ dependencies, whose source is under `~/.cargo/registry/src/` at the versions
 generated from the Rust types. When an output's structure changes, bump its
 version and run `mt schema --write`. `mt schema --check` runs in the gates.
 
-= Task DSL (lib/prelude.typ)
+= Task definition language (lib/prelude.typ)
 
 #let dsl = checked-slices(fact("dsl"), "dsl", ("task",))
 #raw(dsl.task.code, lang: "typ", block: true)
 
 `task` declares each core field as a named parameter, and its `..meta` sink
-takes only `x-<ns>` slots, so a misspelled field fails.
+takes only `x-<ns>` slots. A misspelled field fails.
 
 A field value is plain data that Rust interprets. `ice(...)` and the other
 framework helpers build a `(framework, inputs)` dict, `every(...)` and
@@ -151,11 +151,11 @@ all math and date arithmetic.
 
 == Mechanism, not policy
 
-Rust ships mechanisms, and projects write policy as config expressions. Name
+Rust provides mechanisms, and projects write policy as config expressions. Name
 no estimate unit, status, tag, path or threshold in Rust code. Write a new
 check as a `[[tasks.rules]]` entry. When the filter language cannot express
 it, extend the language with a field, predicate, aggregate or git state, never
-a config table or checker of its own. Put shipped defaults in the rule packs
+a config table or checker of its own. Put built-in defaults in the rule packs
 under `crates/mindtape/src/packs/`, where a project overrides a rule by
 name. `docs/contributing/validation-seam.md` says which layer a new check
 belongs in.

@@ -69,7 +69,7 @@ left in a closing report no one rereads. It belongs in
 - `crates/mindtape-cli/src/cli_dump.rs`: add `--check-argv <LINE>`.
 - `crates/mindtape-cli/tests/cli_dump_e2e.rs`: cover an unknown flag, the `@name` sugar, a status verb and a missing positional.
 - `.just/scripts/check-doc-spans.jq`: drop `check_mt`; keep the config-key checks.
-- `.just/scripts/check-doc-spans.sh`: extract command lines after a prefix, call `--check-argv`, and run the control on the fixture.
+- `.just/scripts/check-doc-spans.sh`: pull command lines after a prefix, call `--check-argv`, and run the control on the fixture.
 - `.just/scripts/check-doc-spans-control.json`, new: the frozen command tree the control reads.
 
 

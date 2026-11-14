@@ -17,7 +17,7 @@
 #show: page.with(..meta)
 
 You don't need anything on this page to use #mindtape. It's for you if you
-audit, package or build on the implementation.
+audit, package or build on the code.
 
 = Workspace
 
@@ -61,7 +61,7 @@ does not track the cache. On a generated backlog of 2000 tasks:
 // Measured by hand: `just bench::run` prints hyperfine's report and saves nothing a
 // page could read, so the date and machine below let a reader judge the
 // figures.
-These figures were measured on 2026-08-16 on one Linux machine with an
+These figures come from one run on 2026-08-16 on one Linux machine with an
 i7-12700H, and nothing regenerates them. Run #just.bench-run() on your machine for
 the warm column. For the cold column, set `MINDTAPE_NO_CACHE=1` to make `mt`
 skip the cache.
@@ -74,7 +74,7 @@ file.
 
 = Platform support
 
-Every tagged release ships a prebuilt binary for each supported platform,
+Every tagged release includes a prebuilt binary for each supported platform,
 listed in the #link(u("/quickstart/"))[Quickstart]. CI runs the tests on Linux
 and Windows. Two things differ by platform. #link(u("/hooks/"))[Hooks]
 says which shell runs a flip hook's `run` command, and

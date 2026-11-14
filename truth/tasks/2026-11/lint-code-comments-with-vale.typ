@@ -59,7 +59,7 @@ BasedOnStyles = Prose
 == Changes
 
 - `.config/vale-code.ini`: `[formats] rs = md`, the `[*.rs]` section with the `Prose` style, and the `[*.sh]` text section.
-- `.just/scripts/check-code-prose.sh`: extract every `///` and `//!` line, strip its marker, pipe it to Vale as `.rs`, and print each hit with its file and line.
+- `.just/scripts/check-code-prose.sh`: pull every `///` and `//!` line, strip its marker, pipe it to Vale as `.rs`, and print each hit with its file and line.
 - `.just/lint.just`: the `vale-code` gate recipe.
 - `.mmz/config.yaml`: the `just lint::vale-code` rule, its inputs and its place in `just check`.
 - `docs/src/contributing/documentation.typ`: say which comments Vale reads and that inline comments stay out.

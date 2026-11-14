@@ -829,11 +829,14 @@ groups:
       - docs/src/contributing.typ
 
   # Vale's Typst prose rules, which documentation.typ lists by rule code and
-  # gates.typ says how the non-gate task arm runs.
+  # gates.typ says how the non-gate task arm runs. The dictionary and the
+  # vocabulary decide what a rule flags, so they belong to the same group.
   - name: vale-docs
     source:
       - .config/vale.ini
       - .config/vale/styles/Prose/*.yml
+      - .config/vale/styles/Prose/words.txt
+      - .config/vale/styles/config/vocabularies/Prose/*.txt
     dependents:
       - docs/src/contributing/documentation.typ
       - docs/src/contributing/gates.typ

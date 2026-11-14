@@ -36,7 +36,7 @@
 == AS-IS
 
 + Reviewing the stem-hash commits 45d958bd to 9006d477
-+ 🔴 #raw("crates/mindtape-cli/src/util.rs"): The library ships only \`StemHashes\`; resolution order, path rules and the hashed set live in the CLI, and several copies already disagree.
++ 🔴 #raw("crates/mindtape-cli/src/util.rs"): The library ships only \`StemHashes\`; resolution order, path rules and the hashed set live in the CLI, and more than one copy already disagrees.
 
 - `util.rs:162` reads `/` as a path; `eval.rs:62` also reads `\`.
 - `rm_select.rs:68` repeats the exact-stem check; `link_plan.rs:141` targets take no hash.

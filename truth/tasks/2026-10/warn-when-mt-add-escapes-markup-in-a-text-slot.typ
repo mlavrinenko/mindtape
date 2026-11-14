@@ -55,7 +55,7 @@
 == Alternatives
 
 - Warn on any escaped character: a path's `_` or `issue #4` in plain prose is literal text, so it would cry wolf on correct values.
-- Warn on the whole markup set (`*`, `_`, `#`, `<`, `@`, `$`): each has a common literal use in prose, while a backtick almost never means a literal backtick. The same call as `mt check`'s example rule.
+- Warn on the whole markup set (`*`, `_`, `#`, `<`, `@`, `$`): each has a common literal use in prose, while a backtick seldom means a literal backtick. The same call as `mt check`'s example rule.
 - Refuse the add: a `text` slot that holds a literal backtick is legal, and the warning already names the fix.
 - A `note:` line: the diag module keeps `note:` for context with no action, and this one asks for a template change, which is a warning with a hint.
 

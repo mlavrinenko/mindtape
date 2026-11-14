@@ -16,13 +16,13 @@
 #show: page.with(..meta)
 
 You can write a task file by hand, but `mt add` saves you the boilerplate. It
-writes a new task from a template, so every task starts with the same fields
+writes a new task from a template. Every task then starts with the same fields
 and sections. A template is a `.typ` file with the same fields as a task, and
 its values are `slot(...)` calls. It is in a template directory rather than a
 task root. #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
 says why a template is not a task source. `mt add` fills the slots, sets the
 status, checks the task against your rules and writes it only if it passes. If
-`mt add` refuses, it leaves no file behind.
+`mt add` refuses, it doesn't leave a file behind.
 
 The examples below run against `examples/api-service/`, a sample backend
 project.
@@ -34,7 +34,7 @@ in `[templates] dirs`. It uses `task.typ` unless you pick another with
 `--template <name>`. To change that default name, set `[templates] default`.
 If the project has no such file, `mt add` uses a built-in template whose only
 slot is `title`. `mt add --list` lists the templates it finds. A
-#link(u("/packs/#a-pack-in-a-directory"))[directory pack] can ship templates too. They
+#link(u("/packs/#a-pack-in-a-directory"))[directory pack] can include templates too. They
 come after your own directories, so a template of yours with the same name
 wins.
 
@@ -56,7 +56,7 @@ arguments:
   columns: 2,
   table.header([Argument], [What it does]),
   [`kind`],
-  [What the value is, as one of these kinds. #slot-kinds.kinds.map(k => [#raw(k.name) is #slot-kind-notes.at(k.name)]).join([; ], last: [; or ]).],
+  [The value's kind. #slot-kinds.kinds.map(k => [#raw(k.name) is #slot-kind-notes.at(k.name)]).join([, ], last: [ or ]).],
 
   [`choices`],
   [The values a `choice` or `multichoice` slot accepts. If a slot is a whole field value, as in `kind: slot("kind", example: "test")`, and has no `choices` of its own, it takes the field's allowed values: `values` from `[tasks.fields.kind]`, `allowed` from `[tasks.assignee]`. A field that holds a list makes the slot a `multichoice`.],
@@ -77,7 +77,7 @@ characters print as typed. A `raw` slot writes its value as Typst markup,
 and `mt add` refuses a value that doesn't parse as markup. Use `raw` for body
 sections that hold lists and code, like the template above.
 
-A backtick in a `text` slot usually means a code span, but `text` escaping
+A backtick in a `text` slot can mean a code span, but `text` escaping
 writes it as a literal backslash. `mt add` still writes the task, but warns and
 names the slot:
 
@@ -100,38 +100,39 @@ next `mt add`.
 It fills each template as `mt add` would, with every slot set to its
 `example`, else its `default`. Then it checks the result like a task, alone,
 against an empty backlog and an empty working tree, under the file name
-`mt add` would give it. A rule reading `changed()` sees no changes, so a
-budget on the work in progress never fires on a template. A problem the
-template can fix counts, and the error names the template file and the line
+`mt add` would give it. A rule that reads `changed()` doesn't see any changes.
+A budget on the work in progress then never fires on a template. A problem the
+template can fix counts, and the error reports the template file and the line
 of the field:
 #capture-line("check-template-stale", "^error: .*bug.typ").
 
 With `[templates] check-defaults = true`, it also fills each template with
 every slot's `default`, falling back to its `example` for a slot with no
-default. A default that falls behind its example then fails the check too,
-before `mt add` files it. The option is off by default because a template may
+default. A default that falls behind its example then fails the check too. `mt add`
+catches it before filing the task. The option is off by default because a template may
 leave a goal `neutral` so `mt add` refuses a task that helps no goal until the
-caller answers one. A breach both variants share is reported once.
-A problem about the backlog or the file's place doesn't count: a `count()` cap,
-a rule on `ready`, `blocked`, `path` or `dir`, a link cycle, or a link to a
-task that isn't there.
+caller answers one. `mt check` reports a breach that both variants share once.
+A problem about the backlog or the file's place doesn't count. That covers a
+`count()` cap, a rule on `ready`, `blocked`, `path` or `dir`, a link cycle, and
+a link to a task that isn't there.
 
-A slot with neither an `example` nor a `default` leaves nothing to fill, so
-`mt check` reports the slot and checks nothing else in that template. When
+A slot with neither an `example` nor a `default` leaves nothing to fill.
+`mt check` then reports the slot and doesn't check anything else in that
+template. When
 `mt add` adds a slot for a required field, the slot's example comes from
 config: the `example` key of `[tasks.fields.<name>]`, `[tasks.assignee]`,
 `[tasks.estimate]`, `[tasks.priority]` or `[tasks.difficulty]`, else the
-field's `default`. If a required field has neither, the slot can't be filled,
+field's `default`. If a required field has neither, nothing can fill the slot,
 and `mt check` names the table that should have the key. A `multiple` field
 takes a list, and an estimate takes a table such as `{ days = 1 }`. A
-framework input keeps the example its range gives. A template that doesn't
-evaluate is reported once, with the Typst error.
+framework input keeps the example its range gives. `mt check` reports a
+template that doesn't evaluate once, with the Typst error.
 
 A `text` slot's example can't show a code span. `mt add` escapes the
 backticks, so anyone who copies the example's style files literal backslashes.
 `mt check` names the slot, and you either make it `raw` or drop the backticks.
 
-The built-in template is reported as `built-in template task`, at the severity
+`mt check` reports the built-in template as `built-in template task`, at the severity
 `[templates] fallback-severity` sets: `"warning"` by default, or `"error"`.
 Any #link(u("/config/#layers"))[config layer] can set it, the global
 `defaults.toml` included. Your project's own templates always report
@@ -139,7 +140,7 @@ errors.
 
 = See the slots
 
-To see what a template asks for, `mt add --describe` lists each slot with its
+To see what a template requires, `mt add --describe` lists each slot with its
 kind, whether it's required, the values a `choice` slot accepts, and its
 prompt. When the project declares `[[on.add]]` hooks, a blank line and a
 `hooks` heading separate them from the slots:
@@ -163,7 +164,7 @@ project's #link(u("/hooks/#add-hooks"))[`[[on.add]]`] hooks.
   [The slot's `default`], [`slot("difficulty", kind: "int", default: 1)`],
 )
 
-When two sources set the same slot with `=`, the later one wins; a later `+=`
+When two sources set the same slot with `=`, the later one wins. A later `+=`
 appends to what the earlier source set. `mt add` reads `-f` files first, left
 to right, then `--set` tokens, then the tokens after `--`. Title words,
 environment variables and defaults fill only the slots still empty, in that
@@ -187,30 +188,30 @@ files that single tag. A title word that starts with `+`, as in
 to the `tags` slot if the template has one. If you name neither a slot nor a
 core field, `mt add` refuses and points at `mt add --describe`.
 
-A token may also name a core field the template has no slot for.
+A token may also set a core field the template has no slot for.
 `mt add --set due=2026-12-01` inserts `due` in the filed task, and
 `--set tags+=bug` appends to the tags the template already writes, or to a
 `tags` slot's `default`, or inserts the list when the template writes none.
 These are the fields `mt set` writes: `title`,
 `priority`, `difficulty`, `kind`, `assignee`, `waits-on`, `tags`, `due` and
-`start`. A `+=` on a single-valued field is refused. `dir` is not a field:
+`start`. `mt add` refuses a `+=` on a single-valued field. `dir` is not a field:
 `mt add --set dir=…` refuses and points at `--dir`.
 
 When the template fills a core field through a whole-value slot under another
 name, as in `kind: slot("type")`, a core-field token or flag fills that slot.
-The slot name and the core name count as one field, so a direct flag plus a
-`--set` token for either spelling is refused. A positional title fills an
+The slot name and the core name count as one field, so `mt add` refuses a
+direct flag plus a `--set` token for either spelling. A positional title fills an
 aliased title slot the same way, and the file stem still comes from the title.
 
 The scalar fields also have direct flags: `--due`, `--start`, `--assignee`,
 `--kind`, `--priority` and `--difficulty`. Each is an alias for
-`--set <field>=<value>`, so it appears in `mt add --help`. Naming one field
-with both a flag and a `--set` token is refused.
+`--set <field>=<value>`, so it appears in `mt add --help`. `mt add` refuses a
+field named with both a flag and a `--set` token.
 
 = Values from a file
 
 For long values, use `-f`. A YAML block scalar (`|`) keeps line breaks and
-needs no shell quoting, so a `raw` section reads the same here as in the task.
+doesn't need shell quoting, so a `raw` section reads the same here as in the task.
 `values.yaml`:
 
 #raw(read("../generated/api-service-values.yaml"), lang: "yaml", block: true)
@@ -229,33 +230,33 @@ earlier one, and `null` clears it.
 
 - `status`: the first status in the #link(u("/statuses/"))[legend] that isn't
   terminal, with today's date. If the template sets `status`, as in
-  `status: done(2026, 1, 1)`, the task is filed at that status with today's
-  date instead. `--status <name>` picks another.
+  `status: done(2026, 1, 1)`, `mt add` files the task at that status with
+  today's date instead. `--status <name>` picks another.
 - `id`: a new UUID, only when `[tasks.id] format` is `uuid-v4` or `uuid-v7`.
   Otherwise the file name is the task's identity.
 - Required fields the template leaves out. If the config requires
   `priority`, `difficulty`, `kind`, `assignee`, `estimate` or an `x-<ns>`
   field and the template doesn't set it, `mt add` adds a slot for it. A
   project that sets `[tasks.estimate] required = false`, as this repo and
-  `examples/api-service` do, gets no estimate slot. The slot
+  `examples/api-service` do, doesn't get an estimate slot. The slot
   shows up in `--describe` and the editor. The `assignee` slot reads the
   `MINDTAPE_PRINCIPAL` environment variable. When a requirement depends only
-  on the status, `mt add` checks it against the status the task is filed at.
-  So `--status done` adds no slot for a field with `required = "!terminal"`.
+  on the status, `mt add` checks it against the status it files the task at.
+  So `--status done` doesn't add a slot for a field with `required = "!terminal"`.
   If the priority must come from a framework, you get one slot per framework
   input, as #link(u("/priority/"))[Priority] describes.
 
-= Where the file goes
+= The destination file
 
 `mt add` writes to the first
 #link(u("/concepts/#a-task-is-a-file"))[task root] and names the file after
 the title: `log-slow-database-queries.typ`. `--name <stem>` sets the name.
 `--dir <path>` writes to another directory. A relative path resolves from the
-project root, so the same command lands in the same place from any
-subdirectory, and an absolute path is taken as-is. A folder under a root can
-pick up #link(u("/derived-tags/"))[derived tags]. `--into` and `--to` are
-removed; `--dir` names the one destination. If a file with that name exists,
-`--dedup` decides: `fail`, `skip` (write nothing and exit 0) or `add-suffix`
+project root. The same command then lands in the same place from any
+subdirectory. An absolute path stays as-is. A folder under a root can
+pick up #link(u("/derived-tags/"))[derived tags]. `mt` removed `--into` and
+`--to`. `--dir` names the one destination. If a file with that name exists,
+`--dedup` decides: `fail`, `skip` (doesn't write a file and exits 0) or `add-suffix`
 (write `<name>-2.typ`).
 
 A project's #link(u("/hooks/#add-hooks"))[`[[on.add]]`] hooks may fill fields
@@ -270,7 +271,7 @@ and leaves a later hook `set` free to replace the list.
 filled with the values you passed. Save and close it, and `mt add` reads it
 back. In a terminal, `mt add` opens the editor by itself if a required slot is
 still empty. Set `[add] interactive` to `always` or `never` to change that.
-Without a terminal on stdin and stdout, `mt add` opens no editor, and a
+Without a terminal on stdin and stdout, `mt add` doesn't open an editor, and a
 required slot left empty fails the add with the slot's name. That's the case
 for a script or an agent.
 

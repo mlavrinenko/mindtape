@@ -39,10 +39,10 @@
 
 == TO-BE
 
-- 🟢 Config names a checker, e.g. `[[tasks.waits]] name = "canibump"`, `run = "canibump status {id}"`; exit 0 means resolved, 1 means still waiting, anything else means unknown.
+- 🟢 Config names a checker, for example `[[tasks.waits]] name = "canibump"`, `run = "canibump status {id}"`; exit 0 means resolved, 1 means still waiting, anything else means unknown.
 - 🟢 A task declares `waits-on: ("canibump:llama-blocking-sync",)`; while the checker says waiting or unknown, the task is `blocked`, and `why` prints the checker's first stdout line.
 - 🟢 `mt` stays fast and offline: it runs each distinct `(checker, id)` once per invocation and documents that a checker must answer from local state; network refreshes are the tool's own job (`canibump --refresh` in a timer or a `just` recipe).
-- 🟢 Nothing in Mindtape names canibump: the same entry works for any tool, e.g. `test "$(gh pr view {id} --json state -q .state)" = MERGED` for a user who accepts the network cost.
+- 🟢 Nothing in Mindtape names canibump: the same entry works for any tool, for example `test "$(gh pr view {id} --json state -q .state)" = MERGED` for a user who accepts the network cost.
 
 
 == Changes

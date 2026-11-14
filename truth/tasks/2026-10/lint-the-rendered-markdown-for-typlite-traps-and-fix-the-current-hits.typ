@@ -36,7 +36,7 @@
 + Open `skills/mindtape/SKILL.md` on GitHub and find the "Filter and sort" row.
 + 🔴 The `|` in `` `--sort <field>[:asc|desc]` `` splits the row into an extra cell. `CONTRIBUTING.md:63` breaks the same way.
 + 🔴 `CONTRIBUTING.md:77` reads "in docs/contributing/gates.md the gated example projects": the source glued a `;` to a `#link(...)[...]`, and the render dropped it. `CONTRIBUTING.md:85` has the same defect.
-+ 🔴 `docs/contributing/gates.md:37` repeats its last sentence. `commit-messages.md:13`, `gates.md:26` and `mutation-testing.md:25` break a code span across a line.
++ 🔴 `docs/contributing/gates.md:37` repeats its last sentence. `commit-messages.md:13`, `gates.md:26` and `mutation-testing.md:25` break a code span at a line break.
 + The Gate column shows `docs-check` and `docs-md-check`; the recipes are `docs::check` and `docs::md-check`.
 + `docs/src/lib.typ` lists these traps, but nothing checks for them.
 

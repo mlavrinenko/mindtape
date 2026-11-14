@@ -8,9 +8,9 @@ each task, rewrites every `links:` edge to that id, and deletes the file. It
 doesn't commit. Outside git, #link(u("/config/"))[`[rm] strategy`] decides
 what happens to those edges.
 
-Name a task by stem, hash or path, or name a folder under a task root and
-every task inside it is retired too, as if you had listed each file. Try
-`mt rm tasks/sw1 --dry-run` to see the list first. A folder outside every
-root is refused.
+Refer to a task by stem, hash or path. Give a folder under a task root instead,
+and `mt rm` retires every task inside it too, as if you had listed each file.
+Try `mt rm tasks/sw1 --dry-run` to see the list first. `mt rm` refuses a folder
+outside every root.
 
 #cli-command("rm")

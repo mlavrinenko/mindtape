@@ -7,15 +7,15 @@
   route: "/trace-commits-to-tasks/",
   label: "Trace commits to tasks",
   title: "Trace commits to tasks",
-  summary: "Refuse a commit that names no task, then ask which tasks changed a file before you edit it.",
+  summary: "Refuse a commit that doesn't point at a task, then ask which tasks changed a file before you edit it.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
 `git blame` shows you a line and the subject "fix(auth): reject expired
-sessions". Nothing says which task asked for the change, what problem it fixed
-or what it left out. An agent about to edit the file cannot answer any of
+sessions". That subject doesn't say which task asked for the change, what
+problem it fixed or what it left out. An agent about to edit the file cannot answer any of
 them.
 
 = Config
@@ -30,15 +30,15 @@ refuses a commit without a `Refs:` trailer and accepts it with one, and
 
 #terminal("trace-commits-to-tasks")
 
-= Deep dive
+= The trailer and the rules
 
 `[commits] trailer` sets the trailer that names task stems. A stem is the
 task's file name without `.typ`, as #link(u("/concepts/#identity"))[Concepts]
 explains. The project also extends the `mindtape:tasks`
 #link(u("/packs/"))[rule pack], as
 #link(u("/require-a-task-shape/"))[Require a task shape] shows. The pack's
-`name-task-in-refs-trailer` rule refuses a commit that names no task, unless the
-commit changes only
+`name-task-in-refs-trailer` rule refuses a commit that doesn't point at a task,
+unless the commit changes only
 #link(u("/concepts/#which-files-count-as-tasks"))[task sources] or starts with
 `fixup!`, `squash!` or `amend!`. A template, a reserved `.mindtape` or `.git`
 path and a symlink do not make a commit task-only, while a markerless `.typ`

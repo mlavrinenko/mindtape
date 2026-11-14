@@ -48,7 +48,7 @@
 == TO-BE
 
 - 🟢 `mt @blog ls` names each matching directory with its suffix name, and hints how to pick one, as in `mt @projects/blog ls`.
-- 🟢 `mt @oss/blog ls` lists the tasks under `~/oss/blog`: a token of several segments selects the directory whose path ends in them.
+- 🟢 `mt @oss/blog ls` lists the tasks under `~/oss/blog`: a token of more than one segment selects the directory whose path ends in them.
 - 🟢 An `at.toml` entry name stays one path segment.
 
 

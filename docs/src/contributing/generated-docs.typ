@@ -13,12 +13,12 @@ How `docs/src/*.typ` becomes README.md, AGENTS.md, CONTRIBUTING.md,
 `skills/mindtape/SKILL.md` and `docs/contributing/*.md`, how you add a source,
 and what typlite can't render.
 
-== Why the sources are Typst
+== Typst as the source format
 
 The root docs repeat facts that have a machine-readable source: the crate
 map, the DSL fields, the gate table and the linecop caps, all written to
 `www/generated/*.json` by `www/generate-facts.sh`. A Markdown file can't read
-JSON, and a Typst source can. So each fact is stated once, and every doc
+JSON, and a Typst source can. Each fact then lives in one place, and every doc
 reads it from the same file.
 
 `docs/generate-md.sh` runs `mmz just docs::gen` before it renders, so a source
@@ -30,7 +30,7 @@ manifest, and the pages read those captures. Inside #just.check() the four
 gates that read `www/generated/` share one run: the first to take the lock
 regenerates, and mmz finds the record fresh for the rest.
 
-Each source is rendered with typlite, from nixpkgs' `tinymist` package.
+`docs/generate-md.sh` renders each source with typlite, from nixpkgs' `tinymist` package.
 
 The site pages under `www/content/` are a separate render path. They open
 with `#show: page.with(...)`, import `@tola` and target HTML. A `docs/src`
@@ -50,9 +50,9 @@ path, relative to the repo root:
 ```
 
 `docs/generate-md.sh` globs `docs/src/**/*.typ` and skips any file without
-that block, so a helper module such as `docs/src/lib.typ` needs no exclude
-list. For each source it reads `output`, runs typlite and writes the result
-there. Adding a source changes no other file.
+that block, so a helper module such as `docs/src/lib.typ` doesn't need an
+exclude list. For each source it reads `output`, runs typlite and writes the
+result there. Adding a source doesn't change any other file.
 
 `skills/mindtape/SKILL.md` needs YAML frontmatter, which typlite can't emit,
 so its block has a `frontmatter` dict beside `output`:
@@ -68,8 +68,8 @@ so its block has a `frontmatter` dict beside `output`:
 ```
 
 The generator writes that frontmatter as a `---` block, before the banner that
-opens every generated file. The banner is an HTML comment naming the source,
-so GitHub doesn't show it:
+opens every generated file. The banner is an HTML comment that gives the
+source, so GitHub doesn't show it:
 
 ```
 <!-- Generated from docs/src/agents.typ by `just docs md`. Do not edit; edit the source. -->
@@ -81,13 +81,13 @@ so GitHub doesn't show it:
 diffs each file against the committed copy. If it rendered in place and then
 read `git status`, it would overwrite a hand-edited or stale committed file
 before the diff ran, and the gate would pass. A temp render leaves the
-committed file as it is, so a wrong file fails by name.
+committed file as it is. A wrong file then fails by name.
 
-#just.docs-md-check() also lints each render outside fenced code. It fails
-naming file and line on a `|` inside a code span in a table row, a backtick
-with no closing backtick on its line, an escaped backtick, and `-\>` outside a
-code span. It also scans `docs/src` for a `;` right after a
-`#link(...)[...]`.
+#just.docs-md-check() also lints each render outside fenced code. It reports
+file and line when it fails on a `|` inside a code span in a table row, or on
+a backtick with no closing backtick on its line. An escaped backtick and
+`-\>` outside a code span fail the same way. It also scans `docs/src` for a
+`;` right after a `#link(...)[...]`.
 
 == What typlite can and can't do
 
@@ -106,36 +106,37 @@ nixpkgs bump updates tinymist.
   [Errors, because typlite wraps the input in its own container],
 
   [`#footnote[...]`],
-  [Fails inside typlite's own `md-link` with "expected string, found location". Footnotes are unusable here],
+  [Fails inside typlite's own `md-link` with "expected string, found location". Footnotes are unusable here.],
 
   [`#html.elem("p"/"div"/"span")`],
-  [Dropped with its attributes, with no error],
+  [Dropped with its attributes, with no error.],
 
   [`#html.elem` with `h1`..`h6`, `img`, `br`, `center`, `blockquote`],
-  [Kept as literal HTML tags, attributes included],
+  [Kept as literal HTML tags, attributes included.],
 
   [`#link("a/b.md")[x]`],
-  [Becomes `[x](a/b.md)`, or a raw `<a href>` inside an `html.elem`],
+  [Becomes `[x](a/b.md)`, or a raw `<a href>` inside an `html.elem`.],
 
   [`json(...)`, `raw(read(...))`],
-  [Both work, so a source can read `www/generated/*.json` or another file],
+  [Both work, so a source can read `www/generated/*.json` or another file.],
 
   [`#metadata(v) <label>`],
-  [Emits nothing into the Markdown. `typst query` reads it back, which is how `<mindtape-md>` works],
+  [Typst leaves the Markdown unchanged. `typst query` reads it back, which is how `<mindtape-md>` works],
 
-  [`\@foo`], [Literal `@foo`. An unescaped `@foo` can be read as a citation],
+  [`\@foo`],
+  [Literal `@foo`. Typst can read an unescaped `@foo` as a citation.],
 
   [`->`], [Escaped as `-\>`. Use backticks or `→`],
   [`"straight quotes"`, an apostrophe],
-  [Turned into curly quotes outside a raw span],
+  [Turned into curly quotes outside a raw span.],
 
   [Tables, ordered and nested lists, fenced code, blockquotes, definition lists, `**bold**`, `_em_`],
-  [Render correctly],
+  [Render correctly.],
 
   [A raw span containing a literal backtick],
-  [Emitted with a single backtick as the delimiter, so the span breaks. Split the text into two spans instead],
+  [typlite emits it with a single backtick as the delimiter. The span then breaks. Split the text into two spans instead],
 
-  [Bare URL in text], [Linked as `[url](url)`, by Typst's own markup],
+  [Bare URL in text], [Linked as `[url](url)`, by Typst's own markup.],
 )
 
 A footnote fails with a message about typlite's internals, not your source.

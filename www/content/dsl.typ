@@ -60,7 +60,7 @@ arguments of `every(...)`.
 The prelude has a constructor for each of these statuses:
 #facts.statuses.map(raw).join(", ").
 
-Each takes the year, month and day the status was set, then an optional note
+Each takes the year, month and day of the setting, then an optional note
 as a trailing content block, like `wip` in the sketch above. Your project's
 #link(u("/statuses/"))[status legend], its list of allowed statuses, can name
 a status with no constructor. Write that one with `status(...)`.

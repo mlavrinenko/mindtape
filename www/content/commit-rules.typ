@@ -20,12 +20,12 @@ made. #link(u("/trace-commits-to-tasks/"))[Trace commits to tasks]
 walks through the setup, from a refused commit to `touches()`.
 
 The examples run in a git copy of `examples/rules/`, whose config has the
-three commit rules below. The rules the `mindtape:tasks` pack ships,
-`name-task-in-refs-trailer`, `squash-every-autosquash-commit`,
-`flip-task-with-its-work` and `finish-named-task-at-tip`, are listed on
-#link(u("/packs/"))[Packs], with the commit rules of `mindtape:commits`
-(`add-changelog-entry-for-product-change`, `start-named-task-in-its-commit`) and
-`mindtape:tweaks` (`keep-tweak-to-one-source-file`).
+three commit rules below. #link(u("/packs/"))[Packs] lists the `mindtape:tasks`
+rules (`name-task-in-refs-trailer`, `squash-every-autosquash-commit`,
+`flip-task-with-its-work` and `finish-named-task-at-tip`) and the commit rules
+of `mindtape:commits` (`add-changelog-entry-for-product-change`,
+`start-named-task-in-its-commit`) and `mindtape:tweaks`
+(`keep-tweak-to-one-source-file`).
 
 #let parts = (
   ("trailer", "the trailer that names tasks"),
@@ -48,29 +48,29 @@ The hook is one line. Git passes the message file as its first argument:
 
 #terminal("commit-hook")
 
-A merge commit is skipped. It joins commits that were checked on their own,
-so `mt check` does not judge the merged branch as one commit. Pass
-`--check-merges` to check one anyway.
+`mt check` skips a merge commit. The merge joins commits that each went
+through a check on its own, so `mt check` does not judge the merged branch as
+one commit. Pass `--check-merges` to check one anyway.
 
 Outside a git repository, `mt check --commit-msg` fails with
 `not a git repository`.
 
 = The trailer
 
-`[commits] trailer`, `Refs` by default, names the trailer whose values are
+`[commits] trailer`, `Refs` by default, sets the trailer whose values are
 task stems, one #link(u("/concepts/#identity"))[stem] per line. A line may list
-several refs, split on commas or whitespace, and the trailer may repeat.
-Whatever the rules say, `mt` refuses a value that names no task and matches
-no external pattern. A path that names a task is refused too, and the message
-asks for its stem. A path changes when a task moves to another folder, and a
+more than one ref, split on commas or whitespace, and the trailer may repeat.
+Whatever the rules say, `mt` refuses a value that doesn't point at a task and
+matches no external pattern. `mt` refuses a path that points at a task too,
+and asks for its stem. A path changes when a task moves to another folder, and a
 stem stays unique in the project:
 
 #terminal("commit-refs-path")
 
 A repo that tracks work elsewhere keeps `Refs:` as its one trailer.
-`[commits] external-refs` lists regexes. A ref that names a task is a task ref;
-else one matching a pattern is an external ref, kept opaque; else it is
-refused. The config above accepts `r#45782`. A ref with a comma or a
+`[commits] external-refs` lists regexes. `mt` treats a ref that points at a
+task as a task ref. It treats one that matches a pattern as an external ref,
+kept opaque. It refuses the rest. The config above accepts `r#45782`. A ref with a comma or a
 space goes in double quotes, as in `Refs: "redesign one"`, or escapes that
 one character with a backslash. `touches()` and a `scope = "task"` rule ignore
 external refs.
@@ -86,8 +86,8 @@ rule once per commit, over these fields:
   table.header([Field], [Holds]),
   [`subject`], [The message's first line.],
   [`refs`],
-  [The trailer's refs: task stems, and external refs as written. A line may
-    list several, split on commas or whitespace.],
+  [The trailer's `refs` holds task stems and external refs as written. A line
+    may list more than one, split on commas or whitespace.],
 
   [`trailers`],
   [Every trailer line of the message, whatever its key, as `Key: value`.

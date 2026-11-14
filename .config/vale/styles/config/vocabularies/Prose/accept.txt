@@ -1,0 +1,47 @@
+# Product, tool and format names. Vale.Terms enforces this exact case, and
+# every Prose rule treats these entries as exceptions. A name that also has a
+# lowercase form (a package, a binary or a command) lists both forms, so a
+# mixed-case spelling still fails; Prose.ProductName enforces the product's
+# rendered constant in the docs.
+Mindtape|mindtape
+mt
+mmz
+outdatty
+linecop
+ejectest
+worktrunk
+gitleaks
+lcov
+typlite
+tola
+pagefind
+speconaut
+nixpkgs
+nextest
+tombi
+Taplo|taplo
+ripgrep
+rustc
+jscpd
+qahq
+tinymist
+dstask
+clippy
+Taskwarrior
+GitHub
+SWHID|swhid
+TOML|toml
+YAML|yaml
+JSON|json
+CSV
+TSV
+NixOS
+Typst|typst
+Git|git
+Nix|nix
+Justfile|justfile
+ICE|ice
+RICE|rice
+WSJF|wsjf
+Kanban|kanban
+Dogfood|dogfood

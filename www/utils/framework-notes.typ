@@ -18,7 +18,7 @@
 #let framework-notes = (
   "ice": [
     Impact and ease are guesses, and confidence says how far to trust them.
-    Confidence multiplies, so a shaky guess loses score in proportion to how
+    Confidence multiplies. A shaky guess then loses score in proportion to how
     shaky it is.
   ],
   "rice": [
