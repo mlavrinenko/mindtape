@@ -11,22 +11,18 @@
   difficulty: 2,
   tags: ("mt", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a new task opens with one project prelude import],
-        cheap-adoption: helps[a project rewires 16 templates instead of every task],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: helps[a new task opens with one project prelude import],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a project rewires 16 templates instead of every task],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (sound-codebase: helps[each prelude generation is one frozen module]),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[each prelude generation is one frozen module],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -19,23 +19,17 @@
   ),
   tags: ("found", "mt", "www", "docs", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[the first collector in a new project is one command away from working],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[the first collector in a new project is one command away from working],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the page names the git requirement the error enforces],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the page names the git requirement the error enforces],
     ),
   ),
   assignee: "agent",

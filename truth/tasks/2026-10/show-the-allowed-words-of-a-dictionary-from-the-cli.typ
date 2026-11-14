@@ -13,21 +13,17 @@
   tags: ("cli", "docs"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a refused title names the dictionary and the nearest allowed words, so the fix needs no guessing],
-        cheap-adoption: helps[a project that extends the pack finds out what its verb rule accepts without reading the pack],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a refused title names the dictionary and the nearest allowed words, so the fix needs no guessing],
+      cheap-adoption: helps[a project that extends the pack finds out what its verb rule accepts without reading the pack],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[SKILL.md points at a command, so no shipped word list goes stale],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[SKILL.md points at a command, so no shipped word list goes stale],
     ),
   ),
   assignee: "agent",

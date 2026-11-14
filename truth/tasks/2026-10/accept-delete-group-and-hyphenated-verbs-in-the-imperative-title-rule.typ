@@ -13,20 +13,17 @@
   tags: ("mt",),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the title rule refuses only titles that are not imperative],
-        cheap-adoption: helps[a team adopting mindtape-tasks does not hit false refusals on common verbs],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the title rule refuses only titles that are not imperative],
+      cheap-adoption: helps[a team adopting mindtape-tasks does not hit false refusals on common verbs],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

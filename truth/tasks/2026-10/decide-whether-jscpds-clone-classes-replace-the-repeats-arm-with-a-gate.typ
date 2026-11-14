@@ -13,21 +13,18 @@
   tags: ("tooling", "repeats"),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
-      "self-describing",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[short repeats stop growing between sweeps instead of waiting for one],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[short repeats stop growing between sweeps instead of waiting for one],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "max",

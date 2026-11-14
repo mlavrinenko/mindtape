@@ -13,23 +13,17 @@
   tags: ("mt", "tooling", "gating", "stateless"),
   estimate: (src-files: 0),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[one command answers what the project enforces and where each entry comes from],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[one command answers what the project enforces and where each entry comes from],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[one listing keeps the CLI reference and the policy docs in one place],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[one listing keeps the CLI reference and the policy docs in one place],
     ),
   ),
   assignee: "agent",

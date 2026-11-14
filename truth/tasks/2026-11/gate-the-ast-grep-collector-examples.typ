@@ -19,23 +19,17 @@
   ),
   tags: ("found", "www", "docs", "tests", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the documented shape is parsed by a gate instead of trusted],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the documented shape is parsed by a gate instead of trusted],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the page's example is the fixture the gate reads],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the page's example is the fixture the gate reads],
     ),
   ),
   assignee: "agent",

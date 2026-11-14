@@ -13,20 +13,17 @@
   estimate: (src-files: 1),
   tags: ("found", "tooling"),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the release page says what changed],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the release page says what changed],
     ),
   ),
   assignee: "agent",

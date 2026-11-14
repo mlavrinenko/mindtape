@@ -13,21 +13,17 @@
   estimate: (src-files: 5),
   tags: ("found", "www"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a reader following the priority and import pages succeeds first time],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a reader following the priority and import pages succeeds first time],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[five task-model claims match the code],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[five task-model claims match the code],
     ),
   ),
   assignee: "agent",

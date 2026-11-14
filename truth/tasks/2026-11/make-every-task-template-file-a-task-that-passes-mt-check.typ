@@ -1,7 +1,7 @@
 #import "/truth/prelude/1/lib.typ": *
 
 #show: task.with(
-  title: "Make every task template file a task that passes mt check",
+  title: "Write every goal verdict explicitly in tasks and templates",
   kind: "dev",
   priority: ice(
     impact: 4,
@@ -18,22 +18,18 @@
   ),
   tags: ("found", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a template that files an invalid task breaks the add path at its first step],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a template that files an invalid task breaks the add path at its first step],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (:),
-      ..("sound-codebase", "docs-match-code"),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",
@@ -42,51 +38,44 @@
 
 == AS-IS
 
-+ Filing the five Vale follow-ups from the `feat` template
-+ 🔴 #raw(".mindtape/templates/feat.typ"): the default product-neutral list omits readable-tasks, so mt add -t feat files a task that mt check refuses
-+ 🔴 `mt check` stays green in the same tree, because it files each template with its examples and never with its defaults
++ Open a task filed after `verdicts` landed, this one included.
++ 🔴 Every goal sits in one `verdicts(...)` call, so a reader chases a helper to find the one goal that helps.
++ 🔴 The helper let a template default a `helps[...]` reason the task never earned.
 
 ```
-$ mt check
-error: truth/tasks/2026-11/probe-the-feat-template-defaults.typ:3: rules.give-every-goal-verdict: product goal `readable-tasks` is not addressed; say helps[...], hurts[...] or neutral
-error: truth/tasks/2026-11/probe-the-feat-template-defaults.typ:3: rules.give-every-goal-verdict: the task helps no goal; if nothing justifies it, cancel it
+$ mt add -t feat "Probe the defaults" --print
+# product-goals, product-neutral, process-goals, process-neutral
 ```
-
-`.mindtape/templates/feat.typ` starts its `product-neutral` default at
-`implementable-tasks`, so `readable-tasks` never gets a verdict. The same list
-is in `fix.typ`, `docs.typ`, `dev.typ` and `decision.typ`; only `finding.typ`
-includes it.
 
 
 == TO-BE
 
-- 🟢 `mt add -t feat` with every slot at its default files a task `mt check` accepts.
-- 🟢 `readable-tasks` gets a `helps[...]` verdict by default, and a task that helps it overrides that without editing the neutral list.
-- 🟢 `[templates] check-defaults` makes `mt check` file each template with its defaults too, so a default that falls behind its example fails. This repo turns it on; it is off by default for a template that leaves a goal neutral on purpose.
-- 🟢 Adding a goal to `truth/goals.typ` fails `mt check` until every template's defaults rate it.
+- 🟢 Every task file lists `x-goals` one line per goal, `readable-tasks: helps[...]` or `cheap-adoption: neutral`.
+- 🟢 Every template asks one rating per goal, defaulting `neutral`, so the author writes the `helps[...]` in their own words.
+- 🟢 `mt add -t feat` with every slot at its default files an all-neutral task, and `mt check` refuses it until one goal says how it helps.
+- 🟢 A goal added to `truth/goals.typ` fails `mt check` until every template asks for it.
 
 ```
-$ mt add -t feat "Probe the template defaults" --print
-# x-goals has a readable-tasks verdict, so mt check accepts it
+$ mt add -t feat "Show the due date first" --set readable-tasks='helps[who reads the list sees what is due first]'
 ```
 
 
 == Changes
 
-- `.mindtape/templates/*.typ`: `readable-tasks: helps[...]` as the default `product-goals` verdict; `finding.typ` stops putting `readable-tasks` in its neutral list.
-- `.mindtape/config.toml`: `[templates] check-defaults = true`.
-- `crates/mindtape/src/**/*.rs`: `fill_defaults` beside `fill_examples`, and `[templates] check-defaults` on `TemplatesConfig`, with the red e2e test in `crates/mindtape-cli/tests/it/check_templates_e2e.rs`.
-- `crates/mindtape/src/config/defaults.toml`, `schema/config.schema.json`: the new key and its blessed schema.
-- `crates/mindtape-cli/src/cmd/check/templates.rs`: file each template with its examples, and with its defaults when the project asks; one breach each.
-- `www/content/templates.typ`, `www/content/rules.typ`, `www/content/cli/check.typ`: say what `mt check` files now.
+- `.mindtape/templates/*.typ`: one slot per goal, no `verdicts` call.
+- `truth/tasks/**/*.typ`: rewrite every `verdicts` block to explicit per-goal dicts.
+- `.mindtape/config.toml`: drop `[templates] check-defaults`, which existed for the all-neutral defaults.
+- `examples/api-service/.mindtape/templates/milestone.typ`, `examples/api-service/goals.typ`: the explicit shape.
+- `www/content/tie-work-to-goals.typ`, `skills/mindtape/references/hand-editing.md`: teach it.
+- `contrib/rewrite-x-goals.py`: remove the migration script that no longer applies.
 
 
 == Out of scope
 
-- The goal list in `truth/goals.typ` and the `verdicts` helper. The template defaults are the bug.
+- Removing the `verdicts` helper. It stays exported for now and is deprecated in a later release.
 
 
 == Dogfood
 
-A fresh `mt add -t feat` passes `mt check` with no edit to its `x-goals`, and adding a goal to `truth/goals.typ` fails `mt check` until the templates rate it.
+`mt add -t feat` with `--set readable-tasks='helps[...]'` files a task `mt check` accepts; the same add with no goal answer is refused.
 

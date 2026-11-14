@@ -13,23 +13,17 @@
   tags: ("mt", "gating", "stateless"),
   estimate: (src-files: 10),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a project writes a collector in the same Typst module as its checks],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a project writes a collector in the same Typst module as its checks],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the evaluator reuses CompiledCheck's snapshot and is covered by red tests],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the evaluator reuses CompiledCheck's snapshot and is covered by red tests],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

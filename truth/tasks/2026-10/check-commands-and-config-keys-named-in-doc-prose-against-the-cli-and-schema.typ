@@ -13,20 +13,17 @@
   tags: ("docs", "tooling"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[a renamed flag or config key fails the gate wherever prose still names it],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[a renamed flag or config key fails the gate wherever prose still names it],
     ),
   ),
   assignee: "agent",

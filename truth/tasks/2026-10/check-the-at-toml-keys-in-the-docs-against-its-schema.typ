@@ -13,20 +13,17 @@
   tags: ("docs", "www", "tooling"),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[a misspelled or renamed at.toml key in a page fails the span gate, as a config key does],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[a misspelled or renamed at.toml key in a page fails the span gate, as a config key does],
     ),
   ),
   assignee: "agent",

@@ -13,20 +13,17 @@
   tags: ("mt", "found"),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a milestone closes through its leaves under the shipped pack, as a decision does],
-        cheap-adoption: helps[an adopter with milestones drops the local override of flip-with-work],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a milestone closes through its leaves under the shipped pack, as a decision does],
+      cheap-adoption: helps[an adopter with milestones drops the local override of flip-with-work],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

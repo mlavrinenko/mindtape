@@ -12,23 +12,17 @@
   difficulty: 4,
   tags: ("mt", "tooling", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an estimate counts a real call site instead of a text proxy],
-      ),
-      ..(
-        "readable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an estimate counts a real call site instead of a text proxy],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the shape query compiles and matches through the one engine, never a second file walk],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the shape query compiles and matches through the one engine, never a second file walk],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

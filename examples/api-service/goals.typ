@@ -3,7 +3,7 @@
 // `check-goals` on that field.
 
 // docs:slice goals
-#import "@local/mindtape:0.4.0": helps, hurts, neutral, verdicts
+#import "@local/mindtape:0.4.0": helps, hurts, neutral
 
 #let goals = (
   secure: "Only the owner of a session can use it",
@@ -30,9 +30,9 @@
 // docs:end
 
 // docs:slice goals-short
-// A task names the goals it helps, then lists the rest once.
-#let example-goals = verdicts(
-  (secure: helps[an expired session can't mint a new token]),
-  "fast",
+// A task names every goal, one line each.
+#let example-goals = (
+  secure: helps[an expired session can't mint a new token],
+  fast: neutral,
 )
 // docs:end

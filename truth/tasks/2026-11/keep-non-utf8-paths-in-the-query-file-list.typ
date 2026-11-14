@@ -19,23 +19,17 @@
   ),
   tags: ("found", "mt", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        plain-files: helps[a file the repository tracks is never silently dropped from a query],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[a file the repository tracks is never silently dropped from a query],
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[path identity survives the engine instead of collapsing in a lossy string],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[path identity survives the engine instead of collapsing in a lossy string],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

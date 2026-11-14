@@ -52,35 +52,31 @@
     example: ("found", "tooling", "stateless"),
   ),
   x-goals: (
-    product: verdicts(
-      slot(
-        "product-goals",
+    product: (
+      readable-tasks: slot("readable-tasks", kind: "raw", default: "neutral"),
+      implementable-tasks: slot(
+        "implementable-tasks",
         kind: "raw",
-        default: (
-          readable-tasks: helps[the finding states the observation and the change it asks for],
-          enforced-practice: neutral,
-        ),
-        example: "(enforced-practice: helps[a quiet gate leaves its failures readable], readable-tasks: neutral,)",
+        default: "neutral",
       ),
-      ..slot(
-        "product-neutral",
-        kind: "list",
-        default: (
-          "implementable-tasks",
-          "cheap-adoption",
-          "typst-over-markdown",
-          "plain-files",
-          "self-describing",
-        ),
+      enforced-practice: slot(
+        "enforced-practice",
+        kind: "raw",
+        default: "neutral",
+        example: "helps[a quiet gate leaves its failures readable]",
       ),
+      cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
+      typst-over-markdown: slot(
+        "typst-over-markdown",
+        kind: "raw",
+        default: "neutral",
+      ),
+      plain-files: slot("plain-files", kind: "raw", default: "neutral"),
+      self-describing: slot("self-describing", kind: "raw", default: "neutral"),
     ),
-    process: verdicts(
-      slot("process-goals", kind: "raw", default: (:)),
-      ..slot(
-        "process-neutral",
-        kind: "list",
-        default: ("sound-codebase", "docs-match-code"),
-      ),
+    process: (
+      sound-codebase: slot("sound-codebase", kind: "raw", default: "neutral"),
+      docs-match-code: slot("docs-match-code", kind: "raw", default: "neutral"),
     ),
   ),
 )

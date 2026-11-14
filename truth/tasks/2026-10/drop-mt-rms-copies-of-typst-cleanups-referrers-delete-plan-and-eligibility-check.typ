@@ -13,20 +13,17 @@
   tags: ("cli", "substrate"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[mt rm stops keeping three copies of logic the retirement crate owns],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[mt rm stops keeping three copies of logic the retirement crate owns],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

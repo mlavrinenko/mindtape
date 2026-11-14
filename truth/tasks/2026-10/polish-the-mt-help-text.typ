@@ -13,21 +13,17 @@
   tags: ("cli", "docs"),
   estimate: (src-files: 12),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a newcomer reads `mt --help` at a glance and finds the first commands on top],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a newcomer reads `mt --help` at a glance and finds the first commands on top],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the CLI reference pages, generated from the same doc comments, read the same way],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the CLI reference pages, generated from the same doc comments, read the same way],
     ),
   ),
   assignee: "agent",

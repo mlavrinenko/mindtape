@@ -13,21 +13,17 @@
   tags: ("www", "docs"),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a newcomer finds the hash, the file-change rule and the field checks in plain words],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a newcomer finds the hash, the file-change rule and the field checks in plain words],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the extension-field facts live on the config page that documents them],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the extension-field facts live on the config page that documents them],
     ),
   ),
   assignee: "agent",

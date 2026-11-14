@@ -13,21 +13,17 @@
   estimate: (src-files: 5),
   tags: ("found", "mt"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a project retires a field value as it retires a tag, by editing one list],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a project retires a field value as it retires a tag, by editing one list],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[allowed values, closed-task exemption, slot choices and membership live in one place instead of three],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[allowed values, closed-task exemption, slot choices and membership live in one place instead of three],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

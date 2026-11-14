@@ -18,24 +18,18 @@
   ),
   tags: ("found", "mt", "gating", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a commit rule reads the same touches() answer whatever order it compares the states in],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a commit rule reads the same touches() answer whatever order it compares the states in],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one cache cannot hand one state's task set to another],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[one cache cannot hand one state's task set to another],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -13,21 +13,17 @@
   tags: ("tooling", "gating"),
   estimate: (src-files: 8),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a file can no longer sink below the floor while the workspace total stays green],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a file can no longer sink below the floor while the workspace total stays green],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[coverage debt cannot pile up between sweeps],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[coverage debt cannot pile up between sweeps],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -18,22 +18,18 @@
   ),
   tags: ("found", "mt", "gating", "tests", "stateless"),
   x-goals: (
-    product: verdicts(
-      (enforced-practice: helps[a dead guard fails the gate before review]),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a dead guard fails the gate before review],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[new code pays its coverage debt instead of freezing it],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[new code pays its coverage debt instead of freezing it],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

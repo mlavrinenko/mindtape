@@ -12,23 +12,17 @@
   difficulty: 2,
   tags: ("tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[the installed skill cannot silently fall behind the CLI],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[the installed skill cannot silently fall behind the CLI],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[a stale copy fails a check instead of a later session],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[a stale copy fails a check instead of a later session],
     ),
   ),
   assignee: "agent",

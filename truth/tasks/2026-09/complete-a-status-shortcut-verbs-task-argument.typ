@@ -13,20 +13,17 @@
   estimate: (files: 4),
   tags: ("found", "cli"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[the spelling the docs teach first is the one that completes],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[the spelling the docs teach first is the one that completes],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

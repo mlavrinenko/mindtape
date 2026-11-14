@@ -11,22 +11,18 @@
   difficulty: 3,
   tags: ("mt", "cli", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        self-describing: helps[every settable field appears in mt add --help as its own flag],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: helps[every settable field appears in mt add --help as its own flag],
     ),
-    process: verdicts(
-      (:),
-      ..("sound-codebase", "docs-match-code"),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

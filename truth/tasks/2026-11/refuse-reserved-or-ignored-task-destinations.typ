@@ -11,24 +11,18 @@
   difficulty: 2,
   tags: ("mt", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a task cannot be filed into a path no later command loads],
-        self-describing: helps[the refusal names the path and the way out],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a task cannot be filed into a path no later command loads],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: helps[the refusal names the path and the way out],
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the write path and the read path agree on what exists],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the write path and the read path agree on what exists],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

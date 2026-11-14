@@ -13,20 +13,17 @@
   tags: ("tooling",),
   estimate: (src-files: 1),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent session pays a bounded, known cost for AGENTS.md and the skill],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent session pays a bounded, known cost for AGENTS.md and the skill],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

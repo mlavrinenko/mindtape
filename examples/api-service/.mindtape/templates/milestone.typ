@@ -12,21 +12,19 @@
     prompt: "Service tags, and `stateful` or `stateless`",
     default: ("stateless",),
   ),
-  x-goals: verdicts(
-    (
-      secure: slot(
-        "secure",
-        kind: "raw",
-        default: "neutral",
-        prompt: "helps[how], hurts[how] or neutral",
-        example: "helps[an expired session can't mint a new token]",
-      ),
-      fast: slot(
-        "fast",
-        kind: "raw",
-        default: "neutral",
-        prompt: "helps[how], hurts[how] or neutral",
-      ),
+  x-goals: (
+    secure: slot(
+      "secure",
+      kind: "raw",
+      default: "neutral",
+      prompt: "helps[how], hurts[how] or neutral",
+      example: "helps[an expired session can't mint a new token]",
+    ),
+    fast: slot(
+      "fast",
+      kind: "raw",
+      default: "neutral",
+      prompt: "helps[how], hurts[how] or neutral",
     ),
   ),
 )

@@ -13,20 +13,17 @@
   tags: ("tooling", "gating"),
   estimate: (src-files: 1),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a copy with renamed variables or a shorter copied block fails the gate, not only a long verbatim one],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[a copy with renamed variables or a shorter copied block fails the gate, not only a long verbatim one],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

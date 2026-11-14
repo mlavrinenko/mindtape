@@ -15,20 +15,17 @@
   assignee: "agent",
   status: done(2026, 9, 16),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[verdicts can sit in `task.with` beside status and links instead of filling the body],
-        enforced-practice: helps[any structure a project invents gets a named rule, refused before `mt add` writes at `error` severity],
-        typst-over-markdown: helps[the check is a Typst function in the repo, where frontmatter needs a separate linter],
-      ),
-      "implementable-tasks",
-      "cheap-adoption",
-      "plain-files",
+    product: (
+      readable-tasks: helps[verdicts can sit in `task.with` beside status and links instead of filling the body],
+      implementable-tasks: neutral,
+      enforced-practice: helps[any structure a project invents gets a named rule, refused before `mt add` writes at `error` severity],
+      cheap-adoption: neutral,
+      typst-over-markdown: helps[the check is a Typst function in the repo, where frontmatter needs a separate linter],
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
 )

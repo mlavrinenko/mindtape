@@ -11,22 +11,18 @@
   difficulty: 4,
   tags: ("tooling", "docs", "gating", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the prose gate and the style hold one rule list, so they cannot disagree],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the prose gate and the style hold one rule list, so they cannot disagree],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (:),
-      ..("sound-codebase", "docs-match-code"),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

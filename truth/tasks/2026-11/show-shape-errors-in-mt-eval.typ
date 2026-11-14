@@ -19,21 +19,17 @@
   ),
   tags: ("found", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[the debug command and the gate tell the same story],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[the debug command and the gate tell the same story],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (docs-match-code: helps[the page and the command name the same failure]),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the page and the command name the same failure],
     ),
   ),
   assignee: "agent",

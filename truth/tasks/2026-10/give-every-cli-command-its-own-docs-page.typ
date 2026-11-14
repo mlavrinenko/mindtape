@@ -13,21 +13,17 @@
   tags: ("www", "docs"),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a reader looking up one command reads that command, not a 7,400-word page],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a reader looking up one command reads that command, not a 7,400-word page],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[a command with no page fails the docs gate, as a command with no note does now],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[a command with no page fails the docs gate, as a command with no note does now],
     ),
   ),
   assignee: "agent",

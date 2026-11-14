@@ -12,20 +12,17 @@
   tags: ("tooling", "tests"),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a green gate stops depending on arm timing],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[a green gate stops depending on arm timing],
+      docs-match-code: neutral,
     ),
   ),
   kind: "dev",

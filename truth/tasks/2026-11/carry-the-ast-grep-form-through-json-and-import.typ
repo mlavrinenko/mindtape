@@ -12,23 +12,17 @@
   difficulty: 3,
   tags: ("mt", "tooling", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        plain-files: helps[the query survives a JSON round trip instead of living only in a Typst file],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[the query survives a JSON round trip instead of living only in a Typst file],
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one canonical enum carries the authored query in both directions],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[one canonical enum carries the authored query in both directions],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

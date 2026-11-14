@@ -11,24 +11,18 @@
   difficulty: 4,
   tags: ("mt", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a template is no longer listed as a task],
-        implementable-tasks: helps[one exported policy names a task source],
-      ),
-      ..(
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: helps[a template is no longer listed as a task],
+      implementable-tasks: helps[one exported policy names a task source],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the loader and later consumers share one definition instead of drifting],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the loader and later consumers share one definition instead of drifting],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

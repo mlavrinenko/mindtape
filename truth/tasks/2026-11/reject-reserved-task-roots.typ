@@ -11,24 +11,18 @@
   difficulty: 2,
   tags: ("mt", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        self-describing: helps[the config error names the reserved path at load],
-        enforced-practice: helps[a root that can never work never reaches the rest of the tool],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a root that can never work never reaches the rest of the tool],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: helps[the config error names the reserved path at load],
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a contradictory config fails once, with the path named],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[a contradictory config fails once, with the path named],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

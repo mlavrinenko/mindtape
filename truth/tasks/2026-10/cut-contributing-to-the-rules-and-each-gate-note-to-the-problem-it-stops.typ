@@ -13,21 +13,17 @@
   tags: ("docs",),
   estimate: (src-files: 12),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent session loads a third of today's CONTRIBUTING and finds each rule once],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent session loads a third of today's CONTRIBUTING and finds each rule once],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[each gate says in one clause what breaks without it],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[each gate says in one clause what breaks without it],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

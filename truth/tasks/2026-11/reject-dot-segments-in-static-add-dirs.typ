@@ -18,22 +18,18 @@
   ),
   tags: ("found", "mt", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a bad destination is a config error, not a late load failure],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a bad destination is a config error, not a late load failure],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (sound-codebase: helps[static and derived dirs share one path rule]),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[static and derived dirs share one path rule],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

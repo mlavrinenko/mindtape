@@ -13,20 +13,17 @@
   tags: ("cli",),
   estimate: (src-files: 4),
   x-goals: (
-    product: verdicts(
-      (
-        plain-files: helps[one TOML file names every project and set, with no registry to run],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[one TOML file names every project and set, with no registry to run],
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -13,20 +13,17 @@
   estimate: (src-files: 3),
   tags: ("found", "mt"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[--describe shows a sample the project wrote, not one Rust made up],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[--describe shows a sample the project wrote, not one Rust made up],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

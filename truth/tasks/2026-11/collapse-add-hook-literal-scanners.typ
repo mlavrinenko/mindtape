@@ -18,24 +18,18 @@
   ),
   tags: ("found", "mt", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a guard that cannot fail has no untested error to explain],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a guard that cannot fail has no untested error to explain],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one quoted-literal reader replaces three find-and-get copies],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[one quoted-literal reader replaces three find-and-get copies],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

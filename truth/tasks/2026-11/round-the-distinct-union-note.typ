@@ -19,23 +19,17 @@
   ),
   tags: ("found", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[the note shows a file count, not an arithmetic artifact],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[the note shows a file count, not an arithmetic artifact],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the code matches the integer file count the page promises],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the code matches the integer file count the page promises],
     ),
   ),
   assignee: "agent",

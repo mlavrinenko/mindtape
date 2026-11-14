@@ -19,23 +19,17 @@
   ),
   tags: ("found", "mt", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a shape count reads only the language's source files, so a rule can trust it],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a shape count reads only the language's source files, so a rule can trust it],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the shared engine filters by the grammar's own extension map instead of a second walk],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the shared engine filters by the grammar's own extension map instead of a second walk],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

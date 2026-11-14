@@ -13,20 +13,17 @@
   estimate: (src-files: 1),
   tags: ("found", "cli"),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a mutation sweep reports a verdict instead of timing out on a loop that never advances],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[a mutation sweep reports a verdict instead of timing out on a loop that never advances],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

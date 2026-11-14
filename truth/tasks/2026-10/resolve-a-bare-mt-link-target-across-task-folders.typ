@@ -13,21 +13,17 @@
   tags: ("cli",),
   estimate: (src-files: 4),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent links across folders by stem, the way the help text says it can],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent links across folders by stem, the way the help text says it can],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one target lookup instead of a stem that works only for siblings],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[one target lookup instead of a stem that works only for siblings],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

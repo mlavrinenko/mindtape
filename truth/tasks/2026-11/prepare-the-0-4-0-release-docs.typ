@@ -13,23 +13,17 @@
   tags: ("docs", "stateless", "mt"),
   estimate: (src-files: 8),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a release ships docs that name the shipped behavior],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a release ships docs that name the shipped behavior],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the shipped docs and hook match the merge skip and AS-IS rename],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the shipped docs and hook match the merge skip and AS-IS rename],
     ),
   ),
   assignee: "agent",

@@ -13,20 +13,17 @@
   tags: ("cli",),
   estimate: (src-files: 12),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a snippet too short for any clone gate still lives in one place, and clippy refuses copy number eight],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[a snippet too short for any clone gate still lives in one place, and clippy refuses copy number eight],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

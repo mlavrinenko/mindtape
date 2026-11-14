@@ -13,20 +13,17 @@
   tags: ("size", "docs"),
   estimate: (src-files: 4),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the files every session loads have room for the next rule without a rewording pass],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[the files every session loads have room for the next rule without a rewording pass],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

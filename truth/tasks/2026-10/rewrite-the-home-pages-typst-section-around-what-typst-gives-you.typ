@@ -13,20 +13,17 @@
   tags: ("www", "docs"),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        typst-over-markdown: helps[the first screen lists what a Typst task gives you, and drops a check a JSON schema gives frontmatter too],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: helps[the first screen lists what a Typst task gives you, and drops a check a JSON schema gives frontmatter too],
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

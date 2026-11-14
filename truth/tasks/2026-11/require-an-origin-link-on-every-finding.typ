@@ -13,21 +13,17 @@
   tags: ("mt", "tooling", "gating", "stateless"),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a finding carries the task that surfaced it, so the next reader follows the graph without rereading a report],
-        enforced-practice: helps[the template and mt check both refuse a finding with no origin],
-      ),
-      ..(
-        "readable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a finding carries the task that surfaced it, so the next reader follows the graph without rereading a report],
+      enforced-practice: helps[the template and mt check both refuse a finding with no origin],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (sound-codebase: helps[a finding cannot be filed untraceable]),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[a finding cannot be filed untraceable],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

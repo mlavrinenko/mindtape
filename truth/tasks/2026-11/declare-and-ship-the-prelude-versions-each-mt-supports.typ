@@ -13,20 +13,17 @@
   tags: ("mt", "substrate", "tooling", "stateless"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[an upgraded mt keeps reading the preludes it still understands, so a bump need not rewrite a working import],
-        enforced-practice: helps[an unsupported prelude is refused at load with one message naming the supported versions],
-        plain-files: helps[the supported set ships in the binary, so an old pin needs no registry or download],
-      ),
-      ..("readable-tasks", "implementable-tasks", "typst-over-markdown"),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[an unsupported prelude is refused at load with one message naming the supported versions],
+      cheap-adoption: helps[an upgraded mt keeps reading the preludes it still understands, so a bump need not rewrite a working import],
+      typst-over-markdown: neutral,
+      plain-files: helps[the supported set ships in the binary, so an old pin needs no registry or download],
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[every listed prelude has a fixture that proves the binary still evaluates it],
-        docs-match-code: helps[the task-files and config pages say which versions are supported],
-      ),
-      ..(),
+    process: (
+      sound-codebase: helps[every listed prelude has a fixture that proves the binary still evaluates it],
+      docs-match-code: helps[the task-files and config pages say which versions are supported],
     ),
   ),
   assignee: "agent",

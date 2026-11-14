@@ -13,20 +13,17 @@
   tags: ("tooling",),
   estimate: (src-files: 6),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the secrets gate hashes every tracked file outside `truth/tasks/` by construction, so no checker has to guard a hand-kept list, and each `just check` arm hashes its inputs once],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[the secrets gate hashes every tracked file outside `truth/tasks/` by construction, so no checker has to guard a hand-kept list, and each `just check` arm hashes its inputs once],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -11,22 +11,18 @@
   difficulty: 3,
   tags: ("mt", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[untracked ignored generated files stop appearing as tasks],
-        cheap-adoption: helps[a root of `.` works without an ignore list of its own],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: helps[untracked ignored generated files stop appearing as tasks],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a root of `.` works without an ignore list of its own],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (sound-codebase: helps[ignored build trees are never compiled as tasks]),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[ignored build trees are never compiled as tasks],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

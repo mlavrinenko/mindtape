@@ -13,21 +13,17 @@
   estimate: (src-files: 4),
   tags: ("found", "cli", "docs"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a macOS or Windows user finds their presets and worktrees file],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a macOS or Windows user finds their presets and worktrees file],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the docs name the directory `mt` reads on every platform],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the docs name the directory `mt` reads on every platform],
     ),
   ),
   assignee: "agent",

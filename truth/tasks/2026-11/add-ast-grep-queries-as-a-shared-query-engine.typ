@@ -13,23 +13,17 @@
   tags: ("mt", "tooling", "gating", "stateless"),
   estimate: (src-files: 0),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an estimate counts real call sites instead of a text proxy],
-      ),
-      ..(
-        "readable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an estimate counts real call sites instead of a text proxy],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the query reuses the estimate query cache and path sets instead of adding a second engine],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the query reuses the estimate query cache and path sets instead of adding a second engine],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

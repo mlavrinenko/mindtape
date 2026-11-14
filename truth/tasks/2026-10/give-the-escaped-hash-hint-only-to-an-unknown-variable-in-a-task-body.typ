@@ -13,20 +13,17 @@
   estimate: (src-files: 4),
   tags: ("found", "cli"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a newcomer who misspells a status is told the statuses, not sent to look for a stray hash],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a newcomer who misspells a status is told the statuses, not sent to look for a stray hash],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

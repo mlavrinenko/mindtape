@@ -12,23 +12,17 @@
   kind: "refactor",
   tags: ("mt", "tooling", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a later collector reuses one engine instead of a second file walk],
-      ),
-      ..(
-        "readable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a later collector reuses one engine instead of a second file walk],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the query value, compile, walk, path filter and cache live in one module],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the query value, compile, walk, path filter and cache live in one module],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

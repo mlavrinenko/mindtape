@@ -13,20 +13,17 @@
   tags: ("mt", "cli"),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[before editing a file, an agent reads which tasks shaped it],
-        plain-files: helps[the link from code to task is derived from git, never hand-kept in the task],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[before editing a file, an agent reads which tasks shaped it],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[the link from code to task is derived from git, never hand-kept in the task],
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -13,20 +13,17 @@
   tags: ("mt",),
   estimate: (files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a project writes its own budget over any unit and any git state],
-        plain-files: helps[git is read on demand by the expression that asks, no index kept],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a project writes its own budget over any unit and any git state],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[git is read on demand by the expression that asks, no index kept],
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

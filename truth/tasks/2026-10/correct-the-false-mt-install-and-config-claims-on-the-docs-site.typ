@@ -13,21 +13,17 @@
   estimate: (src-files: 2),
   tags: ("found", "www"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a new user upgrading or naming files is not misled],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a new user upgrading or naming files is not misled],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[three install and config claims match the code],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[three install and config claims match the code],
     ),
   ),
   assignee: "agent",

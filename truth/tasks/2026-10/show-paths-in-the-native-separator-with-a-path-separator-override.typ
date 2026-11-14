@@ -13,21 +13,17 @@
   tags: ("cli", "mt"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a Windows user can paste every path `mt` prints into cmd or PowerShell as is],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a Windows user can paste every path `mt` prints into cmd or PowerShell as is],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one helper renders each kind of path, so a Linux test pins what Windows prints],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[one helper renders each kind of path, so a Linux test pins what Windows prints],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

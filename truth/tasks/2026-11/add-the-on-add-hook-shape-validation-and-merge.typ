@@ -11,24 +11,18 @@
   difficulty: 4,
   tags: ("mt", "tests", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a pack ships add hooks and a project overrides or disables one by name],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a pack ships add hooks and a project overrides or disables one by name],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one hook shape and one validation path across project, layer and pack],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[one hook shape and one validation path across project, layer and pack],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

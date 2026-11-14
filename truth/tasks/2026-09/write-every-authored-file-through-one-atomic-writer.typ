@@ -13,21 +13,17 @@
   tags: ("mt", "cli"),
   estimate: (files: 6),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a lint, not review, keeps new write sites on the atomic path],
-        plain-files: helps[a task file is either the old bytes or the new ones, never a torn half],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a lint, not review, keeps new write sites on the atomic path],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[a task file is either the old bytes or the new ones, never a torn half],
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one sanctioned write primitive instead of a dozen raw `fs::write` calls],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[one sanctioned write primitive instead of a dozen raw `fs::write` calls],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

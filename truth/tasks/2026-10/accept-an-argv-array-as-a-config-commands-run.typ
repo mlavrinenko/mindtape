@@ -13,21 +13,17 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 7),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[one checked-in config runs the same command on Linux, macOS and Windows],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[one checked-in config runs the same command on Linux, macOS and Windows],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a checker's id fills argv items, so no id can reach a shell],
-        docs-match-code: helps[hooks, waits and config pages show both forms of run],
-      ),
+    process: (
+      sound-codebase: helps[a checker's id fills argv items, so no id can reach a shell],
+      docs-match-code: helps[hooks, waits and config pages show both forms of run],
     ),
   ),
   assignee: "agent",

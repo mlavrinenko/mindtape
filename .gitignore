@@ -25,3 +25,5 @@
 
 # mmz freshness records: machine-local, like target/.
 .mmz/cache/
+# Python bytecode from the repo's scripts; regenerate on import.
+__pycache__/

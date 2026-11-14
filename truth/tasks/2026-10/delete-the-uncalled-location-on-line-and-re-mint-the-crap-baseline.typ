@@ -13,20 +13,17 @@
   tags: ("coverage",),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a dead function leaves the tree and the ratchet compares against current scores],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[a dead function leaves the tree and the ratchet compares against current scores],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

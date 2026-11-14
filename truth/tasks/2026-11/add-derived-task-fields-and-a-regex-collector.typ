@@ -13,24 +13,17 @@
   tags: ("mt", "gating", "stateless"),
   estimate: (src-files: 22),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[the task's own Changes plan feeds the size rule, with no second estimate to keep in sync],
-        enforced-practice: helps[a pack ships a collector and its return type together, so a rule reads a checked contract],
-      ),
-      ..(
-        "readable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[the task's own Changes plan feeds the size rule, with no second estimate to keep in sync],
+      enforced-practice: helps[a pack ships a collector and its return type together, so a rule reads a checked contract],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the collector, its type check and both aggregates land with red tests],
-        docs-match-code: helps[the config schema and mt rules show each collector's shape and origin],
-      ),
-      ..(),
+    process: (
+      sound-codebase: helps[the collector, its type check and both aggregates land with red tests],
+      docs-match-code: helps[the config schema and mt rules show each collector's shape and origin],
     ),
   ),
   assignee: "agent",

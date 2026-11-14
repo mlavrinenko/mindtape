@@ -13,20 +13,17 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 4),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[one open leaf and a capped judgment task hold the same way in every adopting project],
-        cheap-adoption: helps[the WIP caps and the size budget adopt in one line each, with the caps as parameters],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[one open leaf and a capped judgment task hold the same way in every adopting project],
+      cheap-adoption: helps[the WIP caps and the size budget adopt in one line each, with the caps as parameters],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -42,36 +42,18 @@
     example: ("swept", "coverage", "stateless"),
   ),
   x-goals: (
-    product: verdicts(
-      slot("product-goals", kind: "raw", default: (:)),
-      ..slot(
-        "product-neutral",
-        kind: "list",
-        default: (
-          "readable-tasks",
-          "implementable-tasks",
-          "enforced-practice",
-          "cheap-adoption",
-          "typst-over-markdown",
-          "plain-files",
-          "self-describing",
-        ),
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      slot(
-        "process-goals",
-        kind: "raw",
-        default: (
-          sound-codebase: helps[a complex function nobody exercises gets a test that fails when it breaks],
-        ),
-        example: "(sound-codebase: helps[a complex function nobody exercises gets a test that fails when it breaks],)",
-      ),
-      ..slot(
-        "process-neutral",
-        kind: "list",
-        default: ("docs-match-code",),
-      ),
+    process: (
+      sound-codebase: helps[a complex function nobody exercises gets a test that fails when it breaks],
+      docs-match-code: neutral,
     ),
   ),
 )

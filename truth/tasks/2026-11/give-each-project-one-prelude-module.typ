@@ -13,25 +13,18 @@
   tags: ("mt", "tooling", "stateless"),
   estimate: (src-files: 0),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[every task file opens with one import line instead of two, and the project's own helpers sit beside the library],
-        cheap-adoption: helps[a project copies one prelude file and pins the library once],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: helps[every task file opens with one import line instead of two, and the project's own helpers sit beside the library],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a project copies one prelude file and pins the library once],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a prelude version bump has one site to change],
-        docs-match-code: helps[the import a task shows is the one the docs show],
-      ),
-      ..(),
+    process: (
+      sound-codebase: helps[a prelude version bump has one site to change],
+      docs-match-code: helps[the import a task shows is the one the docs show],
     ),
   ),
   assignee: "agent",

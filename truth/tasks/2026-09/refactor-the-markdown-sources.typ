@@ -19,21 +19,17 @@
   estimate: (files: 7),
   assignee: "agent",
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[the three files every agent loads stop paying context for sentences the pages or --help already carry],
-        enforced-practice: helps[README renders the same module as the site root, so the demo cannot drift again],
-        cheap-adoption: helps[a shorter SKILL.md is cheaper context for every adoption attempt],
-      ),
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: helps[the three files every agent loads stop paying context for sentences the pages or --help already carry],
+      implementable-tasks: neutral,
+      enforced-practice: helps[README renders the same module as the site root, so the demo cannot drift again],
+      cheap-adoption: helps[a shorter SKILL.md is cheaper context for every adoption attempt],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the audit's last open pairs close or get an accepted reason; docs::md-check keeps the renders honest],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the audit's last open pairs close or get an accepted reason; docs::md-check keeps the renders honest],
     ),
   ),
 )

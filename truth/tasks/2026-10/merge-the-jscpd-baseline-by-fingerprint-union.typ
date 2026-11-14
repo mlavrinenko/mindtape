@@ -13,20 +13,17 @@
   estimate: (src-files: 3),
   tags: ("found", "tooling"),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[parallel worktrees land without hand-resolving the clone baseline],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[parallel worktrees land without hand-resolving the clone baseline],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

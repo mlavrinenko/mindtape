@@ -13,20 +13,17 @@
   tags: ("tooling",),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        plain-files: helps[a tombstone written on Windows resolves on every machine],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[a tombstone written on Windows resolves on every machine],
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

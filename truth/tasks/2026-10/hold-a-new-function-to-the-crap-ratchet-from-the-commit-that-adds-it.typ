@@ -13,21 +13,17 @@
   tags: ("tooling",),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a function's CRAP score is ratcheted from the commit that adds it, not from the next re-mint],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a function's CRAP score is ratcheted from the commit that adds it, not from the next re-mint],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[an undertested new function can't slide in under the threshold with no baseline to hold it],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[an undertested new function can't slide in under the threshold with no baseline to hold it],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

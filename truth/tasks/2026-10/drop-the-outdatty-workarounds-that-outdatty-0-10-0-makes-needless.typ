@@ -13,20 +13,17 @@
   tags: ("tooling",),
   estimate: (src-files: 8),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the lock merges and checks through outdatty itself, with no bash copy of its format to keep in step],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[the lock merges and checks through outdatty itself, with no bash copy of its format to keep in step],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

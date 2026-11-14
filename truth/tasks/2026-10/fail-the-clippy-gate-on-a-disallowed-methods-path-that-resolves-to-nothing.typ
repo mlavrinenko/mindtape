@@ -13,21 +13,17 @@
   estimate: (src-files: 2),
   tags: ("found", "gating"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a ban that names a missing path fails the gate instead of banning nothing],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a ban that names a missing path fails the gate instead of banning nothing],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[every clippy ban provably fires],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[every clippy ban provably fires],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

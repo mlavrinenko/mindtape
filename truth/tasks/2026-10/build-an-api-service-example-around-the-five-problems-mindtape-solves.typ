@@ -13,20 +13,17 @@
   tags: ("docs", "www"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[the example config is the config a software team copies],
-        typst-over-markdown: helps[the first task an engineer sees is one that Markdown plus YAML cannot enforce],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[the example config is the config a software team copies],
+      typst-over-markdown: helps[the first task an engineer sees is one that Markdown plus YAML cannot enforce],
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -19,23 +19,17 @@
   ),
   tags: ("found", "mt", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a mixed-version export/import gets the designed upgrade hint],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a mixed-version export/import gets the designed upgrade hint],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the version constant follows its own documented rule],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the version constant follows its own documented rule],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

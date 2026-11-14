@@ -13,20 +13,17 @@
   tags: ("tooling",),
   estimate: (src-files: 40),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[each setup line lives in one test helper, so a change to it is one edit],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[each setup line lives in one test helper, so a change to it is one edit],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

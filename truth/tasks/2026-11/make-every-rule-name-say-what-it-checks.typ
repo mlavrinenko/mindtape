@@ -12,22 +12,18 @@
   kind: "refactor",
   tags: ("mt", "tooling", "gating", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a bare index of names tells an agent what the project checks before it opens a rule],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: helps[a bare index of names tells an agent what the project checks before it opens a rule],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (docs-match-code: helps[the pack docs and the index use the same names]),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the pack docs and the index use the same names],
     ),
   ),
   assignee: "agent",

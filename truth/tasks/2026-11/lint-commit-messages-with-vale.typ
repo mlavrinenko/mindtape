@@ -11,22 +11,18 @@
   difficulty: 4,
   tags: ("tooling", "gating", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the commit hook and the range check refuse the same prose],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the commit hook and the range check refuse the same prose],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (:),
-      ..("sound-codebase", "docs-match-code"),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

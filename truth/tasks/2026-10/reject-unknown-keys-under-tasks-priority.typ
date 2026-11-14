@@ -13,21 +13,17 @@
   estimate: (src-files: 3),
   tags: ("found", "mt"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a misspelled priority key fails the load instead of doing nothing],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a misspelled priority key fails the load instead of doing nothing],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the schema stops allowing keys the loader ignores],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the schema stops allowing keys the loader ignores],
     ),
   ),
   assignee: "agent",

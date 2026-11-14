@@ -13,21 +13,17 @@
   tags: ("www", "docs"),
   estimate: (files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a reader choosing an agent-era tracker finds the two closest ones compared on one rubric],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a reader choosing an agent-era tracker finds the two closest ones compared on one rubric],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the neighbour list matches the trackers MindTape actually competes with in 2026],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the neighbour list matches the trackers MindTape actually competes with in 2026],
     ),
   ),
   assignee: "agent",

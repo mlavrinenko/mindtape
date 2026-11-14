@@ -13,21 +13,17 @@
   tags: ("tooling",),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a release that cannot finish is refused before its tag exists, and no tag lands on a red commit],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a release that cannot finish is refused before its tag exists, and no tag lands on a red commit],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a failed release run is finished by a re-run, not by a new version],
-        docs-match-code: helps[CONTRIBUTING states what `just release` refuses and how to re-run a tag],
-      ),
+    process: (
+      sound-codebase: helps[a failed release run is finished by a re-run, not by a new version],
+      docs-match-code: helps[CONTRIBUTING states what `just release` refuses and how to re-run a tag],
     ),
   ),
   assignee: "agent",

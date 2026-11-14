@@ -13,23 +13,17 @@
   tags: ("mt", "gating", "stateless"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a repo that tracks work elsewhere keeps `Refs:` as its one trailer and files no mirror task],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a repo that tracks work elsewhere keeps `Refs:` as its one trailer and files no mirror task],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the schema and commit-message docs state the external patterns and the accepted separators],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the schema and commit-message docs state the external patterns and the accepted separators],
     ),
   ),
   assignee: "agent",

@@ -11,22 +11,18 @@
   difficulty: 2,
   tags: ("docs", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a reader finds one statement of what a task file is],
-        self-describing: helps[the docs explain why the template is not a task],
-        implementable-tasks: helps[the contract points at the code that owns each rule],
-      ),
-      ..(
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[a reader finds one statement of what a task file is],
+      implementable-tasks: helps[the contract points at the code that owns each rule],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: helps[the docs explain why the template is not a task],
     ),
-    process: verdicts(
-      (docs-match-code: helps[every claim links to the source that holds it]),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[every claim links to the source that holds it],
     ),
   ),
   assignee: "agent",

@@ -13,23 +13,17 @@
   tags: ("mt", "cli", "stateless"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a template can ask for typed edges, so a filed task carries its links without a second command],
-      ),
-      ..(
-        "readable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a template can ask for typed edges, so a filed task carries its links without a second command],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the slot renders the same edge dicts the prelude helpers build],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the slot renders the same edge dicts the prelude helpers build],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

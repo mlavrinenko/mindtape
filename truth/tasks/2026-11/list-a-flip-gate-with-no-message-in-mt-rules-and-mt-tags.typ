@@ -13,22 +13,18 @@
   estimate: (src-files: 1),
   tags: ("found", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a gate a flip enforces is visible in mt explain rules and mt explain tags],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a gate a flip enforces is visible in mt explain rules and mt explain tags],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (:),
-      ..("sound-codebase", "docs-match-code"),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

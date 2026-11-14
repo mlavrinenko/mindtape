@@ -13,20 +13,17 @@
   tags: ("cli",),
   estimate: (src-files: 10),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[render output stops depending on which project opened first, so one process can render several],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[render output stops depending on which project opened first, so one process can render several],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -13,20 +13,17 @@
   tags: ("www", "docs"),
   estimate: (src-files: 0),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a reader who lands on any page from search follows it without reading the pages before it],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a reader who lands on any page from search follows it without reading the pages before it],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -11,23 +11,18 @@
   difficulty: 2,
   tags: ("tooling", "gating", "docs", "stateless"),
   x-goals: (
-    product: verdicts(
-      (:),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a broken intra-doc link and an unpinned golden fail before release],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[a broken intra-doc link and an unpinned golden fail before release],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

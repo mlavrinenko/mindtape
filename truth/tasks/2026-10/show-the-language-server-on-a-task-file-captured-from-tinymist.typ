@@ -13,21 +13,17 @@
   tags: ("www", "docs"),
   estimate: (src-files: 4),
   x-goals: (
-    product: verdicts(
-      (
-        typst-over-markdown: helps[the first screen shows field completion and a caught typo, which Markdown with YAML frontmatter cannot offer],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: helps[the first screen shows field completion and a caught typo, which Markdown with YAML frontmatter cannot offer],
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[what the page shows is what tinymist returns for the shipped prelude, captured in each build],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[what the page shows is what tinymist returns for the shipped prelude, captured in each build],
     ),
   ),
   assignee: "agent",

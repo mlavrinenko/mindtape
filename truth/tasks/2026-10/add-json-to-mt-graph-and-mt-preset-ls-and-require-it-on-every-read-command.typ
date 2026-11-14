@@ -13,21 +13,17 @@
   estimate: (src-files: 4),
   tags: ("found", "cli"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a new read command without --json fails the CLI tree test],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a new read command without --json fails the CLI tree test],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[agents.typ's every-read-command-prints-JSON claim stays true],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[agents.typ's every-read-command-prints-JSON claim stays true],
     ),
   ),
   assignee: "agent",

@@ -12,24 +12,18 @@
   difficulty: 3,
   tags: ("tests", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        self-describing: helps[the eval decides how to measure the no-docs claim without the orchestrator's context],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: helps[the eval decides how to measure the no-docs claim without the orchestrator's context],
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a clean harness makes the eval result reproducible],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[a clean harness makes the eval result reproducible],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

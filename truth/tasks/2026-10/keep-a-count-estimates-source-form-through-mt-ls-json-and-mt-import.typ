@@ -18,20 +18,17 @@
     )),
   ),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a task moved through `mt import` keeps the queries its cap rule reads, so the cap still tracks the code],
-        plain-files: helps[a script that rewrites tasks as JSON gets back the `count(...)` the author wrote],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a task moved through `mt import` keeps the queries its cap rule reads, so the cap still tracks the code],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[a script that rewrites tasks as JSON gets back the `count(...)` the author wrote],
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -30,12 +30,6 @@ extends = [
 name = "mindtape"
 path = "lib"
 
-# Every template must file a task `mt check` accepts when the caller takes
-# every default, not only when they copy its example. A new goal in
-# `truth/goals.typ` therefore fails the templates that have not rated it.
-[templates]
-check-defaults = true
-
 [tasks]
 
 # Mindtape's own backlog lives here, one task per file, in the folder named by

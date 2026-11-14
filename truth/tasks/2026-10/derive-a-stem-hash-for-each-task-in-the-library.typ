@@ -13,21 +13,17 @@
   tags: ("mt",),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent addresses a task by a short code that every listing agrees on],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent addresses a task by a short code that every listing agrees on],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a pure module replaces ordinal bookkeeping spread over the CLI],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[a pure module replaces ordinal bookkeeping spread over the CLI],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

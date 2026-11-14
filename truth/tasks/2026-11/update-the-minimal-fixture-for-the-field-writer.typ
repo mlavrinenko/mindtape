@@ -18,24 +18,18 @@
   ),
   tags: ("found", "mt", "docs", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the fixture and eval teach the behavior the binary now has],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the fixture and eval teach the behavior the binary now has],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the minimal example stops describing a refusal that was removed],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the minimal example stops describing a refusal that was removed],
     ),
   ),
   assignee: "agent",

@@ -13,20 +13,17 @@
   tags: ("mt", "gating", "cli"),
   estimate: (src-files: 11),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a breach says both what to do and which sentence to do it to],
-        enforced-practice: helps[a rule's advice no longer hides where the rule fired],
-      ),
-      "readable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a breach says both what to do and which sentence to do it to],
+      enforced-practice: helps[a rule's advice no longer hides where the rule fired],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mt check` even when the example beside it passes, so a goal added to a
   project's goal list fails every template that has not rated it yet.
 
+### Changed
+
+- **Goal verdicts are written one per line again.** The task corpus and the
+  templates no longer call `verdicts`; the helper stays exported for now and
+  will be deprecated in a later release.
+
 ## [0.6.0] - 2026-11-12
 
 ### Upgrading from 0.5

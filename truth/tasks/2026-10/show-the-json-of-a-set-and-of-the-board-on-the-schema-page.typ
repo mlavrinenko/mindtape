@@ -13,21 +13,17 @@
   tags: ("docs", "www"),
   estimate: (src-files: 1),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a script reading many projects parses keys the page shows from a real run],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a script reading many projects parses keys the page shows from a real run],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the set and board shapes come from captured runs, so a changed key changes the page],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the set and board shapes come from captured runs, so a changed key changes the page],
     ),
   ),
   assignee: "agent",

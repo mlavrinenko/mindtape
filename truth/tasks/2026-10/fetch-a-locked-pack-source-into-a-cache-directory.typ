@@ -13,20 +13,17 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a pinned source lands once per machine, byte for byte the same on Linux, macOS and Windows],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a pinned source lands once per machine, byte for byte the same on Linux, macOS and Windows],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

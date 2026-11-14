@@ -13,23 +13,17 @@
   tags: ("mt", "docs", "gating", "stateless"),
   estimate: (src-files: 10),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the size cap reads the plan the task already carries, so one declaration is enforced],
-        readable-tasks: helps[open tasks stop carrying a duplicate estimate],
-      ),
-      ..(
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[open tasks stop carrying a duplicate estimate],
+      implementable-tasks: neutral,
+      enforced-practice: helps[the size cap reads the plan the task already carries, so one declaration is enforced],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the templates, packs, examples, docs and skill evals move in one change],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the templates, packs, examples, docs and skill evals move in one change],
     ),
   ),
   assignee: "agent",

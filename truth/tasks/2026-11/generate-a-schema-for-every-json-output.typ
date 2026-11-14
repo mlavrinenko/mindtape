@@ -12,24 +12,18 @@
   difficulty: 6,
   tags: ("cli", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        self-describing: helps[a consumer fetches the exact shape the binary printed],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: helps[a consumer fetches the exact shape the binary printed],
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the committed schema is generated from the same Rust types that print the JSON],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the committed schema is generated from the same Rust types that print the JSON],
     ),
   ),
   assignee: "agent",

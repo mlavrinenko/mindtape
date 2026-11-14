@@ -18,24 +18,18 @@
   ),
   tags: ("found", "mt", "gating", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[an add hook that reads ready() is refused at load rather than silently never firing],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[an add hook that reads ready() is refused at load rather than silently never firing],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one capability table keeps reads_set and add safety in step],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[one capability table keeps reads_set and add safety in step],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

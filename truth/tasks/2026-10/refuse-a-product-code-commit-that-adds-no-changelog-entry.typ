@@ -13,21 +13,17 @@
   tags: ("tooling", "gating"),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the changelog entry lands with the change instead of depending on someone remembering it],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the changelog entry lands with the change instead of depending on someone remembering it],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[CHANGELOG.md's Unreleased section lists every user-visible change when a release cuts it],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[CHANGELOG.md's Unreleased section lists every user-visible change when a release cuts it],
     ),
   ),
   assignee: "agent",

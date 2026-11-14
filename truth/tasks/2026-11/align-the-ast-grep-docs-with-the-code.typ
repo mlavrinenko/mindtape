@@ -19,23 +19,17 @@
   ),
   tags: ("found", "www", "docs", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[the page states the real granularity and the path rule],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[the page states the real granularity and the path rule],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the prose and the skill name the behavior the code has],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the prose and the skill name the behavior the code has],
     ),
   ),
   assignee: "agent",

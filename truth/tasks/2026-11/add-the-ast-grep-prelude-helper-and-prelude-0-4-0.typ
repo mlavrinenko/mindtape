@@ -12,23 +12,17 @@
   difficulty: 2,
   tags: ("mt", "tooling", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a task writes a shape query with the same helper shape as grep and glob],
-      ),
-      ..(
-        "readable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a task writes a shape query with the same helper shape as grep and glob],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the supported prelude set names 0.4.0 everywhere it is restated],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the supported prelude set names 0.4.0 everywhere it is restated],
     ),
   ),
   assignee: "agent",

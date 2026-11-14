@@ -13,21 +13,17 @@
   tags: ("cli", "docs"),
   estimate: (src-files: 4),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent reads which commands take a set from one registry the binary enforces],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent reads which commands take a set from one registry the binary enforces],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the page, the skill and each command page render the set-capable commands from `cli.json`],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the page, the skill and each command page render the set-capable commands from `cli.json`],
     ),
   ),
   assignee: "agent",

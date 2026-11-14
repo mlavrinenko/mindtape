@@ -13,20 +13,17 @@
   estimate: (src-files: 4),
   tags: ("found", "tooling"),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the file-or-print block lives in one place, so a fix to its messages lands once],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[the file-or-print block lives in one place, so a fix to its messages lands once],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

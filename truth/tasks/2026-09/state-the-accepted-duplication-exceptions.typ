@@ -19,21 +19,17 @@
   estimate: (files: 4),
   assignee: "agent",
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[the reader learns which findings the audit will not chase, so a future pair does not get re-litigated],
-        enforced-practice: helps[documentation.typ carries the exception beside the rule it limits],
-      ),
-      "readable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[the reader learns which findings the audit will not chase, so a future pair does not get re-litigated],
+      enforced-practice: helps[documentation.typ carries the exception beside the rule it limits],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the ledger's accepted pairs point at the rule that accepts them instead of looking like missed work],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the ledger's accepted pairs point at the rule that accepts them instead of looking like missed work],
     ),
   ),
 )

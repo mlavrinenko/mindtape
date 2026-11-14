@@ -11,22 +11,18 @@
   difficulty: 4,
   tags: ("mt", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[one Typst function covers any calculation instead of a second expression language],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[one Typst function covers any calculation instead of a second expression language],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (:),
-      ..("sound-codebase", "docs-match-code"),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

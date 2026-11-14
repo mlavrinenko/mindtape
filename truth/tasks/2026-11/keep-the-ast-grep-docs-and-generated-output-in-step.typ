@@ -12,23 +12,17 @@
   difficulty: 2,
   tags: ("mt", "docs", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a reader learns the shape query from the same page as grep and glob],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[a reader learns the shape query from the same page as grep and glob],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the page and the changelog name the same supported set and problem behavior as the engine],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the page and the changelog name the same supported set and problem behavior as the engine],
     ),
   ),
   assignee: "agent",

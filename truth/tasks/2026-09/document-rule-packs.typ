@@ -16,20 +16,17 @@
   status: done(2026, 9, 16),
   links: depends-on("ship-the-task-practice-as-the-mindtape-tasks-pack.typ"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a reader finds the one-line adoption on the config page],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a reader finds the one-line adoption on the config page],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
 )

@@ -13,21 +13,17 @@
   tags: ("www", "docs"),
   estimate: (src-files: 6),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a newcomer on the site root reads a wide lede, sees the task file before the table it lands in, and skips a full-screen gimmick],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a newcomer on the site root reads a wide lede, sees the task file before the table it lands in, and skips a full-screen gimmick],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the site root's intro line sits right above the task it names],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the site root's intro line sits right above the task it names],
     ),
   ),
   assignee: "agent",

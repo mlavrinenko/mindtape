@@ -13,20 +13,17 @@
   tags: (),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the sweep reads at a glance, so it gets run],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[the sweep reads at a glance, so it gets run],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -12,23 +12,17 @@
   difficulty: 2,
   tags: ("cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a newcomer learns the next command from the dead end itself],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a newcomer learns the next command from the dead end itself],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the CLI text carries the workflow instead of a page beside it],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the CLI text carries the workflow instead of a page beside it],
     ),
   ),
   assignee: "agent",

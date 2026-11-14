@@ -13,21 +13,17 @@
   estimate: (src-files: 2),
   tags: ("found", "tooling"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a gate that prints a diff also fails],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a gate that prints a diff also fails],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[just fmt stops rewriting a comment],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[just fmt stops rewriting a comment],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

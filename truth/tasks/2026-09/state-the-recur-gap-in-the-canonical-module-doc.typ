@@ -19,21 +19,17 @@
   estimate: (files: 2),
   assignee: "agent",
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a Rust reader stops believing `recur` survives a JSON round-trip],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a Rust reader stops believing `recur` survives a JSON round-trip],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the module doc agrees with `CanonicalTask` and with the schema page],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the module doc agrees with `CanonicalTask` and with the schema page],
     ),
   ),
 )

@@ -13,21 +13,17 @@
   estimate: (src-files: 4),
   tags: ("found", "mt"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[the hash an agent reads off a listing acts on that row's task],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[the hash an agent reads off a listing acts on that row's task],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the filter-word list cannot drift from the dispatcher],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[the filter-word list cannot drift from the dispatcher],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

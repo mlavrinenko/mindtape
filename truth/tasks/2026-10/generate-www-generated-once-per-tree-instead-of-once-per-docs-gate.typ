@@ -13,20 +13,17 @@
   tags: ("tooling", "docs"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a full `just check` after an edit costs a minute less, so it runs more often],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a full `just check` after an edit costs a minute less, so it runs more often],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

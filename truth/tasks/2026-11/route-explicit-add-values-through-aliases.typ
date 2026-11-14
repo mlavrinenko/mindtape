@@ -18,24 +18,18 @@
   ),
   tags: ("found", "mt", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[an explicit value under an aliased slot is either honoured or refused, never dropped],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[an explicit value under an aliased slot is either honoured or refused, never dropped],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one alias map serves flags, --set and the positional title],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[one alias map serves flags, --set and the positional title],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

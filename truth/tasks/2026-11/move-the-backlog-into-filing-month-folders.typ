@@ -11,24 +11,18 @@
   difficulty: 4,
   tags: ("mt", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a month folder gives a reader a chronological entry point],
-        enforced-practice: helps[the dir rule holds the layout on every write],
-      ),
-      ..(
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: helps[a month folder gives a reader a chronological entry point],
+      implementable-tasks: neutral,
+      enforced-practice: helps[the dir rule holds the layout on every write],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the repo map and the hook docs name the same layout],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the repo map and the hook docs name the same layout],
     ),
   ),
   assignee: "agent",

@@ -49,10 +49,9 @@ Rules:
 - Name a custom field `x-<ns>`, such as `x-speconaut: ...`. Every other field
   name is a declared parameter of `task`, so a typo fails instead of becoming
   an extension: a field written `titel:` fails with
-  `unexpected argument: titel`. A project whose rules rate goals writes
-  `x-goals: verdicts((secure: helps[why],), "fast")`: the verdicts first, then
-  every neutral goal by name. `hurts[why]` and `neutral` build the other two
-  verdicts, and naming a goal both ways fails.
+  `unexpected argument: titel`. A project whose rules rate goals writes one
+  line per goal, `x-goals: (secure: helps[why], fast: neutral)`, using
+  `helps[why]`, `hurts[why]` or `neutral`.
 - Pass an edge helper plain path strings, never `link("a.typ")`. A `link(...)`
   is content, so the helper treats it as the trailing note. A `link(...)`, a
   second note, a named argument or a non-string is an eval error naming the

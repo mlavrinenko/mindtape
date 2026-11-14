@@ -13,21 +13,17 @@
   estimate: (src-files: 2),
   tags: ("found", "tooling"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a Windows user's tinymist finds the prelude that `mt install` wrote, so the autocompletion the Quickstart names works],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a Windows user's tinymist finds the prelude that `mt install` wrote, so the autocompletion the Quickstart names works],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the Quickstart says tinymist finds the installed prelude, which holds on every platform],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the Quickstart says tinymist finds the installed prelude, which holds on every platform],
     ),
   ),
   assignee: "agent",

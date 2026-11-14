@@ -13,20 +13,17 @@
   tags: ("mt", "cli"),
   estimate: (src-files: 4),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent sees which parent is ready to close without walking the graph],
-        enforced-practice: helps[a parent cannot close over unfinished children without --force],
-      ),
-      "readable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent sees which parent is ready to close without walking the graph],
+      enforced-practice: helps[a parent cannot close over unfinished children without --force],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

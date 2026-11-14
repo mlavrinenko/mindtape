@@ -19,23 +19,17 @@
   ),
   tags: ("found", "www", "docs", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[the page states the detail and the file set the command shows],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[the page states the detail and the file set the command shows],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the prose and the internal comments name the current behavior],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the prose and the internal comments name the current behavior],
     ),
   ),
   assignee: "agent",

@@ -13,21 +13,17 @@
   tags: ("tooling", "docs"),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the review the drift gate asks for is a line in the commit, refused when missing],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the review the drift gate asks for is a line in the commit, refused when missing],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[a re-record either edits a dependent or names the group its author read and left as is],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[a re-record either edits a dependent or names the group its author read and left as is],
     ),
   ),
   assignee: "agent",

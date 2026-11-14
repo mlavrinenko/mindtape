@@ -11,24 +11,18 @@
   difficulty: 2,
   tags: ("mt", "gating", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a commit rule classifies against the state it is checking],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a commit rule classifies against the state it is checking],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the state config and task set stop being dropped between loading and checking],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the state config and task set stop being dropped between loading and checking],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

@@ -13,20 +13,17 @@
   estimate: (src-files: 1),
   tags: ("found", "www"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a reader scans the matrix by colour, and a half-filled cell reads as a different rating],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a reader scans the matrix by colour, and a half-filled cell reads as a different rating],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

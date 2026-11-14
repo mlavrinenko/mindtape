@@ -13,21 +13,17 @@
   estimate: (src-files: 5),
   tags: ("found", "mt"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a refused write points the editor at the line that is on disk],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a refused write points the editor at the line that is on disk],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one parse of the task.with call replaces three lookups that can disagree],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[one parse of the task.with call replaces three lookups that can disagree],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

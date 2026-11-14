@@ -13,20 +13,17 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 0),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a project takes the shared practice in one `extends` line and gets its fixes without copying],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a project takes the shared practice in one `extends` line and gets its fixes without copying],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

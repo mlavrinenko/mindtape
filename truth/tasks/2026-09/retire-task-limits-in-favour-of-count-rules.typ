@@ -13,21 +13,17 @@
   tags: ("mt",),
   estimate: (src-files: 7),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a WIP cap is a rule like any other, overridable by name],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a WIP cap is a rule like any other, overridable by name],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[about 430 lines of limits config and tests go],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[about 430 lines of limits config and tests go],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

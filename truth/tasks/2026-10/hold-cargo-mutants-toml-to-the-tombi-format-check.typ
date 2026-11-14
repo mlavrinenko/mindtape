@@ -12,20 +12,17 @@
   tags: ("tooling",),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[every TOML the gate reads holds to one format],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[every TOML the gate reads holds to one format],
+      docs-match-code: neutral,
     ),
   ),
   kind: "dev",

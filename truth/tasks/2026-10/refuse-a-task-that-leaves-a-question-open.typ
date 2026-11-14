@@ -13,20 +13,17 @@
   tags: ("mt",),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent must ask before it files, so a task starts with every decision made],
-        enforced-practice: helps[a settled spec is a rule mt check holds, not a habit someone has to remember],
-      ),
-      "readable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent must ask before it files, so a task starts with every decision made],
+      enforced-practice: helps[a settled spec is a rule mt check holds, not a habit someone has to remember],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

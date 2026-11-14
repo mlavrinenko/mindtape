@@ -12,23 +12,17 @@
   difficulty: 2,
   tags: ("tests", "tooling", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[the no-documentation arm proves a project starts without a skill],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[the no-documentation arm proves a project starts without a skill],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the eval records which facts the CLI must carry itself],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the eval records which facts the CLI must carry itself],
     ),
   ),
   assignee: "agent",

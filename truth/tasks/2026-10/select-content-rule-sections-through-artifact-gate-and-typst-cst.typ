@@ -13,20 +13,17 @@
   tags: ("mt",),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (:),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the content gate stops carrying copies of artifact-gate's path traversal and typst-cst's section span],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[the content gate stops carrying copies of artifact-gate's path traversal and typst-cst's section span],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

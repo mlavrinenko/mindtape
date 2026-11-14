@@ -11,23 +11,18 @@
   difficulty: 3,
   tags: ("mt", "tests", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (:),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[one field vocabulary and renderer, so mt set and mt add cannot drift],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[one field vocabulary and renderer, so mt set and mt add cannot drift],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

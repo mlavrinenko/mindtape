@@ -13,21 +13,17 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the placeholder gate is a filter condition mt check validates at load, not a shell line],
-        cheap-adoption: helps[a fresh gated project closes its first task on any OS, with no mt allow first],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the placeholder gate is a filter condition mt check validates at load, not a shell line],
+      cheap-adoption: helps[a fresh gated project closes its first task on any OS, with no mt allow first],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a test holds every shipped preset, answer set and embedded pack to no run],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[a test holds every shipped preset, answer set and embedded pack to no run],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

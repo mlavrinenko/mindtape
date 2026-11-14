@@ -13,20 +13,17 @@
   tags: ("cli", "tooling", "stateless"),
   estimate: (src-files: 4),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a task writer sees the waiver and the rule that names it in one read],
-      ),
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: helps[a task writer sees the waiver and the rule that names it in one read],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

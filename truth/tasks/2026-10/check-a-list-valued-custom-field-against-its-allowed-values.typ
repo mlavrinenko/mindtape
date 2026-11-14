@@ -13,20 +13,17 @@
   tags: ("mt", "gating"),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the machine vocabulary is held by the same [tasks.fields] mechanism as kind, not by a project's Typst function],
-        cheap-adoption: helps[a project with a list-valued field deletes its check function and declares the vocabulary in config],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the machine vocabulary is held by the same [tasks.fields] mechanism as kind, not by a project's Typst function],
+      cheap-adoption: helps[a project with a list-valued field deletes its check function and declares the vocabulary in config],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

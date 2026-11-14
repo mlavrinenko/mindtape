@@ -13,20 +13,17 @@
   estimate: (src-files: 4),
   tags: ("found", "mt"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a skipped rule points at the rule to fix, not at a random task],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a skipped rule points at the rule to fix, not at a random task],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

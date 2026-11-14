@@ -12,11 +12,11 @@ groups:
       crates/mindtape/src/packs/tweaks.toml: 540d051dabcb38b215d5459108733ff797dd5dfb7bad6df396e2e4249978e8d9
       crates/mindtape/src/packs/wip-caps.toml: ff0253e57a07c3e5c533da5eed72afadaa09d87918155db03d3dfde055a1615d
       examples/api-service/.mindtape/config.toml: f47ecb8a9fe075a140a8cb9f3f2f2bea6679cdab8751c5125b5f94c58374af0b
-      examples/api-service/.mindtape/templates/milestone.typ: 0e94a0284b7337bca16ebe4b48dc97489c180b3def828981fc042dea31506d4a
+      examples/api-service/.mindtape/templates/milestone.typ: 7fdc32e4e284f0573b17547a09ec29f9e3d109c58850a774fe1713b1e650fb96
       examples/api-service/.mindtape/templates/task.typ: 1ea69ba6d749b4562a5b81b32885bf7b5949e8d10a639e36787180eeb6b3d524
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
-      examples/api-service/goals.typ: 088cfad9e3e745af6326294749cffade5e9c15b2fde0c261458c5d7d1c9d82a0
+      examples/api-service/goals.typ: 0c04ab246cf1b586eddd5fe2a8923dafa760de1602bd434f1a6f6c27e3f7e790
       examples/api-service/scripts/locked: b3e770216763ddae63d751d7e5fafcab424a8a32628689f6b3cc859e8e7c49d5
       examples/api-service/scripts/test: 490e2b2adafd0151a29e903fbd21a77229c0f94ea7724a1ddf7aabc5561f79cc
       examples/api-service/tasks/add-redis-client.typ: 2781e2ebb032691496d9c9dd3c598321960505d0ca610d8f4deb6ac785f78dea
@@ -35,15 +35,15 @@ groups:
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: 5edd783761d8c71e6a68ff9975234dde517eb8803f07b4be7d75caf5df4ed573
       www/generate-api-service.sh: 3c2d36afc0c8da6c97c935f002a039a72c556278de9f0f51909eb90ea3aa08fa
     dependents:
-      skills/mindtape/evals/README.md: 3208fe03d8f040112121fb09b145f54eeeb1ab2c261b6793b54a4391a1874304
-      skills/mindtape/evals/evals.json: e75bfe7de9f6e5a1979653030404cf30907b166036e8bd2c1c835dc74b9570b4
-      www/content/limit-work-in-progress.typ: c8bf092555288cd46fa02bc7ba8392bce040aa3b4276835caac2426e91143f42
-      www/content/require-a-task-shape.typ: 67ce7df426b542abdba2bcb76cb251bbb17d75e8103ca2cc87c83d3bcd0131b6
-      www/content/split-oversized-tasks.typ: bfdad89f093d2998f51609e7ecd20d6e43f71a2be1bca54751e30be74709e95e
-      www/content/start-titles-with-a-verb.typ: 5d606ee91c9c8c833293ef0bd61f983413d65e1c2d4d9e69c22888876e89c74f
-      www/content/tie-work-to-goals.typ: 9df53f15b3753ff326f39ae5dda71dbb7d6207e5372cc74d63e0d79812cca541
-      www/content/trace-commits-to-tasks.typ: 1aaf804fffcdc505f33548ad5d3d2f69a44ba0c7f7987eac7f2477b80829fd16
-      www/content/wait-on-upstream.typ: 01b830b45bf8c0fd2ab1da8992fcf1fab2accb7c3d6ddf2eb65d53296f068737
+      skills/mindtape/evals/README.md: 8be464ec631e0c2a77b593c0434f49da536365d324143646597590db27ff4888
+      skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
+      www/content/limit-work-in-progress.typ: 73b810f1343fc4080160422696d44a65ae2c83a090c60110595e87659f93781c
+      www/content/require-a-task-shape.typ: 280861261d88c415aa5881df6f451dcb70e3eab363f0e7e071699855c71273c2
+      www/content/split-oversized-tasks.typ: da0d30c50d033e000f06a13c57cd2bd353af984c92034e30954d2358f8dcf1ac
+      www/content/start-titles-with-a-verb.typ: 6173e20b331ffc5d9a954e2fe4310e13428fcf7d2448a5dc502db0dfba5d7fb7
+      www/content/tie-work-to-goals.typ: def3c85bd7b96813019d9992938fc2b0979ddcbf0ddcf9b8ca75dbca3fd0b7a7
+      www/content/trace-commits-to-tasks.typ: a8b006a700f7655b96b05647fe88d55fce58df33466fe4705fcc9168821e02af
+      www/content/wait-on-upstream.typ: 505d5a782d01d930238a29103021a4ba1b38196b33dafe28f2a35bf4514ed39e
   cli-add-docs:
     source:
       crates/mindtape-cli/src/cmd/add/mod.rs: 6c2ef9e8cd6b9d6848f60f5547108908ed054b58fc0b08afb9265542428ec8fa
@@ -566,29 +566,29 @@ groups:
       docs/src/contributing.typ: a8a8e429a01de4f56b40b8eac2270d8faa52c47b79e33d992c0d7253c7d7d927
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: 66b1c3cb8361e5df54585af3fbc51cf2816684478cf4a3e3854d374f86b08ace
+      .mindtape/templates/sweep-size.typ: 94be6d37ffc3ba4958f182ee76623788e7d2929ee2ca9ace96b343d32718f802
     dependents:
-      .mindtape/templates/sweep-dry.typ: 2aa0ee8ecc72fc01b2d638c06b8a619e834bae5747c48251381e4c1ed38c7083
-      .mindtape/templates/sweep-mutants.typ: 61277c1cd350e0a8b695f1ecc0963a00515686e232bae602889152a63928d273
-      .mindtape/templates/sweep-repeats.typ: 8b7a363c57e99a2078d7d6d6b1554c0c3ff8c6676bacbc67b9bea84707b16148
-      .mindtape/templates/sweep-undertested.typ: b30daf9df48545c6ceaa245f835195938ec50c43c48f11c0454a6e94b32686b9
+      .mindtape/templates/sweep-dry.typ: 18ecc6474b6c3c7f5f7f5b0d3b28b5a278ee8ff110e87c339ad27f9dffc20d3f
+      .mindtape/templates/sweep-mutants.typ: 99763faa06e73890ee34fbe637c9ab6870d390cfa57c22d43eb9a1da500b7dd7
+      .mindtape/templates/sweep-repeats.typ: 330394a5902d95b8bf86ef72589b807a379b39613adb2e22df5b877a2ea39111
+      .mindtape/templates/sweep-undertested.typ: 1340f1e82bd69f29ee99d68d6d6af08ce2132900e980431e7379d22084d1a5c8
       contrib/ask-refactoring/dry.sh: f98e003a44fc53948c6230eda1454182df727fa8ff0376a7ffd6ca370fe2b02e
       contrib/ask-refactoring/mutants.sh: 30bc2aee7a2d88b32c442cf1226b5f29d0318f04da0ac674d562618ea393e37a
       contrib/ask-refactoring/repeats.sh: 15c9f7c2e9f10a6ec68e55272d24487d11990eb257c5c051c8ad54296db854bb
       contrib/ask-refactoring/size.sh: 51b496e38ceac1c25dde8407597d5754ec2fdf64d34bf354a4ec607ee185c450
-      contrib/ask-refactoring/undertested.sh: d73dae06a38fca0ad59877c794d974b8bfc7e3c479a49ddb7f2b067b0467b1d7
+      contrib/ask-refactoring/undertested.sh: 199f7281f40925c1f72e9b52b65aef9f463c5d15b9931a4166d470a33ea478c0
   task-templates:
     source:
-      .mindtape/templates/task.typ: 09c3fd9d1f48b36b093b5e56c66f0d99363ba679b7cab3c2cb70b71d63fbe7f2
+      .mindtape/templates/task.typ: 0df668a6aec28e04c719b68f69ec81cd0548ae7418d78b6f8ef983949724d828
     dependents:
-      .mindtape/templates/decision.typ: 7431e767d1ce2bc9eed38cb71c837aa0bbbefa798478a6b9a195fe735efcf93a
-      .mindtape/templates/dev-stateful.typ: 4f92fbfc467e095d18a3d1b418f8de0a8e0cc78c28b1cdf9b5287ce29ed2facd
-      .mindtape/templates/dev.typ: 8a97931bcf4a0ea77fb31666230072eb2fc5d9be9f90f7541be501ac1f1712ab
-      .mindtape/templates/docs.typ: 06a43afb951e0f1d6ed4d229a442d0521ff3cb2a6fc5a15667993cffbdeab591
-      .mindtape/templates/feat-stateful.typ: 9e9b4e355633e7ac367e57c4905c41710b70b1d5589eefde1a1f4a358a9c36f6
-      .mindtape/templates/feat.typ: 210dab1bc4156eb83bccca69b95839763c763017b08e2ecde20a2cb865d4a575
-      .mindtape/templates/fix-stateful.typ: b703bb6241bcc23258625380089f730bd7c5cf36574654bf1cb4ad5f247fb55b
-      .mindtape/templates/fix.typ: 4ebfd913aa2c2061206f21cbe855b7b9b88b7f79eb223709291f0a415be796f8
+      .mindtape/templates/decision.typ: bbfccf178f600dda46e504f66f215a16e1a3cb81704646cdbe9933a88d1b63c1
+      .mindtape/templates/dev-stateful.typ: 204ec3f7ac24faa74321ed6ce080cc8c833adb7393ad6af13590da895094a290
+      .mindtape/templates/dev.typ: 20ff5bdf8be87f01ce80aa31c0e65bb9612e93615ec96f0e2315cce1933621ed
+      .mindtape/templates/docs.typ: c3596f1a0296df027ff419387bec01b945bab71edf78f0f173c4905aca8183e6
+      .mindtape/templates/feat-stateful.typ: c11b1aa40f27d5d95a5c12809707cc3014ab1720a9233bd76de2ea062c674505
+      .mindtape/templates/feat.typ: ca1bff6ea8e4b332402d489caa85cd7dc92e5796e7dd969bd9268abdf1a347be
+      .mindtape/templates/fix-stateful.typ: d30eb5eae109cc52413c4166b6db8937eb126dbfb5e27cf2bc06bea662fc819e
+      .mindtape/templates/fix.typ: d679365f22f545cce1c086ab3d285fc79e76cfcd6f0ce56ba290ae3fa6566734
   typst-pkg-version:
     source:
       lib/typst.toml: 2a5837c51f4f9ed4b670d79dd7a1860301db050368a12b7b8a6bfabe1726bc68

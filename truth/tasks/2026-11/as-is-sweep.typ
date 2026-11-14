@@ -13,20 +13,17 @@
   tags: ("mt", "stateless"),
   estimate: (src-files: 0),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[one heading name across the backlog],
-      ),
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: helps[one heading name across the backlog],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

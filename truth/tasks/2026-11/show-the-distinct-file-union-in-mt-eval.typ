@@ -19,23 +19,17 @@
   ),
   tags: ("found", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a reader can reconcile the rows with the printed total],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: helps[a reader can reconcile the rows with the printed total],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the page and the command explain the same distinct-file rule],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the page and the command explain the same distinct-file rule],
     ),
   ),
   assignee: "agent",

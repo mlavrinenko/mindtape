@@ -13,21 +13,17 @@
   estimate: (src-files: 2),
   tags: ("found", "tooling"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the gate the hook asserts stays fresh across integrate, so no one is tempted to bypass it],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the gate the hook asserts stays fresh across integrate, so no one is tempted to bypass it],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[integrate stops discarding a verified gate result],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[integrate stops discarding a verified gate result],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

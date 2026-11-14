@@ -11,24 +11,18 @@
   difficulty: 3,
   tags: ("mt", "tests", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a dated folder says when a task was filed without opening git],
-        cheap-adoption: helps[a dated layout needs no project helper],
-      ),
-      ..(
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: helps[a dated folder says when a task was filed without opening git],
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a dated layout needs no project helper],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the hook docs and the config token table share one grammar],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the hook docs and the config token table share one grammar],
     ),
   ),
   assignee: "agent",

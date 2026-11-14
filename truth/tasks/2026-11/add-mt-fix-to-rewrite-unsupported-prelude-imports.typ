@@ -13,24 +13,17 @@
   tags: ("mt", "cli", "tooling", "stateless"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[updating a project is one command, not a hand edit over every task file],
-        enforced-practice: helps[`mt fix --check` gates an unsupported prelude pin in CI],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[`mt fix --check` gates an unsupported prelude pin in CI],
+      cheap-adoption: helps[updating a project is one command, not a hand edit over every task file],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the rewrite parses Typst, changes only the version string, and check mode writes nothing],
-        docs-match-code: helps[the task-files page names `mt fix` where it explains the import],
-      ),
-      ..(),
+    process: (
+      sound-codebase: helps[the rewrite parses Typst, changes only the version string, and check mode writes nothing],
+      docs-match-code: helps[the task-files page names `mt fix` where it explains the import],
     ),
   ),
   assignee: "agent",

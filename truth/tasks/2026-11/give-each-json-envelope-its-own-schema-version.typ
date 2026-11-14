@@ -19,24 +19,18 @@
   ),
   tags: ("found", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[a consumer accepts a new envelope only when that envelope changed],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a consumer accepts a new envelope only when that envelope changed],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the version constant describes one shape instead of five],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the version constant describes one shape instead of five],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

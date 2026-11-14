@@ -13,23 +13,17 @@
   tags: ("mt", "cli", "stateless"),
   estimate: (src-files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent files a linked task from one YAML value, with no second command],
-      ),
-      ..(
-        "readable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent files a linked task from one YAML value, with no second command],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the YAML and editor paths feed the same LinkValue shape the library renders],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the YAML and editor paths feed the same LinkValue shape the library renders],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

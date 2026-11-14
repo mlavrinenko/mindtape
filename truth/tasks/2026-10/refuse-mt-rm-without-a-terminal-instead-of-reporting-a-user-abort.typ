@@ -13,20 +13,17 @@
   estimate: (src-files: 1),
   tags: ("found", "cli"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent running mt rm learns to pass --yes instead of reading that it declined],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent running mt rm learns to pass --yes instead of reading that it declined],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

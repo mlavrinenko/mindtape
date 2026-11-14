@@ -13,21 +13,17 @@
   estimate: (src-files: 3),
   tags: ("found", "cli"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[an agent reads each problem's file, line and rule without parsing text],
-      ),
-      "readable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[an agent reads each problem's file, line and rule without parsing text],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[agents.typ's every-read-command-prints-JSON claim holds for mt check],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[agents.typ's every-read-command-prints-JSON claim holds for mt check],
     ),
   ),
   assignee: "agent",

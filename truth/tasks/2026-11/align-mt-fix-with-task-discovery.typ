@@ -11,22 +11,18 @@
   difficulty: 2,
   tags: ("mt", "tooling", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the fixer and the loader agree on which files are tasks],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the fixer and the loader agree on which files are tasks],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (sound-codebase: helps[one scope rule replaces the ad-hoc skip list]),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[one scope rule replaces the ad-hoc skip list],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

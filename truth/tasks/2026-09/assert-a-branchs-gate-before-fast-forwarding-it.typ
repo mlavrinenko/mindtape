@@ -13,21 +13,17 @@
   tags: ("tooling", "gating"),
   estimate: (files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a merge asserts the branch's own gate instead of trusting the integrator's shell pipeline],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "cheap-adoption",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a merge asserts the branch's own gate instead of trusting the integrator's shell pipeline],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[a red branch cannot land on `main` unnoticed],
-      ),
-      "docs-match-code",
+    process: (
+      sound-codebase: helps[a red branch cannot land on `main` unnoticed],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

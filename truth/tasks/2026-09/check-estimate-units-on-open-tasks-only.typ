@@ -13,20 +13,17 @@
   tags: ("mt",),
   estimate: (files: 1),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the unit list governs the work still to do, not finished history],
-        cheap-adoption: helps[a project renames or retires a unit with one edit to `units`],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the unit list governs the work still to do, not finished history],
+      cheap-adoption: helps[a project renames or retires a unit with one edit to `units`],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

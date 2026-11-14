@@ -18,24 +18,18 @@
   ),
   tags: ("found", "mt", "cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[the CLI explains what it will run without making the reader guess],
-      ),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[the CLI explains what it will run without making the reader guess],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the text output matches the JSON shape it documents],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the text output matches the JSON shape it documents],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

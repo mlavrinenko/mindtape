@@ -12,22 +12,18 @@
   difficulty: 2,
   tags: ("cli", "stateless"),
   x-goals: (
-    product: verdicts(
-      (self-describing: helps[every JSON response names its schema]),
-      ..(
-        "readable-tasks",
-        "implementable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: helps[every JSON response names its schema],
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the docs and jq examples follow the one new top-level path],
-      ),
-      ..("sound-codebase",),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the docs and jq examples follow the one new top-level path],
     ),
   ),
   assignee: "agent",

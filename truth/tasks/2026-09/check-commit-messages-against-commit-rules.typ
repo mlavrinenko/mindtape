@@ -13,20 +13,17 @@
   tags: ("mt", "cli"),
   estimate: (files: 5),
   x-goals: (
-    product: verdicts(
-      (
-        enforced-practice: helps[a commit names a live task by stem, checked by a hook instead of review],
-        cheap-adoption: helps[one hook line opts a repo in; nothing is installed for it],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a commit names a live task by stem, checked by a hook instead of review],
+      cheap-adoption: helps[one hook line opts a repo in; nothing is installed for it],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (:),
-      "sound-codebase",
-      "docs-match-code",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

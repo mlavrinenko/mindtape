@@ -12,23 +12,17 @@
   difficulty: 5,
   tags: ("mt", "gating", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        implementable-tasks: helps[a rule reads a code fact as `derived.<name>`, like any other collector field],
-      ),
-      ..(
-        "readable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[a rule reads a code fact as `derived.<name>`, like any other collector field],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the collector reuses the query engine and adds no second file walk],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the collector reuses the query engine and adds no second file walk],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

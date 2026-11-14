@@ -13,21 +13,17 @@
   tags: ("docs", "www", "cli"),
   estimate: (src-files: 3),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[someone with many repos finds `mt @name` from the first help screen or page they open],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "typst-over-markdown",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[someone with many repos finds `mt @name` from the first help screen or page they open],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[the `/cli/` index shows the help's own closing lines from `cli.json`],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the `/cli/` index shows the help's own closing lines from `cli.json`],
     ),
   ),
   assignee: "agent",

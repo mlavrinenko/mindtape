@@ -11,22 +11,18 @@
   difficulty: 4,
   tags: ("mt", "stateless", "no-repro"),
   x-goals: (
-    product: verdicts(
-      (
-        readable-tasks: helps[a directory per kind lets a reader browse one slice of the backlog],
-        enforced-practice: helps[a destination default and a dir rule both run in mt add, so nobody has to remember the layout],
-      ),
-      ..(
-        "implementable-tasks",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-        "self-describing",
-      ),
+    product: (
+      readable-tasks: helps[a directory per kind lets a reader browse one slice of the backlog],
+      implementable-tasks: neutral,
+      enforced-practice: helps[a destination default and a dir rule both run in mt add, so nobody has to remember the layout],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+      self-describing: neutral,
     ),
-    process: verdicts(
-      (:),
-      ..("sound-codebase", "docs-match-code"),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

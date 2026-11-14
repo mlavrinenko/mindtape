@@ -19,21 +19,17 @@
   ),
   tags: ("found", "mt", "stateless"),
   x-goals: (
-    product: verdicts(
-      (implementable-tasks: helps[the error names the exact key to fix]),
-      ..(
-        "readable-tasks",
-        "enforced-practice",
-        "cheap-adoption",
-        "typst-over-markdown",
-        "plain-files",
-      ),
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: helps[the error names the exact key to fix],
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the parser keeps the specific struct's own field errors instead of erasing them],
-      ),
-      ..("docs-match-code",),
+    process: (
+      sound-codebase: helps[the parser keeps the specific struct's own field errors instead of erasing them],
+      docs-match-code: neutral,
     ),
   ),
   assignee: "agent",

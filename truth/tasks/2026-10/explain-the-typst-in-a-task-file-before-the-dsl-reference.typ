@@ -13,21 +13,17 @@
   tags: ("www", "docs"),
   estimate: (src-files: 2),
   x-goals: (
-    product: verdicts(
-      (
-        cheap-adoption: helps[hand-editing a task needs no Typst course first],
-        typst-over-markdown: helps[a reader who has never written Typst can read and write a task file, so the Typst pitch is not lost on the first file],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "plain-files",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[hand-editing a task needs no Typst course first],
+      typst-over-markdown: helps[a reader who has never written Typst can read and write a task file, so the Typst pitch is not lost on the first file],
+      plain-files: neutral,
     ),
-    process: verdicts(
-      (
-        docs-match-code: helps[every invalid example on the page is checked by the build and shows the error mt prints today],
-      ),
-      "sound-codebase",
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[every invalid example on the page is checked by the build and shows the error mt prints today],
     ),
   ),
   assignee: "agent",

@@ -13,21 +13,17 @@
   tags: ("mt", "docs"),
   estimate: (files: 6),
   x-goals: (
-    product: verdicts(
-      (
-        plain-files: helps[a backlog survives export and re-import without losing a field the files carry],
-      ),
-      "readable-tasks",
-      "implementable-tasks",
-      "enforced-practice",
-      "cheap-adoption",
-      "typst-over-markdown",
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: helps[a backlog survives export and re-import without losing a field the files carry],
     ),
-    process: verdicts(
-      (
-        sound-codebase: helps[the one field that breaks the round-trip stops being a documented exception],
-        docs-match-code: helps[the prose naming the gap goes away because the gap does],
-      ),
+    process: (
+      sound-codebase: helps[the one field that breaks the round-trip stops being a documented exception],
+      docs-match-code: helps[the prose naming the gap goes away because the gap does],
     ),
   ),
   assignee: "agent",
