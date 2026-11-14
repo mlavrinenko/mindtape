@@ -32,8 +32,8 @@
 
 == AS-IS
 
-+ Open the Quickstart's Install section to add `mt` to a project's Nix dev shell.
-+ 🔴 It offers `nix run` alone. It never shows a flake input, the binary cache that serves the build, or that qahq ships `mt` beside the other dev tools.
++ Open the Install section of the Quickstart to add `mt` to a project's Nix dev shell.
++ 🔴 It offers `nix run` alone. It never shows a flake input, the binary cache that serves the build, or that qahq carries `mt` beside the other dev tools.
 
 
 == TO-BE
@@ -43,13 +43,13 @@
 
 == Source of truth
 
-qahq's `flake.nix` package names and its README's cache key, and this repo's `flake.nix` outputs and CI's Cachix step.
+qahq's `flake.nix` package names and its README's cache key, and this repo's `flake.nix` outputs and CI's `Cachix` step.
 
 
 == Changes
 
 - `www/content/quickstart.typ`: a Nix dev shell part in Install.
-- `docs/src/readme.typ`: name the Nix route beside the others.
+- `docs/src/readme.typ`: state the Nix route beside the others.
 
 
 == Out of scope
@@ -59,5 +59,5 @@ qahq's `flake.nix` package names and its README's cache key, and this repo's `fl
 
 == Dogfood
 
-canibump and mmz take `mt` from qahq with the snippet this page shows.
+`canibump` and mmz take `mt` from qahq with the snippet this page shows.
 

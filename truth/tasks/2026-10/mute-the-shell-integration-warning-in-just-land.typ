@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-A recipe cannot move its caller's shell, so wt's cd warning on every land is noise
+A recipe cannot move its caller's shell, so the cd warning from `wt` on every land is noise

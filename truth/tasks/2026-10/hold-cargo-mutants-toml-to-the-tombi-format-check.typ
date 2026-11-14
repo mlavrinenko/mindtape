@@ -43,7 +43,7 @@
 
 == Changes
 
-- `Justfile`: add `.cargo/mutants.toml` to `TOML_FMT_PATHS`; `just fmt` drops the blank lines between its comment blocks.
+- `Justfile`: add `.cargo/mutants.toml` to `TOML_FMT_PATHS`. `just fmt` drops the blank lines between its comment blocks.
 - `CONTRIBUTING.md`: regenerated, it renders the list.
 
 == Rollback
@@ -58,5 +58,5 @@ Drop the path from `TOML_FMT_PATHS`.
 
 == Dogfood
 
-The next exclusion added to `.cargo/mutants.toml` is formatted by `just fmt` like every other config.
+`just fmt` formats the next exclusion added to `.cargo/mutants.toml` like every other config.
 

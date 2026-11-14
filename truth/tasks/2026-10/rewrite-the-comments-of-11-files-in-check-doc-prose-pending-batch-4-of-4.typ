@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the comments that explain each gate are held to the same prose rules as the docs],
+      docs-match-code: helps[the same prose rules as the docs hold the comments that explain each gate],
     ),
   ),
   assignee: "agent",
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Landing the check-doc-prose scan of every shell script, YAML file and Justfile comment
-+ 🔴 #raw(".just/scripts/check-doc-prose.pending"): 11 files still tell history or shout in all-caps words: .just/scripts/script-scope-check.sh, .just/scripts/site-pages-fixture-check.sh, .just/scripts/size-fixture-check.sh, .just/scripts/\_typst-package.sh, www/facts-lib.sh, www/generate-examples.sh, www/generate-facts.sh, www/generate-release-targets.sh, www/generate-rule-packs.sh, www/generate.sh, www/generate-site-pages.sh
++ 🔴 #raw(".just/scripts/check-doc-prose.pending"): 11 files still tell history or shout in all-caps words. Under `.just/scripts/` they are script-scope-check.sh, site-pages-fixture-check.sh, size-fixture-check.sh and \_typst-package.sh. Under `www/` they are facts-lib.sh, generate-examples.sh, generate-facts.sh, generate-release-targets.sh, generate-rule-packs.sh, generate.sh and generate-site-pages.sh.
 
 ```
 $ bash .just/scripts/check-doc-prose.sh   # with these files dropped from the pending list
@@ -50,8 +50,8 @@ check-doc-prose: hits in www/generate.sh
 check-doc-prose: hits in www/generate-site-pages.sh
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-prose.pending").
 
 == TO-BE

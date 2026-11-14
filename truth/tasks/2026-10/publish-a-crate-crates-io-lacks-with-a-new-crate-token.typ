@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-Trusted Publishing can't create a crate, so mindtape-cli, never published, needs one publish with a token scoped to publish-new before crates.io accepts a trusted publisher for it
+Trusted Publishing can't create a crate. mindtape-cli, never published, needs one publish with a token scoped to publish-new before crates.io accepts a trusted publisher for it

@@ -18,7 +18,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a named rule can be switched off alone instead of dropping a whole pack],
+      enforced-practice: helps[a project can disable a named rule alone instead of dropping a whole pack],
       cheap-adoption: helps[rule-by-rule overrides are what make a one-line `extends` safe to adopt],
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -40,7 +40,7 @@
 == TO-BE
 
 - 🟢 Every `[[tasks.body.headers.rules]]` and `[[tasks.body.content.rules]]` entry accepts an optional `name`, and `mt check` prints it beside a violation.
-- 🟢 Two rules sharing a name in one config is a config error naming both.
+- 🟢 Two rules sharing a name in one config is a config error that reports both.
 
 ```toml
 [[tasks.body.content.rules]]
@@ -59,7 +59,7 @@ assert = "non-empty"
 
 == Alternatives
 
-- Address a rule by its position, `tasks.body.content.rules[3]`: reordering the config would silently retarget every `disable`.
+- Address a rule by its position, `tasks.body.content.rules[3]`: reordering the config would silently point every `disable` at another rule.
 - Derive an id from a rule's content: tweaking one threshold changes the id, so an override could never find its target.
 
 

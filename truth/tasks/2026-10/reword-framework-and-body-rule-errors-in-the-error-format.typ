@@ -40,12 +40,12 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 
 == Changes
 
 - `crates/mindtape/src/framework/eval.rs`: no `{:?}` (lines 143 and 151 today).
-- `crates/mindtape/src/framework/validate.rs`, `crates/mindtape/src/body/headers.rs`, `crates/mindtape/src/body/gate.rs`, `crates/mindtape/src/model/numeric.rs`: quote values; the key path stays first.
+- `crates/mindtape/src/framework/validate.rs`, `crates/mindtape/src/body/headers.rs`, `crates/mindtape/src/body/gate.rs`, `crates/mindtape/src/model/numeric.rs`: quote values, and keep the key path first.
 
 == Out of scope
 

@@ -37,7 +37,7 @@
 
 == AS-IS
 
-+ Break a template so it no longer loads and run `mt check`.
++ Break a template so it fails to load and run `mt check`.
 + 🔴 It prints `<template>: did not load: eval error: <message>`, not the `error: file:line:col:` line a task file gets.
 + Run `mt ls` in a project without the `@local/mindtape` package installed.
 + 🔴 It prints `note: ... is not installed — run ...`: a next step on a `note:` line, with an em dash.
@@ -46,14 +46,14 @@
 
 - 🟢 A template that fails to load prints as a task file does, through `Diag`: `error: .mindtape/templates/bug.typ:4:3: <Typst words>` with Typst hints as `hint:` lines.
 - 🟢 The install and `#`-in-the-body advice prints as `hint:` lines.
-- 🟢 `util.rs` no longer needs its `allow`, so the list in `diag/allowlist.rs` loses `util`.
+- 🟢 `util.rs` doesn't need its `allow`, so the list in `diag/allowlist.rs` loses `util`.
 
 == Changes
 
 - `crates/mindtape-cli/src/cmd/check/templates.rs`: `did not load` lines as `Diag`s, as `util.rs` builds them after `report-typst-errors-at-their-line-with-typsts-hints`.
 - `crates/mindtape-cli/src/cmd/install/hint.rs`: its notes become `Hint`s on the load error.
 - `crates/mindtape-cli/src/main.rs`: drop the `allow` on `mod util`.
-- `crates/mindtape-cli/src/diag/allowlist.rs`: drop the `util` entry; its test refuses the drop while `util.rs` still prints.
+- `crates/mindtape-cli/src/diag/allowlist.rs`: drop the `util` entry. Its test refuses the drop while `util.rs` still prints.
 
 == Out of scope
 

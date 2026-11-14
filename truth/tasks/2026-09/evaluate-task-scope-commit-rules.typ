@@ -34,13 +34,13 @@
 == AS-IS
 
 + `git log --format=%s -300 | rg -c '^task: (start|close)'` in this repo.
-+ 🔴 108 of the last 300 commits carry only a status flip: a close lands apart from its work, so reverting the work leaves the task done, and nothing can check it because commit rules see only the message.
++ 🔴 108 of the last 300 commits carry only a status flip. A close lands apart from its work, and reverting the work leaves the task done. Nothing can check it because commit rules see only the message.
 
 
 == TO-BE
 
 - 🟢 `scope = "task"` rules run per task the commit changes or names. `head(<expr>)`, `staged(<expr>)` and `worktree(<expr>)` evaluate any expression, graph predicates included, against that state of the project.
-- 🟢 A bare task field is refused at load. `exists` is false where the file is absent; `into("s")` means `staged(status == "s") && !head(status == "s")`; `named` and commit fields are stateless.
+- 🟢 Load refuses a bare task field. `exists` is false where the file is absent. `into("s")` means `staged(status == "s") && !head(status == "s")`. `named` and commit fields are stateless.
 
 ```toml
 [[commits.rules]]
@@ -56,24 +56,24 @@ message = "start or close a task in a commit that carries its work"
 
 == Changes
 
-- `crates/mindtape-cli/tests/commit_msg_task_e2e.rs` (red first): a close-only commit refused; a close with work passes; an estimate added in the closing commit is seen through `staged(...)`; a bare field is refused at load.
+- `crates/mindtape-cli/tests/commit_msg_task_e2e.rs` (red first): a close-only commit gets refused. A close with work passes. An estimate added in the closing commit shows through `staged(...)`. Load refuses a bare field.
 - `crates/mindtape/src/commit_tasks.rs` (new): the project as of `HEAD`, the index and the working tree, as overlays of the changed files on one load.
 - `crates/mindtape/src/filter_predicates.rs`: the three state wrappers, `exists`, `named`.
-  - Deviation: only `exists` landed here, refused outside a commit state. The wrappers and `named` live in `crates/mindtape/src/commit_task_expr.rs`, called from `commit_expr.rs`: the plain filter language has no commit to read them from, so there they could only be refused.
-- `crates/mindtape/src/config_hooks.rs`: share `into()`'s desugaring.
+  - Deviation: only `exists` landed here, refused outside a commit state. The wrappers and `named` live in `crates/mindtape/src/commit_task_expr.rs`, called from `commit_expr.rs`: the plain filter language has no commit to read them from, so there the code can only refuse them.
+- `crates/mindtape/src/config_hooks.rs`: share `into()`'s rewrite logic.
 - `www/content/config.typ`: the task scope and the state table.
 
 
 == Alternatives
 
-- One implicit state plus a look-back (`before(...)`): the reader has to know which state a bare field means; `HEAD` reads a field edited in the same commit stale, the staged state needs `from("s")` hacks for history.
-- A default state for bare fields: shorter to write, but a rule is written once and read many times, and every reader would have to know which state a bare field means.
+- One implicit state plus a look-back (`before(...)`): the reader has to know which state a bare field means. `HEAD` reads a field edited in the same commit as stale, and the staged state needs `from("s")` hacks for history.
+- A default state for bare fields: shorter to write, but a rule gets written once and read many times. Every reader would then have to know which state a bare field means.
 - Dotted prefixes (`head.status`): cover fields but not predicates like `terminal`, `ready` or `has(f)`.
 
 
 == Out of scope
 
-- `worktree(...)` in `mt check --commits`: a commit range has no working tree, so a rule reading it is skipped there and reported as skipped.
+- `worktree(...)` in `mt check --commits`: a commit range has no working tree. The tool skips a rule reading it there and reports it as skipped.
 
 - Commit ranges: `truth/tasks/check-commit-rules-over-a-commit-range.typ`.
 

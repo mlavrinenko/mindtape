@@ -39,9 +39,9 @@
 
 == TO-BE
 
-- 🟢 The skill says a stem hash names one task in every listing, changes only with `mt mv` to a new stem, and is refused when ambiguous.
+- 🟢 The skill says a stem hash identifies one task in every listing, changes only with `mt mv` to a new stem, and the tool refuses it when ambiguous.
 - 🟢 The skill's evals that type a handle use the stem hash and pass.
-- 🟢 `CHANGELOG.md` `[Unreleased]` records that handles became stem hashes and `[handle] check-len` is gone.
+- 🟢 `CHANGELOG.md` `[Unreleased]` records that handles became stem hashes and removes `[handle] check-len`.
 
 
 == Source of truth

@@ -42,29 +42,29 @@ error: ...: body.headers.rules.rollback-for-dev: a dev chore says how to undo it
 Only `mt add --list` reveals the `dev` template.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".mindtape/templates/task.typ").
 
 == TO-BE
 
-- 🟢 When `mt add` refuses a task, and the chosen template left a field to a slot that the caller filled, every other template that writes that field as the same literal gets a `hint:` line under the error, as #raw("hint: template `dev` files kind=dev: mt add -t dev ...").
-- 🟢 Every matching template is named. No match, no hint.
-- 🟢 Nothing that is accepted today is refused. Only the failure text changes.
+- 🟢 When `mt add` refuses a task whose template left a field to a caller-filled slot, every other template that writes that field as the same literal gets a `hint:` line. The line reads as #raw("hint: template `dev` files kind=dev: mt add -t dev ...").
+- 🟢 The hint lists every matching template. A non-matching run gets the bare error.
+- 🟢 Every task accepted today stays accepted. Only the failure text changes.
 
 
 == Changes
 
-- `crates/mindtape-cli/src/add_hint.rs`: reads each template's `task.with(…)` arguments and compares their literals with the caller's slot-filled values. It names no kind, template, field value or section.
+- `crates/mindtape-cli/src/add_hint.rs`: reads each template's `task.with(…)` arguments and compares their literals with the caller's slot-filled values. Every kind, template, field value and section comes from the template itself.
 - `crates/mindtape-cli/src/add.rs`: appends the hint to the error of a refused preview or write.
-- `crates/mindtape-cli/tests/add_template_hint_e2e.rs`: a refusal names the pinning template, and a value no template pins gets no hint.
+- `crates/mindtape-cli/tests/add_template_hint_e2e.rs`: a refusal reports the pinning template, and a value outside every template's pins gets the bare error.
 - `www/content/templates.typ`: the `mt add` page describes the hint.
-- `mt import` takes full records and no template, so it needs no hint.
+- `mt import` takes full records and no template, so it gets the bare error.
 
 
 == Rollback
 
-Revert the commit; a refused `mt add` goes back to the bare validation error.
+Revert the commit. A refused `mt add` goes back to the bare validation error.
 
 
 == Out of scope
@@ -75,4 +75,4 @@ Revert the commit; a refused `mt add` goes back to the bare validation error.
 
 == Dogfood
 
-The next `dev` task here is filed with plain `mt add`, or refused with a pointer to `-t dev`.
+A maintainer files the next `dev` task here with plain `mt add`, or gets a refusal that points at `-t dev`.

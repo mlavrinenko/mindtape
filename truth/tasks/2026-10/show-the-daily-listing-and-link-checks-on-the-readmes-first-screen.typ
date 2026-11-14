@@ -34,7 +34,7 @@
 
 + Open `README.md` on GitHub.
 + 🔴 The first screen shows one task file, but not the `mt ls` listing a user reads every day.
-+ 🔴 The tagline never says the tool is a tracker, and the Typst list gives no reason links stay valid.
++ 🔴 The tagline never says the tool is a tracker, and the Typst list doesn't say why links stay valid.
 
 
 == TO-BE

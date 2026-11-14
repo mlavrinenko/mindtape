@@ -38,12 +38,12 @@
 == TO-BE
 
 - 🟢 Each crate has `tests/it/main.rs` declaring its test files as modules, so `cargo test --no-run` builds one integration binary per crate.
-- 🟢 nextest still runs each test in its own process; test names keep their module path under `it`.
+- 🟢 nextest still runs each test in its own process, and test names keep their module path under `it`.
 - 🟢 Every gate, filter and path list that names `tests/*.rs` follows the move.
 
 == Changes
 
-- `crates/mindtape-cli/tests/*.rs`, `crates/mindtape/tests/*.rs`: moved under `tests/it/`; shared helpers become one `mod` there.
+- `crates/mindtape-cli/tests/*.rs`, `crates/mindtape/tests/*.rs`: moved under `tests/it/`, and shared helpers become one `mod` there.
 - `crates/*/Cargo.toml`: only if autodiscovery needs a `[[test]]` entry.
 - Justfile, `.mmz/config.yaml`, `outdatty.yaml`, `.cargo/mutants.toml`, coverage ignores: paths that name test files.
 - Shared helpers declared with `mod common;` in each file become one `mod common;` in `tests/it/main.rs` and `use crate::common::...` in each file. `include_str!`, `include_bytes!` and `#[path]` are relative to the source file, so fix them after the move. `env!("CARGO_MANIFEST_DIR")` paths keep working.
@@ -52,7 +52,7 @@
 
 == Rollback
 
-Move the files back; nothing outside the test tree depends on the layout.
+Move the files back, since only the test tree depends on the layout.
 
 == Out of scope
 

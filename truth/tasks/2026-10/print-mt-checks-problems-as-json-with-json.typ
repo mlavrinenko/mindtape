@@ -32,8 +32,8 @@
 
 == AS-IS
 
-+ Reviewing the docs before release, checking agents.typ against mt check --help
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/check/"): mt check has no --json flag, while www/content/agents.typ:80 and comparison.typ:172 promise JSON from every read command, so an agent following them gets a usage error
++ Reviewing the docs before release, checking agents.typ against `mt check --help`
++ 🔴 #raw("crates/mindtape-cli/src/cmd/check/"): `mt check` has no `--json` flag, while `www/content/agents.typ:80` and `comparison.typ:172` promise JSON from every read command. An agent following them then gets a usage error
 
 ```
 ls: format,json   find: format,json   views: json   worktrees: json
@@ -42,8 +42,8 @@ config show: json   eval: json   graph: format   check: (none)   preset ls: (non
 (`--json`/`--format` per command, from `mt _cli`)
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/check/").
 
 == TO-BE

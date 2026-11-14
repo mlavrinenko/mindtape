@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-outdatty 0.7.0 lists only the failing groups, so the recipe needs no jq
+outdatty 0.7.0 lists only the failing groups. The recipe doesn't need jq

@@ -18,7 +18,7 @@
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
-      self-describing: helps[every settable field appears in mt add --help as its own flag],
+      self-describing: helps[every settable field appears in `mt add --help` as its own flag],
     ),
     process: (
       sound-codebase: neutral,
@@ -36,15 +36,15 @@
 == AS-IS
 
 + Run `mt add --set due=2026-12-01 --set tags+=bug "Sort tasks"`.
-+ 🔴 `due` and `tags` are not named in `mt add --help`; every value goes through the generic token grammar.
++ 🔴 `due` and `tags` are not named in `mt add --help`. Every value goes through the generic token grammar.
 + The field writer exists, but the flag surface does not advertise it.
 
 
 == TO-BE
 
 - 🟢 `mt add --due 2026-12-01`, `--assignee agent` and `--priority 6` are direct aliases for `--set field=value`.
-- 🟢 `--set` already sets any writable field; `--dir` stays the separate destination flag, because a directory is not a task field.
-- 🟢 Lists keep `--set tags+=bug`; a scalar flag and `--set` naming the same field is refused by name.
+- 🟢 `--set` already sets any writable field. `--dir` stays the separate destination flag, because a directory is not a task field.
+- 🟢 Lists keep `--set tags+=bug`. The command refuses a scalar flag and `--set` that name the same field, by name.
 
 ```
 $ mt add --due 2026-12-01 --dir tasks/fixes "Remove the legacy import"
@@ -68,10 +68,10 @@ wrote tasks/fixes/remove-the-legacy-import.typ
 
 == Out of scope
 
-- `--set dir`; a directory is not a task field, and `--dir` already names it.
-- `mt import` flags; `mt add` first.
+- `--set dir` stays out. A directory is not a task field, and `--dir` already names it.
+- `mt import` flags stay out. `mt add` comes first.
 - Short aliases such as `-d`, and completion changes beyond the existing.
-- Framework priorities and estimate dicts; keep the raw number and the current rules.
+- Framework priorities and estimate dicts stay out. Keep the raw number and the current rules.
 
 
 == Dogfood

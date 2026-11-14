@@ -33,13 +33,13 @@
 == AS-IS
 
 + Closing the task that gave every \`mt check\` breach a file and line
-+ 🔴 #raw("crates/mindtape-cli/src/pre_write.rs"): Write commands still print a validation breach under the task stem, where \`mt check\` now prints file and line.
++ 🔴 #raw("crates/mindtape-cli/src/pre_write.rs"): Write commands still print a validation breach under the task stem, where `mt check` prints file and line.
 
-`crates/mindtape-cli/src/flip_batch.rs:104`, `crates/mindtape-cli/src/task_edit.rs:137` and `crates/mindtape-cli/src/pre_write.rs:237` format `error: <stem>: field: message`; `README.md:54` and `README.md:78` show that shape.
+`crates/mindtape-cli/src/flip_batch.rs:104`, `crates/mindtape-cli/src/task_edit.rs:137` and `crates/mindtape-cli/src/pre_write.rs:237` format `error: <stem>: field: message`. `README.md:54` and `README.md:78` show that shape.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/pre_write.rs").
 
 == TO-BE
@@ -49,7 +49,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/pre_write.rs`: print each violation's location; a red test pins a refused `mt set` printing `file:line`.
+- `crates/mindtape-cli/src/pre_write.rs`: print each violation's location. A red test pins a refused `mt set` printing `file:line`.
 - `crates/mindtape-cli/src/flip_batch.rs`: the same for a refused flip.
 - `crates/mindtape-cli/src/task_edit.rs`: the same for a refused edit.
 - `docs/src/readme.typ`: show the new shape.
@@ -57,7 +57,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-Revert the commit; write commands print the stem again.
+Revert the commit. Write commands print the stem again.
 
 == Out of scope
 
@@ -66,4 +66,4 @@ Revert the commit; write commands print the stem again.
 
 == Dogfood
 
-Agents here hit refused writes daily, and the error now opens at the line to fix.
+Agents here hit refused writes daily, and the error opens at the line to fix.

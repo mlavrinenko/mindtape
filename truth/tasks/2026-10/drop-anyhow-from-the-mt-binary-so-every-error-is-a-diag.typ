@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[every error says what failed and what to try, in one shape],
+      cheap-adoption: helps[every error says what failed and what to try, in one shape.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -31,7 +31,7 @@
     2026,
     10,
     8,
-  )[run returns Result\<(), Diag>; anyhow, Diag::legacy and the allowlist are gone; clippy refuses std::io::stderr outside diag/.],
+  )[run returns Result\<(), Diag>. Anyhow, Diag::legacy and the allowlist have left, and clippy refuses std::io::stderr outside diag/.],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   )
@@ -71,13 +71,13 @@
 
 == TO-BE
 
-- 🟢 Every command returns `Result<_, Diag>`, `anyhow` is gone from `crates/mindtape-cli/Cargo.toml`, and a library error reaches the user only through its `From` in `diag/from_lib.rs`.
-- 🟢 clippy refuses `std::io::stderr` outside `crate::diag`, so no line reaches stderr unrendered.
+- 🟢 Every command returns `Result<_, Diag>`, `anyhow` has left `crates/mindtape-cli/Cargo.toml`, and a library error reaches the user only through its `From` in `diag/from_lib.rs`.
+- 🟢 clippy refuses `std::io::stderr` outside `crate::diag`. Every stderr line goes through the renderer.
 
 == Changes
 
 - `crates/mindtape-cli/Cargo.toml`: drop `anyhow`.
-- `crates/mindtape-cli/src/cli/mod.rs`, `crates/mindtape-cli/src/main.rs`: `run` returns `Result<(), Diag>`; drop the last `allow`s and delete `diag/allowlist.rs`.
+- `crates/mindtape-cli/src/cli/mod.rs`, `crates/mindtape-cli/src/main.rs`: `run` returns `Result<(), Diag>`. Drop the last `allow`s and delete `diag/allowlist.rs`.
 - `crates/mindtape-cli/src/diag/from_lib.rs`, `crates/mindtape-cli/src/diag/mod.rs`: drop the `anyhow` bridge and `Diag::legacy`.
 - `clippy.toml`: add `std::io::stderr` to `disallowed-methods`, allowed only in `diag/render.rs`.
 

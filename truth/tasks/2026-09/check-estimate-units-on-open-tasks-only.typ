@@ -32,20 +32,20 @@
 
 == AS-IS
 
-+ A project declares `[tasks.estimate] units = ["files"]`; 362 closed tasks carry `estimate: (files: N)`.
++ A project declares `[tasks.estimate] units = ["files"]`. 362 closed tasks carry `estimate: (files: N)`.
 + It moves to `units = ["src-files"]`.
 + 🔴 `mt check` fails every closed task with `` `files` is not an allowed estimate unit ``: `check_estimate` in `crates/mindtape/src/validate.rs` checks the unit list before its terminal exemption, which only the bounds get. Retiring a unit takes keeping it in `units` plus a rule forbidding it on open tasks.
 
 
 == TO-BE
 
-- 🟢 `units` is checked on open tasks only, like the bounds: a closed task keeps whatever unit it was estimated in.
-- 🟢 Retiring a unit is removing it from `units`; an open task still carrying it is refused at `mt add`, `mt set` and `mt check`.
+- 🟢 The check covers `units` on open tasks only, like the bounds: a closed task keeps whatever unit it carried when estimated.
+- 🟢 Retiring a unit means removing it from `units`. The tool refuses an open task that still carries it at `mt add`, `mt set` and `mt check`.
 
 
 == Changes
 
-- `crates/mindtape/src/validate_tests_fields.rs` (red first): a closed task with a retired unit is clean; an open one is refused.
+- `crates/mindtape/src/validate_tests_fields.rs` (red first): a closed task with a retired unit is clean. The tool refuses an open one.
 - `crates/mindtape/src/validate.rs`: move the unit check below the terminal return.
 - `www/content/estimates.typ`: say `units` governs open tasks.
 - `CHANGELOG.md`: the change.

@@ -13,7 +13,7 @@
     "learn-piano-example-tracker.typ",
   )
     + related("render-task-files-as-typeset-documents.typ")[
-      the typeset-card face is that task's job; both build on the same
+      the typeset-card face is that task's job. Both build on the same
       typeset-render face
     ],
   status: done(2026, 7, 12),
@@ -23,60 +23,60 @@
 
 Render the docs CLI reference, help text, version, and sample output from the
 real `mt` binary at build time, so the docs cannot drift. The `examples/`
-fixture (learn-piano) supplies the data; a pinned clock (pinnable-clock) makes
-the output reproducible. This is the v1 delivery — plain text, verbatim help.
+fixture (learn-piano) supplies the data, and a pinned clock (pinnable-clock)
+makes the output reproducible. This is the v1 delivery: plain text, verbatim help.
 
 == Approach
 
-- Build-time only; no committed snapshots. Regeneration from the live binary is
+- Build-time only, with no committed snapshots. Regeneration from the live binary is
   no-drift by construction, so there is nothing to gate. Output to
   `www/generated/` (sibling of `content/`, so tola never scans it as pages),
   git-ignored.
 - Single seam, both sides: every transcript funnels through
-  `terminal(read("../generated/<slug>.txt"))`; every capture funnels through the
-  generator. No inline hand-typed transcript survives — this keeps the later
-  colour upgrade (colorize-injected-terminal-output) a two-seam change.
-- Determinism: the generator exports `MINDTAPE_NOW=2026-07-06` (the docs clock;
-  the example authors its dates around it). Fixed clock ⇒ the same commit renders
-  the same site.
-- No `mt` re-implementation in Typst (no table rendering): output is shown
-  verbatim.
+  `terminal(read("../generated/<slug>.txt"))`, and every capture funnels through the
+  generator. Inline hand-typed transcripts disappear, which keeps the later colour
+  upgrade (colorize-injected-terminal-output) a two-seam change.
+- Determinism: the generator exports `MINDTAPE_NOW=2026-07-06` (the docs clock, and
+  the example authors its dates around it). A fixed clock means the same commit
+  renders the same site.
+- No `mt` re-implementation in Typst (no table rendering): output appears
+  verbatim, with no rendering pass.
 
 == Generator (`just docs-gen`)
 
-- A script under `www/` invoked by `just docs-gen`; `docs-build` / `docs-serve` /
-  `docs-check` run it first.
+- A script under `www/` invoked by `just docs-gen`. `docs-build`, `docs-serve`
+  and `docs-check` run it first.
 - Builds `mt` (release), then for each entry in an explicit command→file map:
-  - read commands (`ls`, `ls '<filter>'`, `views`, `check`, `config show
-    --origin`, `add --describe`, `eval`, `--help`, `mt <cmd> --help`, `--version`)
-    run against `examples/learn-piano` in place;
+  - read commands run against `examples/learn-piano` in place. They are `ls`,
+    `ls '<filter>'`, `views`, `check`, `config show --origin`, `add --describe`,
+    `eval`, `--help`, `mt <cmd> --help` and `--version`.
   - mutating commands (`add`, `done` / `flip`) run against a throwaway `cp` of the
     example in `$TMPDIR`, captured, then discarded.
   - capture stdout verbatim (plain text, `--color never`) → `www/generated/<slug>.txt`.
 - dumps `mt --version`, `mt --help`, and per-command `mt <cmd> --help` verbatim.
 
-== Injection (rewrite pages — www is WIP, not frozen)
+== Injection (rewrite pages, `www` is WIP and not frozen)
 
 - Replace every hand-typed `#terminal("…")` in the hero (`www/utils/ui.typ`),
-  quickstart, filters, config, agents, templates, and cli pages with
+  quickstart, filters, config, agents, templates, and `cli` pages with
   `terminal(read("../generated/<slug>.txt"))`.
 - Hero source face: read a real task file from the example instead of the
   `_hero-source` literal.
 - CLI reference: inject `mt --version` and per-command `mt <cmd> --help` verbatim
-  under the authored section headings; drop the hand-typed global-flags table
-  (`mt --help` carries it). Narrative framing stays authored; every fact comes
+  under the authored section headings. Drop the hand-typed global-flags table
+  (`mt --help` carries it). Narrative framing stays authored, and every fact comes
   from the binary.
 - Rewrite prose wherever the piano example's real output differs from the current
   fabricated numbers.
 
 == Scope
 
-- `just docs-gen` script + command→file map; temp-copy for mutating commands;
-  `MINDTAPE_NOW` pin.
-- `www/generated/` gitignored; the docs recipes run `docs-gen` first.
+- `just docs-gen` script + command→file map, temp-copy for mutating commands,
+  and the `MINDTAPE_NOW` pin.
+- `www/generated/` gitignored. The docs recipes run `docs-gen` first.
 - rewrite the injected-output pages (hero/`ui.typ`, quickstart, filters, config,
-  agents, templates, cli) to `terminal(read(...))` / injected help+version.
-- verbatim `--version` + per-command `--help` injection into `cli.typ`; drop the
+  agents, templates, `cli`) to `terminal(read(...))` / injected help+version.
+- verbatim `--version` + per-command `--help` injection into `cli.typ`. Drop the
   hand-typed flag table.
 - keep the `terminal(read(...))` single render seam intact for the future colour
   swap.

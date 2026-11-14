@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[the Windows test job passes, so a Windows user gets the paths the docs show],
+      cheap-adoption: helps[the Windows test job passes. A Windows user then gets the paths the docs show.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -69,5 +69,5 @@ The `windows-latest` runner of the `Test (Windows)` CI job, run 40594914164.
 
 == Dogfood
 
-Not applicable: this repo is developed on Linux, where both helpers print `/`.
+Not applicable: the maintainers develop this repo on Linux, where both helpers print `/`.
 

@@ -31,7 +31,7 @@
     2026,
     10,
     2,
-  )[site-pages.json carries NAV's groups; README index is one line per group],
+  )[site-pages.json carries the NAV groups. The README index is one line per group.],
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
@@ -44,7 +44,7 @@
 
 == TO-BE
 
-- 🟢 `site-pages.json` carries NAV's groups in order.
+- 🟢 `site-pages.json` carries the NAV groups in order.
 - 🟢 README shows one line per group: the group name, then the page titles as links. No summaries.
 - 🟢 A page added to NAV, or moved between groups, appears in README with no README edit.
 
@@ -58,7 +58,7 @@
 
 == Rollback
 
-Revert the commit; README goes back to the flat list.
+Revert the commit. README goes back to the flat list.
 
 
 == Out of scope

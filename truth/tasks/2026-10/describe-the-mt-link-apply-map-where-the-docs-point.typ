@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the page a reader is sent to for the adjacency map describes it],
+      docs-match-code: helps[the page the docs send a reader to for the adjacency map describes it],
     ),
   ),
   assignee: "agent",
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Reviewing the cli-link-docs dependents while splitting cli-docs
-+ 🔴 #raw("www/utils/cli-notes.typ"): The `link` note says the `--apply` map is described on Task DSL, but dsl.typ never mentions it, and links.typ gives it one sentence.
++ 🔴 #raw("www/utils/cli-notes.typ"): The `link` note says Task DSL describes the `--apply` map, but dsl.typ never mentions it, and links.typ gives it one sentence.
 
 
 ```
@@ -45,8 +45,8 @@ $ echo $?
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("www/content/links.typ").
 
 == TO-BE

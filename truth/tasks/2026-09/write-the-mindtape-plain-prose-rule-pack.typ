@@ -16,7 +16,7 @@
     2026,
     9,
     15,
-  )[Superseded on 2026-09-15 by give-every-body-rule-a-name, let-a-config-extend-rule-packs, ship-the-task-practice-as-the-mindtape-tasks-pack and document-rule-packs, which add path packs, disable and same-name overrides.],
+  )[Superseded on 2026-09-15 by `give-every-body-rule-a-name`, `let-a-config-extend-rule-packs`, `ship-the-task-practice-as-the-mindtape-tasks-pack` and `document-rule-packs`, which add path packs, disable and same-name overrides.],
   links: depends-on(
     "ship-named-rule-packs-in-the-binary.typ",
     "add-a-density-content-assert.typ",
@@ -25,19 +25,19 @@
 
 == Summary
 
-`ship-named-rule-packs-in-the-binary.typ` delivers the embedding and `include` mechanism with a test-only pack. The pack worth including is the plain-prose one, and its value is entirely in which rules it carries and how tightly they are tuned: the Vale packages behind the density assert deleted their bare-presence variants for false positives.
+`ship-named-rule-packs-in-the-binary.typ` delivers the embedding and `include` mechanism with a test-only pack. The plain-prose pack is the one worth including. Its value lies entirely in which rules it carries and how tightly the team tunes them. The Vale packages behind the density assert deleted their bare-presence variants for false positives.
 
 
 == Scope
 
-Write the `mindtape-plain-prose` pack as an embedded data file, register it in the pack registry, and pin it with a test that fails a known-slop section and passes a known-clean one:
+Write the `mindtape-plain-prose` pack as an embedded data file and register it in the pack registry. Pin it with a test that fails a known-slop section and passes a known-clean one:
 
 ```toml
 [tasks.body.content]
 include = ["mindtape-plain-prose"]
 ```
 
-Calibrate each rule against this repo's own open task bodies, so every bundled rule has an id and passes the current backlog, and use density rules rather than `must-not-match` for the measured tells.
+Calibrate each rule against this repo's own open task bodies, so every bundled rule has an id and passes the current backlog. Use density rules rather than `must-not-match` for the measured tells.
 
 == Dogfood
 

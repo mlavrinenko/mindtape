@@ -22,7 +22,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the documented shape is parsed by a gate instead of trusted],
+      enforced-practice: helps[a gate parses the documented shape instead of trusting it],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -47,7 +47,7 @@
 
 - 🟢 At least one ast-grep collector block comes from a checked example project.
 - 🟢 The rules page renders the collector and its reader from the same config slice.
-- 🟢 The hand-typed marker is gone, and the docs block gate still passes.
+- 🟢 The hand-typed marker disappears, and the docs block gate still passes.
 
 ```
 $ just docs blocks
@@ -59,7 +59,7 @@ ok
 - `examples/rules/.mindtape/config.toml`: add a checked ast-grep collector and a rule that reads it, under a `docs:slice rules/ast-grep` marker.
 - `www/content/rules.typ`: render the slice and add the key to `checked-slices`.
 - `www/content/config.typ`: either slice the collector from the same fixture or keep one marked sketch with a reason.
-- `www/generate-examples.sh`: no change unless the example is added to a new fact.
+- `www/generate-examples.sh`: no change unless a new fact uses the example.
 
 == Out of scope
 

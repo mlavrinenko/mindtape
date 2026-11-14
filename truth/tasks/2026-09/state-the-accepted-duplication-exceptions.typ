@@ -8,7 +8,7 @@
     2026,
     9,
     18,
-  )[agents delegates the envelope; exceptions named in the documentation deep dive],
+  )[agents delegates the envelope. The documentation deep dive names the exceptions.],
   priority: ice(
     impact: 5,
     confidence: 0.9,
@@ -22,7 +22,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: helps[the reader learns which findings the audit will not chase, so a future pair does not get re-litigated],
-      enforced-practice: helps[documentation.typ carries the exception beside the rule it limits],
+      enforced-practice: helps[the deep dive carries each exception.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -59,21 +59,21 @@
 
 == Source of truth
 
-- `docs/src/contributing/documentation.typ` — the rule the exceptions limit.
-- `www/content/schema.typ` — owns the envelope keys, including `applied`.
-- `just dup-prose` — the pair list.
+- `docs/src/contributing/documentation.typ`: the rule the exceptions limit.
+- `www/content/schema.typ`: owns the envelope keys, including `applied`.
+- `just dup-prose`: the pair list.
 
 == Changes
 
-- `docs/src/contributing/documentation.typ` — one exception paragraph.
-- `docs/contributing/documentation.md` — regenerated render.
-- `www/content/agents.typ` — the envelope paragraph becomes a pointer plus
+- `docs/src/contributing/documentation.typ`: one exception paragraph.
+- `docs/contributing/documentation.md`: regenerated render.
+- `www/content/agents.typ`: the envelope paragraph becomes a pointer plus
   the bail-out consequence.
 
 == Out of scope
 
-- Sharing the crate render loop through `www/utils/crate-notes.typ`; the
-  markdown wave touches both sides and can extract it then.
+- Sharing the crate render loop through `www/utils/crate-notes.typ` is out of scope.
+  The markdown wave touches both sides and can pull it out then.
 - The README side of the demo partial, and the remaining README/AGENTS pairs.
 
 == Dogfood

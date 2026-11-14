@@ -15,11 +15,11 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent in a fresh clone gets a warning to pass on, not a command it never chose to run],
-      enforced-practice: helps[a changed `run` line needs a fresh approval before it runs],
-      cheap-adoption: hurts[every clone and every changed command asks once before checkers answer],
+      implementable-tasks: helps[an agent in a fresh clone gets a warning to pass on, not a command it never chose to run.],
+      enforced-practice: helps[a changed `run` line needs a fresh approval before it runs.],
+      cheap-adoption: hurts[every clone and every changed command asks once before checkers answer.],
       typst-over-markdown: neutral,
-      plain-files: helps[the approval lives outside the repo, so no file in a clone can approve its own commands],
+      plain-files: helps[the approval lives outside the repo, so no file in a clone can approve its own commands.],
     ),
     process: (
       sound-codebase: neutral,
@@ -38,7 +38,7 @@
 
 == TO-BE
 
-- 🟢 Until `mt allow` records them, `mt` runs no checker. Each command that would warns once, listing the commands, with `hint: read them, then run mt allow`.
+- 🟢 Until `mt allow` records them, `mt` skips every checker. Each command that would warns once, listing the commands, with `hint: read them, then run mt allow`.
 - 🟢 An un-allowed wait blocks as unknown, `why` reads `unknown: not allowed`, and `mt wip --force` still starts the task. Every other command works as before.
 - 🟢 The approval lives in `$MINDTAPE_DATA_HOME/allowed/`, keyed by `git rev-parse --git-common-dir` (the root outside git), so every `just fork` worktree shares it. It records a hash of every `run` line, and any change asks again.
 
@@ -54,15 +54,15 @@
 
 == Alternatives
 
-- `.mindtape/cache/allowed`: inside the clone, so a repo could ship its own approval with `git add -f`.
+- `.mindtape/cache/allowed`: inside the clone, so a repo could commit its own approval with `git add -f`.
 - Keying by the checkout path: each `just fork` worktree would ask again.
 - Ignoring an un-allowed wait: `ready` would hand an agent work a checker still holds.
 
 
 == Out of scope
 
-- `[[on.flip]]` commands; a follow-up task holds them to the same approval.
-- Hashing the scripts a `run` line calls; `mt` cannot tell which files a shell line reads.
+- `[[on.flip]]` commands. A follow-up task holds them to the same approval.
+- Hashing the scripts a `run` line calls, since `mt` cannot tell which files a shell line reads.
 
 
 == Dogfood

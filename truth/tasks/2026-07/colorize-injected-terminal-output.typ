@@ -13,12 +13,12 @@
     2026,
     7,
     12,
-  )[Shipped via the html.frame → inline-SVG route (raw-HTML injection proved impossible). `terminal-ansi` parses SGR runs into a monospace block on the theme-invariant dark panel; generator captures the `mt ls` family with `--color always`. Verified in-browser: bands + status colours render on the hero and content pages.],
+  )[Landed via the html.frame → inline-SVG route (raw-HTML injection proved impossible). `terminal-ansi` parses SGR runs into a monospace block on the theme-invariant dark panel. The generator captures the `mt ls` family with `--color always`. Verified in-browser: bands + status colours render on the hero and content pages.],
 )
 
 == Summary
 
-Follow-up to generate-docs-cli-reference, which ships plain-text injected
+Follow-up to generate-docs-cli-reference, which emits plain-text injected
 transcripts. Add colour without touching any content page: the generator
 captures ANSI and converts it to HTML, and `terminal()` renders the spans. The
 two-seam change is only possible because generate-docs routes every capture
@@ -27,13 +27,13 @@ through the generator and every render through `terminal(read(...))`.
 == Constraint (discovered)
 
 The original two-seam plan (ANSI → HTML `<span>`, injected raw) is not
-possible: tola / Typst HTML export exposes no raw-HTML-string escape hatch
-(`html.elem` escapes its text), and `text(fill: …)` colours are dropped in HTML
+possible. tola / Typst HTML export lacks a raw-HTML-string escape hatch
+(`html.elem` escapes its text), and `text(fill: …)` colours disappear in HTML
 export. The one colour-carrying path is `html.frame(content)`, which renders
 native Typst content to inline `<svg>`. The terminal panel background is
 theme-invariant (`--term-bg` has no dark override), so baked SVG colours read
-correctly under both site themes — no CSS-variable colour mapping needed. Cost:
-the transcript renders as an image, so the OUTPUT is not text-selectable (the
+correctly under both site themes without CSS-variable colour mapping. Cost:
+the transcript renders as an image, so the output is not text-selectable (the
 copyable commands stay real text in the sibling `sh` code blocks).
 
 == Approach
@@ -41,11 +41,12 @@ copyable commands stay real text in the sibling `sh` code blocks).
 - Generator (`www/generate.sh`): capture the colour-bearing transcripts a second
   time with `--color always` → `www/generated/<slug>.ansi` (raw SGR bytes).
 - `terminal()` (`www/utils/ui.typ`): an ANSI-aware path parses the SGR runs in
-  Typst, builds a monospace block of `text(fill: …)` coloured runs (One-Dark
-  palette, readable on the dark panel; SGR reset → `--term-fg`), and wraps it in
-  `html.frame(…)` so it serializes to inline SVG inside the `.terminal` div.
-- No content-page rewrites of the transcript source — pages keep calling the
-  `terminal` helper; only the helper and its capture change.
+  Typst and builds a monospace block of `text(fill: …)` coloured runs (One-Dark
+  palette, readable on the dark panel, with SGR reset → `--term-fg`). It wraps
+  the block in `html.frame(…)`, so it serializes to inline SVG inside the
+  `.terminal` div.
+- No content-page rewrites of the transcript source. Pages keep calling the
+  `terminal` helper, and only the helper and its capture change.
 
 == Scope
 

@@ -41,8 +41,8 @@ error[E0425]: cannot find function `tempdir_with_files` in this scope
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/flip/hooks_cmd_tests.rs").
 
 == TO-BE

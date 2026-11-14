@@ -22,7 +22,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the supported prelude set names 0.4.0 everywhere it is restated],
+      docs-match-code: helps[every restatement of the supported prelude set names 0.4.0],
     ),
   ),
   assignee: "agent",
@@ -34,8 +34,8 @@
 == AS-IS
 
 + Open `lib/prelude.typ` and read the query helpers after `glob(...)`.
-+ 🔴 `grep(...)` matches text and `glob(...)` matches paths; no helper builds a shape query.
-+ Open `lib/typst.toml`; the package version is 0.3.0, so a task cannot opt into a new helper while an older pin stays loadable.
++ 🔴 `grep(...)` matches text and `glob(...)` matches paths. No helper builds a shape query.
++ Open `lib/typst.toml`. The package version is 0.3.0, so a task cannot opt into a new helper while an older pin stays loadable.
 
 
 == TO-BE
@@ -72,8 +72,8 @@
 
 == Alternatives
 
-- A keyword argument `ast_grep(language: ..., pattern: ...)`: no other helper takes a keyword for its first value, and `in:` is a Typst keyword, so the positional form is the only one that reads like the others.
-- Reusing `grep` with a flag: two engines in one constructor, and the text and shape paths share no compile step.
+- A keyword argument `ast_grep(language: ..., pattern: ...)` would differ from every other helper. No other helper takes a keyword for its first value, and `in:` is a Typst keyword. The positional form is the only one that reads like the others.
+- Reusing `grep` with a flag: two engines in one constructor, and the text and shape paths don't share a compile step.
 
 
 == Out of scope
@@ -85,5 +85,5 @@
 
 == Dogfood
 
-A task opts into 0.4.0 to write `count(0, ast_grep(...))`; the backlog keeps its 0.3.0 pins, which still load.
+A task opts into 0.4.0 to write `count(0, ast_grep(...))`. The backlog keeps its 0.3.0 pins, which still load.
 

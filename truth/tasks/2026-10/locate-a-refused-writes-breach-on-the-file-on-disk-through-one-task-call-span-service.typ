@@ -16,13 +16,13 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a refused write points the editor at the line that is on disk],
+      enforced-practice: helps[a refused write points the editor at the line that is on disk.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[one parse of the task.with call replaces three lookups that can disagree],
+      sound-codebase: helps[one parse of the task.with call replaces three lookups that can disagree.],
       docs-match-code: neutral,
     ),
   ),
@@ -30,7 +30,7 @@
   status: done(2026, 10, 5),
   links: related(
     "carry-a-severity-on-every-violation-and-render-every-breach-in-one-place.typ",
-  )[both reshape how a breach is located and printed; the renderer prints what the span service locates],
+  )[both reshape where a breach points and how it prints. The renderer prints what the span service locates],
 )
 
 == AS-IS
@@ -46,8 +46,8 @@ error: tasks/b.typ:18: body.headers.rules.one-problem: one Problem
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/loader.rs").
 
 == TO-BE
@@ -59,7 +59,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape/src/loader.rs`: build `TaskCallSpans` once per file; move the stray doc comment back onto `marker_call`.
+- `crates/mindtape/src/loader.rs`: build `TaskCallSpans` once per file. Move the stray doc comment back onto `marker_call`.
 - `crates/mindtape/src/model.rs`: `field_location` reads the spans.
 - `crates/mindtape/src/template_check.rs`: `relocate` maps lines through the shared spans.
 - `crates/mindtape-cli/src/pre_write.rs`: remap a refused candidate's lines onto the authored file.
@@ -68,7 +68,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; refused writes print candidate lines again.
+- Revert the commit. Refused writes print candidate lines again.
 
 
 == Out of scope
@@ -78,4 +78,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Agents here hit refused writes daily, and the reported line now opens on the right text.
+Agents here hit refused writes daily, and the reported line opens on the right text.

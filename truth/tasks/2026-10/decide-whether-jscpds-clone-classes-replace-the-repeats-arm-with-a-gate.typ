@@ -34,27 +34,27 @@
 == AS-IS
 
 + Read the `jscpd-clone-classes` blocker that `.config/canibump.toml` carried before the commit that dropped it.
-+ 🔴 Its plan was to drop the repeats arm of `just ask-refactoring` and gate short repeats in `just lint dry` once jscpd shipped clone classes. The fork qahq pins ships them now, and nothing tracks the plan.
++ 🔴 Its plan was to drop the repeats arm of `just ask-refactoring` and gate short repeats in `just lint dry` once jscpd could detect clone classes. The pinned qahq fork includes them, and nothing tracks the plan.
 + Run the repeats arm on its own: `jscpd --no-tips -f rust -k 15 -l 1 -r json -o target/rep crates`, then count `classes` with 300 tokens of gain.
 + 🔴 It finds 26 snippets, such as a create-parent-then-write pair pasted 92 times, so a gate at that bar fails today's tree.
 
 
 == TO-BE
 
-- 🟢 The repeats arm either stays as the advisory sweep it is, with the reason written in `contrib/ask-refactoring/repeats.sh`, or gives way to a gate on classes by copies and size with a baseline of its own.
+- 🟢 The repeats arm either stays as the advisory sweep it is, with its reason in `contrib/ask-refactoring/repeats.sh`. Or it gives way to a gate on classes by copies and size, with a baseline of its own.
 
 
 == Changes
 
 - `contrib/ask-refactoring/repeats.sh`: the reason it stays, or its removal.
 - `.just/lint.just`: a short-repeats gate, if the decision is to gate.
-- `.mmz/config.yaml`: the gate's scope, if one is added.
+- `.mmz/config.yaml`: the gate's scope, if the decision adds one.
 
 
 == Alternatives
 
 - Keep the repeats arm as it is: it re-reports the same 26 snippets every sweep and gates nothing, so the growth the decision exists to stop continues.
-- Gate at jscpd's 50-token floor: 26 snippets with 300 tokens of gain fail today's tree, so the gate starts red.
+- Gate at jscpd's 50-token floor: 26 snippets with 300 tokens of gain fail today's tree. The gate would start red.
 
 == Out of scope
 

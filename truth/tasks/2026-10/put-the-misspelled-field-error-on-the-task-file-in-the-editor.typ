@@ -18,7 +18,7 @@
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
-      typst-over-markdown: helps[the editor marks the misspelled field where it is written],
+      typst-over-markdown: helps[the editor marks the misspelled field at its source.],
       plain-files: neutral,
     ),
     process: (
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Capturing tinymist's diagnostics on examples/lsp/invalid/misspelled-field.typ for the Overview
-+ 🔴 #raw("lib/prelude.typ"): tinymist publishes the \`unknown task slot\` error on the prelude's assert and publishes nothing for the task file, so an editor draws no squiggle under the misspelled field.
++ 🔴 #raw("lib/prelude.typ"): tinymist publishes the \`unknown task slot\` error on the prelude's assert and nothing for the task file. The editor then leaves the misspelled field unmarked.
 
 ```
 $ typst compile tasks/b.typ   # a file that writes `titel:`
@@ -43,8 +43,8 @@ error: assertion failed: unknown task slot `titel`; tool extensions must use an 
 tinymist 0.14.10 sends the same error with the URI of `prelude.typ` and no related information.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("lib/prelude.typ").
 
 == TO-BE
@@ -67,7 +67,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- Other assertions in the prelude. Each one that names a value the user wrote gets its own task if it matters.
+- Other assertions in the prelude. Each one that covers a value the user wrote gets its own task if it matters.
 
 
 == Dogfood

@@ -17,7 +17,7 @@
     2026,
     9,
     16,
-  )[verdicts landed in x-goals across every open task and template; check-goals is the only place they're checked now],
+  )[verdicts landed in x-goals across every open task and template. check-goals is the only check.],
   links: depends-on("check-a-task-field-with-a-typst-function.typ"),
   x-goals: (
     product: (
@@ -38,7 +38,7 @@
 == AS-IS
 
 + Open `truth/tasks/give-every-body-rule-a-name.typ`.
-+ 🔴 Its goal verdicts fill a 17-line `== Goals` section between Problem and TO-BE, so a reader skimming from what is broken to how it should work crosses a wall of `neutral`.
++ 🔴 Its goal verdicts fill a 17-line `== Goals` section between Problem and TO-BE, so a reader skimming from the problem to the intended state crosses a wall of `neutral`.
 + Run `mt eval truth/tasks/give-every-body-rule-a-name.typ --json`.
 + 🔴 No verdict is in the output, so no script can list the tasks that help `cheap-adoption`.
 
@@ -47,17 +47,17 @@
 
 - 🟢 Every open task and template carries its verdicts as `x-goals: (product: (...), process: (...))` in `task.with`, and no `== Goals` section.
 - 🟢 `.mindtape/config.toml` checks them with one `[[tasks.rules]]` entry naming `check-goals` in `truth/lib.typ`, at `error` severity on non-terminal tasks.
-- 🟢 `mt add` refuses a task that skips a goal, names an unknown one, gives `helps` or `hurts` no reason, or helps none, and the message names the goal.
+- 🟢 `mt add` refuses a task that skips a goal, names an unknown one, gives `helps` or `hurts` no reason, or helps none, and the message reports the goal.
 
 
 == Changes
 
-- `truth/lib.typ`: `goals(...)` becomes `check-goals(value)`, returning one string per problem instead of panicking; `helps`, `hurts` and `neutral` stay.
-- `.mindtape/config.toml`: the `goals` rule; drop the Goals header, order and content rules.
-- `.mindtape/templates/*.typ`: the goal slots move into `x-goals`; re-record `task-templates` and `sweep-templates` with `just outdatty-update`.
+- `truth/lib.typ`: `goals(...)` becomes `check-goals(value)`, returning one string per problem instead of panicking. `helps`, `hurts` and `neutral` stay.
+- `.mindtape/config.toml`: the `goals` rule. Drop the Goals header, order and content rules.
+- `.mindtape/templates/*.typ`: the goal slots move into `x-goals`. Re-record `task-templates` and `sweep-templates` with `just outdatty-update`.
 - `truth/tasks/*.typ`, every open task: move its verdicts, in a `task:` commit.
 - `crates/mindtape-cli/tests/add_config_scaffold_e2e.rs`: the goals stub drops `goals`.
-- `docs/src/agents.typ`: the repo map line; `just docs md`.
+- `docs/src/agents.typ`: the repo map line. `just docs md`.
 
 
 == Rollback

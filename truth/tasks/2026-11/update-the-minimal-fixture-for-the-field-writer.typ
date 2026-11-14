@@ -21,7 +21,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the fixture and eval teach the behavior the binary now has],
+      enforced-practice: helps[the fixture and eval show the behavior the binary has],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -29,7 +29,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the minimal example stops describing a refusal that was removed],
+      docs-match-code: helps[the minimal example stops describing a refusal the codebase dropped],
     ),
   ),
   assignee: "agent",
@@ -39,7 +39,7 @@
 == AS-IS
 
 + Reviewing the field-writer commit, which updated eval 4 but left the fixture comment and the eval README.
-+ 🔴 #raw("examples/minimal/.mindtape/config.toml"): The minimal fixture still says `mt add --set priority=8` is refused by name, and the eval README repeats it.
++ 🔴 #raw("examples/minimal/.mindtape/config.toml"): The minimal fixture still says `mt add --set priority=8` fails by name, and the eval README repeats it.
 
 ```
 $ mt add --print --set priority=8 "Priority proof"
@@ -53,8 +53,8 @@ The fixture comment says the command exits non-zero with `error: unknown slot: '
 
 == TO-BE
 
-- 🟢 The fixture comment describes the field writer: a non-slot writable field is inserted after fill.
-- 🟢 The eval README no longer says `priority` is refused, matching eval 4's new expectation.
+- 🟢 The fixture comment describes the field writer, which inserts a non-slot writable field after fill.
+- 🟢 The eval README drops the `priority` refusal, matching eval 4's new expectation.
 
 ```
 `--set priority=8` inserts `priority: 8` after the slots, and the filed task passes `mt check`.

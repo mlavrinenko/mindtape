@@ -14,14 +14,14 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a task cannot be filed into a path no later command loads],
+      enforced-practice: helps[the writer refuses a destination that every later command ignores.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
-      self-describing: helps[the refusal names the path and the way out],
+      self-describing: helps[the refusal states the path and the way out.],
     ),
     process: (
-      sound-codebase: helps[the write path and the read path agree on what exists],
+      sound-codebase: helps[the write path and the read path agree on what exists.],
       docs-match-code: neutral,
     ),
   ),
@@ -36,7 +36,7 @@
 == AS-IS
 
 + In a root-`.` project with an ignored `target/`, run `mt add --to target --name hidden --set title="Hidden task"` with a template that needs only a title.
-+ 🔴 It writes a task that `mt ls` never shows; `mt import` and `mt recur --advance` can do the same:
++ 🔴 It writes a task that `mt ls` never shows. `mt import` and `mt recur --advance` can do the same:
 
 ```
 $ mt add --to target --name hidden --set title="Hidden task"
@@ -50,9 +50,9 @@ default view · 0 of 0 tasks
 
 - 🟢 `mt add`, `mt import`, and `mt recur` (spawn, mutate, skip, advance) refuse a destination `would_be_visible` rejects before creating anything.
 - 🟢 The guard resolves symlinks and `..`, checks the final `--dedup` path, and `--no-verify` does not bypass it.
-- 🟢 The refusal names the final path, why, and the mode's fix: another `--into`/`--to` for add/import, move or unignore for recur.
-- 🟢 Previews write nothing; a destination outside every root keeps the warning.
-- 🟢 An existing tracked-ignored task may be mutated or skipped; a new sibling under the same ignored parent is refused.
+- 🟢 The refusal states the final path, why, and the mode's fix: another `--into`/`--to` for add/import, move or stop ignoring for recur.
+- 🟢 Previews leave every file untouched. A destination outside every root keeps the warning.
+- 🟢 The commands may mutate or skip an existing tracked-ignored task. They refuse a new sibling under the same ignored parent.
 
 ```
 $ mt add --to target --name hidden --set title="Hidden task"
@@ -73,7 +73,7 @@ $ test -e target/hidden.typ; echo $?
 
 == Alternatives
 
-- Warn only: the file is still written and still invisible, so the trap remains.
+- Warn only: the file is still written and still invisible. The trap then remains.
 - Put ignored paths back into discovery: defeats the Git-visible contract.
 - Guard every writer before the write: chosen, so there is no file to clean up.
 
@@ -87,5 +87,5 @@ $ test -e target/hidden.typ; echo $?
 
 == Dogfood
 
-This project's `mt add` writes under `truth/tasks`, which is neither reserved nor ignored; the guard matters for root-`.` adopters.
+This project's `mt add` writes under `truth/tasks`, which is neither reserved nor ignored. The guard matters for root-`.` adopters.
 

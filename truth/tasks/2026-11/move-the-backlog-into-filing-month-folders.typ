@@ -22,7 +22,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the repo map and the hook docs name the same layout],
+      docs-match-code: helps[the repo map and the hook docs state the same layout],
     ),
   ),
   assignee: "agent",
@@ -33,7 +33,7 @@
 == AS-IS
 
 + List the backlog: `ls truth/tasks | wc -l`.
-+ 🔴 It prints 991 files in one folder, so a reader sees every task ever filed in one run and has no month boundary.
++ 🔴 It prints 991 files in one folder. A reader then sees every task ever filed in one run and has no month boundary.
 + `mt add` writes new tasks to the flat first root, and no rule holds a folder layout.
 
 ```
@@ -44,7 +44,7 @@ $ ls truth/tasks | wc -l
 
 == TO-BE
 
-- 🟢 Every non-swept task sits under `truth/tasks/YYYY-MM/`, the month git records it was filed.
+- 🟢 Every non-swept task sits under `truth/tasks/YYYY-MM/`, the month git records for its filing.
 - 🟢 An `[[on.add]]` hook writes a new task to `truth/tasks/{date:YYYY}-{date:MM}`, and a swept task to `truth/tasks/swept/`.
 - 🟢 Two `[[tasks.rules]]` hold the layout: a non-swept `dir` matches `^truth/tasks/[0-9]{4}-[0-9]{2}$`, and a swept `dir` is `truth/tasks/swept`.
 - 🟢 `[tasks.derive-tags] collect = []` keeps month names out of tags, while the root `mt` tag stays.
@@ -66,7 +66,7 @@ assert = 'matches(dir, "^truth/tasks/[0-9]{4}-[0-9]{2}$")'
 == Changes
 
 - `.mindtape/config.toml`: add the month and swept add hooks, the two `dir` rules, and `[tasks.derive-tags] collect = []`.
-- `contrib/ask-refactoring.sh`: drop the explicit `--dir truth/tasks/swept`, so the swept hook chooses the batch folder.
+- `contrib/ask-refactoring.sh`: drop the explicit `--dir truth/tasks/swept`. The swept hook then chooses the batch folder.
 - `truth/tasks/**`: move every file to its git filing month, or to `swept/` when tagged `swept`, and rewrite imports and cross-month links.
 - `docs/src/agents.typ`: say the backlog is one folder per filing month, with a separate sweep inbox.
 - `crates/mindtape-cli/tests/it/rules_e2e.rs`: lock a `matches(dir, ...)` rule that accepts a month folder and refuses a flat task.
@@ -82,9 +82,9 @@ assert = 'matches(dir, "^truth/tasks/[0-9]{4}-[0-9]{2}$")'
 
 == Out of scope
 
-- Per-kind or area folders; this is a chronological archive.
-- A `filed` date field; git records the month and the rule only checks the shape.
-- Splitting `swept/` by kind or month; a sweep batch is one removable folder.
+- Per-kind or area folders stay out. This is a chronological archive.
+- A `filed` date field stays out. Git records the month and the rule only checks the shape.
+- Splitting `swept/` by kind or month stays out. A sweep batch is one removable folder.
 
 
 == Dogfood

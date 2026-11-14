@@ -16,8 +16,8 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a pack update prints every rule and `run` line it changes before the lock commits it],
-      cheap-adoption: helps[taking a pack's next fix is one command whose output says what the fix changes],
+      enforced-practice: helps[a pack update prints every rule and `run` line it changes before the lock commits it.],
+      cheap-adoption: helps[taking a pack's next fix is one command whose output says what the fix changes.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -35,7 +35,7 @@
 == AS-IS
 
 + Add `[pack-sources.acme]` with `ref = "v1"`, or push a fix to `v1` of an already locked source.
-+ 🔴 Nothing writes the source into `.mindtape/packs.lock` or moves the lock to the new commit, so the project stays on the stale lock that `mt` refuses.
++ 🔴 The code never writes the source into `.mindtape/packs.lock` or moves the lock to the new commit.The project stays on the stale lock that `mt` refuses.
 
 
 == TO-BE
@@ -55,7 +55,7 @@ wrote .mindtape/packs.lock
 == Changes
 
 - `crates/mindtape-cli/tests/it/packs/update.rs`: the red tests first: a first lock, a moved annotated tag, a commit `ref`, an unchanged ref, a dropped source.
-- `crates/mindtape/src/config/pack_sources/remote.rs` (new), `remote_tests.rs`: `resolve`, a `ref` to a commit, through the fetch's `Git`, and `FetchError::UnknownRef`.
+- `crates/mindtape/src/config/pack_sources/remote.rs` (new), `remote_tests.rs`: `resolve`, a `ref` to a commit, through the `Git` handle the fetch holds, and `FetchError::UnknownRef`.
 - `crates/mindtape/src/config/pack_sources/lock.rs`: write the lock.
 - `crates/mindtape-cli/src/cmd/packs/update.rs` (new): the `update` subcommand, with `install` moved to `install.rs` beside it.
 - `crates/mindtape-cli/tests/it/packs/`: `packs.rs` becomes a folder, `install.rs` and `update.rs`.

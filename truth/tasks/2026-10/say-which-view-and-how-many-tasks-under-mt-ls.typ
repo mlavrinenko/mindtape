@@ -34,7 +34,7 @@
 
 + Run `mt init` in an empty git repo, then `mt add Fix the login` and `mt add Write docs`.
 + Run `mt ls`.
-+ 🔴 The line under the table reads `applied: default (filter)`, which names a facet nobody asked about and no count.
++ 🔴 The line under the table reads `applied: default (filter)`, which reports a facet nobody asked about, and no count.
 + Run `mt ls '' -n 1`.
 + 🔴 It prints `applied: manual (filter)` and `truncated: 1 of 2 — next: mt ls '' -n 1 --skip 1`.
 

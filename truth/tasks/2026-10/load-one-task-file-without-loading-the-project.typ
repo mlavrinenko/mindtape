@@ -32,8 +32,8 @@
 
 == AS-IS
 
-+ In speconaut, run any commit inside a session; its pre-commit and commit-msg hooks look up the bound task through `find_task` in `src/extraction/task_bridge.rs`.
-+ 🔴 `find_task` calls `mindtape::load_project` and filters the result for one path, so every hook call walks every task root and content-hashes every task file, however large the backlog.
++ In speconaut, run any commit inside a session. Its pre-commit and commit-msg hooks look up the bound task through `find_task` in `src/extraction/task_bridge.rs`.
++ 🔴 `find_task` calls `mindtape::load_project` and filters the result for one path.Every hook call walks every task root and content-hashes every task file, however large the backlog.
 `crates/mindtape` exports `load_project` and `load_many`, and nothing that loads a single file under a project's config.
 
 
@@ -46,13 +46,13 @@ pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task
 - 🟢 A valid task file gives `Ok(Some(task))`, read through the same content-hash cache `load_project` uses, with its waits annotated as `load_project` does. Its core fields equal the same file's task out of `load_project`.
 - 🟢 A file with no `task.with` gives `Ok(None)`, since `load_project` skips it silently.
 - 🟢 A load failure gives `Err(LoadError)`, the same error `load_project` lists for that file.
-- 🟢 A path outside every configured root gives `Err(LoadError)` naming the path, because such a file would get no folder tags and so differ from its `load_project` task.
+- 🟢 A path outside every configured root gives `Err(LoadError)` naming the path, because such a file would miss its folder tags and so differ from its `load_project` task.
 - 🟢 Fields that need the whole set (`topo`, `blocks`, `children`, `progress`) stay empty on the task, and the docs on `load_one` say so.
 
 
 == Changes
 
-- `crates/mindtape/src/loader/tests.rs`: the red test first, one case each for a valid task, a file with no `task.with`, a load failure and a path outside the roots, plus core-field equality with `load_project` for the same file.
+- `crates/mindtape/src/loader/tests.rs`: the red test first. Cover one case each for a valid task, a file with no `task.with`, a load failure and a path outside the roots. Add core-field equality with `load_project` for the same file.
 - `crates/mindtape/src/loader/mod.rs`: `load_one`, sharing the overrides, the cache lookup and the harvest of a miss with `load_project`.
 - `crates/mindtape/src/loader/many.rs`: rename its private `load_one(root)` to `load_root`.
 - `crates/mindtape/src/lib.rs`: re-export `load_one`.

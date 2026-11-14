@@ -43,25 +43,25 @@ would spawn /tmp/rvw-mt-94/tasks/hold-the-sync-2026-06-22.typ (due 2026-06-22)
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/recur_dates.rs").
 
 == TO-BE
 
-- 🟢 Week parity comes from a fixed series epoch, not the completion week, so the series above falls on 2026-06-15 next.
+- 🟢 Week parity comes from a fixed series epoch, not the completion week. The series above falls on 2026-06-15 next.
 - 🟢 `/recurring/` names the epoch.
 
 
 == Changes
 
-- `crates/mindtape/src/recur_dates.rs`: pick the on-weeks by weeks since the series epoch; a red test starts in an off week.
+- `crates/mindtape/src/recur_dates.rs`: pick the on-weeks by weeks since the series epoch. A red test starts in an off week.
 - `www/content/recurring.typ`: say which date fixes the weeks.
 
 
 == Rollback
 
-- Revert the commit; the series counts weeks from each completion again.
+- Revert the commit. The series counts weeks from each completion again.
 
 
 == Out of scope

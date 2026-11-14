@@ -38,7 +38,7 @@
 == AS-IS
 
 + Read the `[[tasks.status]]`, `[tasks.priority]` and `[[on.flip]]` entries of this repo's `.mindtape/config.toml`.
-+ 🔴 The six statuses of the embedded floor sit there again by hand only to add `to` edges and `unblocked`, beside an ICE `framework` that fourteen projects copy and a stale-WIP gate that eight copy.
++ 🔴 The six statuses of the embedded floor sit there again by hand, only to add `to` edges and `unblocked`. Beside them sit an ICE `framework` that fourteen projects copy and a stale-WIP gate that eight copy.
 
 
 == TO-BE
@@ -47,7 +47,7 @@
 extends = ["mindtape:tasks", "mindtape:flow", "mindtape:ice"]
 ```
 
-- 🟢 `mindtape:flow` restates the floor's six statuses with this repo's `to` edges and `unblocked` flags, since an array replaces whole, and adds the `stale-wip` gate with `days = 30` as a parameter. A project legend with no `wip` leaves that gate naming a status it lacks, so it lists `stale-wip` in `disable`.
+- 🟢 `mindtape:flow` restates the floor's six statuses with this repo's `to` edges and `unblocked` flags, since an array replaces whole, and adds the `stale-wip` gate with `days = 30` as a parameter. A project legend with no `wip` leaves that gate referencing a status it lacks, so it lists `stale-wip` in `disable`.
 - 🟢 `mindtape:ice` sets only `framework = "ice"`, `allow-manual = false`, `required = "!terminal"` and `example = 3` under `[tasks.priority]`. The floor's 0..9 scale and its three bands show through.
 - 🟢 A project's own `[[tasks.status]]` replaces the pack's legend whole, and `mt check` validates the `to` edges of whichever legend wins.
 
@@ -64,8 +64,8 @@ extends = ["mindtape:tasks", "mindtape:flow", "mindtape:ice"]
 
 == Alternatives
 
-- The transitions in the floor itself: a project with no transition graph would get one it never asked for.
-- The priority framework in `mindtape:tasks`: the six sections need no priority.
+- The floor itself holds the transitions, so a project with no transition graph would get one it never asked for.
+- The priority framework in `mindtape:tasks`: the six sections have no priority.
 
 
 == Out of scope

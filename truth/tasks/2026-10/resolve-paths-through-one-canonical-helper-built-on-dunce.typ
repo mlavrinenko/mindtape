@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[one helper resolves every path, and clippy refuses a bare canonicalize],
+      sound-codebase: helps[one helper resolves every path, and clippy refuses a bare `canonicalize` call.],
       docs-match-code: neutral,
     ),
   ),
@@ -34,7 +34,7 @@
 
 + On Windows, run `mt -w <project> ls` (CI run 40580151452, `ls_limit_e2e::a_worktree_flag_pages_with_the_flag_as_typed`).
 + 🔴 The file column prints `\\?\C:\Users\runneradmin\...\tasks\a.typ`, because `Path::canonicalize` returns a verbatim path on Windows.
-+ 🔴 A bad key in a pack prints the pack's absolute path, not `team.toml`. The pack path is canonical and the project root isn't, so `strip_prefix` fails. On Windows the temp dir's short `RUNNER~1` name sets this off, and on Linux a project reached through a symlink does.
++ 🔴 A bad key in a pack prints the pack's absolute path, not `team.toml`. The pack path is canonical and the project root isn't, so `strip_prefix` fails. On Windows the short `RUNNER~1` name of the temp dir sets this off, and on Linux a project reached through a symlink does.
 + 18 product sites call `canonicalize()` on their own. Two private helpers already strip the verbatim prefix, and two relativize with a bare `strip_prefix`. About 28 Windows tests fail on this split.
 
 
@@ -52,20 +52,20 @@
 
 == Changes
 
-- `crates/mindtape/src/config/layers_tests_source.rs`: the red test, a pack under a symlinked root is named `team.toml`.
+- `crates/mindtape/src/config/layers_tests_source.rs`: the red test, a pack under a symlinked root prints as `team.toml`.
 - `crates/mindtape/src/fs_canonical.rs`: `canonical` and `relative_to`, with tests.
-- The 18 `canonicalize()` sites and the `strip_prefix` relativizers in `config`, `rules`, `loader`, `validate`, `model`, `allow` and the CLI: use the helpers.
+- The 18 `canonicalize()` sites and the `strip_prefix` calls in `config`, `rules`, `loader`, `validate`, `model`, `allow` and the CLI: use the helpers.
 - `clippy.toml`: disallow `Path::canonicalize` and `std::fs::canonicalize`.
 - The tests that compare against a canonical path: build it with `canonical`.
 
 
 == Out of scope
 
-- How a path prints on Windows, `\` or `/`. The owner decides that.
-- The shipped presets' `sh` gates.
+- How a path prints on Windows, `\` or `/`. That is the owner's call.
+- The released presets' `sh` gates.
 
 
 == Dogfood
 
-Not applicable. This repo is developed on Linux, without symlinked checkouts.
+Not applicable. The maintainers develop this repo on Linux, without symlinked checkouts.
 

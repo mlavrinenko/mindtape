@@ -33,7 +33,7 @@
 == AS-IS
 
 + Reviewing the api-service capture commits a71dbf48 and 3afcd40a
-+ 🔴 #raw("www/capture.sh"): a capture with \`--exit 1\` checks only the exit code, and every \`mt\` error exits 1, so a page can show an unrelated error under prose that names a rule
++ 🔴 #raw("www/capture.sh"): a capture with `--exit 1` checks only the exit code, and every \`mt\` error exits 1, so a page can show an unrelated error under prose that refers to a rule
 
 ```
 $ mt wip no-such-task; echo $?
@@ -48,8 +48,8 @@ Error: 1 task(s) had problems
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("www/capture.sh").
 
 == TO-BE
@@ -66,7 +66,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; refusal captures check the exit code alone again.
+- Revert the commit. Refusal captures check the exit code alone again.
 
 
 == Out of scope

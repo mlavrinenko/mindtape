@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the published schema is checked against the JSON the binary prints],
+      docs-match-code: helps[the published schema matches the JSON the binary prints],
     ),
   ),
   assignee: "agent",
@@ -34,7 +34,7 @@
 == AS-IS
 
 + Run `mt add "Probe" --json`.
-+ 🔴 It refuses the shorthand that `mt ls` and `mt find` accept; only `--format json` works.
++ 🔴 It refuses the shorthand that `mt ls` and `mt find` accept. Only `--format json` works.
 
 ```
 $ mt add "Probe" --json
@@ -44,7 +44,7 @@ error: unexpected argument '--json' found
 
 == TO-BE
 
-- 🟢 `mt add --json` prints the same report as `mt add --format json`, and `--json` wins when both are given, as in `mt ls`.
+- 🟢 `mt add --json` prints the same report as `mt add --format json`, and `--json` wins when both appear, as in `mt ls`.
 - 🟢 The report is an object with `$schema`, `outcome`, `path` and `slug`, flat.
 - 🟢 `--format path` and `--format path0` still work.
 

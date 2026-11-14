@@ -33,7 +33,7 @@
 == AS-IS
 
 + Round-tripping the example projects through `mt ls '' --json` and `mt import` for /import-export/.
-+ 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import` names each file from the record's title and ignores its `id`, so a link to a record whose stem differs from its title no longer resolves, and the record holding the link is skipped.
++ 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import` names each file from the record's title and ignores its `id`. A link to a record whose stem differs from its title then fails to resolve, and the loader skips the record holding the link.
 
 ```
 $ mt -w examples/api-service ls '' --json > export.json
@@ -48,31 +48,31 @@ add-a-redis-client-to-the-app-state.typ  reject-expired-sessions-on-token-refres
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/import.rs").
 
 == TO-BE
 
-- 🟢 A record with an `id` is written to that stem, disambiguated as a title stem is, so its links and the links to it resolve after an export and import.
+- 🟢 A record with an `id` takes that stem, disambiguated as a title stem is, so its links and the links to it resolve after an export and import.
 - 🟢 A record with no `id`, as the jq adapters emit, is still named from its title.
 
 
 == Changes
 
-- `crates/mindtape-cli/src/import.rs`: take the stem from `id` when it is set, else from the title.
+- `crates/mindtape-cli/src/import.rs`: take the stem from `id` when the record sets one, else from the title.
 - `crates/mindtape-cli/src/import_tests.rs`: import a record whose `id` differs from its title, with a link to it.
 
 
 == Rollback
 
-Revert the commit; import names every file from its title again.
+Revert the commit. Import names every file from its title again.
 
 == Out of scope
 
-- Rewriting link targets when a stem is disambiguated: a clash with an existing file is rare and the report names it.
+- Rewriting link targets when a stem has to change: a clash with an existing file is rare and the report names it.
 
 
 == Dogfood
 
-Not applicable; this repo imports nothing.
+Not applicable. This repo doesn't import anything.

@@ -21,7 +21,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a drifted fmt list or a relinking build fails by name],
+      sound-codebase: helps[a drifted TOML format list or a relinking build fails by name.],
       docs-match-code: helps[two hand-kept facts become gate-checked],
     ),
   ),
@@ -33,22 +33,22 @@
 == AS-IS
 
 + 🔴 Add `tmp-probe.toml` (untracked) at the repo root and run `just check`: it passes. `TOML_FMT_PATHS` in the `Justfile` is a hand-kept list, so `tombi format --check` never reads the new file and the list drifts from `git ls-files` unseen (`cd8a4e51` had to enumerate every tracked TOML by hand).
-+ 🔴 Add `cargo build -p mindtape-cli -q` to any gate-reachable script: `just check` stays green, yet a plain build relinks `target/debug/mt` under the running test arm (`32d79fd9`, `docs/contributing/gates.md` "One mt binary, one feature set"); the race fires only on a stale tree, so it returns unseen.
++ 🔴 Add `cargo build -p mindtape-cli -q` to any gate-reachable script. `just check` stays green, yet a plain build links `target/debug/mt` again under the running test arm (`32d79fd9`, `docs/contributing/gates.md` "One mt binary, one feature set"). The race fires only on a stale tree, so it returns unseen.
 
 
 == TO-BE
 
-- 🟢 A TOML file git knows (cached or untracked, not ignored) that `TOML_FMT_PATHS` lacks, or a listed path git does not know, fails the gate naming each path.
-- 🟢 A `cargo build` or `cargo run` of `mindtape-cli` into the shared `target/debug` without `--tests` fails the gate naming the file or recipe and line; `--release` and `--target-dir` are exempt by flag, never by file.
+- 🟢 A TOML file git knows (cached or untracked, not ignored) that `TOML_FMT_PATHS` lacks, or a listed path git does not know, fails the gate, which states each path.
+- 🟢 A `cargo build` or `cargo run` of `mindtape-cli` into the shared `target/debug` without `--tests` fails the gate, which states the file or recipe and line. The flags `--release` and `--target-dir` are exempt, never a file.
 
 
 == Changes
 
-- `.just/scripts/check-gate-drift.sh`, `_gate-drift-lib.sh` (TOML list against git; the `cargo build/run mindtape-cli` line matcher), `_gate-drift-control.sh`, new. The reach out of `check` is not walked here: `_script-graph.sh` is split into `_script-graph-lib.sh` (the shared walk) and a thin front-end, and `_script-reach.sh` is the second front-end. A control that must pass a clean fixture and name the offender in each known-bad one; red first. Split to stay under the 300-line shell cap.
+- `.just/scripts/check-gate-drift.sh`, `_gate-drift-lib.sh` (the TOML list against git, and the `cargo build/run mindtape-cli` line matcher), `_gate-drift-control.sh`, new. The reach out of `check` is not walked here. `_script-graph.sh` splits into `_script-graph-lib.sh` (the shared walk) and a thin front-end, and `_script-reach.sh` is the second front-end. A control that must pass a clean fixture and state the offender in each known-bad one. Red first. Split to stay under the 300-line shell cap.
 - `Justfile`: `check-gate-drift` recipe, wired into `check`.
 - `.mmz/config.yaml`: scopes and a gate-tagged rule for the arm.
 - `outdatty.yaml`, `outdatty.lock`: the script joins `dev-docs`, re-recorded after reviewing its dependents.
-- `www/utils/gate-notes.typ`, `docs/src/contributing/gates.typ`: the arm's prose; `CONTRIBUTING.md` and `docs/contributing/gates.md` regenerated.
+- `www/utils/gate-notes.typ`, `docs/src/contributing/gates.typ`: the arm's prose. `CONTRIBUTING.md` and `docs/contributing/gates.md` regenerated.
 
 == Rollback
 
@@ -57,7 +57,7 @@ Drop the recipe, its `check` entry, the script, the mmz scope and rule and the o
 
 == Out of scope
 
-- `just check-rrule`: it is not a `just check` arm, so the reach derivation leaves it out; it builds a different feature set into `target/debug` on purpose and CI runs it serially. `docs/src/contributing/gates.typ` said it belongs in another target directory, which was wrong and is corrected.
+- `just check-rrule`: it is not a `just check` arm. The reach derivation then leaves it out. It builds a different feature set into `target/debug` on purpose, and CI runs it serially. `docs/src/contributing/gates.typ` said it belongs in another target directory. This task corrects that statement.
 - Rewriting `TOML_FMT_PATHS` to derive from git: the explicit list is the review point, the gate only keeps it honest.
 
 

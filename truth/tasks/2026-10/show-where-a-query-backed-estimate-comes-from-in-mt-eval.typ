@@ -36,7 +36,7 @@
 == AS-IS
 
 + Once query-backed estimates resolve, file a task with `estimate: (src-files: count(2, grep(...)))` and run `mt eval <stem>`.
-+ 🔴 Only the resolved total shows, so a reviewer can't tell the manual part from what each query matched, or check a query that matches nothing.
++ 🔴 Only the resolved total shows, so a reviewer can't tell the manual part from what each query matched, or check a query with no matches.
 
 == TO-BE
 
@@ -55,8 +55,8 @@
 
 == Out of scope
 
-- Listing the matched files themselves; the query re-runs anywhere.
+- Listing the matched files themselves. The query re-runs anywhere.
 
 == Dogfood
 
-This repo reviews a judgment task's fan-out with `mt eval` before flipping it to wip.
+This repo reviews a judgment task's fan-out with `mt eval` before flipping it to `wip`.

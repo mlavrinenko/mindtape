@@ -15,15 +15,15 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[every command and tool accepts the same task references],
+      implementable-tasks: helps[every command and tool accepts the same task references.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a new reference form or command touches one resolver],
-      docs-match-code: helps[every <task> argument shares one help text],
+      sound-codebase: helps[a new reference form or command touches one resolver.],
+      docs-match-code: helps[every <task> argument shares one help text.],
     ),
   ),
   assignee: "agent",
@@ -36,18 +36,18 @@
 == AS-IS
 
 + Reviewing the stem-hash commits 45d958bd to 9006d477
-+ 🔴 #raw("crates/mindtape-cli/src/util.rs"): The library ships only \`StemHashes\`; resolution order, path rules and the hashed set live in the CLI, and more than one copy already disagrees.
++ 🔴 #raw("crates/mindtape-cli/src/util.rs"): The library carries only \`StemHashes\`. Resolution order, path rules and the hashed set live in the CLI, and more than one copy already disagrees.
 
-- `util.rs:162` reads `/` as a path; `eval.rs:62` also reads `\`.
-- `rm_select.rs:68` repeats the exact-stem check; `link_plan.rs:141` targets take no hash.
+- `util.rs:162` reads `/` as a path, and `eval.rs:62` also reads `\`.
+- `rm_select.rs:68` repeats the exact-stem check, and `link_plan.rs:141` targets take no hash.
 - `ls_interactive/mod.rs:214` copies the normalisation and matches the printed hash, not the code.
 - speconaut has its own resolver, `src/commands/task_resolve.rs:52`.
 - `mt mv/set/review --help`: `slug, relative path, or absolute path`, no hash.
-- `examples/large`: `mt eval task-00001` 1.74 s, `--json` 0.92 s; the project loads twice (`eval.rs:57`, `eval.rs:115`).
+- `examples/large`: `mt eval task-00001` 1.74 s, `--json` 0.92 s. The project loads twice (`eval.rs:57`, `eval.rs:115`).
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/handle.rs").
 
 == TO-BE
@@ -68,7 +68,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; each command resolves on its own again.
+- Revert the commit. Each command resolves on its own again.
 
 
 == Out of scope

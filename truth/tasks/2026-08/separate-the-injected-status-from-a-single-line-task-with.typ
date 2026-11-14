@@ -16,7 +16,7 @@
 == Summary
 
 `mt add` injects its own `status:` into the template's `task.with(…)` call. When
-that call is written on ONE line with no trailing comma, the injection lands
+that call sits on one line with no trailing comma, the injection lands
 with no separator and writes a file that cannot parse.
 
 Template:
@@ -32,15 +32,15 @@ Written:
 )
 ```
 
-`mt add` then reports `written task failed to load: eval error: expected comma`
-— after the broken file is already on disk. Reproduced against a template with
-one plain `string` slot, so it is nothing to do with slot kinds; the same
+`mt add` then reports `written task failed to load: eval error: expected comma`,
+after the broken file is already on disk. A template with one plain `string`
+slot reproduces it, so the bug has nothing to do with slot kinds. The same
 template with the argument on its own line and a trailing comma files fine.
 
-Nothing in the repo has hit it because every in-tree template — the built-in
-`BUILTIN_TASK`, the four sweep templates, both example projects — is multi-line
-with trailing commas. The one-line form is legal Typst and a reasonable thing
-for someone to write, so the shape is untested rather than unsupported.
+No repo code has hit it, because every in-tree template is multi-line with
+trailing commas: the built-in `BUILTIN_TASK`, the four sweep templates, both
+example projects. The one-line form is legal Typst and a reasonable thing for
+someone to write. The shape goes untested rather than unsupported.
 
 == Scope
 
@@ -50,14 +50,14 @@ for someone to write, so the shape is untested rather than unsupported.
   decided, not in a post-hoc string patch of the rendered call.
 - A regression test over the one-line-no-trailing-comma template, beside the
   existing injection tests. The multi-line shape is already covered, which is
-  precisely why this got through — the new test's whole value is being the
-  other shape.
-- Worth checking the same helper against an EMPTY argument list
+  precisely why this got through. The new test's whole value is being the other
+  shape.
+- Worth checking the same helper against an empty argument list
   (`task.with()`), which has the same "nothing to separate from" question with
   the opposite correct answer: no leading comma.
 
 == Note
 
-Independent of the input-grammar and slot-kind work that surfaced it — it
+Independent of the input-grammar and slot-kind work that surfaced it. It
 reproduces on an unmodified template with no `raw` slot and no tokens. Filed
 separately rather than folded in.

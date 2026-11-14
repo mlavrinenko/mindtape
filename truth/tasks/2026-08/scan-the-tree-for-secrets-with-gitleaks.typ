@@ -19,7 +19,7 @@
 
 == Summary
 
-No gate reads the tree for committed credentials. gitleaks 8.30.1, measured over this checkout with a path allowlist for `target/`, `mutants.out`, `www/public/`, `var/` and `build/`, scans 8.31 MB in 1.6s — cheap enough for a `just check` arm; without that allowlist it walks `target/` and takes 1m44s over 2.09 GB. It reports one finding today, a `generic-api-key` false positive on `outdatty.lock:151` (the task filename `refactor-auth.typ`), so adoption costs an allowlist entry rather than a triage backlog.
+The repo has no gate that reads the tree for committed credentials. gitleaks 8.30.1, measured over this checkout with a path allowlist for `target/`, `mutants.out`, `www/public/`, `var/` and `build/`, scans 8.31 MB in 1.6s, cheap enough for a `just check` arm. Without that allowlist it walks `target/` and takes 1m44s over 2.09 GB. It reports one finding today, a `generic-api-key` false positive on `outdatty.lock:151` (the task filename `refactor-auth.typ`). Adoption costs one allowlist entry rather than a triage backlog.
 
 == Scope
 
@@ -29,4 +29,4 @@ No gate reads the tree for committed credentials. gitleaks 8.30.1, measured over
 
 == What it cannot do
 
-A machine-local-path rule is dead under `[extend] useDefault = true`, measured under `--log-level trace`: the default config's global allowlist matches `/home/<user>/` and drops any custom rule's finding on it (`skipping finding: global allowlist allowed-regex=true`), and an extending config can only ADD allowlists, never remove one. Dropping the default ruleset to make the custom rule fire would leave a secret scanner scanning for no secrets. That job stays with `crap-baseline-check`, and this repo's own `/home/u`, `/home/user` test fixtures would need allowlisting anyway.
+A machine-local-path rule is dead under `[extend] useDefault = true`, measured under `--log-level trace`. The default config's global allowlist matches `/home/<user>/` and drops any custom rule's finding on it (`skipping finding: global allowlist allowed-regex=true`). An extending config can only add allowlists, never remove one. Dropping the default ruleset to make the custom rule fire would leave a secret scanner scanning for no secrets. That job stays with `crap-baseline-check`, and this repo's own `/home/u`, `/home/user` test fixtures would need allowlisting anyway.

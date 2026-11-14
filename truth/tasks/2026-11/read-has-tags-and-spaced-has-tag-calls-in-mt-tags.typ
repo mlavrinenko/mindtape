@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a tag listing names every rule that reads it],
+      sound-codebase: helps[a tag listing lists every rule that reads it],
       docs-match-code: neutral,
     ),
   ),
@@ -52,13 +52,13 @@ no tags are read at this moment
 The filter language supports both, and `mt ls 'has(tags, "cli")'` matches the same tasks as `has_tag("cli")`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The finding lives here rather
+than in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/tags.rs").
 
 == TO-BE
 
-- 🟢 `mt tags` reads the rule expression, so every tag read is listed however it is spelled.
+- 🟢 `mt tags` reads the rule expression. Every tag read then appears however the rule spells it.
 
 ```
 $ mt tags --for add
@@ -74,7 +74,7 @@ cli  tasks.rules.cli-only  a cli task
 
 == Out of scope
 
-- A `[[on.flip]]` gate with no `message` is not listed by `--for flip`; it is a separate gap.
+- A `[[on.flip]]` gate with no `message` is not listed by `--for flip`. It is a separate gap.
 
 
 == Dogfood

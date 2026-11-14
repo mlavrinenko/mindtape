@@ -43,14 +43,14 @@ error: 2 commit message problems
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/packs/mindtape-tasks.toml").
 
 == TO-BE
 
 - 🟢 A commit whose subject starts with `fixup! `, `squash! ` or `amend! ` passes `mt check --commit-msg` without trailers.
-- 🟢 The `pre-merge` hook refuses a branch that carries one unsquashed, so `just land` can't land it. No commit rule scope can do this: a tip rule never sees a commit with no `Refs:`, and commit scope runs the same in both modes.
+- 🟢 The `pre-merge` hook refuses a branch that carries a fixup commit that still needs squashing, so `just land` can't land it. No commit rule scope can do this: a tip rule never sees a commit with no `Refs:`, and commit scope runs the same in both modes.
 
 ```toml
 [[commits.rules]]

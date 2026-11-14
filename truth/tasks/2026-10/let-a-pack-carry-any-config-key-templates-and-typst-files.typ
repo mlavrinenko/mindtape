@@ -31,7 +31,7 @@
     2026,
     10,
     26,
-  )[agreed: a pack deep-merges as a layer just below the one extending it, unequal values from two packs conflict, and a directory pack ships templates and check files],
+  )[Agreed: a pack deep-merges as a layer just below the one extending it. Unequal values from two packs conflict, and a directory pack carries templates and check files.],
   links: parent("share-config-between-projects-through-packs.typ"),
 )
 
@@ -60,7 +60,7 @@ team/check.typ          # check = { typst = "check.typ", … } resolves here
 
 == Changes
 
-- `truth/tasks/*.typ`: the leaves that build it, linked with `parent` to `share-config-between-projects-through-packs.typ`. This decision changes no file itself.
+- `truth/tasks/*.typ`: the leaves that build it, linked with `parent` to `share-config-between-projects-through-packs.typ`. This decision alone has no file change.
 
 
 == Alternatives
@@ -68,13 +68,13 @@ team/check.typ          # check = { typst = "check.typ", … } resolves here
 - A preset layer for the keys that aren't rules: two ways to share one config.
 - The layer's table replaces the pack's whole: this repo's `[tasks.estimate.queries]` would vanish beside a pack's `[tasks.estimate]`.
 - Last pack wins on a shared value: nothing would say which one the project got.
-- Merge `[[tasks.status]]` entry by entry: halves of two transition graphs make no graph.
+- Merge `[[tasks.status]]` entry by entry: halves of two transition graphs don't make a graph.
 
 
 == Out of scope
 
-- A pack extending a pack: one level keeps resolution and `mt config show --origin` simple.
-- The keys refused above: they name the project's own tree, or a second level of packs.
+- A pack cannot extend a pack, since one level keeps resolution and `mt config show --origin` simple.
+- The keys refused above name the project's own tree, or a second level of packs.
 - A Typst file the task files import, such as `truth/lib.typ`: a task imports it by a path inside the project, so sharing it means publishing a Typst package.
 
 

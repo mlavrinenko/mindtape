@@ -53,21 +53,21 @@ fallback = 'status == "wip"'
 ```
 - 🟢 A `filter` cell counts the project's matching tasks under its own config, and `@view` uses the project's view, else `fallback`. A `top` cell is the first task of a listing.
 - 🟢 A cell whose filter fails is an error naming it. `hide` and `sort` read cells by column name.
-- 🟢 The shipped `board.toml` names no status.
+- 🟢 The built-in `board.toml` stays free of statuses.
 
 
 == Changes
 
 - `crates/mindtape/src/at/board_tests.rs`: the red tests first: counts, the view fallback, `top`, a failing cell, `hide`, `sort`, a set's override.
 - `crates/mindtape/src/at/board.rs`: parse `[board]`, evaluate one project's row, then sort and hide rows.
-- `crates/mindtape/src/at/board.toml`: the shipped columns, open, ready, blocked and next.
+- `crates/mindtape/src/at/board.toml`: the built-in columns, open, ready, blocked and next.
 - `crates/mindtape/src/at/mod.rs`: hold the board per entry, and list the files.
 - `crates/mindtape/src/lib.rs`: re-export the board types.
 
 
 == Alternatives
 
-- `[board.columns]` as a table: TOML keeps no table order, so the columns would sort by name.
+- `[board.columns]` as a table: TOML doesn't keep table order, so the columns would sort by name.
 - A status map per project, such as `wip = ["doing"]`: a second vocabulary to keep in step, where a view of the same name uses the filter language.
 - Columns built into Rust: they would name statuses, which `AGENTS.md` forbids.
 
@@ -75,10 +75,10 @@ fallback = 'status == "wip"'
 == Out of scope
 
 - The `mt board` command and its table, which the next task adds.
-- A last-activity column: it needs a `max()` aggregate the filter language lacks.
+- A last-activity column needs a `max()` aggregate the filter language lacks.
 
 
 == Dogfood
 
-The owner's board counts this repo with the shipped columns, beside the other projects under `~/projects/home`.
+The owner's board counts this repo with the built-in columns, beside the other projects under `~/projects/home`.
 

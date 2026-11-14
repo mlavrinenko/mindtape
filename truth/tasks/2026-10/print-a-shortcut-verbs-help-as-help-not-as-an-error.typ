@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent learns a verb's flags from its own --help instead of guessing],
+      implementable-tasks: helps[an agent reads a verb's flags from its own `--help` instead of guessing.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -32,8 +32,8 @@
 
 == AS-IS
 
-+ Flipping a task with \`mt done\`, I ran \`mt done --help\` to learn how to pass the note.
-+ 🔴 #raw("crates/mindtape-cli/src/flip.rs"): \`mt \<status> --help\` exits 1, prefixes the help with \`Error:\`, opens it with the rustdoc of the internal \`Shortcut\` parser and names the binary \`mindtape-cli\`.
++ Flipping a task with `mt done`, I ran `mt done --help` to learn how to pass the note.
++ 🔴 #raw("crates/mindtape-cli/src/flip.rs"): `mt <status> --help` exits 1, prefixes the help with \`Error:\`, opens it with the doc comment of the internal \`Shortcut\` parser and names the binary \`mindtape-cli\`.
 
 ```
 $ mt done --help; echo $?
@@ -46,14 +46,14 @@ Usage: mindtape-cli [OPTIONS] [STATUS] [TASKS]...
 `run_external` maps every `Shortcut::try_parse_from` error, the help request included, through `anyhow!("{err}")` (`crates/mindtape-cli/src/flip.rs:104`).
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/flip.rs").
 
 == TO-BE
 
 - 🟢 `mt done --help` prints the help for `mt done` and exits 0, like `mt flip --help`.
-- 🟢 The help names `mt done`, describes the verb, and shows no internal doc comment.
+- 🟢 The help names `mt done`, describes the verb, and hides the internal doc comment.
 
 
 == Changes
@@ -64,7 +64,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-Revert the commit; the shortcut verbs parse their arguments as before.
+Revert the commit. The shortcut verbs parse their arguments as before.
 
 == Out of scope
 

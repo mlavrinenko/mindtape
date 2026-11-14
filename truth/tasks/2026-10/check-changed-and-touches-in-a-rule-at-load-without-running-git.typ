@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: helps[a load-time check that reads git is a side effect of loading a config],
-      docs-match-code: helps[/filters/ and /estimates/ can say a rule reading git is skipped outside a repository],
+      docs-match-code: helps[/filters/ and /estimates/ can say `mt` skips a rule that reads git outside a repository.],
     ),
   ),
   assignee: "agent",
@@ -40,8 +40,8 @@
 + 🔴 It prints `tasks.rules[3].assert: changed() cannot read git: not a git repository`, so the rule is never skipped.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/filter.rs").
 
 == TO-BE
@@ -58,7 +58,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-Revert the commit; loading a config runs the rule's git reads again.
+Revert the commit. Loading a config runs the rule's git reads again.
 
 == Out of scope
 

@@ -54,7 +54,7 @@
 - `contrib/ask-refactoring/dry.sh`, `contrib/ask-refactoring/repeats.sh`: read jscpd's `classes`.
 - `Justfile`, `.gitattributes`: register and assign `jscpd --merge-baseline`.
 - `crates/mindtape-cli/tests/it/jscpd_baseline_merge_e2e.rs`: merge through the jscpd driver.
-- `.config/canibump.toml`: drop the `jscpd-clone-classes` blocker, which qahq now tracks.
+- `.config/canibump.toml`: drop the `jscpd-clone-classes` blocker, which qahq tracks.
 - `.mmz/config.yaml`, `.config/outdatty.yaml`, `docs/src/`: drop the deleted scripts.
 
 

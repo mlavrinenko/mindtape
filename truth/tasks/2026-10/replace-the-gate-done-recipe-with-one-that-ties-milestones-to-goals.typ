@@ -16,9 +16,9 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the docs show the goal check this repo runs on its own backlog],
+      enforced-practice: helps[the docs show the goal check this repo runs on its own backlog.],
       cheap-adoption: neutral,
-      typst-over-markdown: helps[a Typst function checks a field no schema can],
+      typst-over-markdown: helps[a Typst function checks a field no schema can.],
       plain-files: neutral,
     ),
     process: (

@@ -36,14 +36,14 @@
 + Run `mt explain rules` in this repo.
 + 🔴 Names such as `goals`, `src-budget` and `section-allowlist` need their message or the pack docs to say what they check.
 + Open the bare `mt explain` index.
-+ 🔴 Some names are terse enough that even the group heading does not explain the rule; the reader opens the rule or its message.
++ 🔴 Some names are terse enough that even the group heading does not explain the rule. The reader opens the rule or its message.
 
 
 == TO-BE
 
-- 🟢 Every shipped and project rule name says what it checks without its message.
+- 🟢 Every rule name in a pack and in the project says what it checks without its message.
 - 🟢 The pack docs, `mt explain rules` and the tests that quote a rule use the same name.
-- 🟢 No rule changes behavior; only its name, its docs and the tests that assert it.
+- 🟢 A rule keeps its behavior, and only its name, its docs and the tests that assert it change.
 
 ```text
 tasks.rules.keep-one-task-in-progress
@@ -69,8 +69,8 @@ commits.rules.name-task-in-refs-trailer
 
 == Out of scope
 
-- Changing a rule's condition, assertion, message or severity; only its name moves.
-- Renaming collectors, statuses, link kinds or templates; their names are not rule names.
+- Changing a rule's condition, assertion, message or severity stays out. Only its name moves.
+- Renaming collectors, statuses, link kinds or templates stays out. Their names are not rule names.
 
 
 == Dogfood

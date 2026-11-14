@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-mmz 0.12.1 prints one line from mmz --import, so just land stops listing every gate record
+mmz 0.12.1 prints one line from `mmz --import`, so just land stops listing every gate record

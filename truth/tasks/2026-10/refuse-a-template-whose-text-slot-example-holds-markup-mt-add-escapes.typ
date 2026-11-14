@@ -14,9 +14,9 @@
   estimate: (src-files: 3),
   x-goals: (
     product: (
-      readable-tasks: helps[a code span in a filed task renders as code, not as backslashed backticks],
+      readable-tasks: helps[a code span in a filed task renders as code, not as escaped backticks.],
       implementable-tasks: neutral,
-      enforced-practice: helps[a template can no longer teach input its own slot mangles],
+      enforced-practice: helps[a template cannot pass input that its own slot mangles],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -38,7 +38,7 @@
 
 + Run `mt add --template finding --describe`. The `context` slot is `text`, and its example reads #raw("Running `just check` while fixing the sort order").
 + Fill `context` the way the example shows and run `mt add --template finding -f -`.
-+ 🔴 The task reads #raw("Running \\`just check\\`"): a `text` slot escapes markup, so the code span files as literal backticks. `tweak`'s `why` and `sweep-mutants`' `scope` show code spans the same way, 196 task files under `truth/tasks/` carry the escape, and the skill's warning about it, added by `document-that-mt-add-text-slots-escape-markup-instead-of-rendering-it`, did not stop the next one.
++ 🔴 The task reads #raw("Running \\`just check\\`"): a `text` slot escapes markup, and the code span files as literal backticks. `tweak`'s `why` and `sweep-mutants`' `scope` show code spans the same way, 196 task files under `truth/tasks/` carry the escape, and the skill's warning about it, added by `document-that-mt-add-text-slots-escape-markup-instead-of-rendering-it`, did not stop the next one.
 
 
 == TO-BE
@@ -61,8 +61,8 @@
 
 == Alternatives
 
-- A body rule refusing a backslashed backtick in every task. It catches the damage after `mt add` wrote it, in this repo only, and a task that discusses escaping trips it.
-- A warning when `mt add` escapes a backtick in a caller's value. It fires on every fill and leaves the template that taught the input unchanged.
+- A body rule refusing an escaped backtick in every task. It catches the damage after `mt add` wrote it, in this repo only, and a task that discusses escaping trips it.
+- A warning when `mt add` escapes a backtick in a caller's value. It fires on every fill and leaves the template behind that input unchanged.
 - Every character `escape_markup` escapes. A sweep's example names paths such as `sort_tests.rs`, whose `_` the slot rightly files as written, so the check would refuse a true example.
 
 

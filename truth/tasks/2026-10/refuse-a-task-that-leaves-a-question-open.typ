@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent must ask before it files, so a task starts with every decision made],
+      implementable-tasks: helps[an agent must ask before it files.A task starts with every decision made],
       enforced-practice: helps[a settled spec is a rule mt check holds, not a habit someone has to remember],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -45,8 +45,8 @@
 
 - 🟢 A question mark that ends a sentence in TO-BE, Changes, Out of scope or Dogfood fails `mt check` with `ask the user and write the answer in, since a task leaves no question open`, and a `note:` under it quotes the sentence.
 - 🟢 A `?` inside a code span or a code block, and anywhere in Problem, passes.
-- 🟢 A terminal task is exempt, so the closed backlog needs no rewrite.
-- 🟢 The rule ships in the `mindtape-tasks` pack, so a project drops or overrides it by name.
+- 🟢 A terminal task is exempt. The closed backlog doesn't need a rewrite.
+- 🟢 The rule comes in the `mindtape-tasks` pack, so a project drops or overrides it by name.
 
 
 == Changes

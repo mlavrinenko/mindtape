@@ -32,8 +32,8 @@
 
 == AS-IS
 
-+ Read `.config/linecop.yaml`: it leaves `.githooks/*` and `.just/*.just` uncapped, on the belief that linecop detects language by extension only and knows no Just.
-+ 🔴 Both beliefs were wrong: tokei falls back to the shebang and knows `Just`. linecop 0.8.0 did ignore a `Bash` key, since it looked languages up by tokei's display name `BASH`, and it counted only languages named in `limits`, so the `docs/src/**` overrides needed a dummy `Typst: 1000` base.
++ Read `.config/linecop.yaml`: it leaves `.githooks/*` and `.just/*.just` uncapped, on the belief that linecop detects language by file extension alone and doesn't know Just.
++ 🔴 Both beliefs were wrong. `tokei` falls back to the shebang and knows `Just`. linecop 0.8.0 did ignore a `Bash` key, since it looked languages up by the `tokei` display name `BASH`. It counted only languages named in `limits`. The `docs/src/**` overrides then needed a dummy `Typst: 1000` base.
 
 == TO-BE
 
@@ -56,4 +56,4 @@
 
 == Dogfood
 
-`just check` runs `lint::size`, which now holds the git hooks and just modules to a cap.
+`just check` runs `lint::size`, which holds the git hooks and just modules to a cap.

@@ -33,7 +33,7 @@
 == AS-IS
 
 + Closing report-typst-errors-at-their-line-with-typsts-hints
-+ 🔴 #raw("crates/mindtape/src/loader/cache.rs"): a Typst warning prints on the run that evaluates a file and never again, because a cache hit skips evaluation and the cache stores no warnings
++ 🔴 #raw("crates/mindtape/src/loader/cache.rs"): a Typst warning prints on the run that evaluates a file and never again, because a cache hit skips evaluation and the cache drops the warnings
 
 ```
 $ mt ls   # first run
@@ -42,8 +42,8 @@ $ mt ls   # second run, bytes unchanged
 (no warning)
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/loader/cache.rs").
 
 == TO-BE

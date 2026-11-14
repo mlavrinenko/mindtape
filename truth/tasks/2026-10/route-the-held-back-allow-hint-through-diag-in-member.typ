@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[one method names a set member in every hint],
+      sound-codebase: helps[one method states a set member in every hint.],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Naming the member project in a hint's `mt` command inside a set, which added `Diag::in_member`
-+ 🔴 #raw("crates/mindtape-cli/src/util.rs"): `held_back_warning` builds a set member's `mt @<name> allow` by hand, so it skips `Diag::in_member` and prints no `note: project: <name>`
++ 🔴 #raw("crates/mindtape-cli/src/util.rs"): `held_back_warning` builds a set member's `mt @<name> allow` by hand, so it skips `Diag::in_member` and does not print the `note: project: <name>` line
 
 ```
 crates/mindtape-cli/src/util.rs:220:            Command::mt().arg(format!("@{name}")).word("allow"),
@@ -41,15 +41,15 @@ crates/mindtape-cli/src/project_set.rs:138:        .chain(held_back_warning(&hel
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/util.rs").
 
 == TO-BE
 
 - 🟢 A set member's held-back warning gets `hint: read them, then run mt @<name> allow` and `note: project: <name>` from `Diag::in_member`, and `held_back_warning` takes no project name.
 - 🟢 Outside a set the hint still reads `read them, then run mt allow`.
-- 🟢 `mt preset ls`, which reads no project, is built with `Command::mt_global()`.
+- 🟢 `mt preset ls` does not read a project, so it uses `Command::mt_global()`.
 
 
 == Changes

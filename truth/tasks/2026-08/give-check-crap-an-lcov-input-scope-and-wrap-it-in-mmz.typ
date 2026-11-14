@@ -20,23 +20,23 @@
 
 `check-crap` is the one `just check` arm that runs unwrapped, because a
 memoized verdict would outlive the lcov it could not measure. Once mmz can name
-a git-ignored path in a scope, that reason is gone: give the rule an `lcov`
+a git-ignored path in a scope, that reason disappears. Give the rule an `lcov`
 scope holding `target/coverage/lcov.info` with `gitignore: false`, wrap the arm
 in mmz like every other, and delete the exception from the docs.
 
-== Why the current exception exists
+== The current exception
 
-From `docs/contributing/gates.md`: mmz memoizes on file scopes, the lcov is a
+From `docs/contributing/gates.md`: mmz memoizes on file scopes. The lcov is a
 build artifact in none of them, so a memoized verdict would survive the lcov
 going fresh and that arm would skip forever on unchanged sources. Concretely
-`check-crap` records "I could not measure" as a pass; `just cover` then writes
-the lcov; sources are unchanged, so mmz reports fresh and the real gate never
+`check-crap` records "I could not measure" as a pass. `just cover` then writes
+the lcov. Sources stay the same, so mmz reports fresh and the real gate never
 runs.
 
-An input scope naming the lcov fixes exactly that: absent and present are
-different input states, so the arm goes stale the moment the artifact appears.
-Verified against mmz 0.5.1 in a throwaway tree — a scope whose glob currently
-matches nothing is legal, the rule runs and skips normally, and the rule goes
+An input scope for the lcov fixes exactly that: absent and present are
+different input states. The arm goes stale the moment the artifact appears.
+Verified against mmz 0.5.1 in a throwaway tree. A scope whose glob currently
+matches no file is legal, the rule runs and skips normally, and the rule goes
 stale as soon as the file appears.
 
 == Blocked on
@@ -45,8 +45,8 @@ mmz's per-scope `gitignore` key
 (`tasks/mmz-per-scope-gitignore-opt-out-for-artifact-paths.typ` in the mmz
 repo). `target/` is git-ignored and `.mmz/config.yaml` inherits the
 `gitignore: true` default, so the scope is silently empty without it. Flipping
-the manifest-level key instead is not an option here: it would walk `target/`
-and the 2000 generated files under `examples/large/` this manifest's own
+the manifest-level key instead is not an option here. It would walk `target/`
+and the 2000 generated files under `examples/large/` that this manifest's own
 comments say must never churn a rule.
 
 Needs the flake input bumped to the mmz release carrying the key.
@@ -58,8 +58,8 @@ Needs the flake input bumped to the mmz release carrying the key.
   other scope in that file carries its own.
 - `Justfile`: `check`'s arm becomes `(mmz "check-crap")` like the rest.
 - `.just/scripts/check-crap.sh`: the skip-loudly branch stays. It is still
-  right when the lcov has never been written; what changes is that the skip no
-  longer sticks once it is.
+  right when the lcov does not exist yet. The skip does not stick once the lcov
+  exists.
 - `docs/contributing/gates.md` and `docs/src/contributing/gates.typ`: the
   paragraph naming `check-crap` as the deliberate exception goes. Justfile is a
   `dev-docs` outdatty source, so reconcile that group and re-record.

@@ -14,14 +14,14 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a root that can never work never reaches the rest of the tool],
+      enforced-practice: helps[a root that can never work never reaches the rest of the tool.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
-      self-describing: helps[the config error names the reserved path at load],
+      self-describing: helps[the config error states the reserved path at load.],
     ),
     process: (
-      sound-codebase: helps[a contradictory config fails once, with the path named],
+      sound-codebase: helps[a contradictory config fails once, with the path named.],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Set `[[tasks.roots]] path = ".mindtape/templates"` in a project and run `mt ls`.
-+ 🔴 The root is accepted, and the template is loaded as a task:
++ 🔴 The loader accepts the root and loads the template as a task:
 
 ```
 $ mt ls --json | jq '.tasks | length'
@@ -44,10 +44,10 @@ $ mt ls --json | jq '.tasks | length'
 == TO-BE
 
 - 🟢 Working-tree `load_config` rejects a root inside `.mindtape`, `.git`, or a configured template dir, using the task-source policy's normalized forms.
-- 🟢 A template dir equal to or an ancestor of the project root or a task root is rejected.
+- 🟢 The loader rejects a template dir equal to or an ancestor of the project root or a task root.
 - 🟢 A root of `.` that contains template dirs stays valid.
-- 🟢 The error names the root, the reserved path and the config layer that declared it.
-- 🟢 Historical state configs skip this check; `mt config show` remains a raw merged view.
+- 🟢 The error states the root, the reserved path and the config layer that declared it.
+- 🟢 Historical state configs skip this check. `mt config show` remains a raw merged view.
 
 ```
 $ mt ls
@@ -77,5 +77,5 @@ error: tasks.roots: `.mindtape/templates` is reserved for project metadata and t
 
 == Dogfood
 
-This project's roots are valid, so its config is unchanged; the rule protects a root-`.` adopter who points a root at a template dir.
+This project's roots are valid, so its config does not change. The rule protects a root-`.` adopter who points a root at a template dir.
 

@@ -33,7 +33,7 @@
 == AS-IS
 
 + Writing the verb-first titles recipe, which reuses `exit-code()` from `www/utils/ui.typ`.
-+ 🔴 #raw("www/content/split-oversized-tasks.typ"): `exit-code(slug)` returns the last step's code, and the split-oversized-tasks session ends with the rename that files, so the page says the refused `mt add` exits 0.
++ 🔴 #raw("www/content/split-oversized-tasks.typ"): `exit-code(slug)` returns the last step's code, and the split-oversized-tasks session ends with the rename that files. The page then says the refused `mt add` exits 0.
 
 ```
 $ jq '[.steps[].code]' www/generated/split-oversized-tasks.json
@@ -43,8 +43,8 @@ The refused `mt add` exits #exit-code("split-oversized-tasks") and writes no
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("www/utils/ui.typ").
 
 == TO-BE
@@ -55,7 +55,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `www/utils/ui.typ`: `exit-code()` reads the last step that exited non-zero, and fails the build when every step passed. Each caller quotes a refusal or a usage error, so none needs a step argument, and the split-oversized-tasks page needs no edit.
+- `www/utils/ui.typ`: `exit-code()` reads the last step that exited non-zero, and fails the build when every step passed. Each caller quotes a refusal or a usage error, so none needs a step argument, and the split-oversized-tasks page does not need an edit.
 
 
 == Rollback

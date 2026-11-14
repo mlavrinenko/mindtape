@@ -14,7 +14,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a prose rule the gate holds cannot be skipped by memory],
+      enforced-practice: helps[The gate holds a prose rule that memory cannot skip],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -31,9 +31,9 @@
 
 == AS-IS
 
-+ Run `just docs vale-prose`; it passes with the four `Prose` rules over 100 files.
++ Run `just docs vale-prose`. It passes with the four `Prose` rules over 100 files.
 + Copy `.config/vale.ini` to `/tmp/upstream.ini`, set `StylesPath = /tmp/upstream-styles` and `MinAlertLevel = suggestion`, add `Packages = Microsoft, Google, write-good, proselint`, put the four packages in `BasedOnStyles` and run `vale sync`.
-+ 🔴 Run `vale --config=/tmp/upstream.ini docs/src www/content www/utils`; it reports 2,145 alerts over the same 100 files, 539 at warning or above, so a real finding is lost in the noise.
++ 🔴 Run `vale --config=/tmp/upstream.ini docs/src www/content www/utils`. It reports 2,145 alerts over the same 100 files, 539 at warning or above, and a real finding disappears in the noise.
 
 ```
 ✖ 136 errors, 403 warnings and 1606 suggestions in 100 files.
@@ -42,8 +42,8 @@
 == TO-BE
 
 - 🟢 `.config/vale.ini` enables 48 rules: sentence shape, word choice, sentence frames, AI-tell patterns, and the repo's own name, spelling and punctuation rules. Microsoft, Google and write-good supply the base rules, `tbhb/vale-ai-tells` v1.37.0 the AI tells, and the repo vendors them all.
-- 🟢 A new rule starts at warning, its alerts are cleaned, and the rule moves to error; the level sits in the config, not in the rule file.
-- 🟢 A noisy rule is dropped by name, with its reason in a comment beside the line.
+- 🟢 A new rule starts at warning, someone cleans its alerts, and the rule moves to error. The level sits in the config, not in the rule file.
+- 🟢 The config drops a noisy rule by name, with its reason in a comment beside the line.
 - 🟢 `docs/src/contributing/documentation.typ` lists every enabled rule, its level and one example.
 
 ```ini
@@ -61,7 +61,7 @@ Vale.Terms = error
 - `.config/vale/styles/Prose/`: one YAML per rule with its level line removed, `words.txt` for the spelling rule, and `NOTICE.md` with the source and licence of each rule. The vocabulary sits in `.config/vale/styles/config/vocabularies/Prose/`.
 - `docs/src/contributing/documentation.typ`: the 48-row rule table, and the prose of the page rewritten. The 62 files the old style flagged are at zero alerts.
 - `.config/outdatty.yaml`: the `vale-docs` group gains `words.txt` and the vocabulary, which decide what a rule flags.
-- `.config/linecop.yaml` and `.just/docs.just`: the page's cap grows for the table, and the two recipe descriptions name what each arm holds.
+- `.config/linecop.yaml` and `.just/docs.just`: the page's cap grows for the table, and the two recipe descriptions state what each arm holds.
 
 == Alternatives
 
@@ -71,7 +71,7 @@ Vale.Terms = error
 == Out of scope
 
 - Code comments and commit messages, which have tasks of their own.
-- Replacing `check-doc-prose`; its Markdown, comment, schema and help readers stay.
+- Replacing `check-doc-prose` stays out. Its Markdown, comment, schema and help readers stay.
 - The 32 AI-tell rules a task record still skips, which `hold-task-bodies-to-the-record-prose-rules` covers.
 
 == Dogfood

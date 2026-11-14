@@ -29,7 +29,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the prose and the internal comments name the current behavior],
+      docs-match-code: helps[the prose and the internal comments state the current behavior],
     ),
   ),
   assignee: "agent",
@@ -39,17 +39,17 @@
 == AS-IS
 
 + Verifying the fixes for the ast-grep review
-+ 🔴 #raw("www/content/config.typ"): The collector pages still say only a Typst collector names a detail and that a glob-less query reads every git file, and the distinct note is undocumented.
++ 🔴 #raw("www/content/config.typ"): The collector pages still say only a Typst collector states a detail and that a glob-less query reads every git file, and the distinct note stays undocumented.
 
-- `www/content/config.typ` and `www/content/rules.typ` say a Typst collector also names its module and function, while `mt rules` now names an ast-grep query too.
+- `www/content/config.typ` and `www/content/rules.typ` say a Typst collector also states its module and function, while `mt rules` states an ast-grep query too.
 - `www/content/cli/rules.typ` repeats the Typst-only claim.
-- The collector pages say "without one it reads every file git lists", now false because only the language's files are read.
+- The collector pages say "without one it reads every file git lists", a false claim because the engine reads only the language's files.
 - `www/content/estimates.typ` does not mention the distinct-union note.
-- `crates/mindtape/src/config/collect.rs` says the collector names no path set, and `crates/mindtape/src/config/active_rules.rs` says the kind is `regex` or `typst`.
+- `crates/mindtape/src/config/collect.rs` says the collector has no path set, and `crates/mindtape/src/config/active_rules.rs` says the kind is `regex` or `typst`.
 
 == TO-BE
 
-- 🟢 Every page says a Typst collector names its module and function and an ast-grep collector names its language, pattern and glob.
+- 🟢 Every page says a Typst collector states its module and function and an ast-grep collector states its language, pattern and glob.
 - 🟢 A glob-less ast-grep query reads every file of its language that git lists.
 - 🟢 The estimates page documents the distinct-union note.
 - 🟢 The internal comments match the shape.

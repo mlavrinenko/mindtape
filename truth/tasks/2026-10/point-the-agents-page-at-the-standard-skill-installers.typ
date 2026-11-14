@@ -17,13 +17,13 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a reader installs the skill with a tool they may already have, and mt ships no installer of its own],
+      cheap-adoption: helps[a reader installs the skill with a tool they may already have, and mt has no installer of its own.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[each install command on the page was run against this repo's layout before it was written down],
+      docs-match-code: helps[the author ran each install command on the page against this repo's layout before writing it down.],
     ),
   ),
   assignee: "agent",
@@ -38,7 +38,7 @@
 
 == TO-BE
 
-- 🟢 The section names the Agent Skills format and links agentskills.io for what a skill is.
+- 🟢 The section covers the Agent Skills format and links agentskills.io for what a skill is.
 - 🟢 It shows the agent-agnostic installers that read a skill from a GitHub repo, `gh skill install` and `npx skills add`, each run first into a temporary home to confirm it installs `skills/mindtape/` with its `references/`.
 - 🟢 It shows the manual copy and links the skills-directory docs of the major agents instead of restating their paths.
 

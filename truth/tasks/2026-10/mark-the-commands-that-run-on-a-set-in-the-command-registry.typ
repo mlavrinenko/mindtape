@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent reads which commands take a set from one registry the binary enforces],
+      implementable-tasks: helps[an agent reads which commands take a set from one registry the binary enforces.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the page, the skill and each command page render the set-capable commands from `cli.json`],
+      docs-match-code: helps[the page, the skill and each command page render the set-capable commands from `cli.json`.],
     ),
   ),
   assignee: "agent",
@@ -31,14 +31,14 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "show-the-json-of-a-set-and-of-the-board-on-the-schema-page.typ",
-    )[both rewrite read-many-projects.typ, so they land in turn],
+    )[both rewrite read-many-projects.typ, so they land together.],
 )
 
 == AS-IS
 
 + Look up which commands take `mt @work` on `/read-many-projects/` and in `skills/mindtape/SKILL.md`.
 + 🔴 The page types "Only `ls`, `find`, `check` and `board` run on a set", and `docs/src/skill.typ` types the same four.
-+ 🔴 No registry holds that list. It is whichever commands call `project_set::held_set()`: `cmd/ls/mod.rs:96`, `cmd/find.rs:40`, `cmd/check/mod.rs:58` and `cmd/board.rs:62`. A fifth one changes no doc and fails no gate.
++ 🔴 The list lives only in whichever commands call `project_set::held_set()`: `cmd/ls/mod.rs:96`, `cmd/find.rs:40`, `cmd/check/mod.rs:58` and `cmd/board.rs:62`. A fifth one leaves the docs unchanged and passes every gate.
 
 
 == TO-BE
@@ -65,7 +65,7 @@
 
 == Out of scope
 
-- Running more commands on a set. That's a feature question, and this task only names the ones that do.
+- Running more commands on a set. That's a feature question, and this task only covers the ones that do.
 
 
 == Dogfood

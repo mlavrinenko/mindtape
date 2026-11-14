@@ -21,14 +21,14 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[an add hook that reads ready() is refused at load rather than silently never firing],
+      enforced-practice: helps[the loader refuses an add hook that reads ready() rather than let it silently never fire],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
       self-describing: neutral,
     ),
     process: (
-      sound-codebase: helps[one capability table keeps reads_set and add safety in step],
+      sound-codebase: helps[one capability table keeps `reads_set` and add safety in step],
       docs-match-code: neutral,
     ),
   ),
@@ -39,7 +39,7 @@
 == AS-IS
 
 + Reviewing the on.add hook commit, where the add-unsafe field list and the filter name scanner decide what a hook may read.
-+ 🔴 #raw("crates/mindtape/src/rules/typst.rs"): bare `ready` and `blocked` are missing from the add-unsafe list, their call forms are missed because the scan reads variable identifiers only, and `old()` refuses only `id`, `path` and `dir`.
++ 🔴 #raw("crates/mindtape/src/rules/typst.rs"): the add-unsafe list omits bare `ready` and `blocked`, and drops their call forms because the scan reads variable identifiers only. `old()` refuses only `id`, `path` and `dir`.
 
 ```
 [[on.add]]
@@ -48,14 +48,14 @@ when = 'ready()'
 actions = [{ set = { assignee = "x" } }]
 ```
 
-`mt explain add` accepts it, and `mt add --print` never sets `assignee`. In reverse, `!ready` and `!ready()` fire on every add. `old("depth")`, `old("topo")`, `old("blocks")`, `old("children")` and `old("progress")` also load and read the synthetic draft. `old("file")` loads too, though `file` is in `ADD_UNSAFE`. A rule with `when = 'ready()'` is enforced against a template because `reads_set` also misses the call form.
+`mt explain add` accepts it, and `mt add --print` never sets `assignee`. In reverse, `!ready` and `!ready()` fire on every add. `old("depth")`, `old("topo")`, `old("blocks")`, `old("children")` and `old("progress")` also load and read the synthetic draft. `old("file")` loads too, though `file` is in `ADD_UNSAFE`. A rule with `when = 'ready()'` also runs against a template because `reads_set` misses the call form too.
 
 
 == TO-BE
 
 - 🟢 An add hook's `when` refuses every field or predicate whose answer depends on the filed task or the task set, in both the bare and call form.
 - 🟢 `old()` refuses the same fields, so it cannot read the synthetic draft path.
-- 🟢 A rule using `ready()` is dropped from the template pass, just like the bare form.
+- 🟢 The template pass drops a rule using `ready()`, just like the bare form.
 
 ```
 error: on.add[0].when: an add when cannot read `ready`: it is not known until the task is filed

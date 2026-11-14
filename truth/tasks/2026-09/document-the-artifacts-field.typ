@@ -22,7 +22,7 @@
 
 == Summary
 
-Once `read-the-artifacts-field-into-the-task-model.typ` lands, `artifacts` is a core task field that only its one-line entry in `www/utils/dsl-field-notes.typ` describes: the DSL page shows no `created` or `changed` example, the hand-editing reference never uses it, and the changelog is silent.
+Once `read-the-artifacts-field-into-the-task-model.typ` lands, `artifacts` is a core task field that only its one-line entry in `www/utils/dsl-field-notes.typ` describes. The DSL page shows neither a `created` nor a `changed` example, the hand-editing reference never uses it, and the changelog is silent.
 
 == Scope
 
@@ -30,4 +30,4 @@ Add the `artifacts` field to `www/content/dsl.typ`: the `created` and `changed` 
 
 == Dogfood
 
-Not applicable: docs only; the field is dogfooded in `compare-declared-artifacts-against-the-working-tree.typ`.
+Not applicable: docs only. `compare-declared-artifacts-against-the-working-tree.typ` does the dogfooding.

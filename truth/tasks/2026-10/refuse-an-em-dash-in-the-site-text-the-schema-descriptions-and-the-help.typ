@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the text the docs build generates keeps the voice the hand-written pages keep, under a gate],
+      docs-match-code: helps[the text the docs build generates keeps the voice the hand-written pages keep, under a gate.],
     ),
   ),
   assignee: "agent",
@@ -31,7 +31,7 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "name-the-slug-column-in-the-hyperlinks-help-and-offer-it-only-where-it-applies.typ",
-    )[both rewrite the \[ls\] hyperlinks doc comments in config/ls.rs and regenerate schema/config.schema.json],
+    )[both rewrite the \[ls\] hyperlinks doc comments in config/ls.rs and regenerate schema/config.schema.json.],
 )
 
 == AS-IS

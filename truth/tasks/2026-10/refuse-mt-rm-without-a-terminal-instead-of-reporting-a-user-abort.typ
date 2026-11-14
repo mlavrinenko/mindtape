@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent running mt rm learns to pass --yes instead of reading that it declined],
+      implementable-tasks: helps[an agent running mt rm learns to pass `--yes` instead of reading that it declined.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Capturing every error \`mt\` prints for the error inventory
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/rm/mod.rs"): with stdin not a terminal, \`mt rm\` prints its prompt, reads nothing and reports that the user aborted
++ 🔴 #raw("crates/mindtape-cli/src/cmd/rm/mod.rs"): with stdin not a terminal, `mt rm` prints its prompt, does not read input and reports that the user aborted
 
 ```
 $ mt rm add-redis-client </dev/null
@@ -44,14 +44,14 @@ Continue? [y/N] Error: aborted by user
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/rm/mod.rs").
 
 == TO-BE
 
 - 🟢 With no terminal on stdin, `mt rm` skips the prompt and fails, naming `--yes` as the way to confirm without one.
-- 🟢 "aborted" is printed only when someone answered no.
+- 🟢 `mt` prints "aborted" only when someone answered no.
 
 
 == Changes
@@ -61,7 +61,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the file; the prompt runs on a closed stdin again.
+- Revert the file. The prompt runs on a closed stdin again.
 
 
 == Out of scope

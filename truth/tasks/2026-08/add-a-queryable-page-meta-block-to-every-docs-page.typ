@@ -28,8 +28,8 @@ derived from, before anything reads it. Fifteen files, one shape:
 )) <page-meta>
 ```
 
-The four values are copied verbatim out of `www/utils/site.typ`'s `NAV` entry
-for that route — this task invents no prose. `index.typ` also carries
+Copy the four values verbatim out of `www/utils/site.typ`'s `NAV` entry for
+that route. This task invents no prose. `index.typ` also carries
 `home: true`, the only page that does.
 
 == Scope
@@ -38,13 +38,13 @@ for that route — this task invents no prose. `index.typ` also carries
   so it reads as the page's header rather than as body content.
 - Nothing else. `site.typ` still owns the manifest, `page.typ` still resolves
   title and summary by route, and every page keeps its `active:` argument. The
-  sibling leaf takes all of that over.
+  sibling leaf takes all that over.
 
-== Why this lands alone
+== Inert for one commit
 
 The block is inert for one commit: no producer queries it, no page reads it, so
-there is nothing for it to drift against. That is what makes the split safe —
-the moment `site.typ` stops owning these values, the pages already have them.
+there is nothing for it to drift against. That is what makes the split safe.
+Once `site.typ` stops owning these values, the pages already have them.
 
 Verify with the same query the producer will use:
 
@@ -53,5 +53,5 @@ typst query --root www www/content/cli.typ '<page-meta>' \
   --field value --one --target html --features html
 ```
 
-It needs `www/generate.sh`'s captures to have run (the query is a full compile);
+It needs `www/generate.sh`'s captures to have run (the query is a full compile).
 `just docs gen` provides them.

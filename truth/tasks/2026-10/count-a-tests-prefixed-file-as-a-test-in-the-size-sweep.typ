@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the size sweep scores a test module as a test, as crap and coverage already do],
+      sound-codebase: helps[the size sweep scores a test module as a test, as crap and coverage already do.],
       docs-match-code: neutral,
     ),
   ),
@@ -32,13 +32,19 @@
 
 == AS-IS
 
-+ Moving library areas into folders, where test modules of a mod.rs are named \`tests\_\*.rs\`
-+ 🔴 #raw("contrib/ask-refactoring/size.sh"): The size arm's \`\$is\_test\` regex misses \`tests\_\*.rs\`, so a themed test module of a \`mod.rs\` is scored as production code.
++ Moving library areas into folders, where a mod.rs keeps its test modules in \`tests\_\*.rs\`
++ 🔴 #raw("contrib/ask-refactoring/size.sh"): The size arm's \`\$is\_test\` regex misses \`tests\_\*.rs\`, so it scores a themed test module of a \`mod.rs\` as production code.
 
-`contrib/ask-refactoring/size.sh:62`: `and ($path | test("_tests\\.rs$|(^|/)tests\\.rs$|(^|/)tests/"))) as $is_test`, which has no `tests_` branch, while `CRAP_EXCLUDES` gained `**/tests_*.rs` in the area moves.
+At `contrib/ask-refactoring/size.sh:62`:
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+```
+and ($path | test("_tests\\.rs$|(^|/)tests\\.rs$|(^|/)tests/"))) as $is_test
+```
+
+The expression has no `tests_` branch, while `CRAP_EXCLUDES` gained `**/tests_*.rs` in the area moves.
+
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("contrib/ask-refactoring/size.sh").
 
 == TO-BE

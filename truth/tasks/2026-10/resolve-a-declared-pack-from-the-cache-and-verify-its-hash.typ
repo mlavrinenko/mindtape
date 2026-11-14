@@ -51,7 +51,7 @@
 - 🟢 `acme:<pack>` resolves to `<pack>.toml` or `<pack>/pack.toml` under the cache directory named by the lock's `sha256`.
 - 🟢 The cache directory is `$MINDTAPE_CACHE_HOME`, else the platform cache directory, such as `~/.cache` on Linux.
 - 🟢 `mt` hashes each used source's cached tree once per load with `pack_sources::hash` and refuses a mismatch, naming the directory.
-- 🟢 A source missing from the cache fails with `pack source not installed: 'acme'` and a hint to run `mt packs install`. No read command touches the network.
+- 🟢 A source missing from the cache fails with `pack source not installed: 'acme'` and a hint to run `mt packs install`. A read command never touches the network.
 - 🟢 `mt config show --origin` prints `pack acme:commits`.
 - 🟢 No file of the tree resolves outside it. `<pack>` takes letters, digits, `-` and `_`. A dictionary `path` stays in the tree, and any pack's `check` module in the pack's directory.
 
@@ -71,8 +71,8 @@
 
 == Alternatives
 
-- Trust the cache directory's name without hashing: a hand-edited cached pack would pass unseen, and a few KB hash in microseconds.
-- The user's config directory: it holds files the user writes, and the cache holds what `mt` can fetch again, as Typst keeps `@preview` packages.
+- Trust the cache directory's name without hashing. A hand-edited cached pack would pass unseen, and a few KB hash in microseconds.
+- The user's config directory holds files the user writes, and the cache holds what `mt` can fetch again, as Typst keeps `@preview` packages.
 - Bound a dictionary to the pack's own directory: two packs of one source couldn't share a word list, and the hash covers the whole tree.
 
 

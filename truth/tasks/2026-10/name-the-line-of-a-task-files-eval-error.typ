@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer finds the broken line of a hand-edited task without bisecting the file],
+      cheap-adoption: helps[a newcomer finds the broken line of a hand-edited task without bisecting the file.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -31,23 +31,23 @@
     2026,
     10,
     7,
-  )[LoadError carries the line of the first diagnostic inside the task file, its trace walked through the prelude, else the task.with line; typst-world and typst-harvest 0.4.0],
+  )[LoadError carries the line of the first diagnostic inside the task file. It walks the trace through the prelude, else uses the task.with line. typst-world and typst-harvest 0.4.0.],
 )
 
 == AS-IS
 
 + Capturing \`mt check\` on broken task files for the /task-files/ docs page
-+ 🔴 #raw("crates/mindtape/src/loader.rs"): an eval error in a task file names the file but not the line, so a syntax mistake in a 30-line task has to be found by eye
++ 🔴 #raw("crates/mindtape/src/loader.rs"): an eval error in a task file reports the file but not the line, so a reader has to find a syntax mistake in a 30-line task by eye
 
 ```
 warning: tasks/missing-comma.typ: eval error: expected comma
 error: tasks/one-tag-without-a-comma.typ:7: tags: expected an array, found a string
 ```
-The rule violation names line 7, and the eval error names no line. typst-world's `format_diagnostics` (`src/world.rs:425`) keeps each diagnostic's message and drops its span.
+The rule violation reports line 7, and the eval error omits the line. typst-world's `format_diagnostics` (`src/world.rs:425`) keeps the message of each diagnostic and drops its span.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("typst-world src/world.rs").
 
 == TO-BE
@@ -57,7 +57,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `typst-world` `src/world.rs` and `typst-harvest` `src/harvest.rs`: carry the first diagnostic's line beside the message in the eval error, and release both crates.
+- `typst-world` `src/world.rs` and `typst-harvest` `src/harvest.rs`: carry the line of the first diagnostic beside the message in the eval error, and release both crates.
 - `crates/mindtape` loader: put that line in the load error's location.
 
 

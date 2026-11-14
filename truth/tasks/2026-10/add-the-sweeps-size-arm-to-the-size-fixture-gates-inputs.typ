@@ -43,8 +43,8 @@
 == Changes
 
 - `.mmz/config.yaml`: add the size arm to `script-size-fixture-check`.
-- `.linecop.yaml`: the Shell comment names the two overrides.
-- `contrib/ask-refactoring/undertested.sh`: the coverage arm now re-reads the lcov, not llvm-cov.
+- `.linecop.yaml`: the Shell comment lists the two overrides.
+- `contrib/ask-refactoring/undertested.sh`: the coverage arm re-reads the lcov, not llvm-cov.
 
 == Rollback
 
@@ -52,7 +52,7 @@
 
 == Out of scope
 
-- Other gates' input lists; each is its own finding when one shows stale.
+- Other gates' input lists. Each is its own finding when one shows stale.
 
 == Dogfood
 

@@ -42,7 +42,7 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 The command builds each message with `Diag` (`crates/mindtape-cli/src/diag/`), and it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 - 🟢 A missing slot names `--set name=value` and `mt add --describe` in hints.
 
 == Changes

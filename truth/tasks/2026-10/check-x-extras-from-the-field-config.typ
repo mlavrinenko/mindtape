@@ -16,8 +16,8 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a project's x- field is held to its configured values and required rule by mt check and every write command, not by a Typst function someone has to ship],
-      cheap-adoption: helps[an adopting repo declares an x- enum in one [tasks.fields] table instead of writing and maintaining a Typst check],
+      enforced-practice: helps[mt check and every write command hold a project's x- field to its configured values and required rule, not a Typst function someone has to write.],
+      cheap-adoption: helps[an adopting repo declares an x- enum in one [tasks.fields] table instead of writing and maintaining a Typst check.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -31,7 +31,7 @@
     2026,
     10,
     4,
-  )[\[tasks.fields.x-\<ns>\] holds an extra to values and required; mt add splices a required one; any other key fails config load],
+  )[\[tasks.fields.x-\<ns>\] holds an extra to values and required. mt add splices a required one. Any other key fails config load.],
 )
 
 == AS-IS
@@ -63,14 +63,14 @@
 
 - 🟢 `mt add` offers a required extra as a choice slot that falls back to `default`, so a template that omits it still files a valid task.
 
-- 🟢 Any other `[tasks.fields]` key fails config load; a core field with its own table (`priority`, `assignee`, …) names that table.
+- 🟢 Any other `[tasks.fields]` key fails config load. A core field with its own table (`priority`, `assignee`, …) gives that table's name.
 
 
 == Changes
 
-- `crates/mindtape/src/validate_tests_fields.rs`: red tests first: a declared `x-` extra that is missing, one outside `values`, an `@dict`-expanded list, an unknown or core field name refused at load, and a required extra spliced as an `mt add` slot.
+- `crates/mindtape/src/validate_tests_fields.rs`: red tests first. Cover a declared `x-` extra that is missing and one outside `values`. Add an `@dict`-expanded list, an unknown or core field name refused at load, and a required extra spliced as an `mt add` slot.
 
-- `crates/mindtape/src/validate.rs`: `check_enum_field` reads an `x-<ns>` name from `task.extras`, compares an `HVal::Str` against `values`, and reports the `required` miss like a core field; a non-string extra with `values` set is a breach.
+- `crates/mindtape/src/validate.rs`: `check_enum_field` reads an `x-<ns>` name from `task.extras`, compares an `HVal::Str` against `values`, and reports the `required` miss like a core field. A non-string extra with `values` set is a breach.
 
 - `crates/mindtape/src/config_tasks.rs`: refuse every `[tasks.fields.<name>]` key other than `kind` and `x-<ns>`, at config load. The tests that declare an inert `[tasks.fields.priority]` move to `kind`.
 
@@ -78,7 +78,7 @@
 
 - `examples/named-sets/.mindtape/config.toml` and its tasks: a declared `x-` extra backed by `@dict`, so `check-examples` runs the path.
 
-- `schema/config.schema.json`: regenerate; the `tasks.fields` description stops saying core-only.
+- `schema/config.schema.json`: regenerate. The `tasks.fields` description stops saying core-only.
 
 - `www/content/config.typ`, `www/content/concepts.typ`, `www/content/rules.typ`: document the extras enum, required and `mt add` slot path. `concepts.typ` says an `x-<ns>` field is also the project's own custom field, which `[tasks.fields]` checks, instead of "mt never checks it".
 
@@ -87,7 +87,7 @@
 
 == Alternatives
 
-- Keep the Typst `check` as the only path: basic enum and required validation would still need a shipped function per project.
+- Keep the Typst `check` as the only path: basic enum and required validation would still need a function each project writes.
 - Add a separate `[tasks.extras.<name>]` section: a second table for the same job, against the one-mechanism request.
 - Only refuse `x-` names in `[tasks.fields]`: removes the silence, not the need.
 - Promote every custom field to a core field: core growth for each consumer's field, which extras exist to avoid.

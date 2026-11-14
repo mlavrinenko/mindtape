@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[each clone the gate tolerates reaches the backlog as a task with its own scope, so the baseline shrinks instead of aging],
+      sound-codebase: helps[each clone the gate tolerates reaches the backlog as a task with its own scope. The baseline then shrinks instead of aging.],
       docs-match-code: neutral,
     ),
   ),
@@ -37,19 +37,19 @@
 
 + Run `jq '.fingerprints | length' .jscpd-baseline.json`.
 + 🔴 It prints about 2000: clones the gate tolerates because they predate it. Most are in tests, such as repeated setup in `crates/mindtape-cli/src/cmd/add/tests_subprocess.rs`.
-+ 🔴 `just ask-refactoring` files none of them. Its header rules jscpd out as a signal a gate already enforces, which no longer holds for a baselined clone.
++ 🔴 `just ask-refactoring` files none of them. Its header rules jscpd out as a signal a gate already enforces, which does not hold for a clone in the baseline.
 
 
 == TO-BE
 
-- 🟢 `just ask-refactoring` files one task per baselined clone family, naming every location and the shared shape.
-- 🟢 A task closes by extracting the clone, or by a `jscpd:ignore-start` marker whose comment says why the match is a coincidence, such as a lookup table matching itself one row down in `crates/mindtape/src/filter/expr.rs`. Either way the commit re-mints the baseline with `just dry-baseline`.
+- 🟢 `just ask-refactoring` files one task per clone family in the baseline, naming every location and the shared shape.
+- 🟢 A task closes by extracting the clone, or by a `jscpd:ignore-start` marker whose comment says why the match is a coincidence. One example is a lookup table that matches itself one row down in `crates/mindtape/src/filter/expr.rs`. Either way the commit re-mints the baseline with `just dry-baseline`.
 
 
 == Changes
 
 - `contrib/ask-refactoring/dry.sh`: `signal_dry` reads the clones jscpd's JSON report marks as not new, and `emit_dry` files one task per clone family.
-- `contrib/ask-refactoring.sh`: `dry` joins `ARMS`, and the header names the baseline as the part of jscpd no gate enforces.
+- `contrib/ask-refactoring.sh`: `dry` joins `ARMS`, and the header states that the baseline is the part of jscpd no gate enforces.
 - `.mindtape/templates/sweep-dry.typ`: the task a clone family becomes.
 - `.mindtape/config.toml`: a `dry` tag beside `size`, `mutants` and `coverage`.
 - `docs/src/contributing/signal-sweep.typ`: the new arm.

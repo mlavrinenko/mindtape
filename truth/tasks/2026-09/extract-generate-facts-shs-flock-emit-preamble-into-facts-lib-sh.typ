@@ -41,19 +41,19 @@
 ~~~ ./www/generate-facts.sh: 298 lines (limit: 300, 99% of limit)
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("www/facts-lib.sh").
 
 == TO-BE
 
-- 🟢 `just check-file-size` passes and `linecop --baseline 90` no longer names `www/generate-facts.sh`.
-- 🟢 The flock re-exec guard, `emit()` and `emit_raw()` live in one sourced file instead of being copied into every artifact script that wants the same atomic-write discipline.
+- 🟢 `just check-file-size` passes and `linecop --baseline 90` stops naming `www/generate-facts.sh`.
+- 🟢 The flock re-exec guard, `emit()` and `emit_raw()` live in one sourced file instead of a copy in every artifact script that wants the same atomic-write discipline.
 
 == Changes
 
-- `www/facts-lib.sh` — new: the flock re-exec guard (`MINDTAPE_GENERATED_LOCK`), `emit()` and `emit_raw()`, moved here verbatim from `www/generate-facts.sh`.
-- `www/generate-facts.sh` — `source "$SCRIPT_DIR/facts-lib.sh"` in place of the preamble it used to carry; every `emit`/`emit_raw` call site is unchanged.
+- `www/facts-lib.sh`: new, the flock re-exec guard (`MINDTAPE_GENERATED_LOCK`), `emit()` and `emit_raw()`, moved here verbatim from `www/generate-facts.sh`.
+- `www/generate-facts.sh`: `source "$SCRIPT_DIR/facts-lib.sh"` in place of the preamble it carried before. Every `emit`/`emit_raw` call site is unchanged.
 
 == Rollback
 

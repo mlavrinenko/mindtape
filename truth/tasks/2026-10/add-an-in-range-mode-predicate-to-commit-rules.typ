@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a rule refuses an unsquashed fixup in a range, so a hook script is not the only guard],
+      enforced-practice: helps[a rule refuses a fixup that still needs squashing in a range, so a hook script is not the only guard],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run `mt check --commit-msg msg` with a `fixup! feat: x` subject, then `mt check --commits main..HEAD` over a branch holding that commit.
-+ 🔴 No commit rule can pass the first and refuse the second: both modes run the same commit-scope rules over the same fields, and a tip rule never sees a commit that has no `Refs:`.
++ 🔴 No commit rule can pass the first and refuse the second. Both modes run the same commit-scope rules over the same fields, and a tip rule never sees a commit that has no `Refs:`.
 
 == TO-BE
 
@@ -49,7 +49,7 @@ message = "run git rebase -i --autosquash"
 
 == Changes
 
-- `crates/mindtape/src/commit/expr.rs`: the red test first, then read `in_range` as a bool field.
+- `crates/mindtape/src/commit/expr.rs`: the red test first, then read `in_range` as a `bool` field.
 - `crates/mindtape/src/config/commits.rs`: pass the mode into `check_commit`.
 - `www/content/commit-rules.typ`: document the field.
 - `.config/wt.toml`: drop the fixup hook once the rule replaces it.
@@ -57,7 +57,7 @@ message = "run git rebase -i --autosquash"
 == Alternatives
 
 - A range scope (`scope = "range"`) over every commit's subject with an aggregate: the cleanest model, but a new scope and evaluator.
-- Expose the range's subjects to a tip rule: a bigger change than the predicate.
+- Expose the range's subjects to a tip rule, a bigger change than the predicate.
 - Keep the `pre-merge` hook script: no language change, but a rule in `mt rules` cannot show it.
 
 == Out of scope

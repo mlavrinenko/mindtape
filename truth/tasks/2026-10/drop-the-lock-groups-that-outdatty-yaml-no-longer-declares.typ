@@ -33,7 +33,7 @@
 == AS-IS
 
 + Rebasing a branch that re-recorded cli-docs onto the split, in a scratch clone
-+ 🔴 #raw("outdatty.lock"): `outdatty check` passes with lock groups the manifest doesn't declare, and the lock merge driver keeps a dropped group's leaves that the other branch changed, so a split or a rename leaves orphan hashes behind.
++ 🔴 #raw("outdatty.lock"): `outdatty check` passes with lock groups the manifest doesn't declare, and the lock merge driver keeps a dropped group's leaves that the other branch changed. A split or a rename leaves orphan hashes behind.
 
 
 ```
@@ -48,13 +48,13 @@ $ grep -A2 '^  cli-docs' outdatty.lock
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/outdatty-lock-merge.sh").
 
 == TO-BE
 
-- 🟢 `outdatty.lock` holds no group that `outdatty.yaml` doesn't declare.
+- 🟢 `outdatty.lock` holds only groups that `outdatty.yaml` declares.
 - 🟢 A rebase over a split drops the old group's leaves instead of keeping them.
 
 
@@ -72,7 +72,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- The lasting orphan check belongs upstream in outdatty, whose `check` could report an undeclared lock group the way it reports an unrecorded dependent. It is filed there; the local check is a stopgap.
+- The lasting orphan check belongs upstream in outdatty, whose `check` could report an undeclared lock group the way it reports an unrecorded dependent. This task files it there. The local check is a stopgap.
 
 
 == Dogfood

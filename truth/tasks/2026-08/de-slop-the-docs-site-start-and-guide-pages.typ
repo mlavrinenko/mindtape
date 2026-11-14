@@ -17,11 +17,11 @@
 
 == Summary
 
-The Start and Guide pages are the ones a new reader meets first, and they
-repeat each other: the overview, the quickstart and the concepts page each
-explain live evaluation and identity-by-filename in their own words. Cut the
-repetition, tighten the language, and strip the `title:`/`summary:` arguments
-these pages no longer need once the manifest lands.
+The Start and Guide pages are the ones a new reader meets first. They repeat
+each other: the overview, the quickstart and the concepts page each explain live
+evaluation and identity-by-filename in their own words. Cut the repetition,
+tighten the language, and strip the `title:`/`summary:` arguments that the
+manifest makes redundant.
 
 == Scope
 
@@ -30,7 +30,7 @@ these pages no longer need once the manifest lands.
 
 == Rules
 
-Facts are not the target — slop is. Every command, flag, field, config key and
+Facts are not the target. Slop is. Every command, flag, field, config key and
 derived read stays exactly as it is. What goes: a point made twice on one
 page, a sentence that only restates its own heading, hedging, and the
 self-congratulatory register ("this is what makes it powerful"). Do not

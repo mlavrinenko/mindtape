@@ -32,8 +32,8 @@
 
 == AS-IS
 
-+ Writing just's --fmt flag in a doc code span while rewriting docs/src/contributing/gates.typ
-+ 🔴 #raw(".just/scripts/check-doc-recipes.sh"): A code span such as \`just --fmt\` makes \`is\_recipe\` run \`grep -qxF --fmt\`, so grep prints a usage error and the gate suggests calling \`\#just.--fmt(...)\`.
++ Writing just's `--fmt` flag in a doc code span while rewriting docs/src/contributing/gates.typ
++ 🔴 #raw(".just/scripts/check-doc-recipes.sh"): A code span such as `just --fmt` makes `is_recipe` run `grep -qxF --fmt`, so grep prints a usage error and the gate suggests calling `#just.--fmt(...)`.
 
 ```
 check-doc-recipes: docs/src/contributing/gates.typ:125: literal `just --fmt` outside the generated module — use #just.--fmt(...)
@@ -44,13 +44,13 @@ check-doc-recipes: docs/src/contributing/gates.typ:125: `just --fmt` is not a re
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-recipes.sh").
 
 == TO-BE
 
-- 🟢 A span that names a just flag, such as `just --fmt`, gets one message that says it is a flag and not a recipe, with no grep error.
+- 🟢 A span that cites a just flag, such as `just --fmt`, gets one message that says it is a flag and not a recipe, with no grep error.
 
 
 == Changes

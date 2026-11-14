@@ -32,7 +32,7 @@
 
 == AS-IS
 
-+ Running \`cargo publish --dry-run --locked --workspace\`, the new release preflight, on the release-pipeline branch
++ Running `cargo publish --dry-run --locked --workspace`, the new release preflight, on the release-pipeline branch
 + 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): mindtape-cli's packaged tarball does not compile, because \`include\_str!\` reaches \`lib/prelude.typ\` outside the crate directory, so the next release would fail at \`cargo publish -p mindtape-cli\`
 
 ```
@@ -43,8 +43,8 @@ error: failed to verify package tarball
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/init/mod.rs").
 
 == TO-BE
@@ -61,7 +61,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; the crate stays unpublishable as before.
+- Revert the commit. The crate stays unpublishable as before.
 
 
 == Out of scope

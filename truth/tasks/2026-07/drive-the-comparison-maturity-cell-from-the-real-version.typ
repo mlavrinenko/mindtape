@@ -15,11 +15,11 @@
 
 == Summary
 
-The comparison page hardcodes 'Pre-1.0, unreleased' for MindTape, which goes stale the moment a tag lands. Read the version from the generated capture instead, and colour only the objective capability rows as a neutral heatmap.
+The comparison page hardcodes 'Pre-1.0, unreleased' for the project, which goes stale the moment a tag lands. Read the version from the generated capture instead, and colour only the objective capability rows as a neutral heatmap.
 
 == Scope
 
 - Read the version from www/generated/version.txt so the maturity cell cannot drift
 - Drop the editorialising wording in favour of the real version plus licence
-- Pastel green, amber and grey applied by capability to every column including MindTape
+- Pastel green, amber and grey applied by capability to every column, including the project's own
 - Leave descriptive rows such as on-disk format and identity uncoloured, since they carry no better or worse

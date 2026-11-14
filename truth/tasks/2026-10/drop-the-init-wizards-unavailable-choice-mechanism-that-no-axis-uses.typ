@@ -42,8 +42,8 @@ crates/mindtape-cli/src/cmd/init/wizard/tests.rs:245:unavailable {
 crates/mindtape-cli/src/cmd/init/wizard/mod.rs:78:        $( unavailable { $( $off:ident when $cond:expr => $why:literal ),+ $(,)? } )?
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/init/wizard/mod.rs").
 
 == TO-BE

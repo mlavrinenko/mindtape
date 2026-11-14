@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[just fmt stops rewriting a comment],
+      sound-codebase: helps[`just fmt` stops rewriting a comment.],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running `just fmt` while fixing `stop-a-waits-checker-that-runs-mt-from-spawning-itself-without-end`
-+ 🔴 #raw("Justfile"): `fmt-check`'s `for f in .just/*.just` loop keeps only the last diff's exit status, so it exits 0 over a diff in `.just/lint.just`, and `just fmt` there deletes the comment line `# lacks.`
++ 🔴 #raw("Justfile"): `fmt-check`'s `for f in .just/*.just` loop keeps only the exit status of the last diff, so it exits 0 over a diff in `.just/lint.just`, and `just fmt` there deletes the comment line `# lacks.`
 
 ```
 $ just fmt-check; echo "exit $?"
@@ -44,14 +44,14 @@ exit 0
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("Justfile").
 
 == TO-BE
 
 - 🟢 `just fmt-check` fails when any `.just/*.just` module differs from `just --dump`.
-- 🟢 `just fmt` is a fixpoint on every module and deletes no comment.
+- 🟢 A second `just fmt` leaves every module unchanged and keeps the comment.
 
 
 == Changes

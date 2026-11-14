@@ -10,7 +10,7 @@
   difficulty: 2,
   tags: ("cli", "substrate", "tests"),
   estimate: (files: 1),
-  status: done(2026, 8, 7)[session run 2026-08-07; every probe passed],
+  status: done(2026, 8, 7)[session run 2026-08-07, every probe passed],
   links: related("actors-roles-registry.typ")[
     the implementation this session verifies
   ]
@@ -27,17 +27,17 @@ Verify the registry end to end in a real session: filters resolve an assignee's 
 
 Session run 2026-08-07 against a scratch project under `/tmp`, scaffolded with
 `mt init --no-input` and extended with `[[roles]]` (`reviewer`, `author`) and
-`[[actors]]` (`ada` human holding `reviewer`, `gpt` llm holding `author`). Five
+`[[actors]]` (`ada` human holding `reviewer`, `gpt` with kind `llm` holding `author`). Five
 tasks: two assigned `ada`, one `gpt`, one unassigned, one assigned to the
 undeclared `eve`.
 
 - `mt ls 'role == "reviewer"'` listed exactly the two `ada` tasks.
 - `mt ls 'role == "author"'` listed exactly the one `gpt` task.
-- `mt ls 'assignee == "gpt"'` matched by actor name — same single row.
+- `mt ls 'assignee == "gpt"'` matched by actor name, the same single row.
 - `eve` never appeared under any `role ==` filter: an undeclared assignee
   resolves no roles rather than falling through to a match.
 - With no `[tasks.assignee]` `allowed`, the `eve` task passed `mt check` as free
-  text (`ok: 5 task(s) valid`); with `allowed = ["ada", "gpt"]` it failed with
+  text (`ok: 5 task(s) valid`). With `allowed = ["ada", "gpt"]` it failed with
   ``eve-one: assignee: `eve` is not an allowed assignee``.
 - An actor holding an undeclared role failed at config load:
   ``actors.lin: role `approver` is not a declared role``.
@@ -48,7 +48,7 @@ actor``), a duplicate actor name, and `kind = "robot"` (``unknown variant
 `robot`, expected `human` or `llm```).
 
 All probes pass. This session was the first exercise of the `role` and
-`assignee` filters through the real CLI — they had only library-level unit tests
+`assignee` filters through the real CLI. They had only library-level unit tests
 against a hand-built `Config`. Follow-up filed:
 `cover-the-actors-filters-end-to-end.typ`.
 

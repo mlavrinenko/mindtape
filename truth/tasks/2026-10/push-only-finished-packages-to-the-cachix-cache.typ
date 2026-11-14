@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a released `mt` stays in the free cache instead of being evicted],
+      cheap-adoption: helps[a released `mt` stays in the free cache instead of leaving it.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -33,20 +33,20 @@
 == AS-IS
 
 + Look up the 0.3.0 build in the cache: `curl https://mlavrinenko.cachix.org/19668k1cqyk7xrhpl0gvi8a7db6010ms.narinfo`.
-+ 🔴 `rust-workspace-deps-0.3.0`, naersk's compiled dependency tree, takes 328 MB against 18 MB for `mt`. CI pushes one per lock change, so the free 5 GB fills with them and evicts released binaries first.
-+ 🔴 The dev shell builds its own `cargo-crap`, which qahq also ships.
++ 🔴 `rust-workspace-deps-0.3.0`, the compiled dependency tree from `naersk`, takes 328 MB against 18 MB for `mt`. CI pushes one per lock change, so the free 5 GB fills with them and evicts released binaries first.
++ 🔴 The dev shell builds its own `cargo-crap`, which qahq also provides.
 
 
 == TO-BE
 
-- 🟢 CI pushes no `-deps-` build to Cachix.
+- 🟢 CI does not push a `-deps-` build to `Cachix`.
 - 🟢 The dev shell takes `cargo-crap` from qahq, which builds and caches it once for every project.
 
 
 == Changes
 
 - `.github/workflows/ci.yml`: `pushFilter: "-deps-"` on the Cachix step.
-- `flake.nix`: `qahq.packages.cargo-crap` instead of the naersk build, once qahq ships 0.3.1.
+- `flake.nix`: `qahq.packages.cargo-crap` instead of the `naersk` build, once qahq provides 0.3.1.
 
 
 == Rollback
@@ -56,10 +56,10 @@
 
 == Out of scope
 
-- flibrarian's and qahq's CI, which push the same kind of path. Each gets the filter in its own repo.
+- `flibrarian`'s and qahq's CI, which push the same kind of path. Each gets the filter in its own repo.
 
 
 == Dogfood
 
-The next CI run's Cachix push lists no `-deps-` path.
+The next CI run's `Cachix` push does not list a `-deps-` path.
 

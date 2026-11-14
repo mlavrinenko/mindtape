@@ -31,19 +31,19 @@
     2026,
     10,
     28,
-  )[mt rm calls typst-cleanup 0.3's referrers, delete\_plan and Error::Ineligible],
+  )[mt rm calls typst-cleanup 0.3's referrers, the delete plan and Error::Ineligible],
 )
 
 == AS-IS
 
 + Read `crates/mindtape-cli/src/cmd/rm/mod.rs`, `gitless/mod.rs` and `eligible.rs`.
-+ 🔴 `referrers` repeats typst-cleanup's `Policy::scan` and `Policy::identity` loop, `plain_delete_plan` builds a `Plan` by hand and copies the crate's sort order, and `check_eligible_files` mints every eligible file a second time because `typst_cleanup::plan` stopped at the first file it couldn't mint.
++ 🔴 `referrers` repeats typst-cleanup's `Policy::scan` and `Policy::identity` loop, and the local helper that replaces it builds a `Plan` by hand and copies the crate's sort order. `check_eligible_files` mints every eligible file a second time, because `typst_cleanup::plan` stopped at the first file it couldn't mint.
 + 🔴 `mt rm --dry-run` on a dirty referenced task names only that one file, as `task file has uncommitted changes`, while the real run lists every offender as `cannot remove`.
 
 
 == TO-BE
 
-- 🟢 `mt rm` asks typst-cleanup 0.3 who references what (`referrers`), deletes unreferenced tasks through `delete_plan`, and renders the crate's `Error::Ineligible`, which names every file that can't carry a tombstone.
+- 🟢 `mt rm` asks typst-cleanup 0.3 who references what (`referrers`), deletes unreferenced tasks through the crate's delete plan, and renders the crate's `Error::Ineligible`. That error lists every file that can't carry a tombstone.
 - 🟢 A dry run refuses a dirty or untracked task with the same list the real run prints.
 
 
@@ -51,8 +51,8 @@
 
 - `crates/mindtape-cli/src/cmd/rm/tests.rs`, `cli_tests.rs`: the red test first, a dry run listing every offender as `cannot remove`.
 - `crates/mindtape-cli/Cargo.toml`: typst-cleanup 0.3.0.
-- `crates/mindtape-cli/src/cmd/rm/mod.rs`: call `typst_cleanup::referrers` and `delete_plan`; drop the local `referrers` and the pre-check.
-- `crates/mindtape-cli/src/cmd/rm/gitless/mod.rs`, `gitless/unlink.rs`: drop `plain_delete_plan`; `reject_diag` takes the crate's sorted sets.
+- `crates/mindtape-cli/src/cmd/rm/mod.rs`: call `typst_cleanup::referrers` and `delete_plan`. Drop the local `referrers` and the pre-check.
+- `crates/mindtape-cli/src/cmd/rm/gitless/mod.rs`, `gitless/unlink.rs`: drop `plain_delete_plan`. `reject_diag` takes the crate's sorted sets.
 - `crates/mindtape-cli/src/cmd/rm/eligible.rs`: render `Error::Ineligible` instead of minting.
 - `crates/mindtape-cli/src/diag/from_lib.rs`: match the new error variants.
 

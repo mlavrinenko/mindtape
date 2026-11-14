@@ -32,17 +32,17 @@
 
 == AS-IS
 
-+ Migrating kimmable's config to mt 0.3.0
++ Migrating `kimmable`'s config to mt 0.3.0
 + 🔴 #raw("crates/mindtape-cli/src/cmd/check/mod.rs"), #raw("crates/mindtape-cli/src/util.rs"): `mt check` and `mt ls` print each Typst warning in full with its hint, so one habit repeated across a backlog floods the output
 
-In kimmable, `mt check 2>&1 | rg -c 'no text within stars'` prints `188`, each a warning line plus the same hint:
+In `kimmable`, `mt check 2>&1 | rg -c 'no text within stars'` prints `188`, each a warning line plus the same hint:
 ```
 warning: tasks/a-contrib-driver-for-the-frame-at-a-timestamp.typ:43:41: no text within stars
 hint: using multiple consecutive stars (e.g. **) has no additional effect
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in the shared load
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. It belongs in the shared load
 report, so every command that prints a Typst warning folds it.
 
 == TO-BE
@@ -51,11 +51,11 @@ report, so every command that prints a Typst warning folds it.
 
 == Changes
 
-- `crates/mindtape-cli/src/warnings.rs` (new): fold warnings with the same message into one line naming the hint, the count and the files; `fold_warnings` keeps every site when asked.
-- `crates/mindtape-cli/src/util.rs`: `load_problems` folds for every command that reports load warnings, so `mt ls`, `mt find` and a set share the behavior; `folded_load_problems` passes the choice explicitly.
+- `crates/mindtape-cli/src/warnings.rs` (new): fold warnings with the same message into one line that states the hint, the count and the files. `fold_warnings` keeps every site when asked.
+- `crates/mindtape-cli/src/util.rs`: `load_problems` folds for every command that reports load warnings, so `mt ls`, `mt find` and a set share the behavior. `folded_load_problems` passes the choice explicitly.
 - `crates/mindtape-cli/src/cmd/check/mod.rs`, `cmd/check/set.rs`, `project_set.rs`: keep every site for `--json` and `-v`.
 - `crates/mindtape-cli/src/main.rs`, `cli/mod.rs`: carry the `-v` flag to the report and say in its help that it lists every site.
-- Tests in `warnings_tests.rs`, `cmd/check/tests.rs`, `tests/it/breach_location_e2e.rs`; the changelog, the `check` and `ls` docs pages and the outdatty lock.
+- Tests in `warnings_tests.rs`, `cmd/check/tests.rs`, `tests/it/breach_location_e2e.rs`. The changelog, the `check` and `ls` docs pages and the outdatty lock.
 
 == Rollback
 
@@ -63,7 +63,7 @@ report, so every command that prints a Typst warning folds it.
 
 == Out of scope
 
-- kimmable's task bodies, which write markdown `**bold**` in Typst. Rewriting them is that repo's own task.
+- `kimmable`'s task bodies, which write markdown `**bold**` in Typst. Rewriting them is that repo's own task.
 
 == Dogfood
 

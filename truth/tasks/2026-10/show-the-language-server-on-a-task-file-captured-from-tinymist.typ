@@ -18,12 +18,12 @@
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
-      typst-over-markdown: helps[the first screen shows field completion and a caught typo, which Markdown with YAML frontmatter cannot offer],
+      typst-over-markdown: helps[the first screen shows field completion and a caught typo, which Markdown with YAML frontmatter cannot offer.],
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[what the page shows is what tinymist returns for the shipped prelude, captured in each build],
+      docs-match-code: helps[what the page shows is what tinymist returns for the built-in prelude, captured in each build],
     ),
   ),
   assignee: "agent",
@@ -67,5 +67,5 @@
 
 == Dogfood
 
-The capture fails this repo's docs build when a prelude change breaks tinymist's completion, so the repo learns it before a user does.
+The capture fails this repo's docs build when a prelude change breaks tinymist's completion.The repo learns it before a user does.
 

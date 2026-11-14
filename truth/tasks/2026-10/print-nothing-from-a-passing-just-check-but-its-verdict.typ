@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a failure stands out when a pass prints nothing],
+      sound-codebase: helps[a failure stands out when a pass stays silent],
       docs-match-code: neutral,
     ),
   ),
@@ -35,15 +35,15 @@
 + Gating nine docs branches in a row.
 + 🔴 #raw("Justfile"): A passing \`just check\` prints about 40 lines that a pass already implies, and the CRAP report lists functions as new on every run.
 
-Two passing runs printed 40 and 37 lines: cargo-machete's "Good job!", linecop's "All files within size limits.", two nextest run banners, the llvm-cov cfg note and a CRAP table. After `just crap-baseline` the table still ends:
+Two passing runs printed 40 and 37 lines: cargo-machete's "Good job!", linecop's "All files within size limits.", two nextest run banners, the llvm-cov `cfg` note and a CRAP table. After `just crap-baseline` the table still ends:
 ```
 ↑ 0 regressed · ↓ 0 improved · ★ 2 new · ↔ 0 moved · · 1587 unchanged · — 2 removed
 ```
-The two `From` impls in `crates/mindtape-cli/src/task_ref.rs` share the name `TaskRef::from`.
+The two `From` implementations in `crates/mindtape-cli/src/task_ref.rs` share the name `TaskRef::from`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("Justfile").
 
 == TO-BE
@@ -59,13 +59,13 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-Revert the commit; each gate prints its full output again.
+Revert the commit. Each gate prints its full output again.
 
 == Out of scope
 
 - What any gate checks. Only what it prints on a pass changes.
 - Running the tests once instead of twice for coverage, its own decision.
-- Keying the two `TaskRef::from` impls apart in the CRAP report. A pass no longer prints the report.
+- Keying the two `TaskRef::from` implementations apart in the CRAP report. A pass leaves the report out.
 
 
 == Dogfood

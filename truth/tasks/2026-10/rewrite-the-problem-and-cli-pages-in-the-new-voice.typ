@@ -38,7 +38,7 @@
 == AS-IS
 
 + Open `www/content/one-task-at-a-time.typ`.
-+ 🔴 "Because a write command refuses a change that breaks a rule, `mt wip` refuses the second start."
++ 🔴 The page says that because a write command refuses a change that breaks a rule, `mt wip` refuses the second start.
 
 == TO-BE
 

@@ -17,12 +17,12 @@
 
 == Summary
 
-A green `just check` prints about a hundred lines — mmz hit notes, cargo `Blocking waiting for file lock`, the jscpd table, the outdatty table, gitleaks INF lines, tola progress bars, repeated `generated N files` lines, and a success sentence per fixture script — so a failing arm's one error line lands mid-stream and a reader has to grep for it. Every arm's exit code already carries its verdict; the success prose restates it.
+A green `just check` prints about a hundred lines. The output includes mmz hit notes, cargo `Blocking waiting for file lock`, the jscpd table, the outdatty table, and gitleaks info lines. It also prints tola progress bars, repeated `generated N files` lines, and a success sentence per fixture script. A failing arm's one error line lands mid-stream, and a reader has to grep for it. Every arm's exit code already carries its verdict, and the success prose restates it.
 
 == Scope
 
-- Silence each arm at its source, never by capturing and replaying output: a quiet flag on the tool (`cargo -q`, jscpd, gitleaks `--log-level`, tola, outdatty, linecop, tombi, nextest), and dropped success `echo`s in `.just/scripts/` and `www/generate*.sh`.
-- Keep what IS an issue loud: `check-crap`'s SKIPPED notice, the learn-piano example's deliberate warning, every failure message.
+- Silence each arm at its source, never by capturing and replaying output. Use a quiet flag on the tool (`cargo -q`, jscpd, gitleaks `--log-level`, tola, outdatty, linecop, tombi, nextest), and drop success `echo`s in `.just/scripts/` and `www/generate*.sh`.
+- Keep every real issue loud: `check-crap`'s skipped notice, the learn-piano example's deliberate warning, every failure message.
 - Rewrite the `No chronic` sentence in the `docs/src/` gates deep dive to match.
 - Done when a green run prints nothing but the skips and warnings:
 

@@ -10,7 +10,7 @@
   difficulty: 2,
   tags: ("cli", "tests"),
   estimate: (files: 1),
-  status: done(2026, 8, 7)[session run 2026-08-07; every probe passed],
+  status: done(2026, 8, 7)[session run 2026-08-07, every probe passed],
   links: related(
     "mt-rm-must-not-require-git-for-a-task-nothing-references.typ",
   )[
@@ -39,20 +39,20 @@ in-tree `lib/prelude.typ`). Projects scaffolded with `mt init --no-input` (the
   green.
 - Git repo, survivor holding `depends-on("beta-task.typ")`: `mt rm beta-task`
   rewrote the edge onto
-  `swh:1:rev:c1f7295...;path=tasks/beta-task.typ` and `mt check` stayed green —
-  the tombstone path is unchanged.
+  `swh:1:rev:c1f7295...;path=tasks/beta-task.typ` and `mt check` stayed green.
+  The tombstone path stays the same.
 - `mt rm --dry-run` outside a repo printed the plan plus `dry run: nothing
-  written`; the file was still on disk afterwards.
+  written`. The file was still on disk afterwards.
 
 All four probes pass. One wart, filed separately: `mt rm` prints `review the
-changes and commit when satisfied` even in a project with no git repository —
-see `mt-rm-should-not-suggest-committing-without-git.typ`.
+changes and commit when satisfied` even in a project with no git repository.
+See `mt-rm-should-not-suggest-committing-without-git.typ`.
 
 == Scope
 
 - Scratch project with a tasks root outside any git repo: `mt add` a task, mark
-  it done, then `mt rm` it — no git involvement, no error mentioning a
-  repository, file gone, `mt check` green.
+  it done, then `mt rm` it. That run has no git involvement, no error mentions a
+  repository, the file disappears, and `mt check` is green.
 - Same project inside a git repo: unreferenced task still deletes directly.
 - Scratch project where a survivor links to the removed task: `mt rm` rewires
   the edge to the tombstone as before (git path unchanged).

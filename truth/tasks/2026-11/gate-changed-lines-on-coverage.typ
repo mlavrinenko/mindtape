@@ -39,7 +39,7 @@
 == AS-IS
 
 + Reviewing the on.add commit, where every configured gate passed despite two unreachable branches.
-+ 🔴 #raw("Justfile"): The existing gates check absolute size, complexity and score, but no gate checks that new lines are covered.
++ 🔴 #raw("Justfile"): The existing gates check absolute size, complexity and score, but no gate checks the coverage of new lines.
 
 ```
 "function": "parse_template_comparison",
@@ -53,7 +53,7 @@
 
 == TO-BE
 
-- 🟢 `just cover` fails when any line added since `main` is uncovered.
+- 🟢 `just cover` fails when any line added since `main` lacks coverage.
 - 🟢 A branch commit and a dirty worktree both count.
 - 🟢 Existing low-coverage functions stay out of the report.
 
@@ -68,7 +68,7 @@ error: changed lines are not covered
 
 - `nix/dev/shell.nix`: add `python3Packages.diff-cover`, the package's actual nixpkgs attribute.
 - `.just/scripts/cover.sh`: after the lcov check, run `diff-cover target/coverage/lcov.info --compare-branch=main --fail-under=100`, with the worktree diff included so uncommitted lines count.
-- `docs/src/contributing/coverage-crap.typ`: document the gate and its base branch; the Markdown is generated.
+- `docs/src/contributing/coverage-crap.typ`: document the gate and its base branch. The build generates the Markdown.
 
 
 == Out of scope

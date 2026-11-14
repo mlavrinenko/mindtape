@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running \`just nix-build\` in the background while committing part of a worktree's changes
-+ 🔴 #raw("Justfile"): the \`nix-build\` recipe runs \`git add -A\`, so every unstaged change lands in whatever commit comes next
++ 🔴 #raw("Justfile"): the \`nix-build\` recipe runs \`git add -A\`. Every unstaged change then lands in whatever commit comes next
 
 ```
 nix-build:
@@ -43,8 +43,8 @@ nix-build:
 A commit that staged eight named files went in with eleven: the two docs pages left unstaged for the next commit were in it, because `just nix-build` had run first.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("Justfile").
 
 == TO-BE
@@ -54,7 +54,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `Justfile`: replace `git add -A` with `git ls-files -z --others --exclude-standard | xargs -0 -r git add --intent-to-add --`. A git flake reads tracked files from the working tree, and honours unstaged deletions, so only untracked files need to be known to git, and their content stays unstaged. `git add -A --intent-to-add` is not enough: it still stages deletions. The intent-to-add entries stay in the index.
+- `Justfile`: replace `git add -A` with `git ls-files -z --others --exclude-standard | xargs -0 -r git add --intent-to-add --`. A git flake reads tracked files from the working tree, and honours unstaged deletions, so git only needs to know the untracked files, and their content stays unstaged. `git add -A --intent-to-add` is not enough: it still stages deletions. The intent-to-add entries stay in the index.
 
 
 == Rollback
@@ -64,7 +64,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- `just release`, which runs this recipe on a clean tree where staging changes nothing.
+- `just release`, which runs this recipe on a clean tree where staging has no effect.
 
 
 == Dogfood

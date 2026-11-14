@@ -33,7 +33,7 @@
 == AS-IS
 
 + Integrating a branch rebased over a config change.
-+ 🔴 #raw(".just/scripts/integrate.sh"): \`integrate.sh\` runs \`mt\` in the worktree, but that binary was built once by \`fork.sh\`; after a rebase over a config change it rejects the new config, so a good branch is refused.
++ 🔴 #raw(".just/scripts/integrate.sh"): \`integrate.sh\` runs \`mt\` in the worktree, but \`fork.sh\` built that binary once. After a rebase over a config change it rejects the new config. A good branch then fails.
 
 ```
 invalid config: commits.rules[2].when: unknown field in filter: trailers
@@ -44,13 +44,13 @@ invalid config: commits.rules[2].when: unknown field in filter: trailers
 Running `just build-mt` in the worktree cleared the refusal.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw(".just/scripts/integrate.sh").
 
 == TO-BE
 
-- 🟢 `just integrate` rebuilds the worktree's `mt` from the branch tip before its first `mt` call, so a rebased branch is judged by its own config.
+- 🟢 `just integrate` rebuilds the worktree's `mt` from the branch tip before its first `mt` call. A rebased branch then runs under its own config.
 
 == Changes
 

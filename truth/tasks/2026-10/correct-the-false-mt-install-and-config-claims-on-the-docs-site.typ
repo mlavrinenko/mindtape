@@ -37,11 +37,11 @@
 
 - `cli-notes.typ:163` vs `cmd/init/mod.rs:284`: the prelude is a copy under `local/mindtape/<ver>/`.
 - `config.typ:67` vs `cmd/init/preset.rs:177`, `cmd/worktrees.rs:164`: read, never written.
-- `config.typ:257`: `{date:%Y}` filed `fix-the-thing-%Y.typ`; tokens in `date/mod.rs:92`.
+- `config.typ:257`: `{date:%Y}` filed `fix-the-thing-%Y.typ`. The tokens live in `date/mod.rs:92`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("www/content/config.typ").
 
 == TO-BE

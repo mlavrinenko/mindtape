@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-Agents searched the whole filesystem for HVal, which lives in typst-world, not this repo
+Agents searched the whole filesystem for `HVal`, which lives in `typst-world`, not this repo

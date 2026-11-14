@@ -18,26 +18,25 @@
 
 == Summary
 
-The size sweep splits findings two ways, test module or production, and hands
-the production branch prose about carving a Rust file along a seam and not
-leaving "an arbitrary bottom half moved into a `_more.rs`". linecop also caps
-Markdown, so `CONTRIBUTING.md` and `skills/mindtape/SKILL.md` land on that
-branch and would be given advice about Rust modules. Nothing is broken — at the
-default `--baseline 90` no Markdown is reported today — but a machine-filed
-task that talks about the wrong language is exactly the detail that teaches a
-reader to stop believing the rest of it, which is the one failure this sweep
-cannot afford.
+The size sweep splits findings two ways, test module or production, and hands the
+production branch prose about carving a Rust file along a seam and not leaving
+"an arbitrary bottom half moved into a `_more.rs`". linecop also caps Markdown,
+so `CONTRIBUTING.md` and `skills/mindtape/SKILL.md` land on that branch and get
+advice about Rust modules. At the default `--baseline 90` no Markdown is
+reported today, so the bug is latent. A machine-filed task that talks about the
+wrong language is exactly the detail that persuades a reader to distrust the
+rest, the one failure this sweep cannot afford.
 
 == Scope
 
 - Branch the remedy on the finding's language, which `linecop --format json`
-  already reports as a field — do not infer it from the file extension a second
+  already reports as a field. Do not infer it from the file extension a second
   time.
-- The Markdown remedy is genuinely different: progressive disclosure into
-  `references/`, splitting a section into its own page, or re-capping with a
-  written reason. `.linecop.yaml` already argues this at length for the 300-line
-  overrides — draw on that reasoning rather than restating it.
-- The test-versus-production split stays, but it is a Rust distinction. Keep
-  the two axes separate rather than growing one flat list of cases.
+- The Markdown remedy differs: progressive disclosure into `references/`,
+  splitting a section into its own page, or re-capping with a written reason.
+  `.linecop.yaml` already argues this at length for the 300-line overrides. Draw
+  on that reasoning rather than restating it.
+- The test-versus-production split stays, but it is a Rust distinction. Keep the
+  two axes separate rather than growing one flat list of cases.
 - Verify against a real Markdown finding by running the sweep at a baseline low
-  enough to report one, the way the test branch was verified.
+  enough to report one, the way the test branch got its check.

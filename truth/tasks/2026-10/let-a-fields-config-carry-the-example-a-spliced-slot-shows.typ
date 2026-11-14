@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[--describe shows a sample the project wrote, not one Rust made up],
+      implementable-tasks: helps[`--describe` shows a sample the project wrote, not one Rust made up],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Reviewing the examples cf85120b gives slots that mt add splices
-+ 🔴 #raw("crates/mindtape/src/add_slots.rs"): a spliced slot's example is invented in Rust (a scale midpoint, the first value, the field name without \`x-\`, \`someone\`), so a rule on the field's shape fails the template check with no config to fix it
++ 🔴 #raw("crates/mindtape/src/add_slots.rs"): Rust invents a spliced slot's example (a scale midpoint, the first value, the field name without \`x-\`, \`someone\`). A rule on the field's shape then fails the template check, and no config can fix it
 
 ```
 # [tasks.fields.x-ticket] required = true; rule assert = 'matches(x-ticket, "^[A-Z]+-[0-9]+$")'
@@ -45,31 +45,31 @@ x-ticket  string  required  # x-ticket
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/add_slots.rs").
 
 == TO-BE
 
 - 🟢 `[tasks.fields.<name>]`, `[tasks.assignee]`, `[tasks.estimate]` and the numeric scales take `example`, and a spliced slot shows it.
-- 🟢 A spliced slot with no configured example is an unfillable slot naming its config path, as an authored slot is.
+- 🟢 A spliced slot with no configured example fails as a slot that lacks a value, and gives its config path, as an authored slot does.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/check_templates_e2e.rs`: red tests first: a configured example fills, a missing one names the config path.
+- `crates/mindtape-cli/tests/check_templates_e2e.rs`: red tests first: a configured example fills, a missing one gives the config path.
 - `crates/mindtape/src/config_tasks.rs`: the `example` keys.
-- `crates/mindtape/src/add_slots.rs`: read them; drop `midpoint`, `PLACEHOLDER_ASSIGNEE` and the name fallback.
+- `crates/mindtape/src/add_slots.rs`: read them. Drop `midpoint`, `PLACEHOLDER_ASSIGNEE` and the name fallback.
 
 
 == Rollback
 
-- Revert the commit; Rust invents the examples again.
+- Revert the commit. Rust invents the examples again.
 
 
 == Out of scope
 
-- Examples of slots a template declares itself.
+- Examples of slots the template declares.
 
 
 == Dogfood

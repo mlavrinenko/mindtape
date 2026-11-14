@@ -16,9 +16,9 @@
 
 == Summary
 
-A \`\#\` handle is addressed to the person holding the terminal that printed
+A \`\#\` handle addresses the person holding the terminal that printed
 it. An agent that repeats one in a report addresses it to a reader who
-cannot resolve it: the ordinal is recomputed per command, so resolving it
+cannot resolve it. The command recomputes the ordinal on every run, so resolving it
 means running \`mt ls\` again and hoping the id still names the same task.
 Handles are efficient for an agent's own second call and stay fine there.
 What has to stop is spilling them into prose.
@@ -26,13 +26,13 @@ What has to stop is spilling them into prose.
 
 == Scope
 
-Edit \`docs/src/skill.typ\` — \`skills/mindtape/SKILL.md\` is generated from it
-by \`just docs-md\` and must not be hand-edited. Today the skill teaches the
+Edit \`docs/src/skill.typ\`. \`just docs-md\` generates \`skills/mindtape/SKILL.md\` from it,
+and nobody edits the output by hand. Today the skill teaches the
 handle first and offers the stem only as a fallback "for any second
-operation"; that framing is what puts handles in reports.
+operation". That framing is what puts handles in reports.
 
-State the rule as absolute, because a conditional one is a judgment call an
-agent will get wrong on the run that matters: use handles freely for the
+State the rule as absolute. An agent gets a conditional rule wrong on the
+run that matters. Use handles freely for the
 agent's own immediate follow-up call, and never write one into text a human
 reads. Cite the task as a Markdown link whose target is the task file path,
 so the reader clicks through instead of resolving anything.

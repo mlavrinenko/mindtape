@@ -32,11 +32,11 @@ consumer still typing it out.
   `../generated/crate-map.json`, drop the sync comment.
 - `outdatty.yaml`: drop `www/utils/site.typ` from the `typst-pkg-version`
   group, for the same reason `README.md` and `docs/src/agents.typ` are not in
-  it — the file no longer states the fact.
+  it. The file stops stating the fact.
 - `outdatty.lock`: re-confirm.
 
 == Constraint
 
-`site.typ` is evaluated under two roots — `--root www` for the site build and
-`--root .` for the page-manifest driver. A relative `json("../generated/...")`
-resolves against the file either way; an absolute one does not.
+`site.typ` runs under two roots: `--root www` for the site build and `--root .`
+for the page-manifest driver. A relative `json("../generated/...")` resolves
+against the file either way. An absolute one does not.

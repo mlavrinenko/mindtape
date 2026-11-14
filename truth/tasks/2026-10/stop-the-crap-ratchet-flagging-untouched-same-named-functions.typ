@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a CRAP failure names a function the branch changed],
+      enforced-practice: helps[a CRAP failure points at a function the branch changed],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -39,7 +39,7 @@
 cache-imports: regression on Diag::from in crates/mindtape-cli/src/diag/from_lib.rs; re-minted, 119-line baseline diff
 check-json:    regression on Diag::from in from_lib.rs; re-minted, 310-line baseline diff
 ```
-Replayed, cache-imports regressed `TaskCache::get` and `TaskCache::open`; `Diag::from` was the table's first row, `NEW`. The scan's paths are absolute and the baseline's relative, so cargo-crap's exact `(file, function, line)` pass never fires, and its suffix pass ties on the 17 functions sharing a name within a file. They report `NEW` plus removed on every run, are never compared, and sort above real regressions.
+Replayed, cache-imports regressed `TaskCache::get` and `TaskCache::open`. `Diag::from` was the table's first row, `NEW`. The scan's paths are absolute and the baseline's relative. Cargo-crap's exact `(file, function, line)` pass never fires, and its suffix pass ties on the 17 functions sharing a name within a file. They report `NEW` plus removed on every run, are never compared, and sort above real regressions.
 
 == TO-BE
 
@@ -53,8 +53,8 @@ Replayed, cache-imports regressed `TaskCache::get` and `TaskCache::open`; `Diag:
 
 == Changes
 
-- `.just/scripts/_crap-ratchet-lib.sh`: before the ratchet, give the baseline the scan's root and, per `(file, function)` group in line order, the current line at the same position, so the exact pass keys on the ordinal.
-- `.just/scripts/_crap-ratchet-control.sh`: a one-file tree with two same-named functions; a shift alone pairs both, a rise in the second fails naming it. `crap.sh` runs it first.
+- `.just/scripts/_crap-ratchet-lib.sh`: before the ratchet, give the baseline the scan's root and, per `(file, function)` group in line order, the current line at the same position.The exact pass keys on the ordinal.
+- `.just/scripts/_crap-ratchet-control.sh`: a one-file tree with two same-named functions. A shift alone pairs both, a rise in the second fails naming it. `crap.sh` runs it first.
 - Upstream: an issue for cargo-crap to pair a tied suffix group by position.
 
 

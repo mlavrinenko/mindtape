@@ -33,7 +33,7 @@
 == AS-IS
 
 + Read `.just/scripts/outdatty-check.sh` and `.just/scripts/outdatty-lock-merge.sh`.
-+ 🔴 The first diffs the lock's groups against the manifest's with `yq`, though `outdatty check` has failed on an orphaned lock group since 0.8.0. The second is a 280-line bash merge driver for `.config/outdatty.lock` that needs `yq`, `jq` and `b3sum`, plus a 360-line e2e test, because outdatty shipped no driver.
++ 🔴 The first diffs the lock's groups against the manifest's with `yq`, though `outdatty check` has failed on an orphaned lock group since 0.8.0. The second is a 280-line bash merge driver for `.config/outdatty.lock` that needs `yq`, `jq` and `b3sum`, plus a 360-line e2e test, because outdatty did not provide a driver.
 
 == TO-BE
 
@@ -57,8 +57,8 @@
 
 == Out of scope
 
-- `.just/scripts/outdatty-review-trailer.sh`. The `Docs-Unaffected:` trailer is this repo's commit policy, read from commit messages and amends, and outdatty knows nothing of git.
-- The merged-tree match the bash driver tried for a hash both sides changed. outdatty leaves every such hash for review. On a main that passes `outdatty check`, a source both sides changed was edited by both, so only a directed group's dependent could have matched, and `check` reads no such hash.
+- `.just/scripts/outdatty-review-trailer.sh`. The `Docs-Unaffected:` trailer is this repo's commit policy, read from commit messages and amends, and outdatty does not read git.
+- The merged-tree match the bash driver tried for a hash both sides changed. outdatty leaves every such hash for review. On a main that passes `outdatty check`, both sides edited a source both changed. Only a directed group's dependent could have matched, and `check` does not read such a hash.
 
 == Dogfood
 

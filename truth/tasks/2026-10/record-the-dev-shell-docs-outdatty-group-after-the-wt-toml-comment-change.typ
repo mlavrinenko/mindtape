@@ -42,13 +42,13 @@
 outdatty: 1 of 22 groups out of date
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("outdatty.lock").
 
 == TO-BE
 
-- 🟢 `just outdatty-check` passes on main after the group is reviewed and recorded.
+- 🟢 `just outdatty-check` passes on main once the review records the group.
 
 == Changes
 
@@ -60,7 +60,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- Why the commit passed its gate. If the gate was skipped, that is its own finding.
+- Why the commit passed its gate. If the gate never ran, that is its own finding.
 
 == Dogfood
 

@@ -33,7 +33,7 @@
 == AS-IS
 
 + Read the overrides in `.linecop.yaml`.
-+ 🔴 `./AGENTS.md` and `./skills/mindtape/SKILL.md` carry `exclude: true`, so their rendered size goes unchecked, though every agent session loads them whole. Only their Typst sources carry a line cap, which a paragraph growing into an essay passes.
++ 🔴 `./AGENTS.md` and `./skills/mindtape/SKILL.md` carry `exclude: true`. Their rendered size goes unchecked, though every agent session loads them whole. Only their Typst sources carry a line cap, which a paragraph growing into an essay passes.
 
 
 == TO-BE
@@ -48,7 +48,7 @@
 
 == Rollback
 
-Revert the commit; both files return to `exclude: true`.
+Revert the commit. Both files return to `exclude: true`.
 
 == Out of scope
 
@@ -57,4 +57,4 @@ Revert the commit; both files return to `exclude: true`.
 
 == Dogfood
 
-Every agent session here loads both files, so their budgets bound what each session spends on them.
+Every agent session here loads both files. Their budgets bound what each session spends on them.

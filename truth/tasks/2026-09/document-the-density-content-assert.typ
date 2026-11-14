@@ -19,8 +19,8 @@
     product: (
       readable-tasks: helps[a cap of one em-dash per paragraph keeps task prose plain],
       implementable-tasks: neutral,
-      enforced-practice: helps[the density rule is refused by `mt check` instead of
-        living in a style note],
+      enforced-practice: helps[`mt check` refuses the density rule instead of
+        leaving it in a style note],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -37,7 +37,7 @@
 + Open `www/content/config.typ` at "The five content assertions".
 + 🔴 It lists five. `density`, which landed in `add-a-density-content-assert.typ`, is missing, so no project can learn it exists.
 + Run `rg -n density .mindtape/config.toml`.
-+ 🔴 It prints nothing: this repo polices no prose density at all.
++ 🔴 Its output is empty: this repo polices no prose density at all.
 
 == TO-BE
 

@@ -39,8 +39,8 @@
 
 + Open /config/.
 + 🔴 The source is 827 lines with about 20 top-level sections: the layer merge, the status legend, rules, link kinds, environment variables, local packages.
-+ 🔴 `[[ls.rules]]` is described in `cli.typ:163`, `config.typ:664` and `filters.typ:364`. `config.typ:130` says the CLI page owns it, and `cli.typ:170` says the config page does.
-+ 🔴 `config.typ:736` shows `kind = "spike"` under `[[overlay.tasks.links.kinds]]`; loading it prints `unknown field kind`. The key is `name`.
++ 🔴 `cli.typ:163`, `config.typ:664` and `filters.typ:364` each describe `[[ls.rules]]`. `config.typ:130` says the CLI page owns it, and `cli.typ:170` says the config page does.
++ 🔴 `config.typ:736` shows `kind = "spike"` under `[[overlay.tasks.links.kinds]]`. Loading it prints `unknown field kind`. The key is `name`.
 + The duplicate-name rule appears three times (`config.typ:39`, `:216`, `rule-packs.typ:93`), and `config.typ:820-827` is a changelog paragraph.
 
 
@@ -71,10 +71,10 @@
 
 == Out of scope
 
-- `www/content/rule-packs.typ`: it keeps its own page; the reference-page task rewrites it.
+- `www/content/rule-packs.typ`: it keeps its own page. The reference-page task rewrites it.
 
 
 == Dogfood
 
-Config changes in this repo are checked against these pages, since the slices come from configs `just check-examples` validates.
+The gate checks config changes in this repo against these pages, since the slices come from configs `just check-examples` validates.
 

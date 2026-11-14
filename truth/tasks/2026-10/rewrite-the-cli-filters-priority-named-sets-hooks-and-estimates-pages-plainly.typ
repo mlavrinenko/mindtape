@@ -41,17 +41,17 @@
 
 + Run the pages' examples and read their claims.
 + 🔴 `filters.typ:141` and `:157` use `in_dict("verbs", …)`. In a fresh project it prints `unknown dict in filter: verbs`: the `verbs` dict comes from the mindtape-tasks pack.
-+ 🔴 `filters.typ:186` says `into()` works only in `[[on.flip]]`; task-scope `[[commits.rules]]` accepts it too (`commit_task_expr.rs:127`).
-+ 🔴 `cli.typ:282` links commit rules to /config/; `cli.typ:207` counts "the last four" but includes the `true`/`false` row.
++ 🔴 `filters.typ:186` says `into()` works only in `[[on.flip]]`. Task-scope `[[commits.rules]]` accepts it too (`commit_task_expr.rs:127`).
++ 🔴 `cli.typ:282` links commit rules to /config/. `cli.typ:207` counts "the last four" but includes the `true`/`false` row.
 + `hooks.typ:34` and `:81` describe this repo's `mmz --is-fresh` setup as if every reader had it. The WIP-cap TOML is identical at `filters.typ:279` and `config.typ:583`.
 
 
 == TO-BE
 
 - 🟢 Every claim matches the code, and every example runs in the project it names.
-- 🟢 `[[ls.rules]]` lives on the page the config split chose; these pages link to it.
+- 🟢 `[[ls.rules]]` lives on the page the config split chose. These pages link to it.
 - 🟢 Hooks examples use a command any project has.
-- 🟢 Blocks are fixture slices or captures; the prose follows the plain-prose rules.
+- 🟢 Blocks are fixture slices or captures. The prose follows the plain-prose rules.
 
 
 == Source of truth
@@ -64,7 +64,7 @@
 == Changes
 
 - `www/content/{cli,filters,priority,named-sets,hooks,estimates}.typ`: rewrite whole.
-- `www/utils/cli-notes.typ`, `www/utils/framework-notes.typ`: match the CLI and priority pages; their blocks become slices or captures.
+- `www/utils/cli-notes.typ`, `www/utils/framework-notes.typ`: match the CLI and priority pages. Their blocks become slices or captures.
 - `examples/*`: slices for the filter, hook and estimate blocks.
 - `.just/scripts/check-doc-blocks.sh`: drop these pages from the list.
 
@@ -76,5 +76,5 @@
 
 == Dogfood
 
-This repo's own `.mindtape/config.toml` uses these filters and hooks; slices from it keep the pages honest.
+This repo's own `.mindtape/config.toml` uses these filters and hooks. Slices from it keep the pages honest.
 

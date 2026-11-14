@@ -39,8 +39,8 @@
 
 == TO-BE
 
-- 🟢 One test makes the final `fs::rename` fail with no new dependency, feature or production change: the target is an existing non-empty directory, and a file cannot be renamed over it.
-- 🟢 It asserts `write_atomic` errors, the directory and its contents are untouched, and no `.tmp` sibling is left in the parent.
+- 🟢 One test makes the final `fs::rename` fail with no new dependency, feature or production change: the target is an existing non-empty directory, and a file rename over it fails.
+- 🟢 It asserts that `write_atomic` errors, that the directory and its contents stay untouched, and that no `.tmp` sibling remains in the parent.
 - 🟢 `#[cfg(unix)]` like its siblings.
 
 == Changes
@@ -49,14 +49,14 @@
 
 == Rollback
 
-Delete the test; nothing else changed.
+Delete the test. The rest of the change stays.
 
 == Out of scope
 
 - Fault injection (`fail` crate, `failpoints` feature): rejected as too costly for one arm.
-- Failures at the write or fsync steps: they share the arm the rename failure now pins, and the existing permission test already covers creation.
-- Non-Unix: rename-over-a-directory semantics differ on Windows, so the test stays unix-only.
+- Failures at the write or `fsync` steps: they share the arm the rename failure pins, and the existing permission test already covers creation.
+- Non-Unix: rename-over-a-directory semantics differ on Windows. The test stays unix-only.
 
 == Dogfood
 
-Verified red: with `let _ = fs::remove_file(&tmp);` deleted the new test fails, leaving `.task.typ.<uuid>.tmp` beside `task.typ`; restored, it passes. The survivor is a killed mutant.
+Verified red: with `let _ = fs::remove_file(&tmp);` deleted the new test fails, leaving `.task.typ.<uuid>.tmp` beside `task.typ`. Restored, it passes. The survivor is a killed mutant.

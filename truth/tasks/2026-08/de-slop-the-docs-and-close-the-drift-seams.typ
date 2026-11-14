@@ -16,15 +16,15 @@
 
 == Summary
 
-The generated Markdown and the docs site now share facts through
-`www/generated/`, but the PROSE around those facts is still hand-kept in two
-places, and some of it is stale. README restates each site page's purpose,
-re-tells the install and one-time-setup story the Quickstart page already
-derives, hardcodes fifteen `https://mlavrinenko.github.io/mindtape/...` URLs
-nothing verifies, and thanks Lucide for a logo that is no longer theirs. This
-umbrella closes those seams the same way the fact seams were closed — one
-source, read by both sides — and takes a prose pass over every doc while the
-files are open.
+The generated Markdown and the docs site share facts through `www/generated/`,
+but the prose around those facts is still hand-kept in two places, and some of
+it is stale. README restates each site page's purpose and re-tells the install
+and one-time-setup story the Quickstart page already derives. It hardcodes
+fifteen `https://mlavrinenko.github.io/mindtape/...` URLs nothing verifies, and
+thanks "Lucide" for a logo that the repo has since redrawn. This umbrella
+closes those seams the same way it closed the fact seams, with one source read
+by both sides. It also takes a prose pass over every doc while the files are
+open.
 
 == Scope
 
@@ -38,5 +38,5 @@ files are open.
 == Not in scope
 
 The derived-fact pipeline itself (`www/generate.sh`,
-`www/generate-facts.sh`'s existing artifacts) — it works. This is about the
+`www/generate-facts.sh`'s existing artifacts) works. This is about the
 prose that surrounds it.

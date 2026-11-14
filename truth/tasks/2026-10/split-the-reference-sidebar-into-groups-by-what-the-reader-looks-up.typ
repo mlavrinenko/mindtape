@@ -40,8 +40,8 @@
 == TO-BE
 
 - 🟢 Reference holds the lookup pages: the CLI, the filter language, the configuration and the JSON schema.
-- 🟢 The rest move into groups named for the reader's job, such as the checks a project sets (rules, rule packs, commit rules, hooks) and the fields a task carries (statuses, priority, estimates, named sets). No group holds more than 6 pages.
-- 🟢 No route changes, so no link breaks.
+- 🟢 The rest move into groups named for the reader's job. One group holds the checks a project sets (rules, rule packs, commit rules, hooks), and another holds the fields a task carries (statuses, priority, estimates, named sets). Each group stays at 6 pages or fewer.
+- 🟢 The routes stay. Every link then holds.
 
 
 == Source of truth

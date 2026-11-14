@@ -16,16 +16,17 @@
 
 The one new primitive import needs: serialize a `Task` to `#show:
 task.with(...)` Typst source that the loader round-trips and `mt check` accepts.
-Nothing does this today — `mt add` fills a template's slots, and `mt recur` edits
-an existing `task.with(...)` call in place; neither serializes an arbitrary
-`Task` from scratch. Pure function in the domain lib, no IO, no config policy
-(the caller has already mapped values onto the config).
+The existing commands stop short of this. `mt add` fills a template's slots, and
+`mt recur` edits an existing `task.with(...)` call in place. Neither serializes
+an arbitrary `Task` from scratch. Pure function in the domain lib, with no `IO`
+and no config policy (the caller has already mapped values onto the config).
 
 == Design / contract
 
-- New module `crates/mindtape/src/emit.rs`, exported as e.g.
-  `mindtape::emit_task(&Task) -> String`. Pure; deterministic field order.
-- Field-by-field emission (skip absent optionals):
+- New module `crates/mindtape/src/emit.rs`, exported as
+  `mindtape::emit_task(&Task) -> String`. It is pure, with a deterministic field
+  order.
+- Field-by-field emission (skip absent optional fields):
   - `title` -> string literal.
   - `status` -> `name(y, m, d)[note]` (note only when present).
   - `priority` -> scalar `n`, or the framework helper for the built-in set
@@ -37,17 +38,17 @@ an existing `task.with(...)` call in place; neither serializes an arbitrary
   - `estimate` -> unit dict `(days: 1, hours: 2)`.
   - `links` -> group by kind, one helper call per kind with variadic targets and
     optional note: `depends-on("a.typ", "b.typ")`, `related("x.typ")[note]`,
-    custom kinds via `edge("kind", "t")[note]`; join kinds with `+`.
-  - `tags` -> tuple `("a", "b")` (authored only; never `derived_tags`).
+    custom kinds via `edge("kind", "t")[note]`. Join kinds with `+`.
+  - `tags` -> tuple `("a", "b")` (authored only, never `derived_tags`).
   - `due` / `start` / `reviewed` -> `on(y, m, d)`.
-  - `recur` -> the `every(...)` / `rrule(...)` shape if present (may be deferred
-    if no source needs it v1 — note the decision).
-  - `extras` (`x-<ns>`) -> emit each as `x-ns: <literal>`, HVal -> Typst literal
-    (string/int/float/bool/array/dict).
+  - `recur` -> the `every(...)` / `rrule(...)` shape if present (the
+    implementation may wait if no source needs it in v1. Note the decision).
+  - `extras` (`x-<ns>`) -> emit each as `x-ns: <literal>`, with `HVal` -> Typst
+    literal (string/int/float/bool/array/dict).
 - `body`: append the task's `body` field verbatim after the marker. The emitter
-  is a pure serializer — it does NOT synthesize a `Summary`; guaranteeing a
+  is a pure serializer: it does not synthesize a `Summary`. Guaranteeing a
   non-empty body is the mapper's job (`canonical-json-to-task-mapping`). If
-  `body` is empty, emit nothing after the marker.
+  `body` is empty, the marker ends the file.
 
 == Files
 
@@ -66,5 +67,5 @@ an existing `task.with(...)` call in place; neither serializes an arbitrary
 == Scope
 
 - The emitter and its tests only. Independent of the JSON schema (works from
-  `Task`); can land in parallel with `canonical-task-json-schema`.
+  `Task`), so it can land in parallel with `canonical-task-json-schema`.
 - Not in scope: JSON parsing, config mapping, the CLI, `Summary` synthesis.

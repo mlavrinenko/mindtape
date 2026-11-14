@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a fresh machine reaches the starter shapes without running a second command first],
+      cheap-adoption: helps[a fresh machine reaches the starter shapes at once.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -33,38 +33,38 @@
 == AS-IS
 
 + Wiring the per-argument completion table in truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ
-+ 🔴 #raw("crates/mindtape-cli/src/completion.rs"): \`mt init --preset\` is the one argument in SOURCES whose values are enumerable by an existing function and that still records \`Source::None\`, because the driving task named six project-derived sources and presets are an install-level registry rather than a project value.
++ 🔴 #raw("crates/mindtape-cli/src/completion.rs"): `mt init --preset` is the one argument in the `SOURCES` table whose values an existing function can enumerate and that still records `Source::None`. The driving task named six project-derived sources, and presets are an install-level registry rather than a project value.
 
 ```rust
 ("init", "preset", Source::None("an install-level starter shape, not a project value; `mt preset ls` enumerates them")),
 ```
-`crate::preset::list_builtins()` and `list_user_presets(user_preset_dir())` already enumerate exactly what `mt preset ls` prints, so the value source exists and is unused.
+`crate::preset::list_builtins()` and `list_user_presets(user_preset_dir())` already enumerate exactly what `mt preset ls` prints, so an existing value source covers it.
 
-This fell outside the task that surfaced it, so it is filed here rather than
+This fell outside the task that surfaced it, so I filed it here rather than
 left in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/completion.rs").
 
 == TO-BE
 
 - 🟢 Tab after `mt init --preset ` offers the built-in and user presets `mt preset ls` prints, each helped by its one-line description.
-- 🟢 A user preset directory that cannot be read yields the built-ins alone, never an error.
+- 🟢 A user preset directory the process cannot read yields the built-ins alone, never an error.
 
 == Changes
 
-- `crates/mindtape-cli/src/completion.rs` — a `Source::Presets` reading `preset::list_builtins` and `preset::list_user_presets`, replacing the `Source::None` entry for `("init", "preset")`.
-- `crates/mindtape-cli/src/completion_tests.rs` — the built-ins are offered and a missing user directory is not an error.
+- `crates/mindtape-cli/src/completion.rs`: a `Source::Presets` reading `preset::list_builtins` and `preset::list_user_presets`, replacing the `Source::None` entry for `("init", "preset")`.
+- `crates/mindtape-cli/src/completion_tests.rs`: the tests offer the built-ins and accept a missing user directory.
 
 == Rollback
 
-Restore the `Source::None` entry for `("init", "preset")` and drop the `Presets` variant; nothing else reads it.
+Restore the `Source::None` entry for `("init", "preset")` and drop the `Presets` variant. The rest of the code ignores it.
 
 == Out of scope
 
-- `mt preset save <name>`, which names a preset that does not exist yet — no existing value predicts it.
-- Completing a preset from a project the user has not created yet; `mt init` runs before any project exists, so only the registry is in reach.
+- `mt preset save <name>`, which creates a preset that does not exist yet. An existing value cannot predict it.
+- Completing a preset from a project the user has not created yet. `mt init` runs before any project exists, so only the registry is in reach.
 
 == Dogfood
 
-This repo runs `mt init` only when scaffolding a fixture, so the payoff is a
-new user's; the completion is still exercised by the suite `just check` runs,
+This repo runs `mt init` only when scaffolding a fixture. The payoff belongs
+to a new user. The suite `just check` runs still exercises the completion,
 against the installed preset list.

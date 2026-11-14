@@ -33,20 +33,20 @@
 == AS-IS
 
 + Running `just ask-refactoring` after reverting a probe edit with `git checkout`
-+ 🔴 #raw("contrib/ask-refactoring/coverage.sh"): `ensure_lcov_fresh` refuses an lcov older than any `crates/**/*.rs` by mtime, but `just mmz cover` caches by content, so after a checkout or rebase the cache hits, the lcov is not rewritten, and the sweep refuses
++ 🔴 #raw("contrib/ask-refactoring/coverage.sh"): `ensure_lcov_fresh` refuses an lcov older than any `crates/**/*.rs` by modification time. Yet `just mmz cover` caches by content, so after a checkout or rebase the cache hits, the lcov is not rewritten, and the sweep refuses
 
 ```
 ask-refactoring: just mmz cover (a cache miss reruns the suite)
 ask-refactoring: target/coverage/lcov.info predates crates/mindtape/src/lib.rs — run `just cover` first
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("contrib/ask-refactoring/coverage.sh").
 
 == TO-BE
 
-- 🟢 A tree whose sources match the content the lcov was measured on sweeps without a manual `just cover`.
+- 🟢 A tree whose sources match the content behind the lcov sweeps without a manual `just cover`.
 
 == Changes
 
@@ -58,7 +58,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- The mutants arm's mtime check, which has no cache to disagree with.
+- The mutants arm's modification-time check, which has no cache to disagree with.
 
 == Dogfood
 

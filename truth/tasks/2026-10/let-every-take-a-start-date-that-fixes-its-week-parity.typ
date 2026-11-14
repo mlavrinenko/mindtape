@@ -40,7 +40,7 @@
 
 - 🟢 `every(weeks: 2, on: (mon, thu), start: on(2026, 6, 1))` counts parity from the Monday of the week holding `start`: that week and every second one after it are on-weeks.
 - 🟢 Without `start` the global epoch stays the default, so no existing series moves.
-- 🟢 `start` rides in the `rule` dict of `recur`, through the canonical JSON and `emit`, so a spawned instance keeps it.
+- 🟢 `start` rides in the `rule` dict of `recur`, through the canonical JSON and `emit`. A spawned instance then keeps it.
 - 🟢 `www/content/recurring.typ` and `www/content/dsl.typ` document the argument.
 
 
@@ -48,8 +48,8 @@
 
 - `crates/mindtape/src/recur_dates_tests.rs`: the red test first, a `start` fixing the on-weeks and the epoch staying the default without it.
 - `crates/mindtape/src/recur_dates.rs`: `is_on_week` counts from the rule's `start` Monday, else `SERIES_EPOCH`.
-- `crates/mindtape/src/recur.rs`, `crates/mindtape/src/recur/canonical.rs`, `crates/mindtape/src/emit.rs`: `Rule::Period` carries `start`; parse it, round-trip it, emit it.
-- `lib/prelude.typ`: `every()` takes `start:` and puts it in the `rule` dict; `_fmt-recur-rule` shows it.
+- `crates/mindtape/src/recur.rs`, `crates/mindtape/src/recur/canonical.rs`, `crates/mindtape/src/emit.rs`: `Rule::Period` carries `start`. Parse it, round-trip it, emit it.
+- `lib/prelude.typ`: `every()` takes `start:` and puts it in the `rule` dict. `_fmt-recur-rule` shows it.
 - `www/content/recurring.typ`, `www/content/dsl.typ`: document `start`.
 
 

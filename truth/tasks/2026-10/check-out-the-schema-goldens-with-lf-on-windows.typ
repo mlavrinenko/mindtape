@@ -22,8 +22,8 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the Windows job runs its whole suite again instead of stopping on a line-ending diff],
-      docs-match-code: helps[windows.md says the Windows checkout is CRLF and how a byte-compared file opts out],
+      sound-codebase: helps[the Windows job runs its whole suite again instead of stopping on a line-ending diff.],
+      docs-match-code: helps[windows.md says the Windows checkout is CRLF and how a byte-compared file opts out.],
     ),
   ),
   assignee: "agent",
@@ -52,7 +52,7 @@
 
 == Changes
 
-- `.gitattributes`: check `schema/*.json` out with `eol=lf`, so the goldens hold the bytes the generator writes on every platform. The red test is the two golden tests in a `core.autocrlf=true` clone.
+- `.gitattributes`: check `schema/*.json` out with `eol=lf`. The goldens then hold the bytes the generator writes on every platform. The red test is the two golden tests in a `core.autocrlf=true` clone.
 - `.github/workflows/ci.yml`: run the Windows job's nextest with `--no-fail-fast`.
 - `docs/src/contributing/windows.typ`: say that the Windows checkout is CRLF and that a byte-compared file needs `eol=lf`.
 

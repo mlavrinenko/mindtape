@@ -17,8 +17,8 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[the first screen tells an engineer which of their problems Mindtape solves],
-      typst-over-markdown: helps[the first screen shows a typed task and `mt` enforcing it, with no strawman beside it],
+      cheap-adoption: helps[the first screen tells an engineer which of their problems the tool solves.],
+      typst-over-markdown: helps[the first screen shows a typed task and `mt` enforcing it, with no weaker example beside it.],
       plain-files: neutral,
     ),
     process: (
@@ -39,15 +39,15 @@
 == AS-IS
 
 + Read `README.md` from the top.
-+ 🔴 The first code block is 40 lines of YAML that Mindtape never reads, written to look worse than it is. The real task after it is this repo's own backlog task, with eight goal verdicts, `#import "../lib.typ"` and a Dogfood section.
-+ 🔴 The tagline reads "A MIT-licensed". The tagline and the first sentence both open on what Mindtape lacks (daemon, database).
-+ The site home (`www/content/index.typ`) shares the block; its "Why Typst" bullets (plain text, no lock-in) apply to Markdown too.
++ 🔴 The first code block is 40 lines of YAML that the tool never reads, written to look worse than it is. The real task after it is this repo's own backlog task, with eight goal verdicts, `#import "../lib.typ"` and a Dogfood section.
++ 🔴 The tagline reads "A MIT-licensed". The tagline and the first sentence both open on what the tool lacks (daemon, database).
++ The site home (`www/content/index.typ`) shares the block. Its "Why Typst" bullets (plain text, no lock-in) apply to Markdown too.
 
 
 == TO-BE
 
-- 🟢 README opens with one sentence on what Mindtape does for a software team, then the api-service showcase task, then one line per problem with the capture that proves it, each linking its problem page.
-- 🟢 No YAML comparison anywhere. `www/readme-task.yaml`, the `readme-task.json` fact and its drift check are gone.
+- 🟢 README opens with one sentence on what the tool does for a software team. Then comes the api-service showcase task, then one line per problem with the capture that proves it, each linking its problem page.
+- 🟢 No YAML comparison anywhere. The change removes `www/readme-task.yaml`, the `readme-task.json` fact and its drift check.
 - 🟢 The licence moves to a License section at the end.
 - 🟢 "Why Typst" lists what Typst adds over Markdown: field completion, values checked on load, shared helpers by `#import`, a Typst function as a validator.
 - 🟢 Header comments in the touched sources are 10 lines or fewer, in present tense.

@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a correct title is no longer refused],
+      enforced-practice: helps[a correct title passes],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -37,8 +37,8 @@
 
 `mt add "Speed up login" ...` printed `error: speed-up-login: rules.imperative-title: start the title with an imperative verb`, and `rg -x speed crates/mindtape/src/dicts/` finds nothing.
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/dicts/dev-verbs.txt").
 
 == TO-BE

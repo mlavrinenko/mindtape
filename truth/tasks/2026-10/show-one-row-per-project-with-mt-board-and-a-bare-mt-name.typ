@@ -54,7 +54,7 @@ mindtape       3      3        0  cv9 List the active rules in one line…
 
 @home · 27 projects · 19 hidden · mt @home board --all
 ```
-- 🟢 A failed cell prints `?` with a note under the table naming its project.
+- 🟢 A failed cell prints `?` with a note under the table that states its project.
 - 🟢 `--all` shows hidden rows, and `--json` prints the rows.
 
 

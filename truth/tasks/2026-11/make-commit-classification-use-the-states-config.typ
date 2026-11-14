@@ -14,7 +14,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a template-only commit can no longer evade the `Refs:` trailer],
+      enforced-practice: helps[a template-only commit cannot evade the `Refs:` trailer],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -52,9 +52,9 @@ $ echo $?
 
 == TO-BE
 
-- 🟢 `--commit-msg` classifies with the index state's config and staged tasks; `--commits` uses each commit's own.
-- 🟢 `task_entries`, `is_task_file`, `tasks_only` and path-form `Refs:` call the exported policy; a `120000` symlink entry is not a source.
-- 🟢 A path that names no task contributes no stem to `refs` or `tasks`.
+- 🟢 `--commit-msg` classifies with the index state's config and staged tasks. `--commits` uses each commit's own.
+- 🟢 `task_entries`, `is_task_file`, `tasks_only` and path-form `Refs:` call the exported policy. A `120000` symlink entry is not a source.
+- 🟢 A path with no task stays out of `refs` and `tasks`.
 - 🟢 Classification is per path: a tracked-deleted file is a commit-state task, a root outside the project is working-tree only.
 - 🟢 A template-only commit is not task-only and needs a `Refs:` trailer.
 
@@ -75,10 +75,10 @@ error: name the task this commit works on in a `Refs: <stem>` footer
 
 - The history `touches()` rename map, which keeps the working config.
 - Making `tasks_only` mean "loads a task": it stays path-based, so a markerless `.typ` under a root still counts.
-- Historical configs whose roots are now reserved.
+- Historical configs whose roots count as reserved.
 
 
 == Dogfood
 
-This project's task root is `truth/tasks`, so template and metadata paths never count as tasks today; the rule keeps that true for a root-`.` adopter.
+This project's task root is `truth/tasks`, so template and metadata paths never count as tasks today. The rule keeps that true for a root-`.` adopter.
 

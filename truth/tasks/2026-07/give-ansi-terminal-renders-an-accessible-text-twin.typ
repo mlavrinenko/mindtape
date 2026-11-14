@@ -15,7 +15,7 @@
 
 == Summary
 
-The colourised terminal transcripts render as inline SVG, so a screen reader gets nothing at all. Pair each with the plain-text capture the generator already writes.
+The colourised terminal transcripts render as inline SVG. A screen reader gets nothing at all. Pair each transcript with the plain-text capture the generator already writes.
 
 == Scope
 

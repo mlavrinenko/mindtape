@@ -31,13 +31,13 @@
     2026,
     9,
     27,
-  )[why column (named()), why list in --json, \@blocked view in this repo; documented on the CLI, schema and import pages and in the skill],
+  )[why column (`named()`), why list in `--json`, `@blocked` view in this repo. The CLI, schema and import pages document it, and so does the skill.],
 )
 
 == AS-IS
 
 + `mt ls blocked`.
-+ 🔴 It lists blocked tasks but not what blocks them; an agent must `mt eval` each task and then each target to learn which blockers are unfinished.
++ 🔴 It lists blocked tasks but not what blocks them. An agent must `mt eval` each task and then each target to learn which blockers remain unfinished.
 
 
 == TO-BE
@@ -64,7 +64,7 @@ $ mt ls blocked --columns title,why
 == Alternatives
 
 - A `--explain` flag as in `bd ready --explain`: a column composes with views and `--json` without a new flag.
-- Transitive blockers: the one-hop list names what to act on; `blocks` already ranks leverage transitively.
+- Transitive blockers: the one-hop list shows what to act on. `blocks` already ranks leverage transitively.
 
 
 == Out of scope

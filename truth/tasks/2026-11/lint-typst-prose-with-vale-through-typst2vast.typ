@@ -33,7 +33,7 @@
 
 + Run `vale` on a `.typ` file with a `[*.typ]` section in `.config/vale.ini`.
 + 🔴 It prints `E100: typst2vast not found; it's needed to read Typst`.
-+ Run `command -v typst2vast`; nixpkgs has no package for it.
++ Run `command -v typst2vast`. The nixpkgs channel has no package for it.
 
 ```
 $ vale www/content/index.typ
@@ -46,7 +46,7 @@ $ vale www/content/index.typ
 - 🟢 `typst2vast` and Vale 3.26 come from the dev shell, built from their tagged sources.
 - 🟢 Vale reads `*.typ` as prose: headings, lists, quotes and `[content]` blocks.
 - 🟢 Code, math, raw spans and comments stay out of the prose rules.
-- 🟢 The docs run the history, shouting, em-dash and typed-name rules; a task body runs shouting and the em-dash rule, because a task records a change.
+- 🟢 The docs run the history, shouting, em-dash and typed-name rules. A task body runs shouting and the em-dash rule, because a task records a change.
 
 ```
 $ printf '= Title\n\nThis is a sentence.\n' > /tmp/t.typ
@@ -74,12 +74,12 @@ $ vale /tmp/t.typ
 == Alternatives
 
 - Map `typ = rs` in `[formats]`: the Rust grammar misreads Typst raw blocks and comments.
-- Wait for a tree-sitter Typst grammar in Vale: the shipped path is `typst2vast`, and comments are dropped either way.
+- Wait for a tree-sitter Typst grammar in Vale: the available path is `typst2vast`, and either path drops comments.
 
 
 == Out of scope
 
-- Typst comments: the converter drops them, so the banner gate stays on Rust, Shell and CSS.
+- Typst comments: the converter drops them. The banner gate then stays on Rust, Shell and CSS.
 - Replacing `check-doc-prose.sh`: it keeps the repo's rules until the Vale styles match them.
 
 

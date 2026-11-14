@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the module path names the file, and the area's internals can go private to its folder],
+      sound-codebase: helps[the module path gives the file's name, and the area's internals can go private to its folder],
       docs-match-code: neutral,
     ),
   ),
@@ -37,14 +37,14 @@
 == AS-IS
 
 + Run `ls crates/*/src`.
-+ 🔴 `link_*.rs`, `ls*.rs` + `ls_interactive/`, `find.rs`, `recur*.rs`, `rm*.rs`, `graph*.rs`, `install*.rs`, `import.rs` + `import/`, `config_cmd.rs`, `eval.rs`, `go.rs`, `mv.rs`, `preset_cmd.rs`, `review.rs`, `set.rs`, `views.rs`, `worktrees.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.
++ 🔴 `link_*.rs`, `ls*.rs` + `ls_interactive/`, `find.rs`, `recur*.rs`, `rm*.rs`, `graph*.rs`, `install*.rs`, `import.rs` + `import/`, `config_cmd.rs`, `eval.rs`, `go.rs`, `mv.rs`, `preset_cmd.rs`, `review.rs`, `set.rs`, `views.rs`, `worktrees.rs` sit flat at the crate root, so the module path does not mirror the file and nothing marks the area's internals.
 
 == TO-BE
 
 - 🟢 `crates/mindtape-cli/src/cmd/`: `link/`, `ls/` (with `interactive/`), `recur/`, `rm/`, `graph/`, `install/`, `import/`, and `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`, `preset.rs`, `review.rs`, `set.rs`, `views.rs`, `worktrees.rs`.
-- 🟢 Each moved file's tests move beside it (`x_tests.rs`); a `mod.rs` loads a plain `mod tests;` from `tests.rs`.
+- 🟢 Each moved file's tests move beside it (`x_tests.rs`). A `mod.rs` loads a plain `mod tests;` from `tests.rs`.
 - 🟢 `mod.rs` opens with a `//!` map of the folder's files.
-- 🟢 `just check` passes; the commit is moves plus path edits, so `git log --follow` traces every file.
+- 🟢 `just check` passes. The commit is moves plus path edits, so `git log --follow` traces every file.
 
 == Changes
 
@@ -55,7 +55,7 @@
 == Out of scope
 
 - Renames beyond dropping the folder's prefix.
-- Tightening visibility past what compiles; a later sweep owns that.
+- Tightening visibility past what compiles. A later sweep owns that.
 - Done tasks citing old paths: they are history.
 
 == Dogfood

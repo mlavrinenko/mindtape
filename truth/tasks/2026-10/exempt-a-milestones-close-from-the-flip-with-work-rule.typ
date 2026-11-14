@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a milestone closes through its leaves under the shipped pack, as a decision does],
+      enforced-practice: helps[a milestone closes through its leaves under the released pack, as a decision does.],
       cheap-adoption: helps[an adopter with milestones drops the local override of flip-with-work],
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -39,12 +39,12 @@
 == Environment
 
 - `mt` built from `main` at the commit that filed this, on Linux.
-- Hit in corpuspeak closing `ship-the-mvp`, which now overrides the rule in its own `.mindtape/config.toml`.
+- Hit in `corpuspeak` closing `ship-the-mvp`, which overrides the rule in its own `.mindtape/config.toml`.
 
 
 == TO-BE
 
-- 🟢 A milestone closes in a task-only commit under the shipped pack, as a decision does.
+- 🟢 A milestone closes in a task-only commit under the released pack, as a decision does.
 - 🟢 A leaf or a task of no `kind` is still refused for a bare flip.
 
 
@@ -52,16 +52,16 @@
 
 - `crates/mindtape-cli/tests/it/commit_milestone_e2e.rs`: the red test first, a milestone's close passing and a leaf's bare close refused.
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: `flip-with-work` adds `|| staged(kind == "milestone")`, with its comment saying why. The pack already reads `kind` in its section rules.
-- `www/content/commit-rules.typ` and `docs/src/contributing/commit-messages.typ`: the rule's description names the milestone exemption.
+- `www/content/commit-rules.typ` and `docs/src/contributing/commit-messages.typ`: the rule's description states the milestone exemption.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 
 == Out of scope
 
 - The WIP-cap rules, which stay this repo's policy and not the pack's.
-- corpuspeak's local override, which its owner deletes after the release.
+- The local override in `corpuspeak`, which its owner deletes after the release.
 
 
 == Dogfood
 
-This repo has no open milestone to close, so the e2e test closes one in a scratch repo under the shipped pack.
+This repo has no open milestone to close, so the e2e test closes one in a scratch repo under the released pack.

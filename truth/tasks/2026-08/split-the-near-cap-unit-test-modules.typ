@@ -14,16 +14,16 @@
     2026,
     8,
     8,
-  )[five modules split by named theme; parents grew 4 lines each, recur.rs now 481/500],
+  )[five modules split by named theme, parents grew 4 lines each, recur.rs at 481/500],
 )
 
 == Summary
 
-Five ejected test modules sit at 91-96% of the 500-line cap: `add_interactive_tests.rs` (482), `add_values_tests.rs` (475), `ls_rules_tests.rs` (478), `check_tests.rs` (461), `recur_tests.rs` (458, the mindtape-cli one). They are already ejected — each parent carries `#[path = "..._tests.rs"] mod tests` — so `just eject` has no second move and the next test added to any of them hits the wall mid-edit.
+Five ejected test modules sit at 91-96% of the 500-line cap: `add_interactive_tests.rs` (482), `add_values_tests.rs` (475), `ls_rules_tests.rs` (478), `check_tests.rs` (461), `recur_tests.rs` (458, the mindtape-cli one). They are already ejected, because each parent carries `#[path = "..._tests.rs"] mod tests`. `just eject` has no second move, and the next test added to any of them hits the wall mid-edit.
 
 == Scope
 
 - Split each by theme into a sibling `*_tests_<theme>.rs`, wired with a second `#[path]` module in the parent.
 - Do not rebalance by line count alone: the seam must be a subject a reader can name.
-- `crates/mindtape-cli/src/recur.rs` is itself at 477 lines; adding the second `#[path]` line there must not push it over. If it would, that file needs its own split first — say so rather than trimming prose to fit.
+- `crates/mindtape-cli/src/recur.rs` is itself at 477 lines. Adding the second `#[path]` line there must not push it over. If it would, that file needs its own split first. Say so rather than trimming prose to fit.
 - No behaviour change: the same tests, same names, same assertions.

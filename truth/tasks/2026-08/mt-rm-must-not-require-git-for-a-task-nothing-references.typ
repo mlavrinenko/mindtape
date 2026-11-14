@@ -16,25 +16,25 @@
     + related("mt-rm-gitless-manual-test.typ")[
       session verifies the gitless deletion end to end
     ],
-  status: done(2026, 8, 5)[gitless deletion path shipped and verified],
+  status: done(2026, 8, 5)[gitless deletion path landed and verified],
 )
 
 == Summary
 
-The reported gitless failure hit a task that no other task references. With no
-inbound link there is nothing to rewire, so `mt rm` needs no git at all — no
-toplevel discovery, no tombstone mint, no committed-clean guard — yet the git
-requirement is unconditional: `run` calls `git::toplevel` and plans every
+The reported gitless failure hit a task with no inbound references. Such a task
+has nothing to rewire, so `mt rm` can do without git entirely: no `toplevel`
+discovery, no tombstone mint, no committed-clean guard. Yet the git requirement
+is unconditional: `run` calls `git::toplevel` and plans every
 removal through `typst_cleanup::plan`, which mints a tombstone per eligible
 task (`crates/mindtape-cli/src/rm.rs:110-118`). A task that no survivor
 references should delete directly, with zero git involvement.
 
 == Scope
 
-- Before touching git, decide whether a tombstone is actually needed: scan the
+- Before touching git, decide whether a tombstone is actually needed. Scan the
   survivors for inbound references to the eligible ids (the parse-plane
-  `link_target_spans` + `TaskLinks` policy `rm` already uses) — cheap, no eval,
-  no git.
+  `link_target_spans` + `TaskLinks` policy `rm` already uses). That scan is
+  cheap, with no eval and no git.
 - When no survivor references an eligible task: skip `git::toplevel` and the
   committed-clean guard, delete the task files directly.
 - Keep the current git + tombstone path when a reference does exist and the

@@ -33,15 +33,15 @@
 == AS-IS
 
 + Open any docs page and read the sidebar's Reference group.
-+ 🔴 It shows one "CLI reference" entry. None of the 21 command pages under `/cli/` appear, so a reader reaches `mt link` only through the index or search.
++ 🔴 It shows one "CLI reference" entry. None of the 21 command pages under `/cli/` appear. A reader then reaches `mt link` only through the index or search.
 
 
 == TO-BE
 
 - 🟢 Under "CLI reference", the sidebar lists every command page in the index's order, one `mt <command>` link each.
-- 🟢 The list is a native `<details>` element, so it needs no JavaScript. It is open on `/cli/` and every command page, and closed elsewhere until the reader opens it.
-- 🟢 The current command page is highlighted like any other active page.
-- 🟢 The list is built from the same command data the index renders, so a new command appears with no edit to `NAV`.
+- 🟢 The list is a native `<details>` element, so it does not need JavaScript. It is open on `/cli/` and every command page, and closed elsewhere until the reader opens it.
+- 🟢 The list highlights the current command page like any other active page.
+- 🟢 The list builds from the same command data the index renders. A new command then appears with no edit to `NAV`.
 
 
 == Source of truth

@@ -14,7 +14,7 @@
   tags: ("found", "mt"),
   x-goals: (
     product: (
-      readable-tasks: helps[a finished batch of tasks goes with one command naming its folder],
+      readable-tasks: helps[a finished batch of tasks goes with one command that takes its folder],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -44,8 +44,8 @@ would delete 2 task(s):
   - tasks/sw1/fix-two.typ
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/rm/mod.rs").
 
 == TO-BE
@@ -54,13 +54,13 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/rm/mod.rs`: resolve a target that names a directory under a root to the tasks inside it.
+- `crates/mindtape-cli/src/cmd/rm/mod.rs`: resolve a target that points at a directory under a root to the tasks inside it.
 - `crates/mindtape-cli/tests/it/`: the red e2e test first, a folder of two tasks removed by its path.
 - `truth/tasks/swept/`: removed whole by the new command, as Dogfood says.
 
 == Rollback
 
-- Revert the commit. No file format changes.
+- Revert the commit. The file format stays the same.
 
 == Out of scope
 

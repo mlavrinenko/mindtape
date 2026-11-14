@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-The intro said none of these checks ship with Mindtape, yet the mindtape-tasks pack ships some
+The intro said none of these checks come with the tool, yet the mindtape-tasks pack carries some

@@ -45,15 +45,15 @@ $ grep -c gate-notes outdatty.yaml
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("outdatty.yaml").
 
 == TO-BE
 
 - 🟢 Each group pairs the scripts with the docs that restate them, such as the CRAP scripts with `coverage-crap.typ` and `crap-baseline.typ`, and `fork.sh` and `integrate.sh` with `contributing.typ`.
 - 🟢 Every gate script is a source of a group whose dependents include `www/utils/gate-notes.typ`.
-- 🟢 A script no doc restates sits in a source-only group, so editing it flags nothing.
+- 🟢 A script without a restating doc sits in a source-only group, so editing it leaves the dependents alone.
 - 🟢 `just script-scope-check` accepts a script in any group, not only dev-docs.
 
 
@@ -67,7 +67,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit and `outdatty.lock`; dev-docs returns whole.
+- Revert the commit and `outdatty.lock`. dev-docs returns whole.
 
 
 == Out of scope
@@ -77,5 +77,5 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-A gate-script fix in this repo flags only the doc that restates it, so a re-record means someone read that doc.
+A gate-script fix in this repo flags only the doc that restates it. A re-record then means someone read that doc.
 

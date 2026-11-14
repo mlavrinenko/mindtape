@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the triage taxonomy lives in the doc and in exclude_re],
+      docs-match-code: helps[the triage taxonomy lives in the doc and in `exclude_re`.],
     ),
   ),
   assignee: "agent",
@@ -33,14 +33,14 @@
 == AS-IS
 
 + Read the `exclude_re` list in `.cargo/mutants.toml` (7 entries today).
-+ 🔴 Each entry's reason says why the mutant cannot be killed, but nothing names its class, so the next sweep re-triages the same class by hand and no one can count which classes recur.
-+ The 2026-09-30 triage split survivors into test gaps, equivalents and lint-preventable shapes; only the first two left a record.
++ 🔴 Each entry's reason says why the mutant survives, but no entry states its class. The next sweep then re-triages the same class by hand, and no one can count which classes recur.
++ The 2026-09-30 triage split survivors into test gaps, equivalents and lint-preventable shapes. Only the first two left a record.
 
 == TO-BE
 
-- 🟢 Every `exclude_re` entry leads with its class (type-tautology, pure-memoisation, platform-specific, no-public-constructor, same-call, discarded-effect, aliased-input) before its reason; the two `exclude_globs` entries are classed too (entry-point, cfg-unreachable).
+- 🟢 Every `exclude_re` entry leads with its class (type-tautology, pure-memoisation, platform-specific, no-public-constructor, same-call, discarded-effect, aliased-input) before its reason. The two `exclude_globs` entries also carry a class (entry-point, cfg-unreachable).
 - 🟢 `docs/src/contributing/mutation-testing.typ`'s Triage section lists the classes and what each one suggests: a test, an exclusion, a source-form rewrite, or a lint.
-- 🟢 The type-tautology class names the source forms that avoid it in review (`x != 0` rather than `x > 0` on an unsigned count, so the comparison mutant stays killable) and says plainly that no source lint can catch it: the equivalence lies between mutant and source.
+- 🟢 The type-tautology class states the source forms that avoid it in review. On an unsigned count, write `x != 0` rather than `x > 0`, and the comparison mutant stays killable. It also says plainly that no source lint can catch it: the equivalence lies between mutant and source.
 
 == Changes
 
@@ -50,7 +50,7 @@
 
 == Rollback
 
-Revert the comments and the doc subsection; the exclusions still work, only the taxonomy goes.
+Revert the comments and the doc subsection. The exclusions still work, and only the taxonomy goes.
 
 == Out of scope
 

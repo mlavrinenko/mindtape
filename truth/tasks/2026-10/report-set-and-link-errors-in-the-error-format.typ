@@ -38,18 +38,18 @@
 + Run `mt set <task> titel=x`.
 + 🔴 It prints `Error: unknown field: titel; did you mean: title?; writable fields: …`.
 + Run `mt link <task> depends-on nope`.
-+ 🔴 It prints `` error: <task>: `depends-on` edge target `nope.typ` names no task `` and `Error: 1 task(s) had problems`.
++ 🔴 It prints #raw("error: <task>: `depends-on` edge target `nope.typ` names no task") and #raw("Error: 1 task(s) had problems").
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
-- 🟢 `error: unknown field: 'titel'` with `hint: did you mean title?`; `mt link` names the target as typed and ends a batch like `mt flip`.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 `error: unknown field: 'titel'` with `hint: did you mean title?`. `mt link` prints the target as typed and ends a batch like `mt flip`.
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/set.rs`: `Diag`s; the `status` refusal says to use `mt flip`.
+- `crates/mindtape-cli/src/cmd/set.rs`: `Diag`s, and the `status` refusal says to use `mt flip`.
 - `crates/mindtape-cli/src/cmd/link/mod.rs`: the batch summary from `Diag::batch`.
-- `crates/mindtape-cli/src/cmd/link/plan.rs`, `crates/mindtape-cli/src/cmd/link/edit.rs`, `crates/mindtape-cli/src/cmd/link/input.rs`: the target as typed, one sentence per message; drop the `allow`s and their `diag/allowlist.rs` entries for `set` and `link` in `crates/mindtape-cli/src/cmd/mod.rs`.
+- `crates/mindtape-cli/src/cmd/link/plan.rs`, `crates/mindtape-cli/src/cmd/link/edit.rs`, `crates/mindtape-cli/src/cmd/link/input.rs`: the target as typed, one sentence per message, and drop the `allow`s and their `diag/allowlist.rs` entries for `set` and `link` in `crates/mindtape-cli/src/cmd/mod.rs`.
 
 == Out of scope
 

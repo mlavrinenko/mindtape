@@ -45,8 +45,8 @@ Error: no task with id "nope"
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/rm/select.rs").
 
 == TO-BE
@@ -62,7 +62,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the file; the filter parser answers again.
+- Revert the file. The filter parser answers again.
 
 
 == Out of scope
@@ -72,4 +72,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable, this repo retires tasks with `mt rm` rarely; the fix is for a typed name.
+Not applicable, this repo retires tasks with `mt rm` rarely. The fix is for a typed name.

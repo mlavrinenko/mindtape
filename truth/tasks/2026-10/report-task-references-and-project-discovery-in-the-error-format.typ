@@ -31,7 +31,7 @@
     2026,
     10,
     8,
-  )[suggest::hint and suggestion keep callers outside this task; filed as a finding],
+  )[suggest::hint and suggestion keep callers outside this task. Filed as a finding],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   ),
@@ -46,12 +46,12 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 - 🟢 A did-you-mean is its own `hint: did you mean x?` line, and a read or write failure reads `error: can't read: '<path>': no such file or directory`.
 
 == Changes
 
-- `crates/mindtape/src/suggest.rs`: return the nearest name only; drop the `; did you mean: x?` string helpers once no caller uses them.
+- `crates/mindtape/src/suggest.rs`: return the nearest name only. Drop the `; did you mean: x?` string helpers once no caller uses them.
 - `crates/mindtape/src/model/handle.rs`: an empty reference gets its own message.
 - `crates/mindtape-cli/src/util.rs`: the unknown view, the config warnings and one I/O helper (`can't read`/`can't write` with the OS reason) that the other fan-out tasks reuse. The load-error lines are `report-typst-errors-at-their-line-with-typsts-hints`'s, and `report-template-load-failures-and-install-hints-in-the-error-format` drops the `util` `allow` and its `diag/allowlist.rs` entry.
 

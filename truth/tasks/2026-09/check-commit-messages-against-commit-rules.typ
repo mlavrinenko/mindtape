@@ -16,8 +16,8 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a commit names a live task by stem, checked by a hook instead of review],
-      cheap-adoption: helps[one hook line opts a repo in; nothing is installed for it],
+      enforced-practice: helps[a commit points at a live task by stem, checked by a hook instead of review],
+      cheap-adoption: helps[one hook line opts a repo in, with nothing to install],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -40,8 +40,8 @@
 
 - 🟢 `mt check --commit-msg <file>` evaluates `[[commits.rules]]` (`name`/`when`/`assert`/`message`/`severity`, the `[[tasks.rules]]` shape) with `scope = "commit"`; a repo opts in with one `commit-msg` hook line.
 - 🟢 Commit fields: `subject`, `refs` (trailer values as stems), `files` (staged paths), `tasks_only`.
-- 🟢 A trailer value that is a path, or names no task, is always refused, naming the stem to write.
-- 🟢 Rules merge by `name` across rule packs, so a project overrides or disables a shipped one.
+- 🟢 The tool always refuses a trailer value that is a path or points at an unknown task, and gives the stem to write.
+- 🟢 Rules merge by `name` across rule packs, so a project overrides or disables a built-in one.
 
 ```toml
 [commits]
@@ -60,7 +60,7 @@ message = "name the task this commit works on: `Refs: <stem>`"
 
 == Changes
 
-- `crates/mindtape-cli/tests/commit_msg_e2e.rs` (red first): a missing, path-shaped and unknown trailer each refused; a `when` that does not match passes.
+- `crates/mindtape-cli/tests/commit_msg_e2e.rs` (red first): a missing, path-shaped and unknown trailer each refused. A `when` that does not match passes.
 - `crates/mindtape/src/commit_msg.rs` (new): trailer parsing, the staged file list, the commit record the filter reads.
 - `crates/mindtape/src/config_commits.rs` (new) and the JSON Schema: `[commits]` and `[[commits.rules]]`, merged by `name` like `[[tasks.rules]]`.
 - `crates/mindtape-cli/src/check.rs`: the `--commit-msg` flag.
@@ -71,9 +71,9 @@ message = "name the task this commit works on: `Refs: <stem>`"
 
 - Fixed knobs (`require`, `exempt`, `filter`): cannot tell a trunk team's start commits from a worktree team's, a `docs/` typo from a `services/` change, or a bot commit from a human one.
 - `run = "script"` rules: a user's own git hook already does that.
-- Repo-root or task-root path in the trailer: breaks when a task moves folders; stems are unique project-wide (`mt check` rejects a duplicate).
+- Repo-root or task-root path in the trailer: breaks when a task moves folders. Stems are unique project-wide (`mt check` rejects a duplicate).
 - A stable `id:`: survives `mt mv` but is unreadable.
-- An installer for the hook: users wire hooks with their own tool.
+- Users wire hooks with their own tool, so skip a hook installer.
 
 
 == Out of scope

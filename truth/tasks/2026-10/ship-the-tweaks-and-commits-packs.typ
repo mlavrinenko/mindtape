@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a commit names a started task and a product change carries a changelog entry wherever the packs are adopted],
+      enforced-practice: helps[a commit cites a started task, and a product change carries a changelog entry wherever a project uses the packs.],
       cheap-adoption: helps[the tweak and commit rules adopt in one line each instead of a copy per project],
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -47,7 +47,7 @@ extends = ["mindtape:tasks", "mindtape:tweaks", "mindtape:commits"]
 values = ["crates/**", "lib/**", "!crates/*/tests/**", "!**/*test*.rs"]
 ```
 
-- 🟢 `mindtape:tweaks` holds `tweak-lands-done` and `tweak-stays-one-file`, and the `[dicts.source]` of `**` that `tweak-stays-one-file` reads, equal to `mindtape:budget`'s, so the two packs agree.
+- 🟢 `mindtape:tweaks` holds `tweak-lands-done` and `tweak-stays-one-file`, and the `[dicts.source]` of `**` that `tweak-stays-one-file` reads, equal to `mindtape:budget`'s. The two packs then agree.
 - 🟢 `mindtape:commits` holds `refs-task-is-started` and this repo's `changelog-with-product-change`, which skips `fixup!` subjects and a `Changelog: none` trailer, with a `[dicts.product]` of `**` that a project replaces.
 - 🟢 Each pack loads alone over the floor's legend: `extends = ["mindtape:tweaks"]` passes `mt check`.
 
@@ -64,13 +64,13 @@ values = ["crates/**", "lib/**", "!crates/*/tests/**", "!**/*test*.rs"]
 
 == Alternatives
 
-- Fold both into `mindtape:tasks`: a project that files no tweaks or keeps no changelog would `disable` four rules.
+- Fold both into `mindtape:tasks`: a project that files no tweaks and has no changelog would `disable` four rules.
 - A `CHANGELOG.md` path parameter: no adopting project keeps its changelog elsewhere, and one that does overrides the rule by name.
 
 
 == Out of scope
 
-- `work-names-a-task`, `flip-with-work` and `named-tasks-finish-at-the-tip`: they already ship in `mindtape:tasks`.
+- `work-names-a-task`, `flip-with-work` and `named-tasks-finish-at-the-tip`: they already live in `mindtape:tasks`.
 - The `tweak` tag in a project's `[tasks.tags]`: the tag list is the project's.
 
 

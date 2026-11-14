@@ -18,16 +18,16 @@
 
 `links:` builds a real dependency graph, but no sort reads it. `--sort ready`
 ranks on a boolean, so it separates ready from blocked without ordering
-either group; `--sort depth` is folder nesting, not graph distance. There is
-no way to list a backlog in the order it can actually be worked.
+either group. `--sort depth` is folder nesting, not graph distance. The backlog
+has no listing in the order work can actually proceed.
 
-Add sorts derived from the graph — at minimum a topological order, and a
+Add sorts derived from the graph: at minimum a topological order, and a
 count of what a task transitively unblocks.
 
 == Why
 
-Scoring frameworks rank a task on its own properties, so a hard task ranks
-low no matter how much waits behind it. On a design backlog this inverts the
+Scoring frameworks rank a task on its own properties. A hard task ranks low no
+matter how much waits behind it. On a design backlog this inverts the
 order outright: the decisions everything else depends on are the expensive
 ones, so ICE files them last. Observed on a fresh backlog where the two
 tasks blocking the other three sorted to the bottom.
@@ -38,17 +38,17 @@ others should outrank an isolated one at equal score, and that is a fact
 
 == Scope
 
-- `--sort topo` — dependencies before dependents; stable and deterministic
+- `--sort topo`: dependencies before dependents, stable and deterministic
   for independent tasks, with a declared tiebreak (probably the existing sort
   chain, so `--sort topo --sort priority:desc` reads naturally).
-- A `blocks` sort key — how many tasks this one transitively unblocks. This
+- A `blocks` sort key: how many tasks this one transitively unblocks. This
   is the one that reorders a backlog usefully, since it is a measure of
   leverage rather than of position.
 - Decide whether these are also filter fields, so `mt ls 'blocks > 3'` works.
 - Decide behaviour on a cycle. `mt check` rejects cycles, but sorting must
-  not hang or panic on a tree that has not been checked yet.
-- Decide whether terminal tasks count toward `blocks`. A done dependency
-  blocks nothing, so probably not — but then the number changes as work
+  not hang or panic on a tree nobody has checked yet.
+- Decide whether terminal tasks count toward `blocks`. Once a dependency closes it
+  stops blocking anything, so probably not. The number then changes as work
   closes, which is either the point or a surprise.
 
 == Notes

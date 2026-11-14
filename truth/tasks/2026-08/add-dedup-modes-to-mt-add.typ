@@ -18,17 +18,17 @@
     2026,
     8,
     8,
-  )[fail/skip/add-suffix landed; verified live in a scratch project: skip exits 0 without writing, add-suffix yields -2 then -3],
+  )[fail/skip/add-suffix landed. Verified live in a scratch project: skip exits 0 without writing, add-suffix yields -2 then -3],
 )
 
 == Summary
 
-`mt add` hard-errors on a stem collision (`add.rs:142`, `bail!("task {stem:?} already exists")`) and there is no way to ask for anything else. Every scripted filer — the quality-signal sweep this repo is about to grow, and anyone else automating `mt add` — has to either pre-check the destination path itself or string-match an anyhow chain. The collision policy should be the caller’s to state.
+`mt add` hard-errors on a stem collision (`add.rs:142`, `bail!("task {stem:?} already exists")`) and has no other collision policy. Every scripted filer has to pre-check the destination path itself or string-match an anyhow chain. That includes the quality-signal sweep this repo is about to grow and anyone else automating `mt add`. The collision policy should be the caller’s to state.
 
 == Scope
 
-- Add `--dedup <MODE>` with `fail` (today’s behaviour, the default), `skip` (exit 0, write nothing, report the existing path) and `add-suffix`.
-- `add-suffix` reuses `naming::disambiguate`, which already appends an incrementing `-2`, `-3` suffix and caps at `MAX_DISAMBIGUATE_ATTEMPTS`. Today that path is only reachable when `[tasks.naming] stem` is set; `--dedup add-suffix` makes it reachable unconditionally. Stems are filenames, so the suffix is `-2`, not a parenthesised title suffix.
+- Add `--dedup <MODE>` with `fail` (today’s behaviour, the default), `skip` (exit 0, leave the tree untouched, report the existing path) and `add-suffix`.
+- `add-suffix` reuses `naming::disambiguate`, which already appends an incrementing `-2`, `-3` suffix and caps at `MAX_DISAMBIGUATE_ATTEMPTS`. That path is reachable only when a project sets `[tasks.naming] stem`. `--dedup add-suffix` makes it reachable unconditionally. Stems are filenames, so the suffix is `-2`, not a parenthesised title suffix.
 - Add a config default under `[tasks.naming]` so a project can state its policy once, with the flag overriding it.
-- `skip` must be distinguishable from a write by the caller — pair it with the machine-readable output task.
+- `skip` must be distinguishable from a write by the caller. Pair it with the machine-readable output task.
 - Cover each mode end-to-end, including `skip` against an existing file and `add-suffix` exhausting into an error.

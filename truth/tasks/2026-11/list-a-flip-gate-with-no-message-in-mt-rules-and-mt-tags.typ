@@ -61,8 +61,8 @@ crates/mindtape/src/config/active_rules.rs:
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads.
+This fell outside the task that surfaced it. The finding lives here rather
+than in a closing report no one rereads.
 
 == TO-BE
 
@@ -87,9 +87,9 @@ cli   on.flip[1].actions[0]
 - `crates/mindtape/src/config/active_rules.rs`: list an action when `gate = true` or it carries a `message`, and update the module, `ActiveRule.message`, `active_rules` and `flip_actions` docs that say only message-carrying actions list.
 - `crates/mindtape/src/config/active_rules_tests.rs`: rename and re-document the existing test, then pin a run-less gate and a gating `run` with no message, while a message-less `show` and non-gating `run` stay out.
 - `crates/mindtape-cli/src/cmd/explain/tags_tests.rs`: pin that `--for flip` lists the tag read by a message-less gate. The rules table's `(no message set)` render is already covered.
-- `www/content/cli/explain.typ`: say a flip gate lists with or without a `message`, and another action lists only when it carries one; say a tag's rule shows the message `mt explain rules` gives it, `(no message set)` included.
+- `www/content/cli/explain.typ`: say a flip gate lists with or without a `message`, and another action lists only when it carries one. Say a tag's rule shows the message `mt explain rules` gives it, `(no message set)` included.
 - `schema/output/rules/1.schema.json`: re-record the `message` description after `ActiveRule.message` names a message-less flip gate.
-- `CHANGELOG.md`: an `[Unreleased] Fixed` entry naming the gate that now lists.
+- `CHANGELOG.md`: an `[Unreleased] Fixed` entry naming the gate that lists.
 
 
 == Out of scope
@@ -100,4 +100,4 @@ cli   on.flip[1].actions[0]
 
 == Dogfood
 
-Any project that writes `gate = true` without a `message` sees it in `mt explain rules --for flip` and `mt explain tags --for flip`. This repo's shipped flow gate carries a message, so its own listing does not change.
+Any project that writes `gate = true` without a `message` sees it in `mt explain rules --for flip` and `mt explain tags --for flip`. The flow gate in this repo's pack carries a message, so its own listing does not change.

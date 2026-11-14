@@ -55,7 +55,7 @@
 
 == Rollback
 
-Revert the commit; the schema text goes back to the old doc comments.
+Revert the commit. The schema text goes back to the old doc comments.
 
 
 == Out of scope

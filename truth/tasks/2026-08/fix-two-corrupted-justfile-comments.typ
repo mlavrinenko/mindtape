@@ -14,7 +14,7 @@
     2026,
     8,
     14,
-  )[both lines restored verbatim from ddbeef5 and c373a9c; blank line added before the \[doc\] attribute so --fmt cannot re-truncate],
+  )[both lines restored verbatim from ddbeef5 and c373a9c, blank line added before the \[doc\] attribute so `--fmt` cannot re-truncate],
 )
 
 == Summary
@@ -25,19 +25,19 @@ Two comment defects landed in commit c373a9c and are still committed.
 
 Both are in the root `Justfile`, both verified against `git show c373a9c -- Justfile`.
 
-+ The `mmz` recipe's comment reads `` `j ust mmz fmt-check` `` — a space inserted
-  into `just`. Nothing scans the Justfile for recipe mentions, so no gate wanted
-  this and no gate caught it. Restore `` `just mmz fmt-check` ``.
++ The `mmz` recipe's comment reads `` `j ust mmz fmt-check` ``, with a space
+  inserted into `just`. The Justfile has no recipe-mention scan, so no gate
+  wanted this and no gate caught it. Restore `` `just mmz fmt-check` ``.
 + The `check-windows` comment ends mid-sentence: `# ... so the summary is`. The
-  commit that added it (ddbeef5) wrote two lines; c373a9c deleted the second.
+  commit that added it (ddbeef5) wrote two lines. c373a9c deleted the second.
   Restore it: `# repeated as an explicit [doc] rather than left as a dangling fragment.`
 
-== Why it matters beyond the typo
+== Beyond the typo
 
-The second is the `just --fmt` truncation this project already knows about — it
+The second is the `just --fmt` truncation this project already knows about. It
 drops the last line of a comment block that has no blank line before an
-attribute. Last milestone's report says it was caught in review; this instance
-proves it was not caught everywhere. A comment sweep that checks deletions at
+attribute. Last milestone's report says review caught it. This instance proves
+review did not catch it everywhere. A comment sweep that checks deletions at
 one boundary does not see a truncation at another.
 
 == Scope
@@ -45,4 +45,4 @@ one boundary does not see a truncation at another.
 - Restore both lines verbatim from git history, not from memory.
 - Confirm `just --fmt --check` stays green afterwards: add the blank line the
   formatter wants rather than re-introducing the truncation.
-- No other comment changes in this task.
+- Leave every other comment alone in this task.

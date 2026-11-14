@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-Only a Unix test calls write_file, so just check-windows warned that the import is unused
+Only a Unix test calls `write_file`, so `just check-windows` warned that the import goes unused

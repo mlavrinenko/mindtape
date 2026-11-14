@@ -35,7 +35,7 @@
 == AS-IS
 
 + Read the "Packs from a git source" section of `www/content/packs.typ`.
-+ 🔴 Its `mt packs` output is typed by hand: the docs build has no git source to fetch from, so the text can drift from what the commands print.
++ 🔴 The docs type its `mt packs` output by hand: the docs build has no git source to fetch from, so the text can drift from what the commands print.
 
 
 == TO-BE
@@ -51,7 +51,7 @@
 
 == Changes
 
-- `www/generate-packs.sh`: build the fixture repository and capture both commands. `www/capture.sh` already points `MINDTAPE_CACHE_HOME` inside the capture area, so a `CAPTURE_PATHS` pair prints it as `~/.cache`, and `www/generate.sh` needs no change.
+- `www/generate-packs.sh`: build the fixture repository and capture both commands. `www/capture.sh` already points `MINDTAPE_CACHE_HOME` inside the capture area, so a `CAPTURE_PATHS` pair prints it as `~/.cache`, and `www/generate.sh` does not need a change.
 - `www/content/packs.typ`: render the captures.
 
 

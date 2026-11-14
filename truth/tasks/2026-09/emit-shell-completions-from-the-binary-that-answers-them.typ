@@ -22,8 +22,8 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[nothing is generated and committed, so nothing can go stale],
-      docs-match-code: helps[a completion arm has to name its value source or fail a gate],
+      sound-codebase: helps[no generated script lives in the repo to go stale.],
+      docs-match-code: helps[a completion arm has to name its value source or fail a gate.],
     ),
   ),
   assignee: "agent",
@@ -33,52 +33,52 @@
 == AS-IS
 
 + Press tab after `mt flip ` in any shell.
-+ 🔴 Nothing completes. `mt install` writes the Typst package, the XDG
++ 🔴 Tab does not complete anything. `mt install` writes the Typst package, the XDG
   `defaults.toml` and the JSON Schema, and stops there.
 + The values worth completing are all project-derived: task stems, the
   legend's verbs, view names, template stems, link kinds and tags. A
   committed completion script would state them once and be wrong for the
-  next project, which is why none was ever written.
+  next project, so none was ever written.
 
 
 == TO-BE
 
 - 🟢 A shell hook installed by `mt install` calls the binary back, so the
-  static half is clap's own parser and the dynamic half is the live config.
-  Nothing is generated into the repo, so nothing can drift from it.
-- 🟢 Tab after `mt flip ` offers this project's legend, not a baked list;
-  after `mt ls @` it offers this project's views; after `mt add -t` its
-  templates.
-- 🟢 A completion over a project that fails to load prints no candidates and
-  no error, because a broken tab-press must not look like a broken shell.
+  static half is clap's own parser and the runtime half is the live config.
+  The tool writes directly to stdout, so nothing can drift.
+- 🟢 Tab after `mt flip ` offers this project's legend, not a baked list.
+  After `mt ls @` it offers this project's views. After `mt add -t` it offers
+  its templates.
+- 🟢 A completion over a project that fails to load returns an empty list
+  without an error, because a broken tab-press must not look like a broken shell.
 - 🟢 A new subcommand with a completable argument fails a gate until it says
   where its values come from.
 
 
 == Changes
 
-- `crates/mindtape-cli/Cargo.toml` — `clap_complete` with its dynamic engine.
-- `crates/mindtape-cli/src/completion.rs` — value sources per argument,
+- `crates/mindtape-cli/Cargo.toml`: `clap_complete` with its runtime engine.
+- `crates/mindtape-cli/src/completion.rs`: value sources per argument,
   resolved against the loaded project, each falling back to no candidates
-  when loading fails. The red test comes first: a completion over
+  when loading fails. Write the red test first: a completion over
   `examples/minimal` offers that legend and not `learn-piano`'s.
-- `crates/mindtape-cli/src/cli.rs` — attach a completer to every argument
+- `crates/mindtape-cli/src/cli.rs`: attach a completer to every argument
   whose values the project defines.
-- `crates/mindtape-cli/src/install.rs` — write the shell hook, behind its own
+- `crates/mindtape-cli/src/install.rs`: write the shell hook, behind its own
   `--no-completions` skip, matching the three installers already there.
-- `.just/scripts/check-doc-facts.sh` — an arm set-differencing the arguments
+- `.just/scripts/check-doc-facts.sh`: an arm set-differencing the arguments
   clap declares against the ones `completion.rs` gives a source, so a new
-  completable argument cannot ship silently uncompleted.
+  completable argument cannot land silently uncompleted.
 
 
 == Alternatives
 
 - `clap_complete::generate` writing four committed scripts. Rejected for
-  exactly the reason this was never done: a static script cannot name a stem
+  exactly the reason this was never done: a static script cannot supply a stem
   or a status, which is the half that matters.
 - A hand-written bash function shelling out to `mt ls --format path`.
   Rejected because it duplicates the parser, and drifts the first time a flag
-  is renamed.
+  changes name.
 
 
 == Out of scope

@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[finishing or starting blocked work needs an explicit --force],
+      enforced-practice: helps[finishing or starting blocked work needs an explicit `--force`],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -38,7 +38,7 @@
 
 == TO-BE
 
-- 🟢 A legend status can declare `unblocked = true`; entering it while the task is `blocked` is refused like an illegal transition, naming the unfinished blockers, `--force` to override:
+- 🟢 A legend status can declare `unblocked = true`. Entering it while the task is `blocked` gets refused like an illegal transition, which lists the unfinished blockers. `--force` overrides it:
 
 ```
 $ mt done publish-0-4-0
@@ -71,5 +71,5 @@ error: publish-0-4-0: `done` requires an unblocked task; waits on: write-atomic 
 
 == Dogfood
 
-This repo's legend sets it, so closing a task with an open dependency is refused here first.
+This repo's legend sets it, so this repo refuses a close with an open dependency first.
 

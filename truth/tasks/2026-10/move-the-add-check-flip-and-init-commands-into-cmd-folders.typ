@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the module path names the file, and the area's internals can go private to its folder],
+      sound-codebase: helps[the module path is the file path, and the area's internals can go private to its folder],
       docs-match-code: neutral,
     ),
   ),
@@ -37,25 +37,25 @@
 == AS-IS
 
 + Run `ls crates/*/src`.
-+ 🔴 `add*.rs`, `yaml_values.rs`, `templates/`, `check*.rs`, `flip*.rs`, `init*.rs`, `preset.rs`, `axes/`, `presets/` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.
++ 🔴 `add*.rs`, `yaml_values.rs`, `templates/`, `check*.rs`, `flip*.rs`, `init*.rs`, `preset.rs`, `axes/`, `presets/` sit flat at the crate root, so the module path isn't the file path and nothing marks the area's internals.
 
 == TO-BE
 
 - 🟢 `crates/mindtape-cli/src/cmd/`: `add/`, `check/`, `flip/`, `init/`, each with a `mod.rs` and its prefix-dropped files.
-- 🟢 Each moved file's tests move beside it (`x_tests.rs`); a `mod.rs` loads a plain `mod tests;` from `tests.rs`.
+- 🟢 Each moved file's tests move beside it (`x_tests.rs`). A `mod.rs` loads a plain `mod tests;` from `tests.rs`.
 - 🟢 `mod.rs` opens with a `//!` map of the folder's files.
-- 🟢 `just check` passes; the commit is moves plus path edits, so `git log --follow` traces every file.
+- 🟢 `just check` passes. The commit is moves plus path edits, so `git log --follow` traces every file.
 
 == Changes
 
 - The moved files: `git mv`, then `mod`/`use`/`#[path]`/doc-link paths. A cross-folder caller gets `pub(crate)`, never an alias at the old path.
 - `outdatty.yaml`, `crap-baseline.json` (`just crap-baseline`) and every comment or doc that cites a moved path.
-- The first `cmd/` move creates `cmd/mod.rs`; `docs/src/contributing.typ:201` names `src/cmd/<name>.rs` from here on.
+- The first `cmd/` move creates `cmd/mod.rs`. `docs/src/contributing.typ:201` names `src/cmd/<name>.rs` from here on.
 
 == Out of scope
 
 - Renames beyond dropping the folder's prefix.
-- Tightening visibility past what compiles; a later sweep owns that.
+- Tightening visibility past what compiles. A later sweep owns that.
 - Done tasks citing old paths: they are history.
 
 == Dogfood

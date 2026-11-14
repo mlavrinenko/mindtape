@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the evaluator reuses CompiledCheck's snapshot and is covered by red tests],
+      sound-codebase: helps[the evaluator reuses CompiledCheck's snapshot, and red tests cover it],
       docs-match-code: neutral,
     ),
   ),
@@ -36,15 +36,15 @@
 + Read the collector kind in `add-derived-task-fields-and-a-regex-collector.typ`.
 + 🔴 It runs only a regex. A project with a structured Typst extraction has no collector kind and must fall back to a rule `check` that returns breaches instead of a value.
 + Open `crates/mindtape/src/rules/typst.rs`.
-+ 🔴 `CompiledCheck` already evaluates a project Typst function over the canonical task, but its result is read only as an array of breach strings.
++ 🔴 `CompiledCheck` already evaluates a project Typst function over the canonical task, but the code reads its result only as an array of breach strings.
 
 
 == TO-BE
 
 - 🟢 `query = { typst = "truth/lib.typ", function = "changes" }` runs a project function over the canonical task or a named field and returns the declared type.
-- 🟢 The result lands as `derived.<name>` beside a regex collector; `when`, `returns` and the shared type check stay the same, and `mt rules` shows kind `typst` with the module and function.
-- 🟢 A function error or a wrong-typed result is one collector violation naming the module and function.
-- 🟢 One `SourceSnapshot` per collector is shared across tasks, as `CompiledCheck` already does it. Collectors run in declaration order, so a later query may read an earlier derived field.
+- 🟢 The result lands as `derived.<name>` beside a regex collector. The existing `when`, `returns` and shared type check stay the same. `mt rules` shows kind `typst` with the module and function.
+- 🟢 A function error or a wrong-typed result is one collector violation that states the module and function.
+- 🟢 Tasks share one `SourceSnapshot` per collector, as `CompiledCheck` already does it. Collectors run in declaration order, so a later query may read an earlier derived field.
 
 ```toml
 [[tasks.collectors]]
@@ -84,5 +84,5 @@ returns = ["path"]
 
 == Dogfood
 
-Not applicable: no current collector needs Typst; the kind exists for a project whose extraction a regex cannot express.
+Not applicable: no current collector needs Typst. The kind exists for a project whose extraction a regex cannot express.
 

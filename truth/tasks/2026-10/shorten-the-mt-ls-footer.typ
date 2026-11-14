@@ -14,7 +14,7 @@
   estimate: (src-files: 2),
   x-goals: (
     product: (
-      readable-tasks: helps[the line under a listing names the view and the sort rule, nothing more],
+      readable-tasks: helps[the line under a listing gives the view and the sort rule, nothing more],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -40,8 +40,8 @@
 
 == TO-BE
 
-- 🟢 The footer names the view, then a sort rule as `<name> sort`, then the count, as in `inbox view · release sort · 3 of 12 tasks`.
-- 🟢 It no longer says which facet came from where, and no longer says a rule was overridden. `mt ls --json` keeps `superseded`.
+- 🟢 The footer gives the view, then a sort rule as `<name> sort`, then the count, as in `inbox view · release sort · 3 of 12 tasks`.
+- 🟢 It drops the facet origins and the overridden note. `mt ls --json` keeps `superseded`.
 
 
 == Changes

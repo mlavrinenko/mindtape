@@ -12,8 +12,8 @@
   tags: ("mt", "tooling", "stateless"),
   x-goals: (
     product: (
-      readable-tasks: helps[a template is no longer listed as a task],
-      implementable-tasks: helps[one exported policy names a task source],
+      readable-tasks: helps[a template stays out of the task listing],
+      implementable-tasks: helps[one exported policy defines a task source],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -32,7 +32,7 @@
 == AS-IS
 
 + In a project whose config sets `[[tasks.roots]] path = "."`, run `mt ls`.
-+ 🔴 The template is listed as a task, and `mt check` reports it:
++ 🔴 The listing shows the template as a task, and `mt check` reports it:
 
 ```
 $ mt ls
@@ -52,8 +52,8 @@ error: .mindtape/templates/task.typ:3: status: missing required status
 
 - 🟢 One exported `TaskSource` policy classifies a `TaskPath` with project-relative/absolute forms and a regular/symlink/missing kind.
 - 🟢 A source is a regular `.typ` under a root, outside `.mindtape`/`.git` components (case-insensitive) and outside every configured template dir.
-- 🟢 Roots and template dirs keep `RootSpec::dir()`; the policy carries separate normalized forms, so commit and tag derivation do not change.
-- 🟢 `collect_items`, `load_one` and the fallback walk call it; a reserved `.typ` with a `task.with` call emits one warning.
+- 🟢 Roots and template dirs keep `RootSpec::dir()`. The policy carries separate normalized forms, so commit and tag derivation do not change.
+- 🟢 `collect_items`, `load_one` and the fallback walk call it. A reserved `.typ` with a `task.with` call emits one warning.
 - 🟢 `mt ls` lists only real tasks, and `mt check` passes once the template's own slots are valid.
 
 ```
@@ -76,14 +76,14 @@ ok: 30 tasks
 
 
 == Out of scope
-- Candidate validation; the write guard owns the destination.
+- Candidate validation stays out. The write guard owns the destination.
 
 - Git-ignore visibility, commit classification, writer guards, config-root rejection and `mt fix`.
-- Symlinked task files; this change deliberately stops treating them as sources.
-- A textual prefilter for markerless `.typ`.
+- Symlinked task files stay out. This change deliberately stops treating them as sources.
+- A textual first pass over markerless `.typ`.
 
 
 == Dogfood
 
-This project's task root is `truth/tasks`, so its own listing is unchanged; the root-`.` repro project exercises the policy.
+This project's task root is `truth/tasks`, so its own listing does not change. The root-`.` repro project exercises the policy.
 

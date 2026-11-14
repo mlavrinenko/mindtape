@@ -39,8 +39,8 @@
 == TO-BE
 
 - 🟢 `starts_with("fix", title)` matches when `title` starts with `fix`, case-insensitively, the way `contains` matches a substring.
-- 🟢 The needle comes first and the field second, and the field is required, so the call never guesses among title, id and body.
-- 🟢 A missing field or a wrong arity is a filter error naming the call.
+- 🟢 The needle comes first and the field second. The field is mandatory, which removes any guess among title, id and body.
+- 🟢 A missing field or a wrong arity is a filter error that states the call.
 
 ```
 $ mt ls 'starts_with("fix", title)'
@@ -65,9 +65,9 @@ fix-the-login-redirect
 
 == Out of scope
 
-- `ends_with`; add it when a rule asks.
+- `ends_with` stays out. Add it when a rule asks.
 - Unicode case folding beyond `to_lowercase`.
-- A default haystack; a prefix needs one field.
+- A default haystack stays out. A prefix needs one field.
 
 
 == Dogfood

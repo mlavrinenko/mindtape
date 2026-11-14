@@ -33,7 +33,7 @@
 == AS-IS
 
 + Open `/read-many-projects/` and read "See every project at once".
-+ 🔴 A start page carries the shipped board and two `at.toml` key tables, `board` and `board.columns`, that belong on `/cli/board/`.
++ 🔴 A start page carries the built-in board and two `at.toml` key tables, `board` and `board.columns`, that belong on `/cli/board/`.
 + 🔴 It spells out every status of shop and blog to say the board counts both right.
 
 
@@ -41,12 +41,12 @@
 
 - 🟢 The section says in two sentences which projects come first and how to change the board, linking `mt board`.
 - 🟢 `/cli/board/` explains `[board]` and `[at.<name>.board]` and holds both key tables.
-- 🟢 One sentence says each cell runs under its project's config, naming no status list.
+- 🟢 One sentence says each cell runs under its project's config, without a status list.
 
 
 == Source of truth
 
-- `crates/mindtape/src/at/board.toml` and `schema/at.schema.json`: the shipped board and the keys.
+- `crates/mindtape/src/at/board.toml` and `schema/at.schema.json`: the built-in board and the keys.
 
 
 == Changes

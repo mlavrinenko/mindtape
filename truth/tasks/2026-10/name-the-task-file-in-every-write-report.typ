@@ -14,7 +14,7 @@
   estimate: (src-files: 4),
   x-goals: (
     product: (
-      readable-tasks: helps[every write report names a task by its stem, so one task reads the same in every line],
+      readable-tasks: helps[every write report identifies a task by its stem, so one task reads the same in every line],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -40,21 +40,21 @@
 
 == TO-BE
 
-- 🟢 Every write command names a task by its stem, whatever the user typed: a stem, a path or a hash.
+- 🟢 Every write command identifies a task by its stem, whatever the user typed: a stem, a path or a hash.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/it/write_report_stem_e2e.rs`: the red test first, each write report naming the stem when given a hash.
+- `crates/mindtape-cli/tests/it/write_report_stem_e2e.rs`: the red test first, each write report giving the stem when given a hash.
 - `crates/mindtape-cli/src/util.rs`: `report_change` prints `<verb> <stem> (<title>): <detail>` for every in-place write.
 - `crates/mindtape-cli/src/cmd/flip/mod.rs`, `cmd/set.rs`, `cmd/review.rs`: report through it.
-- `crates/mindtape-cli/src/cmd/recur/mod.rs`, `cmd/recur/advance.rs`: name an existing task by its stem and a spawned file by its path from the project root.
-- `crates/mindtape-cli/src/task_edit.rs`, `pre_write/mod.rs`: the read, edit and checked write that set and review now share.
+- `crates/mindtape-cli/src/cmd/recur/mod.rs`, `cmd/recur/advance.rs`: identify an existing task by its stem and a spawned file by its path from the project root.
+- `crates/mindtape-cli/src/task_edit.rs`, `pre_write/mod.rs`: the read, edit and checked write that set and review share.
 
 
 == Alternatives
 
-- Echo what the user typed everywhere: a hash in a report is unreadable a day later, and `mt set` already names the stem.
+- Echo what the user typed everywhere. A hash in a report is unreadable a day later, and `mt set` already names the stem.
 
 
 == Out of scope

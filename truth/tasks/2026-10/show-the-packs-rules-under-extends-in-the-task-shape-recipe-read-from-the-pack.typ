@@ -31,7 +31,7 @@
     2026,
     10,
     12,
-  )[the recipe's config block shows three pack rules as comments, cut from the pack copy the Rule packs page reads],
+  )[the recipe's config block shows three pack rules as comments. The block comes from the pack copy the Rule packs page reads.],
 )
 
 == AS-IS

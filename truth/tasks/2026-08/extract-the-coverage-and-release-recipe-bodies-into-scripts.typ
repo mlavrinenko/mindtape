@@ -17,7 +17,7 @@
     2026,
     8,
     14,
-  )[eight bodies out, Justfile 763 to 679; CRAP\_EXCLUDES stays a Justfile variable passed as arguments; release gained a MINDTAPE\_RELEASE\_CONFIRMED handshake so the extracted script cannot bypass the recipe's confirm guard. cover 0, crap 0 against a fresh lcov],
+  )[eight bodies out, Justfile 763 to 679. CRAP\_EXCLUDES stays a Justfile variable passed as arguments. The release recipe gained a `MINDTAPE_RELEASE_CONFIRMED` handshake so the extracted script cannot bypass the recipe's confirm guard. cover 0, crap 0 against a fresh lcov],
 )
 
 == Summary
@@ -47,13 +47,13 @@ staleness implementation, two callers with opposite policies (`crap` treats a
 stale lcov as a hard error, `check-crap` as a reason to skip). It also always
 exits 0 on purpose, so that a deliberate skip does not print just's own
 `error: Recipe ... failed` line and read on screen like a broken gate. Both
-properties survive extraction only if the script keeps them — the exit-0
-discipline in particular is easy to "fix" into a bug.
+properties survive extraction only if the script keeps them. The exit-0
+discipline especially is easy to "fix" into a bug.
 
 `CRAP_EXCLUDES` is a Justfile variable interpolated into `crap`,
 `crap-baseline`, and (via `_crap-excludes`) `contrib/ask-refactoring/undertested.sh`.
-It stays a Justfile variable and is passed into the extracted scripts as an
-argument or an environment variable. Do not copy the list into a script — the
+It stays a Justfile variable, and the extracted scripts receive it as an
+argument or an environment variable. Do not copy the list into a script. The
 whole reason it exists as one variable is that a baseline minted over a
 different file set than the gate scores reports every difference as a
 regression.
@@ -63,12 +63,12 @@ regression.
 - One script per recipe, executable, carrying the `set -eo pipefail` contract
   each body already declares. Never `set -u`.
 - `release` is `[confirm(...)]`-guarded and pushes tags. Its guard stays on the
-  recipe; the script must not be independently runnable in a way that skips it.
+  recipe. The script must not be independently runnable in a way that skips it.
   Verify the confirmation still fires after extraction.
 - Comment relocation is a separate task. Leave the comments in place here.
 - `outdatty.yaml`: add the new scripts as `dev-docs` sources and re-confirm the
   seven dependents with `just outdatty-update`.
 - `docs/src/contributing/coverage-crap.typ` and
   `docs/src/contributing/mutation-testing.typ` describe these recipes by hand.
-  They are `dev-docs` dependents, so they must be reviewed — check whether any
-  of their prose names a body line that has moved.
+  They are `dev-docs` dependents, so review them. Check whether any of their
+  prose mentions a body line that has moved.

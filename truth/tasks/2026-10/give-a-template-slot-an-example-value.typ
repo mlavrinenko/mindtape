@@ -15,10 +15,10 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[a template shows a filled-in value for each slot, so a caller sees what a good answer looks like],
-      enforced-practice: helps[the template check fills each slot with its example and counts every breach, instead of guessing which ones the caller will fix],
+      implementable-tasks: helps[a template shows a filled-in value for each slot. A caller then sees what a good answer looks like.],
+      enforced-practice: helps[the template check fills each slot with its example and counts every breach, instead of guessing which ones the caller will fix.],
       cheap-adoption: neutral,
-      typst-over-markdown: helps[a body slot's example is a Typst raw block, highlighted and written as markup],
+      typst-over-markdown: helps[a body slot's example is a Typst raw block, highlighted and written as markup.],
       plain-files: neutral,
     ),
     process: (
@@ -61,14 +61,14 @@
   ```)
   ````
 
-- 🟢 `default:` and `example:` of a `raw` or `text` slot take a raw block as well as a string, dedented as Typst dedents it.
+- 🟢 `default:` and `example:` of a `raw` or `text` slot take a raw block as well as a string, with the indentation stripped the way Typst strips it.
 
 - 🟢 `mt add --describe` shows each slot's example, in text and in JSON.
 
 
 == Changes
 
-- `crates/mindtape/src/template_tests.rs`: red tests first: a scalar example, a raw-block example and default dedented, an example never filed.
+- `crates/mindtape/src/template_tests.rs`: red tests first: a scalar example, a raw-block example and default with its indentation stripped, an example never filed.
 
 - `crates/mindtape/src/template.rs`: `SlotSpec` carries `example`, and slot discovery reads a raw block as a `default` or `example` literal.
 
@@ -88,7 +88,7 @@
 == Out of scope
 
 - The template check itself, which consumes `example`: `check-templates-file-healthy-tasks`.
-- Prefilling the interactive editor with the example.
+- Filling the interactive editor with the example.
 
 
 == Dogfood

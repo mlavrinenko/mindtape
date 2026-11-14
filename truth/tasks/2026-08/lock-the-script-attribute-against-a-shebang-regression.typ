@@ -17,17 +17,16 @@
     2026,
     8,
     16,
-  )[gate arm; two arms, four regressions proven to bite],
+  )[gate arm, two arms, four regressions proven to bite],
 )
 
 == Summary
 
 `set script-interpreter := ["bash", "-eo", "pipefail"]` gives every `[script]`
 recipe strict mode by construction, and the five converted recipes proved it.
-Nothing stops the next multi-line recipe from being written the old way — a
-`#!/usr/bin/env bash` body still runs, silently under no strict mode, which is
-exactly the shape `count-tests` was in when it printed a wrong test count and
-exited 0. The setting removed the mistake from the five recipes that existed,
+The next multi-line recipe can still take the old shape: a `#!/usr/bin/env bash`
+body still runs, silently under no strict mode. That is exactly the shape
+`count-tests` had when it printed a wrong test count and exited 0. The setting removed the mistake from the five recipes that existed,
 not from the Justfile.
 
 == Why a lock, not a convention

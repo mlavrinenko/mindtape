@@ -33,7 +33,11 @@
 == AS-IS
 
 + In a project with `cli/spectrogram-parity.typ` and `docs/a.typ`, run `mt link a depends-on spectrogram-parity`.
-+ 🔴 It refuses: `` `depends-on` edge target `spectrogram-parity.typ` names no task; did you mean: spectrogram-parity? `` — the suggestion is the very name it just refused.
++ 🔴 It refuses with this message, and the suggestion is the same name it just refused:
+
+  ```
+  `depends-on` edge target `spectrogram-parity.typ` names no task; did you mean: spectrogram-parity?
+  ```
 + Only `mt link a depends-on ../cli/spectrogram-parity.typ` lands. `settle_targets` in `crates/mindtape-cli/src/link_plan.rs` turns a bare stem into `<stem>.typ`, which resolves next to the linking task only, while `mt link --help` promises "Target tasks, by stem (`other`)".
 
 
@@ -44,23 +48,23 @@
 
 == TO-BE
 
-- 🟢 A bare stem (no `/`) that names no sibling but exactly one loaded task is written as the relative path from the linking task to it: `../cli/spectrogram-parity.typ`.
+- 🟢 For a bare stem (no `/`) with no sibling and exactly one loaded task, `mt` writes the relative path from the linking task to it: `../cli/spectrogram-parity.typ`.
 - 🟢 A sibling with that stem still wins, written as `<stem>.typ`, so same-folder links stay byte-identical.
-- 🟢 A stem two folders share is refused, naming every candidate path, instead of guessing.
+- 🟢 `mt` refuses a stem two folders share and names every candidate path, instead of guessing.
 - 🟢 A target with a `/` keeps its literal, relative-to-the-linking-task meaning.
 
 
 == Changes
 
-- `crates/mindtape-cli/src/link_plan_tests.rs`: red tests first: a cross-folder bare stem stages `../cli/x.typ`; a shared stem is refused naming both paths.
-- `crates/mindtape-cli/src/link_plan.rs`: `settle_targets` looks a bare stem up among the loaded tasks when no sibling carries it; `target_problem` names the candidates of an ambiguous stem.
+- `crates/mindtape-cli/src/link_plan_tests.rs`: red tests first. A cross-folder bare stem stages `../cli/x.typ`, and `mt` refuses a shared stem while naming both paths.
+- `crates/mindtape-cli/src/link_plan.rs`: `settle_targets` looks a bare stem up among the loaded tasks when no sibling carries it. `target_problem` names the candidates of an ambiguous stem.
 - `crates/mindtape-cli/src/util.rs`: hosts `relative_target`, moved from `crates/mindtape-cli/src/rm_gitless.rs` so both callers share it.
 - `crates/mindtape-cli/src/link_cmd.rs`: the `targets` help says how a bare stem resolves.
 
 
 == Out of scope
 
-- Stem lookup in the Typst DSL or `mt check`: a written edge stays a path relative to its file, so the files read the same without `mt`.
+- Stem lookup in the Typst DSL or `mt check`: a written edge stays a path relative to its file. The files then read the same without `mt`.
 - Stem uniqueness across folders as a check rule: a separate policy question.
 
 

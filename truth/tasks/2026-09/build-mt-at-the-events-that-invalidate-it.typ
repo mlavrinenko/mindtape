@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[CONTRIBUTING.md names when mt is built instead of claiming a rebuild before every call],
+      docs-match-code: helps[CONTRIBUTING.md states when the build runs instead of claiming a rebuild before every call],
     ),
   ),
   assignee: "agent",
@@ -42,35 +42,35 @@
 
 == Environment
 
-- NixOS, flake dev shell via direnv; `mt` 0.3.0 through the `mt-dev` wrapper added by commit `be437b71`.
+- NixOS, flake dev shell via direnv. `mt` 0.3.0 through the `mt-dev` wrapper added by commit `be437b71`.
 - The wrapper exists because a bare `target/debug` on `PATH` once answered from a stale or absent binary (`truth/tasks/rebuild-mt-before-every-run-in-the-dev-shell.typ`).
 
 
 == TO-BE
 
 - 🟢 The dev shell prepends `<root>/target/mt-dev/debug` to `PATH`, so `mt` is a plain binary and no build rides a call.
-- 🟢 `just build-mt` builds it; `just fork` builds it once for the new worktree, `just integrate` rebuilds this checkout's after the fast-forward. An edit between those events leaves `mt` stale until the next build — the accepted trade.
+- 🟢 `just build-mt` builds it. `just fork` builds it once for the new worktree, and `just integrate` rebuilds this checkout's copy after the fast-forward. An edit between those events leaves `mt` stale until the next build. We accept that trade.
 - 🟢 Entering the shell with no binary there prints one line naming `just build-mt` and what `mt` currently resolves to, only when stderr is a terminal.
 
 
 == Changes
 
-- `flake.nix`: drop the `mt-dev` wrapper and `MINDTAPE_DEV_ROOT`; the shellHook prepends the dev target dir to `PATH` and prints the missing-binary hint under `[ -t 2 ]`.
+- `flake.nix`: drop the `mt-dev` wrapper and `MINDTAPE_DEV_ROOT`. The `shellHook` prepends the dev target dir to `PATH` and prints the missing-binary hint under `[ -t 2 ]`.
 - `Justfile`: a `build-mt` recipe (`cargo build -q -p mindtape-cli --bin mt --target-dir target/mt-dev`), the one command every other builder calls.
 - `.just/scripts/fork.sh`: after the dev shell loads, build the new worktree's binary so the delegated agent's first `mt` works.
-- `.just/scripts/integrate.sh`: rebuild this checkout's binary after the fast-forward, before the worktree is removed.
+- `.just/scripts/integrate.sh`: rebuild this checkout's binary after the fast-forward, before the worktree goes away.
 - `.github/workflows/ci.yml`: the commit-rules step runs `cargo run -q -- check --commits …`, the pre-commit hook's spelling, since no `mt` is on PATH outside a dev shell.
-- `docs/src/contributing.typ`, regenerated `CONTRIBUTING.md`, re-recorded `outdatty.lock`: the quick-start line names the events that build `mt`, and the fork/integrate paragraph loses "no warmed cache" for the one build fork now runs.
+- `docs/src/contributing.typ`, regenerated `CONTRIBUTING.md`, re-recorded `outdatty.lock`: the quick-start line lists the events that build `mt`, and the fork/integrate paragraph loses "no warmed cache" for the one build fork runs today.
 
 
 == Out of scope
 
 - A file watcher or a rebuild-on-change hook: the build happens at the events that invalidate the binary, and `just build-mt` covers the rest.
-- Building inside the shellHook on every load: `nix develop --command` runs it, so CI would pay a sequential compile.
+- Building inside the `shellHook` on every load: `nix develop --command` runs it, so CI would pay a sequential compile.
 - `target/debug/mt`: the rrule arm builds that path with a feature this default build would relink away.
 
 
 == Dogfood
 
-Every `mt` call typed in this repo's dev shells stops paying the build; delegated worktrees get their binary once at `just fork`.
+Every `mt` call typed in this repo's dev shells stops paying the build. Delegated worktrees get their binary once at `just fork`.
 

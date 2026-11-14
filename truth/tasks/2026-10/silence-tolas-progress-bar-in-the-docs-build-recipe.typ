@@ -41,8 +41,8 @@
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw(".just/docs.just").
 
 == TO-BE
@@ -68,4 +68,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Every `just docs build` in this repo prints no progress redraws.
+Every `just docs build` in this repo runs without progress redraws.

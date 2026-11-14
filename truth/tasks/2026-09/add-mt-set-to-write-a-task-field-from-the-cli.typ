@@ -40,9 +40,9 @@
   no CLI writer at all.
 + `skills/mindtape/SKILL.md` opens by warning that a hand edit skips what
   `mt` stamps, slugs, injects, resolves and validates. For nine of the
-  fourteen core fields that warning names the only available path.
-+ `skills/mindtape/evals/evals.json` eval 4 now grades that hand edit as the
-  correct recovery, so the skill's own test suite teaches the workaround.
+  fourteen core fields, that warning leaves only the hand edit.
++ `skills/mindtape/evals/evals.json` eval 4 grades that hand edit as the
+  correct recovery, so the skill's own test suite encodes the workaround.
 
 
 == TO-BE
@@ -51,26 +51,26 @@
   the write, the way `mt add` and `mt flip` already do.
 - 🟢 `tags+=<value>` appends to a list field, matching `mt add --set`'s own
   spelling rather than inventing a second one.
-- 🟢 An unknown field is refused by name with the writable fields listed, the
-  way an unknown `--set` key already is.
+- 🟢 The command refuses an unknown field by name and lists the writable fields, the
+  way it does an unknown `--set` key.
 - 🟢 A value the config rejects fails before the file changes, so a refused
   write leaves nothing to repair.
 
 
 == Changes
 
-- `crates/mindtape-cli/src/set.rs` — new `Args`/`run` pair modelled on
+- `crates/mindtape-cli/src/set.rs`: a new `Args`/`run` pair modelled on
   `review.rs`, reusing `task_edit::upsert_named_arg` and the `pre_write`
   seam every other writer goes through. The red test comes first.
-- `crates/mindtape-cli/src/cli.rs` — wire the subcommand.
-- `crates/mindtape-cli/src/command_class.rs` — declare `set` a write
-  command; the exhaustiveness check in `cli_dump.rs` fails until it is.
-- `crates/mindtape-cli/tests/read_no_write_e2e.rs` — no entry needed, but
+- `crates/mindtape-cli/src/cli.rs`: wire the subcommand.
+- `crates/mindtape-cli/src/command_class.rs`: declare `set` a write
+  command. The exhaustiveness check in `cli_dump.rs` fails until it is.
+- `crates/mindtape-cli/tests/read_no_write_e2e.rs`: no entry needed, but
   an end-to-end arm elsewhere in `tests/` must cover a refused write leaving
   the file byte-identical.
-- `www/utils/cli-notes.typ` — the entry `check-doc-coverage` demands.
-- `www/content/cli.typ` and `skills/mindtape/SKILL.md` — the new verb in the
-  loop table; the hand-edit warning can finally name a command instead of a
+- `www/utils/cli-notes.typ`: the entry `check-doc-coverage` demands.
+- `www/content/cli.typ` and `skills/mindtape/SKILL.md`: the new verb in the
+  loop table. The hand-edit warning can finally point at a command instead of a
   file.
 
 
@@ -79,7 +79,7 @@
 - A `--set` flag on `mt review`. Rejected: review stamps a date, and
   overloading it hides a writer inside an unrelated verb.
 - Covering every field including `priority: ice(...)`, `links:` and
-  `status:`. Rejected as the expensive cut; those three have their own
+  `status:`. Rejected as the expensive cut. Those three have their own
   commands or their own argument shapes, and the cheap subset is the
   scalars and lists whose Typst literal is unambiguous.
 
@@ -87,9 +87,9 @@
 == Out of scope
 
 - `priority:` in framework form, `links:` and `status:`. Each has a command
-  or an argument shape of its own; a second spelling would drift from it.
-- Renaming a task, which moves the file and rewrites inbound links; filed
-  separately.
+  or an argument shape of its own. A second spelling would drift from it.
+- Renaming a task, which moves the file and rewrites inbound links, stays in
+  its own task.
 - Rewriting eval 4 to grade `mt set`. That eval exercises the refusal path
   on a template with one slot, which stays true.
 

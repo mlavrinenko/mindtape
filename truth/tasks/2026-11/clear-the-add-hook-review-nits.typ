@@ -46,14 +46,14 @@
 pub fn token_name(token: &str) -> Result<&str, Diag> {
 ```
 
-A runtime derive failure prints `fixes: add.typ:fn: ...`, while `error()` prints `on.add fixes: ...`; `type_error` and `field_error` use `context("in", label)` and also omit the prefix. `reads_path_in` is exercised only by `paths_tests.rs`; `check/templates.rs` filters through `Violation.reads`. The doc and stale `allow` predate this commit.
+A runtime derive failure prints `fixes: add.typ:fn: ...`, while `error()` prints `on.add fixes: ...`. `type_error` and `field_error` use `context("in", label)` and also omit the prefix. Only `paths_tests.rs` exercises `reads_path_in`, and `check/templates.rs` filters through `Violation.reads`. The doc and stale `allow` predate this commit.
 
 
 == TO-BE
 
 - 🟢 `token_name` documents what it returns.
-- 🟢 Every add-hook error names the hook with the same `on.add {label}` prefix.
-- 🟢 An unreleased public method with no caller is gone.
+- 🟢 Every add-hook error states the hook with the same `on.add {label}` prefix.
+- 🟢 The change removes an unreleased public method with no caller.
 
 ```
 error: on.add fixes: add.typ:classify: boom
@@ -64,7 +64,7 @@ error: on.add fixes: add.typ:classify: boom
 
 - `crates/mindtape-cli/src/cmd/add/tokens.rs`: give `token_name` its own doc and drop the stale `allow`.
 - `crates/mindtape-cli/src/cmd/add/hooks.rs`: use the shared `on.add {label}` prefix in `fail`, `type_error` and `field_error`.
-- `crates/mindtape/src/filter/mod.rs`: remove `reads_path_in`; it is new in this unreleased commit and has no production caller.
+- `crates/mindtape/src/filter/mod.rs`: remove `reads_path_in`. It is new in this unreleased commit and has no production caller.
 - `crates/mindtape-cli/src/cmd/add/hooks_tests.rs`: pin the derive error prefix.
 
 

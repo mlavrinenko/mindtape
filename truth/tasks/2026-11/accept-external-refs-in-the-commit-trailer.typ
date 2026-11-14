@@ -17,13 +17,13 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a repo that tracks work elsewhere keeps `Refs:` as its one trailer and files no mirror task],
+      cheap-adoption: helps[a repo that tracks work elsewhere keeps `Refs:` as its one trailer and files no mirror task.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the schema and commit-message docs state the external patterns and the accepted separators],
+      docs-match-code: helps[the schema and commit-message docs state the external patterns and the accepted separators.],
     ),
   ),
   assignee: "agent",
@@ -31,12 +31,12 @@
     2026,
     11,
     3,
-  )[external refs and split trailers accepted; touches and task scope read task refs only],
+  )[external refs and split trailers accepted. Touches and task scope read task refs only],
 )
 
 == AS-IS
 
-+ A repo tracks work outside mindtape, such as Redmine issue `r#45782`.
++ A repo tracks work outside mindtape, such as `Redmine` issue `r#45782`.
 + It sets `[commits] trailer = "Refs"` and writes `Refs: r#45782`.
 + 🔴 `mt check --commit-msg` refuses the message, and no config key says the value is an external ref.
 
@@ -48,9 +48,9 @@ error: msg.txt:3: Refs: `r#45782` names no task
 
 == TO-BE
 
-- 🟢 `[commits] external-refs` takes regexes. A token that names a task is a task ref; else a token matching one of the regexes is an external ref; else it is refused as today.
-- 🟢 A commit may name both kinds, and `has(refs)` is true when it names either.
-- 🟢 One trailer line may hold more than one ref split on commas or whitespace; repeated `Refs:` lines work too.
+- 🟢 `[commits] external-refs` takes regexes. A token that references a task is a task ref. A token matching one of the regexes is an external ref. The parser refuses any other token as today.
+- 🟢 A commit may reference both kinds, and `has(refs)` is true when it references either.
+- 🟢 One trailer line may hold more than one ref split on commas or whitespace. Repeated `Refs:` lines work too.
 - 🟢 `touches()` indexes task refs only, and a `scope = "task"` rule skips external refs.
 
 ```toml
@@ -83,13 +83,13 @@ Refs: r#45782
 
 - A separate `External-Refs:` trailer: it forces a second header and breaks the one-trailer habit.
 - Split on `;`, `/`, `&` and `and` like Python Semantic Release: those characters occur in URLs and paths, so the split would corrupt refs.
-- Accept any unknown value: a typo in a task stem would pass, and the rule that a commit names its work would stop meaning anything.
+- Accept any unknown value: a typo in a task stem would pass, and the rule that a commit references its work would stop meaning anything.
 
 
 == Out of scope
 
-- Closing keywords such as `Closes` or `Fixes`; mindtape reads only its configured trailer.
-- Resolving an external ref against its tracker; the value stays opaque.
+- Closing keywords such as `Closes` or `Fixes` stay out. `mt` reads only its configured trailer.
+- Resolving an external ref against its tracker stays out. The value stays opaque.
 - Separator characters beyond comma and whitespace.
 
 

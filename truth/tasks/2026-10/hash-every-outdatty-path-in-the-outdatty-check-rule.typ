@@ -37,13 +37,13 @@
 
 `outdatty: dev-shell-docs, source changed: .config/wt.toml` passed the land gate as fresh
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw(".just/scripts/script-scope-check.sh").
 
 == TO-BE
 
-- 🟢 Every outdatty.yaml source and dependent is hashed by the outdatty-check rule, and `just script-scope-check` fails by name on one that is not.
+- 🟢 The outdatty-check rule hashes every `outdatty.yaml` source and dependent, and `just script-scope-check` fails by name on one it misses.
 
 == Changes
 

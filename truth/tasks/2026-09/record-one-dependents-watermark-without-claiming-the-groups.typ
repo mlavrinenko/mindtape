@@ -33,7 +33,7 @@
 == AS-IS
 
 + Two delegated agents in this session each edited one dependent, re-recorded its group, and absorbed unrelated pending watermarks onto their commit.
-+ 🔴 #raw("outdatty.yaml"): Re-recording a group to stamp one dependent also stamps every other pending dependent in it, which is the misattribution the manifest's own header warns against.
++ 🔴 #raw("outdatty.yaml"): Re-recording a group to stamp one dependent also stamps every other pending dependent in it, which is the kind of over-claim the manifest's own header warns against.
 
 ```
 $ outdatty update --help
@@ -41,14 +41,14 @@ Options:
       --group <ID>
           Limit to the named group(s). Repeatable
 ```
-No per-file flag exists, and `just outdatty-update GROUP` takes a group id
+The CLI has no per-file flag, and `just outdatty-update GROUP` takes a group id
 only (`Justfile:437`). The prio-facts branch absorbed pending hashes for
-`cli-docs`, `prelude-docs` and `dev-docs`; the pty-isolate branch hit the
+`cli-docs`, `prelude-docs` and `dev-docs`. The pty-isolate branch hit the
 same on `docs/src/contributing.typ`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("outdatty.yaml").
 
 == TO-BE
@@ -57,29 +57,29 @@ left in a closing report no one rereads. It belongs in
   dependent in its group pending.
 - 🟢 A commit's lock diff names only files its author actually reviewed.
 - 🟢 Whatever the answer is, `outdatty.yaml`'s header says it, because that
-  header is where the watermark rule is argued today.
+  header is where the watermark rule lives today.
 
 
 == Changes
 
-- `outdatty.yaml` — the header paragraph on what a recorded hash claims,
+- `outdatty.yaml`: the header paragraph on what a recorded hash claims,
   corrected to say what the tool can actually scope, and the request it
   needs upstream.
-- `Justfile` — `outdatty-update` gains an optional dependent path once
-  `outdatty update` can take one; until then, say in the recipe comment that
-  the group is the smallest unit and a re-record reviews all of it.
+- `Justfile`: `outdatty-update` gains an optional dependent path once
+  `outdatty update` can take one. Until then, say in the recipe comment that
+  the group is the smallest unit and a re-record reviews it all.
 
 
 == Rollback
 
-Revert both files. Nothing generated depends on either, and the lock is
+Revert both files. Both changes stop at these files, and the lock is
 unaffected.
 
 
 == Out of scope
 
 - Reconciling the groups that are currently pending. They are ok as of this
-  commit; this is about the next time one is not.
+  commit. This is about the next time one is not.
 - The `outdatty-update-all` blanket form, which already carries its own
   argument for staying non-default.
 
@@ -88,5 +88,5 @@ unaffected.
 
 This repo is outdatty's heaviest consumer, with ten groups and a gate that
 reads them. The next dependent-only edit here is the test: its lock diff
-should name one file.
+should show one file.
 

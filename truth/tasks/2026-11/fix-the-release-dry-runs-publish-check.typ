@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-A dry run leaves the manifests unbumped, so cargo verifies the new CLI against the old published crate and fails.
+A dry run leaves the manifests at the old version, so cargo verifies the new CLI against the old published crate and fails.

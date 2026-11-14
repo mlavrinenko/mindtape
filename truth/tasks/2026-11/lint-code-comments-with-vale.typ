@@ -14,7 +14,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a doc comment meets the prose rules where the code is written],
+      enforced-practice: helps[a doc comment meets the prose rules beside the code it describes],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,7 +33,7 @@
 
 + Run `grep -n 'used to' crates/mindtape/src/sort.rs`.
 + 🔴 It finds a doc comment that reads as history on line 49, and `just lint` passes, because no arm reads a Rust comment.
-+ Run `vale --config=.config/vale.ini` on a `.typ` file with a comment; the comment never reaches a rule, because typst2vast drops it.
++ Run `vale --config=.config/vale.ini` on a `.typ` file with a comment. The comment never reaches a rule, because typst2vast drops it.
 + `check-doc-prose` reads the full-line comments of shell scripts, YAML files and Justfiles, and no Rust file.
 
 ```
@@ -43,11 +43,11 @@ $ grep -n 'used to' crates/mindtape/src/sort.rs
 
 == TO-BE
 
-- 🟢 `.config/vale-code.ini` maps `[formats] rs = md` and gives `[*.rs]` the `Prose` style, so a doc comment reads as Markdown.
+- 🟢 `.config/vale-code.ini` maps `[formats] rs = md` and gives `[*.rs]` the `Prose` style. A doc comment then reads as Markdown.
 - 🟢 `.just/scripts/check-code-prose.sh` prints every `///` and `//!` line, strips the marker, and pipes it to `vale --ext=.rs`.
 - 🟢 `just lint vale-code` runs in `just check` and names each hit with its file and line.
 - 🟢 Inline `//` comments, code and doc tests stay out of the run.
-- 🟢 The config carries a `[*.sh]` section as text for the comment move that follows; the first gate reads Rust doc comments only.
+- 🟢 The config carries a `[*.sh]` section as text for the comment move that follows. The first gate reads Rust doc comments only.
 
 ```ini
 [formats]
@@ -67,7 +67,7 @@ BasedOnStyles = Prose
 == Alternatives
 
 - `clippy::doc_markdown`: it flags an unmarked code span, not a sentence.
-- The regex scanner: it would copy the word lists a third time.
+- The regex scanner would copy the word lists a third time.
 
 == Out of scope
 
@@ -76,4 +76,4 @@ BasedOnStyles = Prose
 
 == Dogfood
 
-Every Rust source under `crates/` has its doc comments read, and the hits the first run finds are fixed in the commit that lands the gate.
+The gate reads the doc comments of every Rust source under `crates/`, and the commit that lands it fixes the hits the first run finds.

@@ -18,7 +18,7 @@
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
-      typst-over-markdown: helps[each solver is shown by `mt` refusing a bad task or flip, which a YAML file cannot do],
+      typst-over-markdown: helps[`mt` shows each solver by refusing a bad task or flip, which a YAML file cannot do.],
       plain-files: neutral,
     ),
     process: (
@@ -43,13 +43,13 @@
 
 == TO-BE
 
-- 🟢 `www/generate.sh` copies `examples/api-service` into a scratch git repo and captures, with the capture helper: `mt add` refused by the size cap and by missing sections; `mt done` refused by the test gate; a second `mt wip` refused; `mt ls blocked --columns title,why`; `mt check --commit-msg` refusing a message without `Refs:` and accepting one with it; `mt ls 'touches(...)'` after a commit.
+- 🟢 `www/generate.sh` copies `examples/api-service` into a scratch git repo and captures these with the capture helper. The size cap and missing sections refuse `mt add`. The test gate refuses `mt done`, and a second `mt wip` fails. It also captures `mt ls blocked --columns title,why`, `mt check --commit-msg` refusing a message without `Refs:` and accepting one with it, and `mt ls 'touches(...)'` after a commit.
 - 🟢 `just check-examples` validates `examples/api-service`.
 
 
 == Changes
 
-- `www/generate.sh`: the scratch repo and the captures. A capture whose command unexpectedly succeeds fails the build, because a refusal demo that passes shows nothing.
+- `www/generate.sh`: the scratch repo and the captures. A capture whose command unexpectedly succeeds fails the build, because a refusal demo that passes hides the bug.
 - `examples/api-service/tasks/*.typ`: any task the captures need.
 - `Justfile`: add the project to `check-examples`.
 - `.mmz/config.yaml`: the project in the `examples` scope.
@@ -58,7 +58,7 @@
 
 == Rollback
 
-Revert the commit; the generator stops capturing the project.
+Revert the commit. The generator stops capturing the project.
 
 
 == Out of scope

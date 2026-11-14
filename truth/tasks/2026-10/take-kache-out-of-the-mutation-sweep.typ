@@ -33,15 +33,15 @@
 == AS-IS
 
 + Run `just mutants` with kache as `RUSTC_WRAPPER` (the developer's shell sets it session-wide), then split `~/.cache/kache/events.jsonl` by `root` and `result`.
-+ 🔴 The 2026-09-30 sweep, summed over parallel rustc processes: hits avoided about 400 s of compile; 1326 misses on `mindtape`, `mt` and `*_e2e` targets cost about 28 min of keying and storing; 2442 adaptive passthroughs still cost about 25 min of keying. The misses wrote 146.5 GB through the 60 GB store, evicting what normal builds hit.
-+ The misses are inherent: every mutant edits `crates/mindtape`, so it and its dependents re-key. Only registry deps can hit, and cargo reuses them per scratch copy after the first build.
-+ 🟢 Measured 2026-10-01 on restricted sweeps of `config_ls.rs` (20 mutants) and four files (81 mutants), with kache vs without: 704 s vs 772 s and 1337 s vs 1078 s wall; +833 and +1184 store entries vs 0. The 20-mutant loss is the one-off cold registry-dep build in each of three scratch dirs (baseline build 99 s vs 168 s); steady-state build per mutant is ~70 s vs ~46 s, so the saving grows with the sweep.
++ 🔴 The 2026-09-30 sweep, summed over parallel rustc processes, had hits that avoided about 400 s of compile. Its 1326 misses on `mindtape`, `mt` and `*_e2e` targets cost about 28 min of keying and storing, and 2442 adaptive passthrough calls cost about 25 min of keying. The misses wrote 146.5 GB through the 60 GB store, evicting what normal builds hit.
++ The misses are inherent: every mutant edits `crates/mindtape`, so it and its dependents re-key. Only registry dependencies can hit, and cargo reuses them per scratch copy after the first build.
++ 🟢 Measured 2026-10-01 on restricted sweeps of `config_ls.rs` (20 mutants) and four files (81 mutants), with kache and without. Wall time was 704 s vs 772 s and 1337 s vs 1078 s, with +833 and +1184 store entries vs 0. The 20-mutant loss is the one-off cold registry-dependency build in each of three scratch dirs (baseline build 99 s vs 168 s). Steady-state build per mutant is ~70 s vs ~46 s. The saving then grows with the sweep.
 
 
 == TO-BE
 
-- 🟢 A sweep runs plain cargo: no kache keying or storing per mutant, nothing written to `~/.cache/kache`.
-- 🟢 Normal builds keep their kache hits across a sweep, because the sweep no longer flushes the store.
+- 🟢 A sweep runs plain cargo, with no kache keying or storing per mutant and nothing written to `~/.cache/kache`.
+- 🟢 Normal builds keep their kache hits across a sweep, because the sweep stopped flushing the store.
 - 🟢 The change lands on a measured sample, not on the numbers above alone.
 
 
@@ -49,7 +49,7 @@
 
 - `.just/scripts/_mutants-env.sh`: `export RUSTC_WRAPPER=`, empty, which cargo reads as no wrapper and which overrides config. A comment carries the numbers from Problem. Script-local, like the other knobs there.
 - `docs/src/contributing/mutation-testing.typ` and its regenerated `.md`: one line beside the other sweep knobs, if that doc lists them.
-- Verify without a full sweep (about 15 h): pick one source file with about 20 mutants (`cargo mutants --list -f <file>`), run that restricted sweep twice from a cold scratch dir, with and without the wrapper. Compare wall time from `mutants.out/outcomes.json`, the `kache stats` entry delta and `du -sh ~/.cache/kache`. Keep the change only if wall time does not regress.
+- Verify without a full sweep (about 15 h). Pick one source file with about 20 mutants (`cargo mutants --list -f <file>`), and run that restricted sweep twice from a cold scratch dir, with and without the wrapper. Compare wall time from `mutants.out/outcomes.json`, the `kache stats` entry delta and `du -sh ~/.cache/kache`. Keep the change only if wall time does not regress.
 
 
 == Rollback
@@ -60,8 +60,8 @@ Delete the `RUSTC_WRAPPER=` line and its comment from `.just/scripts/_mutants-en
 == Out of scope
 
 - `KACHE_INCREMENTAL_CRATES` set to the workspace crate names: it matches rustc's `--crate-name`, so it would have to list all ~55 test targets and would go stale with every new test file.
-- kache's `cache.exclude = ["/tmp/cargo-mutants-*/**"]`: right shape, but it is host-wide kache config that lives in the NixOS config, not this repo, so other contributors would not get it.
-- `KACHE_DISABLED=1`: makes kache a transparent shim but still strips incremental flags unless `KACHE_PRESERVE_INCREMENTAL=1` is set too, so it takes two knobs to get what an empty wrapper gives.
+- The `cache.exclude = ["/tmp/cargo-mutants-*/**"]` of kache has the right shape. It is host-wide kache config that lives in the NixOS config, not this repo, so other contributors would not get it.
+- `KACHE_DISABLED=1`: makes kache a transparent shim but still strips incremental flags unless `KACHE_PRESERVE_INCREMENTAL=1` also appears, so it takes two knobs to get what an empty wrapper gives.
 - `CARGO_MUTANTS_JOBS`, `CARGO_BUILD_JOBS` and the mold flag: tuned and measured separately, so left alone.
 
 

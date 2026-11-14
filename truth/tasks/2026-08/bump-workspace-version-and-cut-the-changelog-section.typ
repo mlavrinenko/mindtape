@@ -15,7 +15,7 @@
 
 == Summary
 
-Bump the workspace version in Cargo.toml (next release number, TBD with user) and move the CHANGELOG \[Unreleased\] content into a dated section; outdatty release-notes group drives CHANGELOG.md re-confirmation.
+Bump the workspace version in Cargo.toml and move the CHANGELOG \[Unreleased\] content into a dated section. The next release number needs a decision from the user. The outdatty release-notes group drives CHANGELOG.md re-confirmation.
 
 == Scope
 

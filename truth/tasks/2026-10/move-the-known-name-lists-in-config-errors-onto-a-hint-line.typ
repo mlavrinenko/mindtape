@@ -35,11 +35,11 @@
 + Reading config errors against the error format in diag/mod.rs
 + 🔴 #raw("crates/mindtape/src/config"): config errors end with a known-name list on the error line, where the format puts the next step on a hint line
 
-views.{name}.columns: unknown column: {}{}; columns: {legal_cols}
+`views.{name}.columns: unknown column: {}{}; columns: {legal_cols}`
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/diag/from_lib.rs").
 
 == TO-BE

@@ -35,7 +35,7 @@
 + On Windows, run `mt ls` in a project whose root is `tasks/`.
 + 🔴 Every task fails: `error: tasks\alpha.typ: bad virtual path "tasks\\alpha.typ": path contains backslash`.
 + `HarvestWorld::with_root`, from typst-world 0.5.5, names the main file by the platform's relative path, and Typst 0.15 refuses `\` in a virtual path. The loader, `mt eval` and the prelude tests build their world with it.
-+ CI run 40573274304 failed 302 tests that print this error, and more that load nothing because of it.
++ CI run 40573274304 failed 302 tests that print this error, and more that fail to load because of it.
 
 
 == Environment
@@ -63,5 +63,5 @@
 
 == Dogfood
 
-Not applicable. This repo is developed on Linux, where the paths already use `/`.
+Not applicable. The maintainers develop this repo on Linux, where the paths already use `/`.
 

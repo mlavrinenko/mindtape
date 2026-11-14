@@ -33,7 +33,7 @@
 == AS-IS
 
 + Writing a red unit test that calls a function not yet written
-+ 🔴 #raw("Justfile"): the test recipe passes --cargo-quiet twice, which drops rustc's diagnostics too, so a build failure prints only the cargo command line and its exit code
++ 🔴 #raw("Justfile"): the test recipe passes `--cargo-quiet` twice, which drops rustc's diagnostics too. A build failure prints only the cargo command line and its exit code
 
 ```
 $ just test -p mindtape a_text_slot_whose_example
@@ -44,13 +44,13 @@ error[E0425]: cannot find function `escaped_examples` in this scope
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("Justfile").
 
 == TO-BE
 
-- 🟢 `just test` on a crate that does not compile prints rustc's errors, and a clean build still prints no `Compiling` lines.
+- 🟢 `just test` on a crate that does not compile prints rustc's errors, and a clean build still leaves out the `Compiling` lines.
 
 
 == Changes

@@ -15,10 +15,10 @@
 
 == Summary
 
-The canonical schema documents a schema\_version marker that the binary never serializes. Emit it in the mt ls --json envelope and have mt import read it, so the documented contract becomes real rather than aspirational.
+The canonical schema documents a `schema_version` marker that the binary never serializes. Emit it in the `mt ls --json` envelope and have mt import read it. The documented contract then becomes real rather than aspirational.
 
 == Scope
 
-- Add schema\_version to the top-level ls --json envelope alongside tasks and applied
+- Add `schema_version` to the top-level `mt ls --json` envelope alongside tasks and applied
 - mt import accepts it when present, tolerates absence for bare arrays, and rejects a future higher version with a clear message
 - Cover both directions with tests

@@ -35,7 +35,7 @@
 
 == AS-IS
 
-+ Keep Mindtape tasks in 30 repos under `~/projects/home`.
++ Keep the project's tasks in 30 repos under `~/projects/home`.
 + Ask which of them has work ready, blocked or broken.
 + 🔴 `mt` answers for one repo per run: `mt @home ls` prints `error: unknown worktree: '@home'`, and a shell loop takes 2.9s and prints tables with no project name.
 
@@ -49,7 +49,7 @@
 
 == Changes
 
-- `truth/tasks/*.typ`: the child tasks, linked with `parent` to this one. This milestone changes no file itself.
+- `truth/tasks/*.typ`: the child tasks, linked with `parent` to this one. This milestone doesn't change a file itself.
 
 
 == Out of scope

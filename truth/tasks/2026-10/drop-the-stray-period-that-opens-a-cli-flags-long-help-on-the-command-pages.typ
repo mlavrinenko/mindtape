@@ -33,7 +33,7 @@
 == AS-IS
 
 + Rendering the CLI pages to Markdown for llms.txt
-+ 🔴 #raw("www/utils/cli-ref.typ"): \`\_desc\` strips the short help from the front of the long help, and when clap's long help repeats it with a trailing period, the period stays behind as a paragraph of its own
++ 🔴 #raw("www/utils/cli-ref.typ"): \`\_desc\` strips the short help from the front of the long help. When clap's long help repeats it with a trailing period, the period stays behind as a paragraph of its own.
 
 ```
 $ rg -o 'each legend value is a verb.{0,40}' www/public/mindtape/cli/flip/index.html
@@ -42,8 +42,8 @@ each legend value is a verb</p><p>.<br /><br />Stamps `&lt;status&gt;` dated
 11 commands and arguments in `www/generated/cli.json` have a long help that is the short help plus a period.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("www/utils/cli-ref.typ").
 
 == TO-BE

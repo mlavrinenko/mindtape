@@ -33,15 +33,15 @@
 == AS-IS
 
 + Reading the Windows CI log of `ls_limit_e2e::a_worktree_flag_pages_with_the_flag_as_typed` while fixing path separators
-+ 🔴 #raw("crates/mindtape-cli/src/render/file_path.rs"): `cwd()` reads `std::env::current_dir()` uncanonicalized, so a working directory spelled with an 8.3 short name such as `RUNNER~1` shares no folder with the canonical root and the `file` cell climbs to the drive
++ 🔴 #raw("crates/mindtape-cli/src/render/file_path.rs"): `cwd()` reads `std::env::current_dir()` without resolving it first. A working directory spelled with an 8.3 short name such as `RUNNER~1` then does not share a folder with the canonical root, and the `file` cell climbs to the drive
 
 ```
 0b0    wip     normal    Alpha  ..\..\..\..\..\runneradmin\AppData\Local\Temp\.tmpGCvCyY\tasks\a.typ
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/render/file_path.rs").
 
 == TO-BE
@@ -51,12 +51,12 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/render/file_path.rs`: canonicalize the working directory once in `cwd()` through `mindtape::canonical`, falling back to it as read.
+- `crates/mindtape-cli/src/render/file_path.rs`: resolve the working directory once in `cwd()` through `mindtape::canonical`, falling back to it as read.
 
 
 == Rollback
 
-Revert the commit; the column goes back to relativizing the directory as the OS reports it.
+Revert the commit. The column goes back to relativizing the directory as the OS reports it.
 
 
 == Out of scope
@@ -66,5 +66,5 @@ Revert the commit; the column goes back to relativizing the directory as the OS 
 
 == Dogfood
 
-Not applicable: this repo is developed on Linux, where a directory has one spelling.
+Not applicable: the maintainers develop this repo on Linux, where a directory has one spelling.
 

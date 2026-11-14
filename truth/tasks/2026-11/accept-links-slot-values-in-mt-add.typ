@@ -48,7 +48,7 @@ error: nested mappings are unsupported: 'links'
 == TO-BE
 
 - 🟢 `-f` and `--edit` read a YAML or JSON list of `{kind, task, note}` mappings into `RawValue::Links`.
-- 🟢 An empty list is an empty links value, so an optional slot files no edges.
+- 🟢 An empty list is an empty links value. An optional slot then files no edges.
 - 🟢 A missing `kind` or `task`, an unknown key, or a mixed list fails naming the slot and the bad entry.
 - 🟢 `--set links=...` fails with a hint to use `-f`, since one token cannot carry the list.
 - 🟢 The editor scaffold writes a links slot as a YAML list and parses it back.

@@ -31,13 +31,13 @@
     2026,
     10,
     8,
-  )[suggest.rs holds nearest and the Unknown carrier; no caller builds a did-you-mean string.],
+  )[suggest.rs holds nearest and the Unknown carrier. No caller builds a did-you-mean string.],
 )
 
 == AS-IS
 
 + Closing report-task-references-and-project-discovery-in-the-error-format
-+ 🔴 #raw("crates/mindtape/src/suggest.rs"): \`hint\` and \`suggestion\` still build \`; did you mean: x?\` strings for filter, config, set, link, add, ls and worktrees, which the nearest-name-as-a-Hint format replaces
++ 🔴 #raw("crates/mindtape/src/suggest.rs"): `hint` and `suggestion` still build #raw("; did you mean: x?") strings for filter, config, set, link, add, ls and worktrees, which the nearest-name-as-a-Hint format replaces
 
 ```
 crates/mindtape/src/config/ls.rs:324: crate::suggest::hint("view", ..)
@@ -45,13 +45,13 @@ crates/mindtape-cli/src/cmd/set.rs:268: suggest::suggestion(name, &known)
 crates/mindtape-cli/src/cmd/link/plan.rs:245: suggest::suggestion(kind, &names)
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/suggest.rs").
 
 == TO-BE
 
-- 🟢 `suggest.rs` holds `nearest` only; no caller builds a did-you-mean string.
+- 🟢 `suggest.rs` holds `nearest` only. No caller builds a did-you-mean string.
 
 == Changes
 

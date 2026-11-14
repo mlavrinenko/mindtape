@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a ban that names a missing path fails the gate instead of banning nothing],
+      enforced-practice: helps[a ban on a missing path fails the gate instead of banning nothing],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,13 +33,13 @@
 == AS-IS
 
 + Adding the `util::open_warned` and `Diag::did_you_mean` bans to `clippy.toml` for the snippet-extraction task
-+ 🔴 #raw("clippy.toml"): clippy accepts a `disallowed-methods` entry whose path names no function, so a mistyped ban silently bans nothing
++ 🔴 #raw("clippy.toml"): clippy accepts a `disallowed-methods` entry whose path matches no function, so a mistyped ban silently bans nothing
 
-The agent's first path for `warn_errors` was wrong, and `just clippy` passed with it; only re-inlining a copy and seeing clippy stay green showed the ban was dead.
+The agent's first path for `warn_errors` was wrong, and `just clippy` passed with it. Only re-inlining a copy and seeing clippy stay green showed the ban was dead.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("Justfile").
 
 == TO-BE

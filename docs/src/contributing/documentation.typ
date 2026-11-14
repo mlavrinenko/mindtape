@@ -298,17 +298,10 @@ Every rule sits at `error`. The example shows what the rule flags.
 
 == Task bodies
 
-#just.docs-vale-tasks() runs the same style over `truth/tasks`. The section
-for `2026-12` turns the 32 AI-tell rules back on, which makes it the first
-month under the full rule set. An older month keeps its exemptions until a
-task cleans it. Seven rules stay off for every month because a task record
-differs from a page, and `.config/vale.ini` argues each one. A task records a
-change, and `Prose.History` would flag its AS-IS and TO-BE. The task shape
-mandates headings such as `AS-IS` and `TO-BE`, which `Prose.HeadingCase` would
-rename. A task has no `#mindtape` constant for `Prose.ProductName`. It quotes
-identifiers in bare prose, which `Prose.Spelling` doesn't know. The three
-sentence rules, `SentenceLength`, `PassiveVoice` and `Semicolon`, read a task
-bullet as a page sentence. A bullet is a record. That arm carries no `gate`
+#just.docs-vale-tasks() runs the same style over `truth/tasks`. Every task
+body passes the same 48 rules as a docs page, with no month or task section in
+`.config/vale.ini`. `Prose.HeadingCase` lists `AS-IS` and `TO-BE` as terms,
+because `mt check` matches those headings literally. That arm carries no `gate`
 tag, since `mt flip` writes the task file it would read.
 
 == Prose gate coverage

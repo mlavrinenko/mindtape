@@ -32,15 +32,15 @@
 == AS-IS
 
 + Run `mt add --to fixes "Remove the legacy import"` from a subdirectory.
-+ 🔴 `--to` resolves under `--into`, which itself resolves against the current directory, so the same command writes to a different directory depending on where it runs.
++ 🔴 `--to` resolves under `--into`, which itself resolves against the current directory. The same command then writes to a different directory depending on where it runs.
 + `--into .` is a sentinel for the first root, and `mt import` carries the same two overlapping flags.
 
 
 == TO-BE
 
-- 🟢 `mt add --dir <PATH>` and `mt import --dir <PATH>` name one destination. A relative path resolves from the project root, and an absolute path is taken as-is.
+- 🟢 `mt add --dir <PATH>` and `mt import --dir <PATH>` name one destination. A relative path resolves from the project root, and the command takes an absolute path as-is.
 - 🟢 Without `--dir`, `mt add` uses its configured destination and `mt import` keeps each record's `file` path, as today.
-- 🟢 `--into` and `--to` are removed. The refusal names `--dir`, and every docs example uses it.
+- 🟢 The change removes `--into` and `--to`. The refusal names `--dir`, and every docs example uses it.
 
 ```
 $ mt add --dir truth/tasks/fixes "Remove the legacy import"
@@ -67,12 +67,12 @@ wrote truth/tasks/fixes/remove-the-legacy-import.typ
 
 == Out of scope
 
-- The default destination and per-template routing; this only changes how a caller names one.
-- `mt import` with no `--dir`; it keeps the record's `file` path.
+- The default destination and per-template routing stay out. This only changes how a caller names one.
+- `mt import` with no `--dir` stays out. It keeps the record's `file` path.
 - A compatibility shim beyond a refusal naming `--dir`.
 
 
 == Dogfood
 
-This repo's `truth/tasks` is the first root, so `mt add` needs no flag. Every docs and skill example that names a directory switches to `--dir`.
+This repo's `truth/tasks` is the first root, so `mt add` works without a flag. Every docs and skill example that states a directory switches to `--dir`.
 

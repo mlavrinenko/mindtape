@@ -40,16 +40,16 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
-- 🟢 Every message here keeps its key path first and names the value in quotes; `ls_columns.rs:114` gains its key path.
+- 🟢 The command builds each message with `Diag` (`crates/mindtape-cli/src/diag/`), and it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Every message here keeps its key path first and names the value in quotes. `ls_columns.rs:114` gains its key path.
 
 == Changes
 
-- `crates/mindtape/src/config/views.rs`, `crates/mindtape/src/config/ls.rs`, `crates/mindtape/src/config/ls_columns.rs`, `crates/mindtape/src/config/hooks.rs`, `crates/mindtape/src/config/dicts.rs`: quote values, drop em dashes and parentheticals, one clause each.
+- `crates/mindtape/src/config/views.rs`, `crates/mindtape/src/config/ls.rs`, `crates/mindtape/src/config/ls_columns.rs`, `crates/mindtape/src/config/hooks.rs`, `crates/mindtape/src/config/dicts.rs`: quote values, drop em dashes and asides, one clause each.
 
 == Out of scope
 
-- How the line reaches the user: `report-config-load-errors-at-their-file-and-line`.
+- The line reaches the user through `report-config-load-errors-at-their-file-and-line`.
 
 == Dogfood
 

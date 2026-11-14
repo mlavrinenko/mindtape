@@ -30,13 +30,13 @@
   status: done(2026, 10, 5),
   links: related(
     "describe-every-field-with-one-field-descriptor.typ",
-  )[the descriptor absorbs cardinality; either can land first],
+  )[the descriptor absorbs cardinality. Either can land first.],
 )
 
 == AS-IS
 
 + Reviewing the list-valued extension field check in c1882d4d
-+ 🔴 #raw("crates/mindtape/src/add_slots.rs"): \`validate\` accepts a list in a declared \`x-\` field, but every slot \`mt add\` makes for it is a single-value \`choice\`, so a list cannot be filed
++ 🔴 #raw("crates/mindtape/src/add_slots.rs"): \`validate\` accepts a list in a declared \`x-\` field, but every slot \`mt add\` makes for it is a single-value \`choice\`, so nobody can file a list
 
 ```
 # [tasks.fields.x-machine] values = ["alpha", "beta"], required = "!terminal"
@@ -47,8 +47,8 @@ Error: slot "x-machine" expects choice, got list
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/config_tasks.rs").
 
 == TO-BE
@@ -68,7 +68,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; a list field is filed by hand again.
+- Revert the commit. A list field goes back to a hand edit.
 
 
 == Out of scope
@@ -79,4 +79,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable: this repo declares no list-valued field; a dotfiles repo files `x-machine` lists with `mt add`.
+Not applicable: this repo has no list-valued field. A personal-config repo files `x-machine` lists with `mt add`.

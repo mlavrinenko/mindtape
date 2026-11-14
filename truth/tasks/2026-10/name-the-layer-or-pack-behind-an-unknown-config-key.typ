@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a typo in a shared pack names the pack, so adopting one costs no hunt],
+      cheap-adoption: helps[a typo in a shared pack points at the pack, so adopting one costs no hunt],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -34,7 +34,7 @@
 == AS-IS
 
 + Widening packs to any config key, in `merge-every-config-key-from-a-pack-below-the-layer-that-extends-it.typ`
-+ 🔴 #raw("crates/mindtape/src/config/layers.rs"): a misspelled key in a pack or an ancestor `.mindtape/defaults.toml` fails the merged config without naming the file that holds it, so the reader looks in `.mindtape/config.toml`
++ 🔴 #raw("crates/mindtape/src/config/layers.rs"): a misspelled key in a pack or an ancestor `.mindtape/defaults.toml` fails the merged config without naming the file that holds it.The reader looks in `.mindtape/config.toml`
 
 ```
 $ cat ../.mindtape/defaults.toml
@@ -47,8 +47,8 @@ error: can't parse config: unknown field `projet`, expected one of `project`, `t
 A pack (`extends = ["./team.toml"]` with `[projet]` in `team.toml`) prints the same line. Before packs took any key, the allow-list named the pack.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/config/layers.rs").
 
 == Environment
@@ -78,5 +78,5 @@ One mechanism with `place-a-config-error-only-at-a-source-that-declares-its-full
 
 == Dogfood
 
-Not applicable: this repo's layers carry no typo. A contributor's typo in an official pack would name the pack.
+Not applicable: this repo's layers carry no typo. A contributor's typo in an official pack would point at the pack.
 

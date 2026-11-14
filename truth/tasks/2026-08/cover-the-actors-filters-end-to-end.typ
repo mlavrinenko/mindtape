@@ -10,7 +10,7 @@
   difficulty: 2,
   tags: ("cli", "tests"),
   estimate: (files: 1),
-  status: done(2026, 8, 7)[landed 2026-08-07; just check green on merged HEAD],
+  status: done(2026, 8, 7)[landed 2026-08-07, just check green on merged HEAD],
   links: related("actors-roles-registry-manual-test.typ")[
     the session that surfaced this gap
   ]
@@ -22,9 +22,9 @@
 == Summary
 
 The `role` and `assignee` filters have library unit tests against a hand-built
-`Config` only (`filter_actors_tests.rs`). Nothing exercises them through the
-CLI, so a break anywhere between TOML parsing, project loading and `mt ls`
-would ship green. The 2026-08-07 manual session was the first time they ran end
+`Config` only (`filter_actors_tests.rs`). The CLI never exercises them, so a
+break anywhere between TOML parsing, project loading and `mt ls` could reach a
+green run. The 2026-08-07 manual session was the first time they ran end
 to end.
 
 == Scope

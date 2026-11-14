@@ -34,10 +34,10 @@
 
 + Run `mt --help` in any project.
 + 🔴 The about line reads "Command-line interface for Mindtape, a file-based task tracker over Typst", which says nothing a newcomer can act on.
-+ 🔴 `init` sits twelfth and `add` first, so the commands a newcomer needs first are scattered through the list.
++ 🔴 `init` sits twelfth and `add` first. The list then scatters the commands a newcomer needs first.
 + 🔴 The listing never says each status is a command too, like `mt done <task>`.
 + 🔴 Short help lines run to 250 characters, such as `mt rm --help`'s `[TARGETS]` and `mt allow`'s line, and wrap into paragraphs in `-h`.
-+ 🔴 `--color` is explained as "When to colour the output", two spellings side by side.
++ 🔴 The help explains `--color` as "When to colour the output", two spellings side by side.
 
 
 == TO-BE

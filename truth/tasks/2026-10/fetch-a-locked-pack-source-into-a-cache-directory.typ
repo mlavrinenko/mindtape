@@ -55,9 +55,9 @@ sha256( for each file, sorted bytewise by its /-separated path:
 - `crates/mindtape/src/config/pack_sources/fetch_tests.rs`: the red tests first, against a local bare repository whose `.gitattributes` asks for CRLF, and a racing second fetch. `hash_tests.rs`: the framing and its order.
 - `crates/mindtape/src/config/pack_sources/hash.rs` (new): the framed tree hash.
 - `crates/mindtape/src/config/pack_sources/fetch.rs` (new): the fetch, the tree written from `git ls-tree` and `git cat-file --batch`, the rename, and `FetchError`.
-- `crates/mindtape/src/config/pack_sources/listing.rs` (new): read the listing, refusing on every platform a path that is not ASCII, has an empty, `.` or `..` part, holds `\`, `:`, a control character or one of `<>"|?*`, ends in a dot or space, names a device (`CON`, `PRN`, `AUX`, `NUL`, `COM0`-`COM9`, `LPT0`-`LPT9`, any case, any extension), or lowercases to a path or directory another entry spells differently. `safe_join` builds each file's path from plain names only and checks it stays in the tree.
-- `crates/mindtape/src/config/pack_sources/git.rs` (new): run git without the variables `git rev-parse --local-env-vars` names or `GIT_ALLOW_PROTOCOL`, with `transfer.fsckObjects=true` and `protocol.allow=never` but https, ssh, git and file, and stream `cat-file --batch`, checking each header's id, `blob` type, size and trailing newline.
-- `crates/mindtape/src/config/pack_sources/scratch.rs` (new): the scratch directory, a sweep of `.fetch-*` directories over an hour old at the start of a fetch, since `Drop` doesn't run on Ctrl-C, and the rename. A 64-digit commit inits the scratch repository with `--object-format=sha256`.
+- `crates/mindtape/src/config/pack_sources/listing.rs` (new): read the listing and refuse a path that is not ASCII on every platform. Refuse a path with an empty, `.` or `..` part, or a `\`, `:`, a control character or one of `<>"|?*`. Refuse a trailing dot or space. Refuse a device name (`CON`, `PRN`, `AUX`, `NUL`, `COM0`-`COM9`, `LPT0`-`LPT9`, any case, any extension), or a lowercase form that matches another entry's path or directory. `safe_join` builds each file's path from plain names only and checks it stays in the tree.
+- `crates/mindtape/src/config/pack_sources/git.rs` (new): run git without the variables `git rev-parse --local-env-vars` names or `GIT_ALLOW_PROTOCOL`, with `transfer.fsckObjects=true` and `protocol.allow=never` but `https`, `ssh`, `git` and `file`, and stream `cat-file --batch`, checking each header's id, `blob` type, size and trailing newline.
+- `crates/mindtape/src/config/pack_sources/scratch.rs` (new): the scratch directory, a sweep of `.fetch-*` directories over an hour old at the start of a fetch, since `Drop` doesn't run on Ctrl-C, and the rename. A 64-digit commit sets up the scratch repository with `--object-format=sha256`.
 - `crates/mindtape/src/config/pack_sources/mod.rs`: list the new files in the header.
 - `crates/mindtape/Cargo.toml`, `Cargo.lock`: the `sha2` crate.
 - `crates/mindtape/src/loader/cache.rs`: share its `hex` with the tree hash.
@@ -67,7 +67,7 @@ sha256( for each file, sorted bytewise by its /-separated path:
 
 - Fetch by bare commit: some servers refuse a fetch of an unadvertised object.
 - Check out the commit with `-c core.autocrlf=false -c core.eol=lf`: the source's own `.gitattributes`, an LFS filter or a `post-checkout` hook still change the files, the last two per machine.
-- Fold Unicode case and NFC for the case check: Windows and macOS fold beyond ASCII by different tables, and pack file names are ASCII, so refusing the rest is the one rule every platform agrees on.
+- Fold Unicode case and NFC for the case check. Windows and macOS fold beyond ASCII by different tables, and pack file names are ASCII. Refusing the rest is the one rule every platform agrees on.
 - Hash with git's own tree id: it is SHA-1, and it hashes git objects, not the bytes `mt` reads.
 
 

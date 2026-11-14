@@ -33,18 +33,18 @@
 == AS-IS
 
 + Source `contrib/ask-refactoring/repeats.sh`, run jscpd at 15 tokens over `crates` and pipe its report through `score_repeats` with `REPEAT_GAIN=300`.
-+ 🔴 It prints 12 groups. The biggest is `let dir = tempfile::tempdir().unwrap();`, 395 copies in 107 files. The rest are test setups pasted 8 to 58 times: an `mt add` run and read-back, a `Condition::parse` assert, a link-edge fixture, a self-test re-exec, a rules-test project and a template const.
++ 🔴 It prints 12 groups. The biggest is `let dir = tempfile::tempdir().unwrap();`, 395 copies in 107 files. The rest are test setups pasted 8 to 58 times. They are an `mt add` run and read-back, a `Condition::parse` assert, a link-edge fixture, a self-test re-exec, a rules-test project and a template constant.
 
 == TO-BE
 
-- 🟢 The repeats arm reports no group at its default `--repeat-gain 300`.
-- 🟢 Each extracted snippet is one test helper. No clippy lock: both crate roots exempt test code from `disallowed-methods`, so the repeats arm is what catches a new copy.
+- 🟢 The repeats arm's default `--repeat-gain 300` produces an empty report.
+- 🟢 Each extracted snippet is one test helper. No clippy lock: both crate roots exempt test code from `disallowed-methods`. The repeats arm is what catches a new copy.
 
 == Changes
 
 - `crates/mindtape/src/test_support.rs`: `tempdir` and its `_with_dirs`, `_with_files` and `_with_config` forms, `write_file`, `linked_task`, the `typst_import!` and `typst_task!` macros, and `rerun_isolated`, which re-runs a test in a child by its thread's name.
 - `crates/mindtape/Cargo.toml`: `test-support` pulls `tempfile` as an optional dependency.
-- `crates/mindtape-cli/src/test_util.rs`, `crates/mindtape-cli/tests/it/support/mod.rs`: project fixtures own their tempdir; `add_and_read`.
+- `crates/mindtape-cli/src/test_util.rs`, `crates/mindtape-cli/tests/it/support/mod.rs`: project fixtures own their temporary directory, and `add_and_read`.
 - `crates/**/*_tests.rs`, `crates/**/tests.rs`, `crates/mindtape-cli/tests/it/*.rs`: the copies call the helpers.
 - `outdatty.yaml`: `test_support.rs` joins `typst-pkg-version`.
 

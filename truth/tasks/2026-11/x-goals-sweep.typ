@@ -55,4 +55,4 @@
 
 == Dogfood
 
-Not applicable: a mechanical rewrite changes no feature this repo uses.
+Not applicable: a mechanical rewrite doesn't change any feature this repo uses.

@@ -22,12 +22,12 @@
 
 == Summary
 
-`check-estimate-drift-when-a-task-closes.typ` adds a built-in `check` action to `[[on.flip]]`, pinned by unit tests only. Nothing drives it through the real binary, and the hooks and estimates pages still describe `show`, `list` and `run` as the only action kinds.
+`check-estimate-drift-when-a-task-closes.typ` adds a built-in `check` action to `[[on.flip]]`, pinned by unit tests only. The tests never drive it through the real binary, and the hooks and estimates pages still describe `show`, `list` and `run` as the only action kinds.
 
 
 == Scope
 
-Add an end-to-end case to `crates/mindtape-cli/tests/flip_hooks_e2e.rs`: a wip task declaring two files, closed against a four-file tree under a gating `check = "estimate-drift"` action, is refused. Regenerate `schema/config.schema.json`, document the `check` action in `www/content/hooks.typ` and the close-time comparison in `www/content/estimates.typ`, and add a CHANGELOG.md entry.
+Add an end-to-end case to `crates/mindtape-cli/tests/flip_hooks_e2e.rs`: the tool refuses a `wip` task declaring two files when it closes against a four-file tree under a gating `check = "estimate-drift"` action. Regenerate `schema/config.schema.json`. Document the `check` action in `www/content/hooks.typ` and the close-time comparison in `www/content/estimates.typ`. Add a CHANGELOG.md entry.
 
 == Dogfood
 

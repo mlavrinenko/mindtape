@@ -35,20 +35,20 @@
 + Extending check-doc-prose.sh to the Justfile and YAML config comments and to the config schema descriptions, with docs/src/contributing/ out of reach in that worktree.
 + 🔴 #raw("docs/src/contributing/documentation.typ"): the paragraph on `just check-doc-prose` does not say the gate also scans the full-line comments of the Justfile, `.just/*.just` and the three YAML configs, and every `description` in `schema/config.schema.json`.
 
-The paragraph lists the history words, the acronym list and the skipped spans, and names no config file.
+The paragraph lists the history words, the acronym list and the skipped spans, and does not reference a config file.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("docs/src/contributing/documentation.typ").
 
 == TO-BE
 
-- 🟢 The check-doc-prose paragraph names the Justfile, `.just/*.just`, `.mmz/config.yaml`, `outdatty.yaml` and `.linecop.yaml` as scanned for their `#` comment lines, and `schema/config.schema.json` as scanned for its descriptions.
+- 🟢 The check-doc-prose paragraph lists the Justfile, `.just/*.just`, `.mmz/config.yaml`, `outdatty.yaml` and `.linecop.yaml` as scanned for their `#` comment lines, and `schema/config.schema.json` as scanned for its descriptions.
 
 == Changes
 
-- `docs/src/contributing/documentation.typ`: add one sentence naming the config comment and schema description scopes, then `just docs md` to render docs/contributing/documentation.md.
+- `docs/src/contributing/documentation.typ`: add one sentence that states the config comment and schema description scopes, then `just docs md` to render docs/contributing/documentation.md.
 
 == Rollback
 

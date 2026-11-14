@@ -32,26 +32,26 @@
 
 == AS-IS
 
-+ Adding \`mt set\` per the task that put this eval's regrade out of scope.
-+ 🔴 #raw("skills/mindtape/evals/evals.json"): Eval 4's expected output states that priority has no CLI writer, and its rubric grades a hand edit as the correct recovery; \`mt set \<task> priority=8\` is now that writer.
++ Adding `mt set` per the task that put the regrade of this eval out of scope.
++ 🔴 #raw("skills/mindtape/evals/evals.json"): Eval 4's expected output states that priority has no CLI writer, and its rubric grades a hand edit as the correct recovery. `mt set <task> priority=8` is that writer.
 
-`skills/mindtape/evals/evals.json:108` says "hand-edit the new file to add `priority: 8` (the sanctioned path — priority has no CLI writer and no slot here)". `skills/mindtape/evals/evals.json:121` grades "added by hand edit after filing". `mt set --help` now lists `priority` among the writable fields.
+`skills/mindtape/evals/evals.json:108` says "hand-edit the new file to add `priority: 8` (the sanctioned path — priority has no CLI writer and no slot here)". `skills/mindtape/evals/evals.json:121` grades "added by hand edit after filing". `mt set --help` lists `priority` among the writable fields.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("skills/mindtape/evals/evals.json").
 
 == TO-BE
 
-- 🟢 Eval 4 still exercises the refusal path: `--set priority=8` against a one-slot template is still refused loudly.
+- 🟢 Eval 4 still exercises the refusal path. `--set priority=8` against a one-slot template still gets refused loudly.
 - 🟢 It then grades `mt set <stem> priority=8` as the recovery, not a hand edit.
 - 🟢 No expected output in the suite claims a field has no CLI writer when it has one.
 
 
 == Changes
 
-- `skills/mindtape/evals/evals.json` — eval 4's `expected_output`, and the rubric criterion naming the hand edit.
+- `skills/mindtape/evals/evals.json`: eval 4's `expected_output`, and the rubric criterion that describes the hand edit.
 
 
 == Rollback
@@ -61,8 +61,8 @@ Revert the file. The eval is data, and nothing imports it.
 
 == Out of scope
 
-- The refusal half of the eval, which stays as it is. An unknown `--set` key on a one-slot template is still the trap being tested.
-- Every other eval. None of them grades a field write.
+- The refusal half of the eval, which stays as it is. An unknown `--set` key on a one-slot template is still the trap under test.
+- Every other eval. Each one leaves a field write ungraded.
 
 
 == Dogfood

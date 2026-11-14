@@ -22,21 +22,21 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a CLI change no longer fails an unrelated gate's control],
-      docs-match-code: helps[a doc span is judged by the parser that runs it],
+      sound-codebase: helps[a CLI change cannot fail an unrelated gate's control],
+      docs-match-code: helps[the parser that runs a doc span judges it],
     ),
   ),
   assignee: "agent",
   status: done(2026, 10, 5),
   links: related(
     "read-the-doc-sources-through-one-typst-extractor-shared-by-every-check-doc-gate.typ",
-  )[both rewrite check-doc-spans; land the extractor first so this reads spans from it],
+  )[both rewrite check-doc-spans. Land the extractor first so this reads spans from it],
 )
 
 == AS-IS
 
 + Reviewing commits e3a52225 and e551aca4
-+ 🔴 #raw(".just/scripts/check-doc-spans.jq"): the gate re-implements clap's argv grammar in jq, skips a span whose \`mt\` follows a prefix, and its control expects the live CLI's flags
++ 🔴 #raw(".just/scripts/check-doc-spans.jq"): the gate re-implements clap's `argv` grammar in jq, skips a span whose \`mt\` follows a prefix, and its control expects the live CLI's flags
 
 ```
 $ cat d.typ
@@ -48,8 +48,8 @@ $ grep -n 'valid: -i' .just/scripts/check-doc-spans.sh
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cli_dump.rs").
 
 == TO-BE
@@ -68,14 +68,14 @@ left in a closing report no one rereads. It belongs in
 
 - `crates/mindtape-cli/src/cli_dump.rs`: add `--check-argv <LINE>`.
 - `crates/mindtape-cli/tests/cli_dump_e2e.rs`: cover an unknown flag, the `@name` sugar, a status verb and a missing positional.
-- `.just/scripts/check-doc-spans.jq`: drop `check_mt`; keep the config-key checks.
+- `.just/scripts/check-doc-spans.jq`: drop `check_mt`. Keep the config-key checks.
 - `.just/scripts/check-doc-spans.sh`: pull command lines after a prefix, call `--check-argv`, and run the control on the fixture.
 - `.just/scripts/check-doc-spans-control.json`, new: the frozen command tree the control reads.
 
 
 == Rollback
 
-- Revert the commit; the jq walker and the live-CLI control return.
+- Revert the commit. The jq walker and the live-CLI control return.
 
 
 == Out of scope

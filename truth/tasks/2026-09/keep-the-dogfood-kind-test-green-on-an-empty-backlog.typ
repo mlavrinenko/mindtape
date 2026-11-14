@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the gate fails on a defect in the code, never on the backlog being finished],
+      enforced-practice: helps[the gate fails on a defect in the code, never on an empty backlog],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -32,7 +32,7 @@
 
 == AS-IS
 
-+ Close every open task in `truth/tasks/`, so `mt ls '!terminal'` prints no rows.
++ Close every open task in `truth/tasks/`, so `mt ls '!terminal'` comes back empty.
 + Run `cargo test -p mindtape --test dogfood_check`.
 + 🔴 `dogfood_config_requires_kind_on_open_tasks_only` (`crates/mindtape/tests/dogfood_check.rs:97`) panics on an `Option::unwrap()` of `None`: it takes the first non-terminal task out of the backlog, and a finished backlog holds none.
 + Run `just check` on the same tree.
@@ -41,7 +41,7 @@
 
 == Environment
 
-Any checkout of this repo, on any platform. It fires whenever the backlog holds no open task and the memoized test arm runs cold.
+Any checkout of this repo, on any platform. It fires whenever the backlog has no open task and the memoized test arm runs cold.
 
 
 == TO-BE
@@ -57,7 +57,7 @@ Any checkout of this repo, on any platform. It fires whenever the backlog holds 
 
 == Out of scope
 
-- The other dogfood tests: they read `tasks.first()`, and a backlog with no task at all is not a state this repo reaches.
+- The other dogfood tests read `tasks.first()`, and a backlog with no task at all is not a state this repo reaches.
 - The mmz scope: `truth/tasks/**` stays out of it so the close gate survives its own writes.
 
 

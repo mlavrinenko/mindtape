@@ -31,7 +31,7 @@
     2026,
     10,
     12,
-  )[an M↓ button beside each page title copies its Markdown, and the header link is gone],
+  )[an M↓ button beside each page title copies its Markdown. The header has no Markdown link.],
 )
 
 == AS-IS
@@ -43,7 +43,7 @@
 == TO-BE
 
 - 🟢 A Markdown icon button sits beside each page's title. Hovering it shows "Copy as Markdown", and clicking it copies the page's Markdown.
-- 🟢 The header holds no Markdown link. Agents still find each page's Markdown through `llms.txt` and the page's `rel="alternate"` link.
+- 🟢 The header has no Markdown link. Agents still find each page's Markdown through `llms.txt` and the page's `rel="alternate"` link.
 
 
 == Source of truth

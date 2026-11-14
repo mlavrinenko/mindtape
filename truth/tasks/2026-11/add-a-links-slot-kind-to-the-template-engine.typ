@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[a template can ask for typed edges, so a filed task carries its links without a second command],
+      implementable-tasks: helps[a template declares typed edges and a filed task carries its links without a second command],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -48,7 +48,7 @@ error: nested mappings are unsupported: 'links'
 == TO-BE
 
 - 🟢 `slot("links", kind: "links")` holds a list of edges, each a `{kind, task, note}` mapping.
-- 🟢 A filled slot renders the same `(task: "...", kind: "...", note: ...)` dicts the prelude's `edge(...)` builds, so the marker parser needs no second shape.
+- 🟢 A filled slot renders the same `(task: "...", kind: "...", note: ...)` dicts the prelude's `edge(...)` builds. The marker parser doesn't need a second shape.
 - 🟢 An empty list renders `()`, and a template can leave the slot optional.
 - 🟢 `mt add --describe` lists the kind, and `mt _cli --json` carries it with the other slot kinds.
 - 🟢 The docs page and the skill reference explain the YAML shape.
@@ -82,7 +82,7 @@ links: (
 == Out of scope
 
 - Parsing YAML and JSON into the new value: the next task does that in `mt add`.
-- The finding template and its `surfaced-by` rule: a third task uses this kind.
+- A third task uses this kind in the finding template and its `surfaced-by` rule.
 
 == Dogfood
 

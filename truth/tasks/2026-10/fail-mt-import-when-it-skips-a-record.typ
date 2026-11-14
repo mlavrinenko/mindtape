@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running the /import-export/ recipes in the docs generator, which must fail the build when a recipe fails.
-+ 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import` exits 0 when it skips records, even when it files none, so a script or CI step that imports cannot tell from the exit code that records were lost.
++ 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import` exits 0 when it skips records, even when it files none, so no exit-code signal marks a lost record.
 
 ```
 $ echo '[{"title":"Fix the login page","status":{"name":"todo","date":"2026-09-01","note":null}}]' | mt import
@@ -45,8 +45,8 @@ $ echo $?
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/import.rs").
 
 == TO-BE
@@ -56,13 +56,13 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/import.rs`: return an error naming the skip count after the report.
+- `crates/mindtape-cli/src/import.rs`: return an error that states the skip count after the report.
 - `crates/mindtape-cli/src/import_tests.rs`: assert the exit code for a batch with one bad record.
 
 
 == Rollback
 
-Revert the commit; a skip exits 0 again.
+Revert the commit. A skip exits 0 again.
 
 == Out of scope
 

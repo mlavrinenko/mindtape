@@ -17,12 +17,12 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a project retires a field value as it retires a tag, by editing one list],
+      cheap-adoption: helps[a project retires a field value as it retires a tag, by editing one list.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[allowed values, closed-task exemption, slot choices and membership live in one place instead of three],
+      sound-codebase: helps[allowed values, closed-task exemption, slot choices and membership live in one place instead of three.],
       docs-match-code: neutral,
     ),
   ),
@@ -50,8 +50,8 @@ Error: unknown field in filter: tags
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/fields.rs").
 
 == TO-BE
@@ -78,7 +78,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; each field keeps its own checks.
+- Revert the commit. Each field keeps its own checks.
 
 
 == Out of scope

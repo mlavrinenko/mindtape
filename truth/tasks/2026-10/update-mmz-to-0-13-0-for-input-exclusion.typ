@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run `mmz --version` in the dev shell.
-+ 🔴 It prints `mmz 0.12.1`, which cannot leave a path out of a scope. Gates globbing `examples/**` hashed `.mindtape/cache/` files another gate deleted mid-hash, which failed a run, and only the `**/.mindtape/cache/` line in `.gitignore` keeps them out now.
++ 🔴 It prints `mmz 0.12.1`, which cannot leave a path out of a scope. Gates globbing `examples/**` hashed `.mindtape/cache/` files another gate deleted mid-hash, which failed a run. Only the `**/.mindtape/cache/` line in `.gitignore` keeps them out today.
 
 
 == TO-BE
@@ -56,7 +56,7 @@
 == Out of scope
 
 - The `**/.mindtape/cache/` line in `.gitignore`, which is right on its own.
-- qahq's own `mmz` input, which puts no `mmz` on the dev shell's PATH.
+- qahq's own `mmz` input, which leaves `mmz` off the dev shell's PATH.
 
 
 == Dogfood

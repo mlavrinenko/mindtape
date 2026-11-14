@@ -33,7 +33,7 @@
 == AS-IS
 
 + Reviewing the docs before release, running the example from filters.typ:177
-+ 🔴 #raw("crates/mindtape/src/filter/mod.rs"): an unknown status in a filter names the value but suggests nothing, while filters.typ promises a suggestion and unknown fields and dicts already get a nearest-name hint
++ 🔴 #raw("crates/mindtape/src/filter/mod.rs"): an unknown status in a filter gives the value but suggests nothing, while filters.typ promises a suggestion and unknown fields and dicts already get a nearest-name hint
 
 ```
 views.x.filter: unknown status in filter: 'wpi'
@@ -41,8 +41,8 @@ views.x.filter: unknown status in filter: 'wpi'
 `crates/mindtape/src/filter/mod.rs:145`: `#[error("unknown status in filter: '{value}'")]`, with no suggestion field.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/filter/mod.rs").
 
 == TO-BE
@@ -69,5 +69,5 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-A typo in a view filter in this repo's config names the status meant.
+A typo in a view filter in this repo's config gives the status meant.
 

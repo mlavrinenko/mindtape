@@ -38,14 +38,14 @@
 == AS-IS
 
 + Reviewing the on-add branch after `just check`.
-+ 🔴 #raw("www/content/hooks.typ"): The docs still said `old()` refused only id/path/dir, described a derive's inputs too narrowly, and repeated an explicit `--set` win that `+=` does not have.
++ 🔴 #raw("www/content/hooks.typ"): The docs still said `old()` refused only id/path/dir, described the inputs of `derive` too narrowly, and repeated an explicit `--set` win that `+=` does not have.
 
-The page said `It refuses id, path and dir`, while the code also refuses `file`, the graph fields, derived tags and `derived.<name>`; the same page said `An explicit --set ... wins over a hook set`, which is false for `--set field+=`.
+The page said `It refuses id, path and dir`, while the code also refuses `file`, the graph fields, derived tags and `derived.<name>`. The same page said `An explicit --set ... wins over a hook set`, which is false for `--set field+=`.
 
 
 == TO-BE
 
-- 🟢 The docs name the draft-unsafe fields `old()` refuses.
+- 🟢 The docs list the draft-unsafe fields `old()` refuses.
 - 🟢 They say an explicit `=` wins and an explicit `+=` does not.
 - 🟢 They state `--dir`'s relative and absolute rules, the `--describe` headings, and the current eval expectations.
 

@@ -8,7 +8,7 @@
     2026,
     9,
     19,
-  )[nine pages refactored; schema owns the applied contract and names the recur gap; audit down to two accepted pairs],
+  )[nine pages refactored. Schema owns the applied contract and names the recur gap. The audit is down to two accepted pairs.],
   priority: ice(
     impact: 7,
     confidence: 0.8,
@@ -20,7 +20,7 @@
   assignee: "agent",
   x-goals: (
     product: (
-      readable-tasks: helps[a page stating a fact the code contradicts teaches the wrong thing],
+      readable-tasks: helps[a page stating a fact the code contradicts leads a reader wrong],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -36,12 +36,12 @@
 
 == AS-IS
 
-1. 🔴 The audit of the reference-side pages found facts the code contradicts:
-  `named-sets` says a view's `filter` is required (it defaults to match-all),
+1. 🔴 The audit of the reference-side pages found facts the code contradicts.
+  `named-sets` says a view needs a `filter` (it defaults to match-all).
   `schema` shows a `"score": 6.72` the ICE formula cannot produce and sketches
-  the `applied` contract `/agents/` delegates to it, `schema` and
+  the `applied` contract `/agents/` delegates to it. `schema` and
   `import-export` call `mt ls --json` lossless while canonical JSON carries no
-  `recur`, `rule-packs` counts six sections where the pack ships five, and
+  `recur`. `rule-packs` counts six sections where the pack includes five. And
   `internals` renders a transitive-crate clause that never fires because all
   seven crates are direct.
 
@@ -50,9 +50,9 @@
 - 🟢 Every page matches the sources and states its part once.
 - 🟢 `schema` fills the `applied` contract `agents.typ` points at, and
   `agents.typ`'s `truncated` copy becomes a link to it.
-- 🟢 `rule-packs` cross-links `/config/` for the layer merge; `named-sets` owns
-  the dictionary counts; `hooks` loses its jargon; `internals` links `/hooks/`
-  and `/quickstart/`; `self-validating-tasks` says the no-linter point once.
+- 🟢 `rule-packs` cross-links `/config/` for the layer merge. `named-sets` owns
+  the dictionary counts. `hooks` loses its jargon. `internals` links `/hooks/`
+  and `/quickstart/`. `self-validating-tasks` says the no-linter point once.
 
 == Source of truth
 
@@ -67,7 +67,7 @@
 
 == Out of scope
 
-- Slicing fixture config halves and deriving the built-in tables; those are
+- Slicing fixture config halves and deriving the built-in tables. Those are
   filed separately.
 
 == Dogfood

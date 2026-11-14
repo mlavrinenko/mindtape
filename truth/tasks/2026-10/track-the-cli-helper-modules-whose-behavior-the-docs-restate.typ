@@ -43,8 +43,8 @@ $ grep -c "crates/mindtape-cli/src/cmd/flip/guards.rs" outdatty.yaml
 The same count is 0 for `flip/hooks.rs`, `ls/rules.rs`, `allow.rs`, `rules.rs`, `check/templates.rs`, `check/commit.rs` and `check/range.rs`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("outdatty.yaml").
 
 == TO-BE

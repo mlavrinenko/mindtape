@@ -42,8 +42,8 @@ crates/mindtape/src/config/packs.rs:384: renamed clone of crates/mindtape/src/co
 ```
 One new `EMBEDDED_PACKS` entry and one new `mod tests_scratch;` caused that. Commits `3d46f7d9`, `613f8856`, `e677a9b8` and `0be3eac0` each re-minted the baseline for it.
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/lint-dry.sh").
 
 == TO-BE

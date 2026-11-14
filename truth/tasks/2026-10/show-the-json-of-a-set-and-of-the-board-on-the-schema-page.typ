@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the set and board shapes come from captured runs, so a changed key changes the page],
+      docs-match-code: helps[the set and board shapes come from captured runs. A changed key then changes the page.],
     ),
   ),
   assignee: "agent",
@@ -31,7 +31,7 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "show-the-shipped-board-from-board-toml-on-the-board-pages.typ",
-    )[both rewrite read-many-projects.typ, so they land in turn],
+    )[both rewrite read-many-projects.typ. They land in sequence],
 )
 
 == AS-IS
@@ -56,7 +56,7 @@
 
 == Changes
 
-- `www/generate-reference.sh`: the captures first, inside the `/read-many-projects/` block that sets the fixture up as `$HOME`, so the page shows only a shape that ran.
+- `www/generate-reference.sh`: the captures first, inside the `/read-many-projects/` block that sets the fixture up as `$HOME`. The page then shows only a shape that ran.
 - `www/content/schema.typ`: the section, rendering the captures.
 - `www/content/read-many-projects.typ`: the link.
 

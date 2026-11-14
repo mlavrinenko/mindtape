@@ -70,5 +70,5 @@
 
 == Dogfood
 
-Not applicable. This repo is set up already, but the quickstart captures show the new output.
+Not applicable. This repo worked through setup already, but the quickstart captures show the new output.
 

@@ -45,11 +45,11 @@ gen    proposed  Generated task  target/gen.typ
 == TO-BE
 
 - 🟢 Git lists each root: tracked regular files and untracked files it does not ignore.
-- 🟢 A tracked non-symlink stays a task under an ignore pattern; an untracked ignored file does not.
-- 🟢 A tracked-deleted file is not a working-tree task; a commit state still lists it.
-- 🟢 An ignored root is not walked; one warning says only its tracked files are visible.
+- 🟢 A tracked non-symlink stays a task under an ignore pattern. An untracked ignored file does not.
+- 🟢 A tracked-deleted file is not a working-tree task. A commit state still lists it.
+- 🟢 An ignored root is not walked. One warning says only its tracked files are visible.
 - 🟢 A non-Git project walks with the policy's skips and no directory symlinks.
-- 🟢 Fallback only for a non-worktree root or missing `git`; other Git errors are load errors naming the root. Cache per load; export a destination probe, a per-root task-source listing and a project-wide visible listing.
+- 🟢 Fallback only for a non-worktree root or missing `git`. Other Git errors are load errors naming the root. Cache per load. Export a destination probe, a per-root task-source listing and a project-wide visible listing.
 
 ```
 $ mt ls
@@ -69,18 +69,18 @@ new    proposed  Untracked task  tasks/new.typ
 == Alternatives
 
 - The `ignore` crate: no subprocess, but it cannot tell a tracked file from an ignored one, so tracked tasks would differ from commit states.
-- A hardcoded skip list: misses nested `.gitignore`, global excludes and new build dirs.
+- A hardcoded skip list misses nested `.gitignore`, global excludes and new build dirs.
 - `git ls-files` per root: chosen for exact Git semantics and reuse of the existing query pattern.
 
 
 == Out of scope
 
-- Walking an ignored root; it is warned about, not exempted.
-- Nested repositories and submodules; Git does not descend, and the fallback keeps its current walk.
-- A config knob for Git rules, `.hg`/`.svn`, a textual prefilter, and a runtime warning for ignored tasks.
+- Walking an ignored root stays out. The loader warns about it rather than exempting it.
+- Nested repositories and submodules stay out. Git does not descend, and the fallback keeps its current walk.
+- A config knob for Git rules, `.hg`/`.svn`, a textual first pass, and a runtime warning for ignored tasks.
 
 
 == Dogfood
 
-This project's task root is `truth/tasks`, so its own scan is narrow; the example projects and the root-`.` personal backlog exercise the Git listing.
+This project's task root is `truth/tasks`, so its own scan is narrow. The example projects and the root-`.` personal backlog exercise the Git listing.
 

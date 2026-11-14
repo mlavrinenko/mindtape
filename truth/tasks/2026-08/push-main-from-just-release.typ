@@ -15,7 +15,7 @@
 
 == Summary
 
-just release pushes only the v-tag; GitHub main is 764 commits behind and pages.yml deploys the docs site only on main pushes. Push origin main before tagging.
+just release pushes only the v-tag. GitHub main is 764 commits behind, and pages.yml deploys the docs site only on main pushes. Push origin main before tagging.
 
 == Scope
 

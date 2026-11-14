@@ -19,7 +19,7 @@
 
 == Summary
 
-ci.yml pins third-party actions to commit SHAs and states that as policy; release.yml floats dtolnay/rust-toolchain\@stable, Swatinem/rust-cache\@v2 and softprops/action-gh-release\@v2. Release is the workflow holding the crates.io token and release write permission, so a moved tag there is the one that matters most.
+ci.yml pins third-party actions to commit SHAs and states that as policy. release.yml floats dtolnay/rust-toolchain\@stable, Swatinem/rust-cache\@v2 and softprops/action-gh-release\@v2. Release is the workflow holding the crates.io token and release write permission. A moved tag there is the one that matters most.
 
 == Scope
 

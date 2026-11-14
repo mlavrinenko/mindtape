@@ -31,13 +31,13 @@
     2026,
     10,
     1,
-  )[No-op: a workspace deny is as overridable by a module \#\[allow\] as -D warnings already is, and the cited looks\_like\_path clause is a MAIN\_SEPARATOR comparison neither lint flags.],
+  )[No-op: a module \#[allow] overrides a workspace deny as easily as -D warnings. Both lints ignore the cited looks\_like\_path MAIN\_SEPARATOR comparison.],
 )
 
 == AS-IS
 
 + Read `Cargo.toml`'s `[workspace.lints.clippy]` (line 30).
-+ 🔴 `if_same_then_else` (line 47) and `match_same_arms` (line 134) are explicit `deny`s, but `nonminimal_bool` and `redundant_guards` are absent: they only gate through the clippy recipe's `-D warnings` (`Justfile:86`), so a module-level `allow` or a recipe change drops them with nothing to notice.
++ 🔴 `if_same_then_else` (line 47) and `match_same_arms` (line 134) are explicit `deny`s, but `nonminimal_bool` and `redundant_guards` are absent. They only gate through the clippy recipe's `-D warnings` (`Justfile:86`). A module-level `allow` or a recipe change drops them with nothing to notice.
 + The 2026-09-30 sweep's hand-excluded equivalents (`A || A`-style clauses, duplicate guards) are the class the pair targets.
 
 == TO-BE
@@ -52,12 +52,12 @@
 
 == Rollback
 
-Remove the two lines; the lints return to their warn-by-default state under `-D warnings`.
+Remove the two lines. The lints return to their warn-by-default state under `-D warnings`.
 
 == Out of scope
 
 - `clippy::pedantic`/`nursery` wholesale: separate decision, noise.
-- A custom ast-grep pass: that is the tautology task, not this one.
+- A custom ast-grep pass belongs to the tautology task, not this one.
 
 == Dogfood
 

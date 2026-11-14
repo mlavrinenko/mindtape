@@ -33,7 +33,7 @@
 == AS-IS
 
 + Listing a project in which one task file has a misspelled field
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): `mt ls` prints a broken file's error as a warning above the table, then leaves the file out of the footer's count, so the footer reads as if every task file loaded
++ 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): `mt ls` prints a broken file's error as a warning above the table, then leaves the file out of the footer count. The footer then reads as if every task file loaded
 
 ```
 $ ls tasks | wc -l
@@ -47,15 +47,15 @@ default view · 1 of 2 tasks
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs").
 
 == TO-BE
 
 - 🟢 When some task files fail to load, the footer ends with their count: `default view · 1 of 2 tasks · 1 broken`.
-- 🟢 When every file loads, the footer is unchanged.
-- 🟢 `mt ls` still exits 0 and still prints each load error as a warning; `mt check` stays the gate that fails on them.
+- 🟢 When every file loads, the footer stays the same.
+- 🟢 `mt ls` still exits 0 and still prints each load error as a warning. `mt check` stays the gate that fails on them.
 
 
 == Changes

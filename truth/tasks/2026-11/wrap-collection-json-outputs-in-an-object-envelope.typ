@@ -19,7 +19,7 @@
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
-      self-describing: helps[every JSON response names its schema],
+      self-describing: helps[every JSON response states its schema],
     ),
     process: (
       sound-codebase: neutral,
@@ -46,7 +46,7 @@ $ mt board --json | jq 'type'
 - 🟢 Each prints an object whose first key is `$schema` and whose payload sits under a named key: `projects`, `entries`, `sources`, `views`, `dicts`, `slots`, `config`.
 - 🟢 The old array or map moves under that key unchanged, so only the top-level path changes.
 - 🟢 A named `at` target, view or dictionary prints flat under its own schema: `at-project`, `at-set`, `view`, `dict`. The list shapes keep `at`, `views`, `dicts`.
-- 🟢 `mt @set ls --json` wraps its listings in `projects` under `set-ls/1`; `mt board --json` uses one `board/1` shape for a project or a set.
+- 🟢 `mt @set ls --json` wraps its listings in `projects` under `set-ls/1`. `mt board --json` uses one `board/1` shape for a project or a set.
 - 🟢 `CHANGELOG.md` names the break and the one-line `jq` fix.
 
 ```
@@ -57,11 +57,11 @@ mindtape
 == Changes
 
 - `crates/mindtape-cli/src/cmd/board.rs`: wrap the rows in `projects`.
-- `crates/mindtape-cli/src/cmd/at.rs`: wrap the list in `entries`; a named project and a named set print flat under `at-project/1` and `at-set/1`.
+- `crates/mindtape-cli/src/cmd/at.rs`: wrap the list in `entries`. A named project and a named set print flat under `at-project/1` and `at-set/1`.
 - `crates/mindtape-cli/src/render/output.rs`: wrap the set listings in `projects` under `set-ls/1`.
 - `crates/mindtape-cli/src/cmd/packs/install.rs`: wrap the report in `sources`.
-- `crates/mindtape-cli/src/cmd/explain/views.rs`: wrap the list in `views`; one named view prints flat under `view/1`.
-- `crates/mindtape-cli/src/cmd/explain/dicts.rs`: wrap the list in `dicts`; one named dictionary prints flat under `dict/1`.
+- `crates/mindtape-cli/src/cmd/explain/views.rs`: wrap the list in `views`. One named view prints flat under `view/1`.
+- `crates/mindtape-cli/src/cmd/explain/dicts.rs`: wrap the list in `dicts`. One named dictionary prints flat under `dict/1`.
 - `crates/mindtape-cli/src/cmd/add/values.rs`: wrap the slot list in `slots`.
 - `crates/mindtape-cli/src/cmd/config.rs`: wrap the effective config in `config` under `config-show/1`.
 - `www/generate-*.sh`, `www/status-moves.jq`, `www/content/*.typ`, `skills/mindtape/references/*.md`: update the `jq` paths.
@@ -76,7 +76,7 @@ mindtape
 == Out of scope
 
 - Object outputs: the previous task.
-- Renaming any payload field now that it sits under a key.
+- Renaming any payload field once it sits under a key.
 
 == Dogfood
 

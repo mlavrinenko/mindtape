@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a reader of the comparison reads only sentences that tell them something],
+      cheap-adoption: helps[a reader of the comparison reads only sentences that tell them something.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -31,7 +31,7 @@
     2026,
     10,
     12,
-  )[the comparison opens on its lede, the matrix shades its scroll edges, and the quickstart says the legend is config],
+  )[the comparison opens on its `lede`, the matrix shades its scroll edges, and the quickstart says the legend is config.],
 )
 
 == AS-IS
@@ -44,7 +44,7 @@
 
 == TO-BE
 
-- 🟢 The comparison opens with one lede and goes straight to the tools.
+- 🟢 The comparison opens with one `lede` and goes straight to the tools.
 - 🟢 The matrix shows a shadow on each edge it can scroll past, and no sentence explains the scrolling.
 - 🟢 The quickstart says the statuses and moves are the project's own config.
 
@@ -56,7 +56,7 @@
 
 == Changes
 
-- `www/content/comparison.typ`: the lede, the cut sentences, the browser-board item.
+- `www/content/comparison.typ`: the `lede`, the cut sentences, the browser-board item.
 - `www/templates/layout.typ`: the matrix script marks which edges can scroll.
 - `www/assets/styles/components.css`: a shadow on each such edge.
 - `www/content/quickstart.typ`: the status paragraph and the `mt check` sentence.

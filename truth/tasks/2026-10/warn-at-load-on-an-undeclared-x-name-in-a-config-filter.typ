@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a misspelled x- name in a rule is reported at load instead of silently never matching],
+      enforced-practice: helps[mt reports a misspelled x- name in a rule at load instead of silently never matching],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Reviewing filter reads of x- fields in 4cd099ab
-+ 🔴 #raw("crates/mindtape/src/filter.rs"): a config filter naming a misspelled \`x-\` field loads and matches nothing, while a misspelled core field fails the load
++ 🔴 #raw("crates/mindtape/src/filter.rs"): a config filter that refers to a misspelled \`x-\` field loads and returns nothing, while a misspelled core field fails the load
 
 ```
 # [tasks.fields.x-machine] declared; rule when = 'x-machnie == "alpha"'
@@ -46,13 +46,13 @@ $ mt check
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/filter.rs").
 
 == TO-BE
 
-- 🟢 When `[tasks.fields]` declares any `x-` name, a config filter naming an undeclared one prints a load warning with the nearest declared name.
+- 🟢 When `[tasks.fields]` declares any `x-` name, a config filter that refers to an undeclared one prints a load warning with the nearest declared name.
 - 🟢 Reading an undeclared `x-` name stays legal, in config and on the command line.
 
 
@@ -64,7 +64,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; an undeclared name loads silently again.
+- Revert the commit. An undeclared name loads silently again.
 
 
 == Out of scope
@@ -75,4 +75,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable: this repo's filters name only `x-goals`, which it declares.
+Not applicable: this repo's filters use only `x-goals`, which it declares.

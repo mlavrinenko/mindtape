@@ -36,20 +36,20 @@
 == AS-IS
 
 + Run `mt ls 'foo('`.
-+ 🔴 It prints `error: can't parse filter: 'foo(': Found an unmatched opening parenthesis '('`, evalexpr's capitalised words.
++ 🔴 It prints `error: can't parse filter: 'foo(': Found an unmatched opening parenthesis '('`, the capitalized words of `evalexpr`.
 + Run `mt ls '"wip"'`.
 + 🔴 It prints `unsupported in filter: Const { value: String("wip") }`, Rust's debug output.
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
-- 🟢 `mt ls 'foo('` prints `error: can't parse filter: 'foo(': a '(' is never closed`; `mt ls 'title ~ "x"'` says `'~' isn't an operator` with a `matches()` hint; no message shows a Rust type.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 `mt ls 'foo('` prints `error: can't parse filter: 'foo(': a '(' is never closed`. `mt ls 'title ~ "x"'` says `'~' isn't an operator` with a `matches()` hint. A message never shows a Rust type.
 
 == Changes
 
-- `crates/mindtape/src/filter/mod.rs`: map evalexpr's errors to `FilterError` variants with plain words; no `{:?}` of a node.
+- `crates/mindtape/src/filter/mod.rs`: map the errors of `evalexpr` to `FilterError` variants with plain words, with no `{:?}` of a node.
 - `crates/mindtape/src/filter/expr.rs`: `expected a field` names the token as written.
-- `crates/mindtape/src/filter/eval.rs`: `root needs one child` and `binary op needs two operands` become `the filter is incomplete`; `unknown function` gets a did-you-mean.
+- `crates/mindtape/src/filter/eval.rs`: `root needs one child` and `binary op needs two operands` become `the filter is incomplete`, and `unknown function` gets a did-you-mean.
 - `crates/mindtape/src/filter/compare.rs`, `crates/mindtape/src/filter/aggregate.rs`: the internal wording of the operand and `count()` messages.
 - `crates/mindtape-cli/src/diag/from_lib.rs` gains a hint per new variant.
 

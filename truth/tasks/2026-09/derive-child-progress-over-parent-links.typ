@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: helps[an agent sees which parent is ready to close without walking the graph],
-      enforced-practice: helps[a parent cannot close over unfinished children without --force],
+      enforced-practice: helps[a parent cannot close over unfinished children without `--force`],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,7 +33,7 @@
 == AS-IS
 
 + `rg -l 'parent\(' truth/tasks | wc -l` counts 23 tasks with a parent.
-+ 🔴 Nothing reports how far a parent's children have got: `mt ls` has no `children` or `progress` field, and `mt done <parent>` succeeds while its children are still open.
++ 🔴 Every command ignores how far a parent's children have got: `mt ls` has no `children` or `progress` field, and `mt done <parent>` succeeds while its children are still open.
 
 
 == TO-BE
@@ -47,7 +47,7 @@ $ mt ls 'children > 0' --columns title,status,progress
 $ mt ls 'progress == 1 && !terminal'
 ```
 
-- 🟢 Flipping a parent into a status that requires its work finished is refused while a child is unfinished, naming the children, `--force` to override; the status key is the one `truth/tasks/refuse-a-transition-into-done-while-blocked.typ` introduces, so one legend knob covers both.
+- 🟢 The tool refuses to flip a parent into a status that requires its work finished while a child remains unfinished, and names the children. `--force` overrides it. The status key is the one `truth/tasks/refuse-a-transition-into-done-while-blocked.typ` introduces, so one legend knob covers both.
 - 🟢 `mt check` reports a parent already in such a status with an unfinished child.
 
 
@@ -58,15 +58,15 @@ $ mt ls 'progress == 1 && !terminal'
 - `crates/mindtape/src/canonical.rs`: carry them in `--json`.
 - `crates/mindtape-cli/src/flip.rs`: the parent refusal.
 - `www/content/links.typ`, `skills/mindtape` source: document the fields.
-- As built: the shared child listing and the `mt check` warning live in `crates/mindtape/src/children.rs`; `children`/`progress` are two more `named()` columns, so `render/columns.rs`, `output.rs` and the column floor grew too, about 15 source files against the estimate of 4.
-- The flag: a status both `unblocked` and `terminal` requires finished children. This repo's `wip` also carries `unblocked`, and starting a parent over open children is normal, so `unblocked` alone would have refused `mt wip <parent>`.
-- The warning: a child counts as unfinished while non-terminal, so a cancelled child is finished. `mt check` warns rather than errs, like the blocked warning, because `--force` and a reopened child both land that state on purpose. The four closed parents here had every child done, so it reported none.
-- One value, two spellings: `progress` is the fraction `0..1` in the filter language, `--sort`, `--json` and CSV, and the table renders the counts, `3/5`; a leaf's is absent (`null`, a blank cell).
+- As built: the shared child listing and the `mt check` warning live in `crates/mindtape/src/children.rs`. `children`/`progress` are two more `named()` columns, so `render/columns.rs`, `output.rs` and the column floor grew too, about 15 source files against the estimate of 4.
+- The gating flag is a status both `unblocked` and `terminal`, which requires finished children. This repo's `wip` also carries `unblocked`, and starting a parent over open children is normal, so `unblocked` alone would have refused `mt wip <parent>`.
+- The warning treats a child as unfinished while non-terminal. A cancelled child then counts as finished. `mt check` warns rather than errs, like the blocked warning, because `--force` and a reopened child both land that state on purpose. The four closed parents here had every child done, so it reported none.
+- One value, two spellings: `progress` is the fraction `0..1` in the filter language, `--sort`, `--json` and CSV, and the table renders the counts, `3/5`. A leaf's is absent (`null`, a blank cell).
 
 
 == Alternatives
 
-- Progress by estimate weight: needs every child estimated in one unit; the count is honest and total.
+- Progress by estimate weight: needs every child estimated in one unit. The count is honest and total.
 - A stored `progress` field: a computed value would drift from the children it summarises.
 
 
@@ -77,5 +77,5 @@ $ mt ls 'progress == 1 && !terminal'
 
 == Dogfood
 
-Sprint parents in `truth/tasks/` show their progress, and closing one early is refused.
+Sprint parents in `truth/tasks/` show their progress, and the tool refuses an early close.
 

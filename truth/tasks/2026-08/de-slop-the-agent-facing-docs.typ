@@ -18,9 +18,9 @@
 == Summary
 
 `docs/src/agents.typ` renders AGENTS.md and `docs/src/skill.typ` renders
-`skills/mindtape/SKILL.md`. Both are pulled into a context window in full,
-every session, so a wasted line here is paid for on every run — they are the
-two files where concision is measurable rather than aesthetic. Both also
+`skills/mindtape/SKILL.md`. An agent pulls both into a context window in full
+every session. Every wasted line costs on every run. These are the two files
+where concision is measurable rather than aesthetic. Both also
 carry absolute site URLs that nothing verifies.
 
 Tighten them and move every site link onto `www-link`.
@@ -32,9 +32,9 @@ Tighten them and move every site link onto `www-link`.
 == Rules
 
 An agent reads these as instructions, so precision beats brevity wherever the
-two conflict — cut words, never a constraint. Keep every rule, every command
+two conflict. Cut words, never a constraint. Keep every rule, every command
 shape, every field name, and the whole "where validation lives" seam. What
-goes: prose that motivates a rule an agent will follow anyway, the second
-statement of a rule, and any pointer to a doc page that duplicates the page
+goes: prose that motivates a rule an agent will follow anyway, and the second
+statement of a rule. Also any pointer to a doc page that duplicates the page
 instead of linking it. This task does not touch `docs/src/readme.typ`,
 `contributing.typ` or `lib.typ`.

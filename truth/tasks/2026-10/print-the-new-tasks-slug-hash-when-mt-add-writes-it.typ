@@ -32,7 +32,7 @@
 
 == AS-IS
 
-+ Filing tasks from the pre-release docs review, then referring to one as ksr
++ Filing tasks from the pre-release docs review, then referring to one as `ksr`
 + 🔴 #raw("crates/mindtape-cli/src/cmd/add/"): mt add reports only the absolute path it wrote, so the slug hash that every other command accepts is unknown until a separate mt ls
 
 ```
@@ -43,13 +43,13 @@ ksr    proposed  low       Stop the CRAP ratchet flagging untouched same-named f
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/add/").
 
 == TO-BE
 
-- 🟢 `mt add` reports the slug hash with the path it wrote, in the form the project's other commands use for a task reference, and the path is relative to the working directory like `mt ls`'s `file` column.
+- 🟢 `mt add` reports the slug hash with the path it wrote, in the form the project's other commands use for a task reference. The path is relative to the working directory like `mt ls`'s `file` column.
 - 🟢 `mt add --format json` (and `mt import`, if it reports each written task) carries the slug hash too.
 
 
@@ -57,7 +57,7 @@ left in a closing report no one rereads. It belongs in
 
 - `crates/mindtape-cli/src/cmd/add/`: compute the slug hash of the written stem and include it in the report and the JSON.
 - `crates/mindtape-cli/tests/`: an e2e test asserting the hash `mt add` prints resolves with `mt eval <hash>`.
-- `CHANGELOG.md`: an `[Unreleased]` entry; update any capture or doc that shows `wrote …`.
+- `CHANGELOG.md`: an `[Unreleased]` entry. Update any capture or doc that shows `wrote …`.
 
 
 == Rollback
@@ -67,10 +67,10 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- Changing how the hash is computed.
+- Changing how the hash forms.
 
 
 == Dogfood
 
-Every task filed here can be named by its hash straight away.
+Every task filed here carries its hash straight away.
 

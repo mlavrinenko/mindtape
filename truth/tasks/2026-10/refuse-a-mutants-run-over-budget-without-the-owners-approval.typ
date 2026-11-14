@@ -41,7 +41,7 @@
 
 == TO-BE
 
-- 🟢 `just mutants` and `just mutants-diff` count the mutants first and refuse a run over 100 unless `MINDTAPE_MUTANTS_APPROVED=1` is set.
+- 🟢 `just mutants` and `just mutants-diff` count the mutants first and refuse a run over 100 unless `MINDTAPE_MUTANTS_APPROVED=1` is present.
 - 🟢 The refusal says how many mutants, how long, and how to narrow the run.
 - 🟢 CONTRIBUTING says only the owner sets the approval.
 

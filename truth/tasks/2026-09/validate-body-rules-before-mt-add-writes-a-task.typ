@@ -18,7 +18,7 @@
     product: (
       readable-tasks: helps[a malformed task never lands for a reader to skim],
       implementable-tasks: neutral,
-      enforced-practice: helps[a task breaking a section rule is refused where it is written, not a commit later],
+      enforced-practice: helps[the writer refuses a task that breaks a section rule before writing it, not a commit later],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -34,12 +34,12 @@
 
 + Run `mt add -t task` with a TO-BE bullet that does not open with 🟢.
 + 🔴 It writes the file. Only a later `mt check`, or the pre-commit hook, reports that every TO-BE bullet must open with 🟢.
-+ Run it again with every goal `neutral`: this one is refused before writing, because a Typst panic fails the candidate's evaluation.
++ Run it again with every goal `neutral`: the tool refuses this one before writing, because a Typst panic fails the candidate's evaluation.
 
 
 == TO-BE
 
-- 🟢 `mt add`, like every writer behind the pre-write seam, refuses a task whose body breaks a header or content rule, names each violation, and writes nothing:
+- 🟢 `mt add`, like every writer behind the pre-write seam, refuses a task whose body breaks a header or content rule, names each violation, and leaves the file untouched:
 
 ```sh
 $ mt add -t task …
@@ -53,12 +53,12 @@ Error: the task as filled breaks the body rules:
 - `crates/mindtape/src/candidate_tests.rs`: red tests first, the Problem's task among them.
 - `crates/mindtape/src/candidate.rs`: run `crate::gate::check_headers` and the content gate over each candidate's source beside `validate::validate`, keeping the violations that name the candidate.
 - `crates/mindtape/src/content_gate.rs`: expose the content check for one source if it only runs over loaded files today.
-- `crates/mindtape-cli/tests/add_e2e.rs`: `mt add` refuses the Problem's task and leaves no file.
+- `crates/mindtape-cli/tests/add_e2e.rs`: `mt add` refuses the Problem's task and leaves the tree untouched.
 
 
 == Alternatives
 
-- Leave it to `mt check` and the pre-commit hook: the malformed task still lands and waits a commit to be caught.
+- Leave it to `mt check` and the pre-commit hook: the malformed task still lands and waits a commit before anyone catches it.
 - Run a whole `mt check` inside `mt add`: it would refuse a new task for violations in unrelated files.
 
 

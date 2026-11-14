@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a hint under mt @blog can be copied and run as printed],
+      cheap-adoption: helps[a reader can copy and run a hint under mt @blog as printed],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running `mt @blog check` from the directory that holds the set
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/at.rs"): under `mt @blog` or `-w`, a hint names a bare `mt` command, which fails run as printed from the same directory
++ 🔴 #raw("crates/mindtape-cli/src/cmd/at.rs"): under `mt @blog` or `-w`, a hint shows a bare `mt` command, which fails run as printed from the same directory
 
 ```
 $ mt @blog check
@@ -43,8 +43,8 @@ error: no .mindtape/ directory here or above
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/diag/hint.rs").
 
 == TO-BE

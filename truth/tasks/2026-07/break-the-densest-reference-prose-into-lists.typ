@@ -15,7 +15,7 @@
 
 == Summary
 
-The configuration, import and CLI pages carry paragraphs that stack several clauses into one sentence, which reads as specification rather than documentation. Reflow the worst offenders without changing a single fact.
+The configuration, import and CLI pages carry paragraphs that stack many clauses into one sentence, which reads as specification rather than documentation. Reflow the worst offenders without changing a single fact.
 
 == Scope
 

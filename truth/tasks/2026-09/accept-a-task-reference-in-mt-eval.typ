@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[the skill's documented `mt eval <task>` works as written],
+      implementable-tasks: helps[the skill's documented `mt eval <task>` works as written.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -31,13 +31,13 @@
     2026,
     9,
     27,
-  )[stem and handle resolve through util::resolve\_task; a path still works outside a project; unknown stems get a did-you-mean on every command],
+  )[stem and handle resolve through util::resolve\_task. A path still works outside a project. Unknown stems get a did-you-mean on every command.],
 )
 
 == AS-IS
 
 + `skills/mindtape/SKILL.md` lists `mt eval <task>`, where `<task>` is a stem, a path, or a `#` handle.
-+ 🔴 `mt eval refuse-a-dependency-cycle-when-mt-link-writes-it` prints `Error: no such file: refuse-a-dependency-cycle-when-mt-link-writes-it`; `mt eval --help` shows `<FILE>`.
++ 🔴 `mt eval refuse-a-dependency-cycle-when-mt-link-writes-it` prints `Error: no such file: refuse-a-dependency-cycle-when-mt-link-writes-it`. `mt eval --help` shows `<FILE>`.
 
 
 == Environment
@@ -48,7 +48,7 @@
 == TO-BE
 
 - 🟢 `mt eval` resolves a stem, path or handle like `flip`, `set` and `link`.
-- 🟢 An unknown reference names the nearest stems.
+- 🟢 An unknown reference lists the nearest stems.
 
 
 == Changes

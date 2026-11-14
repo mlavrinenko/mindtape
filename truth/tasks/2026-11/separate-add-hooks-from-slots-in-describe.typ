@@ -38,8 +38,8 @@
 
 == AS-IS
 
-+ Reviewing mt add --describe after the add hooks joined the output.
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/add/values.rs"): Hook rows are appended to slot rows with no heading, so a hook named like a slot reads as a slot.
++ Reviewing `mt add --describe` after the add hooks joined the output.
++ 🔴 #raw("crates/mindtape-cli/src/cmd/add/values.rs"): The text appends hook rows to slot rows with no heading, so a hook named like a slot reads as a slot.
 
 ```
 $ mt add --describe
@@ -67,7 +67,7 @@ ready  ready  set { assignee = "ready-hook" }
 == Changes
 
 - `crates/mindtape-cli/src/cmd/add/values.rs`: print a `slots` and a `hooks` heading, with a blank line between the blocks.
-- `crates/mindtape-cli/src/cmd/add/values_tests.rs`: pin the two-block text output; the e2e describe test checks only JSON.
+- `crates/mindtape-cli/src/cmd/add/values_tests.rs`: pin the two-block text output. The e2e describe test checks only JSON.
 
 
 == Out of scope

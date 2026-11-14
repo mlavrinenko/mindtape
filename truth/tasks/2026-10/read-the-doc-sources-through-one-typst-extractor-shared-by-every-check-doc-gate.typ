@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a doc gate can no longer pass by misreading a fence],
+      sound-codebase: helps[a doc gate cannot pass by misreading a fence],
       docs-match-code: helps[the span and recipe gates read every span a page renders],
     ),
   ),
@@ -50,30 +50,30 @@ real	0m52,546s
 ````
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/_doc-blocks-lib.sh").
 
 == TO-BE
 
 - 🟢 One extractor, built on the `typstyle --ast` reader `_doc-blocks-lib.sh` already has, prints each inline raw, block raw, comment and prose run of a doc source with its file and line.
 - 🟢 check-doc-spans, check-doc-recipes and check-doc-prose filter that stream, so a fence inside a string hides nothing.
-- 🟢 One source manifest names the files every doc gate reads, and a gate fails when it resolves to no file.
+- 🟢 One source manifest lists the files every doc gate reads, and a gate fails when it resolves to no file.
 - 🟢 `just check-doc-recipes` runs in about a second instead of 52.
 
 
 == Changes
 
 - `.just/scripts/_doc-blocks-lib.sh`: lift the `typstyle --ast` reader into a shared extractor, and hold the source manifest.
-- `.just/scripts/check-doc-spans.sh`: read spans from the extractor; drop `spans()`.
-- `.just/scripts/check-doc-recipes.sh`: read spans and blocks from the extractor; drop the awk tagger and the per-line greps that cost the 52 s.
+- `.just/scripts/check-doc-spans.sh`: read spans from the extractor. Drop `spans()`.
+- `.just/scripts/check-doc-recipes.sh`: read spans and blocks from the extractor. Drop the awk tagger and the per-line greps that cost the 52 s.
 - `.just/scripts/check-doc-prose.sh`: read the prose runs of Typst sources from the extractor.
 - `.mmz/config.yaml`: add the shared script to each doc rule's inputs.
 
 
 == Rollback
 
-- Revert the commit; each gate gets its own tokenizer back.
+- Revert the commit. Each gate gets its own tokenizer back.
 
 
 == Out of scope

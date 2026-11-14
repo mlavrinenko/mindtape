@@ -14,7 +14,7 @@
     2026,
     8,
     14,
-  )[four patterns, plus a new arg-pattern-check gate arm asserting each rejects a known-bad and accepts a known-good value through --dry-run --yes, so no body ever runs. eject's own default verified against its own pattern since fix-check depends on bare eject],
+  )[four patterns, plus a new arg-pattern-check gate arm asserting each rejects a known-bad and accepts a known-good value through `--dry-run --yes`, so no body ever runs. The eject default verified against its own pattern, since fix-check depends on bare eject],
 )
 
 == Summary
@@ -24,7 +24,7 @@ of deep inside a recipe body.
 
 == Verified on just 1.46.0
 
-The argument name must be a quoted string — a bare identifier fails with
+The argument name must be a quoted string. A bare identifier fails with
 `Attribute 'arg' got 0 arguments but takes 1 argument`, which reads like a
 syntax problem and is not.
 
@@ -41,8 +41,8 @@ error: Argument `v0.3.0` passed to recipe `release` parameter `VERSION` does not
 == The recipes worth guarding
 
 / `release VERSION`: today `just release v0.3.0` reaches the body and fails with
-  `requested vv0.3.0 but Cargo.toml is 0.3.0` — a confusing message from the one
-  recipe that tags and pushes. This is the strongest case.
+  `requested vv0.3.0 but Cargo.toml is 0.3.0`. That is a confusing message from the
+  one recipe that tags and pushes. This is the strongest case.
 / `bench N` and `gen-bench N`: `\d+`. `just bench abc` currently passes `abc`
   straight to `examples/large/generate.sh`.
 / `eject PCT`: a percentage, so a pattern that rejects `120` as well as `abc`.
@@ -54,9 +54,9 @@ error: Argument `v0.3.0` passed to recipe `release` parameter `VERSION` does not
 - `help` strings surface through `just --usage <recipe>`, which is new in 1.46.
   Write them for a reader who has not opened the Justfile.
 - The dev shell pins just 1.46.0 while the host has a different version. Verify
-  inside the shell — `direnv exec . just ...` — not on the host. The attributes
-  reference page documents `min`/`max` and several other keywords that postdate
-  1.46 and will not parse here.
+  inside the shell (`direnv exec . just ...`), not on the host. The attributes
+  reference page documents `min`/`max` and other keywords that postdate 1.46 and
+  will not parse here.
 - Add a regression check: a recipe whose pattern rejects a known-bad argument,
   asserted the way `fmt-fixture-check` asserts the formatters actually reject
   drift. A validation attribute nobody exercises is a comment.

@@ -40,22 +40,22 @@
 == TO-BE
 
 - 🟢 A `handle` module in `crates/mindtape` gives each stem a stem hash: the shortest prefix of its code no other stem shares, at least 3 characters.
-- 🟢 The code is FNV-1a 64 of the stem in lowercase Crockford base32. Folders do not enter it.
+- 🟢 The code is FNV-1a 64 of the stem in lowercase `Crockford` base32. Folders do not enter it.
 - 🟢 Resolving input yields the stem, the stems it is ambiguous between, or no match. Input ignores case and reads `i`, `l` as `1` and `o` as `0`.
 - 🟢 A new stem sharing a prefix lengthens only the hashes that share it, so an older short hash resolves as ambiguous, never to another task. Equal full codes stay ambiguous at every length.
 
 
 == Changes
 
-- `crates/mindtape/src/handle_tests.rs`: red tests first: one stem's code pinned to a literal so the hash stays stable, the 3-character floor, growth on a shared prefix, input normalisation, ambiguity, no match, and a full collision through an injected hash.
+- `crates/mindtape/src/handle_tests.rs`: red tests first. Pin one stem's code to a literal so the hash stays stable. Cover the 3-character floor, growth on a shared prefix, input normalisation, ambiguity, no match, and a full collision through an injected hash.
 - `crates/mindtape/src/handle.rs`: the hash, the encoding, the prefixes and the resolver.
 - `crates/mindtape/src/lib.rs`: re-export the module.
 
 
 == Alternatives
 
-- An ordinal per listing: stable only within one listing, which is the bug.
-- A content hash: every write changes it, so `mt wip <h>` then `mt done <h>` fails.
+- An ordinal per listing stays stable only within one listing, which is the bug.
+- A content hash changes on every write, so `mt wip <h>` then `mt done <h>` fails.
 - Base62: case-sensitive, and `l`, `1`, `I`, `O`, `0` blur when typed or read aloud.
 
 

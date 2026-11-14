@@ -47,15 +47,15 @@ www/generate-api-service.sh
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/tests/eval_fixture_e2e.rs").
 
 == TO-BE
 
 - 🟢 A test pins what evals 0-3 assert about api-service: 12 tasks, 4 done, 7 ready, `index-the-orders-by-customer` first by priority. Adding a task fails it and names the eval to update.
 - 🟢 An edit under `examples/api-service/` flags the evals and the problem pages in `outdatty check`.
-- 🟢 The fixture's clock is declared once, and every generator that runs api-service reads it.
+- 🟢 The fixture declares its clock once, and every generator that runs api-service reads it.
 
 
 == Changes
@@ -68,7 +68,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; the facts and clocks are hand-kept again.
+- Revert the commit. The facts and clocks go back to a hand edit.
 
 
 == Out of scope
@@ -79,5 +79,5 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-The next api-service task added for a capture fails the test until the evals are updated in the same commit.
+The next api-service task added for a capture fails the test until the same commit updates the evals.
 

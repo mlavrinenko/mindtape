@@ -33,14 +33,14 @@
 == AS-IS
 
 + Running just check on a branch rebased over a one-entry allowlist
-+ 🔴 #raw("crates/mindtape-cli/src/diag/allowlist_tests.rs"): entries() reads one quoted entry per line, so a list rustfmt folds onto one line reads as empty and the shrink test reports its entry as added
++ 🔴 #raw("crates/mindtape-cli/src/diag/allowlist_tests.rs"): entries() reads one quoted entry per line. A list that `rustfmt` folds onto one line then reads as empty, and the shrink test reports its entry as added
 
-const UNCONVERTED: &[&str] = &["cmd/check"];
-diag/allowlist.rs only shrinks; build these errors as a Diag instead: ["cmd/check"]
+`const UNCONVERTED: &[&str] = &["cmd/check"];`
+diag/allowlist.rs only shrinks. Build these errors as a Diag instead: ["cmd/check"]
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/diag/allowlist_tests.rs").
 
 == TO-BE

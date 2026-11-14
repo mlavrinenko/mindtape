@@ -31,13 +31,13 @@
     2026,
     10,
     8,
-  )[typst-world 0.5.0 carries the hints; LoadError keeps them],
+  )[typst-world 0.5.0 carries the hints. LoadError keeps them],
 )
 
 == AS-IS
 
 + Reading how \`mt\` renders Typst diagnostics for the error inventory
-+ 🔴 #raw("Cargo.lock"): \`World::eval\_error\` in typst-world 0.4.0 copies each diagnostic's message, location and trace but not its hints, so \`mt\` never shows them
++ 🔴 #raw("Cargo.lock"): \`World::eval\_error\` in typst-world 0.4.0 copies the message, location and trace of each diagnostic but not its hints, so \`mt\` never shows them
 
 ```
 ~/.cargo/registry/src/*/typst-world-0.4.0/src/diagnostic.rs
@@ -61,8 +61,8 @@ warning: tasks/broken.typ:2: eval error: unexpected argument: titel
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("typst-world, the upstream crate").
 
 == TO-BE

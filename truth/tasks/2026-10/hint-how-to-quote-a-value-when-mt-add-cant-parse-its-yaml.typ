@@ -42,7 +42,7 @@
 == TO-BE
 
 - 🟢 A YAML parse error from `mt add -f` carries a `hint:` line: quote a value that starts with a YAML indicator such as a backtick, or write it as a `|-` block.
-- 🟢 The `error:` line keeps the source and serde's position.
+- 🟢 The `error:` line keeps the source and the position `serde` reports.
 
 == Changes
 

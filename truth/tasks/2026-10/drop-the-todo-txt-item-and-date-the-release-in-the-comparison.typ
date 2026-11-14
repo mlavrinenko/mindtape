@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the maturity item reads its date from CHANGELOG.md and cannot go stale],
+      docs-match-code: helps[the maturity item reads its date from `CHANGELOG.md` and stays current],
     ),
   ),
   assignee: "agent",
@@ -31,20 +31,20 @@
     2026,
     10,
     12,
-  )[the todo.txt item is gone, and the maturity item states the first release date from CHANGELOG.md],
+  )[the page drops the todo.txt item, and the maturity item states the first release date from CHANGELOG.md],
 )
 
 == AS-IS
 
 + Open the comparison page and read "When another tool fits better".
 + 🔴 "The least tooling" says todo.txt is a text file any editor opens, which a Typst task file is too.
-+ 🔴 "Maturity" says Mindtape has fewer users, and it has none outside this repo yet.
++ 🔴 "Maturity" says the tool has fewer users, and it has none outside this repo yet.
 
 
 == TO-BE
 
-- 🟢 The todo.txt item is gone.
-- 🟢 The maturity item says when Mindtape was first released, read from `CHANGELOG.md`.
+- 🟢 The page drops the todo.txt item.
+- 🟢 The maturity item says when the tool was first released, read from `CHANGELOG.md`.
 
 
 == Source of truth

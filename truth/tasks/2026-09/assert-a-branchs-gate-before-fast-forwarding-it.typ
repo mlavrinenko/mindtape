@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a merge asserts the branch's own gate instead of trusting the integrator's shell pipeline],
+      enforced-practice: helps[a merge asserts the branch's own gate instead of trusting the pipeline the integrator runs],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -31,21 +31,21 @@
     2026,
     9,
     16,
-  )[integrate recipe plus .just/scripts/integrate.sh, with the wiring three gates demand: a script-integrate mmz scope, an outdatty dev-docs source, and the regenerated CONTRIBUTING.md — 7 files against the 3 estimated. All five paths verified by hand against scratch worktrees: no worktree for the branch, a dirty worktree, a non-fast-forward, a cold gate naming all 23 arms, and the green path — main's .mmz/cache transplanted into a probe at HEAD, where 22 arms read fresh and check-crap correctly reported stale on the absent target/coverage/lcov.info until that artifact was transplanted too, after which the host worktree fast-forwarded 47d0534 to 0865fff and the probe was removed.],
+  )[integrate recipe plus `.just/scripts/integrate.sh`. Three gates demand wiring: a `script-integrate` mmz scope, an outdatty dev-docs source, and the regenerated `CONTRIBUTING.md`. That came to 7 files against the 3 estimated. A hand check covered all five paths against scratch worktrees. The cases were no worktree for the branch, a dirty worktree, a non-fast-forward, a cold gate that lists all 23 arms, and the green path. For the green path, main's .mmz/cache went into a probe at HEAD. There 22 arms read fresh, and check-crap correctly reported stale on the absent target/coverage/lcov.info until that artifact went in too. After that the host worktree fast-forwarded 47d0534 to 0865fff and the probe came out.],
 )
 
 == AS-IS
 
 + Run `just fork <slug>`, let an agent commit on the branch, then read its gate with a pipeline ending in `tail`.
-+ 🔴 The pipeline reports `tail`'s exit code, so a red gate reads as green. This happened here: a branch whose test arm failed was fast-forwarded into `main`.
++ 🔴 The pipeline reports `tail`'s exit code. A red gate then reads as green. This happened here: a branch whose test arm failed was fast-forwarded into `main`.
 + Run `git merge --ff-only <branch>` on `main`.
-+ 🔴 Nothing asserts the branch ever passed. A fast-forward writes no commit, so `main`'s pre-commit hook never runs, and the only check is whatever the integrator typed.
++ 🔴 The pipeline never checks that the branch passed. A fast-forward leaves the history unchanged, so `main`'s pre-commit hook never runs, and the only check is whatever the integrator typed.
 
 
 == TO-BE
 
 - 🟢 `just integrate <branch>` refuses unless that branch's worktree reports `mmz --is-fresh --tag gate`, the same assertion the pre-commit hook makes, then fast-forwards and removes the worktree.
-- 🟢 A refusal names the stale or failed arm, and says the fix is a fresh `just check` in that worktree.
+- 🟢 A refusal points at the stale or failed arm, and says the fix is a fresh `just check` in that worktree.
 - 🟢 `just fork` and `just integrate` read as the pair they are, one standing a worktree up and one taking it down.
 
 ```text

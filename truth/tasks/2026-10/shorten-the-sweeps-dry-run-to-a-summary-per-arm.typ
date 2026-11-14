@@ -38,7 +38,7 @@
 == TO-BE
 
 - 🟢 The dry run prints one line per arm with its finding count, then that arm's top 3 findings by ICE score, one line each.
-- 🟢 The bodies of the shown findings land in `target/ask-refactoring/<stem>.typ`, so a proposal is still read before it is filed.
+- 🟢 The bodies of the shown findings land in `target/ask-refactoring/<stem>.typ`. A reader still reads a proposal before filing it.
 - 🟢 `--write` files every finding, as before.
 
 == Changes
@@ -48,7 +48,7 @@
 
 == Rollback
 
-- Revert the commit. Nothing reads the dry-run output.
+- Revert the commit. The dry-run output is only for people to read.
 
 == Out of scope
 

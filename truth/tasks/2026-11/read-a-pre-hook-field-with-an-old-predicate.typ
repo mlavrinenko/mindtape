@@ -33,14 +33,14 @@
 == AS-IS
 
 + A later add hook wants to know whether `kind` was `feat` before an earlier hook changed it.
-+ 🔴 `when` sees only the current draft, so the hook cannot ask for the pre-hook value; reordering may be impossible when another field must be set first.
++ 🔴 `when` sees only the current draft, so the hook has no access to the pre-hook value. Reordering may be impossible when another field must come first.
 + There is no read-only view of the original draft.
 
 
 == TO-BE
 
 - 🟢 `old("kind")` resolves to the field's value in the draft before any `[[on.add]]` action ran.
-- 🟢 It is read-only and available only in `on.add` `when`; `old("kind") == "feat"` and other comparisons work.
+- 🟢 It stays read-only and available only in `on.add` `when`. `old("kind") == "feat"` and other comparisons work.
 - 🟢 A later hook can see current `assignee` and original `kind` in one condition.
 
 ```toml
@@ -65,13 +65,13 @@ actions = [{ append = { tags = ["regression"] } }]
 
 - `was(field, value)`: equality only, while `old(field)` composes with any comparison or function.
 - A per-hook `on = "original"|"current"` mode: it makes `append` and `set` bases ambiguous.
-- Reordering hooks: impossible when another field must be set before the original condition can be read.
+- Reordering hooks: impossible when another field must come first before the original condition is available.
 
 
 == Out of scope
 
-- `old` outside `on.add` `when`; rules, `mt ls` and commit filters have no pre-hook draft.
-- Actions against the old task; only `when` reads it.
+- `old` outside `on.add` `when` stays out. Rules, `mt ls` and commit filters have no pre-hook draft.
+- Actions against the old task stay out. Only `when` reads it.
 - `old` on virtual fields (`dir`, `path`, id).
 
 

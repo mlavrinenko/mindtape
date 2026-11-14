@@ -15,8 +15,8 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[a `Refs:` trailer names the task it works on, whatever its stem holds],
-      enforced-practice: helps[`mt check --commits` stops refusing a trailer that names a real task],
+      implementable-tasks: helps[a `Refs:` trailer identifies the task it works on, whatever its stem holds],
+      enforced-practice: helps[`mt check --commits` stops refusing a trailer that cites a real task],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -34,7 +34,7 @@
 
 + In a project whose task stems hold a dot, such as speconaut's `foo.task-261023.typ`, commit with the trailer `Refs: foo.task-261023`.
 + Run `mt check --commits HEAD~1..HEAD`.
-+ 🔴 It prints ``error: <sha>: Refs: `foo.task-261023` names no task``.
++ 🔴 It prints #raw("error: <sha>: Refs: `foo.task-261023` names no task").
 + Run `mt ls 'touches("<a file that commit changed>")'`.
 + 🔴 It prints `0 of N tasks`.
 `value_stem` in `crates/mindtape/src/commit/mod.rs` runs `Path::file_stem` on every trailer value, so `foo.task-261023` reads as `foo`.
@@ -47,7 +47,7 @@
 
 == TO-BE
 
-- 🟢 A bare trailer value is the stem as written; `Refs: foo.task-261023` names `foo.task-261023.typ`.
+- 🟢 A bare trailer value is the stem as written. `Refs: foo.task-261023` names `foo.task-261023.typ`.
 - 🟢 A value holding `/` or `\` or ending in `.typ` still reads as its file stem, and `ref_problem` still asks for the bare stem.
 
 
@@ -64,5 +64,5 @@
 
 == Dogfood
 
-Not applicable: this repo's stems hold no dot. speconaut, which names tasks `<slug>.task-<date>`, is the user.
+Not applicable: this repo's stems have no dot. speconaut, which names tasks `<slug>.task-<date>`, is the user.
 

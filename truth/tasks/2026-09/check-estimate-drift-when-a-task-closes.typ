@@ -24,7 +24,7 @@
 
 == Summary
 
-`check_estimate_drift` runs from exactly one place, crates/mindtape-cli/src/check.rs:81, so the comparison between a declared file budget and the working tree happens on `mt check` and never during a flip. The wip to done flip is the one moment that comparison is complete rather than partial: before it the diff is still growing, after it the tree has already moved on. `[[on.flip]] when` sees the task as it stands before the write, so a task closing out of wip still matches the default `in-flight` filter `status == "wip"` at exactly that moment — the filter needs no new semantics to fire there.
+`check_estimate_drift` runs from exactly one place, `crates/mindtape-cli/src/check.rs:81`. The comparison between a declared file budget and the working tree happens on `mt check` and never during a flip. The `wip` to `done` flip is the one moment that comparison is complete rather than partial. Before the flip the diff is still growing, and after it the tree has already moved on. `[[on.flip]] when` sees the task as it stands before the write, so a task closing out of `wip` still matches the default `in-flight` filter `status == "wip"` at exactly that moment. The filter needs no new semantics to fire there.
 
 == Scope
 
@@ -38,11 +38,11 @@ actions = [
 ]
 ```
 
-`check` reads the already-loaded project instead of shelling out to reload it, and `gate` alone decides whether drift blocks the close or merely reports — drift is warn-only today, so without it the check prints and lets the flip through.
+`check` reads the already-loaded project instead of shelling out to reload it. `gate` alone decides whether drift blocks the close or merely reports: drift is warn-only today. Without `gate` the check prints and lets the flip through.
 
-Exclude the task root from the count at flip time: `mt flip` writes the very task file it is gating and would otherwise inflate its own number by one, the same reason `.mmz/config.yaml` excludes `truth/tasks/`.
+Exclude the task root from the count at flip time. `mt flip` writes the task file it is gating and would otherwise inflate its own number by one, the same reason `.mmz/config.yaml` excludes `truth/tasks/`.
 
-Touches the action shape and `ActionKind` in `crates/mindtape/src/config_hooks.rs` and `config_hooks_tests.rs`, the dispatch in `crates/mindtape-cli/src/flip_hooks.rs` and `flip_hooks_tests.rs`, and `crates/mindtape/src/estimate_drift.rs` for the flip-time entry point. Red test: a wip task declaring two files, closed against a four-file tree, reports the drift. The end-to-end pin and the docs follow in `document-the-estimate-drift-flip-check.typ`.
+Touches the action shape and `ActionKind` in `crates/mindtape/src/config_hooks.rs` and `config_hooks_tests.rs`, the dispatch in `crates/mindtape-cli/src/flip_hooks.rs` and `flip_hooks_tests.rs`, and `crates/mindtape/src/estimate_drift.rs` for the flip-time entry point. Red test: a `wip` task declaring two files, closed against a four-file tree, reports the drift. The end-to-end pin and the docs follow in `document-the-estimate-drift-flip-check.typ`.
 
 == Dogfood
 

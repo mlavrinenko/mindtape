@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running `just check`, where mmz hashed a cache temp file that another gate renamed away
-+ 🔴 #raw(".gitignore"): the line `.mindtape/cache/` is anchored to the repo root, so only the inner `.gitignore` that `mt` writes keeps an `examples/` cache out of mmz's inputs
++ 🔴 #raw(".gitignore"): the line `.mindtape/cache/` anchors to the repo root, so only the inner `.gitignore` that `mt` writes keeps an `examples/` cache out of mmz's inputs
 
 ```
 .mmz/config.yaml:155:    - "examples/**"
@@ -45,20 +45,20 @@ examples/minimal/.mindtape/cache/.gitignore:1:*
 Without that inner file, `mmz --status=json` lists the cache in nine rules. With `**/.mindtape/cache/` in the root file it lists none.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".gitignore").
 
 == TO-BE
 
-- 🟢 No mmz input holds a file under any `.mindtape/cache/`, from the moment `mt` creates it:
+- 🟢 Every mmz input leaves out files under any `.mindtape/cache/`, from the moment `mt` creates it:
 
 ```
 # .gitignore
 **/.mindtape/cache/
 ```
 
-- 🟢 A test fails when the root `.gitignore` leaves an `examples/` cache unignored.
+- 🟢 A test fails when the root `.gitignore` doesn't cover an `examples/` cache.
 
 
 == Changes

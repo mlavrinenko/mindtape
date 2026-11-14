@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the line cap can no longer flatten a child module back to the crate root],
+      sound-codebase: helps[the line cap can't flatten a child module back to the crate root],
       docs-match-code: neutral,
     ),
   ),
@@ -61,18 +61,18 @@ self_named_module_files = "deny"
 ```
 
 - 🟢 A gate refuses any `#[path]` that names neither a `*_tests*.rs` sibling nor the `rrule` feature stub, and prints the file and line.
-- 🟢 CONTRIBUTING says a module path is its file path and a new command is `src/cmd/<name>.rs`; AGENTS says each folder's `mod.rs` maps its files.
+- 🟢 CONTRIBUTING says a module path is its file path and a new command is `src/cmd/<name>.rs`. AGENTS says each folder's `mod.rs` maps its files.
 
 == Changes
 
-- A red fixture first: a stray `#[path]` the gate must refuse.
+- The first change is a red fixture for a stray `#[path]` the gate must refuse.
 - `Cargo.toml`: the lint.
 - `.just/scripts/path-attr-check.sh` (new), `Justfile`, `.mmz/config.yaml`: the gate and its inputs.
 - `docs/src/contributing.typ:201`, `docs/src/agents.typ`: the layout rule.
 
 == Rollback
 
-- Revert the commit: the lint and the gate leave no state behind.
+- Revert the commit. The lint and the gate configure checks only.
 
 == Out of scope
 

@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run `just install`, then edit `lib/prelude.typ` in this checkout.
-+ 🔴 Every other project on the machine now evaluates its tasks against the edited prelude with the binary from the last install, because `.just/scripts/install-lib.sh` links `~/.local/share/typst/packages/local/mindtape/<version>` to `<repo>/lib`. `.just/scripts/install.sh` links the skills the same way.
++ 🔴 Every other project on the machine evaluates its tasks against the edited prelude with the binary from the last install, because `.just/scripts/install-lib.sh` links `~/.local/share/typst/packages/local/mindtape/<version>` to `<repo>/lib`. `.just/scripts/install.sh` links the skills the same way.
 + Run an older `mt install` anywhere.
 + 🔴 It writes its embedded prelude through that link into `<repo>/lib/prelude.typ`.
 
@@ -48,7 +48,7 @@
 
 - `.just/scripts/install-lib.sh`: run the installed `mt install --force` for the prelude in place of the link.
 - `.just/scripts/uninstall-lib.sh`: remove the installed package dir, or a link an older install left.
-- `.just/scripts/_typst-package.sh`: its header names its one remaining user.
+- `.just/scripts/_typst-package.sh`: its header lists its one remaining user.
 - `.just/install.just`: `lib` installs the binary first, and the docs say snapshot.
 - `.just/scripts/install.sh`: copy each skill in place of the link.
 

@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[an editor lints the mutants scripts clean with no rc file],
+      sound-codebase: helps[an editor lints the mutants scripts clean without a `shellcheck` config file],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run `shellcheck -x --norc .just/scripts/mutants.sh .just/scripts/mutants-diff.sh` from the repo root, or from `/tmp` with absolute paths.
-+ 🔴 It prints `SC1091 (info): Not following: ./_mutants-env.sh` for `mutants.sh` line 14 and `mutants-diff.sh` line 16. An editor's shellcheck searches upward for `.shellcheckrc` only, so it hits this since the rc moved to `.config/shellcheckrc`, whose `source-path=SCRIPTDIR` was the only thing that resolved the source.
++ 🔴 It prints `SC1091 (info): Not following: ./_mutants-env.sh` for `mutants.sh` line 14 and `mutants-diff.sh` line 16. An editor's `shellcheck` searches upward for `.shellcheckrc` only, so it misses this file. The config moved to `.config/shellcheckrc`, whose `source-path=SCRIPTDIR` was the only setting that resolved the source.
 
 == TO-BE
 
@@ -46,11 +46,11 @@
 
 == Rollback
 
-- Revert the commit. The two directives are comments; no behavior or config changes.
+- Revert the commit. The two directives are comments, and neither behavior nor config changes.
 
 == Out of scope
 
-- Moving the rc back to the root, and the other scripts, which already pass without an rc.
+- Moving the config back to the root, and the other scripts, which already pass without one.
 
 == Dogfood
 

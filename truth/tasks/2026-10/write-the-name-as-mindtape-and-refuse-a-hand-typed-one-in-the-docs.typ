@@ -31,25 +31,25 @@
     2026,
     10,
     12,
-  )[the docs render the name from the site title, and check-doc-prose refuses a typed one],
+  )[the docs render the name from the site title. check-doc-prose refuses a typed one.],
 )
 
 == AS-IS
 
 + Run `rg -c MindTape www docs/src crates`.
-+ 🔴 The name is typed out in prose, help text and the config schema, about 120 times, as `MindTape`.
++ 🔴 The name appears in prose, help text and the config schema, about 120 times, as `MindTape`.
 
 
 == TO-BE
 
 - 🟢 Every doc source renders the name as `#mindtape`, from one constant.
 - 🟢 `just check-doc-prose` fails on `Mindtape` or `MindTape` typed in doc prose.
-- 🟢 `mt --help`, the config schema and the crate descriptions say Mindtape.
+- 🟢 `mt --help`, the config schema and the crate descriptions say `Mindtape`.
 
 
 == Source of truth
 
-- The owner's docs review: one spelling, Mindtape, from one constant, checked by a gate.
+- The owner's docs review asks for one spelling, `Mindtape`, from one constant, checked by a gate.
 
 
 == Changes

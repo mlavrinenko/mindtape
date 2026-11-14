@@ -17,19 +17,19 @@
     2026,
     9,
     18,
-  )[CONTRIBUTING states the rule, docs/contributing/documentation.md carries the arguments, and just dup-prose reports cross-file repeats; the page waves follow],
+  )[CONTRIBUTING states the rule, docs/contributing/documentation.md carries the arguments, and `just dup-prose` reports cross-file repeats. The page waves follow.],
   x-goals: (
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a touched doc file is refactored whole under a written rule, not patched until a cap turns green],
+      enforced-practice: helps[a writer refactors a touched doc file whole under a written rule instead of patching until a cap turns green.],
       cheap-adoption: neutral,
-      typst-over-markdown: helps[pages move to real Typst examples read back as data, so the medium carries the explanation instead of prose about it],
+      typst-over-markdown: helps[pages move to real Typst examples read back as data, and the medium carries the explanation instead of prose about it.],
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[one home per fact plus a reproducible duplicate report; repeated prose is found by a recipe instead of by a reader who trips over it],
+      docs-match-code: helps[one home per fact plus a reproducible duplicate report. A recipe finds repeated prose instead of a reader tripping over it],
     ),
   ),
 )
@@ -38,65 +38,65 @@
 
 1. Open `truth/tasks/de-slop-the-docs-site-start-and-guide-pages.typ`, under
   `== Rules`. Every de-slop pass so far says: "Do not restructure headings or
-  move content between pages." The sentence level was cleaned; the inventory
-  and the duplication across pages were never asked about.
-2. Look at `docs/src/contributing.typ`. It states code style, gates, commits —
-  nothing about how a doc file is edited, so a stale paragraph is patched
-  around the gate instead of refactored whole. The file also sits at exactly
+  move content between pages." The sentence level got cleaned, but nobody
+  asked about the inventory and the duplication across pages.
+2. Look at `docs/src/contributing.typ`. It states code style, gates and commits,
+  but nothing about how to edit a doc file. A stale paragraph then gets
+  patched around the gate instead of refactored whole. The file also sits at exactly
   its 260-line cap, so the next addition has no honest move but a split.
 3. 🔴 Run `just dup-prose` today: no such recipe. The repeated prose between
-  `README.md` and the site pages is found by hand or not at all.
+  `README.md` and the site pages needs a reader to find it by hand, or nobody finds it.
 
 == TO-BE
 
-- 🟢 `CONTRIBUTING.md` carries the documentation rule: when a doc file is
-  touched, it is rewritten whole against its reader job; caps never justify a
-  patch; a deleted fact moves to its one home or dies with a reason; a real
+- 🟢 `CONTRIBUTING.md` states the documentation rule. When a doc file is
+  touched, the writer rewrites it whole against its reader job. Caps never justify a
+  patch. A deleted fact moves to its one home or dies with a reason. A real
   example under a checked example root beats a paragraph describing it.
 - 🟢 The arguments live in `docs/contributing/documentation.md`, with the
   always-loaded source back under its cap by that split.
 - 🟢 `just dup-prose` prints cross-file near-duplicate prose sentences with
-  both file paths, in about a second, with no new runtime in the devshell.
-- 🟢 The rule is dogfooded immediately: the page rewrites that follow use it,
-  and the audit runs before and after each one.
+  both file paths, in about a second, with no new runtime in the dev shell.
+- 🟢 The page rewrites that follow use the rule immediately, and the audit
+  runs before and after each one.
 
 == Source of truth
 
-- `docs/src/contributing.typ` — the process source; `CONTRIBUTING.md` is its
+- `docs/src/contributing.typ`: the process source, with `CONTRIBUTING.md` as its
   render.
-- The four `truth/tasks/de-slop-the-docs-*.typ` Rules sections — what those
-  passes deliberately did NOT cover.
+- The four `truth/tasks/de-slop-the-docs-*.typ` Rules sections: what those
+  passes deliberately did not cover.
 - `truth/tasks/stop-the-doc-size-cap-fighting-correctness-fixes.typ` and
-  `.linecop.yaml`'s cap comment — why a cap is a scope brake, and why the
+  `.linecop.yaml`'s cap comment: why a cap is a scope brake, and why the
   answer to hitting one is progressive disclosure, never a bigger number.
-- `contrib/ask-refactoring.sh` — the advisory-tool precedent: report, never
-  gate.
-- `www/content/dsl.typ`'s "Task links" section — the worked example of the
+- `contrib/ask-refactoring.sh`: the advisory-tool precedent, which reports and never
+  gates.
+- `www/content/dsl.typ`'s "Task links" section: the worked example of the
   preferred shape: a real annotated code block over prose.
 
 == Changes
 
-- `contrib/dup-prose.jq` (new) — strip Typst/Markdown noise, split sentences,
-  4-word shingles, Jaccard overlap, print cross-file pairs over a threshold.
-- `Justfile` — `DOC_PROSE_PATHS` and the advisory `dup-prose` recipe.
-- `docs/src/contributing.typ` — a `= Documentation` section pointing at the
+- `contrib/dup-prose.jq` (new): strip Typst/Markdown noise, split sentences,
+  4-word shingles, `Jaccard` overlap, print cross-file pairs over a threshold.
+- `Justfile`: `DOC_PROSE_PATHS` and the advisory `dup-prose` recipe.
+- `docs/src/contributing.typ`: a `= Documentation` section pointing at the
   deep dive, and the trims elsewhere that pay for the pointer so the file
   stays at 260.
-- `docs/src/contributing/documentation.typ` (new) — the rule's arguments: the
+- `docs/src/contributing/documentation.typ` (new): the rule's arguments, the
   three authored homes, refactor-whole, one home per fact, checked examples,
   and the audit.
-- `CONTRIBUTING.md` and `docs/contributing/documentation.md` — regenerated by
+- `CONTRIBUTING.md` and `docs/contributing/documentation.md`: regenerated by
   `just docs-md`.
-- `outdatty.lock` — the `dev-docs` group re-recorded for the `Justfile`
+- `outdatty.lock`: the `dev-docs` group re-recorded for the `Justfile`
   source change.
 
 == Out of scope
 
-- The page rewrites themselves. Each wave gets its own task; this one lands
+- The page rewrites themselves. Each wave gets its own task. This one lands
   the practice they follow.
-- `.linecop.yaml` caps. A cap stays a scope brake; the rule changes what you
+- `.linecop.yaml` caps. A cap stays a scope brake. The rule changes what you
   do when you hit one, not the number.
-- Making `dup-prose` a gate. Its threshold is a judgement call; a gate comes
+- Making `dup-prose` a gate. Its threshold is a judgement call. A gate comes
   only after the audit has been wrong in a way worth encoding.
 
 == Dogfood

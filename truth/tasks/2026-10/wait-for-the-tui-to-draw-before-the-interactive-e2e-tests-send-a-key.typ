@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a gate no longer fails on machine load alone],
+      sound-codebase: helps[a gate doesn't fail on machine load alone],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running \`just check\` on a machine under load while landing the doc gates
-+ 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): quitting\_restores\_the\_terminal sends ESC after a fixed 300 ms sleep, so it fails when the machine is loaded and passes alone
++ 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): `quitting_restores_the_terminal` sends ESC after a fixed 300 ms sleep, so it fails when the machine runs under load and passes alone
 
 ```
 FAIL mindtape-cli::interactive_e2e quitting_restores_the_terminal
@@ -42,8 +42,8 @@ $ just test quitting_restores_the_terminal   # load 14
 1 test run: 1 passed   (three of three runs)
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/tests/interactive_e2e.rs").
 
 == TO-BE

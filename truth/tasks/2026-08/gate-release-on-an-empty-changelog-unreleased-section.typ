@@ -15,7 +15,7 @@
 
 == Summary
 
-just release must refuse to tag while CHANGELOG.md has a non-empty \[Unreleased\] section — the section has to move into a dated \[X.Y.Z\] first.
+just release must refuse to tag while CHANGELOG.md has a non-empty \[Unreleased\] section. Move the section into a dated \[X.Y.Z\] first.
 
 == Scope
 

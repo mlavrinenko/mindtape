@@ -33,20 +33,18 @@
 == AS-IS
 
 + Reading why 21 CLI pages went unrecorded until commit 22b1024e.
-+ 🔴 #raw("Justfile"): \`outdatty check\` passes while a file matched by a glob dependent has no lock entry, so a new page under \`www/content/cli/\*.typ\` stays unrecorded and unwatched with every gate green.
++ 🔴 #raw("Justfile"): `outdatty check` passes while a file matched by a glob dependent has no lock entry. A new page under `www/content/cli/*.typ` then stays unrecorded and unwatched with every gate green.
 
-`outdatty.yaml:150`: `- www/content/cli/*.typ`
-`Justfile:182-183`: `outdatty-check:` runs `outdatty check --format paths`
-Commit 22b1024e (`docs(outdatty): record a review hash for each CLI command page`) added 21 lock entries that no gate had asked for.
+`outdatty.yaml:150` lists `- www/content/cli/*.typ`, and `Justfile:182-183` runs `outdatty check --format paths` under `outdatty-check:`. Commit 22b1024e added 21 lock entries that no gate had asked for. Its message is `docs(outdatty): record a review hash for each CLI command page`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("Justfile").
 
 == TO-BE
 
-- 🟢 `just outdatty-check` fails and names each glob-expanded dependent that `outdatty.lock` holds no hash for.
+- 🟢 `just outdatty-check` fails and states each glob-expanded dependent that has no hash in `outdatty.lock`.
 ```
 unrecorded: www/content/cli/new-page.typ
   record it: just outdatty-update cli-docs www/content/cli/new-page.typ
@@ -63,8 +61,8 @@ unrecorded: www/content/cli/new-page.typ
 
 == Out of scope
 
-- Judging whether a recorded hash was reviewed. Only presence is checked.
+- Judging whether a recorded hash passed review. The check only looks at presence.
 
 == Dogfood
 
-Every new page under a glob dependent here is caught at the gate.
+The gate catches every new page under a glob dependent here.

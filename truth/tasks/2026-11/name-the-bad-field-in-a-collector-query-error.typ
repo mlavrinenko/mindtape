@@ -21,14 +21,14 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[the error names the exact key to fix],
+      implementable-tasks: helps[the error states the exact key to fix],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the parser keeps the specific struct's own field errors instead of erasing them],
+      sound-codebase: helps[the parser keeps the field error from the specific struct instead of erasing it],
       docs-match-code: neutral,
     ),
   ),

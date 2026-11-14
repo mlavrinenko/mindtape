@@ -43,8 +43,8 @@ crates/mindtape/src/app_dirs.rs: resolve(std::env::var_os(DATA_HOME_ENV), dirs::
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/_typst-package.sh").
 
 == TO-BE
@@ -59,7 +59,7 @@ left in a closing report no one rereads. It belongs in
 - `.just/scripts/_typst-package.sh`: resolve the data directory as `mt` does on Linux.
 - `.just/scripts/install-bin.sh`: install into `${CARGO_HOME:-$HOME/.cargo}/bin`.
 - `.just/scripts/install.sh`: run the binary from the same directory.
-- `Justfile`: name the install directory in the `install-bin` doc string.
+- `Justfile`: state the install directory in the `install-bin` doc string.
 
 
 == Rollback
@@ -69,7 +69,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- macOS and Windows data directories: contributor support there is deferred.
+- macOS and Windows data directories: the project defers contributor support there.
 - The skill links under `~/.claude/skills` and `~/.config/opencode/skills`.
 
 

@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a view or rule that tests a misspelled status fails loudly instead of matching nothing],
+      enforced-practice: helps[a view or rule that tests a misspelled status fails loudly instead of a silent empty match],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Capturing every error \`mt\` prints for the error inventory
-+ 🔴 #raw("crates/mindtape/src/filter/mod.rs"): a status value that no \`\[tasks.status\]\` entry declares passes a filter and a view's \`filter\` without a word, and the filter matches nothing
++ 🔴 #raw("crates/mindtape/src/filter/mod.rs"): a status value that no \`\[tasks.status\]\` entry declares passes a filter and a view's \`filter\` without a word, and the filter returns nothing
 
 ```
 $ mt ls 'status == "wpi"'
@@ -49,8 +49,8 @@ Error: unknown field in filter: wip
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/filter/mod.rs").
 
 == TO-BE
@@ -68,14 +68,14 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the three files; an unknown status matches nothing again.
+- Revert the three files. An unknown status returns nothing again.
 
 
 == Out of scope
 
-- Other enum fields such as `kind` and tags; one field first, the rest follow the same seam.
+- Other enum fields such as `kind` and tags. One field first, the rest follow the same seam.
 
 
 == Dogfood
 
-This repo's views and rules that test `status` are checked against its legend on every `mt` run.
+Every `mt` run checks this repo's views and rules that test `status` against its legend.

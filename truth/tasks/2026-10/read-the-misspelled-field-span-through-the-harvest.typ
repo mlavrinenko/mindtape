@@ -33,7 +33,7 @@
 == AS-IS
 
 + Read `crates/mindtape/src/loader/tests_prelude.rs`, test `real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file`.
-+ 🔴 It runs `typst::compile::<PagedDocument>` to read the error's span, and `crates/mindtape/Cargo.toml` says why: "The harvest flattens an eval error to its message". That stopped being true: typst-harvest 0.6.0 returns `HarvestError::Eval` with each diagnostic's `Location`, whose `path` is root-relative for a project file and `{pkg-spec}/...` for a package file.
++ 🔴 It runs `typst::compile::<PagedDocument>` to read the error's span, and `crates/mindtape/Cargo.toml` says why: "The harvest flattens an eval error to its message". That stopped being true: typst-harvest 0.6.0 returns `HarvestError::Eval` with the `Location` of each diagnostic, whose `path` is root-relative for a project file and `{pkg-spec}/...` for a package file.
 
 
 == TO-BE

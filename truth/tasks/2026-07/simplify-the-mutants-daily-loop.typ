@@ -9,7 +9,7 @@
   ),
   tags: ("tooling", "tests"),
   links: related("adopt-cargo-mutants-mutation-testing.typ")[
-    the burn-down this tooling was built for
+    the burn-down this tooling serves
   ]
     + related("ci-in-diff-mutation-advisory.typ")[
       subsumes the CI question: run it locally, not in CI
@@ -18,16 +18,16 @@
     2026,
     7,
     21,
-  )[mutants-diff added and verified end-to-end; ledger, mutants-fix.sh and mutants-fix recipe deleted],
+  )[mutants-diff added and verified end-to-end. Ledger, mutants-fix.sh and mutants-fix recipe deleted],
 )
 
 == Summary
 
 The burn-down is over, so the scaffolding built for it should go and one daily
-driver should remain. Today `just mutants` walks a git-ignored `.mutants-ledger`
-that holds 5 entries against 103 candidate files — two of them already stale —
-because the actual sweeping was done by `contrib/mutants-fix.sh` and by ad-hoc
-`-f` runs that never fed the ledger. The loop's state is therefore fiction: a
+driver should remain. `just mutants` walks a git-ignored `.mutants-ledger`
+that holds 5 entries against 103 candidate files, two of them already stale. The
+actual sweeping ran through `contrib/mutants-fix.sh` and through ad-hoc `-f` runs
+that never fed the ledger. The loop's state is fiction: a
 fresh clone, or this machine today, reports ~100 files needing a pass and would
 re-sweep for hours. Replace the stateful loop with a stateless one scoped to
 what you actually changed.
@@ -37,12 +37,12 @@ what you actually changed.
 - Add `just mutants-diff`: `cargo mutants --in-diff <(git diff <merge-base>)`,
   the pre-PR check. Measured on commit `d5c9540`'s 955-line diff: 31 mutants,
   44s baseline build + 7m07s total at `CARGO_MUTANTS_JOBS=2` on a warm cache,
-  31 caught / 0 missed / 0 timeout. Minutes, not hours — and it needs no state
-  file, no invalidation rule, and covers new files for free (every line of a new
-  file is in the diff).
+  31 caught / 0 missed / 0 timeout. Minutes, not hours. It works without a state
+  file or an invalidation rule, and covers new files for free (every line of a
+  new file is in the diff).
 - Delete the ledger machinery: `.mutants-ledger`, the ~45 lines of bash in the
   `mutants` recipe, and its `.gitignore` entry. Keep `just mutants -f <file>`
-  (and passthrough args) as the deliberate full-file sweep.
+  (and passthrough `args`) as the deliberate full-file sweep.
 - Delete `contrib/mutants-fix.sh` and `just mutants-fix`. Its "the model can only
   edit tests" guard is void by construction: line 49 falls back to `sib="$f"`
   when a file has inline tests, handing the model the production file, which is

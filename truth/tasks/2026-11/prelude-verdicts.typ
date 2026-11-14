@@ -60,8 +60,8 @@ product: verdicts(
 
 == Alternatives
 
-- A sparse map that omits neutral goals: shorter, but it gives up the explicit verdict the owner wants.
-- `neutral-on` with `+`: `+` is right-wins, so an overlap silently turns a `helps` neutral.
+- A sparse map that omits neutral goals: shorter, but it gives up the explicit verdict the owner asked for.
+- `neutral-on` with `+`: `+` is right-wins. An overlap then silently turns a `helps` neutral.
 
 == Out of scope
 

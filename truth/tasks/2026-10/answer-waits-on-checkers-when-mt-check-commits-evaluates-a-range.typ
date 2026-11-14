@@ -33,7 +33,7 @@
 == AS-IS
 
 + Asked how commit rules see a task that waits on a \`\[\[tasks.waits\]\]\` checker
-+ 🔴 #raw("crates/mindtape/src/commit/tasks.rs"): \`ProjectState::new\` builds each commit's tasks without asking their checkers, so in \`mt check --commits\` a waiting task reads ready, while \`--commit-msg\` on the staged tree reads it blocked
++ 🔴 #raw("crates/mindtape/src/commit/tasks.rs"): `ProjectState::new` builds each commit's tasks without asking their checkers, so in `mt check --commits` a waiting task reads ready, while `--commit-msg` on the staged tree reads it blocked
 
 ```
 # rule: when = 'into("wip")', assert = 'staged(!blocked)'
@@ -45,8 +45,8 @@ warning: f5f2a53: commits.rules.start-only-ready-work: throttle-failed-logins-pe
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/commit/tasks.rs").
 
 == TO-BE
@@ -56,20 +56,20 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape/src/commit/tasks.rs`: call `crate::waits::annotate` in `ProjectState::new` with the repository root.
+- `crates/mindtape/src/commit/tasks.rs`: call `crate::waits::annotate` from `ProjectState::new` with the repository root.
 - `crates/mindtape-cli/tests/it/waits_e2e.rs`: the range case above, red first.
 
 
 == Rollback
 
-- Revert the `annotate` call; commit rules go back to ignoring waits in a range.
+- Revert the `annotate` call. Commit rules go back to ignoring waits in a range.
 
 
 == Out of scope
 
-- Answering a checker as of a past commit. A checker reads local state now, and history holds no copy of it.
+- Answering a checker as of a past commit. A checker reads local state, and history does not keep a copy of it.
 
 
 == Dogfood
 
-Not applicable until a task in this repo uses `waits-on`; `just land` runs `mt check --commits main..HEAD` and would then honour it.
+Not applicable until a task in this repo uses `waits-on`. `just land` runs `mt check --commits main..HEAD` and would then honour it.

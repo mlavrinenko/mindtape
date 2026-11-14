@@ -21,25 +21,25 @@
 == Summary
 
 `crates/mindtape-cli/src/pre_write.rs:169` prints every blocking problem with
-a `warning:` prefix, and since `[[tasks.rules]]` landed it prints genuine
+a `warning:` prefix, and since `[[tasks.rules]]` landed it prints real
 non-blocking warnings with that same prefix two lines above. The two outcomes
-are now indistinguishable at the line that reports them:
+are indistinguishable at the line that reports them:
 
 ```
 warning: regression-in-the-slug-dedup-path: rules.imperative-title: start the title with an imperative verb
 Error: 1 validation issue(s) as filled; nothing was written
 ```
 
-Only the trailing `Error:` line says which of the two happened, and a write
-that lands prints no such line at all — so a reader scanning the per-issue
-lines learns nothing. The prefix predates the rules work (`6a21382`); what
+Only the trailing `Error:` line says which of the two happened. A write
+that lands omits that line. A reader scanning the per-issue
+lines then misses every signal. The prefix predates the rules work (`6a21382`). What
 the rules work added is a second, real meaning for it.
 
 
 == Scope
 
 + Prefix `verdict.problems` with `error:` and leave `verdict.warnings` at
-  `warning:`, so the prefix carries the outcome the way `mt check` already
+  `warning:`. The prefix then carries the outcome the way `mt check` already
   makes it carry severity.
 + Check the same seam in `task_edit::report_issues`, which mirrors this shape
   on the post-write fallback path.

@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[a page states the current behaviour; history stays in git log],
+      docs-match-code: helps[a page states the current behaviour, and history stays in git log],
     ),
   ),
   assignee: "agent",
@@ -34,14 +34,14 @@
 == AS-IS
 
 + Run `rg -n -i '\b(used to|no longer|anymore|formerly)\b' www docs/src -g '*.typ'`.
-+ 🔴 It prints lines like `docs/src/contributing/coverage-crap.typ:135: ... used to be absent from`. A reader needs the current rule; the history is in `git log`.
++ 🔴 It prints lines like `docs/src/contributing/coverage-crap.typ:135: ... used to be absent from`. A reader needs the current rule, and the history is in `git log`.
 + 🔴 `www/content/rule-packs.typ` uses ALL-CAPS words for emphasis eight times (`:47`, `:55`, `:62`, ...).
 + `docs/contributing/documentation.md` says where a fact lives but not how to write a sentence. Pages use figures of speech ("load-bearing"), "X, not Y" contrasts, and give files and fields a will ("the lockfile knows").
 
 
 == TO-BE
 
-- 🟢 `documentation.md` has a short "Plain prose" section with a bad and a good example per rule: state the current rule and its reason; use the literal word; make the actor the subject; drop the "not Y" half when it adds nothing; one idea per sentence; no ALL-CAPS emphasis; no history.
+- 🟢 `documentation.md` has a short "Plain prose" section with a bad and a good example per rule. State the current rule and its reason, use the literal word, and make the actor the subject. Drop the "not Y" half when it only repeats the first half, keep one idea per sentence, and leave out history. Avoid ALL-CAPS emphasis.
 - 🟢 `just check-doc-prose` fails, naming file and line, on history words and ALL-CAPS emphasis in doc sources, prose and comments both. Its header and its gate note say which problem it stops.
 - 🟢 Today's hits are rewritten.
 
@@ -58,7 +58,7 @@
 
 == Rollback
 
-Revert the commit. The gate is one recipe and one script; the rewritten sentences stand on their own.
+Revert the commit. The gate is one recipe and one script. The rewritten sentences remain valid.
 
 
 == Out of scope
@@ -69,5 +69,5 @@ Revert the commit. The gate is one recipe and one script; the rewritten sentence
 
 == Dogfood
 
-Every later docs task in this repo is written and checked under these rules.
+Every later docs task in this repo follows these rules and passes the check.
 

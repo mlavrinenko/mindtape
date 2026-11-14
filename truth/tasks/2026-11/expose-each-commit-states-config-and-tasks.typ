@@ -21,7 +21,7 @@
       self-describing: neutral,
     ),
     process: (
-      sound-codebase: helps[the state config and task set stop being dropped between loading and checking],
+      sound-codebase: helps[the state config and task set survive the trip from loading to checking],
       docs-match-code: neutral,
     ),
   ),
@@ -37,7 +37,7 @@
 
 == TO-BE
 
-- 🟢 `ProjectState` carries its `Config` and task set; `StateLoader` retains the state config instead of dropping it.
+- 🟢 `ProjectState` carries its `Config` and task set. `StateLoader` retains the state config instead of dropping it.
 - 🟢 `CommitStates` exposes the head, staged and worktree configs, and the staged task set.
 - 🟢 `task_states` loads the staged state even when the project has no task-scope rules.
 - 🟢 A state config that fails to load keeps its error and classification falls back to the working config, as today.
@@ -65,5 +65,5 @@ CommitRecord::build(&message, &changed, &staged.tasks, &staged.config)
 
 == Dogfood
 
-This repo's commit rules already run against `truth/tasks`; the change makes the state config available to them instead of rebuilding it from the worktree.
+This repo's commit rules already run against `truth/tasks`. The change makes the state config available to them instead of rebuilding it from the worktree.
 

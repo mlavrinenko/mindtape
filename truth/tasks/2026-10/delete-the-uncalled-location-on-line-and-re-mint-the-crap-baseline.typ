@@ -49,7 +49,7 @@
 
 == Rollback
 
-Revert the commit; the old baseline and `on_line` come back together.
+Revert the commit. The old baseline and `on_line` come back together.
 
 == Out of scope
 

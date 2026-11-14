@@ -28,7 +28,7 @@
       self-describing: neutral,
     ),
     process: (
-      sound-codebase: helps[one alias map serves flags, --set and the positional title],
+      sound-codebase: helps[one alias map serves flags, `--set` and the positional title],
       docs-match-code: neutral,
     ),
   ),
@@ -47,13 +47,13 @@ $ mt add --print --name alias-flag "Alias flag" --kind feat --set type=bug
   kind: "feat",
 ```
 
-The `bug` value is gone. On a template with `title: slot("headline")`, `mt add "Alias title"` fails with `missing a required slot: 'headline'`. `--set headline=...` fills the slot only when `--name` also gives the file a stem, because `output_stem` still reads the core `title` key.
+The `bug` value disappears. On a template with `title: slot("headline")`, `mt add "Alias title"` fails with `missing a required slot: 'headline'`. `--set headline=...` fills the slot only when `--name` also gives the file a stem, because `output_stem` still reads the core `title` key.
 
 
 == TO-BE
 
-- 🟢 Every explicit source resolves to the core field before precedence is decided.
-- 🟢 A flag plus a `--set` token for the same core field, including through an aliased slot, is refused.
+- 🟢 Every explicit source resolves to the core field before precedence applies.
+- 🟢 The pipeline refuses a flag plus a `--set` token for the same core field, including through an aliased slot.
 - 🟢 The positional and piped title fill the template's title slot whatever its slot name is.
 
 ```

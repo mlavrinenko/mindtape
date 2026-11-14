@@ -47,14 +47,14 @@ ok: 4 task(s) valid
 `validate_links.rs:205` invents `{task_id}.typ` for a cycle, and `check_templates.rs:24` uses `<built-in>/task.typ`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/violation.rs").
 
 == TO-BE
 
 - 🟢 A rule skipped for lack of git reports at its entry in `.mindtape/config.toml`, by line.
-- 🟢 No breach names a path that does not exist.
+- 🟢 Every breach points at a path that exists.
 
 
 == Changes
@@ -62,12 +62,12 @@ left in a closing report no one rereads. It belongs in
 - `crates/mindtape/src/violation.rs`: let a location name a task field or a config entry.
 - `crates/mindtape/src/config_rules_eval.rs`: report a skipped rule at its config line.
 - `crates/mindtape/src/validate_links.rs`: drop the invented cycle path.
-- `crates/mindtape-cli/src/check_templates.rs`: name a built-in template without a fake path.
+- `crates/mindtape-cli/src/check_templates.rs`: refer to a built-in template without a fake path.
 
 
 == Rollback
 
-- Revert the commit; config-level breaches point at a task again.
+- Revert the commit. Config-level breaches point at a task again.
 
 
 == Out of scope

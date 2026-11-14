@@ -31,7 +31,7 @@
     2026,
     10,
     6,
-  )[each Problems, Start and reference page defines or links terminal, slot, legend, floor, layer, facet, stem, view, rule pack, gate and flip at first use],
+  )[Problems, Start and reference pages define or link a term at first use. The terms are terminal, slot, legend, floor, layer, facet, stem, view, rule pack, gate and flip.],
 )
 
 == AS-IS
@@ -43,14 +43,14 @@
 
 == TO-BE
 
-- 🟢 On every page, a term the page uses is defined in one clause at its first use, or links to the one page that defines it.
+- 🟢 On every page, the page defines a term it uses in one clause at first use, or links to the one page that defines it.
 - 🟢 The audit covers at least terminal, slot, legend, floor, layer, facet, stem, view, rule pack, gate and flip, reading the pages in sidebar order.
 
 
 == Source of truth
 
 - The code that gives each term its meaning, such as `terminal` in the statuses config.
-- The page each term is defined on now.
+- The page that currently defines each term.
 
 
 == Changes

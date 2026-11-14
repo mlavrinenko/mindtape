@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a stale `mt` can no longer downgrade the checkout a developer links the package to],
+      cheap-adoption: helps[a stale `mt` cannot downgrade the checkout a developer links the package to],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Trying the new `mt init` in a temp dir, where `mt` resolved to an older `~/.cargo/bin/mt`.
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): `install_lib` writes `prelude.typ` whatever `--force` says, and `write_atomic` follows the package dir's symlink into the dev checkout, so an older binary silently rewrites `lib/prelude.typ` to the prelude it embeds.
++ 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): `install_lib` writes `prelude.typ` whatever `--force` says, and `write_atomic` follows the package directory's symlink into the dev checkout, so an older binary silently rewrites `lib/prelude.typ` to the prelude it embeds.
 
 ```
 $ readlink ~/.local/share/typst/packages/local/mindtape/0.2.0
@@ -44,14 +44,14 @@ $ git diff --stat lib/prelude.typ
 The rewritten file matched `lib/prelude.typ` at `3d7226bc`, byte for byte.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/init/mod.rs").
 
 == TO-BE
 
-- 🟢 When the package dir is a symlink, `mt install` leaves it alone and prints where it points, unless `--force` is given.
-- 🟢 A plain package dir still gets the binary's prelude on every install, so an upgrade still lands.
+- 🟢 When the package dir is a symlink, `mt install` leaves it alone and prints where it points, unless the user passes `--force`.
+- 🟢 A plain package dir still gets the binary's prelude on every install.An upgrade still lands.
 
 
 == Changes
@@ -66,7 +66,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- Which `mt` a shell resolves outside the dev shell: that is the user's PATH, not Mindtape's.
+- Which `mt` a shell resolves outside the dev shell: that is the user's PATH, not the project's.
 
 
 == Dogfood

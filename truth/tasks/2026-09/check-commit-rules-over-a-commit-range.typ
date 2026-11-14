@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a hook skipped with --no-verify still fails CI],
+      enforced-practice: helps[a hook skipped with `--no-verify` still fails CI],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -48,21 +48,21 @@ a1b2c3d task: close x
 error: 1 commit(s) broke commit rules
 ```
 
-- 🟢 A merge commit is checked against its first parent only.
+- 🟢 The check reads a merge commit against its first parent only.
 
 
 == Changes
 
 - `crates/mindtape-cli/tests/commit_range_e2e.rs` (red first): a range with one offending commit fails naming it.
-- `crates/mindtape/src/commit_range.rs`: a range's commits, each read as message, changed files and a `StatePlan` — its tree as `staged`, its first parent (else the empty tree) as `head`, no working tree.
-- `crates/mindtape/src/config_commits.rs`: `check_commit` skips a rule calling `worktree(...)` or `changed(...)` when there is no working tree; `changed` reads the checkout's git states too.
+- `crates/mindtape/src/commit_range.rs`: a range's commits, each read as message, changed files and a `StatePlan`. The plan takes its tree as `staged` and its first parent (else the empty tree) as `head`, outside any working tree.
+- `crates/mindtape/src/config_commits.rs`: `check_commit` skips a rule calling `worktree(...)` or `changed(...)` when there is no working tree. `changed` also reads the checkout's git states.
 - `crates/mindtape-cli/src/check_range.rs`: the `--commits` run. Trailers resolve against the commit's own tasks, so a task renamed since does not fail an old commit.
-- `.github/workflows/ci.yml`: a push checks `before..sha`, a PR `base..head`. An all-zero or missing `before` skips with a notice. `FLOOR`, this task's start commit, bounds the range from below: 1376 unpushed commits carry path `Refs:` trailers the trailer check refuses, and history is never re-judged. `migrate-this-repos-refs-trailers-to-stems` moves `FLOOR` to its own commit.
+- `.github/workflows/ci.yml`: a push checks `before..sha`, a PR `base..head`. An all-zero or missing `before` skips with a notice. `FLOOR`, this task's start commit, bounds the range from below: 1376 commits still ahead of the remote carry path `Refs:` trailers the trailer check refuses, and history is never re-judged. `migrate-this-repos-refs-trailers-to-stems` moves `FLOOR` to its own commit.
 
 
 == Alternatives
 
-- A server-side hook: needs a forge this repo does not run.
+- A server-side hook needs a forge this repo does not run.
 
 
 == Out of scope

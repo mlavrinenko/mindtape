@@ -16,14 +16,14 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a merge no longer needs a hand-written exemption],
+      enforced-practice: helps[a merge works without a hand-written exemption],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the docs say merges are skipped],
+      docs-match-code: helps[the docs say the checks skip merges],
     ),
   ),
   assignee: "agent",
@@ -33,8 +33,8 @@
 == AS-IS
 
 + In a project extending `mindtape:tasks`, make a `--no-ff` merge of a branch that flips a task and changes a product file.
-+ Run `mt check --commit-msg .git/MERGE_MSG` while the merge is stopped.
-+ 🔴 The merge is judged as one authored commit. `work-names-a-task` and `flip-with-work` refuse it, and `mt check --commits` repeats them on the merge.
++ Run `mt check --commit-msg .git/MERGE_MSG` while the merge waits to complete.
++ 🔴 The check judges the merge as one authored commit. `work-names-a-task` and `flip-with-work` refuse it, and `mt check --commits` repeats them on the merge.
 
 
 == TO-BE
@@ -61,22 +61,22 @@ mt check --commits --check-merges main..HEAD  # check them
 - `crates/mindtape-cli/src/cmd/check/range.rs`: skip merges, keep the newest tree for tip rules, count skips.
 - `crates/mindtape-cli/src/cmd/check/mod.rs`: the `--check-merges` flag.
 - `crates/mindtape-cli/tests/it/`: the red tests for the hook, the range, the tip, the opt-in and the amend.
-- `www/content/commit-rules.typ` and `docs/src/contributing/commit-messages.typ`: say merges are skipped.
+- `www/content/commit-rules.typ` and `docs/src/contributing/commit-messages.typ`: say the checks skip merges.
 
 
 == Alternatives
 
-- Check the merge against its first-parent diff by default. It repeats the merged branch, so every rule fires on work the branch commits carry.
+- Check the merge against its first-parent diff by default. It repeats the merged branch. Every rule then fires on work the branch commits carry.
 - Filter merges in each consumer's hook. Every consumer repeats the guard, and `--commits` still needs an engine flag.
 
 
 == Out of scope
 
-- Squash merges, which create a regular commit and must still name a task.
+- Squash merges, which create a regular commit and must still reference a task.
 - Rewriting a merge message an older `mt` refused. A new merge is enough.
 
 
 == Dogfood
 
-This repo's `just land --no-ff` and manual merges pass the hook, and CI's `--commits` range no longer fails on one.
+This repo's `just land --no-ff` and manual merges pass the hook, and CI's `--commits` range passes on one.
 

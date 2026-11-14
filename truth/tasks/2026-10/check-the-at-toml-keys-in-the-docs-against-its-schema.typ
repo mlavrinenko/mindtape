@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[a misspelled or renamed at.toml key in a page fails the span gate, as a config key does],
+      docs-match-code: helps[a misspelled or renamed at.toml key in a page fails the span gate, as a config key does.],
     ),
   ),
   assignee: "agent",
@@ -31,7 +31,7 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "derive-a-json-schema-for-at-toml-from-its-structs.typ",
-    )[the gate and the key table read schema/at.schema.json, which that task writes],
+    )[the gate and the key table read schema/at.schema.json, which that task writes.],
 )
 
 == AS-IS
@@ -64,7 +64,7 @@
 
 == Out of scope
 
-- The shipped board's values, which a sibling task shows from `board.toml`.
+- The built-in board's values, which a sibling task shows from `board.toml`.
 
 
 == Dogfood

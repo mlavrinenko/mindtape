@@ -2,7 +2,7 @@
 #import "/truth/lib.typ": *
 
 #show: task.with(
-  title: "Accept an argv array as a config command's run",
+  title: "Accept an argument array as a config command's run",
   kind: "feat",
   priority: ice(
     impact: 6,
@@ -17,13 +17,13 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[one checked-in config runs the same command on Linux, macOS and Windows],
+      cheap-adoption: helps[one checked-in config runs the same command on Linux, macOS and Windows.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a checker's id fills argv items, so no id can reach a shell],
-      docs-match-code: helps[hooks, waits and config pages show both forms of run],
+      sound-codebase: helps[a checker's id fills each `argv` item, so no id can reach a shell.],
+      docs-match-code: helps[hooks, waits and config pages show both forms of run.],
     ),
   ),
   assignee: "agent",
@@ -33,13 +33,13 @@
 == AS-IS
 
 + In a project used on Linux and Windows, write `[[on.flip]]` with `run = "scripts/check.sh"`, or a `[[tasks.waits]]` checker with `run = "gh pr view {id}"`.
-+ 🔴 `mt` runs it through `sh -c` on Linux and `cmd /C` on Windows, which share no syntax, so one line can't serve both.
++ 🔴 `mt` runs it through `sh -c` on Linux and `cmd /C` on Windows, which do not share syntax, so one line can't serve both.
 + 🔴 `{id}` pastes into a shell line, so `waits.rs` must refuse every id holding a character either shell reads.
 
 
 == TO-BE
 
-- 🟢 A `run` is a string for the platform shell, as now, or an array of strings `mt` spawns directly with no shell:
+- 🟢 A `run` is a string for the platform shell, as today, or an array of strings `mt` spawns directly with no shell:
 
   ```toml
   [[tasks.waits]]
@@ -57,19 +57,19 @@
 
 == Changes
 
-- `crates/mindtape/src/shell.rs`: a `ConfigCommand` with a `Line` and an `Argv` form; `run` spawns `Argv` with no shell.
+- `crates/mindtape/src/shell.rs`: a `ConfigCommand` with a `Line` and an `Argv` form. `run` spawns `Argv` with no shell.
 - `crates/mindtape/src/config/hooks.rs`: `run` takes either form, and an empty array is a config error.
 - `crates/mindtape/src/waits.rs`: a checker's `run` takes either form, `{id}` filling each item.
 - `crates/mindtape/src/allow.rs`: list an array in TOML syntax, and digest it apart from a line.
 - `crates/mindtape-cli/src/cmd/flip/`: run and name either form.
-- `crates/mindtape-cli/tests/it/`: an e2e test spawning `mt` itself as the argv, on every OS, red first.
+- `crates/mindtape-cli/tests/it/`: an e2e test spawning `mt` itself from an argument array, on every OS, red first.
 - `schema/config.schema.json`: regenerate.
 - `www/content/hooks.typ`, `www/content/wait-on-upstream.typ`, `www/content/config.typ`: both forms.
 
 
 == Alternatives
 
-- A config-level shell setting, as npm's `script-shell` and just's `set shell` have: one shell per project still can't serve a Windows and a Linux checkout of the same config, and `{id}` would still reach a shell.
+- A config-level shell setting, as npm's `script-shell` and just's `set shell` have, still gives one shell per project. That shell can't serve a Windows and a Linux checkout of the same config, and `{id}` would still reach it.
 - Keep the string form only: the presets dodge it with filter gates, but a project's own `run` stays per-platform and its `{id}` stays shell-quoted by hand.
 
 

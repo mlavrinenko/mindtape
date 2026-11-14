@@ -31,36 +31,36 @@
     2026,
     10,
     1,
-  )[cargo llvm-cov --branch is unstable (nightly-only) and rust-toolchain.toml pins stable 1.92.0.],
+  )[cargo llvm-cov `--branch` is unstable (nightly-only) and rust-toolchain.toml pins stable 1.92.0.],
 )
 
 == AS-IS
 
 + Read `crates/mindtape/src/config_rules_eval.rs`'s `resolve_and_select` exclusion in `.cargo/mutants.toml`.
-+ 🔴 `if skip > 0` was line-covered by every test; no test passed `skip == 0`, so the sweep's `>= 0` mutant was unkillable and had to be excluded by hand. Line coverage cannot see the difference.
++ 🔴 Every test line-covered `if skip > 0`, and no test passed `skip == 0`. The sweep's `>= 0` mutant survived, so someone excluded it by hand. Line coverage cannot see the difference.
 + Branch coverage (`cargo llvm-cov --branch`) reports each control-flow edge, so the unexercised false arm would show up before a sweep.
 
 == TO-BE
 
 - 🟢 `just cover` reports branch coverage alongside line coverage (or offers a documented flag that does).
-- 🟢 The coverage deep dive names branch coverage as the cheap pre-sweep filter it is; the CRAP/coverage gate is unchanged.
+- 🟢 The coverage deep dive names branch coverage as the cheap pre-sweep filter it is. The CRAP/coverage gate stays the same.
 - 🟢 lcov/generated artifacts carry the branch data or the run states it does not.
 
 == Changes
 
-- `.just/scripts/cover.sh`: add `--branch` (llvm-cov supports it; verify runtime cost) and, if the arm's lcov consumer cannot read branch records, keep the line report and print branch percentages separately.
+- `.just/scripts/cover.sh`: add `--branch` (llvm-cov supports it, but verify the runtime cost) and, if the arm's lcov consumer cannot read branch records, keep the line report and print branch percentages separately.
 - `docs/src/contributing/coverage-crap.typ` (with regenerated `.md`): one paragraph on when to read branch over line coverage.
 - `Justfile` `cover` doc line updated.
 
 == Rollback
 
-Remove the flag from `cover.sh`; line coverage is exactly as today.
+Remove the flag from `cover.sh`. Line coverage is exactly as today.
 
 == Out of scope
 
-- A branch-coverage threshold or gate: the signal stays advisory, like mutation testing.
-- Replacing mutation testing: branch coverage sees unexercised edges, never unasserted lines.
+- The task leaves branch coverage advisory, with no threshold or gate, like mutation testing.
+- Replacing mutation testing: branch coverage sees unexercised edges, never lines without an assertion.
 
 == Dogfood
 
-Before the next sweep, the `skip == 0` false arm shows uncovered, so the equivalent mutant is pre-empted or the code form is chosen knowingly.
+Before the next sweep, the `skip == 0` false arm shows uncovered, so the team pre-empts the equivalent mutant or chooses the code form knowingly.

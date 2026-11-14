@@ -50,11 +50,11 @@
 == Changes
 
 - `crates/mindtape-cli/tests/it/crap_baseline_merge_e2e.rs`: the red test first, a rebase over two branches that shifted one file's functions.
-- `crates/mindtape-cli/tests/it/outdatty_lock_merge_e2e.rs`: a same-key conflict now finishes the rebase and leaves the group stale.
+- `crates/mindtape-cli/tests/it/outdatty_lock_merge_e2e.rs`: a same-key conflict finishes the rebase and leaves the group stale.
 - `.just/scripts/crap-baseline-merge.sh`: the new driver.
 - `.just/scripts/outdatty-lock-merge.sh`: write the unmatched hash in place of a conflict.
 - `.gitattributes`, `Justfile` (`install-hooks`), `.mmz/config.yaml`, `outdatty.yaml`: register and scope the driver.
-- `docs/src/contributing.typ`: name the driver, then `just docs md`.
+- `docs/src/contributing.typ`: state the driver, then `just docs md`.
 
 
 == Rollback

@@ -21,7 +21,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[one name decides the fallback template everywhere],
+      enforced-practice: helps[one constant sets the fallback template everywhere],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -38,8 +38,8 @@
 
 == AS-IS
 
-+ Reviewing the template-name code added with the add hooks. Only `BUILTIN_TEMPLATE` is new; the other spellings predate the commit.
-+ 🔴 #raw("crates/mindtape/src/config/add_hooks.rs"): The built-in template name `task` is spelled in four independent places.
++ Reviewing the template-name code added with the add hooks. Only `BUILTIN_TEMPLATE` is new. The other spellings predate the commit.
++ 🔴 #raw("crates/mindtape/src/config/add_hooks.rs"): The code spells the built-in template name `task` in four independent places.
 
 ```
 crates/mindtape/src/config/add_hooks.rs: const BUILTIN_TEMPLATE: &str = "task";
@@ -53,7 +53,7 @@ crates/mindtape/src/config/defaults.toml: default = "task"
 
 == TO-BE
 
-- 🟢 One public constant names the built-in template.
+- 🟢 One public constant states the built-in template.
 - 🟢 Listing, resolving and `TemplatesConfig::default` read that constant.
 - 🟢 A test asserts the embedded floor's `templates.default` equals the constant, since TOML cannot reference Rust.
 
@@ -68,7 +68,7 @@ pub const BUILTIN_TEMPLATE: &str = "task";
 - `crates/mindtape-cli/src/cmd/add/values.rs`: compare against the constant in `resolve_template`.
 - `crates/mindtape/src/config/templates.rs`: build `TemplatesConfig::default` from the constant.
 - `crates/mindtape/src/config/defaults.toml`: keep the literal, and pin it to the constant.
-- `crates/mindtape/src/config/tests.rs`: assert the embedded floor and the `Default` impl both equal `BUILTIN_TEMPLATE`.
+- `crates/mindtape/src/config/tests.rs`: assert the embedded floor and the `Default` implementation both equal `BUILTIN_TEMPLATE`.
 
 
 == Out of scope

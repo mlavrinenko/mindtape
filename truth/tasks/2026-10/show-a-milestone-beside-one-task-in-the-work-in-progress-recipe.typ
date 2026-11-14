@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the recipe shows a cap that counts a milestone apart from the task under it, as this repo's own does],
+      enforced-practice: helps[the recipe shows a cap that counts a milestone apart from the task under it, as this repo's own does.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,

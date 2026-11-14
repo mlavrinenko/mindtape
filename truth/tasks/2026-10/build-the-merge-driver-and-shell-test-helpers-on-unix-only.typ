@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-Only Unix e2e modules call them, so just check-windows warned that their re-exports are unused
+Only Unix e2e modules call them, so just check-windows warned that their re-exports go unused

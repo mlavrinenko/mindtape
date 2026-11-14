@@ -17,33 +17,33 @@
     2026,
     8,
     8,
-  )[Shell capped at 300; one file per arm, prose moved verbatim],
+  )[Shell capped at 300, one file per arm, prose moved verbatim],
 )
 
 == Summary
 
 `contrib/ask-refactoring.sh` is 750 lines. It went from 245 to that across three
-arms in a day, and every line of the growth is the shape the design asked for —
-a scoring function, an emit function and a block of reasoning per signal.
+arms in a day. Every line of the growth is the shape the design asked for: a
+scoring function, an emit function and a block of reasoning per signal.
 
-The joke writes itself: this is the script that files tasks about oversized
-files, and it is the largest single source file in the repo. It gets away with
-it because `.linecop.yaml` sets limits for Rust and Markdown only, so shell is
-uncapped — the sweep is structurally unable to see itself.
+This script files tasks about oversized files, and it is the largest single
+source file in the repo. It gets away with it because `.linecop.yaml` sets limits
+for Rust and Markdown only, so shell has no cap. The sweep is structurally
+unable to see itself.
 
 == Scope
 
-- Give shell a limit in `.linecop.yaml` first. Whatever number is chosen, choose
-  it the way the 300-line Markdown overrides were chosen and write the reason
-  next to it. Until the cap exists there is no signal here, only an opinion.
-- Then split. The seam is obvious and was designed in from the start: one file
-  per arm (`size`, `coverage`, `mutants`), each holding its `score_`/`signal_`/
-  `emit_` trio and the comment block that justifies its numbers, with the
-  driver, the argument parsing, the re-run guard and `stem_for` staying in the
-  entry script. `$repo` is already resolved from `BASH_SOURCE`, so sourcing
+- Give shell a limit in `.linecop.yaml` first. Whatever number you pick, pick it
+  the way the 300-line Markdown overrides got theirs and write the reason next to
+  it. Until the cap exists there is no signal here, only an opinion.
+- Then split. The seam is obvious and has been part of the design from the
+  start. One file per arm (`size`, `coverage`, `mutants`) holds its `score_`/
+  `signal_`/`emit_` trio and the comment block that justifies its numbers. The
+  driver, the argument parsing, the re-run guard and `stem_for` stay in the entry
+  script. `$repo` is already resolved from `BASH_SOURCE`, so sourcing
   siblings costs one line each.
 - Keep each arm's reasoning with its code. That prose is the reason the script
-  is long and is the most valuable thing in it — moving it to a doc that drifts
+  is long and is the most valuable thing in it. Moving it to a doc that drifts
   would be the wrong kind of shrinking.
 - Watch the coupling: `contrib/ask-refactoring.sh` is a dependent in the
   `sweep-templates` outdatty group because it fills template slots by name. If

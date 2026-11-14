@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[an allowance no longer hides an unused item it was written for],
+      sound-codebase: helps[an allowance does not hide an unused item it targets.],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Marking the commands that run on a set in the command registry.
-+ 🔴 #raw("crates/mindtape-cli/src/project_set.rs"): Two lint allowances still say a set opener waits for a later task, though `ls`, `find`, `check` and `board` all open sets now.
++ 🔴 #raw("crates/mindtape-cli/src/project_set.rs"): Two lint allowances still say a set opener waits for a later task, though `ls`, `find`, `check` and `board` all open sets.
 
 ```
 crates/mindtape-cli/src/project_set.rs:119:#[allow(dead_code, reason = "ls and board open a set in their own tasks")]
@@ -41,8 +41,8 @@ crates/mindtape-cli/src/util.rs:22:    reason = "ls, check and board open a set 
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/project_set.rs").
 
 == TO-BE

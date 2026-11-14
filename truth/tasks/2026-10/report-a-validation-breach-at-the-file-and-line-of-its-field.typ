@@ -33,16 +33,16 @@
 == AS-IS
 
 + Reviewing the uniform breach shape of \`mt check\` after it landed
-+ 🔴 #raw("crates/mindtape-cli/src/check.rs"): A violation from validate.rs carries no location, so format\_violation prints the task stem where every other breach prints a file and line.
++ 🔴 #raw("crates/mindtape-cli/src/check.rs"): A violation from validate.rs carries no location, so `format_violation` prints the task stem where every other breach prints a file and line.
 
-+ Copy `examples/minimal` two directories below a copy of `lib/`, so its prelude path resolves.
++ Copy `examples/minimal` two directories below a copy of `lib/`. Its prelude path then resolves.
 + Add `links: depends-on("nope.typ"),` to `tasks/setup-ci.typ`.
 + Run `mt check` there.
 + 🔴 It prints `error: setup-ci: depends-on: link target …`, with the stem in place of `tasks/setup-ci.typ:<line>`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/validate.rs").
 
 == TO-BE
@@ -54,12 +54,12 @@ left in a closing report no one rereads. It belongs in
 == Changes
 
 - `crates/mindtape/src/validate.rs`: attach a location to each violation, the field's line where the file has it, else the `task.with(` line `gate.rs` already falls back to.
-- `crates/mindtape-cli/src/check.rs`: drop the stem-only branch; a red test pins a link breach printing `file:line`.
+- `crates/mindtape-cli/src/check.rs`: drop the stem-only branch. A red test pins a link breach printing `file:line`.
 
 
 == Rollback
 
-Revert the commit; validation breaches print the stem again.
+Revert the commit. Validation breaches print the stem again.
 
 == Out of scope
 
@@ -68,5 +68,5 @@ Revert the commit; validation breaches print the stem again.
 
 == Dogfood
 
-This repo's `mt check` prints one breach shape, so an editor jumps to every breach.
+This repo's `mt check` prints one breach shape. An editor then jumps to every breach.
 

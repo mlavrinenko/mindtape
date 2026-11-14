@@ -33,15 +33,15 @@
 == AS-IS
 
 + `mt ls 'estimate.files > 3'`.
-+ 🔴 It is refused: `estimate` supports only `has(estimate)`/`miss(estimate)` (`crates/mindtape/src/filter_predicates.rs`), so no rule can compare an estimate, and bounds on it needed the bespoke `[[tasks.estimate.max]]`/`min` checker.
++ 🔴 The language refuses it: `estimate` supports only `has(estimate)`/`miss(estimate)` (`crates/mindtape/src/filter_predicates.rs`), so no rule can compare an estimate, and bounds on it needed the bespoke `[[tasks.estimate.max]]`/`min` checker.
 + `mt ls 'has(x-goals)'`.
-+ 🔴 `Error: invalid filter: expected a field, got Sub`: the tokenizer reads `-` as minus, so no filter can name a kebab-case key, although Typst, and every task file, spells names that way (`x-goals`, `readable-tasks`, a unit such as `src-files`).
++ 🔴 `Error: invalid filter: expected a field, got Sub`: the tokenizer reads `-` as minus, so no filter can use a kebab-case key, although Typst, and every task file, spells names that way (`x-goals`, `readable-tasks`, a unit such as `src-files`).
 
 
 == TO-BE
 
-- 🟢 Names follow Typst's identifier rule: a `-` between name characters is part of the name. `has(x-goals)` and `estimate.src-files` parse; a leading `-` is still a negative number, and string literals are untouched.
-- 🟢 `estimate.<unit>` reads a declared unit as a number, for any unit name; mindtape knows none of them. An absent unit behaves like any absent numeric field, and `has(estimate.src-files)` tests presence.
+- 🟢 Names follow Typst's identifier rule: a `-` between name characters is part of the name. `has(x-goals)` and `estimate.src-files` parse. A leading `-` is still a negative number, and string literals stay untouched.
+- 🟢 `estimate.<unit>` reads a declared unit as a number, for any unit name. mindtape knows none of them. An absent unit behaves like any absent numeric field, and `has(estimate.src-files)` tests presence.
 - 🟢 A unit outside `[tasks.estimate] units` in a saved expression is a config error at load, like an unknown field.
 
 
@@ -56,9 +56,9 @@
 
 == Alternatives
 
-- snake_case units (`src_files`): parses today, but splits the vocabulary between task files and filters, and still leaves `x-goals` unreachable.
+- Snake-case units (`src_files`): parses today, but splits the vocabulary between task files and filters, and still leaves `x-goals` unreachable.
 - A quoted accessor (`estimate["src-files"]`): works without a lexer change, at the cost of a second spelling for the same name.
-- Arithmetic (`+ - * /`): dropped. The only rules that needed it were a per-file line budget and summed budgets, and neither catches a real problem here.
+- Arithmetic (`+ - * /`): dropped. Only a per-file line budget and summed budgets needed it, and neither catches anything here.
 
 
 == Out of scope

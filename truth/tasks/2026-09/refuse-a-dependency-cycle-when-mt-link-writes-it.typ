@@ -15,8 +15,8 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[agents linking tasks get the refusal at the write, not a poisoned neighbour later],
-      enforced-practice: helps[a write can no longer land a graph `mt check` rejects],
+      implementable-tasks: helps[the writer gets the refusal.],
+      enforced-practice: helps[a write cannot land a graph `mt check` rejects],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -31,7 +31,7 @@
     2026,
     9,
     27,
-  )[check\_candidates answers a newly closed cycle reported on a non-candidate to every candidate; pre-existing cycles still never block. The message keeps mt check's rotation (alpha → beta → alpha, reported on alpha) rather than re-rotating it onto the writer],
+  )[`check_candidates` reports a new cycle to every candidate. Pre-existing cycles never block.],
 )
 
 == AS-IS
@@ -39,9 +39,9 @@
 + In a scratch project, `mt add alpha` and `mt add beta`.
 + `mt link alpha depends-on beta` exits 0.
 + 🔴 `mt link beta depends-on alpha` exits 0 and prints `linked beta: +depends-on -> alpha.typ`.
-+ `mt check` then reports `alpha: depends-on: depends-on cycle: alpha → beta → alpha`, and every later write to `alpha` is refused for a violation the `alpha` write did not cause.
++ `mt check` then reports `alpha: depends-on: depends-on cycle: alpha → beta → alpha`, and the tool refuses every later write to `alpha` for a violation the `alpha` write did not cause.
 
-The pre-write seam validates the files being written, but a cycle is reported on the other end of the edge.
+The pre-write seam validates the files it writes, but the cycle shows up on the other end of the edge. The refusal keeps `mt check`'s rotation (alpha → beta → alpha, reported on alpha) rather than re-rotating it onto the writer.
 
 
 == Environment
@@ -58,7 +58,7 @@ The pre-write seam validates the files being written, but a cycle is reported on
 
 == Changes
 
-- `crates/mindtape-cli/tests/link_e2e.rs`: the red test — linking the reverse edge exits non-zero and leaves both files untouched.
+- `crates/mindtape-cli/tests/link_e2e.rs`: the red test. Linking the reverse edge exits non-zero and leaves both files untouched.
 - `crates/mindtape-cli/src/pre_write.rs`: compare project-wide link violations before and after the batch, and refuse only the new ones.
 - `crates/mindtape-cli/src/link_cmd.rs`: route through that comparison if it does not already.
 
@@ -71,5 +71,5 @@ The pre-write seam validates the files being written, but a cycle is reported on
 
 == Dogfood
 
-`truth/tasks/` links through `mt link` every day; a cycle there now fails at the write.
+`truth/tasks/` links through `mt link` every day. A cycle there fails at the write.
 

@@ -19,7 +19,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[readers see a rule enforced by the task files themselves, with no linter to maintain],
+      enforced-practice: helps[readers see a rule enforced by the task files themselves, with no linter to maintain.],
       cheap-adoption: neutral,
       typst-over-markdown: helps[the page proves the claim with a live refusal instead of prose],
       plain-files: neutral,
@@ -34,12 +34,12 @@
 == AS-IS
 
 + Run `rg -n 'import "\.\./[^/"]+\.typ": \*' www/content examples`.
-+ 🔴 It prints nothing. No page or example shows a task importing a shared Typst file, the one thing Markdown with frontmatter cannot do without writing a linter.
++ 🔴 Its output is empty. No page or example shows a task importing a shared Typst file, the one thing Markdown with frontmatter cannot do without writing a linter.
 
 
 == TO-BE
 
-- 🟢 A docs page shows a shared goals file, the Typst function in `lib.typ` that checks a task's `x-goals`, the `[[tasks.rules]]` entry naming it, and the live `mt check` output refusing a task that skips a goal.
+- 🟢 A docs page shows a shared goals file and the Typst function in `lib.typ` that checks a task's `x-goals`. It also shows the `[[tasks.rules]]` entry naming it and the live `mt check` output refusing a task that skips a goal.
 - 🟢 The page sits in the site nav, and `www/generate.sh` regenerates its capture.
 
 == Source of truth

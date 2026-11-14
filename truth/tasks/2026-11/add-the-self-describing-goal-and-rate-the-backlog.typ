@@ -16,14 +16,14 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[every task is judged against the no-documentation bar],
+      cheap-adoption: helps[every task carries a verdict against the no-documentation bar],
       typst-over-markdown: neutral,
       plain-files: neutral,
       self-describing: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the goal names the CLI as the source a newcomer reads],
+      docs-match-code: helps[the goal states the CLI as the source a newcomer reads],
     ),
   ),
   assignee: "agent",
@@ -38,7 +38,7 @@
 == AS-IS
 
 + Open `truth/goals.typ` and run `mt explain rules`.
-+ 🔴 Six product goals say what Mindtape is for, and none says a newcomer should need no external documentation. The acid test of `implementable-tasks` names "An agent", though the property holds for any implementer.
++ 🔴 Six product goals say what the product is for, and none says a newcomer can work without external documentation. The acid test of `implementable-tasks` names "An agent", though the property holds for any implementer.
 
 ```
 $ rg -n 'acid-test' truth/goals.typ
@@ -66,7 +66,7 @@ $ mt add --describe -t task | rg self-describing
 - `truth/goals.typ`: add `self-describing` and reword the `implementable-tasks` acid test for any implementer.
 - `truth/tasks/*.typ`: add the neutral verdict to every open task.
 - `.mindtape/templates/*.typ`: add the goal to each `product-neutral` default.
-- `skills/mindtape/evals/README.md`: name the baseline the goal depends on.
+- `skills/mindtape/evals/README.md`: state the baseline the goal depends on.
 
 
 == Out of scope

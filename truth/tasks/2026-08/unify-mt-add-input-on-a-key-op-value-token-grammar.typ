@@ -14,7 +14,7 @@
     2026,
     8,
     17,
-  )[token grammar landed: = / += across --set and --, \[\]= retired, dot-named slots documented; just check green],
+  )[token grammar landed: `=` / `+=` across `--set` and `--`, \[\]= retired, dot-named slots documented. just check green],
   links: related("rename-the-typst-slot-kind-to-raw.typ")[
     the same milestone: this fixes the shape of an input, that one fixes what
     an input may be
@@ -39,11 +39,11 @@ mt add "Practice arpeggios" -- estimate.files=2 tags+=docs
 ```
 
 One grammar, `key OP value`, with two carriers. `=` sets, `+=` appends. The
-`--` form is the shorthand; the flag form stays for scripts that build argv.
+`--` form is the shorthand. The flag form stays for scripts that build `argv`.
 
-Nesting needs nothing. A slot's name is an arbitrary string
+Nesting takes care of itself. A slot's name is an arbitrary string
 (`template.rs:150` takes positional 0 verbatim) and `collect_values`
-(`add_values.rs:116`) looks it up flat, so a template that names its slot
+(`add_values.rs:116`) looks it up flat, so a template with a slot called
 `"estimate.files"` already accepts `--set estimate.files=2` today. Verified
 end-to-end against an unmodified binary. The dot is a naming convention for
 template authors, not a path parser, and nothing in Rust needs to learn it.
@@ -52,26 +52,26 @@ template authors, not a path parser, and nothing in Rust needs to learn it.
 
 - `crates/mindtape-cli/src/add_values.rs`: `collect_values` splits a token
   into `key`, operator, value. `+=` appends via the existing
-  `append_list_value`; `=` sets. Keep `[]=` accepted as a deprecated alias
-  through the redesign, or drop it outright — we have not released, so
-  dropping is on the table and is the tidier end state.
+  `append_list_value`. `=` sets. Keep `[]=` accepted as a deprecated alias
+  through the redesign, or drop it outright. We have not released, so dropping
+  is on the table and is the tidier end state.
 - `crates/mindtape-cli/src/add.rs`: a trailing-args capture after `--`,
   feeding the same token parser as `--set`. The tokens are identical in both
-  positions; there is no second grammar to test.
+  positions. There is no second grammar to test.
 - A bare positional with no `--` stays title text. `mt add "fix a=b parsing"`
-  must not assign a slot named `a` — that ambiguity is why `--` is required,
-  and it needs a test.
-- `+word` tag sugar STAYS. It carries no `=`, so it cannot collide with a
+  must not assign a slot named `a`. That ambiguity is why `--` exists, and it
+  needs a test.
+- `+word` tag sugar stays. It carries no `=`, so it cannot collide with a
   token, and it is the shortest form for the commonest case.
 - Docs: `www/content/templates.typ`, `docs/src/skill.typ` and
   `skills/mindtape/references/add-slots.md` all state the `[]=` rule as the
   only way to fill a list. All three are `cli-surface` dependents, so the
   group needs re-recording with `just outdatty-update cli-surface`.
 - The skill's evals (`skills/mindtape/evals/evals.json`) assert the `[]=`
-  spelling; they move with it.
+  spelling. They move with it.
 
 == Open question
 
 Whether `[]=` survives as an alias. Keeping it means two spellings for append
-forever, which is the thing this task exists to remove; dropping it is a
+forever, which is the thing this task exists to remove. Dropping it is a
 breaking change we are free to make pre-release. Prefer dropping.

@@ -15,11 +15,11 @@
 
 == Summary
 
-The cassette mark is wired, but the wider exploration surfaced directions worth seeing side by side before the identity is settled. Produce three further candidates for review only.
+We wired the cassette mark, but the wider exploration surfaced directions worth seeing side by side before we settle the identity. Produce three further candidates for review only.
 
 == Scope
 
 - Draw three distinct marks: a refined graph-in-cassette, a tape waveform, and a reel resolving into a checkmark
 - Monochrome-first, single colour, legible from 16px upward
 - Deliver them as review candidates only and wire none of them
-- Include a rendered contact sheet so they can be compared at real sizes
+- Include a rendered contact sheet so reviewers can compare them at real sizes

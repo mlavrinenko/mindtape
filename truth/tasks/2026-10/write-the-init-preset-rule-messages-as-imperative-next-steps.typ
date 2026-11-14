@@ -38,8 +38,8 @@
 message = "a task needs exactly one Summary: the problem, stated once"
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/init/presets/gated/config.toml").
 
 == TO-BE

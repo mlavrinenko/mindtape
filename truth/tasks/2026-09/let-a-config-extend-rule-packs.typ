@@ -19,7 +19,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a repo that extends a pack is policed by every rule in it, with no copy to fall behind],
+      enforced-practice: helps[every rule in the pack polices a repo that extends it, with no copy to fall behind],
       cheap-adoption: helps[adopting shared practice becomes one `extends` line plus overrides],
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -36,7 +36,7 @@
 + Put a `[[tasks.rules]]` entry in a `.mindtape/defaults.toml` one directory above a project, the ancestor layer `www/content/config.typ` describes under "The four layers".
 + Run `mt config show` in the project: the inherited rule is there.
 + Add one `[[tasks.rules]]` entry to the project's own `.mindtape/config.toml` and run `mt config show` again.
-+ 🔴 The inherited rule is gone. Arrays replace wholesale, so keeping it means copying every inherited rule into every repo.
++ 🔴 The inherited rule disappears. Arrays replace wholesale, so keeping it means copying every inherited rule into every repo.
 + 🔴 No key switches off one inherited rule, or changes its threshold, while keeping the rest.
 
 
@@ -56,7 +56,7 @@ assert = { max-words = 300 }
 
 - 🟢 A bare name resolves to a pack embedded in the binary under the reserved `mindtape-` prefix. A path resolves to a TOML file relative to the project root, written in config format.
 - 🟢 Pack rules append to the project's rules, a project rule with the same `name` replaces the pack's, and `mt config show --origin` names the pack each rule came from.
-- 🟢 A `disable` entry naming no rule is a config error.
+- 🟢 A `disable` entry for a rule that does not exist is a config error.
 
 
 == Changes
@@ -70,7 +70,7 @@ assert = { max-words = 300 }
 
 == Alternatives
 
-- Merge every array across the existing four layers: it changes what every current config means, and still offers no `disable`.
+- Merge every array across the existing four layers: it changes what every current config means, and still has no `disable`.
 - Copy packs in at `mt init`, as presets do: a copy never receives the next fix.
 
 == Out of scope

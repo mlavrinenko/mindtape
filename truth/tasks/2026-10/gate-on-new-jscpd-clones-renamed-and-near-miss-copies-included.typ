@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a copy with renamed variables or a shorter copied block fails the gate, not only a long verbatim one],
+      sound-codebase: helps[a copy with renamed variables or a shorter copied block fails the gate, not only a long verbatim one.],
       docs-match-code: neutral,
     ),
   ),
@@ -31,21 +31,21 @@
     2026,
     10,
     13,
-  )[check-dry fails on clones .jscpd-baseline.json lacks, renamed and near-miss ones included],
+  )[check-dry fails on clones .jscpd-baseline.json lacks, renamed and near-miss ones included.],
 )
 
 == AS-IS
 
 + Run `just check-dry`. jscpd 5.0.15 at `-k 70` passes with no clone.
-+ 🔴 It matches exact tokens, so a renamed copy slips past. jscpd 5.4.1 with `--ignore-identifiers --ignore-literals` finds 599 renamed clones at `-k 70`, such as the hand-written string-to-enum `Deserialize` impls in `crates/mindtape/src/body/content.rs` and `crates/mindtape/src/model/naming.rs`.
++ 🔴 It matches exact tokens. A renamed copy slips past. jscpd 5.4.1 with `--ignore-identifiers --ignore-literals` finds 599 renamed clones at `-k 70`, such as the hand-written string-to-enum `Deserialize` implementations in `crates/mindtape/src/body/content.rs` and `crates/mindtape/src/model/naming.rs`.
 + 🔴 A lower `-k` would catch shorter copies, but it fails the gate at once on every clone the code already has: 202 exact ones at `-k 50`. So the floor stayed at 70 tokens.
 
 
 == TO-BE
 
 - 🟢 `just check-dry` fails on a new clone of 50 tokens or more, exact, renamed or a near-miss function (`--similarity=0.8`), in tests as in production code.
-- 🟢 The clones the code has today sit in `.jscpd-baseline.json` and pass. Editing inside one makes it new, so the edit extracts it or re-mints the baseline in plain sight.
-- 🟢 A failure prints only the new clones, one `file:line` pair each. A clean run prints nothing.
+- 🟢 The clones the code has today sit in `.jscpd-baseline.json` and pass. Editing inside one makes it new. The edit then extracts it or re-mints the baseline in plain sight.
+- 🟢 A failure prints only the new clones, one `file:line` pair each. A clean run has an empty report.
 - 🟢 `just dry-baseline` re-mints the baseline.
 
 ```sh

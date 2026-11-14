@@ -31,7 +31,7 @@
     2026,
     10,
     12,
-  )[capture\_copy copies a fixture through tar without its .mindtape/cache/],
+  )[The copy helper copies a fixture through tar without its .mindtape/cache/],
 )
 
 == AS-IS
@@ -47,8 +47,8 @@ check: 1 of 29 gates failed: just check-doc-facts (2 not run)
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("www/capture.sh").
 
 == TO-BE
@@ -58,7 +58,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `www/capture.sh`: copy the fixture without its `.mindtape/cache/`, for example with `rsync --exclude` or a `tar --exclude` pipe.
+- `www/capture.sh`: copy the fixture without its `.mindtape/cache/`, with `rsync --exclude` or a `tar --exclude` pipe.
 
 
 == Rollback

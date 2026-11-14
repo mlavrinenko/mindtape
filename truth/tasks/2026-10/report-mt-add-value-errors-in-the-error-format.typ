@@ -42,12 +42,12 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
-- 🟢 `error: can't read values: '/nonexistent': no such file or directory`; unknown slots and templates get a did-you-mean hint.
+- 🟢 The command builds each message with `Diag` (`crates/mindtape-cli/src/diag/`), and it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 `error: can't read values: '/nonexistent': no such file or directory`. Unknown slots and templates get a did-you-mean hint.
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/add/mod.rs`: the `{err:#}\n{hint}` join becomes hints; the parked-task note is a `Note`.
+- `crates/mindtape-cli/src/cmd/add/mod.rs`: the `{err:#}\n{hint}` join becomes hints. The parked-task note is a `Note`.
 - `crates/mindtape-cli/src/cmd/add/values.rs`, `crates/mindtape-cli/src/cmd/add/tokens.rs`: quote values, no `{:?}`.
 - `crates/mindtape-cli/src/cmd/add/notes.rs`, `crates/mindtape-cli/src/cmd/add/hint.rs`: `note:` and `hint:` through `emit`.
 

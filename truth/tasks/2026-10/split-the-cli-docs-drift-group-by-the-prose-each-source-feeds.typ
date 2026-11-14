@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[a group fires only for prose that restates its source, so a re-record names a review that happened],
+      docs-match-code: helps[a group fires only for prose that restates its source.A re-record names a review that happened],
     ),
   ),
   assignee: "agent",
@@ -48,13 +48,13 @@
 
 == Changes
 
-- `outdatty.yaml`: the red check first: with only `cmd/ls/mod.rs` changed, `outdatty check` must name one group whose dependents restate `ls`. Then split `cli-docs` into one group per prose owner, list the non-stub command pages instead of the glob, move `board.rs` and `board.toml` into `sets-docs`, and rewrite the group comments to say what each pair restates.
+- `outdatty.yaml`: the red check first. With only `cmd/ls/mod.rs` changed, `outdatty check` must list one group whose dependents restate `ls`. Then split `cli-docs` into one group per prose owner, and list the non-stub command pages instead of the glob. Move `board.rs` and `board.toml` into `sets-docs`, and rewrite the group comments to say what each pair restates.
 - `outdatty.lock`: re-record each new group after reviewing its dependents.
 
 
 == Rollback
 
-- Revert `outdatty.yaml` and `outdatty.lock`. No other file reads the group names.
+- Revert `outdatty.yaml` and `outdatty.lock`. The rest of the repo never reads the group names.
 
 
 == Out of scope

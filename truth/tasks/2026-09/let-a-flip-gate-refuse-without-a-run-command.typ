@@ -16,12 +16,12 @@
     2026,
     9,
     14,
-  )[gate = true with no run refuses whenever when matches; this repo's stale-start gate dropped its run = "false" stand-in],
+  )[gate = true with no run refuses whenever when matches. This repo's stale-start gate dropped its run = "false" stand-in.],
 )
 
 == Summary
 
-A `[[on.flip]]` gate can only refuse a flip through a shell command's exit code, so a hook whose `when` already says everything — refuse starting a stale task until it is reviewed — has to spell the refusal as `run = "false"`. The condition belongs to `when`; the command is a stand-in for a refusal the config cannot state directly.
+A `[[on.flip]]` gate can only refuse a flip through a shell command's exit code. A hook whose `when` already says everything has to spell the refusal as `run = "false"`. That covers refusing to start a stale task until someone reviews it. The condition belongs to `when`, and the command is a stand-in for a refusal the config cannot state directly.
 
 
 == Scope
@@ -34,7 +34,7 @@ when = 'into("wip") && stale(30)'
 actions = [{ gate = true, message = "re-read the scope, `mt review` it, then start again" }]
 ```
 
-Touches the kind resolution in `crates/mindtape/src/config_hooks.rs` with `config_hooks_tests.rs`, the dispatch in `crates/mindtape-cli/src/flip_hooks.rs` with `flip_hooks_tests.rs`, `schema/config.schema.json`, `www/content/hooks.typ` and `CHANGELOG.md`. Red test: a matching run-less gate refuses the flip and prints its message; a non-matching one lets it through.
+Touches the kind resolution in `crates/mindtape/src/config_hooks.rs` with `config_hooks_tests.rs`, the dispatch in `crates/mindtape-cli/src/flip_hooks.rs` with `flip_hooks_tests.rs`, `schema/config.schema.json`, `www/content/hooks.typ` and `CHANGELOG.md`. Red test: a matching run-less gate refuses the flip and prints its message. A non-matching one lets it through.
 
 == Dogfood
 

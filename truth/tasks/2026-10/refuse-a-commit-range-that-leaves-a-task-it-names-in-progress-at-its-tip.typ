@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a branch can't land with a task it worked on still marked wip, and no repo needs a shell script for it],
+      enforced-practice: helps[a branch can't land with a task it worked on still marked `wip`, and no repo needs a shell script for it.],
       cheap-adoption: helps[every repo's worktrunk pre-merge hook becomes one `mt check --commits` line],
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,14 +33,18 @@
 == AS-IS
 
 + A branch commits work with `Refs: <stem>` but forgets `mt done <stem>`, then lands.
-+ 🔴 `mt check --commits <range>` (crates/mindtape-cli/src/cmd/check/range.rs) holds each commit to `[commits]`, but nothing asks whether a task the range names is still `wip` at the tip. A shell helper does that today: the wip block of ~/projects/home/mindtape/.just/scripts/integrate.sh, now `wt-tasks-done` in ~/.nix/apps/worktrunk.nix. Every repo would copy it into `.just/scripts/` (task `configure-worktrunk-in-the-repo-so-a-fresh-clone-needs-no-host-setup`).
++ 🔴 `mt check --commits <range>` (crates/mindtape-cli/src/cmd/check/range.rs) holds each commit to `[commits]`, but the range check does not test whether a task the range names is still `wip` at the tip. A shell helper does that today: the `wip` block of ~/projects/home/mindtape/.just/scripts/integrate.sh, which is `wt-tasks-done` in ~/.nix/apps/worktrunk.nix. Every repo would copy it into `.just/scripts/` (task `configure-worktrunk-in-the-repo-so-a-fresh-clone-needs-no-host-setup`).
 
 
 == TO-BE
 
 - 🟢 A `[[commits.rules]]` entry with `scope = "tip"` runs once per task named anywhere in the range, against the tip's tree. `mt check --commits main..HEAD` runs it alongside the per-commit rules.
-- 🟢 The mindtape-tasks pack ships `named-tasks-finish-at-the-tip`: `assert = '!(status == "wip")'`, with a message saying to run `mt done <stem>` and commit it with the last work.
-- 🟢 The worktrunk hook becomes `tasks = "mt check --commits {{ target }}..HEAD"`.
+- 🟢 The mindtape-tasks pack provides `named-tasks-finish-at-the-tip`: `assert = '!(status == "wip")'`, with a message saying to run `mt done <stem>` and commit it with the last work.
+- 🟢 The worktrunk hook becomes this `tasks` line:
+
+  ```toml
+  tasks = "mt check --commits {{ target }}..HEAD"
+  ```
 
 
 == Changes
@@ -49,7 +53,7 @@
 - `crates/mindtape/src/` commit-check engine: collect the named stems over the range, then evaluate the tip-scoped rules once per stem at HEAD.
 - `crates/mindtape-cli/src/cmd/check/range.rs`: run them after the per-commit pass.
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: the default rule.
-- Tests first: a range naming a task left wip fails with its stem; a done one passes; a stem named in two commits is reported once. Docs: the rules reference.
+- Tests first: a range that references a task left `wip` fails with its stem, and a done one passes. `mt` reports a stem named in two commits once. Docs: the rules reference.
 
 
 == Alternatives
@@ -61,10 +65,10 @@
 == Out of scope
 
 - Carrying gate records between checkouts: mmz's task `import-gate-records-from-another-checkout-of-the-same-repo`.
-- Removing `.just/scripts/wt-tasks-done.sh` from repos: each repo's follow-up once this ships.
+- Removing `.just/scripts/wt-tasks-done.sh` from repos: each repo's follow-up once this lands.
 
 
 == Dogfood
 
-This repo's `.config/wt.toml` pre-merge runs `mt check --commits {{ target }}..HEAD`, and a scratch branch left wip refuses to land.
+This repo's `.config/wt.toml` pre-merge runs `mt check --commits {{ target }}..HEAD`, and a scratch branch left `wip` refuses to land.
 

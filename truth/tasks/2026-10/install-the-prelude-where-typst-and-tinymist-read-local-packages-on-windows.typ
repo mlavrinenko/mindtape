@@ -45,8 +45,8 @@ http.rs:81       .or_else(|| Some(dirs::data_dir()?.join(DEFAULT_PACKAGES_SUBDIR
 - https://github.com/Myriad-Dreamin/tinymist/blob/45b50f0d928e825248fa1c2fcbcd68549e957b5d/crates/tinymist-package/src/registry/http.rs#L78-L81
 - https://github.com/dirs-dev/dirs-rs/blob/1c2e3efad531aa67a5656eaedf53fdb8fa9094f7/src/win.rs#L10-L11
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/loader/app_dirs.rs").
 
 == TO-BE
@@ -62,7 +62,7 @@ left in a closing report no one rereads. It belongs in
 - `crates/mindtape-cli/src/cmd/init/mod.rs`: `package_dir()` builds on `package_root()`.
 - `crates/mindtape/src/loader/cache.rs`: the build key folds `package_root()`, the directory a read resolves, so moving `$TYPST_PACKAGE_PATH` busts it as moving `$MINDTAPE_DATA_HOME` does. The cache stays in `.mindtape/cache/`.
 - `.just/scripts/_typst-package.sh`: the dev symlink follows `$TYPST_PACKAGE_PATH` too.
-- `www/content/config.typ`: name the directory and both variables.
+- `www/content/config.typ`: state the directory and both variables.
 
 == Rollback
 

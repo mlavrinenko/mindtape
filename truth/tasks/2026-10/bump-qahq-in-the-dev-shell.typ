@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-qahq's lock now shares naersk and flake-utils, cutting the dev lock from 167 to 147 nodes
+qahq's lock shares `naersk` and `flake-utils`, cutting the dev lock from 167 to 147 nodes

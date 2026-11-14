@@ -14,14 +14,14 @@
     2026,
     7,
     28,
-  )[ci.yml runs just check-rrule; verified green locally],
+  )[ci.yml runs just check-rrule. Verified green locally],
 )
 
 == Summary
 
-just check-rrule says it reproduces what CI runs for the rrule escape hatch, but no workflow mentions rrule: rg rrule .github/workflows/ is empty. The feature is off by default, so nothing anywhere compiles crates/mindtape/src/recur\_rrule.rs, and it can rot until someone enables it. The recipe comment was aspirational.
+just check-rrule says it reproduces what CI runs for the rrule escape hatch, but no workflow mentions rrule. The command `rg rrule .github/workflows/` is empty. The feature is off by default, so nothing anywhere compiles crates/mindtape/src/recur\_rrule.rs, and it can rot until someone enables it. The recipe comment was aspirational.
 
 == Scope
 
-- Add an rrule step to the CI check job, so the recipe comment becomes true.
+- Add an rrule step to the CI check job. The recipe comment then becomes true.
 - Keep it out of just check, which the recipe already explains: default features only.

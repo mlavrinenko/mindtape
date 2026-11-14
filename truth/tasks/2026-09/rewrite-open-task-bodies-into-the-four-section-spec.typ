@@ -25,12 +25,12 @@
 
 == Summary
 
-The union allowlist lets old and new sections coexist, but the set cannot close while an open task still carries Summary and Scope. Rewriting one is not a heading rename: Ruled out and Done when usually have to be worked out from the task and the code it names.
+The union allowlist lets old and new sections coexist, but the set cannot close while an open task still carries Summary and Scope. Rewriting one is not a heading rename: a writer has to derive Ruled out and Done when from the task and the code it names.
 
 
 == Scope
 
-Rewrite the open task bodies still carrying Summary and Scope into AS-IS, TO-BE, Ruled out and Done when, with `mt check` green after each. Closed tasks are never rewritten. This runs after every other open task, so at pickup the old shape should survive only in the four-section chain's own open tasks and in anything filed since: recount then, and re-estimate or split if that count has grown.
+Rewrite the open task bodies still carrying Summary and Scope into AS-IS, TO-BE, Ruled out and Done when, with `mt check` green after each. Closed tasks are never rewritten. This runs after every other open task. At pickup the old shape should survive only in the four-section chain's own open tasks and in anything filed since. Recount then, and re-estimate or split if that count has grown.
 
 == Dogfood
 

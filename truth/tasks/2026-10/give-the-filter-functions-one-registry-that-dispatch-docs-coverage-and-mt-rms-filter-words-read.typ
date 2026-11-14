@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a new filter function cannot be dispatched yet missing from the word list],
+      sound-codebase: helps[the registry dispatches every filter function the word list holds],
       docs-match-code: helps[a filter function with no doc entry fails a gate instead of waiting on an outdatty review],
     ),
   ),
@@ -47,14 +47,14 @@ $ grep -n 'eval::WORDS' crates/mindtape/src/filter.rs
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/filter_eval.rs").
 
 == TO-BE
 
 - 🟢 One table in `filter_eval.rs` names each predicate and function with its arity, and `nullary`, `function` and `Filter::names_term` read it, so `mt rm` never takes a new function's name for a stem hash.
-- 🟢 `ready`, `blocked`, `terminal` and `exists` are dispatched in one place.
+- 🟢 One place dispatches `ready`, `blocked`, `terminal` and `exists`.
 - 🟢 `mt _cli --json` carries the table, and check-doc-facts fails when `www/content/filters.typ` or `skills/mindtape/references/filters.md` misses a name.
 
 
@@ -69,13 +69,13 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; WORDS and the outdatty group carry the names again.
+- Revert the commit. WORDS and the outdatty group carry the names again.
 
 
 == Out of scope
 
 - Retiring the `filter-docs` outdatty group: it still flags a changed meaning, which the table cannot.
-- What each function means: the pages keep that prose.
+- The pages keep the prose that explains what each function means.
 
 
 == Dogfood

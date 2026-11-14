@@ -18,12 +18,12 @@
 
 == Summary
 
-The facts that rot in the root docs are the ones with a machine-readable source: the crate map, dependency versions, the task DSL field list, and the just check gate table. Extract each into www/generated so a doc states it by reading rather than by repeating it. This is the layer that kills drift; the Typst/typlite rendering hop is separate and useless without it.
+The facts that rot in the root docs are the ones with a machine-readable source. They include the crate map, dependency versions, the task DSL field list, and the just check gate table. Move each into www/generated so a doc states it by reading rather than by repeating it. This is the layer that kills drift. The Typst/typlite rendering hop is separate and useless without it.
 
 == Scope
 
-- cargo metadata -> crate map + substrate deps + versions; rust-toolchain.toml -> pinned rustc; Cargo.lock -> typst/evalexpr/clap
+- cargo metadata -> crate map, substrate dependencies and versions. rust-toolchain.toml -> pinned rustc. Cargo.lock -> typst, `evalexpr` and clap
 - lib/prelude.typ task signature -> the DSL field list, via typst-cst (already an in-tree capability) or typst query
-- just --dump --dump-format json -> the Quality Gates table; check: already names its sub-gates as deps and each recipe carries a doc comment
+- `just --dump --dump-format json` -> the Quality Gates table. The `check` recipe already lists its sub-gates as dependencies and each recipe carries a doc comment
 - .linecop.yaml -> the caps quoted in CONTRIBUTING.md
-- Out of scope, deliberately: the design invariants (typst eval-only, evalexpr walked not evaluated, the prelude-vs-Rust split). They change with the design, not with a bump. Back never layout with a dependency assertion instead of scraping a comment
+- Out of scope, deliberately: the design invariants (typst eval-only, `evalexpr` walked not evaluated, the prelude-vs-Rust split). They change with the design, not with a bump. Back them with a dependency assertion instead of scraping a comment

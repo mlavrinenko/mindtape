@@ -52,7 +52,7 @@
 
 - `www/content/config.typ`: a packs section after "The four layers".
 - `CHANGELOG.md`: an entry under Unreleased.
-- `docs/src/skill.typ`: one line saying `mt config show --origin` names the pack a rule came from; `just docs md` regenerates `skills/mindtape/SKILL.md`.
+- `docs/src/skill.typ`: one line saying `mt config show --origin` names the pack a rule came from. `just docs md` regenerates `skills/mindtape/SKILL.md`.
 
 
 == Out of scope
@@ -62,5 +62,5 @@
 
 == Dogfood
 
-Not applicable: docs only. The pack is dogfooded in `ship-the-task-practice-as-the-mindtape-tasks-pack.typ`.
+Not applicable: docs only. `ship-the-task-practice-as-the-mindtape-tasks-pack.typ` does the dogfooding.
 

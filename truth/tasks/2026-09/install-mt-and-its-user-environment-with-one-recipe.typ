@@ -16,12 +16,12 @@
 
 == Summary
 
-Nothing put this checkout on a machine in one step. The mt binary, the \@local/mindtape Typst package, the generated JSON Schema and the agent skill were four separate manual acts, recorded only in a personal dotfiles note, so a git pull left an unknown subset stale — silently, because a stale binary still runs and still answers. Give the repo one idempotent entry point that installs all four, with every body in .just/scripts/ rather than inline in the Justfile.
+Putting this checkout on a machine took four steps. The mt binary, the `@local/mindtape` Typst package, the generated JSON Schema and the agent skill were four separate manual acts. A personal `dotfiles` note recorded them, so a git pull left an unknown subset stale, silently, because a stale binary still runs and still answers. Give the repo one idempotent entry point that installs all four, with every body in `.just/scripts/` rather than inline in the Justfile.
 
 == Scope
 
 - \`just install\` installs binary + Typst package + JSON Schema + agent skills, idempotently
 - \`just install-bin\` refreshes only the binary
 - every recipe body lives in \`.just/scripts/\`, none inline
-- the Typst package version and path are derived in ONE place, not copied between install-lib and uninstall-lib
+- one place derives the Typst package version and path, rather than copying them between install-lib and uninstall-lib
 - \`defaults.toml\` is never force-rewritten: it is a hand-edited config layer, unlike the generated schema

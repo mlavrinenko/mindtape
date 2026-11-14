@@ -33,14 +33,14 @@
 == AS-IS
 
 + Read the `secrets-tree` scope in `.mmz/config.yaml`.
-+ 🔴 It lists one glob per top-level directory, because mmz had no negative glob, and `.just/scripts/check-secrets-manifest.sh` runs as a third arm of `just lint::secrets` to catch a directory nobody listed. mmz 0.13.0 ships `exclude:`, so both guard a gap that is gone.
++ 🔴 It lists one glob per top-level directory, because mmz had no negative glob, and `.just/scripts/check-secrets-manifest.sh` runs as a third arm of `just lint::secrets` to catch a directory nobody listed. mmz 0.13.0 includes `exclude:`, so both guard a gap the release closed.
 + Read `.just/scripts/mmz-arm.sh`.
 + 🔴 It runs `mmz --is-fresh -- just <gate>` before each arm only to tell a hit from a run, since `on_hit: ""` prints nothing. That hashes every arm's inputs twice. mmz 0.15.1 writes the answer to the file `MMZ_REPORT` names.
 
 
 == TO-BE
 
-- 🟢 `secrets-tree` is the whole tree minus the task files, and the manifest arm is gone:
+- 🟢 `secrets-tree` is the whole tree minus the task files, with the manifest arm removed:
 
   ```yaml
   secrets-tree:

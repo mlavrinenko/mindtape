@@ -34,13 +34,13 @@
 == AS-IS
 
 + Read `crates/mindtape-cli/src/render/file_path.rs:25` and `crates/mindtape-cli/src/render/link.rs:83`.
-+ 🔴 `util::open` stores the project root and the hyperlink choice in two process-wide `OnceLock`s and ignores later writes, so a process that renders two projects prints the second one's FILE cells from the first one's root.
++ 🔴 `util::open` stores the project root and the hyperlink choice in two process-wide `OnceLock`s and ignores later writes. A process that renders two projects then prints the second one's FILE cells from the first one's root.
 
 
 == TO-BE
 
 - 🟢 `RenderCtx` carries the project root and the resolved hyperlink choice, and every FILE cell, `--format path` line and link reads them there.
-- 🟢 `util::open` writes no render state, and one project's output stays byte-identical.
+- 🟢 `util::open` doesn't write render state, and one project's output stays byte-identical.
 - 🟢 The current directory is still read once per process.
 
 

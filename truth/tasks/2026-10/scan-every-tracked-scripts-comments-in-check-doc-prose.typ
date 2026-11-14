@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the comments that explain each gate are held to the same prose rules as the docs],
+      docs-match-code: helps[the check holds the comments that explain each gate to the same prose rules as the docs],
     ),
   ),
   assignee: "agent",
@@ -44,27 +44,27 @@ $ grep -nE '^\s*#.*\b(USED to|used to|no longer|anymore|formerly)\b' .just/scrip
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-prose.sh").
 
 == TO-BE
 
 - 🟢 check-doc-prose picks its comment sources by kind: every tracked `*.sh`, `*.just`, `*.yaml` and `Justfile`, minus a short exclude list with a reason per entry.
-- 🟢 A new script is scanned the day it lands, with no edit to the gate.
-- 🟢 A PENDING list names the scripts not yet rewritten; it only shrinks, as check-doc-blocks' does, and each rewrite is its own commit.
+- 🟢 The gate scans a new script the day it lands, with no edit to the gate.
+- 🟢 A PENDING list records the scripts not yet rewritten. It only shrinks, as check-doc-blocks' does, and each rewrite is its own commit.
 
 
 == Changes
 
-- `.just/scripts/check-doc-prose.sh`: read `#` comments from every tracked file of those kinds; add the exclude and PENDING lists.
+- `.just/scripts/check-doc-prose.sh`: read `#` comments from every tracked file of those kinds, and add the exclude and PENDING lists.
 - `.mmz/config.yaml`: give the rule inputs that cover every tracked script.
 - `docs/src/contributing/documentation.typ`: say which comments the gate reads.
 
 
 == Rollback
 
-- Revert the commit; the five-file list returns.
+- Revert the commit. The five-file list returns.
 
 
 == Out of scope

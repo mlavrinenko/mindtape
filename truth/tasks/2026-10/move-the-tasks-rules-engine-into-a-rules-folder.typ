@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the module path names the file, and the area's internals can go private to its folder],
+      sound-codebase: helps[the module path points at the file, and the area's internals can go private to its folder.],
       docs-match-code: neutral,
     ),
   ),
@@ -37,14 +37,14 @@
 == AS-IS
 
 + Run `ls crates/*/src`.
-+ 🔴 `config_rules.rs`, `config_rules_eval.rs`, `config_rules_typst.rs`, `config_rule_sites.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.
++ 🔴 `config_rules.rs`, `config_rules_eval.rs`, `config_rules_typst.rs`, `config_rule_sites.rs` sit flat at the crate root, so the module path does not follow the file and nothing marks the area's internals.
 
 == TO-BE
 
-- 🟢 `crates/mindtape/src/rules/`: `mod.rs`, `eval`, `typst`, `sites`; the public path `mindtape::config_rules` becomes `mindtape::rules`.
-- 🟢 Each moved file's tests move beside it (`x_tests.rs`); a `mod.rs` loads a plain `mod tests;` from `tests.rs`.
+- 🟢 `crates/mindtape/src/rules/`: `mod.rs`, `eval`, `typst`, `sites`. The public path `mindtape::config_rules` becomes `mindtape::rules`.
+- 🟢 Each moved file's tests move beside it (`x_tests.rs`). A `mod.rs` loads a plain `mod tests;` from `tests.rs`.
 - 🟢 `mod.rs` opens with a `//!` map of the folder's files.
-- 🟢 `just check` passes; the commit is moves plus path edits, so `git log --follow` traces every file.
+- 🟢 `just check` passes. The commit is moves plus path edits, so `git log --follow` traces every file.
 
 == Changes
 
@@ -55,7 +55,7 @@
 == Out of scope
 
 - Renames beyond dropping the folder's prefix.
-- Tightening visibility past what compiles; a later sweep owns that.
+- Tightening visibility past what compiles. A later sweep owns that.
 - Done tasks citing old paths: they are history.
 
 == Dogfood

@@ -25,7 +25,7 @@ Forbidding subsections under a section is naturally `action = "allowlist"` with 
 
 == Scope
 
-Work in the artifact-gate repository (github.com/mlavrinenko/artifact-gate), not this one. Make an empty `allowed` mean "no children permitted": under a `Some` scope no node the path matches may have a child, and under a `None` scope no root node is permitted. A `Some` scope that is itself empty stays `RuleError::EmptyPath`, since a scope matching nothing is a typo rather than an intent.
+Work in the artifact-gate repository (github.com/mlavrinenko/artifact-gate), not this one. Make an empty `allowed` mean "no children permitted": under a `Some` scope no node the path matches may have a child, and under a `None` scope no root node may appear. A `Some` scope that is itself empty stays `RuleError::EmptyPath`, since a scope with no matches is a typo rather than an intent.
 
 ```toml
 # today
@@ -38,7 +38,7 @@ scope = [{ match = ".*" }]
 allowed = []
 ```
 
-Red test first: an empty allowlist under a scope rejects a child and accepts a childless node. Update the doc comment on `Rule::allow`, add a CHANGELOG entry, and bump the crate to 0.1.1 in `Cargo.toml` and `Cargo.lock`, additive because a call that used to fail now succeeds. Commit there following that repository's own conventions, and stop: tagging, pushing and publishing are `publish-artifact-gate-0-1-1.typ`.
+Red test first: an empty allowlist under a scope rejects a child and accepts a childless node. Update the doc comment on `Rule::allow`, add a CHANGELOG entry, and bump the crate to 0.1.1 in `Cargo.toml` and `Cargo.lock`, additive because a call that once failed succeeds. Commit there following that repository's own conventions, and stop: tagging, pushing and publishing are `publish-artifact-gate-0-1-1.typ`.
 
 == Dogfood
 

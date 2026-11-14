@@ -31,7 +31,7 @@
     2026,
     10,
     7,
-  )[agent docs give one action per situation; human pages already leave mt as a choice],
+  )[agent docs give one action per situation. Human pages already leave mt as a choice],
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 

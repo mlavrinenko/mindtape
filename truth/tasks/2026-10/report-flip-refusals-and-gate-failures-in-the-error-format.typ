@@ -31,7 +31,7 @@
     2026,
     10,
     8,
-  )[Gate, guard and revalidation refusals are Diags; a note given without -m suggests -m alone.],
+  )[Gate, guard and revalidation refusals are `Diag` values. A note given without -m suggests -m alone.],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   ),
@@ -40,20 +40,20 @@
 == AS-IS
 
 + Run `mt done <task>` in `examples/api-service` with its `[[on.flip]]` gate failing.
-+ 🔴 It prints `error: <task>: gate "scripts/test" failed (exit 1); nothing written — fix it, or re-run with --force (the override is recorded in the status note)`: one long line that names the task twice and says "nothing written", which `error:` already means.
++ 🔴 It prints `error: <task>: gate "scripts/test" failed (exit 1); nothing written — fix it, or re-run with --force (the override is recorded in the status note)`: one long line that repeats the task twice and says "nothing written", which `error:` already means.
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 The command builds each message with `Diag` (`crates/mindtape-cli/src/diag/`), and it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 - 🟢 A failing gate prints `error: gate 'scripts/test' failed (exit 1)`, the config's `message` as a `hint:`, and `hint: or pass --force to skip the gate; the status note records it`.
 - 🟢 `flip_target` returns a `Diag`, so `Diag::legacy` has no caller in `cmd/flip/`.
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/flip/hooks.rs`: the gate refusal as a `Diag` with the config message as a hint; `mt` adds the `--force` hint itself.
+- `crates/mindtape-cli/src/cmd/flip/hooks.rs`: the gate refusal as a `Diag` with the config message as a hint. `mt` adds the `--force` hint itself.
 - `crates/mindtape-cli/src/cmd/flip/guards.rs`: the transition, note, blocker and children guards return a `Diag`.
 - `crates/mindtape-cli/src/cmd/flip/batch.rs`: revalidation problems as `Diag`s, from the breach's own conversion.
-- `crates/mindtape-cli/src/cmd/flip/mod.rs`: `flip_target` returns a `Diag`, so no `Diag::legacy` is left in `cmd/flip` and its `diag/allowlist.rs` entry goes; the shadowed-verb warning stays as it is.
+- `crates/mindtape-cli/src/cmd/flip/mod.rs`: `flip_target` returns a `Diag`, so `Diag::legacy` leaves `cmd/flip` and its `diag/allowlist.rs` entry goes. The shadowed-verb warning stays as it is.
 
 == Out of scope
 

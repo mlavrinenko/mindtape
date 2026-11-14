@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the core names no project path, and this repo resolves its prelude through the mechanism every project uses],
+      sound-codebase: helps[the core does not hold a project path, and this repo resolves its prelude through the mechanism every project uses.],
       docs-match-code: helps[the config page states one way to pin a package, not a rule plus an exception],
     ),
   ),
@@ -40,14 +40,14 @@
 
 == TO-BE
 
-- 🟢 `package_overrides` returns only the `[[typst.local-packages]]` entries, so the core names no directory or package.
+- 🟢 `package_overrides` returns only the `[[typst.local-packages]]` entries. The core then does not hold a directory or package.
 - 🟢 This repo's `.mindtape/config.toml` pins `mindtape` to `lib`, and every checkout and worktree still evaluates its tasks against its own `lib/`.
 - 🟢 A project whose `lib/` holds the `mindtape` package and has no entry reads the installed package, like any other project.
 
 
 == Changes
 
-- `crates/mindtape/src/loader/mod.rs`: drop `mindtape_lib_dir` and its branch in `package_overrides`. The red test first: a project with a `mindtape` `lib/` and no entry resolves the machine's package.
+- `crates/mindtape/src/loader/mod.rs`: drop `mindtape_lib_dir` and its branch in `package_overrides`. Write the red test first. A project with a `mindtape` `lib/` and no entry resolves the machine's package.
 - `crates/mindtape/src/loader/tests*.rs`, `crates/mindtape-cli/src/cmd/eval_tests.rs`: the fixtures that lean on the implicit `lib/` declare the entry.
 - `.mindtape/config.toml`: add `[[typst.local-packages]]` with `name = "mindtape"` and `path = "lib"`.
 - `crates/mindtape-cli/src/cmd/eval.rs`: its comment on `package_overrides` stops naming the `lib/` rule.

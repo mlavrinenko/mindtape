@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a one-line change still names a task, at the cost of one `mt add` line],
+      enforced-practice: helps[a one-line change still files a task, at the cost of one `mt add` line],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -40,7 +40,7 @@
 == TO-BE
 
 - 🟢 `mt add -t tweak --status done` files a task with a title, a kind and one line of why, in the same commit as the work.
-- 🟢 An open tweak, or one whose commit changes more than one source file, is refused.
+- 🟢 The gate refuses an open tweak, or one whose commit changes more than one source file.
 
 
 == Changes
@@ -52,7 +52,7 @@
 
 == Rollback
 
-Revert the commit; small changes file a `dev` task again.
+Revert the commit. Small changes file a `dev` task again.
 
 
 == Out of scope

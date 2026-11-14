@@ -33,7 +33,7 @@
 == AS-IS
 
 + Moving `mt link` targets onto the shared resolver, which writes each target `/`-separated
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/rm/gitless/mod.rs"): `mt rm`'s inbound retarget writes `relative_target(...).display()`, which prints `\` between folders on Windows
++ 🔴 #raw("crates/mindtape-cli/src/cmd/rm/gitless/mod.rs"): `mt rm`'s inbound link rewrite writes `relative_target(...).display()`, which prints `\` between folders on Windows
 
 ```
 let rel = mindtape::relative_target(from, dest);
@@ -44,13 +44,13 @@ edits.push(typst_edit::Edit::new(
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/rm/gitless/mod.rs").
 
 == TO-BE
 
-- 🟢 A retargeted link reads `../.archive/gone.typ` on every platform, as `mt link` writes it.
+- 🟢 A rewritten link reads `../.archive/gone.typ` on every platform, as `mt link` writes it.
 
 
 == Changes

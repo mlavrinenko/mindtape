@@ -15,7 +15,7 @@
 
 == Summary
 
-The schema and agents pages show a schema\_version JSON snippet that no real output contains, and the full-record example omits it. Re-document both against the real envelope once the binary emits it.
+The schema and agents pages show a `schema_version` JSON snippet that no real output contains, and the full-record example omits it. Re-document both against the real envelope once the binary emits it.
 
 == Scope
 

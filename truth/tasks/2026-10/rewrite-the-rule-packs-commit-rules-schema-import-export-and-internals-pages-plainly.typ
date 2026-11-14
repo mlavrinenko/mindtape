@@ -40,16 +40,16 @@
 
 + Run the pages' recipes against a fixture.
 + 🔴 `import-export.typ:132` exports with `mt ls --json`, which applies the default view: 9 of learn-piano's 13 tasks come out, and the recipe's `done` branch never runs. The CSV recipe (`:143`) fails on a framework priority. The adapters emit `todo`, which the default `flow` legend lacks.
-+ 🔴 `rule-packs.typ:171` names `imperative-title` as the pack's only rule outside the body. The pack also ships `work-names-a-task` and `flip-with-work` (`packs/mindtape-tasks.toml:335`, `:356`), which `commit-rules.typ` presents as rules you write.
-+ 🔴 `internals.typ:50` says a cache lives under each root; there is one, `<project>/.mindtape/cache/` (`cache.rs:76`).
++ 🔴 `rule-packs.typ:171` names `imperative-title` as the pack's only rule outside the body. The pack also carries `work-names-a-task` and `flip-with-work` (`packs/mindtape-tasks.toml:335`, `:356`), which `commit-rules.typ` presents as rules you write.
++ 🔴 `internals.typ:50` says a cache lives under each root. There is one, `<project>/.mindtape/cache/` (`cache.rs:76`).
 + `schema.typ:18` promises to name the one field that does not round-trip, and never does.
 
 
 == TO-BE
 
-- 🟢 The export recipes use `mt ls '' --json`, and an import of their output into a fresh project round-trips every task the page says it does; the generator runs them.
-- 🟢 Every claim matches the code; the pack's rules are listed once, on /rule-packs/.
-- 🟢 Blocks are fixture slices or captures; the prose follows the plain-prose rules.
+- 🟢 The export recipes use `mt ls '' --json`, and an import of their output into a fresh project round-trips every task the page says it does, and the generator runs them.
+- 🟢 Every claim matches the code, and the pack's rules appear once, on /rule-packs/.
+- 🟢 Blocks are fixture slices or captures, and the prose follows the plain-prose rules.
 
 
 == Source of truth

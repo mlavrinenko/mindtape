@@ -32,7 +32,7 @@
 == AS-IS
 
 + Open `skills/mindtape/SKILL.md` and compare it with `mt --help` and `mt explain`.
-+ 🔴 The skill repeats the command table, filter syntax and filing mechanics those commands already carry, so a CLI change makes it stale twice.
++ 🔴 The skill repeats the command table, filter syntax and filing mechanics those commands already carry. A CLI change then makes it stale twice.
 
 ```
 $ rg -n '^\| ' skills/mindtape/SKILL.md
@@ -63,7 +63,7 @@ $ wc -l skills/mindtape/SKILL.md
 
 == Changes
 
-- `docs/src/skill.typ`: cut the command table and the duplicated mechanics; keep the trigger, project check, `mt explain` first and safety invariants.
+- `docs/src/skill.typ`: cut the command table and the duplicated mechanics. Keep the trigger, project check, `mt explain` first and safety invariants.
 - `skills/mindtape/SKILL.md`: regenerate from the source with `just docs md`.
 - `skills/mindtape/references/*.md`: move a fact that only the skill carries into a reference, then delete the duplicate.
 - `www/content/agents.typ`: say the skill points at the CLI instead of repeating it.

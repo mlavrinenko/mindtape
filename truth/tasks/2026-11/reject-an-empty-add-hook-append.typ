@@ -38,7 +38,7 @@
 == AS-IS
 
 + Reviewing the on-add branch after `just check`.
-+ 🔴 #raw("crates/mindtape/src/config/add_hooks.rs"): `append = { tags = [] }` loads, fires, and reports `append tags` while changing nothing.
++ 🔴 #raw("crates/mindtape/src/config/add_hooks.rs"): `append = { tags = [] }` loads, fires, and reports `append tags` although the field keeps its old value.
 
 ```toml
 [[on.add]]

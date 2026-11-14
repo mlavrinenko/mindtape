@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent with a small context pages through a backlog instead of guessing a filter],
+      implementable-tasks: helps[an agent with a small context pages through a backlog instead of guessing a filter.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -31,19 +31,19 @@
     2026,
     9,
     27,
-  )[skip advances -n paging; a truncated table's footer and --json's truncated.next\_skip name the exact --skip that continues; documented on the CLI, schema and agents pages and in the skill],
+  )[`skip` advances `-n` paging. A truncated table's footer and `--json`'s truncated.next\_skip give the exact `--skip` that continues. The CLI, schema and agents pages document it, and so does the skill.],
 )
 
 == AS-IS
 
 + `mt ls '' -n 20` in a large project.
-+ 🔴 It prints the cut count but offers no way to the next page: there is no `--skip`, so an agent narrows the filter blindly or raises `-n`.
++ 🔴 It prints the cut count but stops there. Without `--skip`, an agent narrows the filter blindly or raises `-n`.
 
 
 == TO-BE
 
 - 🟢 `--skip N` drops N rows after the sort and before `-n`.
-- 🟢 The table footer names the next command, and `--json`'s `truncated` carries `next_skip`:
+- 🟢 The table footer gives the next command, and `--json`'s `truncated` carries `next_skip`:
 
 ```
 $ mt ls -n 20
@@ -61,7 +61,7 @@ truncated: 20 of 143 — next: mt ls -n 20 --skip 20
 
 == Alternatives
 
-- Cursor tokens: a live-evaluated tree has no stable snapshot for a cursor to point into; an offset over a deterministic sort is honest about that.
+- Cursor tokens: a live-evaluated tree has no stable snapshot for a cursor to point into. An offset over a deterministic sort is honest about that.
 
 
 == Out of scope

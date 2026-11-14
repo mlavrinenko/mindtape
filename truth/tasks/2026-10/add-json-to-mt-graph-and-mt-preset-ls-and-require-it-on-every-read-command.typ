@@ -2,7 +2,7 @@
 #import "/truth/lib.typ": *
 
 #show: task.with(
-  title: "Add --json to mt graph and mt preset ls and require it on every read command",
+  title: "Add JSON to mt graph and mt preset ls and require it on every read command",
   kind: "dev",
   priority: ice(
     impact: 6,
@@ -16,14 +16,14 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a new read command without --json fails the CLI tree test],
+      enforced-practice: helps[a new read command without `--json` fails the CLI tree test.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[agents.typ's every-read-command-prints-JSON claim stays true],
+      docs-match-code: helps[agents.typ's every-read-command-prints-JSON claim stays true.],
     ),
   ),
   assignee: "agent",
@@ -34,22 +34,22 @@
 == AS-IS
 
 + Reviewing the docs before release, checking agents.typ against each read command's flags
-+ 🔴 #raw("crates/mindtape-cli/src/cli/tree_json.rs"): mt graph and mt preset ls have no --json, and nothing fails when a read command lacks it
++ 🔴 #raw("crates/mindtape-cli/src/cli/tree_json.rs"): mt graph and mt preset ls have no `--json`, and nothing fails when a read command lacks it
 
 ```
 graph: format   preset ls: (none)
 ```
-(from `mt _cli`; docs/contributing/command-semantics.md classes both as read commands)
+(from `mt _cli`). `docs/contributing/command-semantics.md` classes both as read commands
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cli/tree_json.rs").
 
 == TO-BE
 
 - 🟢 `mt graph --json` prints the nodes and typed edges it would draw, and `mt preset ls --json` prints each preset's name, origin and description.
-- 🟢 A test fails, naming the command, when a visible command whose class in `cli/command_class.rs` is read has no `--json` flag. `config schema`, whose output already is JSON, is the one named exemption.
+- 🟢 A test fails, naming the command, when a visible command that `cli/command_class.rs` classes as read has no `--json` flag. `config schema`, whose output already is JSON, is the one named exemption.
 
 
 == Changes
@@ -57,7 +57,7 @@ left in a closing report no one rereads. It belongs in
 - `crates/mindtape-cli/src/cmd/graph/`: `--json` beside `--format`.
 - `crates/mindtape-cli/src/cmd/preset.rs`: `--json` on `ls`.
 - `crates/mindtape-cli/src/cli/tree_json.rs` tests: walk the tree, refuse a read command without `--json`.
-- `docs/src/contributing/command-semantics.typ`: say a read command takes `--json` and the test enforces it; run `just docs md`.
+- `docs/src/contributing/command-semantics.typ`: say a read command takes `--json` and the test enforces it. Then run `just docs md`.
 - `CHANGELOG.md`: an `[Unreleased]` entry.
 
 

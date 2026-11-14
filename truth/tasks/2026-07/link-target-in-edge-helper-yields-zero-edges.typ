@@ -26,18 +26,18 @@ links: depends-on(link("add-mt-check-quiet.typ")),
 ```
 
 evaluates to `"links": []` under `mt eval --json`, and `mt check` reports it
-valid. `mt ls 'blocked'` therefore reports the task as ready.
+valid. `mt ls 'blocked'` then reports the task as ready.
 
 The prelude documents plain strings as the authoring surface and says helpers
-take "never `link(...)`", so this is user error — but it is user error that
-loses data in silence. speconaut used to catch the adjacent mistake with a
-`Dependency links carry no label` rule; that rule was retired on 2026-07-31
-because its premise (`depends-on:` as a task slot) no longer exists, which
-leaves this trap with nothing in front of it.
+take "never `link(...)`", so this is user error, but it is user error that
+loses data in silence. speconaut once caught the adjacent mistake with a
+`Dependency links carry no label` rule. That rule retired on 2026-07-31
+because its premise (`depends-on:` as a task slot) disappeared, which leaves
+this trap with nothing in front of it.
 
-An assertion naming the offending helper would be enough.
+An assertion that pins the offending helper would be enough.
 
 == Scope
 
 - the `edge` helper in the prelude
-- out of scope: accepting `link()` as a target; plain strings are the right authoring surface
+- out of scope: accepting `link()` as a target. Plain strings are the right authoring surface

@@ -21,33 +21,33 @@
 Wire the pieces into the `mt import` subcommand: read canonical task-JSON, map it
 onto config (`canonical-json-to-task-mapping`), emit `.typ`
 (`task-to-typ-emitter`), validate each file before it lands, write under a root,
-and report. Import is "`mt add` without a template, from a full record" — reuse
+and report. Import is "`mt add` without a template, from a full record." Reuse
 `mt add`'s destination resolution (`--into` / `--to`), dedupe, and
 validate-before-land discipline.
 
 == Design / contract
 
 - New `crates/mindtape-cli/src/import.rs`, registered in `cli.rs`. Keep files
-  under the 500-line cap; split (`import.rs` + `import_tests.rs`, helpers as
+  under the 500-line cap. Split (`import.rs` + `import_tests.rs`, helpers as
   needed) up front.
-- Input: canonical JSON from a file arg or stdin (`-`). Accept both the bare
+- Input: canonical JSON from a file argument or stdin (`-`). Accept both the bare
   array (`mt ls --json` default) and the `{ "tasks": [...] }` / `{ "tasks": ...,
-  "applied": ... }` envelope; ignore `applied`.
+  "applied": ... }` envelope. Ignore `applied`.
 - Flags: `--into <DIR>` (default first root, mirror `mt add`), `--to <SUBDIR>`
-  (nest, drives derived tags), `--dry-run` (report + preview, write nothing),
+  (nest, drives derived tags), `--dry-run` (report and preview, without writes),
   `--status <NAME>` default for records missing one, and the mapping overrides
   from the mapping layer (`--map k=v`, `--drop-unmapped`, or equivalent). No
-  `--from`/`--via` source selector — sources are jq, upstream of the pipe.
-- Per record: map -> emit -> write to `<root>/<slug>.typ` (dedupe stems, e.g.
-  `-2` suffix or skip-with-report; pick and document) -> validate with the same
-  gate `mt add` uses. On any validation failure, fail that record and report;
-  `--dry-run` never writes.
+  `--from`/`--via` source selector: sources are jq, upstream of the pipe.
+- Per record: map -> emit -> write to `<root>/<slug>.typ` (dedupe stems, for
+  example a `-2` suffix or skip-with-report. Pick and document.) -> validate with
+  the same gate `mt add` uses. On any validation failure, fail that record and
+  report. `--dry-run` never writes.
 - Summary report to stderr: N filed, M skipped, unmapped/dropped fields per task.
 
 == Files
 
 - `crates/mindtape-cli/src/import.rs` (+ `import_tests.rs`), `cli.rs` wiring,
-  `--help` text; CHANGELOG entry.
+  `--help` text. CHANGELOG entry.
 
 == Acceptance
 
@@ -56,8 +56,8 @@ validate-before-land discipline.
   `mt import --into <tmp-root>` reproduces the backlog field-for-field including
   `body` (modulo `file`/`derived_tags`/computed `score`). Prefer an in-process
   test over a shell pipe.
-- Tests: stdin and file input; bare-array and enveloped input; `--dry-run` writes
-  nothing; a record that fails validation is reported, not left half-written.
+- Tests: stdin and file input. Bare-array and enveloped input. `--dry-run` writes
+  nothing. A record that fails validation gets a report, not a half-written file.
 - Commit `Refs: truth/tasks/mt-import-command.typ`.
 
 == Scope

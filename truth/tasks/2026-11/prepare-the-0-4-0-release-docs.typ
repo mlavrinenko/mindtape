@@ -16,14 +16,14 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a release ships docs that name the shipped behavior],
+      enforced-practice: helps[a release carries docs that match the behavior it releases],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the shipped docs and hook match the merge skip and AS-IS rename],
+      docs-match-code: helps[the released docs and hook match the merge skip and AS-IS rename],
     ),
   ),
   assignee: "agent",
@@ -33,14 +33,14 @@
 == AS-IS
 
 + Ran the pre-release review against `[Unreleased]` and the 0.4.0 tree.
-+ 🔴 Three shipped docs still teach ``Problem`` while `mindtape:tasks` refuses it: the task-files example, the api-service config comment, and four ask-refactoring remedies.
++ 🔴 Three released docs still teach ``Problem`` while `mindtape:tasks` refuses it: the task-files example, the api-service config comment, and four ask-refactoring remedies.
 + 🔴 `.githooks/commit-msg` still bypasses `mt check --commit-msg` on a merge, so the new merge skip never runs through this repo's hook.
 + 🔴 The tip-scope prose and schema say "any commit of a range" although a skipped merge names none.
 
 
 == TO-BE
 
-- 🟢 The task-files page shows `AS-IS`, and no shipped prose names `Problem`.
+- 🟢 The task-files page shows `AS-IS`, and no released prose names `Problem`.
 - 🟢 A merge runs `mt check --commit-msg`, which skips it.
 - 🟢 Tip scope says "each checked commit", matching the range.
 - 🟢 `www/content/config.typ` names the embedded fallback too.
@@ -64,8 +64,8 @@ ok: merge commit, commit rules skipped
 == Out of scope
 
 - The `mt tags` scan's `has(tags, ...)` gap and whitespace forms. Each gets a finding.
-- Bumping the Typst package version; it stays 0.3.0.
-- The release itself; the script runs after this lands.
+- Bumping the Typst package version stays out. It stays 0.3.0.
+- The release itself stays out. The script runs after this lands.
 
 
 == Dogfood

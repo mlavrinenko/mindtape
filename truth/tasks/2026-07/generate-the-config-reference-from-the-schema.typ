@@ -15,7 +15,7 @@
 
 == Summary
 
-The configuration page enumerates sections by hand, which already drifted: it over-attributes add-only keys to the go section and omits several live ones. Generate the enumerated tables from the captured JSON Schema, the way the CLI page is generated from the command tree.
+The configuration page enumerates sections by hand, which already drifted: it over-attributes add-only keys to the go section and omits many live ones. Generate the enumerated tables from the captured JSON Schema, the way the CLI page derives from the command tree.
 
 == Scope
 

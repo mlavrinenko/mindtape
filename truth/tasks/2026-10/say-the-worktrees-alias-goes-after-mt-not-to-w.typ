@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-mt worktrees help said the \@name it lists is passed to -w, but mt -w \@main ls fails while mt \@main ls works
+mt worktrees help said mt passes the \@name it lists to -w, but mt -w \@main ls fails while mt \@main ls works

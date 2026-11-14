@@ -34,14 +34,14 @@
 == AS-IS
 
 + Run `mt rules --json` and read the `when` and `assert` strings to find the tags a rule reads.
-+ 🔴 Nothing lists the tags a project allows beside the rules that read them, so an agent has to rebuild the map from the config and the rule text.
++ 🔴 A project has no listing of the tags it allows beside the rules that read them. An agent has to rebuild the map from the config and the rule text.
 + 🔴 The only description of an opt-out tag is a comment in `.mindtape/config.toml`, which an adopter's task writer never reads.
 
 == TO-BE
 
 - 🟢 `mt tags` prints each allowed tag with the rules that read it and each rule's message, and `mt tags --for add` narrows the list to the tags read at filing.
-- 🟢 It derives the association by scanning each resolved rule's `when` and `assert` for `has_tag("<name>")`, so a new rule needs no registration.
-- 🟢 `mt tags --json` returns the same map and a `schema_version`, and a tag that no rule reads prints as an area label.
+- 🟢 It derives the association by scanning each resolved rule's `when` and `assert` for `has_tag("<name>")`. A new rule then works without registration.
+- 🟢 `mt tags --json` returns the same map and a `schema_version`, and it prints a tag with no rule reader as an area label.
 
 ```sh
 $ mt tags --for add
@@ -59,7 +59,7 @@ no-repro             tasks.body.content.rules.as-is-has-a-repro
 == Alternatives
 
 - Add `--tags` to `mt rules`: one flag, but an agent looking for a tag does not know to look under `rules`.
-- A config comment: not machine-readable and absent from the pack an adopter reads.
+- A config comment is not machine-readable and is absent from the pack an adopter reads.
 
 == Out of scope
 

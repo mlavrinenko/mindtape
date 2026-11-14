@@ -19,10 +19,10 @@
 
 == Summary
 
-Once the root docs are trimmed by delegation, the 300-line caps on AGENTS.md/CONTRIBUTING.md and 250 on README.md no longer describe the intended shape. Lower them so the trim holds instead of silently refilling.
+After the delegation trim, the 300-line caps on AGENTS.md/CONTRIBUTING.md and 250 on README.md are too loose for the intended shape. Lower them so the trim holds instead of silently refilling.
 
 == Scope
 
 - README.md 250 -> 150, AGENTS.md/CONTRIBUTING.md 300 -> 200 once the trim lands
 - This partially reverses stop-the-doc-size-cap-fighting-correctness-fixes.typ, and its reasoning still holds: a cap must not make a correctness fix expensive. It does not apply at ~90 lines, where 200 is 110 lines of headroom rather than a wall. Record that argument in .linecop.yaml next to the numbers, replacing the stale one
-- Re-check linecop --baseline 85 reports nothing right after the change
+- Re-check that `linecop --baseline 85` passes right after the change

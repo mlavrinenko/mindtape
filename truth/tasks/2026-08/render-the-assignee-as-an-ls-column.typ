@@ -12,22 +12,22 @@
   tags: ("cli", "www"),
   estimate: (files: 6),
   links: related("adopt-the-assignee-field-in-the-dogfood-backlog.typ")[
-    the adoption that made the missing column visible
+    the adoption that made the missing column visible.
   ],
   status: done(
     2026,
     8,
     18,
-  )[table and CSV both render it, between `due` and `title`; `auto` visibility
+  )[table and CSV both render it, between `due` and `title`. `auto` visibility
     resolves on whether the rows disagree, so a listing already narrowed to one
-    actor grows no column],
+    actor grows no column.],
 )
 
 == Summary
 
-`assignee` is filterable (`assignee == "max"`, `role == "maintainer"`) and sortable (`--sort assignee`), but it cannot be displayed: `LS_COLUMNS` in `crates/mindtape/src/config_ls.rs` holds seven names — `#`, `status`, `ready`, `priority`, `due`, `title`, `file` — and `--columns '#,title,assignee'` fails with `unknown column`. So a mixed listing can be filtered by who works each task but never shows it, and the only way to read the field off a listing is `--json`.
+`assignee` is filterable (`assignee == "max"`, `role == "maintainer"`) and sortable (`--sort assignee`), but the CLI cannot display it. `LS_COLUMNS` in `crates/mindtape/src/config_ls.rs` holds seven names (`#`, `status`, `ready`, `priority`, `due`, `title`, `file`), and `--columns '#,title,assignee'` fails with `unknown column`. A mixed listing can filter by who works each task but never shows it. The only way to read the field off a listing is `--json`.
 
-Filter/sort parity was closed for this field already (see the related parity task); the render plane was not.
+Filter/sort parity already covers this field (see the related parity task). The render plane does not.
 
 == Scope
 

@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[unkillable source forms are named instead of re-triaged],
+      sound-codebase: helps[the sweep lists the source forms that survive every test instead of re-triaging them.],
       docs-match-code: neutral,
     ),
   ),
@@ -31,7 +31,7 @@
     2026,
     10,
     1,
-  )[No source lint can see a mutant-vs-source equivalence, as the task itself says; the source-form review rule folds into record-which-survivor-classes-a-project-lint-could-have-prevented.],
+  )[No source lint can see a mutant-vs-source equivalence, as the task itself says. The source-form review rule folds into record-which-survivor-classes-a-project-lint-could-have-prevented.],
 )
 
 == AS-IS
@@ -42,24 +42,24 @@
 
 == TO-BE
 
-- 🟢 The source forms whose mutants are unkillable on unsigned or bounded types are known, written down, and preferred against in review (for example `x != 0` over `x > 0` where `x` is a count, so the mutant flips killably).
-- 🟢 Whichever check can be automated (a lint for literal tautologies in source, an ast-grep pattern run over `crates/**/*.rs`) runs where cheap; the rest is recorded as a review rule beside the mutation-testing deep dive.
+- 🟢 The review prefers the source forms whose mutants survive on unsigned or bounded types, such as `x != 0` over `x > 0` where `x` is a count. There the mutant flips and a test can kill it.
+- 🟢 Whichever check a tool can run (a lint for literal tautologies in source, an ast-grep pattern run over `crates/**/*.rs`) runs where cheap. The rest becomes a review rule beside the mutation-testing deep dive.
 
 == Changes
 
-- Start from the four hand-excluded equivalents in `.cargo/mutants.toml`; classify each as type-tautology, pure memoisation, platform-specific or no-public-constructor.
-- `docs/src/contributing/mutation-testing.typ` (with regenerated `.md`): a short subsection naming the type-tautology class and the source forms that avoid it.
-- If a syntactic rule is feasible, add it as `sgconfig.yml` + a rule file and a `just` recipe; if not, record why the class stays manual.
+- Start from the four hand-excluded equivalents in `.cargo/mutants.toml`. Classify each as type-tautology, pure caching, platform-specific or no-public-constructor.
+- `docs/src/contributing/mutation-testing.typ` (with regenerated `.md`): a short subsection that gives the type-tautology class and the source forms that avoid it.
+- If a syntactic rule is feasible, add it as `sgconfig.yml` + a rule file and a `just` recipe. If not, record why the class stays manual.
 
 == Rollback
 
-Drop the doc subsection and any ast-grep config; the exclusions stay as they are today.
+Drop the doc subsection and any ast-grep config. The exclusions stay as they are today.
 
 == Out of scope
 
 - Forbidding `match`, `&&` or `||` to shrink the mutant count: metric-gaming, explicitly rejected on 2026-09-30.
-- A general static-analysis pipeline: this is only the equivalence residue clippy cannot see.
+- This is only the equivalence residue clippy cannot see, not a general static-analysis pipeline.
 
 == Dogfood
 
-A deliberate `usize >= 0` in a scratch branch is caught by the new check, or the review rule names it before the next sweep does.
+The new check catches a deliberate `usize >= 0` in a scratch branch, or the review rule catches it before the next sweep does.

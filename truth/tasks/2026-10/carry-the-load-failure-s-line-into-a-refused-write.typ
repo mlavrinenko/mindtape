@@ -52,7 +52,7 @@ error: parser: did not load: unexpected argument: titel
 - `crates/mindtape-cli/src/pre_write.rs`: keep the line in `Verdict::load_failure` (a message plus an optional `Location`), built in `verdict` with the same on-disk/`Filled` choice as `pre_write.rs:181-204`.
 - `crates/mindtape-cli/src/pre_write.rs:270`, `:107-109` and `crates/mindtape-cli/src/task_edit.rs:213`: print through that location.
 - Check `crates/mindtape-cli/src/import/write.rs` and `crates/mindtape-cli/src/link_cmd.rs`, which read `Verdict` too.
-- Add a red test first: a `mt add --set` whose source misspells a field must name a line.
+- Add a red test first: a `mt add --set` whose source misspells a field must show the line.
 
 == Rollback
 

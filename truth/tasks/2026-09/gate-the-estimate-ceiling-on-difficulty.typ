@@ -17,7 +17,7 @@
 
 == Summary
 
-`[tasks.estimate.max] files = 15` is a flat error, so a mechanical change touching one line in a hundred files must be split into seven tasks that each carry the same single decision. The cap was calibrated on this repos own files-per-commit distribution at p95 to create decomposition pressure, but that pressure belongs on unbounded judgment rather than on size — which is what `difficulty` already measures, and what the config itself says when it tells the reader to score JUDGMENT REQUIRED, not size.
+`[tasks.estimate.max] files = 15` is a flat error. A mechanical change touching one line in a hundred files has to split into seven tasks that each carry the same single decision. The cap came from this repo's own files-per-commit distribution at p95, to create decomposition pressure. That pressure belongs on unbounded judgment rather than on size. `difficulty` already measures judgment, and the config itself says so when it tells the reader to score judgment required, not size.
 
 == Scope
 
@@ -33,4 +33,4 @@ message = "judgment work stays small; split it rather than widen the cap"
 files = 15
 ```
 
-The same applies to `[tasks.estimate.min]` for symmetry. `message` gives a breach a reason the ceiling sits where it does instead of only that it was crossed — `[tasks.estimate.drift]` already takes one, and a bound without an explanation is the kind of number an author learns to inflate rather than respect.
+Symmetry calls for the same change to `[tasks.estimate.min]`. `message` gives a breach a reason the ceiling sits where it does instead of only the fact of the breach. `[tasks.estimate.drift]` already takes one, and a bound without an explanation is the kind of number an author learns to inflate rather than respect.

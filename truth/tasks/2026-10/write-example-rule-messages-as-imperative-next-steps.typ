@@ -33,13 +33,13 @@
 == AS-IS
 
 + Reading config errors against the error format in diag/mod.rs
-+ 🔴 #raw("examples/rules/.mindtape/config.toml"): example rule messages read as statements, not imperative next steps like the shipped pack's
++ 🔴 #raw("examples/rules/.mindtape/config.toml"): example rule messages read as statements, not imperative next steps like the built-in pack's
 
 message = "more than one em-dash in a paragraph reads as generated prose"
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("examples/rules/.mindtape/config.toml").
 
 == TO-BE
@@ -48,7 +48,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `examples/rules/.mindtape/config.toml`: reword each message; regenerate the docs.
+- `examples/rules/.mindtape/config.toml`: reword each message. Regenerate the docs.
 
 == Rollback
 

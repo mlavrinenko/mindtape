@@ -22,8 +22,8 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a full sweep stops paying for a scoped run's side effect],
-      docs-match-code: helps[both pages name where each run writes],
+      sound-codebase: helps[a full sweep stops paying for a scoped run's side effect.],
+      docs-match-code: helps[both pages state where each run writes.],
     ),
   ),
   assignee: "agent",
@@ -31,18 +31,18 @@
     2026,
     10,
     1,
-  )[scoped runs write \\\`target/mutants-scoped\\\`; the full sweep keeps \\\`mutants.out\\\`; the arm reads the newer of the two; \\\`just check\\\` green],
+  )[scoped runs write \`target/mutants-scoped\` and the full sweep keeps \`mutants.out\`. The arm reads the newer of the two. \`just check\` stays green.],
 )
 
 == AS-IS
 
 + Run a full workspace sweep: `just mutants --iterate`.
-+ 🔴 The 2026-09-30 run printed `INFO Iteration excludes 46 previously caught or unviable mutants` before 15 hours of testing: earlier scoped runs had overwritten `mutants.out`, the cache a full run reads, so 4240 mutants were tested instead of only re-running the previous misses.
++ 🔴 The 2026-09-30 run printed `INFO Iteration excludes 46 previously caught or unviable mutants` before 15 hours of testing. Earlier scoped runs had overwritten `mutants.out`, the cache a full run reads. The run then tested 4240 mutants instead of only re-running the previous misses.
 + Every run wrote there because `cargo mutants` defaults its output to the working directory, and none of the three recipes passed `-o`.
 
 == TO-BE
 
-- 🟢 A run that selects a subset (`-f`/`--file`, `--in-diff`, `--diff`) writes `target/mutants-scoped` and leaves `mutants.out` to the full sweep's `--iterate` cache.
+- 🟢 A run that selects a subset (`-f`/`--file`, `--in-diff`, `--diff`) writes `target/mutants-scoped`. It leaves `mutants.out` to the full sweep's `--iterate` cache.
 - 🟢 An explicit `-o`/`--output` still writes wherever the caller said.
 - 🟢 `just mutants-diff` is always a subset run, so it writes there too.
 - 🟢 The ask-refactoring mutants arm reads whichever of the two outcomes files ran last, so a scoped sweep still feeds it.

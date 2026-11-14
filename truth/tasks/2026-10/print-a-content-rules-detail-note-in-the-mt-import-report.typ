@@ -33,7 +33,7 @@
 == AS-IS
 
 + Importing a task whose TO-BE breaks a content rule that sets a `message`
-+ 🔴 #raw("crates/mindtape-cli/src/pre_write/mod.rs"): `Verdict::problems` renders each breach as one line, so the report drops the `note:` line `mt check` prints under the message
++ 🔴 #raw("crates/mindtape-cli/src/pre_write/mod.rs"): `Verdict::problems` renders each breach as one line.The report drops the `note:` line `mt check` prints under the message
 
 ```
 $ mt import --dry-run tasks.json
@@ -42,8 +42,8 @@ $ mt import --dry-run tasks.json
     - <new task>:15: body.content.rules.no-open-questions: ask the user and write the answer in, since a task leaves no question open
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/pre_write/mod.rs").
 
 == TO-BE

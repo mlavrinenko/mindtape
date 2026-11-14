@@ -49,17 +49,17 @@ check = { typst = "check.typ", function = "check-x", field = "x-x" }
 ```
 
 - 🟢 A pack's `check.typst` and `[dicts]` `path` resolve from the pack directory: a directory pack's folder, or the folder holding a pack file.
-- 🟢 A pack's check file is evaluated in a Typst world rooted at the pack directory, so it imports files of the pack and `@local` packages, never the project's.
+- 🟢 mt evaluates a pack's check file in a Typst world rooted at the pack directory, so it imports files of the pack and `@local` packages, never the project's.
 - 🟢 A layer's own paths, and a layer rule that replaces a pack's, resolve from the project root, as before.
-- 🟢 A built-in pack has no directory, so it names no files.
+- 🟢 A built-in pack has no directory, so no file sits behind it.
 
 
 == Changes
 
-- `crates/mindtape/src/config/packs_tests_files.rs` (new): the red tests first: a pack check file that imports a sibling and not the project's file, a pack dict file, a layer's own paths unchanged, for a pack file, a directory pack and one outside the project. `crates/mindtape-cli/tests/it/rules_e2e.rs` gets the `mt check` one.
+- `crates/mindtape/src/config/packs_tests_files.rs` (new): write the red tests first. Cover a pack check file that imports a sibling and not the project's file, and a pack dict file. Cover a layer's own paths unchanged, for a pack file, a directory pack and one outside the project. `crates/mindtape-cli/tests/it/rules_e2e.rs` gets the `mt check` one.
 - `crates/mindtape/src/rules/mod.rs`: a `#[serde(skip)]` root field on `CheckSpec`, and the doc of `typst`.
 - `crates/mindtape/src/config/pack_files.rs` (new): `rebase_dict_paths`, run on each pack in the fold, and `stamp_check_roots`, run in `build_config` from the rule origins. `PackOrigin::root` gives the directory.
-- `crates/mindtape/src/rules/typst.rs`: evaluate and validate a check from its own root, not `rules_root`. `eval.rs` needs no change, since `CompiledCheck::new` reads the spec's root.
+- `crates/mindtape/src/rules/typst.rs`: evaluate and validate a check from its own root, not `rules_root`. `eval.rs` doesn't need a change, since `CompiledCheck::new` reads the spec's root.
 - `crates/mindtape/src/config/packs.rs`: one call to `rebase_dict_paths`, before the pack's rule arrays come out.
 - `crates/mindtape/src/config/dicts.rs`: the doc of `path`. The reader already takes an absolute path.
 - `schema/config.schema.json`: regenerate.

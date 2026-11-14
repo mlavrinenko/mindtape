@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the only-shrinks rule is checked in CI, not skipped],
+      enforced-practice: helps[CI runs the only-shrinks rule instead of skipping it.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -38,11 +38,11 @@
 == TO-BE
 
 - 🟢 The `windows` job fetches full history, so the test has a `main` to compare with.
-- 🟢 With `CI` set, a missing `main` or a missing list at the branch point fails the test; elsewhere it still skips.
+- 🟢 With `CI` set, a missing `main` or a missing list at the branch point fails the test. Elsewhere it still skips.
 
 == Changes
 
-- `crates/mindtape-cli/src/diag/allowlist_tests.rs`: fail instead of return when `CI` is set.
+- `crates/mindtape-cli/src/diag/allowlist_tests.rs`: fail instead of return when `CI` is present.
 - `.github/workflows/ci.yml`: `fetch-depth: 0` on the `windows` job checkout.
 
 == Rollback

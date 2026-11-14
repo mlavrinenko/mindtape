@@ -15,35 +15,35 @@
     2026,
     9,
     10,
-  )[Both causes fixed. The semantic question is settled the first way: `--advance N` chains the dates off the cursor regardless of the anchor — the first hop honours it (`plan_next`), every hop after steps off the previous occurrence (`plan_step`) — because refusing a non-`due` anchor would refuse `default-anchor = "completion"`, the default, and with it nearly every `--advance` there is. Stems now disambiguate against a `StemDest` carrying the claimed set beside the directory, `mt import`'s shape. Written up in www/content/cli.typ and truth/tasks/recurring-tasks.typ. `just check` green, `cargo mutants --in-diff` 10/10 caught.],
+  )[Both causes fixed. The semantic question settles the first way: `--advance N` chains the dates off the cursor regardless of the anchor. The first hop honours it (`plan_next`), and every hop after steps off the previous occurrence (`plan_step`). Refusing a non-`due` anchor would refuse `default-anchor = "completion"`, the default, and with it nearly every `--advance` there is. Stems disambiguate against a `StemDest` carrying the claimed set beside the directory, `mt import`'s shape. Written up in www/content/cli.typ and truth/tasks/recurring-tasks.typ. `just check` green, `cargo mutants --in-diff` 10/10 caught.],
 )
 
 == Summary
 
 `mt recur --advance N` has never worked for `N > 1`. Every occurrence in
-the chain is minted with the same filename stem, so before the pre-write seam
-landed the run printed N `spawned` lines all naming the same path, wrote that
-one file N times, and left the last write on disk. It now fails the whole
-batch on a duplicate-id violation and writes nothing — honest, but still not
-working.
+the chain gets the same filename stem. Before the pre-write seam
+landed, the run printed N `spawned` lines all naming the same path, wrote that
+one file N times, and left the last write on disk. It fails the whole
+batch on a duplicate-id violation and leaves every file untouched, which is
+honest but still not working.
 
 Two independent causes, and the second is the interesting one.
 
 == Scope
 
-- `mint_stem` disambiguates its candidate against files on DISK
+- `mint_stem` disambiguates its candidate against files on disk
   (`dest.join(...).exists()`). No entry of a chain in flight is on disk yet,
   so all N collide. `mt import` already solved this shape: it seeds a
   `HashSet` of claimed stems and disambiguates against that as well as the
   directory (`import.rs`'s `existing_stems`/`stem_for`). `mint_stem`
-  is at clippy's 5-argument limit, so the claimed set arrives bundled with
-  `dest` rather than as a sixth parameter.
+  is at clippy's 5-argument limit. The fix bundles the claimed set with
+  `dest` rather than adding a sixth parameter.
 - The dates do not advance either, and a fix for the stems alone would paper
   over it. `build_advance_chain` walks `due_cursor` forward each
   iteration, but a rule anchored on today (the `learn-piano` fixture's
-  `every(days: 1)`) resolves every hop to today plus one — so `--advance 3`
+  `every(days: 1)`) resolves every hop to today plus one. So `--advance 3`
   asks for three occurrences and plans three copies of tomorrow. Decide what
-  `--advance` means for a today-anchored rule before wiring the stems: chain
+  `--advance` means for a today-anchored rule before wiring the stems. Either chain
   the dates off the cursor regardless of the anchor, or refuse `--advance`
   for a rule whose anchor is not `due`. It is not settled here.
 - Regression test: `--advance 3` over a today-anchored daily rule writes
@@ -54,8 +54,8 @@ Two independent causes, and the second is the interesting one.
 
 Found while routing the writers through the pre-write seam
 (`extend-the-pre-write-validation-seam-to-the-other-writers.typ`). That task
-fixed the sibling defect the same walk exposed — the chain's
+fixed the sibling defect the same walk exposed. The chain's
 `recurred-from` edges accumulated instead of replacing, which broke every
-hop of the ordinary single-step loop after the first — and stopped there: the
+hop of the ordinary single-step loop after the first. It stopped there. The
 stem collision is a distinct bug whose fix depends on a semantic decision
 about `--advance` that the seam has no opinion on.

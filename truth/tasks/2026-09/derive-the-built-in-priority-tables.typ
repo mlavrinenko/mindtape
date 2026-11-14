@@ -35,29 +35,29 @@
 1. 🔴 `/priority/`'s framework table, its ICE description and its new
   difficulty anchors are hand-typed from `crates/mindtape/src/frameworks.toml`
   and `defaults.toml`. A framework added, renamed or re-ranged in either file
-  ships docs that still describe the old one, and no gate reacts.
+  leaves docs that still describe the old one, and no gate reacts.
 
 == TO-BE
 
 - 🟢 `www/generate-facts.sh` emits a `frameworks.json` fact: each framework's
   name, input names and types, score formula where it has one, and the
   priority/difficulty ranges with their labelled anchors.
-- 🟢 A `www/utils/framework-notes.typ` helper renders it; `/priority/` reads
+- 🟢 A `www/utils/framework-notes.typ` helper renders it. `/priority/` reads
   the table from there instead of typing inputs.
 
 == Source of truth
 
-- `crates/mindtape/src/frameworks.toml` and `defaults.toml` — the declarations.
-- `www/generate-facts.sh` — the fact pattern the readme task already uses.
+- `crates/mindtape/src/frameworks.toml` and `defaults.toml`: the declarations.
+- `www/generate-facts.sh`: the fact pattern the README task already uses.
 
 == Changes
 
-- `www/generate-facts.sh`, a new util, `/priority/`, outdatty wiring.
+- `www/generate-facts.sh`, a new helper, `/priority/`, outdatty wiring.
 
 == Out of scope
 
-- The framework-specific scoring prose (what the formula MEANS stays prose);
-  only names, inputs, ranges and formulas are derived.
+- The framework-specific scoring prose stays prose, including what the formula
+  means. The generator derives only names, inputs, ranges and formulas.
 
 == Dogfood
 

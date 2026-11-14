@@ -23,7 +23,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a one-letter path-set typo is fixed from the error itself],
+      cheap-adoption: helps[the error itself fixes a one-letter path-set typo],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),

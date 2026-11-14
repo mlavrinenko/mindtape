@@ -33,7 +33,7 @@
 == AS-IS
 
 + Open the `.mindtape/config.toml` of nine projects that adopt `extends = ["mindtape-tasks"]`.
-+ 🔴 Each still copies the status legend, the ICE bands, the WIP caps, the commit rules and the `on.flip` gates by hand, and the copies drift: `judgment-stays-small` caps at 5 files in one project and 8 in another.
++ 🔴 Each still copies the status legend, the ICE bands, the WIP caps, the commit rules and the `on.flip` gates by hand. The copies then drift: `judgment-stays-small` caps at 5 files in one project and 8 in another.
 + 🔴 A pack holds only rule arrays and `[dicts]`, takes no parameters, and comes only from the binary or a path inside the project.
 
 
@@ -51,19 +51,19 @@ git = "https://github.com/acme/mindtape-packs"
 ref = "v1"
 ```
 
-- 🟢 A project adopts the shared practice in one `extends` line, sets what differs through `with`, and overrides the rest by name.
-- 🟢 Official packs ship inside `mt` as `mindtape:<pack>`. A team's own packs come from a git source pinned in `.mindtape/packs.lock`.
+- 🟢 A project takes the shared practice in one `extends` line, sets what differs through `with`, and overrides the rest by name.
+- 🟢 Official packs live inside `mt` as `mindtape:<pack>`. A team's own packs come from a git source pinned in `.mindtape/packs.lock`.
 
 
 == Changes
 
-- `truth/tasks/*.typ`: the four decisions and their leaves, linked with `parent` to this one. This milestone changes no file itself.
+- `truth/tasks/*.typ`: the four decisions and their leaves, linked with `parent` to this one. This milestone itself carries only child tasks.
 
 
 == Out of scope
 
-- Moving other projects onto the packs: each project files its own task once the packs ship.
-- The `mt init` presets: once the packs ship, a preset can shrink to an `extends` line, which is its own task.
+- Moving other projects onto the packs: each project files its own task once the packs land.
+- The `mt init` presets: once the packs land, a preset can shrink to an `extends` line, which is its own task.
 
 
 == Dogfood

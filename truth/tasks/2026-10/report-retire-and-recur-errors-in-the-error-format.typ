@@ -40,12 +40,12 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 
 == Changes
 
 - `crates/mindtape-cli/src/cmd/rm/gitless/mod.rs`, `crates/mindtape-cli/src/cmd/rm/gitless/unlink.rs`: no em dash, I/O through the helper.
-- `crates/mindtape-cli/src/cmd/recur/mod.rs`, `crates/mindtape-cli/src/cmd/recur/advance.rs`, `crates/mindtape-cli/src/cmd/recur/edit.rs`: `Diag`s; `stopping early` is a warning.
+- `crates/mindtape-cli/src/cmd/recur/mod.rs`, `crates/mindtape-cli/src/cmd/recur/advance.rs`, `crates/mindtape-cli/src/cmd/recur/edit.rs`: `Diag`s, with `stopping early` as a warning.
 - `crates/mindtape-cli/src/cmd/mod.rs`: drop the `allow`s and their `diag/allowlist.rs` entries for `mv`, `rm` and `recur` once `report-mv-and-rm-errors-in-the-error-format` lands too.
 
 == Out of scope

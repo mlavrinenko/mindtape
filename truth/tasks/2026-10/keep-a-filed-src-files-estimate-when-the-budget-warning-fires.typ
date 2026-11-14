@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run `mt wip` on a task whose diff touches more source files than `estimate.src-files`.
-+ 🔴 It warns `rules.src-budget: split the remaining work into a new task and finish the part in hand`, and an agent asks whether to raise the estimate.
++ 🔴 It warns `rules.src-budget: split the remaining work into a new task and finish the part in hand`, and raising the estimate becomes a judgment call.
 
 
 == TO-BE
@@ -48,7 +48,7 @@
 
 == Rollback
 
-Revert the commit; the message loses the clause.
+Revert the commit. The message loses the clause.
 
 
 == Out of scope

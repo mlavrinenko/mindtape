@@ -12,17 +12,17 @@
   tags: ("docs", "stateless"),
   x-goals: (
     product: (
-      readable-tasks: helps[a reader finds one statement of what a task file is],
-      implementable-tasks: helps[the contract points at the code that owns each rule],
+      readable-tasks: helps[A reader finds one statement of what a task file is.],
+      implementable-tasks: helps[The contract points at the code that owns each rule.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
-      self-describing: helps[the docs explain why the template is not a task],
+      self-describing: helps[The docs explain why the template is not a task.],
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[every claim links to the source that holds it],
+      docs-match-code: helps[Every claim links to the source that holds it.],
     ),
   ),
   assignee: "agent",
@@ -49,7 +49,7 @@
 - 🟢 One canonical section defines a task source: extension, root, reserved names, template dirs, Git visibility, symlink/case policy, outside-project roots and the non-Git fallback.
 - 🟢 It states that ignored paths are not scanned, existing ignored tasks become invisible but are not deleted, and global or info excludes are machine-local.
 - 🟢 Concepts, templates, config, task-files, commit-rules, trace-commits and the add/import/recur/ls/check/fix pages link to it.
-- 🟢 The root-`.` example explains why `.mindtape/templates/task.typ` is not a task; a second example shows a tracked-ignored task and a symlinked task file that stops being a source.
+- 🟢 The root-`.` example explains why `.mindtape/templates/task.typ` is not a task. A second example shows a tracked-ignored task and a symlinked task file that stops being a source.
 - 🟢 The changelog has a migration section, and a docs check asserts every listed page links to the canonical anchor.
 
 
@@ -73,7 +73,7 @@
 
 == Out of scope
 
-- Rewriting every mention; link to the canonical section.
+- Rewriting every mention stays out. Link to the canonical section.
 - The comparison pages and marketing copy.
 - Any claim of a `mt fix <file>` form, which does not exist.
 

@@ -61,7 +61,7 @@ error: on.add[0].when: old("derived.changes") reads a value the add cannot know 
 == Changes
 
 - `crates/mindtape/src/filter/strings.rs`: check the field's root against the add-unsafe list.
-- `crates/mindtape/src/filter/strings_old_tests.rs`: a declared derived field is refused.
+- `crates/mindtape/src/filter/strings_old_tests.rs`: a declared derived field fails.
 
 
 == Out of scope

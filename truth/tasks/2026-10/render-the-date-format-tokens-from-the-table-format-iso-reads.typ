@@ -33,7 +33,7 @@
 == AS-IS
 
 + Integrating the docs-claims branch from the pre-release docs review
-+ 🔴 #raw("www/content/config.typ"): the {date:FMT} token table on the config page is typed by hand from a doc comment in date/mod.rs, so no gate fails when a token changes
++ 🔴 #raw("www/content/config.typ"): the {date:FMT} token table on the config page repeats a doc comment in date/mod.rs by hand, so no gate fails when a token changes
 
 ```
 www/content/config.typ: #table(... [`YYYY`, `YY`], [Four-digit year ...], [`MMMM`, `MMM`] ...)
@@ -41,14 +41,14 @@ crates/mindtape/src/date/mod.rs:92  /// | `YYYY` | 4-digit year |  (doc comment 
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/date/mod.rs").
 
 == TO-BE
 
 - 🟢 One table in `date/mod.rs` lists each token and its description, and `format_iso` matches tokens by reading that table, longest first, so code and docs cannot disagree.
-- 🟢 `mt _cli` exports the table, the facts step writes it to `www/generated/`, and `config.typ` renders it, so the page holds no token by hand.
+- 🟢 `mt _cli` exports the table, the facts step writes it to `www/generated/`, and `config.typ` renders it. The page then takes every token from the fact.
 
   ```json
   "date_tokens": [{"token": "YYYY", "expands_to": "four-digit year"}, ...]
@@ -57,9 +57,9 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape/src/date/mod.rs`: the token table; `format_iso` driven by it; the doc comment points at it instead of repeating it.
+- `crates/mindtape/src/date/mod.rs`: the token table. `format_iso` follows it, and the doc comment points at it instead of repeating it.
 - `crates/mindtape-cli/src/cli/tree_json.rs`: export it beside `filter_functions`.
-- `www/generate-facts.sh` (or the step that reads `mt _cli`): write the fact; register it with `check-doc-facts`.
+- `www/generate-facts.sh` (or the step that reads `mt _cli`): write the fact. Register it with `check-doc-facts`.
 - `www/content/config.typ`: render the table from the fact.
 
 

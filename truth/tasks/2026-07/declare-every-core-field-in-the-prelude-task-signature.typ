@@ -15,20 +15,20 @@
 
 == Summary
 
-lib/prelude.typ declares the task show-rule as \#let task(body, ..meta), so every core field is invisible to tooling: tinymist offers no completion, no signature help, and no arity or spelling feedback while authoring a task. The fields are not open-ended — \_core-slots already enumerates them and the marker builder reads all thirteen by name. Typed authoring with editor support is a main reason to keep tasks in Typst rather than YAML frontmatter, and today the DSL gives up that advantage at exactly the point a user notices it.
+lib/prelude.typ declares the task show-rule as \#let task(body, ..meta), which hides every core field from tooling. tinymist doesn't offer completion, signature help, or arity and spelling feedback while authoring a task. The fields are not open-ended: \_core-slots already enumerates them and the marker builder reads all thirteen by name. Typed authoring with editor support is a main reason to keep tasks in Typst rather than YAML frontmatter. Today the DSL gives up that advantage at exactly the point a user notices it.
 
 == Scope
 
-- Give task an explicit named parameter per core field (title, status, priority, difficulty, kind, estimate, links, tags, due, start, reviewed, recur, id) with its default, keeping ..meta only for the x-\<ns> extension slots.
+- Give task an explicit named parameter per core field, with its default: title, status, priority, difficulty, kind, estimate, links, tags, due, start, reviewed, recur, id. Keep ..meta only for the x-\<ns> extension slots.
 - Preserve the current assertion behaviour: unknown non-x- keys still fail with the same message.
-- Verify tinymist actually surfaces the completions and signature help afterwards; record what it shows.
+- Verify tinymist actually surfaces the completions and signature help afterwards. Record what it shows.
 - Check the docs examples and templates still evaluate unchanged.
 
 == Verification
 
-Driven against tinymist 0.14.18 (Typst 0.14.2) over stdio LSP, on a probe file
-holding `\#show: task.with(` with the cursor in the argument list, with the
-prelude installed as `@local/mindtape:0.3.0` under an isolated `XDG_DATA_HOME`.
+Driven against tinymist 0.14.18 (Typst 0.14.2) over stdio LSP. The probe file
+holds `\#show: task.with(` with the cursor in the argument list, with an
+isolated `XDG_DATA_HOME` where the prelude resolves as `@local/mindtape:0.3.0`.
 
 `textDocument/signatureHelp` before:
 
@@ -45,13 +45,13 @@ task(body: any, difficulty: none, due: none, estimate: dictionary, id: none,
 ```
 
 `textDocument/completion` in an empty argument slot returned 299 items before,
-none of them a core field — only ambient global scope (`aqua`, `calc`, `mon`,
+none of them a core field, only ambient global scope (`aqua`, `calc`, `mon`,
 the `_`-prefixed prelude internals). After: the same globals plus the thirteen
 field names as named-argument items (`difficulty`, `due`, `estimate`, `id`,
 `kind`, `links`, `priority`, `recur`, `reviewed`, `start`, `status`, `tags`,
-`title`). On a partial `ti` the list narrows to `estimate` and `title`; before,
-it offered no field at all.
+`title`). On a partial `ti` the list narrows to `estimate` and `title`. Before, it
+didn't offer a field at all.
 
 Note the field defaults double as the type hint tinymist shows (`estimate:
-dictionary`, `links: array`, `tags: array`); the `none`-defaulted fields carry
+dictionary`, `links: array`, `tags: array`). The `none`-defaulted fields carry
 no type, which is the cost of a default that says "unset".

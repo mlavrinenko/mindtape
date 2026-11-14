@@ -31,7 +31,7 @@
     2026,
     10,
     1,
-  )[The motivating HyperlinkChoice::fmt survivor is already killed by render/link.rs:165 (4918023a); one assert\_eq does what a snapshot dependency and review workflow would.],
+  )[The motivating HyperlinkChoice::fmt survivor is already killed by render/link.rs:165 (4918023a). One assert\_eq does what a snapshot dependency and review workflow would.],
 )
 
 == AS-IS
@@ -43,23 +43,23 @@
 == TO-BE
 
 - 🟢 `insta` is a dev-dependency and the render layer's output shapes have committed snapshots (`HyperlinkChoice` display, one table layout).
-- 🟢 `cargo insta review` is the documented workflow; `just check` runs the snapshots like any test, and a changed byte fails until reviewed.
+- 🟢 `cargo insta review` is the documented workflow. `just check` runs the snapshots like any test, and a changed byte fails until reviewed.
 - 🟢 Snapshots are deterministic: no temp paths, no UUIDs, no clock.
 
 == Changes
 
 - `Cargo.toml` `[workspace.dependencies]` and `crates/mindtape-cli/Cargo.toml` `[dev-dependencies]`: add `insta`.
-- New snapshot tests beside `crates/mindtape-cli/src/render/`: the `HyperlinkChoice` `Display` impl and one table layout from `table_tests_layout.rs`'s fixtures.
+- New snapshot tests beside `crates/mindtape-cli/src/render/`: the `Display` implementation for `HyperlinkChoice` and one table layout from `table_tests_layout.rs`'s fixtures.
 - `CONTRIBUTING.md` Testing (or the mutation-testing deep dive): one paragraph on `cargo insta review`.
 
 == Rollback
 
-Remove the dependency and the `snapshots/` files; the previous assertions are untouched.
+Remove the dependency and the `snapshots/` files. The previous assertions stay.
 
 == Out of scope
 
 - Converting the existing render tests wholesale: one shape proves the workflow first.
-- Snapshotting `--format json`: serde already pins the schema; snapshots there add review noise.
+- Snapshotting `--format json`: `serde` already pins the schema. Snapshots there add review noise.
 
 == Dogfood
 

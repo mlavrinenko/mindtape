@@ -43,7 +43,7 @@ $ grep -n 'no longer' .just/scripts/_doc-prose-lib.sh .config/vale/styles/Prose/
 
 == TO-BE
 
-- 🟢 `check-doc-prose` reads Markdown, shell and YAML comments, schema descriptions and CLI help; its `.typ` rows and the Typst half of the name scan are gone.
+- 🟢 `check-doc-prose` reads Markdown, shell and YAML comments, schema descriptions and CLI help. Its `.typ` rows and the Typst half of the name scan disappear.
 - 🟢 Vale owns every `.typ` source, so a Typst prose rule lives in one file.
 - 🟢 The Markdown spelling check for `MindTape` stays, because Vale never reads Markdown.
 - 🟢 `just docs prose` and `just docs vale-prose` pass, and the control fixture has no `.typ` file.
@@ -57,9 +57,9 @@ $ just docs vale-prose
 == Changes
 
 - `.just/scripts/check-doc-prose.sh`: drop `typst_sources`, the string-literal rows, the `.typ` entries in the control, and the Typst half of `name_scan`.
-- `.just/scripts/_doc-prose-lib.sh`: drop the `*.typ` case in `rows_for` and the Typst half of `name_scan`; keep the Markdown half.
-- `.just/scripts/check-doc-prose.awk`: drop the Typst wording from its header; the scanner keeps one pass over the Markdown, comment, schema and CLI rows.
-- `.just/docs.just`: the `docs::prose` description, which no longer promises a typed-name check in Typst prose.
+- `.just/scripts/_doc-prose-lib.sh`: drop the `*.typ` case in `rows_for` and the Typst half of `name_scan`. Keep the Markdown half.
+- `.just/scripts/check-doc-prose.awk`: drop the Typst wording from its header. The scanner keeps one pass over the Markdown, comment, schema and CLI rows.
+- `.just/docs.just`: the `docs::prose` description, which drops the promise of a typed-name check in Typst prose.
 - `docs/src/contributing/documentation.typ`: say that Vale owns Typst prose and the script reads the rest.
 
 == Alternatives
@@ -69,7 +69,7 @@ $ just docs vale-prose
 == Out of scope
 
 - Markdown, shell and YAML comments, schema descriptions and CLI help, which Vale does not read.
-- A rendered string literal that holds an em dash; Vale never reads a string, and no rule covers it after the Typst rows go.
+- A rendered string literal that holds an em dash stays out. Vale never reads a string, and no rule covers it after the Typst rows go.
 
 == Dogfood
 

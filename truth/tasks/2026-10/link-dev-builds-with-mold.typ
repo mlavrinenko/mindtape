@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-An edit to `mindtape` relinked the test binaries in 10.2 s with ld and takes 4.6 s with mold, which the dev shell already shipped.
+An edit to `mindtape` relinked the test binaries in 10.2 s with the default linker and takes 4.6 s with mold, which the dev shell already carries.

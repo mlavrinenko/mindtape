@@ -17,13 +17,13 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[an agent reads the docs at a sixth of the bytes and finds every page from one index],
+      cheap-adoption: helps[an agent reads the docs at a sixth of the bytes and finds every page from one index.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the Markdown renders from the same Typst sources as the HTML, so the two cannot disagree],
+      docs-match-code: helps[the Markdown renders from the same Typst sources as the HTML, so the two cannot disagree.],
     ),
   ),
   assignee: "agent",
@@ -33,8 +33,8 @@
 == AS-IS
 
 + Fetch `https://mlavrinenko.github.io/mindtape/concepts/` the way an agent's fetch tool does.
-+ 🔴 It gets 28.6 KB of HTML with the sidebar, styles and scripts around 4.9 KB of content. No Markdown copy exists.
-+ 🔴 The site has no `/llms.txt`, so an agent finds pages only by crawling the sidebar.
++ 🔴 It gets 28.6 KB of HTML with the sidebar, styles and scripts around 4.9 KB of content. The site has no Markdown copy.
++ 🔴 The site has no `/llms.txt`.An agent finds pages only by crawling the sidebar.
 
 
 == TO-BE
@@ -42,7 +42,7 @@
 - 🟢 Every page at `/<route>/` has `/<route>/index.md`: its title, summary and body as Markdown, with code blocks keeping their language and links pointing at the other pages' `.md` copies.
 - 🟢 `/llms.txt` follows llmstxt.org: the site title, a one-line summary, then every page under its `NAV` group as `[title](md url): summary`, with the summary from the page's `<page-meta>`.
 - 🟢 Every page header shows a visible Markdown link to its copy, and its head carries `<link rel="alternate" type="text/markdown">`.
-- 🟢 typlite renders the Markdown from `www/content/*.typ`, with the tola-only parts stubbed by a `sys.inputs` flag. A page typlite cannot render fails the docs build. Nothing converts HTML.
+- 🟢 typlite renders the Markdown from `www/content/*.typ`, with the tola-only parts stubbed by a `sys.inputs` flag. A page typlite cannot render fails the docs build. The build never converts HTML.
 
 
 == Source of truth

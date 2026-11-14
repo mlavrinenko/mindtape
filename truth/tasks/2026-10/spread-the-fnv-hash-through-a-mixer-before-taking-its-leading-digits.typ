@@ -33,41 +33,41 @@
 == AS-IS
 
 + Reviewing the stem-hash commit 45d958bd against examples/large
-+ 🔴 #raw("crates/mindtape/src/handle.rs"): \`encode\` takes FNV-1a 64's most significant digits first, and FNV-1a spreads a stem's last bytes poorly into its top bits, so stems that differ only at the end share long prefixes.
++ 🔴 #raw("crates/mindtape/src/handle.rs"): \`encode\` takes the top digits of FNV-1a 64 first. FNV-1a spreads a stem's last bytes poorly into its top bits. Stems that differ only at the end then share long prefixes.
 
-Hash lengths, `mt ls '' --columns slug#` in `examples/large`, then a simulation with a splitmix64 finaliser:
+Hash lengths, `mt ls '' --columns slug#` in `examples/large`, then a simulation with a splitmix64 mixer:
 ```
 task-00001..02000      fnv: 1978×5, 21×4, 1×8, 1×3   mixed: 1854×3, 142×4, 4×5
 standup-2026-10-01..30 fnv: 29×5, 1×3                mixed: 30×3
 ```
-Recurring stems (`{slug}-{date}`, `recur.rs:45`) and `-2` dedup suffixes have this shape.
+Recurring stems (`{slug}-{date}`, `recur.rs:45`) and `-2` duplicate suffixes have this shape.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/handle.rs").
 
 == TO-BE
 
 - 🟢 Sequential and dated stems get hashes as short as unrelated ones: 1854 of 2000 `task-NNNNN` stems are 3 characters.
-- 🟢 Every hash is minted anew once; nothing pre-release keeps the old ones.
+- 🟢 The change mints every hash anew once, and pre-release builds can drop the old ones.
 
 
 == Changes
 
-- `crates/mindtape/src/handle_tests.rs`: red test first: lengths for 30 dated stems stay at 3; re-pin the literal code.
-- `crates/mindtape/src/handle.rs`: run a 64-bit finaliser (splitmix64 or fmix64) over the FNV result before `encode`.
+- `crates/mindtape/src/handle_tests.rs`: red test first: lengths for 30 dated stems stay at 3, and re-pin the literal code.
+- `crates/mindtape/src/handle.rs`: run a 64-bit mixer (splitmix64 or fmix64) over the FNV result before `encode`.
 
 
 == Rollback
 
-- Revert the commit; the unmixed codes and their pinned literal return.
+- Revert the commit. The unmixed codes and their pinned literal return.
 
 
 == Out of scope
 
 - Reserving stems and filter words, which its own finding does.
-- Swapping FNV for another hash crate: a finaliser is enough.
+- Swapping FNV for another hash crate: a mixer is enough.
 
 
 == Dogfood

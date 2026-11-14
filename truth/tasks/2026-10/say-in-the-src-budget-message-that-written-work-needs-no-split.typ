@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-The old message read as a request to split even when no work was left, so an agent asked before closing
+The old message read as a request to split even when no work remained, so an agent asked before closing

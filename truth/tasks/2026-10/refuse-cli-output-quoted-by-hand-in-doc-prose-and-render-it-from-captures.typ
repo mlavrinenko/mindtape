@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a quoted error line in the docs is checked against a real run],
+      enforced-practice: helps[the check compares a quoted error line in the docs against a real run],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -32,23 +32,23 @@
 
 == AS-IS
 
-+ Reviewing the docs before release: templates.typ quotes a hint that mt add no longer prints
-+ 🔴 #raw("www/content/templates.typ"): an inline span quoting mt output, such as an error: or hint: line, passes every doc gate, so the quoted text goes stale when the message changes
++ Reviewing the docs before release: templates.typ quotes a hint that mt add stopped printing
++ 🔴 #raw("www/content/templates.typ"): an inline span quoting mt output, such as an error: or hint: line, passes every doc gate. The quoted text then goes stale when the message changes
 
 ```
 www/content/templates.typ:36  #raw("hint: template `dev` files kind=dev: mt add -t dev ...")
 crates/mindtape-cli/src/cmd/add/hint.rs:91  hint: file it with the template that sets that field itself: mt add -t dev
 ```
-`check-doc-spans` checks a span's `mt` command line through clap, and `check-doc-blocks` checks blocks; neither reads a quoted output line.
+`check-doc-spans` checks a span's `mt` command line through clap, and `check-doc-blocks` checks blocks. A quoted output line escapes both checks.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-spans.sh").
 
 == TO-BE
 
-- 🟢 A page quotes one line of `mt` output with a helper that takes a capture slug and a regex and renders the matching line of that capture; the build fails when no line matches.
+- 🟢 A page quotes one line of `mt` output with a helper that takes a capture slug and a regex and renders the matching line of that capture. The build fails when no line matches.
 - 🟢 `just check-doc-spans` fails on a literal inline span starting with `error:`, `warning:`, `hint:` or `note:` in the sources the doc-blocks manifest names, naming file and line and pointing at the helper. Its control page holds one such span and asserts the finding.
 
   ```typ
@@ -65,7 +65,7 @@ left in a closing report no one rereads. It belongs in
 - `.just/scripts/check-doc-spans.sh` (and its control): refuse the literal shape.
 - `www/generate-*.sh`: add any capture the converted spans need.
 - `www/content/templates.typ` and each other page with a literal diagnostic span: use the helper.
-- `docs/src/contributing/documentation.typ`: name the rule beside "Use checked examples"; run `just docs md`.
+- `docs/src/contributing/documentation.typ`: name the rule beside "Use checked examples". Run `just docs md`.
 
 
 == Rollback
@@ -75,7 +75,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- Prose that paraphrases behaviour ("suggests wip"); no gate can read that.
+- Prose that paraphrases behaviour ("suggests wip") is beyond a gate's reach.
 
 
 == Dogfood

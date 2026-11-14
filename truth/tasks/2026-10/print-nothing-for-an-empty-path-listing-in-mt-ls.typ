@@ -43,8 +43,8 @@ $ mt ls blocked --format path | od -c
 So `wc -l` counts 1 for an empty result, and a `while read` loop runs once with an empty path. `path_format_is_empty_for_no_tasks` in `crates/mindtape-cli/src/render/output_tests.rs` passes because it tests `render`, not what `mt ls` prints.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs").
 
 == TO-BE
@@ -55,7 +55,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/ls/mod.rs`: print no newline after an empty `path` body.
+- `crates/mindtape-cli/src/cmd/ls/mod.rs`: print without a trailing newline after an empty `path` body.
 - `crates/mindtape-cli/tests/it/`: pin the empty output through the binary.
 
 

@@ -34,13 +34,13 @@
 == AS-IS
 
 + Open `README.md` as a software engineer who already keeps tasks in Markdown files with YAML frontmatter.
-+ 🔴 The first screen calls MindTape a daemon-free file-based task tracker and shows a task, but nothing in it needs Typst: frontmatter plus a script does the same.
-+ 🔴 Nothing shows what Typst adds: `wip(2026, 9, 14)[note]` as one typed value, `depends-on("a.typ")` edges checked on every command, and an `x-goals` field checked by a Typst function the repo keeps beside its tasks.
++ 🔴 The first screen calls mindtape a daemon-free file-based task tracker and shows a task, but nothing in it needs Typst: frontmatter plus a script does the same.
++ 🔴 The page never shows what Typst adds. `wip(2026, 9, 14)[note]` is one typed value, the tool checks `depends-on("a.typ")` edges on every command, and a Typst function the repo keeps beside its tasks checks an `x-goals` field.
 
 
 == TO-BE
 
-- 🟢 The README's first screen shows one task twice, as Markdown with YAML and as Typst, and names what only the Typst one does: typed values, links checked on every command, and a field the repo's own Typst function checks.
+- 🟢 The README's first screen shows one task twice, as Markdown with YAML and as Typst. It states what only the Typst one does: typed values, links checked on every command, and a field the repo's own Typst function checks.
 - 🟢 `www/content/index.typ` opens with the same comparison.
 
 == Source of truth
@@ -51,7 +51,7 @@
 
 == Changes
 
-- `docs/src/readme.typ`: the side-by-side opening, with the task taken from `truth/tasks/`; `just docs md` regenerates `README.md`.
+- `docs/src/readme.typ`: the side-by-side opening, with the task taken from `truth/tasks/`. `just docs md` regenerates `README.md`.
 - `www/content/index.typ`: the same opening.
 - `outdatty.lock`: re-record the group `docs/src/readme.typ` belongs to.
 

@@ -38,7 +38,7 @@
 == AS-IS
 
 + Run `mt check` in each of the 30 projects under `~/projects/home` with today's `mt`.
-+ 🔴 Three of them fail before reading a task, and nothing reported it, because `mt check` covers one repo per run. kimmable prints:
++ 🔴 Three of them fail before reading a task, and nothing reported it, because `mt check` covers one repo per run. `kimmable` prints:
 ```
 error: .mindtape/config.toml:107:17: can't parse config: unknown field `max`, expected one of `units`, `required`, `example`
 ```
@@ -46,7 +46,7 @@ error: .mindtape/config.toml:107:17: can't parse config: unknown field `max`, ex
 
 == TO-BE
 
-- 🟢 `mt @home check` checks every project in parallel, then prints each project's problems together in set order, each line naming its project.
+- 🟢 `mt @home check` checks every project in parallel, then prints each project's problems together in set order, each line with its project.
 - 🟢 It ends with one line, such as `ok: 27 projects, 1904 tasks` or `3 of 30 projects failed`, and exits 1 when any project fails.
 - 🟢 `--json` prints one object per project with its problems.
 - 🟢 `--commit-msg` and `--commits` refuse a set, since each reads one repo's git.

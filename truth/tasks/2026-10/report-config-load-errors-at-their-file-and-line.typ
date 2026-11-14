@@ -40,20 +40,20 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 - 🟢 A config error reads `error: .mindtape/config.toml:12: views.broken.sort: unknown sort field: 'nofield'`, the root-relative file and the line of the key.
 
 == Changes
 
 - `crates/mindtape/src/config/mod.rs`: `ConfigError` carries the file and, from the TOML spans, the line of the key at fault.
 - `crates/mindtape/src/config/layers.rs`: the validators' `Result<(), String>` keep their key path and gain the span.
-- `crates/mindtape-cli/src/cmd/config.rs` and `crates/mindtape-cli/src/util.rs`'s `open`: no `load <path>` context; the `Diag` names the file.
+- `crates/mindtape-cli/src/cmd/config.rs` and `crates/mindtape-cli/src/util.rs`'s `open`: no `load <path>` context. The `Diag` names the file.
 - `crates/mindtape/src/sort.rs`: `unknown sort field` quotes the field and suggests one.
 - `crates/mindtape/src/git/state.rs`: `git could not be run` becomes `can't run git: <reason>`.
 
 == Out of scope
 
-- The validators' own words: the two config-validator tasks.
+- The two config-validator tasks use the validators' own words.
 
 == Dogfood
 

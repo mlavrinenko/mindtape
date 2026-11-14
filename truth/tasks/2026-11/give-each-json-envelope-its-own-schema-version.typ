@@ -23,13 +23,13 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a consumer accepts a new envelope only when that envelope changed],
+      cheap-adoption: helps[A consumer accepts a new envelope only when that envelope changed.],
       typst-over-markdown: neutral,
       plain-files: neutral,
       self-describing: neutral,
     ),
     process: (
-      sound-codebase: helps[the version constant describes one shape instead of five],
+      sound-codebase: helps[The version constant describes one shape instead of five.],
       docs-match-code: neutral,
     ),
   ),
@@ -38,7 +38,7 @@
     2026,
     11,
     7,
-  )[superseded by a versioned \$schema URL per output; output no longer carries schema\_version],
+  )[superseded by a versioned \$schema URL per output. Output carries no `schema_version`],
 )
 
 == AS-IS
@@ -55,7 +55,7 @@ $ mt graph --json | jq .schema_version
 2
 ```
 
-Their shapes did not change. An agent that stops on an unknown version now refuses them even though it could parse them.
+Their shapes did not change. An agent that stops on an unknown version refuses them even though it could parse them.
 
 == TO-BE
 

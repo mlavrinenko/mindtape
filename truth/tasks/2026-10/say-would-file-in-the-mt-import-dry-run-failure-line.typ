@@ -33,7 +33,7 @@
 == AS-IS
 
 + Importing a batch with `--dry-run` where one record breaks a rule
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/import/mod.rs"): `fail_on_skips` always builds `Diag::batch("filed", …)`, so a dry run that wrote nothing ends by saying it filed tasks
++ 🔴 #raw("crates/mindtape-cli/src/cmd/import/mod.rs"): `fail_on_skips` always builds `Diag::batch("filed", …)`, so a dry run that didn't write anything ends by saying it filed tasks
 
 ```
 $ mt import --dry-run tasks.json
@@ -44,8 +44,8 @@ error: filed 3 of 4 tasks; 1 failed
 [exit 1]
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/import/mod.rs").
 
 == TO-BE
@@ -67,4 +67,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable. This repo imports no tasks in its gates, so only a person or an agent previewing an import sees the line.
+Not applicable. This repo's gates don't import tasks, so only a person or an agent previewing an import sees the line.

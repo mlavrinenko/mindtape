@@ -37,14 +37,14 @@
 == AS-IS
 
 + `git log --format=%s -300 | rg -c '^task: (start|close)'`.
-+ 🔴 108 of 300 commits are flip-only. Starts are committed on main because `just fork` refuses a dirty tree (`.just/scripts/fork.sh:74`); closes land after the work.
++ 🔴 108 of 300 commits are flip-only. Starts land on main because `just fork` refuses a dirty tree (`.just/scripts/fork.sh:74`). Closes land after the work.
 
 
 == TO-BE
 
-- 🟢 `just fork` runs first; the agent flips `wip` inside its worktree and commits it with the first work commit.
+- 🟢 `just fork` runs first. The agent flips `wip` inside its worktree and commits it with the first work commit.
 - 🟢 `mt done` rides in the last work commit, named by `Refs:`.
-- 🟢 The `mindtape-tasks` pack ships `flip-with-work`, so a flip-only commit is refused.
+- 🟢 The `mindtape-tasks` pack includes `flip-with-work`. A flip-only commit then gets refused.
 - 🟢 Filing stays a standalone `task:` commit: a planned task is a deliverable.
 
 
@@ -53,13 +53,13 @@
 - `docs/src/contributing.typ`, regenerated `CONTRIBUTING.md`: fork-first, and both setups (worktree, single checkout) for when a flip rides with which commit.
 - `docs/src/skill.typ`, regenerated `SKILL.md`: when to flip and commit, in Changing status.
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: `flip-with-work`, verbatim from the documented example.
-- `.mindtape/config.toml`: adds `decision` to `tasks.tags.allowed`, since this repo had no such tag and the rule's `staged(has_tag("decision"))` escape hatch could never fire; added rather than dropped, because Extending MindTape already files architectural/tooling decisions as tasks with no code of their own.
+- `.mindtape/config.toml`: adds `decision` to `tasks.tags.allowed`, since this repo had no such tag and the rule's `staged(has_tag("decision"))` escape hatch could never fire. The change adds the tag rather than dropping it, because Extending mindtape already files architectural and tooling decisions as tasks with no code of their own.
 - `.github/workflows/ci.yml`: moves `FLOOR` to `59c94720` (this change's parent), the last commit `flip-with-work` leaves exempt, mirroring how the Refs-stem migration moved it.
 
 
 == Rollback
 
-Disable `flip-with-work` in `.mindtape/config.toml`; standalone flip commits pass again.
+Disable `flip-with-work` in `.mindtape/config.toml`. Standalone flip commits pass again.
 
 
 == Out of scope

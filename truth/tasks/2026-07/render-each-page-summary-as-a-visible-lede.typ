@@ -15,10 +15,10 @@
 
 == Summary
 
-Every page already carries a written summary that is used only for the meta description. Rendering it under the heading gives each page a scannable one-line opening with no new copy to write and nothing to keep in sync.
+Every page already carries a written summary that feeds only the meta description. Rendering it under the heading gives each page a scannable one-line opening with no new copy to write and nothing to keep in sync.
 
 == Scope
 
-- Render the existing summary as a lede under the page heading
+- Render the existing summary as a visible opening under the page heading
 - Keep the same string feeding the meta description so the two cannot diverge
 - Style it as a subdued subtitle in both themes

@@ -33,7 +33,7 @@
 == AS-IS
 
 + Rewriting the last pending comment files for check-doc-prose
-+ 🔴 #raw(".just/scripts/check-doc-prose.sh"): check-doc-prose.pending is empty, yet the script still reads it and runs a pending\_filter arm with its own control
++ 🔴 #raw(".just/scripts/check-doc-prose.sh"): check-doc-prose.pending is empty, yet the script still reads it and runs a `pending_filter` arm with its own control
 
 ```
 $ wc -c .just/scripts/check-doc-prose.pending
@@ -43,8 +43,8 @@ $ grep -c -i pending .just/scripts/check-doc-prose.sh
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-prose.sh").
 
 == TO-BE
@@ -60,7 +60,7 @@ check-doc-prose: f.sh:3: all-caps "OUT"
 
 - `.just/scripts/check-doc-prose.pending`: delete.
 - `.just/scripts/check-doc-prose.sh`: drop `pending_filter`, its control and the header mention.
-- `docs/src/contributing/documentation.typ`: drop the pending sentences; regenerate the Markdown.
+- `docs/src/contributing/documentation.typ`: drop the pending sentences, and regenerate the Markdown.
 
 
 == Rollback

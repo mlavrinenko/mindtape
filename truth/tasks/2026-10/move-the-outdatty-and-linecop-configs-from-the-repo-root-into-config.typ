@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[each moved config is proven read at its new path, and the lock keeps its merge driver],
+      sound-codebase: helps[the gate proves each moved config reads at its new path, and the lock keeps its merge driver.],
       docs-match-code: neutral,
     ),
   ),
@@ -33,14 +33,14 @@
 == AS-IS
 
 + Run `git ls-tree --name-only HEAD` in the repo root.
-+ 🔴 It lists 35 entries. Three are one tool's config each: `outdatty.yaml`, `outdatty.lock` and `.linecop.yaml`. outdatty 0.9.0 and linecop 0.8.0 read a config from `.config/` with a `root:` that points back at the repo, but the dev shell pins outdatty 0.7.0 and linecop 0.7.0.
++ 🔴 It lists 35 entries. Three are one tool's config each: `outdatty.yaml`, `outdatty.lock` and `.linecop.yaml`. Version 0.9.0 of outdatty and 0.8.0 of linecop read a config from `.config/` with a `root:` that points back at the repo. The dev shell, however, pins outdatty 0.7.0 and linecop 0.7.0.
 
 
 == TO-BE
 
-- 🟢 The dev shell runs outdatty 0.9.0, linecop 0.8.0 and canibump 0.2.0, and `just check` passes on them.
-- 🟢 The three files live in `.config/`, so the root lists 32 entries. A probe whose output depends on each config prints the same before and after the move, and prints something else without `root: ..`.
-- 🟢 Each moved file is an input of the gate that reads it, the lock keeps its merge driver, and the commit-msg hook still asks for a `Docs-Unaffected:` footer.
+- 🟢 The dev shell runs outdatty 0.9.0, linecop 0.8.0 and `canibump` 0.2.0, and `just check` passes on them.
+- 🟢 The three files live in `.config/`. The root then lists 32 entries. A probe whose output depends on each config prints the same before and after the move, and prints something else without `root: ..`.
+- 🟢 Each moved file is an input of the gate that reads it, the lock keeps its merge driver, and the commit-msg hook still requires a `Docs-Unaffected:` footer.
 
 
 == Changes
@@ -49,7 +49,7 @@
 - `.config/outdatty.yaml`, `.config/outdatty.lock`, `.config/linecop.yaml`: the moved files, each config with `root: ..`.
 - `.just/outdatty.just`, `Justfile`, `.just/scripts/*.sh`: the manifest and lock paths the scripts and their fixtures read.
 - `.just/scripts/outdatty-lock-merge.sh`: read the manifest beside the lock and turn a lock key into a path from the top through its `root:`. It read `config/outdatty.yaml` for a lock in `.config/`.
-- `.config/gitleaks.toml`: the lock allowlist's anchored path.
+- `.config/gitleaks.toml`: the anchored path in the lock allowlist.
 - `.gitattributes`, `.mmz/config.yaml`, `.mindtape/config.toml`, `flake.nix`, `.githooks/commit-msg`: the new paths.
 - `docs/src/contributing.typ`, `docs/src/contributing/*.typ`, `contrib/ask-refactoring*`, `.mindtape/templates/sweep-size.typ`, `www/*.sh`: the new paths, with the rendered docs.
 - `crates/mindtape-cli/tests/it/outdatty_lock_merge_e2e.rs`: the lock and manifest at their new paths.
@@ -57,7 +57,7 @@
 
 == Rollback
 
-- Revert the move commit, then the bump. Each tool still reads a root config, so the old layout works again once the files are back.
+- Revert the move commit, then the bump. Each tool still reads a root config. The old layout then works again once the files are back.
 
 
 == Out of scope

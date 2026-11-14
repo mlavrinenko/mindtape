@@ -44,8 +44,8 @@ your filter · 0 of 14 tasks
 `compare.rs` makes `!=` hold on a missing field on purpose.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("www/content/filters.typ").
 
 == TO-BE
@@ -58,7 +58,7 @@ left in a closing report no one rereads. It belongs in
 
 - `www/content/filters.typ`: scope the sentence to `matches()` and `in_dict()`, and add the `!` case to the Operators section with a capture.
 - `www/generate-reference.sh`: capture the `>` and `!(<=)` pair over `estimate.src-files`.
-- `crates/mindtape/src/filter/strings.rs`: say the text functions read no value as a miss, as `==` does, not as every comparison does.
+- `crates/mindtape/src/filter/strings.rs`: say the text functions treat a missing value as a miss, as `==` does, not as every comparison does.
 
 
 == Rollback

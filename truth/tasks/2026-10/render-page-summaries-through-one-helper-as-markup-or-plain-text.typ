@@ -34,8 +34,8 @@
 == AS-IS
 
 + Read the Commit rules line of `README.md`'s doc index.
-+ 🔴 It shows a backslash before each backtick around `Refs` and `mt check --commit-msg`. The site's lede and the page's meta description show the backticks as text.
-+ The cause: a summary is a plain string. `www/templates/layout.typ:269`, `:138` and `docs/src/lib.typ`'s `www-summary` print it as text, and `commit-rules.typ:8` is the only summary with code in it.
++ 🔴 It shows a backslash before each backtick around `Refs` and `mt check --commit-msg`. The site's intro and the page's meta description show the backticks as text.
++ The cause is that a summary is a plain string. `www/templates/layout.typ:269`, `:138` and `docs/src/lib.typ`'s `www-summary` print it as text, and `commit-rules.typ:8` is the only summary with code in it.
 + The other summaries name code without formatting (`mt ls`, `every()`, `tasks.estimate`). They run from 8 words to three sentences (`rule-packs.typ:10`).
 
 
@@ -49,15 +49,15 @@
 == Changes
 
 - `www/utils/site.typ`: the helper, `summary(route, plain: bool)`.
-- `www/templates/layout.typ`: lede and `<meta description>` through the helper.
+- `www/templates/layout.typ`: intro and `<meta description>` through the helper.
 - `docs/src/lib.typ`: `www-summary` through the helper.
-- `www/generate-site-pages.sh`: the length check. Run it on today's pages first; it must name `rule-packs`.
+- `www/generate-site-pages.sh`: the length check. Run it on today's pages first. It must name `rule-packs`.
 - `www/content/*.typ`: rewrite the summaries.
 
 
 == Rollback
 
-Revert the commit; summaries go back to plain strings.
+Revert the commit. Summaries go back to plain strings.
 
 
 == Out of scope

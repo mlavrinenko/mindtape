@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run `just install`, then edit `docs/src/skill.typ` and regenerate `skills/mindtape/SKILL.md`.
-+ 🔴 `just check` passes while the harness copy still holds the old text, because `install.sh` copies the tree and writes no stamp.
++ 🔴 `just check` passes while the harness copy still holds the old text, because `install.sh` copies the tree without a stamp.
 
 ```
 $ rg -n 'mt rules' ~/.config/opencode/skills/mindtape/SKILL.md
@@ -61,12 +61,12 @@ warning: ~/.config/opencode/skills/mindtape differs from skills/mindtape; run `j
 - `.just/scripts/install.sh`: write the source hash into each installed skill.
 - `.just/scripts/check-skill-drift.sh`: compare the stamp with the source and warn on a mismatch.
 - `Justfile`: add `skill-drift` to the check arm.
-- `docs/src/contributing.typ`: name the stamp and the warning in the worktrees section.
+- `docs/src/contributing.typ`: state the stamp and the warning in the worktrees section.
 
 
 == Out of scope
 
-- Symlinking instead of copying; the copy stays matched to the installed `mt`.
+- Symlinking instead of copying stays out. The copy stays matched to the installed `mt`.
 - The skill content, which `cut-the-skill-to-an-index-of-what-mt-cannot-say` owns.
 
 

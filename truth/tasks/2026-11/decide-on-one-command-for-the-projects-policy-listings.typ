@@ -34,15 +34,15 @@
 == AS-IS
 
 + Run `mt rules`, `mt tags`, `mt views` and `mt dicts` in a project.
-+ 🔴 Each answers one slice of what the project enforces and why, so a reader runs four commands and still misses the collectors and fields.
++ 🔴 Each answers one slice of what the project enforces and why. A reader then runs four commands and still misses the collectors and fields.
 + Run `mt config show` to read the merged config.
-+ 🔴 The raw config names every key but says nothing about the origin, the readers or the shape a rule sees.
++ 🔴 The raw config lists every key but says nothing about the origin, the readers or the shape a rule sees.
 
 
 == TO-BE
 
 - 🟢 `mt explain` is the name. It is a verb, collides with no existing command, and is the umbrella for the project's listings.
-- 🟢 It absorbs `mt rules`, `mt tags`, `mt views` and `mt dicts`; `mt explain rules` keeps the derived-fields block.
+- 🟢 It absorbs `mt rules`, `mt tags`, `mt views` and `mt dicts`. `mt explain rules` keeps the derived-fields block.
 - 🟢 A bare `mt explain` may show an aggregate overview, and a subcommand reaches one listing. The exact split is a follow-up.
 - 🟢 `--json` keeps each listing's current keys, and `--for add|flip|commit` keeps filtering rules and tags.
 
@@ -55,13 +55,13 @@ $ mt explain dicts
 
 == Changes
 
-- `truth/tasks/decide-on-one-command-for-the-projects-policy-listings.typ`: records this decision; no code changes.
+- `truth/tasks/decide-on-one-command-for-the-projects-policy-listings.typ`: records this decision. Only this file changes.
 
 
 == Alternatives
 
-- `mt info`: too generic, and it names the input rather than the answer.
-- `mt describe`: clear, but longer to type; `explain` is the same call in one word.
+- `mt info`: too generic, and it states the input rather than the answer.
+- `mt describe`: clear, but longer to type. `explain` is the same call in one word.
 - `mt policy`: covers rules and tags, but not views and dicts.
 - `mt show`: collides with `mt config show`.
 - Keep four commands: the friction is remembering which one holds the answer.
@@ -69,8 +69,8 @@ $ mt explain dicts
 
 == Out of scope
 
-- The implementation, including the exact subcommand split and the bare overview; the follow-up `fold-the-project-listings-into-mt-explain.typ` settles them and keeps the JSON shapes.
-- A richer entry with origin and readers; `mt config show --origin` stays the source for origins.
+- The implementation, including the exact subcommand split and the bare overview. The follow-up `fold-the-project-listings-into-mt-explain.typ` settles them and keeps the JSON shapes.
+- A richer entry with origin and readers. `mt config show --origin` stays the source for origins.
 
 
 == Dogfood

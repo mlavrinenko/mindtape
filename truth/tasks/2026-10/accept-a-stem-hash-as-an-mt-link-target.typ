@@ -42,16 +42,16 @@ hint: run mt ls to see your tasks
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/link/plan.rs").
 
 == TO-BE
 
 - 🟢 `mt link we8 depends-on sde` links to the task whose hash is `sde` and writes its path, in an `--apply` map too.
-- 🟢 A hash shared by more than one task is refused, as it is for the task argument.
-- 🟢 Every `<task>` and link target resolves through `mindtape::resolve_ref`, from the working directory or the linking file. `rm` and `link` keep no rule of their own.
-- 🟢 A stem two folders share names the one beside the base, else is refused naming each path.
+- 🟢 `mt link` refuses a hash shared by more than one task, as it does for the task argument.
+- 🟢 Every `<task>` and link target resolves through `mindtape::resolve_ref`, from the working directory or the linking file. `rm` and `link` don't keep a rule of their own.
+- 🟢 A stem two folders share names the one beside the base. Otherwise the tool refuses it and names each path.
 - 🟢 One `From<RefError> for Diag` words every refusal.
 
 
@@ -72,7 +72,7 @@ left in a closing report no one rereads. It belongs in
 == Out of scope
 
 - `mt check`'s reading of a written edge, which takes a path only.
-- `mt retire`'s link retargeting, which writes `Path::display`, so `\` separators on Windows.
+- `mt retire`'s rewriting of a link target, which writes `Path::display`, so `\` separators on Windows.
 
 
 == Dogfood

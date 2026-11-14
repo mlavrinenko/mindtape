@@ -40,13 +40,13 @@
 + Read `skills/mindtape/SKILL.md`.
 + 🔴 `:14` and `:77` both state the hand-edit exception. `:39` restates `mt set --help` just before `:41` says flags live in `--help`. `:53` repeats the `k=v`/`k+=v`/`k@path` syntax. `:47` is a 200-word list of filter fields and helpers.
 + 🔴 `:47` "tasks the trailers of the commits that changed a file name" does not parse, and `:14` "and writes validate before landing" lacks a subject.
-+ Read `AGENTS.md`. 🔴 `:43-51` list crate versions and explain how the list is generated; `:11` gives the repo URL to an agent that is already in the repo.
++ Read `AGENTS.md`. 🔴 `:43-51` list crate versions and explain how the list forms. `:11` gives the repo URL to an agent that is already in the repo.
 
 
 == TO-BE
 
 - 🟢 SKILL.md states each rule once and keeps what an agent acts on. The filter field and helper list moves to a reference file the skill links.
-- 🟢 AGENTS.md says what Mindtape is and where things live, with no versions or build notes.
+- 🟢 AGENTS.md says what the tool is and where things live, with no versions or build notes.
 - 🟢 Both follow the plain-prose rules.
 
 
@@ -65,7 +65,7 @@
 
 == Out of scope
 
-- `skills/mindtape/evals/`: the skill teaches the same things, so the evals stand.
+- `skills/mindtape/evals/`: the skill covers the same things. The evals then stand.
 
 
 == Dogfood

@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a hook that flips its own task again is refused instead of forking without end],
+      sound-codebase: helps[mt refuses a hook that flips its own task again instead of forking without end],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Fixing `stop-a-waits-checker-that-runs-mt-from-spawning-itself-without-end`, which named `[[on.flip]]` out of scope
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs"): an `[[on.flip]]` `run` that runs `mt flip done <stem>` on the task being flipped reruns the same hook in the child, which spawns the next child, with no bound
++ 🔴 #raw("crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs"): an `[[on.flip]]` `run` that runs `mt flip done <stem>` on the task it flips reruns the same hook in the child, which spawns the next child, with no bound
 
 ```
 [[on.flip]]
@@ -48,20 +48,20 @@ $ ps -eo pid,ppid,args | grep "debug/[m]t flip" | wc -l
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs").
 
 == TO-BE
 
-- 🟢 A hook that flips the same task and status it runs for gets a refusal naming the loop, in one hop.
-- 🟢 A hook that flips another task still runs that task's own hooks, so no gate is skipped.
+- 🟢 A hook that flips the same task and status it runs for gets a refusal that states the loop, in one hop.
+- 🟢 A hook that flips another task still runs that task's own hooks. Every gate runs.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/it/flip_chain_e2e.rs`: the red tests, each under a 20 s timeout: a gate flipping its own task is refused in one hop, two hooks closing each other are refused, and a gate closing another task runs that task's gate.
-- `crates/mindtape-cli/src/cmd/flip/chain.rs`: the flips in progress, read from `MINDTAPE_FLIP_CHAIN`; refuse a repeated (task file, status) pair, and any flip 16 deep.
+- `crates/mindtape-cli/tests/it/flip_chain_e2e.rs`: the red tests, each under a 20 s timeout. mt refuses a gate that flips its own task in one hop, and two hooks that close each other. A gate that closes another task runs that task's gate.
+- `crates/mindtape-cli/src/cmd/flip/chain.rs`: the flips in progress, read from `MINDTAPE_FLIP_CHAIN`. Refuse a repeated (task file, status) pair, and any flip 16 deep.
 - `crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs`: pass the chain plus this flip down to every `run` command.
 - `crates/mindtape-cli/src/cmd/flip/mod.rs`: admit each target against the chain before any guard, `--force` or not.
 - `www/content/hooks.typ`: say what a hook's own `mt flip` may do.
@@ -80,4 +80,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable. This repo's `[[on.flip]]` hooks run no `mt flip`.
+Not applicable. This repo's `[[on.flip]]` hooks never run `mt flip`.

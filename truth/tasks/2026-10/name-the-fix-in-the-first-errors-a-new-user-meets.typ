@@ -33,7 +33,7 @@
 == AS-IS
 
 + In a fresh home where `mt install` never ran, run `mt init --no-input`, then `mt add "Fix login"`.
-+ 🔴 It prints `Error: the task as filled did not load: eval error: file not found (searched at <data>/typst/packages/local/mindtape/0.2.0/typst.toml)`. Nothing says `mt install` puts the prelude there.
++ 🔴 It prints `Error: the task as filled did not load: eval error: file not found (searched at <data>/typst/packages/local/mindtape/0.2.0/typst.toml)`. The message never says `mt install` puts the prelude there.
 + Append `[taks]` and `x=1` to `.mindtape/config.toml`, then run `mt ls`.
 + 🔴 It prints ``unknown field `taks`, expected one of …`` twice, as cause 0 and cause 1, and names no line.
 + Run `mt ls` outside any project.
@@ -56,7 +56,7 @@
 
 - `crates/mindtape-cli/tests/first_run_errors.rs`, new: the red tests first, one per error.
 - The module that wraps a task file's eval error: add the `mt install` hint on a missing `@local/mindtape` package.
-- The config loader: stop repeating the cause, and keep the span.
+- The config loader stops repeating the cause and keeps the span.
 - The project discovery error: name `mt init` and `-w`.
 
 
@@ -68,5 +68,5 @@
 
 == Dogfood
 
-Not applicable: this repo's dev shell runs `mt install`, so its contributors never meet the missing-prelude error.
+Not applicable: this repo's dev shell runs `mt install`.Its contributors never meet the missing-prelude error.
 

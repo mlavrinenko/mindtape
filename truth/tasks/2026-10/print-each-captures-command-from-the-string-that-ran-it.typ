@@ -40,28 +40,28 @@
 + Run the README Usage block in a fresh `mt init` project.
 + 🔴 `mt add --set title="Wire OAuth" --set priority=7` prints `unknown --set/-f key(s): priority; known slots: title`, and `mt flip done wire-oauth` prints `illegal transition proposed → done`.
 + 🔴 /quickstart/ shows `mt add ... --set impact=6 --set ease=5`, which fails the same way after `mt init`: the capture ran in `examples/learn-piano`, and the page does not say so.
-+ 🔴 Under "Pass a filter expression" the quickstart shows no filter, and the output equals plain `mt ls`. The command lives in `www/generate.sh` and the page types its own copy, or none.
++ 🔴 Under "Pass a filter expression" the quickstart omits the filter, and the output equals plain `mt ls`. The command lives in `www/generate.sh` and the page types its own copy, or none.
 
 
 == TO-BE
 
 - 🟢 Each capture records its command line, its project and its output. `terminal(<slug>)` prints `$ <command>` from that record, then the output.
-- 🟢 The quickstart runs in a project `www/generate.sh` creates with `mt init --no-input`, so a reader who follows it gets the same output.
-- 🟢 README Usage is removed; README links the quickstart.
+- 🟢 The quickstart runs in a project `www/generate.sh` creates with `mt init --no-input`. A reader who follows it then gets the same output.
+- 🟢 The README drops Usage and links the quickstart.
 
 
 == Changes
 
-- `www/generate.sh`: a `capture <slug> <dir> -- <argv>` function writing `<slug>.json` with `cmd`, `project` and `out`; a scratch `mt init --no-input` project for the quickstart. First make `quickstart.typ` read a capture whose command differs from its typed block, and see the render fail.
+- `www/generate.sh`: a `capture <slug> <dir> -- <argv>` function writing `<slug>.json` with `cmd`, `project` and `out`. It also makes a scratch `mt init --no-input` project for the quickstart. First make `quickstart.typ` read a capture whose command differs from its typed block, and see the render fail.
 - `www/utils/ui.typ`: `terminal()` and `terminal-ansi()` take a slug and print the command.
 - `www/utils/cli-notes.typ`: blocks through the new helper.
-- `www/content/quickstart.typ`, `www/content/cli.typ`: use it; drop their typed command blocks from the block-gate list.
+- `www/content/quickstart.typ`, `www/content/cli.typ`: use it, and drop their typed command blocks from the block-gate list.
 - `docs/src/readme.typ`: drop the Usage section.
 
 
 == Rollback
 
-Revert the commit; the pages go back to typed command blocks.
+Revert the commit. The pages go back to typed command blocks.
 
 
 == Out of scope

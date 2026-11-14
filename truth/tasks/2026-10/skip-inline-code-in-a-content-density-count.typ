@@ -40,7 +40,7 @@
 
 == TO-BE
 
-- 🟢 A `density` assertion drops inline code as well as fenced blocks before it splits and counts, with no new config key.
+- 🟢 A `density` assertion drops inline code as well as fenced blocks before it splits and counts, without a new config key.
 - 🟢 A single-backtick span and a one-line span of three or more backticks both count as code. Prose outside the span still counts.
 - 🟢 A sentence never splits inside a span, and the snippet a violation quotes is the original text, without the list marker.
 
@@ -52,15 +52,15 @@ assert = { density = { pattern = '\?(\s|$)', max = 0, per = "sentence" } }
 == Changes
 
 - `crates/mindtape/src/body/content_gate/content_gate_density_tests.rs`: the red tests first, a `?` inside single and triple backtick spans, an escaped backtick, and a one-line triple-backtick span at the start of a line.
-- `crates/mindtape/src/body/content_gate/content_gate_density.rs`: mask each inline raw span byte for byte, so splits and counts run on the masked text and the snippet comes from the original; treat a line whose opening backtick run closes on that line as inline, not a fence.
-- `www/content/rules.typ`: the density bullet says code, fenced or inline, is removed first.
+- `crates/mindtape/src/body/content_gate/content_gate_density.rs`: mask each inline raw span byte for byte, so splits and counts run on the masked text and the snippet comes from the original. Treat a line whose opening backtick run closes on that line as inline, not a fence.
+- `www/content/rules.typ`: the density bullet says the count removes code, fenced or inline, first.
 
 
 == Alternatives
 
 - Remove the spans outright. A line holding only a span then turns blank and splits a paragraph.
 - A `skip-code` key on the assertion. Nobody wants a density count over code, so a key would only add a way to get it wrong.
-- Strip spans in the rule's regex. A regex can't tell a backtick that opens a span from one that closes it.
+- Strip spans in the rule's regex. A regex sees only backticks, with no way to tell an opening one from a closing one.
 
 
 == Out of scope

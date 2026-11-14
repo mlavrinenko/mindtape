@@ -16,7 +16,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer learns the next command from the dead end itself],
+      cheap-adoption: helps[the next command appears in the dead end itself],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -32,7 +32,7 @@
 == AS-IS
 
 + Run `mt explain`, then `mt ls 'status == "failed"'`.
-+ 🔴 The first ends at the dictionaries and names no next command. The second prints a zero-row table with no way out.
++ 🔴 The first ends at the dictionaries and stops there. The second prints a zero-row table with no way out.
 
 ```
 $ mt explain | tail -2
@@ -43,7 +43,7 @@ SLUG#  TITLE  FILE
 your filter · 0 of 941 tasks
 ```
 
-+ Run `mt eval nope`; it already names `mt ls`, which proves the convention exists.
++ Run `mt eval nope`. It already names `mt ls`, which proves the convention exists.
 
 
 == TO-BE
@@ -81,11 +81,11 @@ next: run `mt ls` for your work, or `mt <command> --help` for flags
 
 == Out of scope
 
-- Rewriting `--help` text that already names the flags.
+- Rewriting `--help` text that already states the flags.
 - Changing any command's behavior or exit code.
 
 
 == Dogfood
 
-This repo's `mt` calls are the examples; `just check` runs the CLI tests that assert each hint.
+This repo's `mt` calls are the examples. `just check` runs the CLI tests that assert each hint.
 

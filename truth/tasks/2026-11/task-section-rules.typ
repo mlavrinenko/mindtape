@@ -41,13 +41,13 @@
 == TO-BE
 
 - 🟢 The section rules follow properties: `stateful` requires Rollback, `stateless` forbids it, and `decision` carries Alternatives.
-- 🟢 `decision` is a kind, so a decision closes in a task-only commit without a tag: `flip-with-work` reads `staged(kind == "decision")`.
+- 🟢 `decision` is a kind. A decision then closes in a task-only commit without a tag, and `flip-with-work` reads `staged(kind == "decision")`.
 - 🟢 `Problem` and `AS-IS` both pass the allowlist during the transition, and `AS-IS` gets the same unique, order, non-empty and word-cap rules as `Problem`.
-- 🟢 The statefulness and example rules land behind the pack params `statefulness` and `examples`, both off, so the old templates and fixtures stay green until `turn-on-state-rules` sets them.
+- 🟢 The `statefulness` and example rules land behind the pack params `statefulness` and `examples`, both off, so the old templates and fixtures stay green until `turn-on-state-rules` sets them.
 
 == Changes
 
-- `crates/mindtape/src/packs/tasks.toml`: the `decision` kind, `alternatives-for-design`, the AS-IS rule set, the statefulness and example rules behind `param("statefulness")` and `param("examples")`, the both-heading allowlist and the `flip-with-work` kind test.
+- `crates/mindtape/src/packs/tasks.toml`: the `decision` kind, `alternatives-for-design`, the AS-IS rule set, the `statefulness` and example rules behind `param("statefulness")` and `param("examples")`, the both-heading allowlist and the `flip-with-work` kind test.
 - `crates/mindtape/src/packs/dogfood.toml`: the matching allowlist.
 - `.mindtape/config.toml`: the tag list, the `decision` tag removal, and the two params set false.
 - `truth/tasks/*.typ`: the filed tasks' `stateless` tags and this task's own Rollback removal.
@@ -55,7 +55,7 @@
 == Alternatives
 
 - Gate by commit type, as today: a `dev` chore carries a Rollback for a default revert, and a decision cannot carry Alternatives until it is a feat.
-- Turn every rule on at once: the templates, the api-service fixture and the open jscpd task fail the gate before the corpus is migrated.
+- Turn every rule on at once: the templates, the api-service fixture and the open jscpd task fail the gate before the corpus migration.
 
 == Out of scope
 

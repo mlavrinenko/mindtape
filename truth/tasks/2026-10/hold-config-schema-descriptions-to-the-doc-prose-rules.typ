@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the schema text the site and editors show is held to the history rule hand-written docs are],
+      docs-match-code: helps[the check holds the schema text the site and editors show to the history rule for hand-written docs],
     ),
   ),
   assignee: "agent",
@@ -35,10 +35,10 @@
 + Rendering config key tables from the schema for /statuses/, /rules/ and /links/
 + 🔴 #raw("schema/config.schema.json"): config doc comments reach the docs site and editors through the schema, and no check refuses a history word in them.
 
-`crates/mindtape/tests/schema_descriptions.rs` refuses a `crate::` path and a rustdoc intra-doc link, and nothing else. `758441b6` removed "Defaults to `local-task-path`, which is exactly the historical behaviour" from `LinkKind.validate` by hand, so the wording reaches the schema and nothing stops it coming back.
+`crates/mindtape/tests/schema_descriptions.rs` refuses a `crate::` path and a `rustdoc` intra-doc link, and nothing else. `758441b6` removed "Defaults to `local-task-path`, which is exactly the historical behaviour" from `LinkKind.validate` by hand. That wording reaches the schema, and nothing stops it coming back.
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-prose.sh").
 
 == TO-BE
@@ -49,7 +49,7 @@ left in a closing report no one rereads. It belongs in
 
 - `.just/scripts/check-doc-prose.sh`: read every `description` out of the schema and scan it with the existing word lists.
 - `.mmz/config.yaml`: add `policy`, which holds `schema/**`, to the check-doc-prose rule's inputs.
-- `Justfile`: say in the recipe comment that the schema descriptions are scanned.
+- `Justfile`: say in the recipe comment that the check scans the schema descriptions.
 
 == Rollback
 
@@ -59,7 +59,7 @@ Revert the script change.
 
 - Six descriptions the scan flagged: reworded in `reword-the-six-config-schema-descriptions-that-read-as-history`.
 - Rust paths and intra-doc links: `crates/mindtape/tests/schema_descriptions.rs` already refuses them.
-- Rustdoc on internal items that never reach the schema: no reader outside the crate sees it.
+- `rustdoc` on internal items that never reach the schema: no reader outside the crate sees it.
 
 == Dogfood
 

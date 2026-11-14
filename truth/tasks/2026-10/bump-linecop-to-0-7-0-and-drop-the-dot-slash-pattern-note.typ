@@ -39,8 +39,8 @@
 
 == TO-BE
 
-- 🟢 The flake carries linecop 0.7.0, and `just check` passes with it (checked ahead: this repo's linecop verdict is unchanged).
-- 🟢 The `.linecop.yaml` comment states the 0.7.0 rule: patterns are `.gitignore` lines relative to the config; `./x` or `/x` anchors to the root, a bare name matches at any depth.
+- 🟢 The flake carries linecop 0.7.0, and `just check` passes with it (checked ahead: this repo's linecop verdict stays the same).
+- 🟢 The `.linecop.yaml` comment states the 0.7.0 rule: patterns are `.gitignore` lines relative to the config. `./x` or `/x` anchors to the root, and a bare name matches at any depth.
 
 
 == Changes
@@ -51,12 +51,12 @@
 
 == Rollback
 
-Revert the commit; the 0.4.0 lock and the old comment come back together.
+Revert the commit. The 0.4.0 lock and the old comment come back together.
 
 
 == Out of scope
 
-- The patterns themselves: every one keeps its meaning under 0.7.0.
+- Every pattern keeps its meaning under 0.7.0.
 
 
 == Dogfood

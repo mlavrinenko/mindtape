@@ -33,7 +33,7 @@
 == AS-IS
 
 + Dogfooding milestone 4q2 from `~` with `mt @mt ls -n 2`.
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): A single-project `@name` turns into `-w <path>` before `ls` parses, so the next-page hint drops it. A set's hint keeps its `@name`.
++ 🔴 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs"): A single-project `@name` turns into `-w <path>` before `ls` parses. The next-page hint then drops it, while a set's hint keeps its `@name`.
 
 
 ```
@@ -45,8 +45,8 @@ $ mt @home ls ready -n 3 | tail -1
 `~/.cargo/bin/mt` 0.3.0 prints the same `mt ls -n 2 --skip 2`, so it predates 4q2.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs").
 
 == TO-BE
@@ -58,12 +58,12 @@ left in a closing report no one rereads. It belongs in
 == Changes
 
 - `crates/mindtape-cli/tests/it/ls_set_e2e.rs`: the red test first, a single-project `@name` listing cut by `-n`.
-- `crates/mindtape-cli/src/cmd/ls/mod.rs`: `next_command_hint` restates how the run selected its project, from the `@name` the desugar saw or from `-w`.
+- `crates/mindtape-cli/src/cmd/ls/mod.rs`: `next_command_hint` restates how the run selected its project, from the `@name` the rewrite saw or from `-w`.
 
 
 == Rollback
 
-- Revert the commit; the hint drops the selector again.
+- Revert the commit. The hint drops the selector again.
 
 
 == Out of scope

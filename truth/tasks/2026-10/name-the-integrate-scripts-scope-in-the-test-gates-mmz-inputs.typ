@@ -37,7 +37,7 @@
 == AS-IS
 
 + Wiring the outdatty.lock merge driver's e2e test into the \`just test\` mmz rule
-+ 🔴 #raw(".mmz/config.yaml"): \`crates/mindtape-cli/tests/integrate\_refs\_e2e.rs\` runs \`.just/scripts/integrate.sh\`, but the \`just test\` and \`just cover\` rules do not list \`script-integrate\`, so an edit to integrate.sh alone leaves both served as fresh cache hits.
++ 🔴 #raw(".mmz/config.yaml"): \`crates/mindtape-cli/tests/integrate\_refs\_e2e.rs\` runs \`.just/scripts/integrate.sh\`. But the \`just test\` and \`just cover\` rules do not list \`script-integrate\`, and an edit to integrate.sh alone leaves both served as fresh cache hits.
 
 ```
 $ rg -n 'integrate.sh' crates/mindtape-cli/tests/integrate_refs_e2e.rs
@@ -50,8 +50,8 @@ $ grep -n -A2 'name: just test' .mmz/config.yaml
 The scope list's own comment says integrate.sh is "named by no rule".
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".mmz/config.yaml").
 
 == TO-BE

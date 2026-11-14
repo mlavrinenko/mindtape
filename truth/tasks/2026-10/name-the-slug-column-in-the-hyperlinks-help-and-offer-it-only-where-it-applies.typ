@@ -2,7 +2,7 @@
 #import "/truth/lib.typ": *
 
 #show: task.with(
-  title: "Name the slug# column in the --hyperlinks help and offer it only where it applies",
+  title: "Name the slug# column in the hyperlinks help and offer it only where it applies",
   kind: "dev",
   priority: ice(
     impact: 3,
@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the help and the schema name the column the table prints, on the commands that print it],
+      docs-match-code: helps[the help and the schema name the column on the commands that print it.],
     ),
   ),
   assignee: "agent",
@@ -31,7 +31,7 @@
     2026,
     10,
     17,
-  )[Declared --hyperlinks on ls, find and flip and named slug\# in the help and schema.],
+  )[Declared the `--hyperlinks` flag on ls, find and flip and named slug\# in the help and schema.],
 )
 
 == AS-IS
@@ -47,14 +47,14 @@
 while `mt ls` heads its first column `SLUG#`. `schema/config.schema.json:1072`, `:1385` and `:1393` say "the `#` and `file` cells", from the doc comments at `crates/mindtape/src/config/ls.rs:78`, `:82` and `:122`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cli/mod.rs").
 
 == TO-BE
 
-- 🟢 The help and the three schema descriptions name the `slug#` and `file` columns.
-- 🟢 `--hyperlinks` is declared on `ls`, `find` and `flip`, whose output prints a task table, and `mt at --help` and `mt board --help` don't list it.
+- 🟢 The help and the three schema descriptions call the columns `slug#` and `file`.
+- 🟢 `--hyperlinks` sits on `ls`, `find` and `flip`, whose output prints a task table, and `mt at --help` and `mt board --help` don't list it.
 
 
 == Changes
@@ -79,5 +79,5 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-This repo names tasks by the `SLUG#` hash `mt ls` prints, so the help names the column its owner reads all day.
+This repo names tasks by the `SLUG#` hash `mt ls` prints. The help then calls the column its owner reads all day.
 

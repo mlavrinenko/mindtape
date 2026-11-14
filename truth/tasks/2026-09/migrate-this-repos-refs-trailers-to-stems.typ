@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the Refs rule is checked on every commit here],
+      enforced-practice: helps[a hook checks the Refs rule on every commit here],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -39,7 +39,7 @@
 
 == TO-BE
 
-- 🟢 `CONTRIBUTING.md` asks for `Refs: <stem>`; a commit touching only task files needs none.
+- 🟢 `CONTRIBUTING.md` asks for `Refs: <stem>`. A commit touching only task files needs none.
 - 🟢 `.githooks/commit-msg` runs `mt check --commit-msg "$1"` beside its `Gate-Scope` check.
 - 🟢 The `mindtape-tasks` pack ships the `work-names-a-task` rule, so this repo and every project extending the pack get it.
 

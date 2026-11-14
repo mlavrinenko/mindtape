@@ -17,9 +17,9 @@
 == Summary
 
 Once OSC 8 wrapping exists, the `#` handle is the natural thing to click. It is
-the leftmost cell, it is already what you read to identify a row, and unlike
-the `file` column it costs no horizontal space — the link rides on characters
-that are on screen regardless. A listing could then be click-navigable without
+the leftmost cell, and it is already what you read to identify a row. Unlike the
+`file` column, it costs no horizontal space: the link rides on characters that
+are on screen regardless. A listing could then be click-navigable without
 showing a path column at all.
 
 == Decisions
@@ -29,41 +29,41 @@ showing a path column at all.
   answer.
 - The target is the task's own file, built through the same
   `[ls] hyperlink-target` template.
-- Both `#` and `file` link. The two open questions this task was filed with —
-  whether per-column control is wanted, and whether linking `#` makes the
-  `file` column redundant — are settled: no per-column `link` key, and `file`
-  stays exactly as it is. Linking `#` is additive. Someone who wants the path
-  on screen still opts the column in; someone who does not gets a
-  click-navigable listing with no extra width spent.
-- No new configuration. `[ls] hyperlinks` remains the single switch, and the
-  set of linked columns is fixed rather than declared.
+- Both `#` and `file` link. This task opened with two questions: whether
+  the user wants per-column control, and whether linking `#` makes the `file`
+  column redundant. Both questions have answers. Per-column control stays out, and `file` stays
+  exactly as it is. Linking `#` is additive. Someone who wants the path
+  on screen still opts the column in. Someone who does not gets a click-navigable
+  listing with no extra width spent.
+- No new configuration. `[ls] hyperlinks` remains the single switch, and the tool fixes the
+  set of linked columns rather than declaring it.
 
 == Scope
 
 - `build_columns` in `table.rs` currently attaches `link_uris` when
-  `id == ColumnId::File`. Extend that to `Handle` as well; the URI is per row,
-  not per column, so both columns share one target list and it is built once.
+  `id == ColumnId::File`. Extend that to `Handle` as well. The URI is per row, not
+  per column, so both columns share one target list that the code builds once.
 - The interactive path is the risk. `apply_highlight` rewrites the handle
   column's cells for `mt ls -i`, and the same characters are what a user types
   to select a row. Highlighting and linking must compose without the escape
   payload leaking into the width accounting or into what the key loop reads
   back.
-- Tests: `#` wrapped when hyperlinks are on and not otherwise; both columns
-  carrying the same target for a given row; layout byte-identical once the
-  sequences are stripped, matching the existing width-accounting test; the
-  interactive highlight still correct with links active.
+- Tests: `#` wrapped when hyperlinks are on and not otherwise. Both columns
+  carry the same target for a given row. Layout stays byte-identical once the code strips
+  the sequences, matching the existing width-accounting test. The
+  interactive highlight stays correct with links active.
 
 == Outcome
 
 The feared conflict did not exist. The key loop reads real key events from
-crossterm, never the rendered screen, so the escape payload on a handle cell
-cannot reach what the loop matches against — and the wrap already sat after
-width fitting in `render_grid`, which is where highlight applies too. `#` and
+`crossterm`, never the rendered screen, so the escape payload on a handle cell
+cannot reach what the loop matches against. The wrap already sat after width
+fitting in `render_grid`, which is where highlight applies too. `#` and
 `file` compose by construction rather than by care.
 
 `is_linked_column` states the fixed set in one place, and `build_columns`
-builds the per-row target list once — only when a linked column is actually
-visible — and clones it into each. Two calls could have disagreed if
+builds the per-row target list once (only when a linked column is actually
+visible) and clones it into each. Two calls could have disagreed if
 `[ls] hyperlink-target` or the handles drifted between them.
 
 Estimate 6 declared, 12 touched, and unlike the previous overrun this one is

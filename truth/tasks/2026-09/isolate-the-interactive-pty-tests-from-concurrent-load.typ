@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running \`just check\` in one worktree while three delegated agents ran their own suites on the same machine.
-+ 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): Two pty tests fail under concurrent machine load and pass in isolation, so a green suite depends on nothing else running.
++ 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): Two pty tests fail under concurrent machine load and pass in isolation. A green suite then needs an idle machine.
 
 ```
 FAIL [   2.371s] (1570/2592) mindtape-cli::interactive_e2e opening_a_task_still_works_with_hyperlinks_active
@@ -46,45 +46,45 @@ Re-running the same two by name on the same tree, unchanged: `2 tests run:
 finished, passed all 2592.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/tests/interactive_e2e.rs").
 
 == TO-BE
 
 - 🟢 The two tests wait on the TUI reaching the state they assert instead of
-  on wall-clock time, so a loaded machine makes them slower and not red.
+  on wall-clock time. A loaded machine makes them slower, not red.
 - 🟢 Running the full suite beside three other builds passes, repeatedly.
-- 🟢 If a bound is genuinely needed, it is a named constant with the reason
+- 🟢 If a bound is truly needed, it is a named constant with the reason
   beside it, not a literal buried in the assertion.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/interactive_e2e.rs` — replace whatever fixed
+- `crates/mindtape-cli/tests/interactive_e2e.rs`: replace whatever fixed
   wait these two depend on with a poll until the expected frame appears,
   bounded by a generous timeout that fails with the frame it last saw.
-- `crates/mindtape-cli/tests/support/` — if the poll is worth sharing, it
-  belongs there; `check-dry` fails on a second copy.
-- `docs/src/contributing/windows.typ` — these are the Unix-only pty tests it
-  already describes; say they must not depend on machine load.
+- `crates/mindtape-cli/tests/support/`: if the poll is worth sharing, it
+  belongs there. `check-dry` fails on a second copy.
+- `docs/src/contributing/windows.typ`: these are the Unix-only pty tests it
+  already describes. Say they must not depend on machine load.
 
 
 == Rollback
 
-Revert the test file. The change is test-only, so nothing shipping depends
+Revert the test file. The change is test-only, so no runtime code depends
 on it and no consumer can observe the difference.
 
 
 == Out of scope
 
-- The TUI itself, which is not what failed; the assertions raced it.
+- The TUI itself, which is not what failed. The assertions raced it.
 - The other four tests in the same file, which did not flip.
 
 
 == Dogfood
 
-This repo runs several delegated worktrees at once on purpose, so the
+This repo runs many delegated worktrees at once on purpose, so the
 concurrent case is the normal case here. The next parallel wave is the
 test: a red arm must mean a real break.
 

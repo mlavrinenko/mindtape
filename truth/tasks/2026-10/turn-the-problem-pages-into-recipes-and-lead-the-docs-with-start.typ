@@ -68,7 +68,7 @@
 
 == Out of scope
 
-- What the recipes show: progressive caps, the rule pack written out, a replacement for gate-done and a goals recipe wait on the owner's call.
+- The recipes show progressive caps, the rule pack written out, a replacement for gate-done and a goals recipe, all waiting on the owner's call.
 - The milestone cap in the work-in-progress recipe, which has its own task.
 
 

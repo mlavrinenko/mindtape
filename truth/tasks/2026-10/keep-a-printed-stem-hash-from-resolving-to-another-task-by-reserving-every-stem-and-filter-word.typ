@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the filter-word list cannot drift from the dispatcher],
+      sound-codebase: helps[the filter-word list cannot drift from the dispatcher.],
       docs-match-code: neutral,
     ),
   ),
@@ -30,13 +30,13 @@
   status: done(2026, 10, 4),
   links: related(
     "give-the-filter-functions-one-registry-that-dispatch-docs-coverage-and-mt-rms-filter-words-read.typ",
-  )[the reserved filter words come from the registry],
+  )[the reserved filter words come from the registry.],
 )
 
 == AS-IS
 
 + Reviewing the stem-hash commits 45d958bd to 9006d477
-+ 🔴 #raw("crates/mindtape/src/handle.rs"): \`StemHashes\` mints hashes without knowing the stems, so a printed hash equal to another task's exact stem resolves to that stem's task, and one equal to a filter word reads as a filter in \`mt rm\`.
++ 🔴 #raw("crates/mindtape/src/handle.rs"): `StemHashes` mints hashes without knowing the stems. A printed hash equal to another task's exact stem resolves to that stem's task, and one equal to a filter word reads as a filter in `mt rm`.
 
 ```
 $ mt ls --columns 'slug#,title,file'
@@ -46,16 +46,16 @@ hb3    Alpha           tasks/alpha.typ
 $ mt wip hb3
 flipped hb3 (Something else): todo → wip
 ```
-`util.rs:160` tries an exact stem before a hash. `filter_dispatch_tests.rs` checks that each of the 17 `WORDS` (`filter_eval.rs:21`) dispatches, not that each dispatched word is listed.
+`util.rs:160` tries an exact stem before a hash. `filter_dispatch_tests.rs` checks that each of the 17 `WORDS` (`filter_eval.rs:21`) dispatches. It doesn't check that `WORDS` lists each dispatched word.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/handle.rs").
 
 == TO-BE
 
-- 🟢 A printed stem hash never equals a loaded stem or a word `Filter::names_term` accepts; such a hash lengthens past it.
+- 🟢 A printed stem hash never equals a loaded stem or a word `Filter::names_term` accepts. Such a hash lengthens past it.
 - 🟢 Every word `nullary` or `function` dispatches is in `WORDS`, and a test fails when one is missing.
 
 
@@ -64,12 +64,12 @@ left in a closing report no one rereads. It belongs in
 - `crates/mindtape-cli/tests/stem_hash_e2e.rs`: red test first: a stem spelling another task's hash.
 - `crates/mindtape/src/handle.rs`: take a reserved set and lengthen any hash it contains.
 - `crates/mindtape-cli/src/util.rs`: pass every stem and filter term as reserved.
-- `crates/mindtape/src/filter_dispatch_tests.rs`: the reverse test, every dispatched word is listed.
+- `crates/mindtape/src/filter_dispatch_tests.rs`: the reverse test. `WORDS` lists every dispatched word.
 
 
 == Rollback
 
-- Revert the commit; hashes mint without a reserved set again.
+- Revert the commit. Hashes mint without a reserved set again.
 
 
 == Out of scope

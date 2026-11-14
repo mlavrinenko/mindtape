@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the release notes describe the shipped mt, not interim states],
+      docs-match-code: helps[the release notes describe the released mt, not interim states],
     ),
   ),
   assignee: "agent",
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Pre-release review for 0.3.0, after `just release 0.3.0 --dry-run` passed
-+ 🔴 #raw("CHANGELOG.md"): `[Unreleased]` is 171 KB of 257 entries logged commit by commit, some naming commands that no longer exist, and nothing tells a 0.2.0 user that the binary is now `mt` and their task files must be refiled
++ 🔴 #raw("CHANGELOG.md"): `[Unreleased]` is 171 KB of 257 entries logged commit by commit. Some name commands that left, and nothing tells a 0.2.0 user that the binary is `mt` and their task files need refiling
 
 ```
 $ sed -n '8,2499p' CHANGELOG.md | wc -c
@@ -45,14 +45,14 @@ name = "mindtape"
 Stale lines under `### The rewrite (2026-06-14)`: `mindtape check`, `mindtape install-lib`, `typst-harvest` as a workspace crate, and a link to `docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md`, which does not exist.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("CHANGELOG.md").
 
 == TO-BE
 
 - 🟢 The 0.3.0 section opens with a few lines saying it is a rewrite, that the binary is `mt`, and how a 0.2.0 user starts over (`mt init`, refile tasks).
-- 🟢 Every entry describes the shipped behavior; none names a removed command, a crate that left the workspace, or a missing file.
+- 🟢 Every entry describes the released behavior. None mentions a removed command, a crate that left the workspace, or a missing file.
 
 
 == Changes

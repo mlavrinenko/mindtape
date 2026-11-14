@@ -16,15 +16,15 @@
 
 Follow-up to generate-docs-cli-reference, which injects verbatim `mt --help`
 blocks. Replace them with a styled, structured reference generated from a
-machine-readable command tree, so the CLI page renders grouped commands and
+machine-readable command tree. The CLI page then renders grouped commands and
 flags in the site's visual language while staying binary-sourced. This renders
-the static help tree only — not the `mt ls` data table (that re-implementation
-was ruled out).
+the static help tree only, not the `mt ls` data table (we ruled that
+re-implementation out).
 
 == Approach
 
 - Emit the command tree as JSON: a hidden `mt _dump-cli --json` walking
-  `Cli::command()` (names, abouts, args, value names, defaults), or an equivalent
+  `Cli::command()` (names, `abouts`, `args`, value names, defaults), or an equivalent
   clap walker in the generator. Write `www/generated/cli.json`.
 - `www/content/cli.typ` renders the reference from `cli.json` (grouping +
   styling), replacing the verbatim `--help` blocks.
@@ -32,7 +32,7 @@ was ruled out).
 
 == Constraints
 
-- Binary-sourced: no hand-typed flag facts; the JSON schema is the contract.
+- Binary-sourced: no hand-typed flag facts. The JSON schema is the contract.
 
 == Scope
 

@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a broken shared defaults.toml is found by the path the error names],
+      cheap-adoption: helps[a reader finds a broken shared defaults.toml by the path the error names],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -49,8 +49,8 @@ Caused by:
     invalid string
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/config_packs.rs").
 
 == TO-BE
@@ -72,4 +72,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable: this repo keeps no `defaults.toml` above its root, so its contributors never meet it.
+Not applicable: this repo has no `defaults.toml` above its root. Its contributors never meet it.

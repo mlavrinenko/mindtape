@@ -38,16 +38,16 @@
 == AS-IS
 
 + Run the pages' examples and read their claims.
-+ 🔴 `templates.typ:142` sets `estimate.files: 2`; the template on that page has no such slot. `agents.typ:64` sets `priority`, which no template the docs use declares.
-+ 🔴 `derived-tags.typ:65` says a closed task keeps the tags its folder derived when filed. Derived tags are recomputed on every load; `validate.rs:375` only skips the allow-list check for closed tasks.
++ 🔴 `templates.typ:142` sets `estimate.files: 2`. The template on that page has no such slot. `agents.typ:64` sets `priority`, which no template the docs use declares.
++ 🔴 `derived-tags.typ:65` says a closed task keeps the tags its folder derived when filed. Each load recomputes derived tags, and `validate.rs:375` only skips the allow-list check for closed tasks.
 + 🔴 `comparison.typ:203` links the Recurring row to `/dsl/`, `:163` links Dependencies to `/filters/`, and `:308` says no other tool computes priority from inputs while its own Taskwarrior cell says urgency does. `:311` argues against "a YAML record".
-+ `agents.typ:73` uses `--template finding`, which exists only in this repo; `:110` names a local path.
++ `agents.typ:73` uses `--template finding`, which exists only in this repo. `:110` names a local path.
 
 
 == TO-BE
 
-- 🟢 Every example runs against the project it names; blocks are fixture slices or captures.
-- 🟢 No page argues against an imaginary YAML file; /comparison/ compares real tools only.
+- 🟢 Every example runs against the project it names, and blocks are fixture slices or captures.
+- 🟢 The pages never argue against an imaginary YAML file. /comparison/ compares real tools only.
 - 🟢 No page leans on this repo's own templates, paths or backlog.
 - 🟢 The prose follows the plain-prose rules.
 
@@ -61,7 +61,7 @@
 
 == Changes
 
-- `www/content/{templates,derived-tags,comparison,agents,self-validating-tasks}.typ`: rewrite whole. On /templates/, also list `assignee` among spliced fields (`add_slots.rs:86`), say `id` is injected only when `[tasks.id] format` is set, and drop the `--into .` example (it is the default).
+- `www/content/{templates,derived-tags,comparison,agents,self-validating-tasks}.typ`: rewrite whole. On /templates/, also list `assignee` among spliced fields (`add_slots.rs:86`), say the tool injects `id` only when `[tasks.id] format` has a value, and drop the `--into .` example (it is the default).
 - `examples/self-validating`, `examples/minimal`: slices the pages need.
 - `.just/scripts/check-doc-blocks.sh`: drop these pages from the list.
 
@@ -73,5 +73,5 @@
 
 == Dogfood
 
-Agents in this repo follow /agents/; its examples now run as shown.
+Agents in this repo follow /agents/, and its examples run as shown.
 

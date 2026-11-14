@@ -33,12 +33,12 @@
 == AS-IS
 
 1. Time `just check`'s stages cold in a fresh clone on 4 cores, with no kache and no mmz cache.
-2. 🔴 fast takes 116 s, build 215 s and cover 212 s, one after another in CI's one job, about 9 minutes. cover shares no build with the other two, yet waits for them.
+2. 🔴 fast takes 116 s, build 215 s and cover 212 s, one after another in CI's one job, about 9 minutes. cover does not share a build with the other two, yet waits for them.
 
 
 == TO-BE
 
-- 🟢 `just check fast build` runs only those stages, in order; a name outside the three fails at dispatch.
+- 🟢 `just check fast build` runs only those stages, in order. A name outside the three fails at dispatch.
 - 🟢 CI runs `fast build` and `cover` plus the flake build on two runners at once.
 
 ```yaml

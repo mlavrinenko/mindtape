@@ -51,7 +51,7 @@ $ mt packs install
 
 - 🟢 `mt packs install` reads the sources and the lock with `pack_sources::read_raw`, without loading the config it repairs, and calls `pack_sources::fetch` for each locked source the cache lacks.
 - 🟢 It refuses a lock that disagrees with `[pack-sources]`, as `npm ci` does, with a hint to run `mt packs update`.
-- 🟢 It counts as a read command, since it changes no authored file, so it takes `--json` like every read: one object per source with its `commit`, `sha256` and whether it was `fetched`.
+- 🟢 It counts as a read command, since it leaves authored files unchanged, so it takes `--json` like every read: one object per source with its `commit`, `sha256` and whether it was `fetched`.
 
 
 == Changes
@@ -65,7 +65,7 @@ $ mt packs install
 - `crates/mindtape-cli/src/cli/command_class.rs`: classify `packs install` as a read.
 - `www/utils/site.typ`: `packs` in `CLI_GROUPS`.
 - `www/content/cli/packs.typ` (new): the command page, which a `CLI_GROUPS` entry requires. `www/content/packs.typ`: a CI example.
-- `docs/src/skill.typ`: tell an agent that meets `pack source not installed` to run `mt packs install`. It moved here from `resolve-a-declared-pack-from-the-cache-and-verify-its-hash.typ`, since `just docs spans` refuses a span naming a command that doesn't exist yet. `skills/mindtape/SKILL.md` is near its 6600-byte cap, so tighten other prose to fit.
+- `docs/src/skill.typ`: tell an agent that meets `pack source not installed` to run `mt packs install`. It moved here from `resolve-a-declared-pack-from-the-cache-and-verify-its-hash.typ`, since `just docs spans` refuses a span that points at a command that doesn't exist yet. `skills/mindtape/SKILL.md` is near its 6600-byte cap, so tighten other prose to fit.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
 
 

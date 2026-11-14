@@ -36,11 +36,11 @@
 == AS-IS
 
 + In an area folder, run `just eject` on a near-cap `mod.rs`.
-+ 🔴 ejectest writes `mod_tests.rs` and a `#[path]` line, where the area layout wants a plain `mod tests;` in `tests.rs`.
++ 🔴 ejectest writes `mod_tests.rs` and a `#[path]` line, where the area layout calls for a plain `mod tests;` in `tests.rs`.
 
 == TO-BE
 
-- 🟢 `just eject` passes `--mod-rs-tests tests`, so a `mod.rs` ejects to `tests.rs`; any other file still ejects to `<stem>_tests.rs`.
+- 🟢 `just eject` passes `--mod-rs-tests tests`, so a `mod.rs` ejects to `tests.rs`. Any other file still ejects to `<stem>_tests.rs`.
 
 == Changes
 
@@ -49,7 +49,7 @@
 
 == Rollback
 
-- Revert the commit; ejectest's default output is unchanged.
+- Revert the commit. ejectest's default output stays the same.
 
 == Out of scope
 

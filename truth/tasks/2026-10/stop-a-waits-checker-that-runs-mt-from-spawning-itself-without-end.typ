@@ -42,19 +42,19 @@
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/waits.rs").
 
 == TO-BE
 
-- 🟢 A checker that runs `mt` against its own project gets one answer, and the nested `mt` runs no checker of its own.
+- 🟢 A checker that runs `mt` against its own project gets one answer, and the nested `mt` skips every checker of its own.
 
 
 == Changes
 
 - `crates/mindtape-cli/tests/it/waits_e2e.rs`: the red test, a checker running `mt ls ready` on its own project answers within a 20 s timeout.
-- `crates/mindtape/src/waits.rs`: run every checker with `MINDTAPE_WAITS_CHECKER=1`, and under it run no checker and answer `Nested`.
+- `crates/mindtape/src/waits.rs`: run every checker with `MINDTAPE_WAITS_CHECKER=1`, and under it skip every checker and answer `Nested`.
 - `crates/mindtape/src/waits_tests.rs`: the mark reaches the checker, and under it nothing runs.
 - `www/content/wait-on-upstream.typ`: say what a nested `mt` answers.
 
@@ -71,5 +71,5 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable. This repo declares no `[[tasks.waits]]` checker.
+Not applicable. This repo has no `[[tasks.waits]]` checker.
 

@@ -35,13 +35,13 @@
 
 == AS-IS
 
-+ Run `mt rules --for add` and read the section names the docs still use.
++ Run `mt rules --for add` and read the section names that the docs still use.
 + 🔴 `www/content/require-a-task-shape.typ` and `packs.typ` still say `Problem` and a `Rollback` for every `dev` task.
-+ 🔴 The `mt tags` command and the opt-out tags are absent from the skill, and the eval still names the `problem` slot.
++ 🔴 The `mt tags` command and the opt-out tags are absent from the skill, and the eval still states the `problem` slot.
 
 == TO-BE
 
-- 🟢 The docs name `AS-IS`, the statefulness tags and the `mt tags` command.
+- 🟢 The docs name `AS-IS`, the `statefulness` tags and the `mt tags` command.
 - 🟢 The api-service fixture, its templates and evals show a fenced `TO-BE` example and the JWT task's `stateful` Rollback.
 - 🟢 The skill tells an agent to run `mt tags --for add` before filing.
 

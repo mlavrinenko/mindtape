@@ -19,12 +19,12 @@
 
 == Summary
 
-After the manifest is derived from the pages, a page still writes its route
-twice — once as `route:` in its `<page-meta>` block, once as `active:` three
-lines below. The whole umbrella is about not writing a fact twice, and a
-mismatch between those two is worse than the one it replaced: the gate compares
-the DECLARED route against the filename, so `active:` can point somewhere else
-entirely and only the sidebar highlight and the resolved title go wrong.
+After the manifest derivation from the pages, a page still writes its route
+twice: once as `route:` in its `<page-meta>` block, once as `active:` three
+lines below. The whole umbrella is about not writing a fact twice. A mismatch
+between those two is worse than the one it replaced, because the gate compares
+the declared route against the filename. `active:` can point somewhere else
+entirely, and only the sidebar highlight and the resolved title go wrong.
 
 Bind the dict once and spread it:
 
@@ -43,11 +43,11 @@ Bind the dict once and spread it:
 == Scope
 
 - `www/content/*.typ`, all fifteen: bind `meta`, emit it, spread it. Drop the
-  `active:` argument — `page` maps `route` to it.
+  `active:` argument. `page` maps `route` to it.
 - `www/content/index.typ` keeps `home: true` inside the dict.
-- No prose changes, no import changes, no value changes. The rendered site must
-  be byte-identical; `just docs check` plus a `<tola-meta>` query per page is
-  how you know.
+- The prose, imports and values all stay unchanged. The rendered site must be
+  byte-identical. `just docs check` plus a `<tola-meta>` query per page is how
+  you know.
 
 == Out of scope
 

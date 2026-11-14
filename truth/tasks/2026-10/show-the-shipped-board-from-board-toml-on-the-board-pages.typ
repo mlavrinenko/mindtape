@@ -14,7 +14,7 @@
   estimate: (src-files: 3),
   x-goals: (
     product: (
-      readable-tasks: helps[a reader of `mt @name` sees why a project with no open task is missing from the board],
+      readable-tasks: helps[a reader of `mt @name` sees why a project with no open task is missing from the board.],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the pages show the file `mt` reads, so a changed default changes them],
+      docs-match-code: helps[the pages show the file `mt` reads.A changed default changes them],
     ),
   ),
   assignee: "agent",
@@ -31,7 +31,7 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "check-the-at-toml-keys-in-the-docs-against-its-schema.typ",
-    )[both rewrite the board part of read-many-projects.typ, and the cli-notes entry links the key table that task adds]
+    )[both rewrite the board part of read-many-projects.typ. The cli-notes entry links the key table that task adds.]
     + depends-on(
       "split-the-cli-docs-drift-group-by-the-prose-each-source-feeds.typ",
     )[it drops board.toml from the sets-docs sources the split adds],
@@ -39,21 +39,21 @@
 
 == AS-IS
 
-+ Look for the board `mt` ships on `/cli/board/` and `/read-many-projects/`.
++ Look for the board `mt` carries on `/cli/board/` and `/read-many-projects/`.
 + 🔴 Neither shows it. `crates/mindtape/src/at/board.toml` sorts by `ready:desc` then `open:desc` and hides `open == 0`, and no doc names either.
 + 🔴 The `board` entry in `www/utils/cli-notes.typ` restates the column keys in prose, and no gate ties it to `crates/mindtape/src/at/board.rs`.
 
 
 == TO-BE
 
-- 🟢 Both pages show `board.toml` as a block cut from the file, so its columns, `sort` and `hide` are the ones `mt` reads.
+- 🟢 Both pages show `board.toml` as a block cut from the file.Its columns, `sort` and `hide` are the ones `mt` reads.
 - 🟢 The `cli-notes.typ` entry says what a `filter` and a `top` column do and links the `at.toml` key table for the keys.
 - 🟢 `sets-docs` drops `board.toml`, which the block shows.
 
 
 == Source of truth
 
-- `crates/mindtape/src/at/board.toml`: the board `mt` ships.
+- `crates/mindtape/src/at/board.toml`: the board `mt` carries.
 
 
 == Changes
@@ -67,7 +67,7 @@
 == Out of scope
 
 - The `mt board` table layout.
-- A command that prints the merged board. The page shows the shipped one, and an `at.toml` override reads as written.
+- A command that prints the merged board. The page shows the built-in one, and an `at.toml` override reads as written.
 
 
 == Dogfood

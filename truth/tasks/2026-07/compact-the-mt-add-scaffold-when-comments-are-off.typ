@@ -21,4 +21,4 @@ With \[add\] comments = false the scaffold still separates every key: value with
 
 - `scaffold` in `crates/mindtape-cli/src/add_interactive.rs` joins per-slot blocks with `"\n"`. Each block already ends in a newline, so the join inserts a blank line between entries — deliberate spacing between comment+value groups when comments are on, but noise once comments are stripped.
 - Join with `""` (no separator) when `config.comments` is false, keeping `"\n"` when on. Bare mapping becomes consecutive `key: value` lines.
-- Test: `comments = false` scaffold has no blank line between entries; `comments = true` still does.
+- Test: `comments = false` scaffold has no blank line between entries. With `comments = true` the blank line remains.

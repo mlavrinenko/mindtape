@@ -26,28 +26,46 @@
     2026,
     8,
     14,
-  )[all nine leaves landed, plus the www/generated race the milestone exposed. just --list is a grouped menu, every gate row's command is read from its recipe body, and no doc source hand-types a recipe name — check-doc-recipes fails on one],
+  )[all nine leaves landed, plus the `www/generated` race the milestone exposed. `just --list` is a grouped menu, every gate row's command comes from its recipe body, and no doc source hand-types a recipe name: check-doc-recipes fails on one],
 )
 
 == Summary
 
-The derived-facts pipeline reads `just --dump --dump-format json` already, and throws half of it away. Close that: make every fact the root docs state about a recipe — its description, its membership in the gate set, the command it runs, the name it is called by — read from the Justfile instead of being restated beside it.
+The derived-facts pipeline already reads `just --dump --dump-format json` and
+throws half of it away. Close that gap. Every fact the root docs state about a
+recipe should come from the Justfile instead of a restatement beside it. That
+covers its description, its membership in the gate set, the command it runs, and
+the name a reader invokes it by.
 
-== Why this is one milestone and not nine tasks
+== One root cause, nine leaves
 
-The leaves share one root cause. just takes the *last comment line* before a recipe as its doc, this Justfile argues its recipes in long comment blocks, and so the doc field is the tail fragment of a paragraph — 22 of 45 recipes advertise one in `just --list`. With no usable machine description, `docs/src/contributing.typ` hand-wrote its whole gate table, and the hand-written column has already drifted from the recipe it describes (its `clippy` row is missing `--workspace`, `-q`, and the argument separator).
+The leaves share one root cause. just takes the *last comment line* before a
+recipe as its doc, and this Justfile argues its recipes in long comment blocks.
+The doc field is the tail fragment of a paragraph, and 22 of 45 recipes advertise
+one in `just --list`. With no usable machine description,
+`docs/src/contributing.typ` hand-wrote its whole gate table, and the hand-written
+column has already drifted from the recipe it describes. Its `clippy` row is
+missing `--workspace`, `-q` and the argument separator.
 
-Fix the doc attribute and the rest unlocks in order: a trustworthy description, then groups as a tagging system, then the command column, then recipe names in prose, then the module split that renames everything and would otherwise rot all 29 hand-typed mentions at once.
+Fix the doc attribute and the rest unlocks in order. First a trustworthy
+description, then groups as a tagging system, then the command column, then
+recipe names in prose. Last comes the module split, which renames everything and
+would otherwise rot all 29 hand-typed mentions at once.
 
 == Sequencing
 
-The Justfile and `www/generate-facts.sh` are shared hubs — every leaf touches at least one — so these run as sequential waves, not parallel worktrees.
+The Justfile and `www/generate-facts.sh` act as shared hubs, and every leaf touches
+at least one, so these run as sequential waves, not parallel worktrees.
 
-+ Justfile hygiene: format gate, doc attributes, groups plus the group-derived gate list, the cwd/private/confirm attributes.
-+ The generated Typst module of recipe names, then the conversion of existing prose onto it.
++ Justfile hygiene: format gate, doc attributes, groups plus the group-derived
+  gate list, and the cwd/private/confirm attributes.
++ The generated Typst module of recipe names, then the conversion of existing
+  prose onto it.
 + The gate table's derived command column and the formatter path lists.
-+ The module split, last, because it renames recipes and only the generated module makes that safe.
++ The module split, last, because it renames recipes and only the generated
+  module makes that safe.
 
 == Done when
 
-`just --list` reads as a coherent menu, `www/generated/` carries every fact the root docs state about a recipe, and no doc source hand-types a recipe name.
+`just --list` reads as a coherent menu, `www/generated/` carries every fact the
+root docs state about a recipe, and no doc source hand-types a recipe name.

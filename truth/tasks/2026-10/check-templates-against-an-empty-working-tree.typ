@@ -33,7 +33,7 @@
 == AS-IS
 
 + Making `mt` serve its embedded prelude, which let `mt check` evaluate the built-in template in a test fixture
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/check/templates.rs"): `mt check` runs a git-state rule such as `changed(...)` against a template's sample task, so a working-tree budget fires on a template that is no one's work
++ 🔴 #raw("crates/mindtape-cli/src/cmd/check/templates.rs"): `mt check` runs a git-state rule such as `changed(...)` against a template's sample task. A working-tree budget then fires on a template that is no one's work
 
 
 In `estimate_rules_e2e`'s fixture, whose first status is `wip`, with five changed files against a five-file budget:
@@ -43,8 +43,8 @@ warning: built-in template task:3: rules.src-budget: split the remaining work in
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/check/templates.rs").
 
 == TO-BE

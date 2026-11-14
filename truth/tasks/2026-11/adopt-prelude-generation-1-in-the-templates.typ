@@ -75,8 +75,8 @@ $ head -2 .mindtape/templates/task.typ
 
 == Out of scope
 
-- The old task files. Each keeps the literal pin it was written against.
-- Rust, schema, config and `mt fix`; a prelude is a project convention, not an `mt` concept.
+- The old task files stay as they are. Each keeps its original literal pin.
+- Rust, schema, config and `mt fix` stay out. A prelude is a project convention, not an `mt` concept.
 
 
 == Dogfood

@@ -51,7 +51,7 @@ pub fn append_list_value(...)
 == TO-BE
 
 - 🟢 `apply_op` takes only the task, field and operation.
-- 🟢 Helpers only tests use are `cfg(test)` and keep no dead-code allow.
+- 🟢 Helpers only tests use are `cfg(test)` and don't keep a dead-code allow.
 
 
 == Changes

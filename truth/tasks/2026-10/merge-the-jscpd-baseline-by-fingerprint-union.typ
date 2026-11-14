@@ -41,13 +41,13 @@ error: could not apply 3852b06a... refactor(tests): assert a commit-msg refusal 
   CONFLICT (content): Merge conflict in .jscpd-baseline.json
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".gitattributes").
 
 == TO-BE
 
-- 🟢 A rebase joins both sides' fingerprints, as `outdatty.lock` joins its hashes, and `just check-dry` on the merged tree decides the rest.
+- 🟢 A rebase joins both sides' fingerprints, as `outdatty.lock` joins its hashes, and `just check-dry` on the merged tree settles the rest.
 
 == Changes
 
@@ -57,7 +57,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Delete the `.gitattributes` line; git falls back to its text merge.
+- Delete the `.gitattributes` line. Git falls back to its text merge.
 
 == Out of scope
 

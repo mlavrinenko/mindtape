@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a pack update lists every new `run` line even when the old tree is gone],
+      enforced-practice: helps[a pack update lists every new `run` line even when the old tree has vanished],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -37,22 +37,22 @@
 + 🔴 #raw("crates/mindtape/src/config/pack_sources/git.rs"): Four gaps in `mt packs`, each a case the commands don't hold.
 
 
-- `report.rs:36`: a failed old-tree fetch prints no diff, so a new `run` line goes unlisted.
+- `report.rs:36`: a failed old-tree fetch prints an empty diff, so a new `run` line goes unlisted.
 - `remote.rs:38`: `ls-remote` runs where `mt` runs, so git reads an enclosing repository's config, such as `core.sshCommand` or `url.insteadOf`.
 - `update.rs:75`: progress prints before a later source fails and the lock stays unwritten.
 - `fetch.rs:151`: `locate("C:packs", root)` is relative to drive C's current directory.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/config/pack_sources/git.rs").
 
 == TO-BE
 
 - 🟢 When the old tree can't come from the old `git`, the diff fetches it from the source's new `git`, and failing that lists the new tree as all added.
 - 🟢 No git command `mt` runs reads a repository or config around the directory it runs in.
-- 🟢 `mt packs update` prints its report only after the lock is written.
-- 🟢 A `git` of a drive letter and a colon with no separator after it is refused on every platform.
+- 🟢 `mt packs update` prints its report only after it writes the lock.
+- 🟢 The tool refuses a `git` of a drive letter and a colon with no separator after it, on every platform.
 
 
 == Changes
@@ -60,7 +60,7 @@ left in a closing report no one rereads. It belongs in
 - `crates/mindtape/src/config/pack_sources/git.rs`: every command runs in the cache root with `GIT_CEILING_DIRECTORIES` set to its parent. A ceiling, not an empty scratch `--git-dir`, because one setting covers every command, `init` and `rev-parse` included, and the cache root is `mt`'s own.
 - `crates/mindtape/src/config/pack_sources/fetch.rs`: refuse a drive-relative `git`.
 - `crates/mindtape-cli/src/cmd/packs/report.rs`: retry from the new `git`, then diff against an empty tree.
-- `crates/mindtape-cli/src/cmd/packs/update.rs`: buffer the report until the lock is written.
+- `crates/mindtape-cli/src/cmd/packs/update.rs`: buffer the report until it writes the lock.
 - `crates/mindtape-cli/tests/it/packs/` and the unit tests beside each file: the red tests first.
 
 

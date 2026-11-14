@@ -15,7 +15,7 @@
 
 == Summary
 
-mt install writes config.schema.json to the app config directory, but nothing prints it, so the docs build cannot capture it. Add a stdout emitter reusing the same generator.
+mt install writes config.schema.json to the app config directory, but nothing prints it and the docs build cannot capture it. Add a stdout emitter reusing the same generator.
 
 == Scope
 

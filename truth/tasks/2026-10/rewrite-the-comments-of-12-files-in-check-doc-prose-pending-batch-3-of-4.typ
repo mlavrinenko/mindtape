@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the comments that explain each gate are held to the same prose rules as the docs],
+      docs-match-code: helps[the check holds the comments that explain each gate to the same prose rules as the docs],
     ),
   ),
   assignee: "agent",
@@ -43,8 +43,8 @@ $ sed -n '25,36p' .just/scripts/check-doc-prose.pending
 ...
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-prose.pending").
 
 == TO-BE

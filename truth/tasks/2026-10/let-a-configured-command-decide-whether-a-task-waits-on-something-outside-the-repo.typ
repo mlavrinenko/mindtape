@@ -14,12 +14,12 @@
   estimate: (src-files: 5),
   x-goals: (
     product: (
-      readable-tasks: helps[the `why` column names the outside condition a task waits on, in the checker's own words],
-      implementable-tasks: helps[an agent picking from `mt ls ready` never starts work an upstream fix still blocks],
-      enforced-practice: helps[a waiting task leaves `blocked` the moment the checker says so, not when someone remembers to look],
-      cheap-adoption: helps[any tool that answers by exit code plugs in with one config entry, no Mindtape release per tool],
+      readable-tasks: helps[the `why` column names the outside condition a task waits on, in the checker's own words.],
+      implementable-tasks: helps[an agent picking from `mt ls ready` never starts work an upstream fix still blocks.],
+      enforced-practice: helps[a waiting task leaves `blocked` the moment the checker says so, not when someone remembers to look.],
+      cheap-adoption: helps[a tool that reports through its exit code plugs in with one config entry, with no project release per tool.],
       typst-over-markdown: neutral,
-      plain-files: hurts[readiness can depend on a command's answer, not only on files; the command must read local state so `mt` stays offline],
+      plain-files: hurts[readiness can depend on a command's answer, not only on files. The command must read local state so `mt` stays offline.],
     ),
     process: (
       sound-codebase: neutral,
@@ -32,17 +32,17 @@
 
 == AS-IS
 
-+ Open ~/.nix: `apps/llama-cpp-16gb.nix` carries a patch until ggml-org/llama.cpp#26487 lands, and `~/.nix/canibump.toml` tracks it (`canibump` exits non-zero once it is bumpable, `canibump status <id>` answers that one blocker from its cache by exit code).
-+ 🔴 A Mindtape task "drop the patch" can only say so in prose or in a `blocked` status note. `mt ls ready` lists it or hides it by hand, and nothing re-checks when upstream moves.
-+ The only blockers Mindtape resolves are `depends-on` links to other task files (`crates/mindtape/src/graph/ready.rs`, `Readiness`).
++ Open ~/.nix: `apps/llama-cpp-16gb.nix` carries a patch until ggml-org/llama.cpp#26487 lands, and `~/.nix/canibump.toml` tracks it. `canibump` exits non-zero once a new version exists, and `canibump status <id>` answers that one blocker from its cache by exit code.
++ 🔴 A project task "drop the patch" can only say so in prose or in a `blocked` status note. `mt ls ready` lists it or hides it by hand, and nothing re-checks when upstream moves.
++ The only blockers the project resolves are `depends-on` links to other task files (`crates/mindtape/src/graph/ready.rs`, `Readiness`).
 
 
 == TO-BE
 
-- 🟢 Config names a checker, for example `[[tasks.waits]] name = "canibump"`, `run = "canibump status {id}"`; exit 0 means resolved, 1 means still waiting, anything else means unknown.
-- 🟢 A task declares `waits-on: ("canibump:llama-blocking-sync",)`; while the checker says waiting or unknown, the task is `blocked`, and `why` prints the checker's first stdout line.
-- 🟢 `mt` stays fast and offline: it runs each distinct `(checker, id)` once per invocation and documents that a checker must answer from local state; network refreshes are the tool's own job (`canibump --refresh` in a timer or a `just` recipe).
-- 🟢 Nothing in Mindtape names canibump: the same entry works for any tool, for example `test "$(gh pr view {id} --json state -q .state)" = MERGED` for a user who accepts the network cost.
+- 🟢 Config names a checker, such as `[[tasks.waits]] name = "canibump"`, `run = "canibump status {id}"`; exit 0 means resolved, 1 means still waiting, anything else means unknown.
+- 🟢 A task declares `waits-on: ("canibump:llama-blocking-sync",)`. While the checker says waiting or unknown, the task is `blocked`, and `why` prints the checker's first stdout line.
+- 🟢 `mt` stays fast and offline. It runs each distinct `(checker, id)` once per invocation and documents that a checker must answer from local state. Network refreshes are the tool's own job (`canibump --refresh` in a timer or a `just` recipe).
+- 🟢 The project never mentions `canibump`: the same entry works for any tool, such as `test "$(gh pr view {id} --json state -q .state)" = MERGED` for a user who accepts the network cost.
 
 
 == Changes

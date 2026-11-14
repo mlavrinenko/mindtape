@@ -40,12 +40,12 @@
 
 == Environment
 
-- NixOS, the flake dev shell via direnv; `~/.cargo/bin/mt` installed from an older release; commit `fa314b1`.
+- NixOS, the flake dev shell via direnv. `~/.cargo/bin/mt` installed from an older release. Commit `fa314b1`.
 
 
 == TO-BE
 
-- 🟢 The dev shell's `mt` runs `cargo build -q` and then the fresh binary; a no-op build costs ~0.2 s.
+- 🟢 The dev shell's `mt` runs `cargo build -q` and then the fresh binary. A no-op build costs ~0.2 s.
 - 🟢 It builds into `target/mt-dev`, off the lock `just check` holds on `target/` and off the rrule arm's feature build of `target/debug/mt`.
 
 

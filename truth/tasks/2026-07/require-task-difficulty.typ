@@ -14,7 +14,7 @@
 
 == Summary
 
-Require `difficulty` on this repository's own tasks, so the backlog says which model tier and reasoning effort a task wants before anyone starts it. The scale stays generic — a number on the existing 0 to 9 field with the floor's junior / mid / senior / staff anchors — so no vendor or model name enters the artifacts. Mapping a number onto a specific model is the reader's policy, exactly as the difficulty field was designed for.
+Require `difficulty` on this repository's own tasks, so the backlog records which model tier and reasoning effort a task needs before anyone starts it. The scale stays generic. It uses a number on the existing 0 to 9 field with the floor's junior / mid / senior / staff anchors, so no vendor or model name enters the artifacts. Mapping a number onto a specific model is the reader's policy, exactly what the difficulty field exists for.
 
 No feature work: the field, the scale, the anchors and the classification all exist. This is a config change plus a backfill.
 
@@ -22,19 +22,19 @@ The risk worth naming is that difficulty is a prediction, and a prediction is wh
 
 == Scope
 
-- Write the rubric into `.mindtape/config.toml` as comments on `[tasks.difficulty]`, anchored on judgment rather than effort. Roughly: 0 to 2 mechanical, the change is fully specified; 3 to 5 local judgment, one module, obvious tests; 6 to 8 cross-cutting design with several defensible approaches; 9 the approach itself is the open question.
+- Write the rubric into `.mindtape/config.toml` as comments on `[tasks.difficulty]`, anchored on judgment rather than effort. Roughly: 0 to 2 mechanical, with the change fully specified. 3 to 5 local judgment, one module, obvious tests. 6 to 8 cross-cutting design with many defensible approaches. 9 the approach itself is the open question.
 - Backfill `difficulty` on every existing task in `truth/tasks`.
 - Only then set `required` on `[tasks.difficulty]`. Order matters: flip it first and the whole backlog fails validation at once.
-- Add a `difficulty` slot to `.mindtape/templates/task.typ` so `mt add` asks for it rather than leaving the next task to fail validation after it is written.
+- Add a `difficulty` slot to `.mindtape/templates/task.typ` so `mt add` asks for it rather than leaving the next task to fail validation after it lands.
 - Mirror the rubric into the `gated` preset's annotated config, since the routing question is exactly the agent-facing one.
-- Tests: the dogfood config parses and validates with `required` set; `mt add` with no explicit difficulty still produces a valid task.
+- Tests: the dogfood config parses and validates with `required` set. `mt add` with no explicit difficulty still produces a valid task.
 
 == Notes
 
 The backfill in Scope was deliberately not done, and the reason is the same one the Summary gives for wanting a rubric.
 
-Of the 64 tasks in the backlog, 51 carried no `difficulty` — and every one of those 51 is already terminal (`done` or `cancelled`). Every non-terminal task already had the field. So `required = "!terminal"`, mirroring what `priority` already uses, went on with no backfill at all and `mt check` reports all 64 valid.
+Of the 64 tasks in the backlog, 51 carried no `difficulty`, and every one of those 51 is already terminal (`done` or `cancelled`). Every non-terminal task already had the field. So `required = "!terminal"`, mirroring what `priority` already uses, went on with no backfill at all and `mt check` reports all 64 valid.
 
-Filling a difficulty on 51 closed tasks would mean predicting, after the fact, how much judgment work that nobody will ever route already took. That is exactly the decorative number this task warns about: a value invented to satisfy a field. The routing signal has no consumer on a finished task.
+Filling a difficulty on 51 closed tasks would mean predicting, after the fact, how much judgment work that nobody will ever route already took. That is exactly the decorative number this task warns about, namely a value invented to satisfy a field. The routing signal has no consumer on a finished task.
 
 Both tests hold: the dogfood config validates with `required` set, and `mt add` with no explicit difficulty writes `difficulty: 3` from the template slot's default.

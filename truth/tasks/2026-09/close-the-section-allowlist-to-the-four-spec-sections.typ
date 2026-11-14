@@ -16,7 +16,7 @@
     2026,
     9,
     15,
-  )[The allowlist closed straight onto the six sections: every open task moved in the same change, so no union step was needed.],
+  )[The allowlist closed straight onto the six sections: every open task moved in the same change, so the change skipped the union step.],
   links: depends-on(
     "move-the-sweep-templates-to-the-four-section-spec.typ",
     "rewrite-open-task-bodies-into-the-four-section-spec.typ",
@@ -30,13 +30,13 @@ The four-section spec landed beside Summary and Scope so the backlog could migra
 
 == Scope
 
-Precondition: this listing prints nothing.
+Precondition: this listing comes back empty.
 
 ```sh
 rg -l '^== (Summary|Scope)$' $(mt ls '!terminal' --format path) .mindtape/templates
 ```
 
-Then, in `.mindtape/config.toml`, drop Summary and Scope from the top-level allowlist, and delete the Summary `unique` rule, the Summary-before-Scope `order` rule, and the Scope `min-words` and gating fenced-block content rules the TO-BE rules replaced.
+Then, in `.mindtape/config.toml`, drop Summary and Scope from the top-level allowlist. Delete the Summary `unique` rule, the Summary-before-Scope `order` rule, and the Scope `min-words` and gating fenced-block content rules the TO-BE rules replaced.
 
 == Dogfood
 

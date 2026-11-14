@@ -15,7 +15,7 @@
     2026,
     9,
     14,
-  )[shipped: skill rule in docs/src/skill.typ, mechanical gating-tag rule in .mindtape/config.toml, and the 8 pre-existing open gating tasks whose Scope described a shape in prose reworked to show it in a block],
+  )[done: a skill rule in docs/src/skill.typ. A mechanical gating-tag rule in .mindtape/config.toml. The 8 pre-existing open gating tasks whose Scope described a shape in prose show it in a block.],
   links: related(
     "add-a-max-words-content-assert.typ",
   )[a word cap is the stronger forcing function for showing a shape],
@@ -25,24 +25,24 @@
 
 A task that proposes a config or API shape and only describes it in prose
 charges the reader a translation step. `check-estimate-drift-when-a-task-closes.typ`
-was filed with `{ check = "estimate-drift", gate = true }` buried mid-sentence
-when a five-line TOML block states it exactly and is skimmable. Nothing in
+arrived with `{ check = "estimate-drift", gate = true }` buried mid-sentence
+when a five-line TOML block states it exactly and is easy to scan. Nothing in
 `skills/mindtape/SKILL.md` tells an agent to show the shape, and nothing in
-`[tasks.body.content]` asks for one, so a body defaults to prose every time.
+`[tasks.body.content]` asks for one. The result is a body that defaults to prose every time.
 
 
 == Scope
 
-Two halves, and the second needs no new capability — verified against a
-scratch project today.
+Two halves, and the second works with the capabilities already present,
+verified against a scratch project today.
 
-`skills/mindtape/SKILL.md` gets the rule: when a task proposes a shape — a
-config key, a function signature, a CLI invocation, a file layout — show it
-as a raw block and let the prose carry only what the block cannot say.
+`skills/mindtape/SKILL.md` gets the rule. When a task proposes a shape (a
+config key, a function signature, a CLI invocation, a file layout), show it
+as a raw block. Let the prose carry only what the block cannot say.
 
 The config gets the mechanical half, where a tag says the task is proposing
-config surface. The regex is written as a character class rather than a
-literal fence so the rule can be quoted inside a task body without closing
+config surface. The rule uses a character class rather than a
+literal fence so a task body can quote the rule without closing
 the block it sits in:
 
 ```toml

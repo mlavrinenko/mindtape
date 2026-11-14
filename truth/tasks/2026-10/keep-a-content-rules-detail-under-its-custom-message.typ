@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: helps[a breach says both what to do and which sentence to do it to],
-      enforced-practice: helps[a rule's advice no longer hides where the rule fired],
+      enforced-practice: helps[a rule's advice doesn't hide where the rule fired],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -34,7 +34,7 @@
 
 + Give a `density` content rule a `message`, and break it in one sentence of a task.
 + Run `mt check`.
-+ 🔴 It prints only the message, ``` tasks/fix-login-bug.typ:18: body.content.rules.no-open-questions: ask the user and write the answer in ```, and never says which sentence broke it. Without `message` it names the sentence and drops the advice.
++ 🔴 It prints only the message, ``` tasks/fix-login-bug.typ:18: body.content.rules.no-open-questions: ask the user and write the answer in ```, and never says which sentence broke it. Without `message` it reports the sentence and drops the advice.
 
 
 == TO-BE
@@ -67,11 +67,11 @@ note: section `TO-BE` sentence 2 ("Should it also cover the board?") must carry 
 
 == Out of scope
 
-- Header rules, whose engine words a breach by the rule's shape and holds no detail of its own.
+- Header rules, where the engine words a breach by the rule's shape. A detail would only repeat it.
 - `mt import`'s per-record report, which prints one line per problem.
 
 
 == Dogfood
 
-The `no-open-questions` rule this repo plans names the open question under its advice.
+The `no-open-questions` rule this repo plans states the open question under its advice.
 

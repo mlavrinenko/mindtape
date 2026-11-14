@@ -37,9 +37,9 @@
 == AS-IS
 
 + Read `examples/`.
-+ 🔴 The project that feeds the docs captures and the skill evals is `learn-piano`, a piano practice backlog. Mindtape is aimed at software engineers, and the piano tasks show none of the problems they would adopt it for.
-+ Those problems are spread over this repo's own `.mindtape/config.toml` and single-subject fixtures (`examples/estimates`, `examples/links`). No project shows them together, so no page can quote one.
-+ The five that matter most to an engineer: a size cap forces a big task to be split; `mt add` refuses a task without the required sections; `mt done` runs the project's tests; one task is in progress at a time, in dependency order; every commit names its task.
++ 🔴 The project that feeds the docs captures and the skill evals is `learn-piano`, a piano practice backlog. The tool targets software engineers, and the piano tasks show none of the problems they would adopt it for.
++ Those problems sit across this repo's own `.mindtape/config.toml` and single-subject fixtures (`examples/estimates`, `examples/links`). No project shows them together, so no page can quote one.
++ The five that matter most to an engineer. A size cap forces a big task to split. `mt add` refuses a task without the required sections. `mt done` runs the project's tests. One task is in progress at a time, in dependency order. Every commit references its task.
 
 
 == TO-BE
@@ -55,7 +55,7 @@
 - `examples/api-service/.mindtape/config.toml`, new: the config, with `docs:slice` markers per solver.
 - `examples/api-service/scripts/test`, new: a stub that prints a failing test name and exits 1, so the gate refusal is the same on every run.
 - `examples/api-service/tasks/*.typ`, new: the three tasks, with `docs:slice` markers.
-- `examples/api-service/.mindtape/templates/task.typ`, new: an `mt add` template with a slot per required section. The built-in template has no sections, so every `mt add` under the pack would be refused.
+- `examples/api-service/.mindtape/templates/task.typ`, new: an `mt add` template with a slot per required section. The built-in template has no sections, so the pack would refuse every `mt add`.
 - `Justfile`: the config in `TOML_FMT_PATHS`, because `just check-gate-drift` fails on a TOML file the list leaves out.
 - `Justfile` and `.mmz/config.yaml`: the tasks and the template in `TYPST_FMT_PATHS` and the `typ-fmt` scope, so `just fmt-check` keeps them formatted.
 

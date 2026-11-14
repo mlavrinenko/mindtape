@@ -59,15 +59,15 @@ ok: 968 tasks
 
 == Alternatives
 
-- Drop every rule from the template pass: hides a template that no longer has a valid shape.
+- Drop every rule from the template pass: hides a template whose shape has gone stale.
 - Add a template-only flag: config surface for a check with one answer.
 - Check a template at a synthetic real path: it is still not a task, and its derived tags would lie.
 
 
 == Out of scope
 
-- The add pre-write check; this is the template pass only.
-- The `dir` field itself; this task reads the name, and the add-hook task adds it.
+- The add pre-write check stays out. This is the template pass only.
+- The `dir` field itself stays out. This task reads the name, and the add-hook task adds it.
 - Folder-derived tags from the template's example path.
 
 

@@ -31,7 +31,7 @@
     2026,
     9,
     28,
-  )[the four arms emit src-files; \`mt add --print\` runs the write's check; \`add --list\` covered, holding the CRAP ratchet],
+  )[the four arms emit src-files. `mt add --print` runs the check a write runs. `add --list` covered, holding the CRAP ratchet.],
 )
 
 == AS-IS
@@ -45,24 +45,24 @@
 
 - 🟢 The four arms emit `(src-files: N)`, so the sweep validates and files every finding.
 - 🟢 `mt add --print` runs the same pre-write check as a write, so a dry preview can never show a task the config would refuse.
-- 🟢 A regression test pins the preview to the write's verdict.
+- 🟢 A regression test pins the preview to the verdict a write gives.
 
 
 == Changes
 
 - `crates/mindtape-cli/src/add.rs`: validate the rendered task before the `--print` return, keeping `--no-verify` as the escape hatch.
-- `crates/mindtape-cli/tests/add_format_e2e.rs`: a red-first test that a config-refused fill fails `--print` with the write's error and leaves no file.
+- `crates/mindtape-cli/tests/add_format_e2e.rs`: a red-first test that a config-refused fill fails `--print` with the same error a write gives and leaves the file untouched.
 - `contrib/ask-refactoring/size.sh`, `contrib/ask-refactoring/coverage.sh`, `contrib/ask-refactoring/mutants.sh`, `contrib/ask-refactoring/undertested.sh`: `(files: N)` to `(src-files: N)`, comments following.
 
 
 == Rollback
 
-Revert the commit; the sweep prints the retired unit again and its next dry run still exits 0.
+Revert the commit. The sweep prints the retired unit again and its next dry run still exits 0.
 
 
 == Out of scope
 
-- The mutants arm's stale `mutants.out`: a full sweep is hours and stays a separate run.
+- A stale `mutants.out` sits under the mutants arm. A full sweep is hours and stays a separate run.
 - The estimate caps and the `src-files` definition: the rename landed already.
 
 

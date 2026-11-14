@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the docs name the directory `mt` reads on every platform],
+      docs-match-code: helps[the docs give the directory `mt` reads on every platform],
     ),
   ),
   assignee: "agent",
@@ -44,21 +44,21 @@ www/content/rule-packs.typ:76:layer `~/.config/mindtape/defaults.toml` it is `~/
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/init.rs").
 
 == TO-BE
 
 - 🟢 `mt init --list-presets` prints the user preset directory `mt` resolves, such as `$MINDTAPE_CONFIG_HOME/mindtape/presets`, and omits the line when none resolves.
-- 🟢 The `init --preset` and `worktrees` help and the two doc pages name the config directory, not `~/.config`.
+- 🟢 The `init --preset` and `worktrees` help and the two doc pages give the config directory, not `~/.config`.
 
 
 == Changes
 
 - `crates/mindtape-cli/src/init.rs`: print `preset::user_preset_dir()`, and reword the `--preset` help.
 - `crates/mindtape-cli/src/cli.rs`: reword the `worktrees` help.
-- `www/content/agents.typ`, `www/content/rule-packs.typ`: name the file in the config directory.
+- `www/content/agents.typ`, `www/content/rule-packs.typ`: state the file in the config directory.
 - `crates/mindtape-cli/tests/init_e2e.rs`: assert the printed directory.
 
 
@@ -75,4 +75,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable, this repo's maintainers run Linux, where the printed path is unchanged.
+Not applicable, this repo's maintainers run Linux, where the printed path stays the same.

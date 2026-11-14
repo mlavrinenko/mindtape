@@ -40,14 +40,14 @@
 + Run `wc -c CONTRIBUTING.md`.
 + 🔴 It prints `29837`. The gate table is 18.5 KB of that, and every agent session here loads the whole file through `AGENTS.md`.
 + 🔴 The Notes cells for `fmt-check`, `test`, `check-secrets` and `script-scope-check` are 200-300 word arguments. `docs/contributing/gates.md` or the script header already makes most of them.
-+ The rules listed here appear in two or three files: no `Refs:` on a filing commit (`CONTRIBUTING.md:111`, `commit-messages.md:16`, `SKILL.md:67`); fork before flipping (`CONTRIBUTING.md:81`, `commit-messages.md:20`).
++ The rules listed here appear in two or three files: no `Refs:` on a filing commit (`CONTRIBUTING.md:111`, `commit-messages.md:16`, `SKILL.md:67`), and fork before flipping (`CONTRIBUTING.md:81`, `commit-messages.md:20`).
 + The deep dives narrate history: `gates.md:43-49` calls itself "not a current reading".
 
 
 == TO-BE
 
-- 🟢 Each gate's note is one clause naming the problem the gate stops. The argument moves to the script header.
-- 🟢 Each process rule is stated once; other files link to it.
+- 🟢 Each gate's note is one clause that states the problem the gate stops. The argument moves to the script header.
+- 🟢 Each process rule appears once, and other files link to it.
 - 🟢 `.linecop.yaml` caps the rendered `CONTRIBUTING.md`, so its size cannot creep back.
 - 🟢 CONTRIBUTING and the deep dives follow the plain-prose rules.
 
@@ -62,15 +62,15 @@
 
 - `www/utils/gate-notes.typ`: one clause per gate.
 - `.just/scripts/*.sh`: headers take any argument cut from a note that the header lacks.
-- `docs/src/contributing.typ`: rewrite whole. Also fix "one of those worktrees" (no antecedent), `HarvestError` (it lives in the typst-harvest crate; use `RecurError`), and the release sentence: `just release` refuses a non-empty `[Unreleased]`.
+- `docs/src/contributing.typ`: rewrite whole. Also fix "one of those worktrees" (no antecedent), `HarvestError` (it lives in the typst-harvest crate, so use `RecurError`), and the release sentence: `just release` refuses a non-empty `[Unreleased]`.
 - `docs/src/contributing/*.typ`: rewrite whole, drop duplicated rules and the history passages.
 - `.linecop.yaml`: a cap on `CONTRIBUTING.md`.
-- `.just/scripts/check-doc-blocks.sh`: the blocks in `commit-messages.typ` and `signal-sweep.typ` become fixture reads or carry a `docs:hand-typed` reason; drop both files from the list.
+- `.just/scripts/check-doc-blocks.sh`: the blocks in `commit-messages.typ` and `signal-sweep.typ` become fixture reads or carry a `docs:hand-typed` reason. Drop both files from the list.
 
 
 == Out of scope
 
-- What the gates do: this task changes their docs only.
+- This task changes only the gates' docs, not what they do.
 
 
 == Dogfood

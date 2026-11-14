@@ -33,7 +33,7 @@
 == AS-IS
 
 + Landing `prelude-verdicts` while `mt check --commits main..HEAD` judged the range
-+ 🔴 #raw("crates/mindtape/src/loader/mod.rs"): a past commit's task files are evaluated with the tip's config, so a local-package pin holding a new version breaks that commit's older imports
++ 🔴 #raw("crates/mindtape/src/loader/mod.rs"): the check evaluates a past commit's task files with the tip's config, so a local-package pin holding a new version breaks that commit's older imports
 
 ```
 $ mt check --commits main..HEAD
@@ -43,8 +43,8 @@ error: 1 commit broke commit rules
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The finding lives here rather
+than in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/loader/mod.rs").
 
 == TO-BE

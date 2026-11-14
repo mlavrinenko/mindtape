@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a pack update names every rule and `run` line it changes before the lock commits it],
+      enforced-practice: helps[a pack update lists every rule and `run` line it changes before the lock commits it.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -35,7 +35,7 @@
 == AS-IS
 
 + Run `mt packs update acme` after a fix lands on `v1`.
-+ 🔴 It prints the old and new commit only, and the lock's diff shows a new hash, so a reviewer can't see that the update changed a rule or added a `run` line.
++ 🔴 It prints the old and new commit only, and the lock's diff shows a new hash. A reviewer then can't see that the update changed a rule or added a `run` line.
 
 
 == TO-BE
@@ -68,7 +68,7 @@ wrote .mindtape/packs.lock
 
 == Alternatives
 
-- Print a text diff of the TOML: a reordered file would look like a change, while the parsed diff names what behaves differently.
+- Print a text diff of the TOML: a reordered file would look like a change, while the parsed diff states what behaves differently.
 
 
 == Out of scope

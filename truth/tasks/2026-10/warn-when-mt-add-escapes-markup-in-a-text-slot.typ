@@ -14,16 +14,16 @@
   estimate: (src-files: 4),
   x-goals: (
     product: (
-      readable-tasks: helps[a body filed with code spans reads as code, not as backslashes],
+      readable-tasks: helps[a body filed with code spans reads as code, not as backslashes.],
       implementable-tasks: neutral,
-      enforced-practice: helps[the filer hears about the escaping at the moment it happens, not after 197 tasks],
+      enforced-practice: helps[the filer hears about the escaping at the moment it happens, not after 197 tasks.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the templates page and the skill say what `mt add` prints],
+      docs-match-code: helps[the templates page and the skill say what `mt add` prints.],
     ),
   ),
   assignee: "agent",
@@ -32,7 +32,7 @@
 
 == AS-IS
 
-+ Declare a template slot `#slot("summary", kind: "text", example: "plain words")`. `mt check` accepts it, since the example shows no code span.
++ Declare a template slot `#slot("summary", kind: "text", example: "plain words")`. `mt check` accepts it, since the example has no code span.
 + Fill it with `mt add -t that -f -`, the YAML value holding a code span such as ``` `mmz --import <dir>` ```.
 + 🔴 It files ``` \`mmz --import \<dir>\` ``` and says nothing. An agent in mmz filed two tasks this way.
 
@@ -55,9 +55,9 @@
 == Alternatives
 
 - Warn on any escaped character: a path's `_` or `issue #4` in plain prose is literal text, so it would cry wolf on correct values.
-- Warn on the whole markup set (`*`, `_`, `#`, `<`, `@`, `$`): each has a common literal use in prose, while a backtick seldom means a literal backtick. The same call as `mt check`'s example rule.
-- Refuse the add: a `text` slot that holds a literal backtick is legal, and the warning already names the fix.
-- A `note:` line: the diag module keeps `note:` for context with no action, and this one asks for a template change, which is a warning with a hint.
+- Warn on every markup character (`*`, `_`, `#`, `<`, `@`, `$`): each has a common literal use in prose, while a backtick seldom means a literal backtick. The same call as `mt check`'s example rule.
+- Refuse the add: a `text` slot that holds a literal backtick is legal, and the warning already states the fix.
+- A `note:` line: the diag module keeps `note:` for context with no action, and this one concerns a template change, which is a warning with a hint.
 
 
 == Out of scope

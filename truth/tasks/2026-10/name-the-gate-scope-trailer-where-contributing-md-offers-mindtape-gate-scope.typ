@@ -33,7 +33,7 @@
 == AS-IS
 
 + Committing the first of two commits in a delegated worktree with `MINDTAPE_GATE_SCOPE`.
-+ 🔴 #raw("docs/src/contributing.typ"): CONTRIBUTING.md says `MINDTAPE_GATE_SCOPE=<reason> git commit` skips the freshness check, but the commit-msg hook also requires a matching `Gate-Scope:` trailer, so a commit made as written is refused.
++ 🔴 #raw("docs/src/contributing.typ"): CONTRIBUTING.md says `MINDTAPE_GATE_SCOPE=<reason> git commit` skips the freshness check, but the commit-msg hook also requires a matching `Gate-Scope:` trailer. The hook then refuses a commit made as written.
 
 ```
 commit-msg: MINDTAPE_GATE_SCOPE=... skipped the pre-commit freshness
@@ -47,13 +47,13 @@ line reading exactly:
 `rg Gate-Scope` hits docs/contributing/gates.md, not CONTRIBUTING.md.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("docs/src/contributing.typ").
 
 == TO-BE
 
-- 🟢 The Quality Gates paragraph that offers `MINDTAPE_GATE_SCOPE` names the `Gate-Scope:` trailer it needs, so a scoped commit lands on the first try.
+- 🟢 The Quality Gates paragraph that offers `MINDTAPE_GATE_SCOPE` names the `Gate-Scope:` trailer it needs. A scoped commit then lands on the first try.
 
 
 == Changes

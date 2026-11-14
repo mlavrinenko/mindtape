@@ -22,7 +22,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a wrong-typed query argument is refused instead of producing a plausible wrong count],
+      enforced-practice: helps[the parser refuses a wrong-typed query argument instead of producing a plausible wrong count],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -39,7 +39,7 @@
 == AS-IS
 
 + Reviewing both waves of the ast-grep milestone after it landed
-+ 🔴 #raw("crates/mindtape/src/estimate_queries.rs"): A non-string third argument to `ast_grep` or `grep` is silently dropped, so the query widens to all files.
++ 🔴 #raw("crates/mindtape/src/estimate_queries.rs"): A non-string third argument to `ast_grep` or `grep` is silently dropped. The query then widens to all files.
 
 A task estimated this in a fixture with two matching `.rs` files:
 
@@ -59,7 +59,7 @@ No `in ...` scope and no error: `crates/mindtape/src/query/mod.rs` keeps `glob` 
 == TO-BE
 
 - 🟢 A `glob` that is not a string is a shape error at `estimate.<unit>.queries[i]`, naming `glob`.
-- 🟢 A list, number or boolean is refused instead of widening the count.
+- 🟢 The parser refuses a list, number or boolean instead of widening the count.
 - 🟢 A red test covers `ast_grep` and `grep`.
 
 ```

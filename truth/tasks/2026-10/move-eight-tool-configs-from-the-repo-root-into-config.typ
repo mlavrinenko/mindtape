@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[each moved config is proven read at its new path, and the TOML configs `fmt-check` formats become its inputs],
+      sound-codebase: helps[the gate proves each moved config reads at its new path, and the TOML configs `fmt-check` formats become its inputs.],
       docs-match-code: neutral,
     ),
   ),
@@ -38,7 +38,7 @@
 
 == TO-BE
 
-- 🟢 The eight files live in `.config/`, so the root lists what a reader opens.
+- 🟢 The eight files live in `.config/`. The root then lists what a reader opens.
 - 🟢 Each gate reads its config at the new path. A probe whose output depends on that config prints the same before and after the move, and prints something else with the config absent.
 - 🟢 Each moved file is an input of the gate that reads it, so an edit re-runs that gate, and both baselines keep their merge drivers.
 
@@ -47,8 +47,8 @@
 
 - `.config/`: the eight files. `gitleaks.toml`, `shellcheckrc` and `jscpd-baseline.json` lose the leading dot.
 - `Justfile`, `.just/lint.just`, `.just/crap.just`: `TOML_FMT_PATHS`, `canibump -m`, `shellcheck --rcfile`, jscpd's `--baseline` and the merge driver names.
-- `.just/scripts/`: the `config` variable of `check-secrets.sh`, the crap scripts' baseline path, `cargo mutants --config` from `_mutants-env.sh`, `cargo release -c` in `release.sh`, and every comment naming a moved file.
-- `.mmz/config.yaml`: each scope's path. `toml-fmt` takes `.config/*.toml`, so the canibump and release configs become `fmt-check` inputs.
+- `.just/scripts/`: the `config` variable of `check-secrets.sh`, the crap scripts' baseline path, `cargo mutants --config` from `_mutants-env.sh`, `cargo release -c` in `release.sh`, and every comment that references a moved file.
+- `.mmz/config.yaml`: each scope's path. `toml-fmt` takes `.config/*.toml`, so the `canibump` and release configs become `fmt-check` inputs.
 - `.gitattributes`, `.gitignore`, `.mindtape/config.toml`, `outdatty.yaml`, `flake.nix`: the new paths. `.gitignore` drops its `.cargo/mutants.toml` exception.
 - `docs/src/contributing.typ`, `docs/src/contributing/*.typ`, `.mindtape/templates/sweep-*.typ`, `contrib/ask-refactoring/*.sh`: the new paths, with the rendered docs.
 - `crates/mindtape-cli/tests/it/*_baseline_merge_e2e.rs`: the baselines' new paths.
@@ -56,7 +56,7 @@
 
 == Rollback
 
-- Revert the commits. No tool reads both paths, so the old layout works again once the files are back.
+- Revert the commits. The tools read only one path. The old layout works again once the files are back.
 
 
 == Out of scope

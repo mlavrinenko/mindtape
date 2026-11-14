@@ -56,10 +56,10 @@ $ jq '.evals[0] | keys' skills/mindtape/evals/evals.json
 
 == TO-BE
 
-- 🟢 Each eval has a `without` block with its own assertions, or says why the arm is not meaningful.
+- 🟢 Each eval has a `without` block with its own assertions, or says why the arm does not apply.
 - 🟢 `README.md` records one baseline run and names the CLI fact each failure needs.
 - 🟢 A small check in `just check` validates the baseline shape for every eval.
-- 🟢 A release runs both arms; a no-docs regression is visible before the goal is rated.
+- 🟢 A release runs both arms. A no-docs regression then appears before the goal gets a rating.
 
 ```
 $ jq -r '.evals[] | [.id, (.without.assertions | length)] | @tsv' skills/mindtape/evals/evals.json
@@ -86,7 +86,7 @@ $ jq -r '.evals[] | [.id, (.without.assertions | length)] | @tsv' skills/mindtap
 == Out of scope
 
 - Changing the eval prompts or the fixture projects.
-- Building an agent runner; the loop stays skill-creator's.
+- Building an agent runner stays out. The loop stays skill-creator's.
 
 
 == Dogfood

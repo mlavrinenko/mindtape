@@ -42,8 +42,8 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
-- 🟢 With stdin not a terminal, `mt rm` says it can't ask and hints `--yes`; a bare word that's no field and no stem says `no task`.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 With stdin not a terminal, `mt rm` says it can't ask and hints `--yes`. A bare word that's no field and no stem says `no task`.
 
 == Changes
 

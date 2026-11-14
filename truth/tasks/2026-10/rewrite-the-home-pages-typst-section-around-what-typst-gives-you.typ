@@ -18,7 +18,7 @@
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
-      typst-over-markdown: helps[the first screen lists what a Typst task gives you, and drops a check a JSON schema gives frontmatter too],
+      typst-over-markdown: helps[the first screen lists what a Typst task gives you, and drops a check a JSON schema gives frontmatter too.],
       plain-files: neutral,
     ),
     process: (
@@ -31,7 +31,7 @@
     2026,
     10,
     12,
-  )[the section names three gains, and one editor capture shows the menu and the squiggle together],
+  )[the section lists three gains, and one editor capture shows the menu and the squiggle together.],
 )
 
 == AS-IS
@@ -62,7 +62,7 @@
 
 == Out of scope
 
-- Checks that a schema can't express: the owner decides how to show them.
+- Checks that a schema can't express stay the owner's call on how to show them.
 
 
 == Dogfood

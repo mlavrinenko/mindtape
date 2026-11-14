@@ -38,7 +38,7 @@
 
 + Run `just check-dry`. It passes, because its floor is 50 tokens.
 + 🔴 `let dir = tempfile::tempdir().unwrap();` and the setup after it repeat in 395 places across 78 test files. No gate or sweep reports it, because each copy is under 50 tokens.
-+ jscpd can rank clone groups by size times copies only once upstream jscpd issue 1000 (clone classes) ships, and nothing here waits on it.
++ jscpd can rank clone groups by size times copies only once upstream jscpd issue 1000 (clone classes) lands, and nothing here waits on it.
 
 
 == TO-BE
@@ -69,7 +69,7 @@
 == Out of scope
 
 - Gating on short repeats, which needs a stable group identity that only jscpd's clone classes give.
-- The canibump setup, which is its own task.
+- The `canibump` setup, which is its own task.
 
 
 == Dogfood

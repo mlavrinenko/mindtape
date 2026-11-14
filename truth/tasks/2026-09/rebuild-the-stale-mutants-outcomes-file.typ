@@ -31,21 +31,21 @@
     2026,
     9,
     30,
-  )[mutants.out refreshed by a full --iterate run; 106 tasks filed for the survivors; the 5 timeouts filed; the skip message names just mutants],
+  )[mutants.out refreshed by a full `--iterate` run. 106 tasks filed for the survivors. The 5 timeouts filed. The skip message names `just mutants`.],
 )
 
 == AS-IS
 
 + Run `just ask-refactoring`.
 + 🔴 It prints `ask-refactoring: mutants.out/outcomes.json predates crates/mindtape/tests/dogfood_check.rs — skipping the mutants arm`: the file was last written 2026-09-10, so surviving mutants from every commit since are invisible to the sweep.
-+ The skip names `just mutants-diff`, but on `main` that diffs against `main` — an empty diff, which measures nothing.
++ The skip names `just mutants-diff`, but on `main` that diffs against `main`, an empty diff that tells us nothing.
 
 
 == TO-BE
 
-- 🟢 `mutants.out/outcomes.json` postdates every `crates/**/*.rs`; the sweep runs the mutants arm again.
-- 🟢 Every survivor the fresh run names is pinned by a test, filed as a task, or excluded with a reason in `.cargo/mutants.toml`.
-- 🟢 The skip message names the command that actually refreshes the file.
+- 🟢 `mutants.out/outcomes.json` postdates every `crates/**/*.rs`. The sweep runs the mutants arm again.
+- 🟢 Each survivor the fresh run names gets a test, a filed task, or an exclusion reason in `.cargo/mutants.toml`.
+- 🟢 The skip message points at the command that actually refreshes the file.
 
 
 == Changes
@@ -57,7 +57,7 @@
 
 == Rollback
 
-Delete `mutants.out/`; the arm skips loudly again, as it does today.
+Delete `mutants.out/`. The arm skips loudly again, as it does today.
 
 
 == Out of scope

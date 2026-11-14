@@ -33,7 +33,13 @@
 == AS-IS
 
 + On Windows, in a git repository, run `mt rm gone-a` where `live-a` depends on `gone-a`.
-+ 🔴 `live-a` gets `depends-on("swh:1:rev:…;path=tasks\gone-a.typ")`. A SWHID's `path=` is a git path, and git paths use `/`, so the tombstone resolves nowhere (`rm_e2e::rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link`, CI run 40576881551).
++ 🔴 `live-a` gets a tombstone whose `path=` carries a backslash:
+
+```text
+depends-on("swh:1:rev:…;path=tasks\gone-a.typ")
+```
+
+A SWHID's `path=` is a git path, and git paths use `/`. The tombstone then resolves nowhere. CI run 40576881551 shows it in `rm_e2e::rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link`.
 + typst-cleanup 0.2.0 mints the SWHID from `strip_prefix(git_root).to_string_lossy()`, which is the platform path.
 
 
@@ -61,5 +67,5 @@
 
 == Dogfood
 
-Not applicable. This repo is developed on Linux.
+Not applicable. The maintainers develop this repo on Linux.
 

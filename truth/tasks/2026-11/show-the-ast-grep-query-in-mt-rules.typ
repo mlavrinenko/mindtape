@@ -20,7 +20,7 @@
   tags: ("found", "cli", "stateless"),
   x-goals: (
     product: (
-      readable-tasks: helps[the listing names the query instead of repeating one opaque kind],
+      readable-tasks: helps[the listing states the query instead of repeating one opaque kind],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -53,7 +53,7 @@ derived fields
 
 == TO-BE
 
-- 🟢 A line names the language, pattern and optional glob the collector reads.
+- 🟢 A line states the language, pattern and optional glob the collector reads.
 - 🟢 A red test pins two different collectors to different lines.
 
 ```
@@ -71,7 +71,7 @@ derived fields
 == Out of scope
 
 - Changing the Typst detail.
-- A new JSON key; `detail` already exists.
+- A new JSON key stays out. `detail` already exists.
 
 == Dogfood
 

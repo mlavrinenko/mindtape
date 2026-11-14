@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a release cannot ship a flake an adopter can't use],
+      cheap-adoption: helps[a release cannot publish a flake an adopter can't use],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Read `.github/workflows/ci.yml`: it builds the flake but never runs what it built, or locks it from another flake.
-+ 🔴 0.3.0 shipped with `nix run` broken, `mt` unable to load tasks on a fresh machine, and a 190-node lock for adopters, and no job noticed.
++ 🔴 0.3.0 came out with `nix run` broken, `mt` unable to load tasks on a fresh machine, and a 190-node lock for adopters, and no job noticed.
 
 
 == TO-BE

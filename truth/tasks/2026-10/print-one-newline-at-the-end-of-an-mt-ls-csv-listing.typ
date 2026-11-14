@@ -41,8 +41,8 @@ $ mt ls 'title == "zz"' --format csv | od -c
 0000012
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/ls/mod.rs").
 
 == TO-BE
@@ -51,7 +51,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/ls/mod.rs`: `print_body` prints a body ending in a newline or NUL as is and adds one newline to any other, so no format needs its own case. The table footer prints its own separating blank line, which the table body's trailing newline and `println!` used to supply.
+- `crates/mindtape-cli/src/cmd/ls/mod.rs`: `print_body` prints a body ending in a newline or NUL as is and adds one newline to any other, so no format needs its own case. The table footer prints its own separating blank line, which the table body's trailing newline and `println!` supplied.
 - `crates/mindtape-cli/tests/it/ls_newline_e2e.rs`: pin the last byte of every format, and the table's blank line before its footer, through the binary.
 
 == Rollback

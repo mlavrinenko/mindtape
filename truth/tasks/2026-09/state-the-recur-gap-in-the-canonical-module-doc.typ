@@ -8,7 +8,7 @@
     2026,
     9,
     19,
-  )[the module doc names the recur gap and points at the schema page],
+  )[the doc covers the gap.],
   priority: ice(
     impact: 4,
     confidence: 0.9,
@@ -29,7 +29,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the module doc agrees with `CanonicalTask` and with the schema page],
+      docs-match-code: helps[the doc agrees with the code.],
     ),
   ),
 )
@@ -38,7 +38,7 @@
 
 1. 🔴 `crates/mindtape/src/canonical.rs`'s module doc says `mt ls --json | mt
   import` round-trips, but `CanonicalTask` has no `recur` and `mt import`
-  writes none. `www/content/schema.typ` now names that gap, so the Rust doc is
+  writes none. `www/content/schema.typ` names that gap, so the Rust doc is
   the one place still claiming otherwise.
 
 == TO-BE
@@ -49,12 +49,12 @@
 
 == Source of truth
 
-- `www/content/schema.typ` — the page that names the gap for users.
-- `crates/mindtape/src/import_map.rs` — where `recur` is hardcoded to `none`.
+- `www/content/schema.typ`: the page that covers the gap for users.
+- `crates/mindtape/src/import_map.rs`: where `recur` hardcodes to `none`.
 
 == Changes
 
-- `crates/mindtape/src/canonical.rs` — the module doc's opening paragraph.
+- `crates/mindtape/src/canonical.rs`: the module doc's opening paragraph.
 
 == Out of scope
 
@@ -62,5 +62,5 @@
 
 == Dogfood
 
-The module doc is read on every visit to the type; `just check` covers the
+Every visit to the type reads the module doc. `just check` covers the
 comment-free build, and the docs gate keeps the page it points at honest.

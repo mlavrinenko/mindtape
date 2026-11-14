@@ -33,7 +33,7 @@
 == AS-IS
 
 + Reviewing the skill's evals while splitting cli-docs
-+ 🔴 #raw("skills/mindtape/evals/README.md"): The README calls examples/minimal the floor config, but minimal declares its own todo, wip, done and cancelled legend, while the floor's has proposed, accepted and failed too.
++ 🔴 #raw("skills/mindtape/evals/README.md"): The README calls examples/minimal the floor config, but minimal declares its own `todo`, `wip`, `done` and `cancelled` legend, while the floor's has proposed, accepted and failed too.
 
 
 ```
@@ -47,8 +47,8 @@ $ rg -n '^value' examples/minimal/.mindtape/config.toml
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("skills/mindtape/evals/README.md").
 
 == TO-BE
@@ -68,7 +68,7 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- The evals themselves, whose prompts already name the right legend.
+- The evals themselves, whose prompts already give the right legend.
 
 
 == Dogfood

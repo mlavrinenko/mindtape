@@ -21,7 +21,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a task moved through `mt import` keeps the queries its cap rule reads, so the cap still tracks the code],
+      enforced-practice: helps[a task moved through `mt import` keeps the queries its cap rule reads. The cap still tracks the code.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: helps[a script that rewrites tasks as JSON gets back the `count(...)` the author wrote],

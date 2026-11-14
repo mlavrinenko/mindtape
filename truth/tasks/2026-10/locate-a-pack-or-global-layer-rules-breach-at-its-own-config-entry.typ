@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[one origin record answers where a rule is declared, in place of a second line scan],
+      sound-codebase: helps[one origin record answers where the config declares a rule, in place of a second line scan],
       docs-match-code: neutral,
     ),
   ),
@@ -32,16 +32,16 @@
 
 == AS-IS
 
-+ Run `mt check` in a project whose `extends = ["mindtape-tasks"]` pack has a `[[tasks.rules]]` rule that cannot be evaluated, for example one whose `changed()` git cannot answer.
++ Run `mt check` in a project whose `extends = ["mindtape-tasks"]` pack has a `[[tasks.rules]]` rule the engine cannot evaluate, such as one whose `changed()` git cannot answer.
 + 🔴 The warning `skipped: …` points at the first task's `task.with(…)` line. `config_entry` in `crates/mindtape/src/config_rules_eval.rs` scans only the project's `.mindtape/config.toml`, so a rule from a pack or a global config layer has no location.
 
 
 == TO-BE
 
-- 🟢 Config loading records each rule's origin with the line of its table header: a project or global layer as `file:line`, a path pack as its file, a built-in pack as `pack <name>:<line>`.
+- 🟢 Config loading records each rule's origin with the line of its table header. A project or global layer shows as `file:line`, a path pack as its file, a built-in pack as `pack <name>:<line>`.
 - 🟢 A skipped rule points there, whichever layer declared it.
 - 🟢 `mt config show --origin` and the location read one record, the `RuleOriginEntry` list `config_packs.rs` already builds.
-- 🟢 The line scan `config_entry` is gone.
+- 🟢 The line scan `config_entry` has left.
 
 
 == Changes
@@ -55,7 +55,7 @@
 
 == Alternatives
 
-- Extend the line scan to the pack and global files: a second parse of each file that can disagree with the merge about which entry won.
+- Extend the line scan to the pack and global files. A second parse of each file can disagree with the merge about which entry won.
 - Carry TOML spans through the merge: the `toml` table drops them, and the merge works on plain values.
 - Leave the marker line: the reader opens the wrong file for a fault in the config.
 

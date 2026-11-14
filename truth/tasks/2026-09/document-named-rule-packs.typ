@@ -16,13 +16,13 @@
     2026,
     9,
     15,
-  )[Superseded on 2026-09-15 by give-every-body-rule-a-name, let-a-config-extend-rule-packs, ship-the-task-practice-as-the-mindtape-tasks-pack and document-rule-packs, which add path packs, disable and same-name overrides.],
+  )[Superseded on 2026-09-15 by `give-every-body-rule-a-name`, `let-a-config-extend-rule-packs`, `ship-the-task-practice-as-the-mindtape-tasks-pack` and `document-rule-packs`, which add path packs, disable and same-name overrides.],
   links: depends-on("write-the-mindtape-plain-prose-rule-pack.typ"),
 )
 
 == Summary
 
-Rule packs and the plain-prose pack ship as code and tests. The generated schema does not yet accept the `include` and disable keys on `[tasks.body.content]`, and the config page does not say a pack exists or how to drop one rule from it.
+Rule packs and the plain-prose pack live as code and tests. The generated schema does not yet accept the `include` and disable keys on `[tasks.body.content]`, and the config page does not say a pack exists or how to drop one rule from it.
 
 
 == Scope
@@ -31,4 +31,4 @@ Regenerate `schema/config.schema.json`, document the `include` and per-rule disa
 
 == Dogfood
 
-Not applicable: docs only; the pack itself is dogfooded in `write-the-mindtape-plain-prose-rule-pack.typ`.
+Not applicable: docs only. `write-the-mindtape-plain-prose-rule-pack.typ` does the dogfooding.

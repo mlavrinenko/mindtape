@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run `just docs build`, serve `www/public/` and open the site root and `/config/` in a 375px wide viewport.
-+ 🔴 Every sidebar group sits above the page, so the home hero starts about 900px down.
++ 🔴 Every sidebar group sits above the page. The home hero then starts about 900px down.
 + 🔴 `/config/`, `/cli/ls/` and twelve other pages scroll sideways: a table cell or a paragraph holds a code span or a URL wider than the screen.
 
 

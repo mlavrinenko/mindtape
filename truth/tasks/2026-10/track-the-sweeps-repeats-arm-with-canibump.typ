@@ -40,7 +40,7 @@
 == AS-IS
 
 + Read `contrib/ask-refactoring/repeats.sh`.
-+ 🔴 It hand-rolls clone groups, which upstream jscpd issue 1000 adds to jscpd itself. Nothing in this repo says when that lands, so the stopgap would stay after its reason is gone.
++ 🔴 It hand-rolls clone groups, which upstream jscpd issue 1000 adds to jscpd itself. The repo does not hold a date for that land. The stopgap would then stay after its reason leaves.
 
 
 == TO-BE
@@ -51,7 +51,7 @@
 == Changes
 
 - `canibump.toml`: the blocker, with the schema line on top.
-- `flake.nix`: canibump from qahq in the dev shell.
+- `flake.nix`: `canibump` from qahq in the dev shell.
 - `Justfile`: a `canibump` recipe, and `canibump.toml` in `TOML_FMT_PATHS`.
 
 
@@ -62,7 +62,7 @@
 
 == Out of scope
 
-- canibump's `[scan]`, which flags an upstream link no blocker names. It ships in canibump 0.2.0, and qahq still pins 0.1.0.
+- The `[scan]` section in `canibump`, which flags an upstream link without a blocker. Version 0.2.0 of `canibump` adds it, and qahq still pins 0.1.0.
 - The blocker for the jscpd gate's new-clones filter, which waits on an issue not yet posted.
 
 

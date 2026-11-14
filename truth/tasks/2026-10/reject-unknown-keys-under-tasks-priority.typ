@@ -43,16 +43,16 @@ Error: load <copy>/.mindtape/config.toml
        in `tasks.estimate`
 ```
 
-With `[tasks.priority]` the run reports only the fixture's lib path errors, and no parse error. `schema/config.schema.json` gives `PriorityConfig` no `additionalProperties: false`; every other table there has it.
+With `[tasks.priority]` the run reports only the fixture's lib path errors, and no parse error. `schema/config.schema.json` gives `PriorityConfig` no `additionalProperties: false`. Every other table there has it.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/config_tasks.rs").
 
 == TO-BE
 
-- 🟢 An unknown key under `[tasks.priority]` fails the load and names the key, as it does under `[tasks.estimate]`.
+- 🟢 An unknown key under `[tasks.priority]` fails the load and gives the key, as it does under `[tasks.estimate]`.
 - 🟢 `schema/config.schema.json` sets `additionalProperties: false` on `PriorityConfig`.
 
 
@@ -74,4 +74,4 @@ Revert the commit.
 
 == Dogfood
 
-This repo's own `[tasks.priority]` table is checked by every `mt` run.
+Every `mt` run checks this repo's own `[tasks.priority]` table.

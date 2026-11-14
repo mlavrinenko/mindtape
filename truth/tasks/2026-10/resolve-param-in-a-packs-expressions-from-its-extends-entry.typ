@@ -49,10 +49,10 @@ extends = [{ pack = "./team.toml", with = { max-files = 8 } }]
 ```
 
 - 🟢 The rule caps at 8, and at 5 when the entry is the bare string.
-- 🟢 At config load, each `param("name")` outside a string literal becomes the value's literal in every expression key of the pack: rule `when` and `assert`, commit rules, `on.flip` `when` and an action's `list`, `views.*.filter`, every `required` and `values-when`, a priority framework's `score` and category `when`, `[[ls.rules]]` `condition` and `filter`, `[ls.columns]` `when`, and `[rm] default-filter`. A rule's `message` is prose and keeps its text.
-- 🟢 Each expression field carries `#[schemars(extend("x-expression" = "<language>"))]` where its struct declares it, and the rewrite reads the key paths from `schema_for!(Config)` once. `filter` and `commit` read `my-param("x")` as one name; `condition` and `formula` read it as `my - param("x")`. A test fails on an untagged string under an expression name such as `when` or `filter`.
+- 🟢 At config load, each `param("name")` outside a string literal becomes the value's literal in every expression key of the pack. Those keys are rule `when` and `assert`, commit rules, `on.flip` `when` and an action's `list`, and `views.*.filter`, plus every `required` and `values-when`. A priority framework's `score` and category `when`, `[[ls.rules]]` `condition` and `filter`, `[ls.columns]` `when`, and `[rm] default-filter` follow. A rule's `message` is prose and keeps its text.
+- 🟢 Each expression field carries `#[schemars(extend("x-expression" = "<language>"))]` where its struct declares it, and the rewrite reads the key paths from `schema_for!(Config)` once. `filter` and `commit` read `my-param("x")` as one name. `condition` and `formula` read it as `my - param("x")`. A test fails on an untagged string under an expression name such as `when` or `filter`.
 - 🟢 A path pack resolves to its canonical path, so `./team.toml` and `../app/team.toml` are one pack listed twice, and the label reads without `./`.
-- 🟢 `mt` refuses, naming the pack: a `with` key the pack doesn't declare, with the nearest name; a value of another type than the default; `param()` naming no parameter; `param()` in a layer's own expression; one pack extended twice in a layer.
+- 🟢 `mt` refuses, naming the pack: a `with` key the pack doesn't declare, with the nearest name. A value of another type than the default. `param()` that doesn't take a parameter. `param()` in a layer's own expression. One pack extended twice in a layer.
 
 
 == Changes
@@ -61,8 +61,8 @@ extends = [{ pack = "./team.toml", with = { max-files = 8 } }]
 - `crates/mindtape/src/config/packs_toml.rs`: parse an `extends` entry as a string or a `{ pack, with }` table.
 - `crates/mindtape/src/config/params.rs` (new): parse `[params]`, check `with` against it, and rewrite `param()` calls with a string-literal-aware pass like `join_kebab_names` in `crates/mindtape/src/filter/expr.rs`. `PackEntry` types `Config::extends` for the schema.
 - `crates/mindtape/src/config/expression_keys.rs` (new): walk the config schema for `x-expression` tags, and the config structs that declare an expression field: tag each with its language.
-- `crates/mindtape/src/config/pack_resolve.rs`: canonicalize a path pack, falling back to the joined path, and drop Windows' `\\?\` prefix.
-- `crates/mindtape/src/config/pack_dirs_tests.rs` (new): test `absolute`'s `.` and `..` cleanup directly, which a canonical pack dir no longer reaches through a directory pack.
+- `crates/mindtape/src/config/pack_resolve.rs`: `canonicalize` a path pack, falling back to the joined path, and drop Windows' `\\?\` prefix.
+- `crates/mindtape/src/config/pack_dirs_tests.rs` (new): test `absolute`'s `.` and `..` cleanup directly, which a canonical pack dir cannot reach through a directory pack.
 - `crates/mindtape/src/config/mod.rs`: list the file in the module header, and type `extends` as `Vec<PackEntry>`.
 - `crates/mindtape/src/config/packs.rs`: in `fold_layer_packs`, rewrite each pack between `resolve_pack` and `take_rule_arrays`, so its rule expressions are rewritten too, and take `[params]` out of the pack before `PackLayer::add` merges the rest. Reject `param()` in a layer's own expressions.
 - `crates/mindtape/src/config/pack_fold.rs`: `PackLayer::add` refuses a pack its layer already added.
@@ -75,7 +75,7 @@ extends = [{ pack = "./team.toml", with = { max-files = 8 } }]
 
 - A `param()` function in the filter evaluator: every call site would need the pack's values at evaluation time.
 - Rewrite the parsed `evalexpr` tree: its nodes carry no spans to write the text back from.
-- A plain regex: it would rewrite a `param(` inside a string literal too.
+- A plain regex would rewrite a `param(` inside a string literal too.
 
 
 == Out of scope

@@ -54,7 +54,7 @@
 
 - `crates/mindtape-cli/tests/it/init_e2e.rs`: the red test first, `--organization` accepted and `--organisation` refused.
 - `crates/mindtape-cli/src/cmd/init/`: rename the flag, its enum and the wizard text.
-- `crates/mindtape/src/config/`, `crates/mindtape/src/model/numeric.rs`, `crates/mindtape/src/framework/mod.rs`: the doc comments the schema is generated from.
+- `crates/mindtape/src/config/`, `crates/mindtape/src/model/numeric.rs`, `crates/mindtape/src/framework/mod.rs`: the doc comments the schema generation reads.
 - `schema/config.schema.json`: regenerate.
 - `www/content/`, `docs/src/`, `skills/mindtape/`, `lib/prelude.typ`: the prose.
 
@@ -62,7 +62,7 @@
 == Out of scope
 
 - `CHANGELOG.md`, which another change rewrites.
-- The `cancelled` status value. It is a shipped status name that projects write into task files, so renaming it is its own decision.
+- The `cancelled` status value. It is a bundled status name that projects write into task files, so renaming it is its own decision.
 - Rust comments that no user reads, and CSS class names.
 
 

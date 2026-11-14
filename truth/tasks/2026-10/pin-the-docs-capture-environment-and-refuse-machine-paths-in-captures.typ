@@ -40,7 +40,7 @@
 
 == TO-BE
 
-- 🟢 Captures run with an empty user config layer, so every machine renders the same bytes.
+- 🟢 Captures run with an empty user config layer.Every machine renders the same bytes.
 - 🟢 `www/generate.sh` fails, naming file and line, when a capture contains `$HOME` or the absolute repo path.
 
 
@@ -52,15 +52,15 @@
 
 == Rollback
 
-Revert the commit; the captures go back to reading the builder's config.
+Revert the commit. The captures go back to reading the builder's config.
 
 
 == Out of scope
 
-- Relative paths such as `examples/learn-piano/...`: pages are meant to show them.
+- Relative paths such as `examples/learn-piano/...`: pages exist to show them.
 
 
 == Dogfood
 
-`just check` builds the site, so the guard runs on every commit in this repo.
+`just check` builds the site.The guard runs on every commit in this repo.
 

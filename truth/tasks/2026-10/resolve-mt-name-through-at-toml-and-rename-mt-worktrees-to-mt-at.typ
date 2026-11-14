@@ -42,19 +42,19 @@
 
 == TO-BE
 
-- 🟢 A leading `@x` resolves through `at.toml`. A project becomes `-w <path>` as today, so `mt @sn ls` is unchanged.
-- 🟢 A set is held for the commands that call `util::open_set`, and `util::open` refuses it:
+- 🟢 A leading `@x` resolves through `at.toml`. A project becomes `-w <path>` as today, so `mt @sn ls` stays the same.
+- 🟢 The commands that call `util::open_set` hold a set, and `util::open` refuses it:
 ```
 error: `flip` runs on one project, and @home holds 27
 hint: name one project, such as mt @speconaut flip
 ```
 - 🟢 `mt at` lists the entries, `mt at home` lists its members with their paths and marks forks, and `--json` prints either.
-- 🟢 `worktrees.toml`, `mt worktrees` and `mindtape::WorktreeRegistry` are gone.
+- 🟢 The change removes `worktrees.toml`, `mt worktrees` and `mindtape::WorktreeRegistry`.
 
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/at_tests.rs`: the red tests first, from `worktrees_tests.rs`: a project rewrites to `-w`, a set is held and refused, `mt at home` lists members.
+- `crates/mindtape-cli/src/cmd/at_tests.rs`: the red tests first, from `worktrees_tests.rs`: a project rewrites to `-w`, a set survives and `util::open` refuses it, `mt at home` lists members.
 - `crates/mindtape-cli/src/cmd/at.rs`: from `cmd/worktrees.rs`, reading `at.toml` through `mindtape::at`.
 - `crates/mindtape-cli/src/util.rs`: the held set, which `open_set` reads, and the refusal in `open`.
 - `crates/mindtape-cli/src/cli/mod.rs`, `crates/mindtape-cli/src/cmd/mod.rs`, `crates/mindtape-cli/src/cli/command_class.rs`, `crates/mindtape-cli/src/cli/check_argv.rs`, `crates/mindtape-cli/src/main.rs`: the rename.

@@ -16,8 +16,8 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the title rule refuses only titles that are not imperative],
-      cheap-adoption: helps[a team adopting mindtape-tasks does not hit false refusals on common verbs],
+      enforced-practice: helps[the title rule refuses only titles that are not imperative.],
+      cheap-adoption: helps[a team adopting mindtape-tasks does not hit false refusals on common verbs.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -31,14 +31,14 @@
     2026,
     10,
     2,
-  )[delete, group, update, rate-limit and about 220 more verbs added to dev-verbs.txt; verbs.txt is frequency-derived and stays untouched],
+  )[delete, group, update, rate-limit and about 220 more verbs added to dev-verbs.txt. That file is frequency-derived and stays untouched.],
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
 == AS-IS
 
 + In a project that extends `mindtape-tasks`, run `mt add "Delete the old fixture"`, `mt add "Group the index by section"` and `mt add "Rate-limit the login endpoint"`.
-+ 🔴 Each prints `rules.imperative-title: start the title with an imperative verb` and writes nothing.
++ 🔴 Each prints `rules.imperative-title: start the title with an imperative verb` and doesn't write.
 + `crates/mindtape/src/dicts/verbs.txt` and `dev-verbs.txt` lack `delete` and `group`. `word(title, 1)` returns `Rate-limit` whole, and no dict lists hyphenated verbs.
 
 

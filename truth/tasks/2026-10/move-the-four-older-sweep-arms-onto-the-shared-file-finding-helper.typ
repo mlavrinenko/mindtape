@@ -33,7 +33,7 @@
 == AS-IS
 
 + Adding the repeats arm to `just ask-refactoring`, whose emit calls a new shared helper.
-+ 🔴 #raw("contrib/ask-refactoring/size.sh"): The size, coverage, undertested and mutants arms each carry their own copy of the block that files a finding or prints it, which `file_finding` in `contrib/ask-refactoring.sh` now does once.
++ 🔴 #raw("contrib/ask-refactoring/size.sh"): The size, coverage, undertested and mutants arms each carry their own copy of the block that files a finding or prints it, which `file_finding` in `contrib/ask-refactoring.sh` does once.
 
 ```
 $ rg -c 'dedup skip --format json' contrib/ask-refactoring.sh contrib/ask-refactoring/
@@ -45,13 +45,13 @@ contrib/ask-refactoring/mutants.sh:1
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("contrib/ask-refactoring.sh").
 
 == TO-BE
 
-- 🟢 Every arm's emit builds its `mt` args and calls `file_finding`, and no arm runs `mt add --dedup skip` itself.
+- 🟢 Every arm's emit builds its `mt` arguments and calls `file_finding`, and no arm runs `mt add --dedup skip` itself.
 
 
 == Changes

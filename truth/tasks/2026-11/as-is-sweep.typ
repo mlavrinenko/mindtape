@@ -55,4 +55,4 @@
 
 == Dogfood
 
-Not applicable: a mechanical rename changes no feature this repo uses.
+Not applicable: a mechanical rename doesn't change any feature this repo uses.

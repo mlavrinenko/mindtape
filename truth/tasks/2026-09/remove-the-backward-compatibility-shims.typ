@@ -39,7 +39,7 @@
 
 == TO-BE
 
-- 🟢 The Problem's `rg` finds only `mt rm`'s retired-task vocabulary, which names a feature.
+- 🟢 The Problem's `rg` finds only `mt rm`'s retired-task vocabulary, which refers to a feature.
 - 🟢 An old spelling fails as an unknown key, field, value or command, with no pointer to its replacement.
 - 🟢 `just check` passes.
 
@@ -51,18 +51,18 @@
 - `crates/mindtape/src/filter_predicates.rs`: drop the retired-order error.
 - `crates/mindtape/src/filter_links.rs`: drop the legacy per-kind names from `has()` and `miss()`.
 - `crates/mindtape-cli/src/cli.rs` and `crates/mindtape-cli/src/install.rs`: drop `mt install-lib`.
-- `crates/mindtape/src/defaults.toml` and `.mindtape/config.toml`: drop the comments naming the retired `[ls] default-filter`.
-- `www/content/`: drop page text naming a removed spelling; `rg` each one first.
+- `crates/mindtape/src/defaults.toml` and `.mindtape/config.toml`: drop the comments about the retired `[ls] default-filter`.
+- `www/content/`: drop page text that uses a removed spelling. `rg` each one first.
 - `CHANGELOG.md`: list each removed spelling under Unreleased.
 
 
 == Out of scope
 
-- `mt rm`'s retired-task vocabulary: it names a feature, not a compatibility path.
+- `mt rm`'s retired-task vocabulary: it refers to a feature, not a compatibility path.
 - Consumer repos whose configs still use old spellings: each fixes its own config.
 
 
 == Dogfood
 
-Built in: this repo's own config and tasks must still load once the shims are gone.
+Built in: this repo's own config and tasks must still load once the shims disappear.
 

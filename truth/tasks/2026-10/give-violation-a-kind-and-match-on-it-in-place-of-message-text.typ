@@ -43,8 +43,8 @@ pub(crate) fn is_unresolved(violation: &Violation) -> bool {
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/violation.rs").
 
 == TO-BE

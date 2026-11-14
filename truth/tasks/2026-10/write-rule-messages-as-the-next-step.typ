@@ -40,13 +40,13 @@
 
 == TO-BE
 
-- 🟢 Every `message` in the shipped pack and this repo's config is the next step in the imperative, lower case, with no trailing period or em dash: `move Environment after Problem`.
+- 🟢 Every `message` in the released pack and this repo's config is the next step in the imperative, lower case, with no trailing period or em dash: `move Environment after Problem`.
 - 🟢 The config page states that rule for authors.
 
 == Changes
 
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: reword the 24 messages the inventory lists.
-- `.mindtape/config.toml`: the gate message at line 570 drops the `--force` advice `mt` now prints, and `Dogfood follows Out of scope` becomes `move Dogfood after Out of scope`.
+- `.mindtape/config.toml`: the gate message at line 570 drops the `--force` advice `mt` prints, and `Dogfood follows Out of scope` becomes `move Dogfood after Out of scope`.
 - `examples/api-service/.mindtape/config.toml`: its two messages.
 - `www/content/config.typ`: the authoring rule for `message`.
 - Regenerate README and the site with the docs recipe.

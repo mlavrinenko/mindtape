@@ -29,7 +29,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the page names the git requirement the error enforces],
+      docs-match-code: helps[the page states the git requirement the error enforces],
     ),
   ),
   assignee: "agent",

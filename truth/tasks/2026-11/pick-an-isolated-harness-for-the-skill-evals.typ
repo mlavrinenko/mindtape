@@ -19,7 +19,7 @@
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
-      self-describing: helps[the eval decides how to measure the no-docs claim without the orchestrator's context],
+      self-describing: helps[the harness measures the no-docs claim without the context of the orchestrator],
     ),
     process: (
       sound-codebase: helps[a clean harness makes the eval result reproducible],
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Read `skills/mindtape/evals/README.md` and run one no-docs eval from the main checkout.
-+ 🔴 The no-docs arm spawns a `general` subagent from this session, so it inherits the orchestrator's checkout, installed skill, personal config and conversation context. The result is a reproduction by a tool that already knows the repo, not a blind consumer.
++ 🔴 The no-docs arm spawns a `general` subagent from this session, so it inherits the checkout, installed skill, personal config and conversation context of the orchestrator. The result is a reproduction by a tool that already knows the repo, not a blind consumer.
 
 ```
 $ rg -n 'executor subagent|skill-creator' skills/mindtape/evals/README.md
@@ -41,7 +41,7 @@ $ rg -n 'executor subagent|skill-creator' skills/mindtape/evals/README.md
 4:subagent per eval twice, once with the skill and once with no external
 ```
 
-+ The same agent can read `skills/`, `docs/` and the main repo unless the prompt forbids it, and nothing verifies the prohibition.
++ The same agent can read `skills/`, `docs/` and the main repo unless the prompt blocks it, and nothing verifies the prohibition.
 
 
 == TO-BE
@@ -60,12 +60,12 @@ eval 1  pass   4/4
 
 == Changes
 
-- `truth/tasks/pick-an-isolated-harness-for-the-skill-evals.typ`: records the harness choice, the run recipe and the tradeoffs; no code changes.
+- `truth/tasks/pick-an-isolated-harness-for-the-skill-evals.typ`: records the harness choice, the run recipe and the tradeoffs. Only this file changes.
 
 
 == Alternatives
 
-- Keep skill-creator's loop with a stricter prompt: the orchestrator still supplies repo access and context, so the taint remains.
+- Keep skill-creator's loop with a stricter prompt: the orchestrator still supplies repo access and context. The taint then remains.
 - Run in a container or VM with a clean home and only the fixture: isolates files and config, but needs a model endpoint and a runner.
 - Send the prompt and fixture to an API model with no tools: the cleanest arm, but it cannot run `mt` unless the harness gives it a shell.
 - Replay scripted `mt` commands with no model: tests the CLI, but not whether a consumer discovers the commands.
@@ -73,11 +73,11 @@ eval 1  pass   4/4
 
 == Out of scope
 
-- Building or running the chosen harness; a follow-up task implements the pick.
+- Building or running the chosen harness stays out. A follow-up task implements the pick.
 - Changing the eval prompts, the fixtures or the no-docs assertions.
 
 
 == Dogfood
 
-This repo runs the six evals in the chosen harness before it trusts the `self-describing` baseline again.
+This repo runs the six evals in the chosen harness before it relies on the `self-describing` baseline again.
 

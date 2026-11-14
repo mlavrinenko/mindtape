@@ -64,7 +64,7 @@ error: tasks/num.typ:5: estimate.files.queries[0]: glob must be a string
 == TO-BE
 
 - 🟢 `mt eval` prints every shape error after the breakdown, so a dropped query cannot look like a valid manual count.
-- 🟢 The message names the field and the cause, as `mt check` does.
+- 🟢 The message states the field and the cause, as `mt check` does.
 - 🟢 A task with no shape error keeps its current output.
 
 ```
@@ -78,7 +78,7 @@ error: estimate.files.queries[0]: glob must be a string
 
 - `crates/mindtape-cli/src/cmd/eval.rs`: print `task.shape_errors` after the breakdown.
 - `crates/mindtape-cli/src/cmd/eval_tests.rs`: a red test for the shape-error text.
-- `www/content/estimates.typ`: say a wrong-shaped query is reported by `mt check` and `mt eval`.
+- `www/content/estimates.typ`: say `mt check` and `mt eval` both report a wrong-shaped query.
 
 == Out of scope
 

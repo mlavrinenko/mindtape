@@ -42,13 +42,13 @@ examples/api-service/scripts/test
 error: Recipe `outdatty-check` failed on line 197 with exit code 1
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("Justfile").
 
 == TO-BE
 
-- 🟢 A failing run names each stale group and the `just outdatty-update` command that records it.
+- 🟢 A failing run states each stale group and the `just outdatty-update` command that records it.
 
 == Changes
 
@@ -62,7 +62,7 @@ left in a closing report no one rereads. It belongs in
 == Out of scope
 
 - The outdatty manifest groups themselves.
-- Gating a dependent edited on its own. `outdatty.yaml` keeps that ungated on purpose, so a doc edit doesn't turn the gate red.
+- Gating a dependent edited on its own. `outdatty.yaml` keeps that dependent outside the gate on purpose, so a doc edit doesn't turn the gate red.
 
 == Dogfood
 

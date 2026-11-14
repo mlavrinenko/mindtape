@@ -33,7 +33,7 @@
 == AS-IS
 
 + Following the Quickstart to the point where the README's autocompletion claim should start to hold
-+ 🔴 #raw("www/content/quickstart.typ"): The README promises that the editor completes field names and flags a misspelled one, but the Quickstart names no language server and never links the page that explains `@local` packages
++ 🔴 #raw("www/content/quickstart.typ"): The README promises that the editor completes field names and flags a misspelled one. The Quickstart, however, does not reference a language server and never links the page that explains `@local` packages
 
 ```
 $ rg -n 'tinymist' www/content/quickstart.typ; echo "exit=$?"
@@ -41,13 +41,13 @@ exit=1
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("www/content/quickstart.typ").
 
 == TO-BE
 
-- 🟢 Right after the `mt install` step, the Quickstart says that tinymist, the Typst language server, finds the installed prelude and completes and checks the `task` fields, and links tinymist and the Task files page.
+- 🟢 Right after the `mt install` step, the Quickstart says that tinymist, the Typst language server, finds the installed prelude and completes and checks the `task` fields. The page also links tinymist and the Task files page.
 
 
 == Changes

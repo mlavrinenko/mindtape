@@ -34,12 +34,12 @@
 
 + Read `git log --format='%h %s' 37a8e3b7..93d78e66 -- CHANGELOG.md` after the 2026-10-06 docs round.
 + 🔴 Of eleven branches, only the two `fix` commits touched `CHANGELOG.md`. The `feat(www)` and `docs(www)` work for Markdown copies, per-command pages, diagrams and the lock merge driver landed without an entry, and one catch-up commit (`169b4260`) added them later.
-+ 🔴 Neither `CONTRIBUTING.md` nor a commit rule asks for an entry; outdatty's `release-notes` group fires only on `Cargo.toml`.
++ 🔴 Neither `CONTRIBUTING.md` nor a commit rule requires an entry. outdatty's `release-notes` group fires only on `Cargo.toml`.
 
 
 == TO-BE
 
-- 🟢 The trigger is the files a commit changes, not its type. A commit that changes product code (`crates/**` and `lib/**`, minus `crates/*/tests/**` and `*test*.rs`) and does not change `CHANGELOG.md` is refused, whether it is typed `feat`, `fix`, `refactor` or anything else. `skills/` stays out: its `SKILL.md` is generated from `docs/src/`.
+- 🟢 The trigger is the files a commit changes, not its type. The rule refuses a commit that changes product code (`crates/**` and `lib/**`, minus `crates/*/tests/**` and `*test*.rs`) and does not change `CHANGELOG.md`, whatever type it carries (`feat`, `fix`, `refactor` or anything else). `skills/` stays out: `docs/src/` generates its `SKILL.md`.
 ```toml
 [[commits.rules]]
 name = "changelog-with-product-change"
@@ -50,7 +50,7 @@ severity = "error"
 ```
 - 🟢 A `Changelog: none` trailer lets a product commit through when it has nothing to announce.
 - 🟢 The commit-msg hook (`mt check --commit-msg`) refuses it locally, and the CI step over the pushed range refuses it again. CI judges only commits after the one that added the rule, found with `git log -S`, so no hash goes stale on a rebase.
-- 🟢 The commit language gains `trailers`, every trailer line as `Key: value`, so the rule is config and no checker was added.
+- 🟢 The commit language gains `trailers`, every trailer line as `Key: value`. The rule is config, and no new checker exists.
 - 🟢 CONTRIBUTING.md says it once, under Commit Messages.
 
 
@@ -64,13 +64,13 @@ severity = "error"
 
 == Rollback
 
-- Delete the rule; commits go back to unchecked.
+- Delete the rule. Commits go back to unchecked.
 
 
 == Out of scope
 
 - The wording of entries, which review owns.
-- Docs-only changes that readers notice. They carry no product code, so the rule leaves them to review.
+- Docs-only changes that readers notice. They carry no product code. The rule then leaves them to review.
 
 
 == Dogfood

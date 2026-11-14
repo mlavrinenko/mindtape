@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a recipe is found by area, and no recipe outgrows ten lines],
+      sound-codebase: helps[a reader finds a recipe by area, and no recipe outgrows ten lines],
       docs-match-code: neutral,
     ),
   ),
@@ -45,7 +45,7 @@
 == Changes
 
 - `Justfile`, `.just/*.just`: the modules, the trimmed comments, the extracted bodies.
-- `.just/scripts/`: the extracted bodies, and the recipe names the gate scripts hardcode.
+- `.just/scripts/`: the extracted bodies, and the recipe name each gate script hardcodes.
 - `.mmz/config.yaml`, `outdatty.yaml`: the renamed rules, the new scripts' scopes and sources.
 - `.github/workflows/`, `flake.nix`, `.config/wt.toml`, `.githooks/`, `contrib/`: the renamed invocations.
 - `docs/src/`, `www/`: the renamed `#just.<name>()` calls, then the regenerated Markdown.

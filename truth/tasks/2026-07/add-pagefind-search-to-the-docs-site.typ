@@ -13,7 +13,7 @@
 
 == Summary
 
-Wire Pagefind (static, post-build, SSG-agnostic) into the tola docs build so the site has client-side search. Deferred from the initial www rebuild; add once the page count justifies it.
+Wire pagefind (static, post-build, SSG-agnostic) into the tola docs build so the site has client-side search. Deferred from the initial `www` rebuild. Add it once the page count justifies it.
 
 == Scope
 

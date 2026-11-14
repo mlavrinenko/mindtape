@@ -41,8 +41,8 @@ crates/mindtape-cli/tests/it/main.rs:5: renamed clone of crates/mindtape-cli/tes
 The two latest commits that added a module, `d0ed2340` and `61c4aa15`, both re-minted `.jscpd-baseline.json`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("Justfile").
 
 == TO-BE

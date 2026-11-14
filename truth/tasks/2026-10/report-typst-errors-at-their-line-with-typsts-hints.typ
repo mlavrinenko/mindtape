@@ -42,21 +42,21 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 - 🟢 `mt check` prints `error: tasks/broken.typ:2:3: unexpected argument: titel`, then each Typst hint as `hint:`. `mt ls` prints the same line as `warning:`, because the listing still prints.
 - 🟢 A Typst warning on a file that loads prints as its own `warning:` line, with its place.
-- 🟢 A missing prelude is one error naming the config key.
+- 🟢 A missing prelude is one error that states the config key.
 
 == Changes
 
 - `crates/mindtape/Cargo.toml`, `crates/mindtape-cli/Cargo.toml`: bump `typst-world` to 0.5.0 and `typst-harvest` to 0.6.0, which keep Typst's hints and the column. `Cargo.lock` follows. `HarvestError::Eval(err)` became `HarvestError::Eval { error, warnings }`: render each of `warnings` as a `warning:` line.
-- `crates/mindtape/src/loader/mod.rs`: match the new `Eval` shape; carry the column, the hints and the warnings on `LoadError`; collapse a missing prelude into one error.
+- `crates/mindtape/src/loader/mod.rs`: match the new `Eval` shape, carry the column, the hints and the warnings on `LoadError`, and collapse a missing prelude into one error.
 - `crates/mindtape-cli/src/util.rs`: the load-error lines as `Diag`s with `at(path, line, col)` and one `hint:` per Typst hint, with no `eval error:` prefix.
-- `www/generate-task-files.sh`: three `check_invalid` lines (34, 35 and 39) grep for `<file>:<line>: eval error: <message>`; change them to the new line, which drops `eval error:` and adds the column.
+- `www/generate-task-files.sh`: three `check_invalid` lines (34, 35 and 39) grep for `<file>:<line>: eval error: <message>`. Change them to the new line, which drops `eval error:` and adds the column.
 
 == Out of scope
 
-- Typst's own wording, which is kept verbatim.
+- Typst's own wording, which stays verbatim.
 - `cmd/check/templates.rs`, `cmd/install/hint.rs` and the `util` entry on `diag/allowlist.rs`: `report-template-load-failures-and-install-hints-in-the-error-format` does them.
 
 == Dogfood

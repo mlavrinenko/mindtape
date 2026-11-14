@@ -18,11 +18,11 @@
 
 == Summary
 
-`just --dump --dump-format json` carries an `assignments` block with `TOML_FMT_PATHS`, `TYPST_FMT_PATHS` and `CRAP_EXCLUDES` verbatim. CONTRIBUTING.md describes those variables in prose; it can render their actual contents.
+`just --dump --dump-format json` carries an `assignments` block with `TOML_FMT_PATHS`, `TYPST_FMT_PATHS` and `CRAP_EXCLUDES` verbatim. CONTRIBUTING.md describes those variables in prose. It can render their actual contents.
 
 == Scope
 
 - `www/generate-facts.sh` folds the three assignments into `gates.json` (or a sibling artifact) alongside the gate list.
 - The `fmt-check` entry in the gate notes renders the real path lists instead of naming the variables and trusting the reader to go look.
-- The rule the prose states — one list feeding both `fmt` and `fmt-check`, so a path is added in one place — stays prose. It is a convention, not a value.
+- The rule the prose states stays prose: one list feeds both `fmt` and `fmt-check` and a new path goes in one place. It is a convention, not a value.
 - Keep it honest about size: if a rendered list is long enough to bloat the table, render it under the table rather than inside a cell.

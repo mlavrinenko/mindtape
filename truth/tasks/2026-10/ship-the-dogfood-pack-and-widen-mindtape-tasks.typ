@@ -35,7 +35,7 @@
 == AS-IS
 
 + Extend `mindtape:tasks` in a project with no `[tasks.fields.kind]`.
-+ 🔴 The pack's `environment-for-fix` and its siblings read `kind`, which the pack doesn't declare, so each project copies `[tasks.fields.kind]`, and fifteen copy `[tasks.comments]` as well.
++ 🔴 The pack's `environment-for-fix` and its siblings read `kind`, which the pack doesn't declare. Each project then copies `[tasks.fields.kind]`, and fifteen copy `[tasks.comments]` as well.
 + 🔴 `one-dogfood-section`, `dogfood-after-out-of-scope`, `dogfood-non-empty`, `dogfood-word-cap` and the `section-allowlist` override that admits Dogfood sit by hand in this repo, and six projects copy them.
 
 
@@ -56,7 +56,7 @@ extends = ["mindtape:tasks", "mindtape:dogfood"]
 - `crates/mindtape/src/packs/tasks.toml`: the two keys.
 - `crates/mindtape/src/packs/dogfood.toml` (new): the pack.
 - `crates/mindtape/src/config/pack_registry.rs`, `Justfile`: register it, and add it to `TOML_FMT_PATHS`.
-- `examples/api-service/.mindtape/config.toml`, `crates/mindtape-cli/tests/it/open_questions_e2e.rs`: the fixtures that extend the pack now allow their `docs:` comments and give an open task a `kind`.
+- `examples/api-service/.mindtape/config.toml`, `crates/mindtape-cli/tests/it/open_questions_e2e.rs`: the fixtures that extend the pack allow their `docs:` comments and give an open task a `kind`.
 - `.mindtape/config.toml`: extend `mindtape:dogfood` and drop the Dogfood rules, the allowlist override, `[tasks.fields.kind]` and `[tasks.comments]`.
 - `www/content/packs.typ`, `www/generate-examples.sh`: both packs, with the allowlist example sliced from the pack file.
 - `CHANGELOG.md`: an entry under `[Unreleased]`.
@@ -65,7 +65,7 @@ extends = ["mindtape:tasks", "mindtape:dogfood"]
 == Alternatives
 
 - The Dogfood rules inside `mindtape:tasks`: Dogfood is this practice's own check on its tool, which a project using `mt` alone has no use for.
-- Let one allowlist rule extend another: the allowlist's `allowed` is an array, which replaces whole, and a second mechanism for one pair of packs costs more than a test.
+- Let one allowlist rule extend another: the `allowed` key of the allowlist is an array, which replaces whole. A second mechanism for one pair of packs costs more than a test.
 
 
 == Out of scope

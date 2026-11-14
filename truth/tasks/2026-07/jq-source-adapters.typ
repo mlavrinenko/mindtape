@@ -15,26 +15,26 @@
 
 == Summary
 
-The sources, as jq programs — no Rust. Author `contrib/jq/taskwarrior.jq` and
+The sources, as jq programs, with no Rust. Author `contrib/jq/taskwarrior.jq` and
 `contrib/jq/github.jq` that transform each tracker's native JSON export into the
-canonical task-JSON schema. These are the top-2 on-ramps for MindTape's audience:
+canonical task-JSON schema. These are the top-2 on-ramps for the tool's audience:
 GitHub Issues (widest reach, `gh issue list --json ...`) and Taskwarrior (the
-CLI-neighbour, `task export`). Structural only, config-blind; `mt import` does
+CLI-neighbour, `task export`). Structural only, config-blind. `mt import` handles
 the per-project policy map.
 
 == Design / contract
 
 - `contrib/jq/taskwarrior.jq`: map `task export` JSON. `description` -> `title`
-  (+ into `body` as a `== Summary` block so imported tasks pass a Summary rule);
-  `status` (pending/completed/deleted) -> a neutral canonical status; `priority`
-  (H/M/L) -> canonical priority; `project`/`tags` -> `tags`; `due` -> `due`;
+  (and into `body` as a `== Summary` block so imported tasks pass a Summary rule).
+  `status` (pending/completed/deleted) -> a neutral canonical status. `priority`
+  (H/M/L) -> canonical priority. `project`/`tags` -> `tags`. `due` -> `due`.
   `uuid`/`urgency`/annotations -> an `x-tw` extra or dropped. Document each
   mapping decision inline.
 - `contrib/jq/github.jq`: map `gh issue list --json
   number,title,body,state,labels,assignees,createdAt,url` output. `title` ->
-  `title` + `body` -> `body`; `state` open/closed -> canonical status; `labels`
-  -> `tags`; `number`/`url` -> `x-gh` extra.
-- Both target the versioned schema from `canonical-task-json-schema`; keep them
+  `title` + `body` -> `body`. `state` open/closed -> canonical status. `labels`
+  -> `tags`. `number`/`url` -> `x-gh` extra.
+- Both target the versioned schema from `canonical-task-json-schema`. Keep them
   config-blind (they cannot read `config.toml` and must not try).
 - Add `jq` to the dev/test shell (flake `devShell` packages) so tests and
   `just check` can run it. Note the addition in the report.
@@ -44,12 +44,12 @@ the per-project policy map.
 - `contrib/jq/taskwarrior.jq`, `contrib/jq/github.jq`.
 - Fixtures: `contrib/jq/fixtures/{taskwarrior,github}.{in,out}.json`.
 - Test harness (a `just` recipe or a Rust integration test that shells jq).
-- `flake.nix` devShell (add `jq`). Docs one-liner belongs to `import-export-docs`.
+- `flake.nix` `devShell` (add `jq`). Docs one-liner belongs to `import-export-docs`.
 
 == Acceptance
 
 - Golden unit test per source: `<in>.json | jq -f <src>.jq` equals `<out>.json`
-  (the canonical fixture). No Rust logic under test — pure transform.
+  (the canonical fixture). No Rust logic under test, just a pure transform.
 - End-to-end: `<in>.json | jq -f taskwarrior.jq | mt import --into <tmp>` files
   valid tasks that pass `mt check`. Same for GitHub.
 - `just check` green on the merged tree.

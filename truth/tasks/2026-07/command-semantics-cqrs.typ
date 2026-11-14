@@ -14,13 +14,13 @@
 == Summary
 
 Codify a strict read/write split across the `mt` surface: read commands never
-mutate the working tree; only explicit write commands do. Recurrence, in
+mutate the working tree. Only explicit write commands do. Recurrence, in
 particular, never materializes as a side effect of a read. This is the single
 structural lesson from Taskwarrior, whose recurrence generates instances lazily
-as a side effect of running a report (`task list`) — the root of its `mask`
-desync, multi-client duplicate races, and single-writer-client workaround. A
+as a side effect of running a report (`task list`). That habit is the root of
+its `mask` drift, multi-client duplicate races, and single-writer-client workaround. A
 daemon-free tracker sidesteps that whole bug class by construction, but only if
-the invariant is written down and tested.
+we write the invariant down and test it.
 
 == Decisions
 
@@ -28,14 +28,14 @@ the invariant is written down and tested.
   the tree byte-identical.
 - Write (explicit): `add`, `recur`, `done`, `flip`, `rm`, `init`.
 - `mt done` closes a task and never creates or advances anything. On a recurring
-  task it prints a notice pointing at `mt recur`, and does NOT strip the `recur`
-  field — so `mt recur` stays callable on the now-done task.
+  task it prints a notice pointing at `mt recur`, and does not strip the `recur`
+  field. So `mt recur` stays callable on the done task.
 - `mt recur` is the only command that spawns or advances a recurrence.
 
 == Constraints
 
 - No read command may open a file for writing. Enforce with a regression test:
-  hash the fixture tree before and after a read command; assert unchanged.
+  hash the fixture tree before and after a read command, and assert it unchanged.
 
 == Scope
 
@@ -60,5 +60,5 @@ creates or advances anything.",
   )
 
 - Regression test: a read command over a fixture leaves the tree byte-identical.
-- The `mt done` notice + recur-on-done behaviour is implemented under the
-  recurring-tasks task; this task owns only the principle, the doc, and the test.
+- The recurring-tasks task implements the `mt done` notice and the
+  recur-on-done behaviour. This task owns only the principle, the doc, and the test.

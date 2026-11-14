@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the links page and `mt link --help` read the kinds off the table `mt check` resolves them with],
+      docs-match-code: helps[the links page and `mt link --help` read the kinds off the table `mt check` resolves them with.],
     ),
   ),
   assignee: "agent",
@@ -31,13 +31,13 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "render-the-filter-field-table-from-the-field-registry.typ",
-    )[both add a registry to tree\_json.rs and generate-facts.sh, so landing in turn avoids a conflict in the same lines],
+    )[both add a registry to tree\_json.rs and generate-facts.sh, so landing them together avoids a conflict in the same lines],
 )
 
 == AS-IS
 
 + Read "The built-in kinds" in `www/content/links.typ`, then run `mt link --help`.
-+ 🔴 The page types one row per kind and says "next to the six built-ins". The help types "The built-in kinds are `depends-on`, `parent`, `recurred-from`, `supersedes`, `duplicates` and `related`". `BUILTIN_KINDS` in `crates/mindtape/src/link/mod.rs` is in no outdatty group, so a seventh kind leaves all three green.
++ 🔴 The page types one row per kind and says "next to the six built-ins". The help types "The built-in kinds are `depends-on`, `parent`, `recurred-from`, `supersedes`, `duplicates` and `related`". `BUILTIN_KINDS` in `crates/mindtape/src/link/mod.rs` is in no outdatty group.A seventh kind leaves all three green.
 
 
 == TO-BE

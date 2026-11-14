@@ -30,7 +30,7 @@
   status: done(2026, 10, 4),
   links: related(
     "carry-a-severity-on-every-violation-and-render-every-breach-in-one-place.typ",
-  )[both reshape Violation; land one struct change],
+  )[both reshape Violation. Land one struct change],
 )
 
 == AS-IS
@@ -46,13 +46,13 @@ error: tasks/t.typ:2: rules.dev-sets-difficulty: must satisfy `kind != "dev" || 
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/violation.rs").
 
 == TO-BE
 
-- 🟢 A `Violation` carries the field names its check read: a rule's `when` and `assert` names, a body rule's `when` names, the field a field check is about.
+- 🟢 A `Violation` carries the fields its check read, such as a rule's `when` and `assert` names, a body rule's `when` names, and the field a field check is about.
 - 🟢 The add hint reads those names and maps each field to the slot that fills it through the template's `task.with` arguments.
 - 🟢 Both refusals above print the `dev` hint.
 
@@ -61,13 +61,13 @@ left in a closing report no one rereads. It belongs in
 
 - `crates/mindtape-cli/tests/add_template_hint_e2e.rs`: red tests first: a body header rule whose `when` reads `kind`, and a `kind: slot("type")` template.
 - `crates/mindtape/src/violation.rs`: a field set on `Violation`.
-- `crates/mindtape/src/config_rules.rs`, `crates/mindtape/src/body_gate.rs`: fill it where each breach is made; `breach_fields` goes.
+- `crates/mindtape/src/config_rules.rs`, `crates/mindtape/src/body_gate.rs`: fill it where each breach happens. `breach_fields` goes.
 - `crates/mindtape-cli/src/add_hint.rs`: read the set, and map field to slot.
 
 
 == Rollback
 
-- Revert the commit; the hint parses labels again.
+- Revert the commit. The hint parses labels again.
 
 
 == Out of scope
@@ -77,4 +77,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-The next `dev` task filed here with plain `mt add` is refused with a pointer to `-t dev`.
+mt refuses the next `dev` task filed here with plain `mt add`, with a pointer to `-t dev`.

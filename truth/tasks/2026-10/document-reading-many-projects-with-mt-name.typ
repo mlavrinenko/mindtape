@@ -39,7 +39,7 @@
 == AS-IS
 
 + Open the docs site and look for a way to see more than one project at once.
-+ 🔴 Only `www/content/agents.typ` covers `@name`, as one project per name. Nothing shows a set, the board, or which commands run on a set.
++ 🔴 Only `www/content/agents.typ` covers `@name`, as one project per name. The docs never show a set, the board, or which commands run on a set.
 
 
 == TO-BE
@@ -51,7 +51,7 @@
 
 == Source of truth
 
-- `crates/mindtape/src/at/`: the `at.toml` keys, the shipped board and how `@x` resolves.
+- `crates/mindtape/src/at/`: the `at.toml` keys, the built-in board and how `@x` resolves.
 - `crates/mindtape-cli/src/util.rs`: `open_set`, whose callers are the commands that take a set.
 - Captured runs over `examples/across-projects/`.
 
@@ -68,7 +68,7 @@
 == Out of scope
 
 - The `mt at` and `mt board` reference pages, which their command tasks generate.
-- README, which names no `@x`.
+- README, which does not reference `@x`.
 
 
 == Dogfood

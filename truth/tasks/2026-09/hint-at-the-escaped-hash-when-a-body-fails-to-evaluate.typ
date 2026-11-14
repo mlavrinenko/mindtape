@@ -16,12 +16,12 @@
 
 == Summary
 
-Task bodies are Typst markup, so a literal `\#N` in prose is read as a
-variable reference and the task fails to load with `eval error: unknown
-variable: N` — a message that names the variable but never the remedy.
+Task bodies are Typst markup, so Typst reads a literal `\#N` in prose as a
+variable reference, and the task fails to load with `eval error: unknown
+variable: N`. That message reports the variable but never the remedy.
 The prose writer has to discover `\#` (or a code block) on their own.
-This repo's own task `core-template-language.typ` in octrimmer hit exactly
-this; the fix was a reader-side escape, which is invisible to the next
+This repo's own task `core-template-language.typ` in `octrimmer` hit exactly
+this. The fix was a reader-side escape, which is invisible to the next
 author who trips over the same wall.
 
 `mt check` already reports the failure loudly, but loud is not instructive.
@@ -39,7 +39,7 @@ author who trips over the same wall.
   `unknown variable: N`, one whose message merely contains the phrase mid-text,
   and the existing prelude-path case proving both hints can coexist.
 - Docs: one note in the writing-tasks documentation (quickstart or the task
-  DSL page) — `#` starts an inline expression, so literal hashes in prose are
+  DSL page): `#` starts an inline expression, so literal hashes in prose are
   written `\#`.
 
 == Out of scope

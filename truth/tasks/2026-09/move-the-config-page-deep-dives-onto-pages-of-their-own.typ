@@ -15,30 +15,29 @@
     2026,
     9,
     11,
-  )[four deep dives moved to /hooks/, /estimates/ and /named-sets/; config.typ back to 714 lines],
+  )[four deep dives moved to /hooks/, /estimates/ and /named-sets/. config.typ back to 714 lines.],
 )
 
 == Summary
 
 `www/content/config.typ` sits at 925 of its 1000-line cap. Two tasks still in
-this chain — `[[tasks.rules]]` and the allow-list dict references — both land
+this chain (`[[tasks.rules]]` and the allow-list dict references) both land
 a section on that page, and either one alone takes it over.
 
 The page already knows the fix: `[tasks.priority]` and `[views]` are deep
 dives on pages of their own, with the Sections table pointing at them. The
-remaining long sections have simply never been moved.
+remaining long sections have simply never moved.
 
 
 == Scope
 
-+ Pick the deep dives whose length is buying the least on a page that is meant
-  to be a map — the named-dictionaries section that just landed is one — and
-  move each to its own page under `www/content/`, leaving the Sections table
++ Pick the deep dives whose length buys the least on a page meant
+  to be a map. The named-dictionaries section that just landed is one. Move each to its own page under `www/content/`, leaving the Sections table
   row as the pointer.
 + Keep every route that exists today working, and keep `www/utils/site.typ`'s
-  NAV, the `page-meta` blocks and the generated page manifest in step: the
+  NAV, the `page-meta` blocks and the generated page manifest in step. The
   docs manifest gate fails on a page missing from any of the three.
-+ Move the prose, do not rewrite it. A reflow here is unreviewable against a
++ Move the prose, do not rewrite it. A reflow here is hard to review against a
   page three pending tasks are about to edit.
 + Leave headroom, not just clearance: the page should come back under 85% of
   its cap, which is where `linecop --baseline 85` stops reporting it.

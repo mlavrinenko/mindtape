@@ -54,7 +54,7 @@ The config loads. The add then refuses in `resolve_dir` with `the task directory
 
 - 🟢 A static `dir` rejects empty, `.` and `..` components at config load.
 - 🟢 A derived `dir` keeps its add-time check, because its value is a Typst return.
-- 🟢 The message names the hook, the action and the component.
+- 🟢 The message states the hook, the action and the component.
 
 ```
 error: on.add[0].actions[0].dir: a dir must not hold `.` or `..`
@@ -70,7 +70,7 @@ error: on.add[0].actions[0].dir: a dir must not hold `.` or `..`
 
 == Out of scope
 
-- The absolute-path rule both validators already share, and the derived dir's existing add-time check.
+- The absolute-path rule both validators already share, and the existing add-time check on a derived `dir`.
 
 
 == Dogfood

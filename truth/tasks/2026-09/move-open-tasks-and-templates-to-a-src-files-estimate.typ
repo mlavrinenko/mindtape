@@ -34,12 +34,12 @@
 == AS-IS
 
 + Four tasks closed in one session each declared `estimate: (files: N)` and each got `warning: working tree touches N file(s), over the M declared by …`.
-+ 🔴 The count includes docs pages, tests and `CHANGELOG.md`, which every task here touches by process, so the warning fired every time and carried no signal. The one real miss, source files the plan left out, was buried in it.
++ 🔴 The count includes docs pages, tests and `CHANGELOG.md`, which every task here touches by process, so the warning fired every time and carried no signal. The one real miss, source files the plan left out, got lost in it.
 
 
 == TO-BE
 
-- 🟢 Open tasks and templates estimate `src-files`: non-test source a task plans to touch. `files` is retired with a one-line edit, and the 362 closed tasks keep it untouched:
+- 🟢 Open tasks and templates estimate `src-files`: non-test source a task plans to touch. The change retires `files` with a one-line edit, and the 362 closed tasks keep it untouched:
 
 ```toml
 [tasks.estimate]
@@ -47,8 +47,8 @@ units    = ["src-files"]
 required = "!terminal"
 ```
 
-- 🟢 Drift reads `unit = "src-files"` and `exclude`s docs, tests, `CHANGELOG.md` and `truth/tasks/**`, so the warning counts source only.
-- 🟢 The caps key on `src-files`, with no minimum: a docs-only task touches no source.
+- 🟢 Drift reads `unit = "src-files"` and `exclude`s docs, tests, `CHANGELOG.md` and `truth/tasks/**`. The warning then counts source only.
+- 🟢 The caps key on `src-files`, with no minimum: a docs-only task has no source to count.
 
 
 == Changes
@@ -60,7 +60,7 @@ required = "!terminal"
 
 == Rollback
 
-Revert the commit; closed tasks are never touched, so nothing else moves.
+Revert the commit. Closed tasks are never touched, so nothing else moves.
 
 
 == Out of scope

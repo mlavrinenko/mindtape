@@ -23,16 +23,15 @@
 == Summary
 
 `docs/src/readme.typ` is the repo's front door and currently the most
-drift-prone file in it. It hardcodes fifteen site URLs, writes its own
-one-line description of each docs page beside the page that already has one,
-re-tells the whole install and one-time-setup story that the Quickstart page
-derives from the release workflow, and credits Lucide for a logo that is now
-a hand-drawn cassette mark.
+drift-prone file in it. It hardcodes fifteen site URLs and writes its own one-line description of each
+docs page beside the page that already has one. It re-tells the whole install
+and one-time-setup story that the Quickstart page derives from the release
+workflow, and credits "Lucide" for a hand-drawn cassette mark.
 
-Rewrite it against `www-link` and the page manifest: every site link
-verified at render time, every page description read from that page's own
-summary, install reduced to the one command plus a pointer, and the
-acknowledgement made true.
+Rewrite it against `www-link` and the page manifest. Every site link gets a
+check at render time. Every page description comes from that page's own
+summary. Install shrinks to the one command plus a pointer, and the
+acknowledgement becomes true.
 
 == Scope
 
@@ -44,12 +43,12 @@ acknowledgement made true.
 
 The reader wants, in order: what this is, what a task file looks like, how to
 get it, where the docs are. Everything past that is the docs site's job.
-Installation is `cargo install mindtape-cli` and a link — the platform matrix,
+Installation is `cargo install mindtape-cli` and a link. The platform matrix,
 the `nix run` line, the from-source build, `mt install` and `mt init` all
-already live on the Quickstart page, derived from the release workflow, and
-have no business being retyped here.
+already live on the Quickstart page, derived from the release workflow. Leave
+them on that page.
 
 The Usage block stays: four commands that file, query, close and validate a
-task are the fastest honest answer to "what is it like to use". The bullet
+task are the fastest answer to "what is it like to use". The bullet
 list under it becomes a link plus that page's own summary, with no
 hand-written gloss on top.

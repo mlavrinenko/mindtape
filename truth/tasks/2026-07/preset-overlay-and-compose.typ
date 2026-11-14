@@ -17,15 +17,15 @@
 
 Two pieces that make preset composition safe: an escape hatch for config the axes cannot express, and a hard error when two fragments fight over the same array.
 
-The escape hatch matters because axes will never cover everything — custom link kinds, named views, body-header rules. Without somewhere to put them, a user hits a wall and abandons the preset system for a hand-written config, which is the outcome the whole feature exists to avoid.
+The escape hatch matters because axes will never cover everything: custom link kinds, named views, body-header rules. Without somewhere to put them, a user hits a wall and abandons the preset system for a hand-written config, which is the outcome the whole feature exists to avoid.
 
-The conflict error matters because MindTape's merge replaces arrays wholesale. Status legends, priority bands, difficulty anchors, views and roots are all arrays, so two fragments each declaring one cannot be merged — one silently wins. Nix's module system raises an evaluation error on equal-priority definitions rather than picking, and that is the behaviour that makes layered config debuggable. Helm went the other way on lists and the issue is still open years later.
+The conflict error matters because the tool's merge replaces arrays wholesale. Status legends, priority bands, difficulty anchors, views and roots are all arrays, so two fragments that each declare one cannot merge: one silently wins. Nix's module system raises an evaluation error on equal-priority definitions rather than picking, and that behaviour makes layered config easy to debug. Helm went the other way on lists and the issue is still open years later.
 
 == Scope
 
 - A preset file may carry `[overlay]`: a raw config fragment merged last, after every axis fragment. Whatever the axes cannot say goes here.
-- Composition happens at init time and flattens to one readable file. The result is the user's to edit — that is the advantage of a scaffold over a live link, and it is why no runtime preset-stacking mechanism is needed.
+- Composition happens at init time and flattens to one readable file. The result is the user's to edit. That is the advantage of a scaffold over a live link, and it is why the design stops at init time.
 - When two fragments both declare the same array-typed section, hard-error naming both fragments and the section. Never last-wins: a silent pick is a silent wrong answer that surfaces months later as a status legend nobody chose.
 - Scalars and tables continue to merge as they do today. The error is specific to arrays, because arrays are the only place the merge cannot express the user's intent.
-- The error message names the two sources and suggests the resolution — pick one, or move the difference into `[overlay]`.
-- Tests: `[overlay]` lands last and beats every axis fragment; two fragments declaring `status` error and name both; two declaring different sections compose cleanly; scalar and table merges are unchanged; a preset with only an overlay works.
+- The error message identifies the two sources and suggests the resolution: pick one, or move the difference into `[overlay]`.
+- Tests: `[overlay]` lands last and beats every axis fragment. Two fragments declaring `status` error, and the message identifies both. Two declaring different sections compose cleanly. Scalar and table merges stay as they are. A preset with only an overlay works.

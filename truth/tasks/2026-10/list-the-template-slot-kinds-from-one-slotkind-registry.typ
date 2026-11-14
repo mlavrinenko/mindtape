@@ -35,7 +35,7 @@
 
 + Put `tags: slot("tags", kind: "multi-choice", choices: ("a", "b"))` in `.mindtape/templates/task.typ` and run `mt add x`.
 + 🔴 It prints `error: slot declares an unknown kind: 'multi-choice' in slot 'tags': expected one of string, int, float, real, bool, date, list, text, raw, choice`. `multichoice` is missing, though `SlotKind::parse` accepts it.
-+ 🔴 The list is typed out in `crates/mindtape/src/template/fill/mod.rs:141` and `crates/mindtape-cli/src/diag/from_lib.rs:438`, and again in the `kind` row of `www/content/templates.typ`. No gate or outdatty group ties any of them to `crates/mindtape/src/template/mod.rs`.
++ 🔴 The list appears by hand in `crates/mindtape/src/template/fill/mod.rs:141` and `crates/mindtape-cli/src/diag/from_lib.rs:438`, and again in the `kind` row of `www/content/templates.typ`. No gate or outdatty group ties any of them to `crates/mindtape/src/template/mod.rs`.
 
 
 == TO-BE
@@ -71,5 +71,5 @@
 
 == Dogfood
 
-`mt add -t docs --describe` here lists `tags` as a `multichoice` slot, so this repo files tasks through the kind the refusal leaves out, and its docs build fails on a new kind until it gets a note.
+`mt add -t docs --describe` here lists `tags` as a `multichoice` slot. This repo files tasks through the kind the refusal leaves out, and its docs build fails on a new kind until it gets a note.
 

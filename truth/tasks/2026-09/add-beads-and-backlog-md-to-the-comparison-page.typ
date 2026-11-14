@@ -17,13 +17,13 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a reader choosing an agent-era tracker finds the two closest ones compared on one rubric],
+      cheap-adoption: helps[a reader choosing an agent-era tracker finds the two closest ones compared on one rubric.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the neighbour list matches the trackers MindTape actually competes with in 2026],
+      docs-match-code: helps[the neighbour list matches the trackers mindtape actually competes with in 2026.],
     ),
   ),
   assignee: "agent",
@@ -31,13 +31,13 @@
     2026,
     9,
     27,
-  )[two columns and five rows on the comparison page; prose names claims, MCP and the Kanban board],
+  )[two columns and five rows on the comparison page. Prose names claims, MCP and the Kanban board.],
 )
 
 == AS-IS
 
 + Open `www/content/comparison.typ`.
-+ 🔴 The matrix compares dstask, Taskwarrior, todo.txt, Org-mode and git-bug, and none of them ships an agent integration. Beads and Backlog.md, the two trackers built for coding agents and the nearest in scope, are missing.
++ 🔴 The matrix compares dstask, Taskwarrior, todo.txt, Org-mode and git-bug, and none of them offers an agent integration. Beads and Backlog.md, the two trackers built for coding agents and the nearest in scope, are missing.
 + 🔴 No row covers what separates trackers today: agent integration, multi-agent coordination, hierarchy, hooks, human UI.
 
 

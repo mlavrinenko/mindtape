@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running the first `just check` in a fresh `just fork` worktree
-+ 🔴 #raw(".gitignore"): only the root `/.mindtape/cache/` is ignored, so the temp file `ensure_ignored` writes before a fixture's cache `.gitignore` exists lands in the `examples/rules/**` mmz scope
++ 🔴 #raw(".gitignore"): the ignore file covers only the root `/.mindtape/cache/`, so the temp file `ensure_ignored` writes before a fixture's cache `.gitignore` exists lands in the `examples/rules/**` mmz scope
 
 ```
 ==> just docs::check failed (log: target/check/docs__check.log)
@@ -43,8 +43,8 @@ check: 1 of 33 gates failed: just docs::check (2 not run)
 A re-run passed.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".gitignore").
 
 == TO-BE
@@ -58,7 +58,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `.gitignore`: unanchor `/.mindtape/cache/` so it ignores every fixture's cache too.
+- `.gitignore`: drop the leading `/` from `/.mindtape/cache/`, so it ignores every fixture's cache too.
 
 
 == Rollback

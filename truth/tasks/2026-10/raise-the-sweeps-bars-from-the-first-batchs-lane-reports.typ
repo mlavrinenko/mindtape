@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run the first sweep batch through seven agent lanes.
-+ 🔴 Lanes called three kinds of finding busywork: test modules at 90..95% of their cap, a file 3 uncovered lines below the floor, and one assert pattern filed as five dry tasks.
++ 🔴 Lanes called three kinds of finding busywork. Test modules at 90..95% of their cap, a file 3 uncovered lines below the floor, and one assert pattern filed as five dry tasks.
 
 == TO-BE
 
@@ -53,7 +53,7 @@
 
 == Out of scope
 
-- The thresholds the recipe exposes; these are fixed by evidence, not per run.
+- The thresholds the recipe exposes. Evidence fixes these, not each run.
 
 == Dogfood
 

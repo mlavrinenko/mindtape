@@ -31,7 +31,7 @@
     2026,
     10,
     8,
-  )[Duplicate of report-check-problems-on-stderr-in-the-error-format, which moves every mt check line to stderr and adds the count.],
+  )[A duplicate of report-check-problems-on-stderr-in-the-error-format. That task moves every mt check line to stderr and adds the count.],
 )
 
 == AS-IS
@@ -51,8 +51,8 @@ Error: 1 commit message problem(s)
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/check/mod.rs").
 
 == TO-BE
@@ -70,7 +70,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the three files; violations go back to stdout.
+- Revert the three files. Violations go back to stdout.
 
 
 == Out of scope

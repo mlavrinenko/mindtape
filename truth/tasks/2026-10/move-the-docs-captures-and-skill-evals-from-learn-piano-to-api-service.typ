@@ -37,7 +37,7 @@
 == AS-IS
 
 + Run `rg -l learn-piano www docs/src skills .just Justfile`.
-+ 🔴 The CLI, quickstart, filters, templates and import-export captures, the skill's triage evals and the contributor docs all read `examples/learn-piano`. Its tasks practise scales and Clair de Lune, so every transcript on the site shows a piano backlog to an audience of software engineers.
++ 🔴 The CLI, quickstart, filters, templates and import-export captures, the skill's triage evals and the contributor docs all read `examples/learn-piano`. Its tasks practise scales and `Clair de Lune`, so every transcript on the site shows a piano backlog to an audience of software engineers.
 
 
 == TO-BE
@@ -52,12 +52,12 @@
 - `www/generate.sh`, `www/generate-examples.sh`: point the captures at `api-service`.
 - `examples/api-service/`: the tasks, views, templates and dict the captures need.
 - `skills/mindtape/evals/evals.json`: the triage evals on `api-service`.
-- `www/content/*.typ`, `docs/src/**`: prose that names the project or its tasks.
+- `www/content/*.typ`, `docs/src/**`: prose that references the project or its tasks.
 
 
 == Rollback
 
-Revert the commit; captures go back to `learn-piano`.
+Revert the commit. Captures go back to `learn-piano`.
 
 
 == Out of scope

@@ -14,7 +14,7 @@
     2026,
     8,
     14,
-  )[JUST\_FMT\_PATHS shared by fmt and fmt-check; fmt-fixture-check gained a just arm asserting both the drift failure and the reformatted success, so an unstable-refusal cannot pass it],
+  )[JUST\_FMT\_PATHS shared by `fmt` and `fmt-check`, fmt-fixture-check gained a just arm asserting both the drift failure and the reformatted success, so an unstable-refusal cannot pass it],
 )
 
 == Summary
@@ -36,10 +36,10 @@ $ just --justfile docs.just --fmt --check
 error: Formatted justfile differs from original.
 ```
 
-The root `Justfile` is clean — a `--fmt` pass over a copy diffs empty. Only the
-module file is drifted, and only because nothing looks at it.
+The root `Justfile` is clean, and a `--fmt` pass over a copy diffs empty. Only
+the module file has drifted, and only because nothing looks at it.
 
-== Why this blocks the layout work
+== Layout-work dependency
 
 The `.just/` restructure adds module and script files. Landing more files into a
 surface the formatter gate cannot see makes the hole bigger. Close it first.
@@ -48,11 +48,11 @@ surface the formatter gate cannot see makes the hole bigger. Close it first.
 
 - `fmt` and `fmt-check` both run `just --fmt` against the root only. Add the
   module file to both, as `just --justfile <module> --fmt`, so the fix and the
-  check cover the same set — the reason `TOML_FMT_PATHS` and `TYPST_FMT_PATHS`
-  exist as shared lists in the first place. Consider a `JUST_FMT_PATHS` variable
+  check cover the same set. That is the reason `TOML_FMT_PATHS` and
+  `TYPST_FMT_PATHS` exist as shared lists in the first place. Consider a `JUST_FMT_PATHS` variable
   in the same spirit, so a third module file cannot land in the fix but not the
   check.
-- Reformat `docs.just` in the same commit; the drift is one missing blank line.
-- A module file needs its own `set unstable := true` for a standalone `--fmt`
-  invocation to be accepted. `docs.just` already has it — keep it, and note why,
-  since it otherwise reads as dead config.
+- Reformat `docs.just` in the same commit. The drift is one missing blank line.
+- A module file needs its own `set unstable := true` before a standalone
+  `--fmt` invocation works. `docs.just` already has it. Keep it, and note why, since
+  it otherwise reads as dead config.

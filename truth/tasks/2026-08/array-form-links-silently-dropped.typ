@@ -14,18 +14,18 @@
   status: done(2026, 8, 20),
   links: (
     related("report-a-wrong-typed-element-inside-a-well-shaped-core-field.typ")[
-      what the audit bullet below found once this field was closed
+      what the audit bullet below found after the fix to this field.
     ],
     related("../2026-07/link-target-in-edge-helper-yields-zero-edges.typ")[
       the same trap one layer up, answered the other way: there `content` meant
-      two things, so an assert was the only honest reading
+      two things, so an assert was the only honest reading.
     ],
   ),
 )
 
 == Summary
 
-A `links:` field written as a Typst array is parsed as no links at all:
+The parser reads a `links:` field written as a Typst array as no links at all:
 
 ```typ
 links: (
@@ -35,31 +35,31 @@ links: (
 ```
 
 Both edges vanish and `mt check` reports the task valid. The spelling that
-works is `+` concatenation — `depends-on("a.typ") + depends-on("b.typ")` —
-but nothing says so at the point of failure and nothing complains.
+works is `+` concatenation, `depends-on("a.typ") + depends-on("b.typ")`, but
+nothing says so at the point of failure and nothing complains.
 
 == Why
 
-The array form is the shape a Typst author would reach for first, since it is
-what every other multi-valued field in a task takes: `tags: ("a", "b")` is an
-array, and so is `estimate`. Guessing the same for `links:` produces a task
-that validates clean while its dependency graph is quietly empty — so
-`mt ls ready` lists work that is actually blocked, which is the one question
-the graph exists to answer.
+The array form is the shape a Typst author would reach for first. It is what
+every other multi-valued field in a task takes: `tags: ("a", "b")` is an array,
+and so is `estimate`. Guessing the same for `links:` produces a task that
+validates clean while its dependency graph is quietly empty. `mt ls ready` then
+lists work that is actually blocked, which is the one question the graph exists
+to answer.
 
 Silent is the problem, not the syntax. An error would have cost one attempt.
 
 == Scope
 
-- Reject the array form with an error naming the field and showing the `+`
-  spelling, or accept it as an alias. Either is fine; silence is not.
+- Reject the array form with an error that reports the field and shows the `+`
+  spelling, or accept it as an alias. Either is fine. Silence is not.
 - Audit the other fields taking a composite value for the same class of
   silent drop.
 - Regression test: a task whose `links:` is an array must either fail
-  `mt check` or resolve its edges — never validate carrying zero links.
+  `mt check` or resolve its edges, never validate carrying zero links.
 
 == Notes
 
-Hit while filing the first tasks in a new project: two of four tasks were
-authored with array-form links, `mt check` passed, and the mistake surfaced
+Hit while filing the first tasks in a new project. Two of four tasks were
+authored with array-form links, and `mt check` passed. The mistake surfaced
 only because `mt ls blocked` came back empty when it should have listed both.

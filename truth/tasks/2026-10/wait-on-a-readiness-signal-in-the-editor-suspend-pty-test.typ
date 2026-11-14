@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running a full \`just check\` while more than one worktree built at once.
-+ 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): \`opening\_a\_task\_suspends\_the\_tui\_and\_runs\_the\_editor\` fails under load on the fixed 5s wall-clock deadline \`WAIT\_TIMEOUT\` and passes alone; the done task \`isolate-the-interactive-pty-tests-from-concurrent-load\` fixed a different assertion in the same tests.
++ 🔴 #raw("crates/mindtape-cli/tests/interactive_e2e.rs"): \`opening\_a\_task\_suspends\_the\_tui\_and\_runs\_the\_editor\` fails under load on the fixed 5s wall-clock deadline \`WAIT\_TIMEOUT\` and passes alone. The done task \`isolate-the-interactive-pty-tests-from-concurrent-load\` fixed a different assertion in the same tests.
 
 ```
 mt did not exit within 5s
@@ -43,8 +43,8 @@ mt did not exit within 5s
 Re-run alone, the test passes.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/tests/interactive_e2e.rs").
 
 == TO-BE

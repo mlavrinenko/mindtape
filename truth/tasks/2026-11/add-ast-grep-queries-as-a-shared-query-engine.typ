@@ -34,14 +34,14 @@
 == AS-IS
 
 + Open `crates/mindtape/src/estimate_queries.rs`.
-+ 🔴 A unit takes a manual number or `count(n, grep(...))`; the queries see text only.
++ 🔴 A unit takes a manual number or `count(n, grep(...))`. The queries see text only.
 + Add a task whose estimate should count the files that call `parse_task`.
-+ 🔴 A rename or a macro hides a site from `grep`, and no query can ask the code's shape.
++ 🔴 A rename or a macro hides a site from `grep`, and no query reads the code's shape.
 
 
 == TO-BE
 
-- 🟢 A shared file-query engine in `crates/mindtape/src/query/mod.rs` owns the query value, compile, git-listed file walk, path filter and process cache; `estimate_queries` becomes its first consumer.
+- 🟢 A shared file-query engine in `crates/mindtape/src/query/mod.rs` owns the query value, compile, git-listed file walk, path filter and process cache. `estimate_queries` becomes its first consumer.
 - 🟢 `ast_grep("rust", "parse_task($$$ARGS)", "crates/**")` compiles into that engine, runs through `ast-grep-core` and the Rust grammar, and counts distinct files in the unit's path set.
 - 🟢 Other languages arrive as opt-in grammar crates; a Typst grammar is a later leaf for task-file queries.
 - 🟢 A bad pattern or unknown language leaves the unit unresolved with a `problem`, as a bad `grep` does.

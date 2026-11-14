@@ -38,7 +38,7 @@
 == AS-IS
 
 + Run `mt ls --help`.
-+ 🔴 `--skip` reads: "A truncated table's footer and `--json`'s `truncated.next_skip` already name the `--skip` that continues from this run, advanced past what it showed; pass that value rather than adding to this one by hand".
++ 🔴 `--skip` reads: A truncated table's footer and `--json`'s `truncated.next_skip` already name the `--skip` that continues from this run, advanced past what it showed. Pass that value rather than adding to this one by hand.
 + 🔴 `-w` prints `` `Mindtape` `` with backticks, a leftover from a clippy lint.
 
 == TO-BE

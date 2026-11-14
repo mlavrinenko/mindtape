@@ -15,20 +15,20 @@
     2026,
     8,
     15,
-  )[all four stages landed: declared parameters with arg attributes, www/sweep-flags.jq emitting the artifact, signal-sweep.typ reading it, and a fourth check-doc-facts arm gating sweep-flag-notes.typ. Dry-run output identical to base except the size arm's own self-report, which moved because generate-facts.sh grew to emit the new artifact],
+  )[all four stages landed: declared parameters with `arg` attributes, `www/sweep-flags.jq` emitting the artifact, `signal-sweep.typ` reading it, and a fourth check-doc-facts arm gating `sweep-flag-notes.typ`. Dry-run output identical to base except the size arm's own self-report, which moved because `generate-facts.sh` grew to emit the new artifact],
 )
 
 == Summary
 
 Declare the sweep's flags as recipe parameters with `arg` attributes, and derive
-their doc table from the just dump — the way the gate table already is.
+their doc table from the just dump. The gate table already works that way.
 
-== Why this one is worth the size
+== Size justification
 
 `ask-refactoring` has a real flag interface: `--write`, `--baseline`,
 `--coverage-floor`, `--cc-floor`, `--fn-coverage-floor`, each with its own
 default and its own reason for having a separate threshold rather than one band
-shared across arms. All of it lives in a comment paragraph above the recipe.
+shared across arms. It all lives in a comment paragraph above the recipe.
 `just --list` shows none of it, and `just ask-refactoring --help` does not exist.
 
 The last milestone moved gate membership, row order, gate commands and the
@@ -50,8 +50,8 @@ ask-refactoring COVERAGE_FLOOR='88':
          "pattern": null, "short": null, "value": null}}
 ```
 
-`parameters[].default` carries `88` alongside, so the defaults column is derived
-too, not retyped. And `just --usage ask-refactoring` renders a usage block from
+`parameters[].default` carries `88` alongside. The defaults column then also
+comes from the dump rather than a retyped value. And `just --usage ask-refactoring` renders a usage block from
 the same data.
 
 == The cost, stated plainly
@@ -63,18 +63,18 @@ here is low.
 
 == Scope
 
-- Declare the flags as parameters with `long` and `help`; keep the existing
-  defaults, which are load-bearing and separately argued (5 and 80 for the
-  undertested arm are a conjunction, hence two edges, deliberately not one
-  shared number).
+- Declare the flags as parameters with `long` and `help`. Keep the existing
+  defaults, which matter and carry separate arguments (5 and 80 for the
+  undertested arm are a conjunction, with two edges rather than one shared
+  number).
 - Forward to `contrib/ask-refactoring.sh` explicitly rather than as a blob, so
-  the script's own parsing can shrink to reading what it is given.
+  the script's own parsing can shrink to reading its inputs.
 - Add a facts artifact for the flags in `www/generate-facts.sh` alongside
   `gates.json`, and have `docs/src/contributing/signal-sweep.typ` read it
   instead of restating the thresholds.
 - Extend `check-doc-facts` with a fourth arm, matching the three it already
   runs: every derived flag needs a notes entry, or the gate fails naming it.
-- The prose this replaces carries argument, not just values — why each arm has
-  its own threshold, why the sweep refuses to run while `mt ls @ask-refactoring`
-  is non-empty, why it is deliberately not an `mmz` arm. Derive the table; keep
-  the argument as prose beside it.
+- The prose this replaces carries argument, not just values. It says why each
+  arm has its own threshold, why the sweep refuses to run while
+  `mt ls @ask-refactoring` is non-empty, and why it is deliberately not an `mmz`
+  arm. Derive the table. Keep the argument as prose beside it.

@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the CRAP ratchet is checked on every commit, and a lint failure shows in seconds],
+      enforced-practice: helps[the gate checks the CRAP ratchet on every commit, and a lint failure shows in seconds.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -36,7 +36,7 @@
 == AS-IS
 
 + Edit a source file and run `just check`.
-+ 🔴 A formatting error is reported only after every gate finished, about 100 s later.
++ 🔴 `just check` reports a formatting error only after every gate finishes, about 100 s later.
 + 🔴 `check-crap` prints that it skipped, because the lcov is stale, so the CRAP baseline drifted for 222 commits unseen.
 
 
@@ -48,7 +48,7 @@
 
 == Changes
 
-- `Justfile`: `check` as three stage recipes; `cover` and `crap` replace `check-crap`.
+- `Justfile`: `check` as three stage recipes. `cover` and `crap` replace `check-crap`.
 - `.mmz/config.yaml`: gate-tag `cover` and `crap`, drop `check-crap`.
 - `.just/scripts/check-crap.sh`: delete.
 - `www/utils/gate-notes.typ`: entries for the new gates.
@@ -57,7 +57,7 @@
 
 == Rollback
 
-Revert the commit; `just check` runs every gate in parallel again.
+Revert the commit. `just check` runs every gate in parallel again.
 
 == Out of scope
 

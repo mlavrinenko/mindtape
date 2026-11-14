@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a rename goes through the resolver rather than a find-and-replace],
+      enforced-practice: helps[a rename goes through the resolver rather than a find-and-replace.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: helps[identity stays the filename, and changing it stays a supported move],
@@ -33,13 +33,13 @@
 == AS-IS
 
 + Identity is the filename stem, so a task whose title turned out wrong
-  carries a stem that names the wrong thing forever.
+  carries a stem for the wrong thing forever.
 + 🔴 Renaming it means `git mv` plus a hand edit of every inbound
   `links:` target, with nothing checking the result until `mt check` reports
   a dangling edge. Miss one and the graph quietly loses an edge.
 + `mt rm` already walks that graph and rewrites inbound links, in
   `crates/mindtape-cli/src/rm_unlink.rs` and `rm_gitless.rs`. It points them
-  at nothing; a rename would point them at the new stem.
+  at nothing. A rename would point them at the new stem.
 
 
 == TO-BE
@@ -47,7 +47,7 @@
 - 🟢 `mt mv <task> <new-stem>` moves the file and rewrites every inbound
   `links:` target to the new stem, in one validated write.
 - 🟢 `--dry-run` prints the plan: the move, and every file whose edges change.
-- 🟢 A stem already taken is refused before anything moves.
+- 🟢 The command refuses a taken stem before anything moves.
 - 🟢 The move uses git when the tree is a repository and a plain rename when
   it is not, the way `mt rm` already splits.
 - 🟢 `mt check` is clean straight after, with no dangling edge anywhere.
@@ -55,17 +55,17 @@
 
 == Changes
 
-- `crates/mindtape-cli/src/mv.rs` — new `Args`/`run` pair. Extract the
-  inbound-edge walk `rm` already owns rather than copying it; `check-dry`
+- `crates/mindtape-cli/src/mv.rs`: a new `Args`/`run` pair. Pull the
+  inbound-edge walk `rm` already owns rather than copying it. `check-dry`
   fails on the copy anyway. Red test first.
-- `crates/mindtape-cli/src/rm_unlink.rs` — generalise from `remove the edge`
+- `crates/mindtape-cli/src/rm_unlink.rs`: generalise from `remove the edge`
   to `retarget the edge`, with removal as the null target.
-- `crates/mindtape-cli/src/cli.rs` and `command_class.rs` — wire it, and
+- `crates/mindtape-cli/src/cli.rs` and `command_class.rs`: wire it, and
   declare it a write command.
-- `crates/mindtape-cli/tests/` — end-to-end arms for the git and gitless
+- `crates/mindtape-cli/tests/`: end-to-end arms for the git and gitless
   paths, a refused collision, and `--dry-run` leaving the tree untouched.
 - `www/utils/cli-notes.typ`, `www/content/cli.typ` and
-  `skills/mindtape/SKILL.md` — the new verb.
+  `skills/mindtape/SKILL.md`: the new verb.
 
 
 == Alternatives
@@ -89,5 +89,5 @@
 
 This backlog has stems written before their task settled. The first one
 renamed with `mt mv` proves the inbound rewrite, because `mt check` here
-resolves several hundred edges.
+resolves a few hundred edges.
 

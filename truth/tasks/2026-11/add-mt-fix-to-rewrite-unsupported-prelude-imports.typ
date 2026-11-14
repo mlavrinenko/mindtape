@@ -16,14 +16,14 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[`mt fix --check` gates an unsupported prelude pin in CI],
-      cheap-adoption: helps[updating a project is one command, not a hand edit over every task file],
+      enforced-practice: helps[`mt fix --check` gates an unsupported prelude pin in CI.],
+      cheap-adoption: helps[Updating a project is one command, not a hand edit over every task file.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the rewrite parses Typst, changes only the version string, and check mode writes nothing],
-      docs-match-code: helps[the task-files page names `mt fix` where it explains the import],
+      sound-codebase: helps[The rewrite parses Typst, changes only the version string, and check mode leaves every file untouched.],
+      docs-match-code: helps[The task-files page names `mt fix` where it explains the import.],
     ),
   ),
   assignee: "agent",
@@ -42,11 +42,11 @@
 
 == TO-BE
 
-- 🟢 `mt fix` runs every applicable fixer; `--list` names them and `mt fix prelude-import` runs one.
-- 🟢 `prelude-import` rewrites a `@local/mindtape:<version>` only when this mt does not support it; a supported old pin is kept.
-- 🟢 `--dry-run` prints every edit and writes nothing; `--check` exits 1 while an unsupported pin remains.
-- 🟢 Default scope is `tasks.roots` plus template dirs; `--all` scans the whole project tree.
-- 🟢 Typst parsing changes only the version string. A newer-than-current pin is refused with an upgrade hint.
+- 🟢 `mt fix` runs every applicable fixer. `--list` names them and `mt fix prelude-import` runs one.
+- 🟢 `prelude-import` rewrites a `@local/mindtape:<version>` only when this mt does not support it. It keeps a supported old pin.
+- 🟢 `--dry-run` prints every edit and leaves every file untouched. `--check` exits 1 while an unsupported pin remains.
+- 🟢 Default scope is `tasks.roots` plus template dirs. `--all` scans the whole project tree.
+- 🟢 Typst parsing changes only the version string. The command refuses a newer-than-current pin with an upgrade hint.
 
 ```
 $ mt fix --dry-run
@@ -71,7 +71,7 @@ hint: run `mt fix` to rewrite it to @local/mindtape:0.3.0
 - `crates/mindtape-cli/src/cmd/install/hint.rs`: name `mt fix`.
 - `www/content/task-files.typ`, `www/content/config.typ`, `www/content/cli/fix.typ`, `CHANGELOG.md`: document the command.
 
-Contract: `mt fix` reads config with `load_config`, never tasks. It matches only a string-literal `#import` of exactly `@local/mindtape`, never `#include`, a comment or another package, replacing only the version and preserving every other byte. Default scope is `tasks.roots` plus project-owned `templates.dirs` under the root, recursively; pack dirs outside the root are skipped. `--all` walks the project tree, skipping `.git`, `target`, `.mindtape/cache` and symlinked directories. Symlinked files with an edit are skipped and reported. An older unsupported pin is rewritten to `PRELUDE_VERSION`. A project-local pin is never edited; when it declares the imported unsupported version, that import is reported unfixable. A newer pin, malformed spec, unreadable file or skipped symlink is also reported. Any of these aborts the write before a file changes, and `--check` or `--dry-run` exits 1. A supported old pin is kept and reported; current is silent. `--check` prints one diagnostic per unsupported version, first file and set. A write ends with `mt check`.
+Contract: `mt fix` reads config with `load_config`, never tasks. It matches only a string-literal `#import` of exactly `@local/mindtape`, never `#include`, a comment or another package. It replaces only the version and preserves every other byte. Default scope is `tasks.roots` plus project-owned `templates.dirs` under the root, recursively. Pack dirs outside the root stay out. `--all` walks the project tree, skipping `.git`, `target`, `.mindtape/cache` and symlinked directories. The fixer skips a symlinked file with an edit and reports it. An older unsupported pin is rewritten to `PRELUDE_VERSION`. A project-local pin is never edited. When it declares the imported unsupported version, the report marks that import unfixable. A newer pin, malformed spec, unreadable file or skipped symlink also goes into the report. Any of these aborts the write before a file changes, and `--check` or `--dry-run` exits 1. The fixer keeps and reports a supported old pin. A current pin stays silent. `--check` prints one diagnostic per unsupported version, first file and set. A write ends with `mt check`.
 
 == Alternatives
 
@@ -85,10 +85,10 @@ Contract: `mt fix` reads config with `load_config`, never tasks. It matches only
 
 - Semantic changes inside task bodies.
 - Bumping `lib/typst.toml`, `PRELUDE_VERSION` or release snapshots.
-- Fixers beyond `prelude-import`; the command leaves room.
+- Fixers beyond `prelude-import` stay out. The command leaves room.
 
 
 == Dogfood
 
-This repo runs `mt fix --all --check` before tagging, so its tasks, examples and templates import a supported prelude.
+This repo runs `mt fix --all --check` before tagging. Its tasks, examples and templates then import a supported prelude.
 

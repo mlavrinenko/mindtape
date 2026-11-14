@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a skipped finding names the override that clears it],
+      sound-codebase: helps[a skipped finding gives the override that clears it],
       docs-match-code: neutral,
     ),
   ),
@@ -33,24 +33,24 @@
 == AS-IS
 
 + Reading commit ee2ff69e while starting the dry sweep arm
-+ 🔴 #raw("contrib/ask-refactoring.sh"): file_finding prints one generic skipped hint, so the size, coverage, undertested and mutants arms lost their own override advice (the just cover exclude, CRAP_EXCLUDES, exclude_re)
++ 🔴 #raw("contrib/ask-refactoring.sh"): `file_finding` prints one generic skipped hint, so the size, coverage, undertested and mutants arms lost their own override advice (the just cover exclude, CRAP_EXCLUDES, `exclude_re`)
 
 ```
 -                echo "        `.cargo/mutants.toml` `exclude_re` with its reason" >&2
 +                echo "        without the signal clearing. Reopen it, or write the override." >&2
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("contrib/ask-refactoring.sh").
 
 == TO-BE
 
-- 🟢 A skipped finding prints its arm's own advice on stderr, as before ee2ff69e, while file_finding stays the one shared helper.
+- 🟢 A skipped finding prints its arm's own advice on stderr, as before ee2ff69e, while `file_finding` stays the one shared helper.
 
 == Changes
 
-- `contrib/ask-refactoring.sh`: file_finding takes the arm's advice lines as an argument.
+- `contrib/ask-refactoring.sh`: `file_finding` takes the arm's advice lines as an argument.
 - `contrib/ask-refactoring/size.sh`: pass the size override advice.
 - `contrib/ask-refactoring/coverage.sh`: pass the `just cover` exclude advice.
 - `contrib/ask-refactoring/undertested.sh`: pass the `CRAP_EXCLUDES` advice.
@@ -63,8 +63,8 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- The dry-run output, which is unchanged.
+- The dry-run output, which stays the same.
 
 == Dogfood
 
-Every `just ask-refactoring --write` that skips a finding names the right override again.
+Every `just ask-refactoring --write` that skips a finding gives the right override again.

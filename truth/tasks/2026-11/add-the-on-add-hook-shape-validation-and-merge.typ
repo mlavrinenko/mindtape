@@ -15,7 +15,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a pack ships add hooks and a project overrides or disables one by name],
+      cheap-adoption: helps[a pack provides add hooks and a project overrides or disables one by name],
       typst-over-markdown: neutral,
       plain-files: neutral,
       self-describing: neutral,
@@ -36,17 +36,17 @@
 
 == AS-IS
 
-+ Add a rule or a flip hook; there is no add hook and no directory field.
++ Add a rule or a flip hook. There is no add hook and no directory field.
 + 🔴 A project cannot state a conditional default for a new task, and a `path` rule is the only way to talk about a filed task's directory.
-+ A pack has no array to ship an add default, and no name to override or disable.
++ A pack has no array to provide an add default, and no name to override or disable.
 
 
 == TO-BE
 
-- 🟢 `[[on.add]]` takes an optional `when` and `actions = [{ set = {...}, append = {...}, dir = "..." }]`; `template == "name"` and `from_template("name")` are validated at load. The comparison form takes `==`/`!=` and a template-name literal; bare `template`, another operator and non-literals error.
-- 🟢 `set`/`append` keys validate against the shared writer, `starts_with` is in the whitelist, `set.dir` is refused, and the same field in `set` and `append` is an error.
-- 🟢 `on.add` is one of the arrays that merge by name; a nearer hook replaces or disables a pack's.
-- 🟢 `dir` is a project-root-relative template over `{template}` and add-safe scalar fields, expanded after `set`/`append`; an unknown macro, missing value or path-like expansion (`/`, `\`, `.`, `..`, empty) fails, and `dir` joins the filter fields.
+- 🟢 `[[on.add]]` takes an optional `when` and `actions = [{ set = {...}, append = {...}, dir = "..." }]`. The loader validates `template == "name"` and `from_template("name")` at load. The comparison form takes `==`/`!=` and a template-name literal. Bare `template`, another operator and non-literals error.
+- 🟢 `set`/`append` keys validate against the shared writer, and `starts_with` is in the whitelist. The loader refuses `set.dir`, and the same field in `set` and `append` is an error.
+- 🟢 `on.add` is one of the arrays that merge by name. A nearer hook replaces or disables a pack's.
+- 🟢 `dir` is a project-root-relative template over `{template}` and add-safe scalar fields, expanded after `set`/`append`. An unknown macro, missing value or path-like expansion (`/`, `\`, `.`, `..`, empty) fails, and `dir` joins the filter fields.
 
 ```toml
 [[on.add]]
@@ -63,27 +63,27 @@ actions = [{ set = { due = "2026-12-01" }, dir = "tasks/fixes" }]
 - `crates/mindtape/src/config/packs.rs`: add `on.add` to the arrays and prefixes that merge by name.
 - `crates/mindtape/src/config/layers.rs`: call `validate_add_hooks` with the project root.
 - `crates/mindtape/src/model/fields.rs`: add `dir`, the directory part of `path`, to the filter fields.
-- `crates/mindtape/src/config/add_hooks_tests.rs`, `crates/mindtape/src/config/packs_tests_add.rs`: the shape, the whitelist, both template forms, `==`/`!=` valid and bare/non-literal/other rejected, a bad template name, an unknown `dir` macro, a path-like or missing expansion, same-action `set` then `dir`, a root-level `dir` of `""`, named replace and `disable`.
+- `crates/mindtape/src/config/add_hooks_tests.rs`, `crates/mindtape/src/config/packs_tests_add.rs`: the shape, the whitelist and both template forms. The tests also cover `==`/`!=` valid and bare/non-literal/other rejected. They cover a bad template name, an unknown `dir` macro, a path-like or missing expansion, same-action `set` then `dir`, a root-level `dir` of `""`, named replace and `disable`.
 - `www/content/hooks.typ`, `www/content/filters.typ`, `www/content/rules.typ`: document the shape, the fields and the merge.
 
 
 == Alternatives
 
 - Rules only: a rule cannot choose a default.
-- A project-only array: a pack cannot ship a placement.
-- Validate the template name on the first add: a typo lands instead of failing the config.
-- A rule carrying `into`: rules assert by design; an effect belongs in a hook.
+- A project-only array stops a pack from providing a placement.
+- Validating the template name on the first add lets a typo land instead of failing the config.
+- A rule carrying `into`: rules assert by design, and an effect belongs in a hook.
 
 
 == Out of scope
 
-- The add pipeline, reports and `--no-hooks`; the execution task owns them.
-- `mt explain add` and origin; a separate task.
-- The `derive` action; a separate task.
-- The shared field writer, `starts_with` and the template-pass filter; prerequisites, filed.
+- The add pipeline, reports and `--no-hooks` stay out. The execution task owns them.
+- `mt explain add` and origin stay out. A separate task owns them.
+- The `derive` action stays out. A separate task owns it.
+- The shared field writer, `starts_with` and the template-pass filter are prerequisites, filed.
 
 
 == Dogfood
 
-This repo's packs can ship a default placement hook, and the project can override or disable it by name.
+This repo's packs can provide a default placement hook, and the project can override or disable it by name.
 

@@ -39,12 +39,12 @@
 
 + Open the docs site and look for how to stop agents from filing tasks that touch 100 files.
 + 🔴 The NAV lists features: Task DSL, Filter language, Configuration. The answer is an `estimate` unit, a `[[tasks.rules]]` assert and `changed()`, spread over /estimates/, /filters/ and /config/. A reader must already know the mechanism to find it.
-+ The same holds for the other four main problems: the required task shape, the done gate, one task in progress in dependency order, and the commit trail.
++ The other four main problems hide their answers the same way: the required task shape, the done gate, one task in progress in dependency order, and the commit trail.
 
 
 == TO-BE
 
-- 🟢 The first NAV group is "Problems", with one page each: split oversized tasks; require a task shape; gate done on your checks; one task at a time, in order; trace commits to tasks.
+- 🟢 The first NAV group is "Problems", with one page each. It covers five jobs: split oversized tasks, require a task shape, gate done on your checks, run one task at a time in order, and trace commits to tasks.
 - 🟢 Each page has the problem in one short paragraph, the config that solves it (a slice of `examples/api-service`), the capture of `mt` refusing or answering, and links to the reference pages.
 - 🟢 Each page is under 60 source lines and follows the plain-prose rules.
 
@@ -71,5 +71,5 @@
 
 == Dogfood
 
-Each problem page describes a rule this repo runs on itself; the page links to `.mindtape/config.toml` as a second real example.
+Each problem page describes a rule this repo runs on itself. The page links to `.mindtape/config.toml` as a second real example.
 

@@ -42,12 +42,12 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 - 🟢 A function's usage example is a `hint:` line, and no message carries an em dash or a Rust type.
 
 == Changes
 
-- `crates/mindtape/src/filter/strings.rs`: drop em dashes and `{:?}`; usage examples become hints.
+- `crates/mindtape/src/filter/strings.rs`: drop em dashes and `{:?}`. Usage examples become hints.
 - `crates/mindtape/src/filter/predicates.rs`: the same for `has()`, `changed()`, `touches()`, `exists`, `contains()`.
 - `crates/mindtape/src/filter/condition.rs`: `ConditionError` gets the same words, and a `From` in `diag/from_lib.rs`.
 - `crates/mindtape/src/commit/expr.rs`, `crates/mindtape/src/commit/task_expr.rs`: the commit-rule expression messages.

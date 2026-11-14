@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent that types `mt add --describe finding` learns the right slots instead of filling the wrong template],
+      implementable-tasks: helps[an agent that types `mt add --describe finding` gets the right slots instead of filling the wrong template],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Filing review findings with the \`finding\` template
-+ 🔴 #raw("crates/mindtape-cli/src/add.rs"): \`mt add --describe finding\` takes \`finding\` as a title and describes the default template, with no warning
++ 🔴 #raw("crates/mindtape-cli/src/add.rs"): `mt add --describe finding` takes \`finding\` as a title and describes the default template, with no warning
 
 ```
 $ mt add --describe finding | head -2
@@ -43,8 +43,8 @@ title  string  required  # Task title, imperative verb first
 The `finding` template's title prompt is `what should change, imperative verb first`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/add.rs").
 
 == TO-BE

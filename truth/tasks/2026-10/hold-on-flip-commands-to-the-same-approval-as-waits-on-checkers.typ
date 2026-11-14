@@ -42,7 +42,7 @@
 == TO-BE
 
 - 🟢 `mt allow` covers every `run` in `[[on.flip]]` too, in the same hash, so one approval holds every command the config runs.
-- 🟢 Un-allowed, a `run` action does not run: a gate refuses the flip with the allow hint, `--force` waives it as it waives a failing gate, and a non-gating `run` prints that it was skipped.
+- 🟢 Un-allowed, a `run` action does not run. A gate refuses the flip with the allow hint, `--force` waives it as it waives a failing gate, and a non-gating `run` prints a skip.
 - 🟢 The skill tells an agent never to run `mt allow` itself, only to pass the warning on.
 
 
@@ -56,7 +56,7 @@
 == Alternatives
 
 - Skipping an un-allowed gate: the flip would pass a check that never ran.
-- A second approval for flips: two prompts for one trust decision.
+- A second approval for flips adds two prompts for one trust decision.
 
 
 == Out of scope
@@ -66,4 +66,4 @@
 
 == Dogfood
 
-This repo's `[[on.flip]]` gates run once `mt allow` records them; `.config/wt.toml` needs no change, since forks share the approval through the git common dir.
+This repo's `[[on.flip]]` gates run once `mt allow` records them. `.config/wt.toml` does not change, since forks share the approval through the git common dir.

@@ -36,7 +36,7 @@
 == AS-IS
 
 + On Windows, run `mt ls --hyperlinks always --columns slug,file`.
-+ 🔴 The link reads `file://C:\proj\tasks\a.typ`, which names the host `C:`, and a root joined with a `/` path gives `file:///home/user/proj\truth/...`.
++ 🔴 The link reads `file://C:\proj\tasks\a.typ`, which takes `C:` as the host, and a root joined with a `/` path gives `file:///home/user/proj\truth/...`.
 
 
 == Environment
@@ -47,13 +47,13 @@ Windows, any terminal with OSC 8 support, and the `Test (Windows)` CI job.
 == TO-BE
 
 - 🟢 `{abs}` in `[ls] hyperlink-target` is what follows `file://` in an RFC 8089 URI: `/C:/proj/tasks/a.typ`, `/home/u/proj/tasks/a.typ`, or `host/share/tasks/a.typ` for a UNC path, with no `\\?\` prefix.
-- 🟢 `{abs}` and `{rel}` are `/`-separated and percent-encoded, so a space reads `%20`.
+- 🟢 `{abs}` and `{rel}` are `/`-separated and percent-encoded. A space then reads `%20`.
 - 🟢 `--path-separator` leaves both alone.
 
 
 == Changes
 
-- `crates/mindtape-cli/src/render/file_uri.rs` (new), `file_uri_tests.rs`: the red tests first, Windows paths parsed on every OS; the URI path of an absolute and of a relative path.
+- `crates/mindtape-cli/src/render/file_uri.rs` (new), `file_uri_tests.rs`: the red tests first, Windows paths parsed on every OS, and the URI path of an absolute and of a relative path.
 - `crates/mindtape-cli/src/render/file_path.rs`: substitute the URI forms.
 - `crates/mindtape/src/config/ls.rs`: say what `{abs}` and `{rel}` hold.
 - `www/content/cli/ls.typ`: the same.

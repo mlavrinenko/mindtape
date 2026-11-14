@@ -48,10 +48,10 @@ would rewrite 1 import
 == TO-BE
 
 - 🟢 Default scope is `visible_task_sources` plus every in-project template dir, including pack template dirs.
-- 🟢 `--all` is `visible_typ_files` (every Git-visible `.typ`) in the project plus template dirs, skipping reserved metadata; it includes non-task `.typ` such as `lib/` and docs.
-- 🟢 Untracked ignored non-template files are in neither scope; tracked-ignored task sources are in both.
+- 🟢 `--all` is `visible_typ_files` (every Git-visible `.typ`) in the project plus template dirs, skipping reserved metadata. It includes non-task `.typ` such as `lib/` and docs.
+- 🟢 Untracked ignored non-template files are in neither scope. Tracked-ignored task sources are in both.
 - 🟢 In a non-Git project, `--all` keeps the `.git`/`target`/`.mindtape/cache` skip list, adds reserved dirs and re-includes template dirs.
-- 🟢 Tracked-deleted files are filtered before the fixer reads them; symlinked directories are not followed.
+- 🟢 The fixer filters tracked-deleted files before it reads them. It does not follow symlinked directories.
 
 ```
 $ mt fix --all --dry-run
@@ -69,11 +69,11 @@ would rewrite 2 imports
 
 == Out of scope
 
-- Explicit file arguments; `mt fix` takes a fixer name, not a path.
+- Explicit file arguments stay out. `mt fix` takes a fixer name, not a path.
 - Prelude import matching and symlink policy beyond directory links.
 
 
 == Dogfood
 
-This project's default `mt fix` scope stays `truth/tasks` plus `.mindtape/templates`; `--all` stops entering its gitignored build trees.
+This project's default `mt fix` scope stays `truth/tasks` plus `.mindtape/templates`. `--all` stops entering its gitignored build trees.
 

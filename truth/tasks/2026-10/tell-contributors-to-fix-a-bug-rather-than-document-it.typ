@@ -7,4 +7,4 @@
   estimate: (src-files: 1),
 )
 
-The owner wants the docs to describe working behavior only, so a bug found while writing gets fixed, never noted.
+By the owner's instruction, the docs describe working behavior only, so a bug found while writing gets fixed, never noted.

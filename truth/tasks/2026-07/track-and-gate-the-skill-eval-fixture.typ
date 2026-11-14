@@ -19,11 +19,11 @@
 
 == Summary
 
-The mindtape skill's eval fixture lived at skills/mindtape-workspace/sandbox-template/, inside a gitignored scratch tree, and nothing validated it. It silently outlived two config migrations — the retired \[ls\] default-filter and the depends-on: to links: move — plus a priority max that no longer matched the default bands and a prelude stub at 110 lines against the real 560. Every eval in the tracked evals.json would have failed at config load. Move it under skills/mindtape/evals/files/ per skill-creator's files convention, and gate it so it cannot rot again.
+The mindtape skill's eval fixture lived at skills/mindtape-workspace/sandbox-template/, inside a gitignored scratch tree, and nothing validated it. It silently outlived two config migrations, namely the retired \[ls\] default-filter and the depends-on: to links: move. It also carried a priority max that did not match the default bands and a prelude stub at 110 lines against the real 560. Every eval in the tracked evals.json would have failed at config load. Move it under skills/mindtape/evals/files/ per skill-creator's files convention, and gate it so it cannot rot again.
 
 == Scope
 
-- Move sandbox-template to skills/mindtape/evals/files/sandbox/ (tracked) and point each eval's files array at it.
+- Move sandbox-template to skills/mindtape/evals/files/sandbox/ (tracked) and point the files array of each eval at it.
 - Extend just check-examples to mt check the fixture, and add it to the mmz examples scope so the gate is not false-fresh.
 - Track the vendored prelude and typst.toml copies as outdatty dependents, since the fixture must stay self-contained and cannot reference lib/.
 - Document the fixtures gate in CONTRIBUTING.md.

@@ -14,12 +14,12 @@
     2026,
     8,
     1,
-  )[the strict-framework splice writes framework("name", input: slot(…), …); mt init no longer refuses the answer set],
+  )[the strict-framework splice writes framework("name", input: slot(…), …). mt init accepts the answer set],
 )
 
 == Summary
 
-In a project with no `.mindtape/templates/task.typ`, `mt add` falls back to a built-in template whose slots are title, difficulty and estimate. If the project's config requires a priority — and especially if `[tasks.priority]` declares `framework = "ice"` with `allow-manual = false` — no invocation of `mt add` can produce a valid task, and there is no error that says so.
+In a project with no `.mindtape/templates/task.typ`, `mt add` falls back to a built-in template whose slots are title, difficulty and estimate. If the project's config requires a priority (especially when `[tasks.priority]` declares `framework = "ice"` with `allow-manual = false`), no invocation of `mt add` can produce a valid task, and there is no error that says so.
 
 == Reproduction
 
@@ -43,14 +43,15 @@ warning: restore-the-workspace-build: priority: required field is missing
 Error: ... was kept on disk exactly as written; fix or delete it before the next command
 ```
 
-The framework leaves are the slots a template should expose here —
-`--set impact=9 --set confidence=0.9 --set ease=6` — exactly as this project's
+The framework leaves are the slots a template should expose here, namely
+`--set impact=9 --set confidence=0.9 --set ease=6`, exactly as this project's
 own `.mindtape/templates/task.typ` does. The fallback does not.
 
 == Scope
 
 - `mt add` slot resolution and the built-in fallback template
-- either the fallback honours the config's required fields (emitting the
-  framework's leaf slots when one is declared), or `mt add` refuses up front
-  and names the missing template, rather than writing a file it knows is invalid
+- The fallback honours the config's required fields by emitting the
+  framework's leaf slots when the config declares one. Otherwise `mt add`
+  refuses up front and names the missing template, rather than writing a file it
+  knows is invalid
 - out of scope: the deliberate keep-the-invalid-file-on-disk behaviour, which is sound

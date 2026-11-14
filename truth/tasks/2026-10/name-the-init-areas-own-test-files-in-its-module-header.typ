@@ -42,8 +42,8 @@ axes  compose.rs  compose_tests.rs  mod.rs  prelude.typ  preset.rs  presets  pre
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/init/mod.rs").
 
 == TO-BE
@@ -68,4 +68,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable, the header is read only by contributors to this folder.
+Not applicable, only contributors to this folder read the header.

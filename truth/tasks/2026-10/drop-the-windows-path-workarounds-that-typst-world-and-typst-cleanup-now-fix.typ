@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[Mindtape stops carrying code that compensates for its own dependencies],
+      sound-codebase: helps[the project stops carrying code that compensates for its own dependencies.],
       docs-match-code: neutral,
     ),
   ),
@@ -33,12 +33,12 @@
 == AS-IS
 
 + typst-world 0.5.6 builds a project file id with `/` on every platform, and adds `project_file_id`. typst-cleanup 0.2.1 mints a tombstone's `path=` with `/`.
-+ 🔴 Mindtape still carries the workarounds for both: `loader::disk_world`, the `slash_path` id in `validate/candidate.rs`, and the `\` rewrite in `TaskLinks::tombstone`.
++ 🔴 The project still carries the workarounds for both: `loader::disk_world`, the `slash_path` id in `validate/candidate.rs`, and the `\` rewrite in `TaskLinks::tombstone`.
 
 
 == TO-BE
 
-- 🟢 Mindtape builds its worlds with `HarvestWorld::with_root`, `HarvestWorld::new` and `project_file_id`, and renders a tombstone as minted.
+- 🟢 The project builds its worlds with `HarvestWorld::with_root`, `HarvestWorld::new` and `project_file_id`, and renders a tombstone as minted.
 
 
 == Changes
@@ -46,7 +46,7 @@
 - `crates/mindtape/Cargo.toml`, `crates/mindtape-cli/Cargo.toml`, `Cargo.lock`: typst-world 0.5.6 and typst-cleanup 0.2.1.
 - `crates/mindtape/src/loader/world.rs`, `crates/mindtape/src/loader/world_tests.rs`: delete.
 - `crates/mindtape/src/loader/mod.rs`, `crates/mindtape/src/lib.rs`, `crates/mindtape/src/loader/tests_prelude.rs`, `crates/mindtape-cli/src/cmd/eval.rs`: build with the upstream constructors.
-- `crates/mindtape/src/validate/candidate.rs`: `project_file_id`. A candidate outside the root now says so, not "bad virtual path".
+- `crates/mindtape/src/validate/candidate.rs`: `project_file_id`. A candidate outside the root says so, not "bad virtual path".
 - `crates/mindtape-cli/src/cmd/rm/mod.rs`, `crates/mindtape-cli/src/cmd/rm/tests.rs`: drop the tombstone rewrite and its test.
 
 
@@ -63,5 +63,5 @@ Revert the commit. Both crates still build against the old code.
 
 == Dogfood
 
-Not applicable. This repo is developed on Linux.
+Not applicable. This repo's maintainers develop on Linux.
 

@@ -33,7 +33,7 @@
 == AS-IS
 
 + Open `crates/mindtape/src/estimate_queries.rs`.
-+ 🔴 The query value, git-listed file walk, `PathFilter` and process cache live there, so a collector that wants the same engine must copy them.
++ 🔴 The query value, git-listed file walk, `PathFilter` and process cache live there. A second collector then needs a copy of them.
 + There is no ast-grep dependency, so a shape query cannot compile.
 
 
@@ -41,7 +41,7 @@
 
 - 🟢 `crates/mindtape/src/query/mod.rs` owns `Query`, compile, the git-listed file walk, `PathFilter` and the process cache.
 - 🟢 `estimate_queries` resolves its units through the module, with its tests and e2e unchanged in behavior.
-- 🟢 `ast-grep-core` and `ast-grep-language` with only the Rust grammar are pinned, so a later leaf adds `ast_grep(...)` without a second engine.
+- 🟢 The build pins `ast-grep-core` and `ast-grep-language` with only the Rust grammar. A later leaf then adds `ast_grep(...)` without a second engine.
 - 🟢 `docs/src/contributing/release.typ` records the C-backed build and binary-size cost.
 
 ```toml

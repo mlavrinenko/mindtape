@@ -33,7 +33,7 @@
 == AS-IS
 
 + Push a `v*` tag, as `just release 0.3.0` did.
-+ 🔴 `Build (aarch64-unknown-linux-gnu)` in `release.yml` run 40748057090 failed, and the other builds were cancelled:
++ 🔴 `Build (aarch64-unknown-linux-gnu)` in `release.yml` run 40748057090 failed, and the same run cancelled the other builds:
   ```
   warn: the missing active toolchain `1.92.0-x86_64-unknown-linux-gnu` has been auto-installed
   error[E0463]: can't find crate for `core`
@@ -44,12 +44,12 @@
 == Environment
 
 - Tag `v0.3.0`, commit `fa6a464b`.
-- GitHub Actions `ubuntu-latest`, rustup with `stable` 1.99.1 as its default.
+- GitHub Actions `ubuntu-latest`, `rustup` with `stable` 1.99.1 as its default.
 
 == TO-BE
 
-- 🟢 Every build in `release.yml` compiles with the toolchain `rust-toolchain.toml` pins, and each cross target is installed for it.
-- 🟢 The Windows job in `ci.yml` installs the same toolchain, so its comment says what really runs.
+- 🟢 Every build in `release.yml` compiles with the toolchain `rust-toolchain.toml` pins, and installs each cross target for it.
+- 🟢 The Windows job in `ci.yml` installs the same toolchain. Its comment then says what really runs.
 
 == Changes
 

@@ -38,7 +38,7 @@
 == AS-IS
 
 + Reviewing the on-add branch after `just check`.
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/explain/add.rs"): `ActiveAddHook.label` was computed and never used, so an unnamed hook printed `-` and JSON had no label.
++ 🔴 #raw("crates/mindtape-cli/src/cmd/explain/add.rs"): The code computed `ActiveAddHook.label` and never used it, so an unnamed hook printed `-` and JSON had no label.
 
 ```
 on.add[0]  template == "task"  dir = "tasks/fixes"  built-in
@@ -59,7 +59,7 @@ The text still printed `-`, and `--json` had only `name`, which is `null` for an
 
 == Changes
 
-- `crates/mindtape/src/config/active_add.rs`: label a named hook by name when no origin is recorded.
+- `crates/mindtape/src/config/active_add.rs`: label a named hook by name when the hook has no origin.
 - `crates/mindtape/src/config/active_add_tests.rs`, `crates/mindtape-cli/src/cmd/explain/add_tests.rs`: pin the label.
 - `crates/mindtape-cli/src/cmd/explain/add.rs`, `tests/it/explain_add_e2e.rs`: print and expose it.
 - `schema/output/explain-add/1.schema.json`, `www/content/cli/explain.typ`: document the field.

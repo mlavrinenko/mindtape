@@ -34,11 +34,11 @@ value = "done"
 note-min-words = 10
 ```
 
-A flip into a status declaring `note-min-words` must carry a note of at least that many words, so the key implies a note on that flip. Words are counted the way content rules count them (whitespace-delimited tokens containing an alphanumeric character), by sharing `word_count` from `crates/mindtape/src/content_gate.rs` rather than copying it.
+A flip into a status declaring `note-min-words` must carry a note of at least that many words. The key then implies a note on that flip. Words get counted the way content rules count them (whitespace-delimited tokens containing an alphanumeric character), by sharing `word_count` from `crates/mindtape/src/content_gate.rs` rather than copying it.
 
-The key is enforced at the flip only, never by `mt check`: a note is written once, at the transition, and closed history is not rewritten. Measured on 2026-09-14, 141 of 331 closed tasks here carry no note and 54 carry fewer than 10 words, so a check-time rule would fail history nobody will edit. `note = "required"` keeps its current meaning, untouched.
+The tool enforces the key at the flip only, never in `mt check`. A writer sets a note once, at the transition, and closed history stays as it is. A measurement on 2026-09-14 found 141 of 331 closed tasks here carrying no note and 54 carrying fewer than 10 words. So a check-time rule would fail history nobody will edit. `note = "required"` keeps its current meaning, untouched.
 
-Put the rule on `LegendEntry` in `crates/mindtape/src/config_status.rs`, red tests first in `config_status_tests.rs`: no note fails at 10, a three-word note fails, a ten-word note passes, and an entry without the key accepts anything. Call it from `check_note_required` in `crates/mindtape-cli/src/flip.rs`, and bless `schema/config.schema.json` in the same commit. The end-to-end pin, the docs and this repo's own minimum are `document-the-status-note-word-minimum.typ`.
+Put the rule on `LegendEntry` in `crates/mindtape/src/config_status.rs`. Write the red tests first in `config_status_tests.rs`: no note fails at 10, a three-word note fails, a ten-word note passes, and an entry without the key accepts anything. Call it from `check_note_required` in `crates/mindtape-cli/src/flip.rs`, and bless `schema/config.schema.json` in the same commit. The end-to-end pin, the docs and this repo's own minimum are `document-the-status-note-word-minimum.typ`.
 
 == Dogfood
 

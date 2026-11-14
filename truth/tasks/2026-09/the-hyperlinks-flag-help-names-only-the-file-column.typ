@@ -15,7 +15,7 @@
     2026,
     9,
     10,
-  )[Fixed at fa69c3f: the `--hyperlinks` doc comment on the CLI arg now names both the `#` and `file` columns. Regenerated `www/generated/` with `just docs::gen` and confirmed with `outdatty update --group cli-docs --group cli-name` that no hand-written doc quoted the stale text.],
+  )[Fixed at fa69c3f. The `--hyperlinks` doc comment on the CLI argument covers both the `#` and `file` columns. I regenerated `www/generated/` with `just docs::gen` and confirmed with `outdatty update --group cli-docs --group cli-name` that no hand-written doc quoted the stale text.],
 )
 
 == Summary
@@ -29,7 +29,7 @@ and the help omits it.
 
 == Scope
 
-Fix the `--hyperlinks` doc comment on the CLI arg so it names both the `#`
+Fix the `--hyperlinks` doc comment on the CLI argument so it covers both the `#`
 and `file` columns, matching `crates/mindtape/src/config_ls.rs:69`. Check
 whether the captured CLI output under `www/generated/` needs regenerating
 with `just docs-gen`, since the docs site reads the help text rather than

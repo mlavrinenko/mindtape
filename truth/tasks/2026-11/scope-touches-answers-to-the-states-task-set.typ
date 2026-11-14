@@ -39,7 +39,7 @@
 == AS-IS
 
 + Reviewing the commit-state config series, where head(...) and staged(...) read the same Config git cache.
-+ 🔴 #raw("crates/mindtape/src/commit/refs.rs"): the RefsCache answer key is `set.is_some()`, so `head(touches(...))` and `staged(touches(...))` share whichever answer was computed first even when their task sets differ.
++ 🔴 #raw("crates/mindtape/src/commit/refs.rs"): the RefsCache answer key is `set.is_some()`, so `head(touches(...))` and `staged(touches(...))` share whichever answer the cache computed first even when their task sets differ.
 
 ```
 let key = format!("{}\0{path}", set.is_some());
@@ -57,7 +57,7 @@ staged(touches("src/x.rs")) -> false
 
 == TO-BE
 
-- 🟢 An answer is keyed by the task set it resolved against, so `head(touches(...))` and `staged(touches(...))` cannot share a result.
+- 🟢 The cache keys an answer by the task set it resolved against, so `head(touches(...))` and `staged(touches(...))` cannot share a result.
 - 🟢 A rule's outcome is the same whichever state's wrapper comes first in the expression.
 
 ```

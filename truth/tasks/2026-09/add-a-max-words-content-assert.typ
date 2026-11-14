@@ -16,8 +16,8 @@
 
 == Summary
 
-`ContentAssert` (crates/mindtape/src/body_content.rs) offers "non-empty", `min-words`, `must-match` and `must-not-match`, so a config can demand that a section say enough but never that it stop. Conciseness is the property the section rules most need and the only one not expressible today: nothing stops an agent padding AS-IS to four hundred words of narrative, which is exactly what turns a spec into prose nobody reads.
+`ContentAssert` (crates/mindtape/src/body_content.rs) offers "non-empty", `min-words`, `must-match` and `must-not-match`. A config can demand that a section say enough but never that it stop. Conciseness is the property the section rules most need and the only one not expressible today. An agent can pad AS-IS to four hundred words of narrative unchecked, which is exactly what turns a spec into prose nobody reads.
 
 == Scope
 
-Add a `{ max-words = N }` variant beside `min-words` in ContentAssert, its entry in schema/config.schema.json and the docs sites config page, with a red test for the boundary — exactly N passes, N+1 fails. Word counting reuses whatever `min-words` already does so the two agree by construction.
+Add a `{ max-words = N }` variant beside `min-words` in ContentAssert, its entry in schema/config.schema.json and the docs site's config page. A red test covers the boundary: exactly N passes, N+1 fails. Word counting reuses whatever `min-words` already does, so the two agree by construction.

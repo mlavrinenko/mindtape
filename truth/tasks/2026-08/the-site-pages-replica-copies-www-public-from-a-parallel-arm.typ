@@ -15,7 +15,7 @@
     2026,
     8,
     21,
-  )[Replica now copies www/ entry by entry, skipping www/public/ and www/.tola/ — both gitignored build outputs the parallel docs-check arm writes and no page compile reads. An assertion beside the copy fails the gate if either reappears. One premise here was wrong and is corrected in the commit: neither `tola build` nor `pagefind` wipes public/ (a sentinel survives both), so this was never a cp racing an rm -rf; what is measured is `tola build` rewriting every `.tola/cache/*.vdom` in place each run. The `just check` run that closed this also hit `mmz: i/o error: No such file or directory` on the check-secrets arm, exit 70, naming no file; that is mmz's own, filed upstream as its `mmz-an-i-o-error-while-hashing-an-input-names-no-path`.],
+  )[The replica copies `www/` entry by entry, skipping `www/public/` and `www/.tola/`, both gitignored build outputs the parallel docs-check arm writes and no page compile reads. An assertion beside the copy fails the gate if either reappears. One premise here was wrong and the commit corrects it: neither `tola build` nor `pagefind` wipes public/ (a sentinel survives both), so this was never a `cp` racing an `rm -rf`. The measured problem is `tola build` rewriting every `.tola/cache/*.vdom` in place each run. The `just check` run that closed this also hit `mmz: i/o error: No such file or directory` on the check-secrets arm, exit 70, without a file name. That is mmz's own, filed upstream as `mmz-an-i-o-error-while-hashing-an-input-names-no-path`.],
   links: related("site-pages-fixture-check-fails-on-a-cold-checkout.typ")[
     the same family, found while fixing that one: a gate reading a directory
     a parallel arm owns
@@ -24,43 +24,42 @@
 
 == Summary
 
-`site-pages-fixture-check` builds its replica with a faithful `cp -r www`.
-That copies `www/public` too — 6.1 MB of built site, gitignored, and written
-by `tola build` in the `docs-check` arm, which `just check` runs in PARALLEL
-and which `rm -rf`s the directory on entry.
+`site-pages-fixture-check` builds its replica with a faithful `cp -r www`. That
+copies `www/public` too: 6.1 MB of built site, gitignored, and written by
+`tola build` in the `docs-check` arm. `just check` runs that arm in parallel, and
+it `rm -rf`s the directory on entry.
 
 Two costs, one of them a race:
 
 - the replica pays a multi-megabyte copy per variant for a directory no page
   compile reads
-- `cp -r` walking a tree another process is deleting can exit non-zero on a
-  file that vanished mid-walk, failing the gate for a reason that has nothing
-  to do with what it pins
+- `cp -r` walking a tree another process is deleting can exit non-zero on a file
+  that vanished mid-walk. The gate then fails for a reason that has nothing to
+  do with what it pins
 
-The captures half of exactly this bug was just closed
-(`site-pages-fixture-check-fails-on-a-cold-checkout.typ`): the gate now
-produces `www/generated/` itself inside the flock and snapshots before the
-lock drops. `www/public` is the same shape and was deliberately left, because
-narrowing the copy is a change to what "replica" means and did not belong in
-a bug fix riding on a different claim.
+The captures half of this bug just closed
+(`site-pages-fixture-check-fails-on-a-cold-checkout.typ`). The gate produces
+`www/generated/` itself inside the flock and snapshots before the lock drops.
+`www/public` has the same shape and was deliberately left, because narrowing the
+copy changes what "replica" means and did not belong in a bug fix riding on a
+different claim.
 
 == Why it has not bitten yet
 
-The window is narrow — `docs-check` deletes `public/` once, at the start of
-its own `tola build` — and the `cp -r` is fast. Nothing in the log says it has
-ever fired. That is an argument about probability, not about correctness, and
-the gate it would fail is the one that decides whether a change is green.
+The window is narrow (`docs-check` deletes `public/` once, at the start of its
+own `tola build`), and the `cp -r` is fast. It has never fired in any log. That is an argument about probability, not about correctness, and the
+gate it would fail is the one that reports whether a change is green.
 
 == Scope
 
-- Exclude `www/public` from the replica copy, keeping everything a page
-  compile actually reads
-- Prefer a form that does not silently drift as `www/` grows: an explicit
-  exclusion of the one gitignored build output reads better than an
-  allow-list of what to copy, which owes a line per new directory
-- Argue the choice in the script header beside the `cp -r` reasoning already
-  there, which currently justifies copying the tree faithfully
-- Confirm the three fixtures still fire by name and the positive control
-  still passes — a replica missing something a page reads fails for an
-  environmental reason, which is the failure mode this whole family is about
+- Exclude `www/public` from the replica copy, keeping everything a page compile
+  actually reads
+- Prefer a form that does not silently drift as `www/` grows. An explicit
+  exclusion of the one gitignored build output reads better than an allow-list of
+  what to copy, which owes a line per new directory
+- Argue the choice in the script header beside the existing `cp -r` reasoning,
+  which currently justifies copying the tree faithfully
+- Confirm the three fixtures still fire by name and the positive control still
+  passes. A replica missing something a page reads fails for an environmental
+  reason, the failure mode this whole family is about
 - Out of scope: the flock discipline, settled by the sibling task

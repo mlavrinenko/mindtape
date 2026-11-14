@@ -33,13 +33,13 @@
 == AS-IS
 
 + Read the README intro or any page under `www/content/`.
-+ 🔴 It reads like a spec: no "you", no contractions, and sentences such as "Because a write command refuses a change that breaks a rule, `mt wip` refuses the second start."
++ 🔴 It reads like a spec: no "you", no contractions, and sentences such as "Because a write command refuses a change that breaks a rule, mt wip refuses the second start."
 + 🔴 The tagline says "your team's rules", though nothing in `mt` assumes a team.
 
 == TO-BE
 
 - 🟢 `docs/contributing/documentation.md` states the voice each reader gets: peer-to-peer for humans, imperative for agents, one-line errors.
-- 🟢 The tagline, the README intro and the comparison page name no team.
+- 🟢 The tagline, the README intro and the comparison page never mention a team.
 
 == Source of truth
 

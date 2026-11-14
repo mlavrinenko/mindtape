@@ -32,19 +32,22 @@
 
 == AS-IS
 
-+ Running \`mt done X\` then \`git commit --amend --no-edit\` on the commit holding X's work.
-+ 🔴 #raw("crates/mindtape/src/commit_msg.rs"): \`staged\_files\` diffs the index against HEAD (\`--cached\`), so during an amend \`files\` holds only the flip, \`tasks\_only\` is true, and rule \`flip-with-work\` refuses a commit that does carry the work.
++ Running `mt done X` then `git commit --amend --no-edit` on the commit holding X's work.
++ 🔴 #raw("crates/mindtape/src/commit_msg.rs"): `staged_files` diffs the index against HEAD (`--cached`), so during an amend `files` holds only the flip, `tasks_only` is true, and rule `flip-with-work` refuses a commit that does carry the work.
 
 ```
 start or close a task in a commit that carries its work
 ```
-`crates/mindtape/src/commit_msg.rs:188`: `paths: changed_paths(root, &["--cached"])?,`
-`crates/mindtape/src/commit_msg.rs:189`: `renamed_from: renamed_sources(root, &["--cached"])?,`
+
+```
+crates/mindtape/src/commit_msg.rs:188: paths: changed_paths(root, &["--cached"])?,
+crates/mindtape/src/commit_msg.rs:189: renamed_from: renamed_sources(root, &["--cached"])?,
+```
 `crates/mindtape/src/packs/mindtape-tasks.toml:360`: the rule asserts `!tasks_only`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/commit_msg.rs").
 
 == TO-BE

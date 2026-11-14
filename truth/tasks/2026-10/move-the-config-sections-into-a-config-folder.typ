@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the module path names the file, and the area's internals can go private to its folder],
+      sound-codebase: helps[the module path points at the file, and the area's internals can go private to its folder.],
       docs-match-code: neutral,
     ),
   ),
@@ -37,25 +37,25 @@
 == AS-IS
 
 + Run `ls crates/*/src`.
-+ 🔴 `config.rs`, every `config_*.rs` apart from the `[[tasks.rules]]` four, `merge.rs`, `name_cycle.rs`, `defaults.toml`, `packs/`, `dicts/` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.
++ 🔴 `config.rs`, every `config_*.rs` apart from the `[[tasks.rules]]` four, `merge.rs`, `name_cycle.rs`, `defaults.toml`, `packs/`, `dicts/` sit flat at the crate root, so the module path does not follow the file and nothing marks the area's internals.
 
 == TO-BE
 
 - 🟢 `crates/mindtape/src/config/`: `mod.rs` (from `config.rs`) and one file per section with its prefix dropped (`config_ls.rs` → `config/ls.rs`).
-- 🟢 Each moved file's tests move beside it (`x_tests.rs`); a `mod.rs` loads a plain `mod tests;` from `tests.rs`.
+- 🟢 Each moved file's tests move beside it (`x_tests.rs`). A `mod.rs` loads a plain `mod tests;` from `tests.rs`.
 - 🟢 `mod.rs` opens with a `//!` map of the folder's files.
-- 🟢 `just check` passes; the commit is moves plus path edits, so `git log --follow` traces every file.
+- 🟢 `just check` passes. The commit is moves plus path edits, so `git log --follow` traces every file.
 
 == Changes
 
 - The moved files: `git mv`, then `mod`/`use`/`#[path]`/doc-link paths. A cross-folder caller gets `pub(crate)`, never an alias at the old path.
 - `outdatty.yaml`, `crap-baseline.json` (`just crap-baseline`) and every comment or doc that cites a moved path.
-- `include_str!` paths for `defaults.toml`, `packs/` and `dicts/` move with them; `www/generate-facts.sh:143` and `.mmz/config.yaml:213` follow.
+- `include_str!` paths for `defaults.toml`, `packs/` and `dicts/` move with them. `www/generate-facts.sh:143` and `.mmz/config.yaml:213` follow.
 
 == Out of scope
 
 - Renames beyond dropping the folder's prefix.
-- Tightening visibility past what compiles; a later sweep owns that.
+- Tightening visibility past what compiles. A later sweep owns that.
 - Done tasks citing old paths: they are history.
 
 == Dogfood

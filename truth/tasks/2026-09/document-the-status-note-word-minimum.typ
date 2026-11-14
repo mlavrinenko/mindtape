@@ -22,11 +22,11 @@
 
 == Summary
 
-`require-a-minimum-word-count-on-a-status-note.typ` adds `note-min-words` to the status legend with unit tests only. Nothing drives it through the real binary, the config page does not mention it, and this repo's own closing notes are still unpoliced.
+`require-a-minimum-word-count-on-a-status-note.typ` adds `note-min-words` to the status legend with unit tests only. The tests never drive it through the real binary, the config page does not mention it, and this repo's own closing notes still go unchecked.
 
 == Scope
 
-Add an end-to-end case beside the flip tests in `crates/mindtape-cli/tests/`: under `note-min-words = 10` on `done`, `mt flip done -m done` is refused and writes nothing, and a ten-word note lands. Document the key beside `note` in `www/content/config.typ`, including that `mt check` never applies it, and add a CHANGELOG.md entry under Unreleased.
+Add an end-to-end case beside the flip tests in `crates/mindtape-cli/tests/`: under `note-min-words = 10` on `done`, the tool refuses `mt flip done -m done` and leaves the file untouched, while a ten-word note lands. Document the key beside `note` in `www/content/config.typ`, including that `mt check` never applies it, and add a CHANGELOG.md entry under Unreleased.
 
 Then set it on this repo's closing statuses in `.mindtape/config.toml`, the same key on `done`, `failed` and `cancelled`:
 

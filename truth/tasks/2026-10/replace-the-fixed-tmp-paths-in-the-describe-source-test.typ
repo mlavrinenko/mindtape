@@ -41,8 +41,8 @@ assertion failed: xdg.contains("(missing)")
 ```
 A 50-byte `/tmp/x.toml` left by another tool made it fail.
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/config_tests.rs").
 
 == TO-BE
@@ -51,7 +51,7 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/config_tests.rs`: build the missing xdg and dir paths under a temp directory.
+- `crates/mindtape-cli/src/cmd/config_tests.rs`: build the missing `xdg` and `dir` paths under a temp directory.
 
 == Rollback
 

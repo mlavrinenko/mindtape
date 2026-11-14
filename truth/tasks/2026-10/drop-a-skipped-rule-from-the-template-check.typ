@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a config-level breach is reported once, at the config entry],
+      sound-codebase: helps[the check reports a config-level breach once, at the config entry],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + Locating a pack rule's skipped warning at its own config entry.
-+ 🔴 #raw("crates/mindtape/src/candidate.rs"): a rule skipped for lack of git is reported at its config entry and again for the built-in template
++ 🔴 #raw("crates/mindtape/src/candidate.rs"): the check reports a rule skipped for lack of git at its config entry and again for the built-in template
 
 ```
 warning: pack.toml:1: rules.src-budget: skipped: changed() cannot read git: not a git repository
@@ -41,8 +41,8 @@ warning: built-in template task:1: rules.src-budget: skipped: changed() cannot r
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/violation.rs").
 
 == TO-BE
@@ -55,7 +55,7 @@ left in a closing report no one rereads. It belongs in
 
 - `crates/mindtape-cli/tests/skipped_rule_once_e2e.rs`: the red test first, a pack `changed()` rule printing one `skipped` warning.
 - `crates/mindtape/src/violation.rs`: a `SkippedRule` kind.
-- `crates/mindtape/src/config_rules_eval.rs`: set it where the skip is reported.
+- `crates/mindtape/src/config_rules_eval.rs`: set it in the branch that skips the rule.
 - `crates/mindtape/src/candidate.rs`: drop it in `reads_set_breach`.
 
 

@@ -14,15 +14,15 @@
     2026,
     7,
     26,
-  )[default is now SCHEMA\_URL; --schema local opts into the XDG path; docs and tests follow],
+  )[default is `SCHEMA_URL`. `--schema local` opts into the XDG path. Docs and tests follow],
 )
 
 == Summary
 
-`mindtape::SCHEMA_URL` documents itself as 'the value `mt init` `--schema url` writes for a portable, checked-in config', but no such shortcut exists: `--schema` takes its argument verbatim, so `--schema url` writes the literal string `url`, and `SCHEMA_URL` is never referenced from the CLI at all. The default is worse for a tracked file — an absolute `file://` path into the caller's XDG dir, which is meaningless to anyone who clones the repo. Adopting mindtape in linecop hit both.
+`mindtape::SCHEMA_URL` documents itself as 'the value `mt init` `--schema url` writes for a portable, checked-in config', but no such shortcut exists. `--schema` takes its argument verbatim, so `--schema url` writes the literal string `url`. `SCHEMA_URL` never reaches the CLI at all. For a tracked file, the default is an absolute `file://` path into the caller's XDG dir, which is meaningless to anyone who clones the repo. Adopting mindtape in linecop hit both.
 
 == Scope
 
-- Accept the literal `url` for --schema and expand it to `SCHEMA_URL`, matching what the doc comment already promises.
+- Accept the literal `url` for `--schema` and expand it to `SCHEMA_URL`, matching what the doc comment already promises.
 - Reconsider the default: a checked-in config wants the published URL, with the `file://` XDG path as the opt-in for offline or pre-install use.
 - Fix or delete the `SCHEMA_URL` doc comment either way, so it stops describing an unimplemented feature.

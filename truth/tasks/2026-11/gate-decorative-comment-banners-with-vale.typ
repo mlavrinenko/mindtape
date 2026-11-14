@@ -33,7 +33,7 @@
 
 + Run `just check` with a new `# arm 1 ----------------------------------------------------------------------` in a script.
 + 🔴 It stays green: no arm reads comment text.
-+ Run `vale --version`; nixpkgs-unstable has 3.26, and `Grammars` needs 3.27.
++ Run `vale --version`. The nixpkgs-unstable channel has 3.26, and `Grammars` needs 3.27.
 
 ```
 $ printf '# arm 1 ----------------------------------------------------------------------\n' >> .just/scripts/_gate-drift-lib.sh
@@ -46,7 +46,7 @@ $ just check
 
 - 🟢 `just lint::banners` fails on a comment whose text ends in five or more of `- = * _ ~ #`.
 - 🟢 The gate reads Rust, Shell and CSS comments through Vale's tree-sitter grammars.
-- 🟢 The grammars come from the nix store, so the gate runs offline.
+- 🟢 The grammars come from the nix store. The gate then runs offline.
 
 ```
 $ just lint::banners
@@ -58,7 +58,7 @@ crates/foo/tests.rs:12:4: Sep.Banner: Delete the decorative run; keep any label 
 
 - `.config/vale.ini`: `StylesPath = vale/styles`, `Grammars = bash, rust, css`, `Sep` on `*.{rs,sh,css}`.
 - `.config/vale/styles/Sep/Banner.yml`: the `existence` rule for a trailing run of five.
-- `nix/dev/vale-grammars.nix`: fetch the three `grammar-*.zip` assets for `vale.version`, unpack the wasm.
+- `nix/dev/vale-grammars.nix`: fetch the three `grammar-*.zip` assets for `vale.version`, unpack the `wasm`.
 - `nix/dev/shell.nix`: take `vale` from `pkgs-tombi`, call the grammar file, export `VALE_GRAMMARS_PATH`.
 - `.just/lint.just`: the `banners` recipe over `git ls-files --cached --others --exclude-standard`.
 - `.mmz/config.yaml`: the `lint::banners` rule.
@@ -66,9 +66,9 @@ crates/foo/tests.rs:12:4: Sep.Banner: Delete the decorative run; keep any label 
 
 == Alternatives
 
-- A repo-local ast-grep ruleset: one more binary and a rule per language, where Vale is the prose tool we want anyway.
+- A repo-local ast-grep ruleset needs one more binary and a rule per language, where Vale is the prose tool we want anyway.
 - linecop: it caps comment lines and carries no comment text.
-- commentment: it reads Typst comments, but Vale's rule engine and editor integration win for prose.
+- `commentment`: it reads Typst comments, but Vale's rule engine and editor integration win for prose.
 
 
 == Out of scope
@@ -80,5 +80,5 @@ crates/foo/tests.rs:12:4: Sep.Banner: Delete the decorative run; keep any label 
 
 == Dogfood
 
-This repo runs `just lint::banners` in `_check-fast`, so a new run fails before review.
+This repo runs `just lint::banners` in `_check-fast`. A new run then fails before review.
 

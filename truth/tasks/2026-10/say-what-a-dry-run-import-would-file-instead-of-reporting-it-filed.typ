@@ -33,7 +33,7 @@
 == AS-IS
 
 + Capturing the CLI reference's `mt import` examples for the docs.
-+ 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import --dry-run` prints the same report as a real import, `3 filed`, while it writes nothing; `mt mv`, `mt rm` and `mt link` say `would` and end with `dry run: nothing written`.
++ 🔴 #raw("crates/mindtape-cli/src/import.rs"): `mt import --dry-run` prints the same report as a real import, `3 filed`, while it doesn't write anything. `mt mv`, `mt rm` and `mt link` say `would` and end with `dry run: nothing written`.
 
 ```
 $ mt import export.json --dry-run
@@ -44,8 +44,8 @@ $ ls tasks | wc -l
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/import.rs").
 
 == TO-BE
@@ -61,7 +61,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-Revert the commit; the dry run reports `filed` again.
+Revert the commit. The dry run reports `filed` again.
 
 == Out of scope
 
@@ -70,4 +70,4 @@ Revert the commit; the dry run reports `filed` again.
 
 == Dogfood
 
-Not applicable; this repo imports nothing.
+Not applicable. This repo doesn't import anything.

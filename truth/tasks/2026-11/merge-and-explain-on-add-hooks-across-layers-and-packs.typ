@@ -36,15 +36,15 @@
 == AS-IS
 
 + Add an `[[on.add]]` hook in a pack and in the project.
-+ 🔴 `mt explain` lists flip hooks and rules, but no add hook, so a placement comes from nowhere.
-+ `mt config show --origin` has no entry that names the hook's source.
++ 🔴 `mt explain` lists flip hooks and rules, but no add hook. A placement then comes from nowhere.
++ `mt config show --origin` has no entry that states the hook's source.
 
 
 == TO-BE
 
 - 🟢 `mt explain add` lists each hook in declaration/merged order, with its `when`, actions and origin.
 - 🟢 `mt config show --origin` labels the `on.add` entry that supplied a hook.
-- 🟢 A hook a nearer layer replaced or disabled is absent from both lists, so the report matches what runs.
+- 🟢 A hook a nearer layer replaced or disabled is absent from both lists. The report then matches what runs.
 
 ```
 $ mt explain add
@@ -65,19 +65,19 @@ fixes    template == "fix"      dir = "tasks/fixes"
 == Alternatives
 
 - `mt explain rules --for add`: forces effects into the rule model, with severity and gates they do not have.
-- A flat list without origin: a hook with no source is a placement from nowhere.
-- `mt explain hooks` for both events: broader now, and `mt explain add` names the event whose actions differ.
+- A flat list without origin leaves a hook with no source as a placement from nowhere.
+- `mt explain hooks` for both events: broader, and `mt explain add` names the event whose actions differ.
 
 
 == Out of scope
 
-- The merge, named replacement and `disable`; the config task owns them.
-- The derive function contract; it is a separate task.
-- A per-hook explain detail page; the list is enough.
+- The merge, named replacement and `disable` stay out. The config task owns them.
+- The derive function contract stays out. It is a separate task.
+- A per-hook explain detail page stays out. The list is enough.
 - The rules list and its `--for` moments.
 
 
 == Dogfood
 
-This repo's packs can ship a default placement hook, and `mt explain add` shows where it came from.
+This repo's packs can provide a default placement hook, and `mt explain add` shows where it came from.
 

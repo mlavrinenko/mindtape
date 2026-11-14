@@ -14,7 +14,7 @@
   estimate: (src-files: 4),
   x-goals: (
     product: (
-      readable-tasks: helps[the shape of blocked work and of a status legend reads at a glance instead of from a list],
+      readable-tasks: helps[blocked work and a status legend read at a glance from a diagram],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[both diagrams are drawn from captured output each build, so they cannot drift],
+      docs-match-code: helps[each build draws both from captured output, so they cannot drift],
     ),
   ),
   assignee: "agent",
@@ -33,17 +33,17 @@
 == AS-IS
 
 + Open `/links/`.
-+ 🔴 The edges between the fixture's tasks are given as text, and the reader assembles the graph in their head.
++ 🔴 The page gives the edges between the fixture's tasks as text, and the reader assembles the graph in their head.
 + Open `/statuses/`.
-+ 🔴 The moves each status allows are listed as text, so the shape of a legend, its loops and its dead ends, is invisible.
++ 🔴 The page lists the moves each status allows as text. The shape of a legend, its loops and its dead ends, stays invisible.
 
 
 == TO-BE
 
 - 🟢 The Task links page shows the fixture's `mt graph` output drawn as an SVG.
 - 🟢 The Statuses page shows the legend it documents as a diagram of the allowed moves, drawn from the config `mt config show --json` prints.
-- 🟢 Both are regenerated in every build and read in the light and dark themes. A renderer missing from the dev shell fails the build.
-- 🟢 A renderer that runs inside Typst is preferred. Otherwise graphviz joins `devShells.default`.
+- 🟢 Every build regenerates both, and both render in the light and dark themes. A renderer missing from the dev shell fails the build.
+- 🟢 Prefer a renderer that runs inside Typst. Otherwise `graphviz` joins `devShells.default`.
 
 
 == Source of truth
@@ -57,7 +57,7 @@
 - `www/generate.sh` or the page's `www/generate-*.sh`: capture both.
 - `www/utils/ui.typ`: a diagram helper.
 - `www/content/links.typ`, `www/content/statuses.typ`: place the diagrams.
-- `flake.nix`: graphviz, if Typst cannot draw DOT.
+- `flake.nix`: `graphviz`, if Typst cannot draw DOT.
 
 
 == Out of scope

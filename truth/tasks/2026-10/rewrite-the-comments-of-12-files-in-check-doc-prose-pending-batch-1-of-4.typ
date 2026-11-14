@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the comments that explain each gate are held to the same prose rules as the docs],
+      docs-match-code: helps[the same prose rules as the docs hold the comments that explain each gate],
     ),
   ),
   assignee: "agent",
@@ -43,8 +43,8 @@ contrib/ask-refactoring.sh
 ...
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-prose.pending").
 
 == TO-BE

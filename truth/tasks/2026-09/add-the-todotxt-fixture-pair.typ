@@ -34,7 +34,7 @@
 
 1. 🔴 `/import-export/`'s todo.txt recipe is the only import path with no
   golden fixture. `contrib/jq/fixtures/` pairs an input and an output for
-  Taskwarrior and GitHub Issues; a reader of the todo.txt recipe has nothing to
+  Taskwarrior and GitHub Issues. A reader of the todo.txt recipe has nothing to
   compare against, and a change to the filter would go unnoticed.
 
 == TO-BE
@@ -46,18 +46,18 @@
 
 == Source of truth
 
-- `contrib/jq/taskwarrior.jq` and its fixture pair — the shape to mirror.
-- `www/content/import-export.typ` — the recipe text.
+- `contrib/jq/taskwarrior.jq` and its fixture pair: the shape to mirror.
+- `www/content/import-export.typ`: the recipe text.
 
 == Changes
 
-- `contrib/jq/todo.txt.jq` — the filter.
-- `contrib/jq/fixtures/todo.txt.in.json` and `todo.txt.out.json` — the pair.
-- `www/content/import-export.typ` — the recipe line.
+- `contrib/jq/todo.txt.jq`: the filter.
+- `contrib/jq/fixtures/todo.txt.in.json` and `todo.txt.out.json`: the pair.
+- `www/content/import-export.typ`: the recipe line.
 
 == Out of scope
 
-- Any runner for the fixtures; they are reader-facing data, as the existing
+- Any runner for the fixtures. They are reader-facing data, as the existing
   pairs are.
 
 == Dogfood

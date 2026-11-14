@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[a doc can name every form mt accepts],
+      docs-match-code: helps[a doc can show every form mt accepts],
     ),
   ),
   assignee: "agent",
@@ -35,11 +35,11 @@
 + Running just check-doc-spans over the trimmed mindtape skill.
 + 🔴 #raw(".just/scripts/check-doc-spans.jq"): check-doc-spans reads the word after mt as the subcommand, so it refuses \`mt \@name ls\`, a form mt accepts.
 
-For the span `mt @name ls` in `docs/src/skill.typ:38`, `just check-doc-spans` printed `no subcommand @name; closest: add`. `crates/mindtape-cli/src/worktrees.rs` rewrites a leading `@name` to `-w <path>` before clap parses, so `mt @sn ls` runs. The skill now writes `@name` in a span of its own to pass.
+For the span `mt @name ls` in `docs/src/skill.typ:38`, `just check-doc-spans` printed `no subcommand @name; closest: add`. `crates/mindtape-cli/src/worktrees.rs` rewrites a leading `@name` to `-w <path>` before clap parses, so `mt @sn ls` runs. The skill writes `@name` in a span of its own to pass.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-spans.jq").
 
 == TO-BE

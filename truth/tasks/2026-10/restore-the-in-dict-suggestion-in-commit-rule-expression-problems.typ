@@ -31,21 +31,21 @@
     2026,
     10,
     8,
-  )[commit\_expr\_problem and task\_expr\_problem return Problem; an unknown path set carries its nearest name.],
+  )[`commit_expr_problem` and `task_expr_problem` return Problem. An unknown path set carries its nearest name.],
 )
 
 == AS-IS
 
 + Dropping the did-you-mean clause when commit 2 moved suggestions to Unknown data
-+ 🔴 #raw("crates/mindtape/src/commit/expr.rs"): commit\_expr\_problem and task\_expr\_problem return plain strings, so an unknown in\_dict in a commits.rules expression loses its did-you-mean and choices hints
++ 🔴 #raw("crates/mindtape/src/commit/expr.rs"): `commit_expr_problem` and `task_expr_problem` return plain strings, so an unknown in\_dict in a commits.rules expression loses its did-you-mean and choices hints
 
 ```
 pub(crate) fn commit_expr_problem(source: &str, config: &Config) -> Option<String>
 pub(crate) fn task_expr_problem(source: &str, config: &Config) -> Option<String>
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/commit/expr.rs").
 
 == TO-BE

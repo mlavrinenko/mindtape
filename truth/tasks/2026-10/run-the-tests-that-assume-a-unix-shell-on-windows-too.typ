@@ -33,7 +33,7 @@
 == AS-IS
 
 + Run the Windows CI job (run 40576881551).
-+ 🔴 Eight tests fail on their own assumptions, not on `mt`. The flip hook tests chain with `;` and read `$VAR`, but `cmd /C` chains with `&&` and reads `%VAR%`. The editor test runs `bash`, which on Windows can be WSL's launcher. The ENOTDIR test expects an error that Windows reports as not found. The completion hint test spells the path it expects with `/`.
++ 🔴 Eight tests fail on their own assumptions, not on `mt`. The flip hook tests chain with `;` and read `$VAR`, but `cmd /C` chains with `&&` and reads `%VAR%`. The editor test runs `bash`, which on Windows can be the WSL launcher. The ENOTDIR test expects an error that Windows reports as not found. The completion hint test spells the path it expects with `/`.
 
 
 == Environment
@@ -48,7 +48,7 @@
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/flip/hooks_tests.rs`, `crates/mindtape-cli/tests/it/flip_hooks_e2e.rs`: chain with `&&`, and spell the env var commands per platform.
+- `crates/mindtape-cli/src/cmd/flip/hooks_tests.rs`, `crates/mindtape-cli/tests/it/flip_hooks_e2e.rs`: chain with `&&`, and spell the environment-variable commands per platform.
 - `crates/mindtape-cli/src/cmd/add/interactive_tests_editor.rs`: a `sh` editor on Unix and a `cmd` one on Windows.
 - `crates/mindtape-cli/src/cmd/at_tests.rs`: the ENOTDIR test is Unix only.
 - `crates/mindtape-cli/src/cmd/install/tests.rs`: build the expected path with `join`.
@@ -56,7 +56,7 @@
 
 == Out of scope
 
-- The shipped presets whose gates are `sh` only. That needs a decision on what a shipped gate runs on Windows.
+- The presets whose gates are `sh` only. That needs a decision on what a bundled gate runs on Windows.
 
 
 == Dogfood

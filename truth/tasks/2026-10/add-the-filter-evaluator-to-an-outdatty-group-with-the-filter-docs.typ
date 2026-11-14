@@ -33,13 +33,13 @@
 == AS-IS
 
 + Moving the skill's filter list into skills/mindtape/references/filters.md.
-+ 🔴 #raw("outdatty.yaml"): No outdatty group lists the filter evaluator as a source, so a new or renamed filter function leaves the filter docs unflagged.
++ 🔴 #raw("outdatty.yaml"): No outdatty group lists the filter evaluator as a source, so a new or renamed filter function leaves the filter docs out of date.
 
-`rg -n 'filter_eval|filter_predicates|filter_strings|filter_compare|src/filter\.rs' outdatty.yaml` prints nothing. The function names (`has`, `contains`, `touches`, `stale` and the rest) are matched in `crates/mindtape/src/filter_eval.rs:72-119`. `www/content/filters.typ` and `skills/mindtape/references/filters.md` list them by hand.
+`rg -n 'filter_eval|filter_predicates|filter_strings|filter_compare|src/filter\.rs' outdatty.yaml` returns nothing. `crates/mindtape/src/filter_eval.rs:72-119` matches those names (`has`, `contains`, `touches`, `stale` and the rest). `www/content/filters.typ` and `skills/mindtape/references/filters.md` list them by hand.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("outdatty.yaml").
 
 == TO-BE

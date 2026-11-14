@@ -19,7 +19,7 @@ Promotion for a low-budget hobby project needs a written plan rather than improv
 
 == Scope
 
-- Cover the free channels: Show HN, the Rust and command-line communities, the Typst community, Mastodon, Lobsters
+- Cover the free channels: `Show HN`, the Rust and command-line communities, the Typst community, Mastodon, Lobsters
 - Cover the durable ones: awesome lists, This Week in Rust, a launch write-up
 - Note the prerequisites that gate a launch, including a demo recording and a social preview card
 - Keep it as a Typst document under var, outside the docs site

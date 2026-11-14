@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the module path names the file, and the area's internals can go private to its folder],
+      sound-codebase: helps[the module path is the file path, and the area's internals can go private to its folder],
       docs-match-code: neutral,
     ),
   ),
@@ -39,25 +39,25 @@
 == AS-IS
 
 + Run `ls crates/*/src`.
-+ 🔴 `filter.rs` and `filter_*.rs`, `expr.rs`, `condition.rs`, `condition_env.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.
++ 🔴 `filter.rs` and `filter_*.rs`, `expr.rs`, `condition.rs`, `condition_env.rs` sit flat at the crate root, so the module path isn't the file path and nothing marks the area's internals.
 
 == TO-BE
 
 - 🟢 `crates/mindtape/src/filter/`: `mod.rs` (from `filter.rs`), `eval`, `compare`, `aggregate`, `links`, `predicates`, `strings`, `views`, `expr`, `condition`, `condition_env`.
-- 🟢 Each moved file's tests move beside it (`x_tests.rs`); a `mod.rs` loads a plain `mod tests;` from `tests.rs`.
+- 🟢 Each moved file's tests move beside it (`x_tests.rs`). A `mod.rs` loads a plain `mod tests;` from `tests.rs`.
 - 🟢 `mod.rs` opens with a `//!` map of the folder's files.
-- 🟢 `just check` passes; the commit is moves plus path edits, so `git log --follow` traces every file.
+- 🟢 `just check` passes. The commit is moves plus path edits, so `git log --follow` traces every file.
 
 == Changes
 
 - The moved files: `git mv`, then `mod`/`use`/`#[path]`/doc-link paths. A cross-folder caller gets `pub(crate)`, never an alias at the old path.
 - `outdatty.yaml`, `crap-baseline.json` (`just crap-baseline`) and every comment or doc that cites a moved path.
-- The pilot: it settles the move script, the visibility fixes and the tooling edits every later area reuses. `outdatty.yaml`'s filter group becomes one `crates/mindtape/src/filter/**` glob.
+- The pilot settles the move script, the visibility fixes and the tooling edits every later area reuses. `outdatty.yaml`'s filter group becomes one `crates/mindtape/src/filter/**` glob.
 
 == Out of scope
 
 - Renames beyond dropping the folder's prefix.
-- Tightening visibility past what compiles; a later sweep owns that.
+- Tightening visibility past what compiles. A later sweep owns that.
 - Done tasks citing old paths: they are history.
 
 == Dogfood

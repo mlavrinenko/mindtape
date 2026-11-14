@@ -16,8 +16,8 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the machine vocabulary is held by the same [tasks.fields] mechanism as kind, not by a project's Typst function],
-      cheap-adoption: helps[a project with a list-valued field deletes its check function and declares the vocabulary in config],
+      enforced-practice: helps[the same [tasks.fields] mechanism as kind holds the machine vocabulary, not a project's Typst function.],
+      cheap-adoption: helps[a project with a list-valued field deletes its check function and declares the vocabulary in config.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -32,9 +32,9 @@
 
 == AS-IS
 
-+ In a dotfiles repo, `[tasks.fields.x-machine]` declares the machine vocabulary, and six tasks carry `x-machine: ("alpha", "gamma")`.
++ In a `dotfiles` repo, `[tasks.fields.x-machine]` declares the machine vocabulary, and six tasks carry `x-machine: ("alpha", "gamma")`.
 
-+ With `values = ["alpha", "gamma", "beta", "delta"]`, `mt check` is run.
++ With `values = ["alpha", "gamma", "beta", "delta"]`, run `mt check`.
 
 + 🔴 It prints `error: tasks/rework-secrets.typ:5: x-machine: a field with allowed values takes a string`: a non-empty `values` refuses a list extra outright, so the project cannot replace its Typst `check` with config.
 
@@ -43,11 +43,11 @@
 
 == TO-BE
 
-- 🟢 `[tasks.fields.x-<ns>] values` accepts a string extra or a list extra; every element must be a string in `values`.
+- 🟢 `[tasks.fields.x-<ns>] values` accepts a string extra or a list extra. Every element must be a string in `values`.
 
 - 🟢 A non-string element, an empty list and an element listed twice are breaches, alongside the scalar case's `is not an allowed value`.
 
-- 🟢 The scalar path and `@dict` references are unchanged.
+- 🟢 The scalar path and `@dict` references stay unchanged.
 
 - 🟢 The shape:
 
@@ -69,7 +69,7 @@
 
 == Changes
 
-- `crates/mindtape/src/validate_tests_extras.rs`: red tests first: a list with every element allowed passes; one unknown element, one non-string element, an empty list and a repeated element each breach.
+- `crates/mindtape/src/validate_tests_extras.rs`: red tests first: a list with every element allowed passes. One unknown element, one non-string element, an empty list and a repeated element each breach.
 
 - `crates/mindtape/src/validate.rs`: `check_enum_field` accepts `HVal::Array` and checks each element, keeping the scalar path.
 
@@ -82,10 +82,10 @@
 
 == Alternatives
 
-- Keep string-only and let each project ship a Typst check: rejected (the filter already reads list extras, and config is the declared-field path).
-- Accept any element type: rejected (`values` is a string set; a number cannot match an entry).
-- Allow a repeated element: rejected (a set names each value once, and a duplicate is a typo or a bad merge).
-- Allow an empty list: rejected (it satisfies `required` while naming no value, and every `has(field, value)` is false).
+- Keep string-only and let each project write a Typst check: rejected (the filter already reads list extras, and config is the declared-field path).
+- Accept any element type: rejected (`values` is a string set. A number cannot match an entry).
+- Allow a repeated element: rejected (a set holds each value once, and a duplicate is a typo or a bad merge).
+- Allow an empty list: rejected (it satisfies `required` with an empty set, and every `has(field, value)` is false).
 
 
 == Out of scope
@@ -97,5 +97,5 @@
 
 == Dogfood
 
-A dotfiles repo deletes `.mindtape/machines.typ` and its `[[tasks.rules]]` check for the two-line `[tasks.fields.x-machine]`.
+A `dotfiles` repo deletes `.mindtape/machines.typ` and its `[[tasks.rules]]` check for the two-line `[tasks.fields.x-machine]`.
 

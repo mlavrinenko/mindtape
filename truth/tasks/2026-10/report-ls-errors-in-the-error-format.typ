@@ -42,14 +42,14 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 The command builds each message with `Diag` (`crates/mindtape-cli/src/diag/`), and it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 
 == Changes
 
 - `crates/mindtape-cli/src/cmd/ls/mod.rs`: the sort error as a usage `Diag` naming the field.
 - `crates/mindtape-cli/src/cmd/ls/rules.rs`, `crates/mindtape-cli/src/cmd/ls/interactive/mod.rs`: `Diag`s, no `{:?}`.
 - `crates/mindtape-cli/src/render/columns.rs`: the unknown column with a did-you-mean.
-- `crates/mindtape-cli/src/cli/check_argv.rs`: its refusal as a `Diag` rather than `Diag::legacy`; drop the `allow` and its `diag/allowlist.rs` entry for `ls` in `crates/mindtape-cli/src/cmd/mod.rs`.
+- `crates/mindtape-cli/src/cli/check_argv.rs`: its refusal as a `Diag` rather than `Diag::legacy`. Drop the `allow` and its `diag/allowlist.rs` entry for `ls` in `crates/mindtape-cli/src/cmd/mod.rs`.
 
 == Out of scope
 

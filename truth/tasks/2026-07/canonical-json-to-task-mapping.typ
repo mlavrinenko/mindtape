@@ -15,37 +15,40 @@
 
 == Summary
 
-The config-aware middle layer: parse a canonical task-JSON record into a `Task`
-and reconcile it against this project's `config.toml`. The jq adapter has already
-done the structural map (foreign -> canonical, config-blind); this layer does the
-policy map (canonical -> valid-for-this-project) — the only part that needs the
-loaded config. Pure over `(&Config, canonical JSON)`, no IO, no source writing;
-the CLI (`mt-import-command`) drives it and calls the emitter.
+This is the config-aware middle layer. It parses a canonical task-JSON record into
+a `Task` and reconciles it against this project's `config.toml`. The jq adapter
+has already done the structural map (foreign -> canonical, config-blind). This
+layer does the policy map (canonical -> valid-for-this-project), the only part
+that needs the loaded config. It is pure over `(&Config, canonical JSON)`, with
+no `IO` and no source writing. The CLI (`mt-import-command`) drives it and calls
+the emitter.
 
 == Design / contract
 
 - New module `crates/mindtape/src/import_map.rs` (name flexible), exported from
   `lib.rs`. Input: a `CanonicalTask` (from `canonical.rs`) or its JSON `Value`,
-  plus `&Config`. Output: a `Task` plus a per-task report of what was mapped,
+  plus `&Config`. Output: a `Task` plus a per-task report of what it mapped,
   dropped, or carried to `x-<ns>`.
-- Read the authored side of the schema (`framework` + `inputs`, or scalar
-  priority — ignore `score`; `tags` not `derived_tags`; `body`). Reverse of
-  `CanonicalTask::from_task`.
+- Read the authored side of the schema (the `framework` + `inputs` pair or a
+  scalar priority, ignoring `score`, with `tags` rather than `derived_tags` and
+  `body`).
+  This reverses `CanonicalTask::from_task`.
 - Policy checks against config, each producing a report entry rather than a hard
-  panic; the CLI decides fail vs skip vs continue:
-  - status: must hit the legend; a `--map old=new` style override and a default
-    initial status for a missing status.
+  panic. The CLI decides fail, skip or continue:
+  - status: must hit the legend, with a `--map old=new` style override and a
+    default initial status for a missing status.
   - priority: strict-framework projects (`allow-manual = false`) require the
-    framework form; scalar in / bounds violations reported.
+    framework form. The loader reports scalar input and bounds violations.
   - kind: must hit the enum when the project declares one.
-  - tags: filter/report against the allow-list; option to drop-unmapped.
-  - unmapped fields: the jq author decides structural drops; anything the source
-    carried into an `x-<ns>` slot is validated for `x-` discipline only.
+  - tags: filter and report against the allow-list, with an option to
+    drop-unmapped.
+  - unmapped fields: the jq author decides structural drops. The loader checks
+    anything the source carried into an `x-<ns>` slot for `x-` discipline only.
 - `body` guarantee: if the record's `body` is empty but the project's
   body-header rules require a `Summary`, synthesize a minimal `== Summary` from
   the title (or a `description`/`body` the jq supplied). This is the policy home
   for the "every file passes `mt check`" invariant, keeping the emitter pure.
-- Determinism: stem/slug from the title via `naming` (same as `mt add`); the CLI
+- Determinism: stem/slug from the title via `naming` (same as `mt add`). The CLI
   owns dedupe against existing stems, but expose the slug helper here.
 
 == Files
@@ -56,8 +59,8 @@ the CLI (`mt-import-command`) drives it and calls the emitter.
 
 - `just check` green.
 - Tests: a canonical record with framework priority -> `Task` with the framework
-  preserved; an out-of-legend status -> reported (not silently accepted); an
-  out-of-allow-list tag -> reported/dropped per option; a record with no body
+  preserved. An out-of-legend status -> reported, not silently accepted. An
+  out-of-allow-list tag -> reported or dropped per option. A record with no body
   under a Summary-requiring config -> a synthesized `== Summary`.
 - Commit `Refs: truth/tasks/canonical-json-to-task-mapping.typ`.
 

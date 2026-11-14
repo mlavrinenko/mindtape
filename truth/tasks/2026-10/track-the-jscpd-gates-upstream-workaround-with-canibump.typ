@@ -31,7 +31,7 @@
     2026,
     10,
     28,
-  )[the jscpd fork's --new-only removed the filter this blocker was to track],
+  )[the jscpd fork's `--new-only` removed the filter this blocker was to track],
   links: depends-on(
     "gate-on-new-jscpd-clones-renamed-and-near-miss-copies-included.typ",
   )
@@ -41,7 +41,7 @@
 == AS-IS
 
 + Read `.just/scripts/lint-dry.sh`.
-+ 🔴 It filters jscpd's JSON report down to the new clones with `jq`, because under `--baseline` every reporter prints all clones, old ones included. Nothing says when upstream fixes that, so the filter stays after its reason is gone.
++ 🔴 It filters jscpd's JSON report down to the new clones with `jq`, because under `--baseline` every reporter prints all clones, old ones included. The code never says when upstream fixes that. The filter stays after its reason has left.
 
 
 == TO-BE
@@ -52,7 +52,7 @@
 == Changes
 
 - `.config/canibump.toml`: the blocker, beside the one the repeats arm waits on.
-- `.just/scripts/lint-dry.sh`: a link to the issue in its header comment, which canibump's scan then finds listed.
+- `.just/scripts/lint-dry.sh`: a link to the issue in its header comment, which a `canibump` scan then finds listed.
 
 
 == Rollback

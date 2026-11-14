@@ -33,7 +33,7 @@
 == AS-IS
 
 + Closing the check-doc-prose pending list and reading how it allows constants
-+ 🔴 #raw(".just/scripts/check-doc-prose.awk"): a word the scanned files assign as a shell variable is allowed in all-caps anywhere in prose, and a single shouted capital inside an all-caps run is not flagged
++ 🔴 #raw(".just/scripts/check-doc-prose.awk"): the gate allows a word the scanned files assign as a shell variable in all-caps anywhere in prose. It does not flag a single shouted capital inside an all-caps run
 
 ```
 $ grep -n 'consts_of' .just/scripts/check-doc-prose.sh
@@ -42,14 +42,14 @@ $ # a comment "# NOT A GITLEAKS RULE" passes when a script assigns NOT= or A=
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw(".just/scripts/check-doc-prose.awk").
 
 == TO-BE
 
 - 🟢 An all-caps word passes only as the constant: `$NAME`, `${NAME}` or `NAME=`.
-- 🟢 A single capital letter inside an all-caps run, as in "NOT A GITLEAKS RULE", is flagged.
+- 🟢 The gate flags a single capital letter inside an all-caps run, as in `NOT A GITLEAKS RULE`.
 ```sh
 # NOT A GITLEAKS RULE
 check-doc-prose: f.sh:1: all-caps "A"
@@ -58,8 +58,8 @@ check-doc-prose: f.sh:1: all-caps "A"
 
 == Changes
 
-- `.just/scripts/check-doc-prose.awk`: allow a constant only in its code forms; flag one-letter shouting.
-- `.just/scripts/check-doc-prose.sh`: control cases for both; reword comments the gate newly flags.
+- `.just/scripts/check-doc-prose.awk`: allow a constant only in its code forms. Flag one-letter shouting.
+- `.just/scripts/check-doc-prose.sh`: control cases for both. Reword comments the gate newly flags.
 
 
 == Rollback

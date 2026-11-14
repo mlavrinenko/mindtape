@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a project changes a pack's threshold in one `with` key and keeps the rule's later fixes],
+      cheap-adoption: helps[a project changes a pack's threshold in one `with` key and keeps the rule's later fixes.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -37,9 +37,9 @@
 
 == AS-IS
 
-+ Adopt a pack whose `judgment-stays-small` asserts `estimate.src-files <= 5`, in a project that wants 8.
-+ 🔴 The only way is to copy the whole rule under its `name` and edit the number, so its `when` and `message` drift from the pack's: across nine projects the copies differ in a `kind != "milestone"` clause as well as the cap.
-+ 🔴 A path pack declaring `[params]` is refused: `extends: pack '…/team.toml' may not declare: 'params'`.
++ Adopt a pack whose `judgment-stays-small` asserts `estimate.src-files <= 5`, in a project that sets 8.
++ 🔴 The only way is to copy the whole rule under its `name` and edit the number. Its `when` and `message` then drift from the pack's: across nine projects the copies differ in a `kind != "milestone"` clause as well as the cap.
++ 🔴 mt refuses a path pack that declares `[params]`: `extends: pack '…/team.toml' may not declare: 'params'`.
 
 
 == TO-BE
@@ -64,7 +64,7 @@ extends = [{ pack = "mindtape:budget", with = { max-files = 8 } }]
 
 == Changes
 
-- `truth/tasks/*.typ`: the leaf that builds it, linked with `parent` to `share-config-between-projects-through-packs.typ`. This decision changes no file itself.
+- `truth/tasks/*.typ`: the leaf that builds it, linked with `parent` to `share-config-between-projects-through-packs.typ`. This decision doesn't change a file itself.
 
 
 == Alternatives
@@ -77,8 +77,8 @@ extends = [{ pack = "mindtape:budget", with = { max-files = 8 } }]
 == Out of scope
 
 - Parameters in a value that isn't an expression, such as a band's bounds: the project overrides that key by name.
-- A set-valued parameter: a pack's `[dicts]` entry already lets a project replace the set by name.
-- A parameter without a default: every pack stays usable with a bare `extends` line.
+- A pack's `[dicts]` entry already lets a project replace a set-valued parameter by name.
+- A parameter without a default keeps every pack usable with a bare `extends` line.
 
 
 == Dogfood

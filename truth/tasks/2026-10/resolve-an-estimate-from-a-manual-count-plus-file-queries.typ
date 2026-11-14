@@ -15,8 +15,8 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[the implementer reads the fan-out from queries anyone can re-run, not from a guess],
-      enforced-practice: helps[a judgment cap measures the code the task will touch, and trips again at `mt wip` when the fan-out grew],
+      implementable-tasks: helps[the implementer reads the fan-out from queries anyone can re-run, not from a guess.],
+      enforced-practice: helps[a judgment cap measures the code the task will touch, and trips again at `mt wip` when the fan-out grew.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -37,7 +37,7 @@
 
 == TO-BE
 
-- 🟢 An estimate unit takes a manual count plus queries; the engine resolves it to the count plus the union of files the queries match:
+- 🟢 An estimate unit takes a manual count plus queries. The engine resolves it to the count plus the union of files the queries match:
   ```typ
   estimate: (src-files: count(2, grep(`"refactoring"`, in: "src/**/*.rs"))),
   ```
@@ -60,7 +60,7 @@
 
 - Shell commands such as `rg -l` as queries. They need `mt allow` and give different results on hosts with different tools.
 - A separate `scout:` field beside `estimate`. Every cap rule would have to read two fields.
-- A hardcoded rule that every judgment task names a fan-out command. A task that creates files has nothing to grep, so the rule fits only some tasks.
+- A hardcoded rule that every judgment task gives a fan-out command. A task that creates files has nothing to grep.The rule fits only some tasks.
 
 == Out of scope
 

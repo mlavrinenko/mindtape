@@ -32,17 +32,17 @@
 
 == AS-IS
 
-1. 🔴 The audit's hand-typed blocks are config, not task markers, so
+1. 🔴 The audit's hand-typed blocks are config, not task markers.
   `www/generate-examples.sh` cannot slice them: `/named-sets/`'s views and
   dictionaries, `/hooks/`'s gate pair, `/estimates/`'s `files` bound,
   `/schema/`'s full record and `/rule-packs/`'s adopt block are copies of
-  fixture or repo config with no check behind them.
+  fixture or repo config. No check sits behind them.
 
 == TO-BE
 
 - 🟢 `generate-examples.sh` slices declared config halves (`toml` keys or whole
   sections) from the fixtures, with the same marker discipline task slices use.
-- 🟢 Each page renders its block from the generated fact; the `files`-unit
+- 🟢 Each page renders its block from the generated fact. The `files`-unit
   bound lands in a checked example (learn-piano or a new `examples/estimates`).
 - 🟢 `/schema/`'s record comes from `www/generated/ls-task.json` or an
   extras-bearing slice of a fixture.
@@ -51,20 +51,20 @@
 
 - `examples/learn-piano/.mindtape/config.toml`, the repo's own
   `.mindtape/config.toml`, and `www/generated/ls-task.json`.
-- `www/generate-examples.sh` — the slicing pattern.
+- `www/generate-examples.sh`: the slicing pattern.
 
 == Changes
 
-- `www/generate-examples.sh` — slice config halves.
+- `www/generate-examples.sh`: slice config halves.
 - `www/content/named-sets.typ`, `hooks.typ`, `estimates.typ`, `schema.typ`,
-  `rule-packs.typ` — render the slices.
+  `rule-packs.typ`: render the slices.
 - `examples/learn-piano/.mindtape/config.toml` and the repo's own
-  `.mindtape/config.toml` — where a bound or hook must be added.
-- `outdatty.yaml` and `Justfile` — new fixture/arm wiring.
+  `.mindtape/config.toml`: where a bound or hook belongs.
+- `outdatty.yaml` and `Justfile`: new fixture/arm wiring.
 
 == Out of scope
 
-- Deriving the built-in priority tables; filed separately.
+- Deriving the built-in priority tables. A separate task covers it.
 
 == Dogfood
 

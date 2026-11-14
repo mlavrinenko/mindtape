@@ -40,15 +40,15 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 
 == Changes
 
-- `crates/mindtape/src/config/tasks.rs`, `crates/mindtape/src/config/packs.rs`, `crates/mindtape/src/config/actors.rs`, `crates/mindtape/src/config/status.rs`, `crates/mindtape/src/config/links_validate.rs`: quote values, name a near match as a separate clause the CLI turns into a hint.
+- `crates/mindtape/src/config/tasks.rs`, `crates/mindtape/src/config/packs.rs`, `crates/mindtape/src/config/actors.rs`, `crates/mindtape/src/config/status.rs`, `crates/mindtape/src/config/links_validate.rs`: quote values, and state a near match as a separate clause the CLI turns into a hint.
 
 == Out of scope
 
-- How the line reaches the user: `report-config-load-errors-at-their-file-and-line`.
+- The line reaches the user through `report-config-load-errors-at-their-file-and-line`.
 
 == Dogfood
 

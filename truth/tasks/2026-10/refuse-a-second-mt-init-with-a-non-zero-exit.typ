@@ -33,7 +33,7 @@
 == AS-IS
 
 + Re-running `mt init` in a project that already has a config
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): `scaffold_config` prints its refusal with `println!` and returns `Ok(false)`, so `mt init` over an existing config exits 0 with no `error:` prefix and writes nothing
++ 🔴 #raw("crates/mindtape-cli/src/cmd/init/mod.rs"): `scaffold_config` prints its refusal with `println!` and returns `Ok(false)`, so `mt init` over an existing config exits 0 with no `error:` prefix and leaves the file alone
 
 ```
 $ mt init --no-input; echo "exit=$?"
@@ -42,8 +42,8 @@ exit=0
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/cmd/init/mod.rs").
 
 == TO-BE

@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer who misspells a status is told the statuses, not sent to look for a stray hash],
+      cheap-adoption: helps[`mt` tells a newcomer who misspells a status the statuses, not to look for a stray hash.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -42,8 +42,8 @@ hint: a literal # in a task body opens a Typst expression: write \# or put the p
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape-cli/src/util.rs").
 
 == TO-BE
@@ -55,8 +55,8 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `crates/mindtape/src/model/task_spans.rs`: keep the byte ranges of the call and of each named argument's value, and say whether a line and column fall outside the call, in it, or in one argument's value.
-- `crates/mindtape/src/loader/errors.rs`: record that region on `LoadError` when the file is evaluated.
+- `crates/mindtape/src/model/task_spans.rs`: keep the byte ranges of the call and of each named argument's value. Then say whether a line and column fall outside the call, in it, or in one argument's value.
+- `crates/mindtape/src/loader/errors.rs`: record that region on `LoadError` when the loader evaluates the file.
 - `crates/mindtape-cli/src/util.rs`: give the escaped-hash hint only outside the header, and the status hint only inside `status:`.
 - `crates/mindtape-cli/src/cmd/install/hint.rs`: add the status hint beside `escaped_hash_hint`.
 

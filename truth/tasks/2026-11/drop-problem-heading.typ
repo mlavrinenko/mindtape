@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[one heading is accepted, not two],
+      enforced-practice: helps[The pack accepts one heading, not two],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -40,8 +40,8 @@
 
 == TO-BE
 
-- 🟢 `Problem` is gone from both allowlists and only `AS-IS` is accepted.
-- 🟢 A task with `Problem` is refused with a message that names `AS-IS`.
+- 🟢 Both allowlists drop `Problem` and accept only `AS-IS`.
+- 🟢 The checker refuses a task with `Problem` and names `AS-IS` in the message.
 - 🟢 `mt check` stays green on the swept backlog.
 
 ```toml
@@ -59,4 +59,4 @@ allowed = [{ match = "^(AS-IS|Environment|TO-BE|Source of truth|Changes|Alternat
 
 == Dogfood
 
-This repo's next reopened task is refused until it says `AS-IS`.
+This repo's next reopened task fails until it says `AS-IS`.

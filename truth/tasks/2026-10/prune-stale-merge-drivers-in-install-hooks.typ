@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a deleted driver leaves no dangling merge config],
+      sound-codebase: helps[a deleted driver leaves the merge config clean],
       docs-match-code: neutral,
     ),
   ),
@@ -43,14 +43,14 @@ $ ls .just/scripts/outdatty-lock-merge.sh
 ls: cannot access '.just/scripts/outdatty-lock-merge.sh': No such file or directory
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("Justfile").
 
 == TO-BE
 
 - 🟢 After `just install-hooks`, the shared `.git/config` holds a `merge.<name>` section for each driver the recipe registers and a checked-out `.gitattributes` still names with `merge=<name>`.
-- 🟢 A driver the recipe once registered that no checked-out worktree's `.gitattributes` names is removed, and a driver added by hand stays.
+- 🟢 The recipe removes a driver it once registered that no checked-out worktree's `.gitattributes` names, and leaves a driver added by hand.
 
 == Changes
 

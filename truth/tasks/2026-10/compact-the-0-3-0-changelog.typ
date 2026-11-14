@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the release notes say what 0.3.0 ships, once per feature],
+      docs-match-code: helps[the release notes say what 0.3.0 includes, once per feature.],
     ),
   ),
   assignee: "agent",
@@ -33,13 +33,13 @@
 == AS-IS
 
 + Run `sed -n '/^## \[Unreleased\]/,/^## \[0.2.0\]/p' CHANGELOG.md | wc -c`.
-+ 🔴 It prints about 171000. The section logs 0.3.0 commit by commit, so one feature spreads over an Added entry, later Changed entries and a Fixed entry for a bug that never shipped, and many entries name internal modules and gate plumbing.
++ 🔴 It prints about 171000. The section logs 0.3.0 commit by commit. One feature spreads over an Added entry, later Changed entries and a Fixed entry for a bug that never reached a release. Many entries also name internal modules and gate plumbing.
 
 
 == TO-BE
 
 - 🟢 `[Unreleased]` is half its size or less, well under the release body's 120 KB budget.
-- 🟢 Each feature is one entry describing what ships: a bold headline and up to three short sentences.
+- 🟢 Each feature is one entry describing the change: a bold headline and up to three short sentences.
 - 🟢 Every command, flag, field, config key and predicate a user can reach is still findable.
 
 
@@ -56,7 +56,7 @@
 
 == Out of scope
 
-- The released `[0.2.0]` and `[0.1.0]` sections, which stay as shipped.
+- The released `[0.2.0]` and `[0.1.0]` sections, which stay as released.
 - The release tooling, which already parses the section.
 
 

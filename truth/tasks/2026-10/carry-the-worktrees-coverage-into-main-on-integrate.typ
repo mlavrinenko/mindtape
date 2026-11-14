@@ -35,10 +35,10 @@
 + Integrating the area-move branches, then re-running the gate on main
 + 🔴 #raw(".just/scripts/integrate.sh"): Integrate copies the worktree's \`.mmz/cache\` gate records but not \`target/coverage/lcov.info\`, so \`just crap\` on main refuses the stale lcov after every integrate that touched source.
 
-After `just integrate filter` (gate fresh, fast-forwarded): `just check` → `check: 1 of 28 gates failed: just crap`; `just crap` → `target/coverage/lcov.info predates crates/mindtape/src/commit_task_expr.rs — run just cover first`. The same after `just integrate lib-areas`.
+After `just integrate filter` (gate fresh, fast-forwarded): `just check` → `check: 1 of 28 gates failed: just crap`. `just crap` → `target/coverage/lcov.info predates crates/mindtape/src/commit_task_expr.rs — run just cover first`. The same after `just integrate lib-areas`.
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/integrate.sh").
 
 == TO-BE
@@ -52,7 +52,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; main falls back to `just cover` after an integrate.
+- Revert the commit. Main falls back to `just cover` after an integrate.
 
 == Out of scope
 
@@ -60,4 +60,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-The next CLI area-move integrate is checked on main without a rebuild.
+This repo checks the next CLI area-move integrate on main without a rebuild.

@@ -16,13 +16,13 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the placeholder gate is a filter condition mt check validates at load, not a shell line],
-      cheap-adoption: helps[a fresh gated project closes its first task on any OS, with no mt allow first],
+      enforced-practice: helps[the placeholder gate is a filter condition mt check validates at load, not a shell line.],
+      cheap-adoption: helps[a fresh gated project closes its first task on any OS, with no mt allow first.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a test holds every shipped preset, answer set and embedded pack to no run],
+      sound-codebase: helps[a test holds every preset, answer set and embedded pack in the release to no run.],
       docs-match-code: neutral,
     ),
   ),

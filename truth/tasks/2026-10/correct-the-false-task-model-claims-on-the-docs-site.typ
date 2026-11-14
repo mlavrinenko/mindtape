@@ -35,15 +35,15 @@
 + Reviewing the docs before release against the 0.3.0 binary
 + 🔴 #raw("www/content/schema.typ"): five pages state task-model behaviour the code does not have
 
-- `schema.typ:33,94` vs `cmd/import/mod.rs:134`: named from `id`; `id:` is authored too.
+- `schema.typ:33,94` vs `cmd/import/mod.rs:134`: the task takes its name from `id`, and `id:` carries its own value too.
 - `dsl.typ:50`: a declared `x-team` fails `'core' is not an allowed value`.
 - `priority.typ:105`: `framework 'mine' used but no priority framework is configured`.
 - `recurring.typ:87`: the key is `default-anchor`.
 - `import-export.typ:59`: `recurring`, `waiting` records pass `taskwarrior.jq` unmapped and get skipped.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("www/content/schema.typ").
 
 == TO-BE

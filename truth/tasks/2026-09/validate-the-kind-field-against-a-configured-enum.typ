@@ -17,7 +17,7 @@
 
 == Summary
 
-`kind` is a core task field (lib/prelude.typ:646) with no validation: there is no KindConfig in schema/config.schema.json and no [tasks.kind] key in TasksConfig, so any string passes. The generic [tasks.fields.<name>] mechanism already exists and its schema doc names `kind` as its subject, but no config declares it and no shipped template sets the field — so template identity is lost the moment mt add writes the file, and no per-shape header or content rule can ever fire.
+`kind` is a core task field (lib/prelude.typ:646) with no validation. There is no KindConfig in schema/config.schema.json and no [tasks.kind] key in TasksConfig. Any string passes. The generic [tasks.fields.<name>] mechanism already exists and its schema doc names `kind` as its subject. A config can declare it, but none does, and no template sets the field, so template identity disappears the moment mt add writes the file. No per-shape header or content rule can ever fire.
 
 == Scope
 

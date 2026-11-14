@@ -44,7 +44,7 @@
 
 - `contrib/ask-refactoring.sh`: take `--dry-gain`, file with `--to swept`.
 - `contrib/ask-refactoring/dry.sh`: drop families below the bar.
-- `Justfile`: the `--dry-gain` arg and its default.
+- `Justfile`: the `--dry-gain` option and its default.
 - `.just/scripts/arg-pattern-check.sh`: a bad and a good `--dry-gain`.
 - `www/utils/sweep-flag-notes.typ`: why the dry arm has its own bar.
 
@@ -54,7 +54,7 @@
 
 == Out of scope
 
-- Moving or removing the 180 closed swept tasks; that is the owner's call.
+- Moving or removing the 180 closed swept tasks. That is the owner's call.
 
 == Dogfood
 

@@ -19,7 +19,7 @@ The favicon is the raw SVG with no raster fallback, and a hand-maintained second
 
 == Scope
 
-- Render a PNG favicon and an apple touch icon from the logo during the docs build
+- Render a `PNG` favicon and an apple touch icon from the logo during the docs build
 - Emit the matching link tags
-- Add the rasteriser to the dev shell since it joins the build loop
+- Add the image converter to the dev shell since it joins the build loop
 - Keep one SVG as the only hand-maintained source

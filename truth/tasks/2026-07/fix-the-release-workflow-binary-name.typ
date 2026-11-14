@@ -15,10 +15,10 @@
 
 == Summary
 
-The release workflow copies target/\<triple>/release/mindtape, but the CLI crate declares its binary as mt, so the rename step fails on every target and a tagged release would attach no binaries at all. Derive the binary name from Cargo.toml so it cannot break silently again.
+The release workflow copies target/\<triple>/release/mindtape, but the CLI crate declares its binary as mt. The rename step then fails on every target, and a tagged release would attach no binaries at all. Derive the binary name from Cargo.toml so it cannot break silently again.
 
 == Scope
 
 - Derive the binary name from cargo metadata rather than hardcoding it
-- Fail loudly if the name cannot be resolved
+- Fail loudly if the name does not resolve
 - Verify the derivation locally against the real workspace

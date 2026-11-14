@@ -16,7 +16,7 @@
   status: done(2026, 9, 16),
   x-goals: (
     product: (
-      readable-tasks: helps[verdicts can sit in `task.with` beside status and links instead of filling the body],
+      readable-tasks: helps[verdicts can sit in `task.with` beside status and links instead of filling the body.],
       implementable-tasks: neutral,
       enforced-practice: helps[any structure a project invents gets a named rule, refused before `mt add` writes at `error` severity],
       cheap-adoption: neutral,
@@ -41,7 +41,7 @@
 
 == TO-BE
 
-- 🟢 A rule names a Typst function instead of a filter expression and keeps `name`, `when`, `message` and `severity`:
+- 🟢 A rule points at a Typst function instead of a filter expression and keeps `name`, `when`, `message` and `severity`:
 
 ```toml
 [[tasks.rules]]
@@ -51,22 +51,22 @@ check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
 ```
 
-- 🟢 The function receives the field's value, or `none` when the task omits it, so requiring a field needs no second rule. Without `field` it receives the whole task as `mt eval --json` prints it.
+- 🟢 The function receives the field's value, or `none` when the task omits it. A required field then needs only that one rule. Without `field` it receives the whole task as `mt eval --json` prints it.
 - 🟢 It returns an array of strings: empty passes, and each string is one breach, reported as `rules.goals: <string>`.
 - 🟢 A panic inside the function is one breach carrying the panic message, not an eval error.
 
 
 == Changes
 
-- `crates/mindtape/src/config_rules.rs`: `RuleSpec` takes exactly one of `assert` and `check`; load-time validation evaluates the module once and refuses a missing file or an unknown function.
-- `crates/mindtape/src/config_rules_typst.rs` (new): for each selected task, evaluate a synthetic source that imports the function and wraps its result in `#metadata(...) <mindtape.check>`, in a world rooted at the project through the source-override route `crates/mindtape/src/candidate.rs` uses. The value is written as a Typst literal from the task's `HVal`, so a content block arrives as its harvested plain text.
+- `crates/mindtape/src/config_rules.rs`: `RuleSpec` takes exactly one of `assert` and `check`. Load-time validation evaluates the module once and refuses a missing file or an unknown function.
+- `crates/mindtape/src/config_rules_typst.rs` (new): for each selected task, evaluate a synthetic source that imports the function and wraps its result in `#metadata(...) <mindtape.check>`. That source runs in a world rooted at the project through the source-override route `crates/mindtape/src/candidate.rs` uses. The code writes the value as a Typst literal from the task's `HVal`. A content block then arrives as its harvested plain text.
 - `crates/mindtape/src/config_rules_typst_tests.rs` (new): red tests first: the Problem config, a pass, two breaches, a panic, `none` for a missing field, an unknown function at load.
 - `schema/config.schema.json`: regenerate. `www/content/config.typ`: document `check` beside `assert`. `CHANGELOG.md`: an Unreleased entry.
 
 
 == Alternatives
 
-- JSON Schema per field: the goal list is copied into the schema, and "helps at least one goal" compares values across keys, which a schema says awkwardly.
+- JSON Schema per field: the goal list goes into the schema, and "helps at least one goal" compares values across keys, which a schema says awkwardly.
 - `x-` paths and `all`/`any` quantifiers in the filter language: it grows into a small programming language for one use.
 - Keep panicking inside `#goals(...)`: no rule name, no severity, and the verdicts stay in the body.
 

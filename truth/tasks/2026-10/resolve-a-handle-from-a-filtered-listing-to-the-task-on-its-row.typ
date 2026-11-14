@@ -39,16 +39,16 @@
 + Checking the mindtape skill's handle advice against the code.
 + 🔴 #raw("crates/mindtape-cli/src/util.rs"): A filtered mt ls numbers its own rows, but resolve\_task resolves every handle against the default view, so a filtered handle can name another task.
 
-`mt ls 'has_tag("found")' --columns '#,title'` prints `7i   Add common engineering verbs to the imperative-title dictionary`. `mt eval 7i --json | jq -r .title` prints `Make the docs plain, problem-led and unable to drift`. With one check character, about one filtered handle in 26 passes the check against the wrong task. The rest are refused with `handle check mismatch`.
+`mt ls 'has_tag("found")' --columns '#,title'` prints `7i   Add common engineering verbs to the imperative-title dictionary`. `mt eval 7i --json | jq -r .title` prints `Make the docs plain, problem-led and unable to drift`. With one check character, about one filtered handle in 26 passes the check against the wrong task. The tool refuses the rest with `handle check mismatch`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/util.rs").
 
 == TO-BE
 
-- 🟢 A handle that any `mt ls` listing prints resolves to the task on that row, or the listing prints no handle.
+- 🟢 A handle that any `mt ls` listing prints resolves to the task on that row, or the listing omits the handle.
 - 🟢 A test pins a filtered handle whose check character matches the default view's task at that ordinal.
 
 

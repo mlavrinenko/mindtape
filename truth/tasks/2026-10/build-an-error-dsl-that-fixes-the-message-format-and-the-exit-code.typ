@@ -16,8 +16,8 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the compiler and clippy hold the error format, not a review],
-      cheap-adoption: helps[every error says what failed and what to try, in one shape],
+      enforced-practice: helps[the compiler and clippy hold the error format, not a review.],
+      cheap-adoption: helps[every error says what failed and what to try, in one shape.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -31,7 +31,7 @@
     2026,
     10,
     7,
-  )[Diag builder, one renderer, kind-picked exit codes; the unconverted modules are on diag/allowlist.rs for the fan-out],
+  )[Diag builder, one renderer and kind-picked exit codes. The unconverted modules sit on diag/allowlist.rs for the fan-out.],
   links: depends-on(
     "pick-one-format-for-error-messages-and-inventory-them.typ",
   ),
@@ -47,7 +47,7 @@
 == TO-BE
 
 - 🟢 Every message `mt` writes to stderr goes through one renderer and starts with `error:`, `hint:`, `note:` or `warning:`.
-- 🟢 A message is built with a typed builder: the message text is a `&'static str`, and a value the user typed goes through `.value(..)`, which single-quotes it. A value cannot be formatted into the text.
+- 🟢 A typed builder builds a message: the message text is a `&'static str`, and a value the user typed goes through `.value(..)`, which single-quotes it. A value cannot go into the text through formatting.
 - 🟢 Each error has a kind: usage (exit 2) or refused/failed (exit 1). The exit code comes from the kind, so no command picks a number.
 - 🟢 `main` returns an `ExitCode`, so Rust's `Error:` and `Caused by:` output cannot appear, and clippy refuses `eprintln!` outside the renderer.
 
@@ -61,7 +61,7 @@
 
 == Alternatives
 
-- Rules and review only. A rule nobody checks drifts; the current mix of `error:` and `Error:` is that drift.
+- Rules and review only. A rule nobody checks drifts. The current mix of `error:` and `Error:` is that drift.
 - A `format!`-style macro. It keeps values inside free text, so nothing stops an unquoted value.
 
 == Out of scope

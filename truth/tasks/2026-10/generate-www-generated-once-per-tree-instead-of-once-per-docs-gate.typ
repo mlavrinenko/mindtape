@@ -52,7 +52,7 @@
 
 == Rollback
 
-Revert the commit; each gate regenerates on its own again.
+Revert the commit. Each gate regenerates on its own again.
 
 == Out of scope
 

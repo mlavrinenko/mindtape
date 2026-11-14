@@ -12,31 +12,31 @@
   estimate: (files: 10),
   assignee: "agent",
   links: related(
-    "swh:1:rev:e63570ddbea03f6bfea2267c945c32c7b054d3f9;path=truth/tasks/verify-the-windows-nextest-job-on-github.typ",
-  )[the `cargo test` call that survives locally — only a pushed run proves it],
+    "swh:1:rev:e63570ddbea03f6bfea2267c945c32c7b054d3f9\u{3b}path=truth/tasks/verify-the-windows-nextest-job-on-github.typ",
+  )[the `cargo test` call that survives locally. Only a pushed run proves it.],
   status: done(
     2026,
     9,
     1,
-  )[all gates green locally; only the Windows CI run is unverified],
+  )[all gates green locally. Only the Windows CI run still needs proof.],
 )
 
 == Summary
 
 `cargo test` prints every test binary's own "running N tests" header and
-result block — a green full run is ~2000 lines of noise, and a filtered query
-that matches nothing still prints 35 empty result blocks. cargo-nextest runs
+result block. A green full run is ~2000 lines of noise, and a filtered query
+matching an empty set still prints 35 empty result blocks. cargo-nextest runs
 each test in its own process and reports from a test-level summary, so the
-same run is seven lines. MindTape has been on plain `cargo test` while
-cratemplate and kimmable both moved; this adopts the same shape.
+same run is seven lines. mindtape has been on plain `cargo test` while
+`cratemplate` and `kimmable` both moved. This adopts the same shape.
 
 `just test`, `just count-tests`, `just check-rrule` and `just cover` all move
 to nextest, so one runner is both gated and measured. nextest runs no
-doctests; the tree has none (`cargo test --doc` reports 0 in both crates, and
-no code-fenced doc comment exists), so no separate pass — the cratemplate
-fallback — is wired, and a doctest added later must come with a pass of its
-own. CI's Windows job installs the same runner via `taiki-e/install-action`
-(pinned to a commit SHA), and the dev shell adds `cargo-nextest`.
+doc tests. The tree has none (`cargo test --doc` reports 0 in both crates, and
+no code-fenced doc comment exists), so skip the separate pass: the
+`cratemplate` fallback stays off. A doc test added later must come with a
+pass of its own. CI's Windows job installs the same runner via `taiki-e/install-action`,
+pinned to a commit SHA. The dev shell adds `cargo-nextest`.
 
 == Verification
 

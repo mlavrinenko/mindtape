@@ -41,8 +41,8 @@ rules.src-budget: move work not yet written into a new task; what is already wri
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".mindtape/config.toml").
 
 == TO-BE

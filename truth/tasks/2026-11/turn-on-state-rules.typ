@@ -33,15 +33,15 @@
 
 == AS-IS
 
-+ Run `mt tags --for add` and read the statefulness and example rules.
-+ 🔴 Both are parameter-gated off, so a new task can still omit the statefulness tag and the example fence.
++ Run `mt tags --for add` and read the `statefulness` and example rules.
++ 🔴 Both are parameter-gated off, so a new task can still omit the `statefulness` tag and the example fence.
 + 🔴 The templates and fixtures pass only because the rules are off.
 
 == TO-BE
 
 - 🟢 The project's `extends` sets `statefulness` and `examples` true.
 - 🟢 The templates, fixtures and filed tasks pass with the rules on.
-- 🟢 `mt tags --for add` lists the statefulness and example rules.
+- 🟢 `mt tags --for add` lists the `statefulness` and example rules.
 
 ```toml
 extends = [{ pack = "mindtape:tasks", with = { statefulness = true, examples = true } }]
@@ -57,4 +57,4 @@ extends = [{ pack = "mindtape:tasks", with = { statefulness = true, examples = t
 
 == Dogfood
 
-This repo's own tasks are the first to carry the statefulness tags and example fences.
+This repo's own tasks are the first to carry the `statefulness` tags and example fences.

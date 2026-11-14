@@ -14,16 +14,16 @@
   estimate: (src-files: 5),
   x-goals: (
     product: (
-      readable-tasks: helps[a reader learns how to make every title in a list say what the task does],
+      readable-tasks: helps[a reader learns how to make every title in a list say what the task does.],
       implementable-tasks: neutral,
-      enforced-practice: helps[the recipe shows mt refusing a title that starts with no verb],
+      enforced-practice: helps[the recipe shows mt refusing a title that doesn't start with a verb.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the page's refusal and config come from a live capture of examples/api-service],
+      docs-match-code: helps[the page's refusal and config come from a live capture of examples/api-service.],
     ),
   ),
   assignee: "agent",
@@ -33,19 +33,19 @@
 == AS-IS
 
 + Open the docs site's Recipes nav group, or the recipe table in `README.md`.
-+ 🔴 No recipe shows how to require a verb-first title, though the `mindtape-tasks` pack's `imperative-title` rule and the shipped verb dictionaries do exactly that.
++ 🔴 No recipe shows how to require a verb-first title, though the `mindtape-tasks` pack's `imperative-title` rule and the built-in verb dictionaries do exactly that.
 
 
 == TO-BE
 
-- 🟢 A Start titles with a verb recipe says why verb-first titles help, shows the few lines of config, the refusal `mt add` prints for a title like Login redirect broken, and how to add your own words.
+- 🟢 A Start titles with a verb recipe says why verb-first titles help and shows the few lines of config. It also shows the refusal `mt add` prints for a title like Login redirect broken, and how to add your own words.
 - 🟢 Every command output on the page comes from a capture, and `README.md`'s recipe table lists the page.
 
 
 == Source of truth
 
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: the `imperative-title` rule and the `verbs` dictionary.
-- `crates/mindtape/src/dicts/verbs.txt` and `crates/mindtape/src/dicts/dev-verbs.txt`: the shipped words.
+- `crates/mindtape/src/dicts/verbs.txt` and `crates/mindtape/src/dicts/dev-verbs.txt`: the built-in words.
 - `www/generate-api-service.sh`: the captured session.
 
 

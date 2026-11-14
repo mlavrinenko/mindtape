@@ -16,14 +16,14 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[every estimate check is a rule the project can read, override and switch off],
+      enforced-practice: helps[every estimate check is a rule the project can read, override and switch off.],
       cheap-adoption: helps[no check fires that a project did not write or inherit from a pack],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
       sound-codebase: helps[about 1,400 lines of bespoke checker and tests go],
-      docs-match-code: helps[the estimates page describes rules, not a special-cased unit],
+      docs-match-code: helps[the page describes rules.],
     ),
   ),
   assignee: "agent",
@@ -38,14 +38,14 @@
 == AS-IS
 
 + A project declares `[tasks.estimate] units = ["src-files"]` and one task goes `wip` with `estimate: (src-files: 3)`.
-+ 🔴 `mt check` warns `working tree touches 17 file(s), over the 4 declared by …` although the project wrote no such check: `DriftConfig::default()` hardcodes `unit = "files"`.
++ 🔴 `mt check` warns `working tree touches 17 file(s), over the 4 declared by …` although the project never wrote that check: `DriftConfig::default()` hardcodes `unit = "files"`.
 + 🔴 `[[tasks.estimate.max]]`/`min` is a second bespoke checker for what a rule says in one line.
 
 
 == TO-BE
 
-- 🟢 `[tasks.estimate]` keeps only `units` and `required`; `drift`, `max` and `min` are gone, with no alias (pre-release policy). No estimate check runs unless a rule asks.
-- 🟢 This repo's budget and caps are rules whose scope is written in the globs, so `exclude` goes too:
+- 🟢 `[tasks.estimate]` keeps only `units` and `required`. `drift`, `max` and `min` disappear, with no alias (pre-release policy). An estimate check runs only when a rule asks.
+- 🟢 This repo's budget and caps are rules whose scope lives in the globs, so `exclude` goes too:
 
 ```toml
 [[tasks.rules]]
@@ -61,12 +61,12 @@ when     = '!terminal && difficulty >= 3'
 assert   = 'estimate.src-files <= 5'
 ```
 
-Deviations as built: `src-budget` keeps the old `exclude` list entry for entry as `!` globs instead of the narrower includes above, and its `when` adds `has(estimate.src-files)` so a task with no budget stays unchecked. The caps stay errors, the 15-file mechanical one is `mechanical-stays-under-15`. learn-piano declared no caps; `examples/estimates`, the docs fixture, carried them and is ported instead. `crates/mindtape/tests/dogfood_check.rs` now counts fatal violations only.
+Deviations as built: `src-budget` keeps the old `exclude` list entry for entry as `!` globs instead of the narrower includes above, and its `when` adds `has(estimate.src-files)` so a task with no budget stays unchecked. The caps stay errors, and the 15-file mechanical one is `mechanical-stays-under-15`. Learn-piano had no caps. `examples/estimates`, the docs fixture, carried them and moves instead. `crates/mindtape/tests/dogfood_check.rs` counts fatal violations only.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/estimate_drift_e2e.rs` (red first, renamed `estimate_rules_e2e.rs`): budget and caps as rules; no warning without them.
+- `crates/mindtape-cli/tests/estimate_drift_e2e.rs` (red first, renamed `estimate_rules_e2e.rs`): budget and caps as rules, and no warning without them.
 - `crates/mindtape/src/estimate_drift.rs`, `estimate_drift_tests.rs`: delete.
 - `crates/mindtape/src/config_estimate.rs`, `config_estimate_tests.rs`: drop `DriftConfig` and `EstimateBound(s)`.
 - `crates/mindtape/src/validate.rs`, `config.rs`, `lib.rs`, `crates/mindtape-cli/src/check.rs`: drop the bounds pass, `report_drift`, re-exports.

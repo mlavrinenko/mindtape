@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[a word edited in a shipped list flags the pages that quote it],
+      docs-match-code: helps[a word edited in a released list flags the pages that quote it.],
     ),
   ),
   assignee: "agent",
@@ -39,7 +39,7 @@
 
 == TO-BE
 
-- 🟢 An edit to `verbs.txt` or `dev-verbs.txt` makes `just outdatty check` fail until the pages that quote the lists are reviewed.
+- 🟢 An edit to `verbs.txt` or `dev-verbs.txt` makes `just outdatty check` fail until the pages that quote the lists pass review.
 
 
 == Source of truth
@@ -60,5 +60,5 @@
 
 == Dogfood
 
-Not applicable: the group guards this repo's own docs and ships nothing.
+Not applicable: the group guards this repo's own docs and reaches no release.
 

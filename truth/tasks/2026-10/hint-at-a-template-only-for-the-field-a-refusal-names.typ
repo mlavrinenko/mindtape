@@ -32,31 +32,31 @@
 
 == AS-IS
 
-+ Filing the stem-hash tasks with \`mt add --template feat -f \<yaml>\`
-+ 🔴 #raw("crates/mindtape-cli/src/add_hint.rs"): mt add hints at every template that pins any value the caller passed, even when the refusal is about another field, so a body word-cap refusal lists four sweep templates for assignee=agent.
++ Filing the stem-hash tasks with `mt add --template feat -f <yaml>`
++ 🔴 #raw("crates/mindtape-cli/src/add_hint.rs"): mt add hints at every template that pins any value the caller passed, even when the refusal is about another field. A body word-cap refusal lists four sweep templates for assignee=agent.
 
 + Run `mt add "x" --template feat -f t.yaml` with `assignee: agent` and a TO-BE over 120 words.
 + 🔴 It prints `error: x: body.content.rules.section-word-cap: …`, then `hint: template sweep-coverage files assignee=agent` and three more like it.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/add_hint.rs").
 
 == TO-BE
 
-- 🟢 `mt add` hints at a template only when a refused breach names the field that template pins.
+- 🟢 `mt add` hints at a template only when a refused breach concerns the field that template pins.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/add_template_hint_e2e.rs`: red test first: a body-rule refusal with `assignee` set prints no hint.
+- `crates/mindtape-cli/tests/add_template_hint_e2e.rs`: red test first: a body-rule refusal with `assignee` set doesn't print a hint.
 - `crates/mindtape-cli/src/add_hint.rs`: filter hints by the fields the breaches name.
 
 
 == Rollback
 
-Revert the commit; every refusal hints again.
+Revert the commit. Every refusal hints again.
 
 == Out of scope
 

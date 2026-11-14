@@ -51,32 +51,32 @@ error: .mindtape/templates/fix.typ:2: id: duplicate id `fix`; first seen in `tas
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/check_templates.rs").
 
 == TO-BE
 
-- 🟢 Each template is checked alone against an empty backlog, so a count cap the backlog holds never fails the template pass.
-- 🟢 Set-reading breaches (`count()` rules, acyclic link kinds) are dropped from a template's report.
-- 🟢 The candidate is named by `output_stem` from the example title, where `mt add` would write it, so a task named like a template collides with nothing.
+- 🟢 `mt check` checks each template alone against an empty backlog, so a count cap the backlog holds never fails the template pass.
+- 🟢 The template pass drops set-reading breaches (`count()` rules, acyclic link kinds) from its report.
+- 🟢 `output_stem` supplies the candidate name from the example title, where `mt add` would write it, so a task named like a template collides with nothing.
 
 
 == Changes
 
 - `crates/mindtape-cli/tests/check_templates_e2e.rs`: red tests first: a backlog at its `count()` cap, two templates that jointly pass a cap, a task stem equal to a template name.
 - `crates/mindtape-cli/src/check_templates.rs`: one candidate per template against no existing tasks, named by `output_stem`.
-- `crates/mindtape/src/candidate.rs`: expose the set-reading classification `elsewhere_violations` already uses, so the template pass drops those breaches.
+- `crates/mindtape/src/candidate.rs`: expose the set-reading classification `elsewhere_violations` already uses. The template pass then drops those breaches.
 
 
 == Rollback
 
-- Revert the commit; templates are checked as one batch beside the backlog again.
+- Revert the commit. The pass checks templates as one batch beside the backlog again.
 
 
 == Out of scope
 
-- Which templates are listed, and the fallback severity.
+- Which templates the pass lists, and the fallback severity.
 - The candidate check `mt add` runs, which must keep reading the backlog.
 
 

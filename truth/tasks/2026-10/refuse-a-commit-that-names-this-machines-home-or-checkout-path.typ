@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a leaked path is refused at the commit that would carry it, not found after a push],
+      sound-codebase: helps[the hook refuses a leaked path at the commit that would carry it, not found after a push.],
       docs-match-code: neutral,
     ),
   ),
@@ -31,14 +31,14 @@
     2026,
     10,
     12,
-  )[the pre-commit and commit-msg hooks refuse \$HOME and the checkout's paths],
+  )[the pre-commit and commit-msg hooks refuse \$HOME and the checkout's paths.],
 )
 
 == AS-IS
 
-+ File a finding with `mt add --template finding` and paste a failing `cp` as its evidence, as `keep-the-docs-captures-from-copying-examples-api-service-while-another-gate-writes-its-cache` was filed.
++ File a finding with `mt add --template finding` and paste a failing `cp` as its evidence, as `keep-the-docs-captures-from-copying-examples-api-service-while-another-gate-writes-its-cache` did.
 + Commit the task file.
-+ 🔴 `git commit` takes it, though the evidence names the author's `$HOME`: three task files carried a home path until a history rewrite removed it. No gate reads `truth/tasks/`, and gitleaks drops a `/home/<user>/` rule, as `.just/scripts/crap-baseline-check.sh` measured.
++ 🔴 `git commit` takes it, though the evidence shows the author's `$HOME`: three task files carried a home path until a history rewrite removed it. The gate does not read `truth/tasks/`, and gitleaks drops a `/home/<user>/` rule, as `.just/scripts/crap-baseline-check.sh` measured.
 
 
 == TO-BE
@@ -57,7 +57,7 @@
 
 == Rollback
 
-- Revert the commit. No config key or file format changes.
+- Revert the commit. The config keys and file formats stay the same.
 
 
 == Out of scope
@@ -68,4 +68,4 @@
 
 == Dogfood
 
-Every commit in this repo is scanned before it lands.
+The gate scans every commit in this repo before it lands.

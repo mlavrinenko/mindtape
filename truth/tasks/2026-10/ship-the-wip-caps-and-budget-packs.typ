@@ -16,8 +16,8 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[one open leaf and a capped judgment task hold the same way in every adopting project],
-      cheap-adoption: helps[the WIP caps and the size budget adopt in one line each, with the caps as parameters],
+      enforced-practice: helps[one open leaf and a capped judgment task hold the same way in every adopting project.],
+      cheap-adoption: helps[the WIP caps and the size budget adopt in one line each, with the caps as parameters.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -68,7 +68,7 @@ extends = [
 
 == Alternatives
 
-- One pack for caps and budget: a project that wants the caps but sizes tasks in `files` would have to `disable` half of it.
+- One pack for caps and budget: a project that needs the caps but sizes tasks in `files` would have to `disable` half of it.
 
 
 == Out of scope

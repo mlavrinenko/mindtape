@@ -37,7 +37,7 @@
 == AS-IS
 
 + Open the "Split oversized tasks" recipe.
-+ 🔴 It caps every open task at 5 source files, so a 12-file rename can't be filed, though splitting it only copies one decision into more than one task.
++ 🔴 It caps every open task at 5 source files, so nobody can file a 12-file rename, though splitting it only copies one decision into more than one task.
 
 
 == TO-BE

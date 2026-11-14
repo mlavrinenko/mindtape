@@ -14,14 +14,14 @@
     2026,
     8,
     15,
-  )[both moved-to-module notes merged into one block beside mod docs, where the formatter's blank-line collapse does not apply],
+  )[both moved-to-module notes merged into one block beside mod docs, where the formatter does not collapse blank lines],
 )
 
 == Summary
 
 A note recording that two recipes moved to `docs.just` sits glued to
-`fmt-fixture-check`'s comment block, and the just formatter refuses to let the
-two be separated.
+`fmt-fixture-check`'s comment block, and the just formatter refuses to separate
+the two.
 
 == The state
 
@@ -35,12 +35,12 @@ Immediately above `fmt-fixture-check`:
 ```
 
 Two unrelated blocks, no blank line, reading as one. The move note belongs
-nowhere near `fmt-fixture-check` — it landed there because that is where the
-recipes used to sit.
+nowhere near `fmt-fixture-check`. It landed there because the recipes once sat
+there.
 
-== Why it has not been fixed already
+== Blank-line collapse
 
-Inserting the blank line does not survive: the just formatter collapses a blank
+Inserting the blank line does not survive. The just formatter collapses a blank
 line between two adjacent comment blocks preceding a recipe, so `just --fmt`
 removes it again and `fmt-check` then fails on the un-collapsed version.
 Observed while implementing the module-fmt gate.
@@ -52,14 +52,14 @@ comment run before a recipe as one unit.
 == Scope
 
 - Decide where the move note actually belongs. Candidates: beside the `mod docs`
-  declaration, which is where a reader looks for what the module holds; or
-  deleted, since git history and the linked task already record the move and the
-  module file's own header explains itself.
-- If it stays, it needs a home the formatter will not glue it to something
-  unrelated — the `mod docs` site has its own comment block already.
+  declaration, where a reader looks for what the module holds, or deleted. Git
+  history and the linked task already record the move, and the module file's own
+  header explains itself.
+- If it stays, it needs a home the formatter will not glue to something
+  unrelated. The `mod docs` site has its own comment block already.
 - The commentary relocation task covers the whole file's comment layout. If that
   lands first, fold this in there and close this as done by it rather than
   editing the same lines twice.
-- Report the formatter behaviour upstream if it is not already known; a
+- Report the formatter behaviour upstream if it is not already known. A
   formatter that silently merges two comment blocks is a data-loss shape, not a
   style choice.

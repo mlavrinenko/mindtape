@@ -37,29 +37,29 @@
 + 🔴 The `|` in `` `--sort <field>[:asc|desc]` `` splits the row into an extra cell. `CONTRIBUTING.md:63` breaks the same way.
 + 🔴 `CONTRIBUTING.md:77` reads "in docs/contributing/gates.md the gated example projects": the source glued a `;` to a `#link(...)[...]`, and the render dropped it. `CONTRIBUTING.md:85` has the same defect.
 + 🔴 `docs/contributing/gates.md:37` repeats its last sentence. `commit-messages.md:13`, `gates.md:26` and `mutation-testing.md:25` break a code span at a line break.
-+ The Gate column shows `docs-check` and `docs-md-check`; the recipes are `docs::check` and `docs::md-check`.
++ The Gate column shows `docs-check` and `docs-md-check`. The recipes are `docs::check` and `docs::md-check`.
 + `docs/src/lib.typ` lists these traps, but nothing checks for them.
 
 
 == TO-BE
 
-- 🟢 `just docs md-check` also lints the rendered `.md` files and fails, naming file and line, on: a `|` inside a code span in a table row, an odd number of backticks on a line, an escaped backtick, and `-\>`.
+- 🟢 `just docs md-check` also lints the rendered `.md` files. It fails, naming file and line, on a `|` inside a code span in a table row, an odd number of backticks on a line, an escaped backtick, and `-\>`.
 - 🟢 It also scans `docs/src/**` for a `#link(...)[...]` with a `;` glued to it.
 - 🟢 The trap list lives once, in `docs/contributing/generated-docs.md`, and `docs/src/lib.typ` links to it.
 
 
 == Changes
 
-- `.just/scripts/docs-md-check.sh`: add the lint and the source scan. Run it on today's tree first; it must list the hits above.
+- `.just/scripts/docs-md-check.sh`: add the lint and the source scan. Run it on today's tree first. It must list the hits above.
 - `www/utils/gate-notes.typ`: escape the `|`.
 - `www/gates.jq`: print the real `docs::` recipe names.
 - `docs/src/skill.typ`, `docs/src/contributing.typ`, `docs/src/contributing/{gates,commit-messages,mutation-testing}.typ`: fix the hits.
-- `docs/src/lib.typ`, `docs/src/contributing/generated-docs.typ`: merge the two trap lists into `generated-docs.typ`; `lib.typ` keeps a link.
+- `docs/src/lib.typ`, `docs/src/contributing/generated-docs.typ`: merge the two trap lists into `generated-docs.typ`. `lib.typ` keeps a link.
 
 
 == Rollback
 
-Revert the commit. The lint is one block in `docs-md-check.sh`; the source fixes stand on their own.
+Revert the commit. The lint is one block in `docs-md-check.sh`. The source fixes remain valid without it.
 
 
 == Out of scope
@@ -69,5 +69,5 @@ Revert the commit. The lint is one block in `docs-md-check.sh`; the source fixes
 
 == Dogfood
 
-`just check` runs `docs::md-check`, so every commit here passes the lint.
+`just check` runs `docs::md-check`. Every commit here then passes the lint.
 

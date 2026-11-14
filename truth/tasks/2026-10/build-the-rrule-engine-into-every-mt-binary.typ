@@ -17,12 +17,12 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a calendar rule works in the binary a user installs, with no rebuild],
+      cheap-adoption: helps[a calendar rule works in the binary a user installs, with no rebuild.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[one build and one test run instead of a feature arm, its stub and its CI job],
+      sound-codebase: helps[one build and one test run instead of a feature arm, its stub and its CI job.],
       docs-match-code: neutral,
     ),
   ),
@@ -31,20 +31,24 @@
     2026,
     10,
     12,
-  )[rrule is a plain dependency; the feature, its stub, check-rrule and the CI step are gone],
+  )[the engine is in every binary.],
 )
 
 == AS-IS
 
-+ Install `mt` with `cargo install mindtape-cli` and write `recur: rrule("FREQ=MONTHLY;BYDAY=1MO")` in a task.
++ Install `mt` with `cargo install mindtape-cli` and write this in a task:
+
+  ```typ
+  recur: rrule("FREQ=MONTHLY;BYDAY=1MO")
+  ```
 + 🔴 `mt check` refuses it, because release builds leave out the `rrule` feature, and the quickstart warns about it.
 
 
 == TO-BE
 
 - 🟢 Every `mt` binary expands `rrule(...)`, and the release binary grows by about 2 MiB.
-- 🟢 No `rrule` cargo feature, stub, `check-rrule` recipe or CI job remains, and `just check` tests the engine.
-- 🟢 The quickstart and the Recurring page say nothing about a feature.
+- 🟢 The change drops the `rrule` feature, its stub, recipe and CI job. The engine runs under `just check`.
+- 🟢 The quickstart and Recurring pages drop the feature.
 
 
 == Changes
@@ -52,7 +56,7 @@
 - `crates/mindtape/src/recur/mod.rs`: drop the `cfg` arms and the stub module.
 - `crates/mindtape/src/recur/dates.rs`: drop the `cfg` arms.
 - `crates/mindtape-cli/src/cmd/init/wizard/axes.rs`: offer the rrule answer always.
-- `crates/mindtape/Cargo.toml` and `crates/mindtape-cli/Cargo.toml`: the dependency is no longer optional, and the features go.
+- `crates/mindtape/Cargo.toml` and `crates/mindtape-cli/Cargo.toml`: the crates depend on `rrule` directly, and the features go.
 - `Justfile`, `.github/workflows/ci.yml`, `flake.nix` and the gate scripts: drop `check-rrule` and the feature flags.
 
 

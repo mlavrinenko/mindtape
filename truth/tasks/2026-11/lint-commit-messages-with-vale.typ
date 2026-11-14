@@ -31,7 +31,7 @@
 
 == AS-IS
 
-+ Read `.githooks/commit-msg`; its checks read trailers, paths and the staged task tree, and none reads the subject's prose.
++ Read `.githooks/commit-msg`. Its checks read trailers, paths and the staged task tree, and none reads the subject's prose.
 + 🔴 The subject's shape and prose go unchecked, including the Conventional Commits type `CONTRIBUTING.md` asks for.
 + Run `git show -s --format=%s 5b0076a1` and see a noun phrase that passed every check.
 
@@ -45,7 +45,7 @@ docs: ADR 003 SWHID cleanup tombstones and shared edit substrate
 - 🟢 `.config/vale-commits.ini` runs a `Commits` style over the message: subject at most 72 characters, an imperative opener, no history word, no em dash, no shouted word.
 - 🟢 `.githooks/commit-msg` runs the style after `mt check --commit-msg`, so a bad message never becomes a commit.
 - 🟢 `mt check --commits <range>` runs the same check over each message, so a skipped hook still fails before the range lands.
-- 🟢 A hit names the line and quotes the word, as every Vale run does.
+- 🟢 A hit states the line and quotes the word, as every Vale run does.
 
 ```ini
 [formats]
@@ -62,7 +62,7 @@ Commits.SubjectLength = error
 - `.config/vale/styles/Commits/`: one YAML per commit rule, with the subject length, imperative, history, em dash and shouting rules.
 - `.just/scripts/check-commit-prose.sh`: one Vale run over a message file, shared by the hook and the range arm.
 - `.githooks/commit-msg`: run the script on the message file after `mt check --commit-msg`.
-- `crates/mindtape-cli/src/cmd/check/range.rs`: run the script over every commit of `--commits`, so a range fails where a hook was skipped.
+- `crates/mindtape-cli/src/cmd/check/range.rs`: run the script over every commit of `--commits`. A range then fails wherever a hook never ran.
 - `docs/src/contributing/commit-messages.typ`: say which rules run and where.
 
 == Alternatives

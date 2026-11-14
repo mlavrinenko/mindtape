@@ -14,7 +14,7 @@
   tags: ("found", "mt"),
   x-goals: (
     product: (
-      readable-tasks: helps[a plain imperative title passes the rule instead of being bent around a word list],
+      readable-tasks: helps[a plain imperative title passes the rule without bending around a word list],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -31,7 +31,7 @@
     2026,
     9,
     27,
-  )[compute, filter, page, roll and switch added to dev-verbs.txt (91 entries); verbs.txt is frequency-derived and stays untouched],
+  )[compute, filter, page, roll and switch added to dev-verbs.txt (91 entries). The verbs.txt list comes from frequency data and stays untouched.],
 )
 
 == AS-IS
@@ -49,13 +49,13 @@ error: switch-this-repos-refs-trailers-to-stems: rules.imperative-title: start t
 `switch`, `filter`, `compute`, `roll` and `page` are absent from `verbs.txt` and `dev-verbs.txt`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/dicts/verbs.txt").
 
 == TO-BE
 
-- 🟢 `switch`, `filter`, `compute` and `roll` pass the rule; `page` goes to `dev-verbs.txt` as a CLI sense.
+- 🟢 `switch`, `filter`, `compute` and `roll` pass the rule. `page` goes to `dev-verbs.txt` as a CLI sense.
 
 
 == Changes

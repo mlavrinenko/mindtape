@@ -15,7 +15,7 @@
     2026,
     9,
     9,
-  )[condition language gains nonempty()/contested()/named()/blocked(); visibility resolution moved into render/columns.rs::resolve\_order and ls\_columns.rs deleted. Every just check arm green except crap/check-crap, which fail on a stale crap-baseline.json: it was minted at 1a57fad and predates whole features (link\_input.rs, link\_edit.rs, link\_cmd.rs are tracked but have zero baseline entries, so every function in them reports NEW), and just crap-baseline refuses to re-mint while red. Filed as truth/tasks/re-mint-the-stale-crap-baseline.typ; this change's own contribution to it is eval\_bool +0.9 and resolve\_function +2.0, both deliberate. just mutants-diff is unrunnable on this host (truth/tasks/just-mutants-diff-fails-because-cargo-mutants-copies-envrc.typ) — forced past failing gate: "mmz --is-fresh --tag gate"],
+  )[condition language gains nonempty()/contested()/named()/blocked(). Visibility resolution moved into render/columns.rs::resolve\_order, and ls\_columns.rs disappears. Every `just check` arm is green except crap/check-crap, which fail on a stale crap-baseline.json. That file dates from 1a57fad and predates whole features. The tree tracks link\_input.rs, link\_edit.rs and link\_cmd.rs, but the baseline has zero entries for them, so every function in them reports as new. `just crap-baseline` refuses to re-mint while red. Filed as `truth/tasks/re-mint-the-stale-crap-baseline.typ`. This change's own contribution to it is eval\_bool +0.9 and resolve\_function +2.0, both deliberate. `just mutants-diff` cannot run on this host (`truth/tasks/just-mutants-diff-fails-because-cargo-mutants-copies-envrc.typ`). Forced past failing gate: "mmz --is-fresh --tag gate".],
   links: depends-on("add-boolean-literals-to-the-condition-language.typ"),
 )
 
@@ -27,30 +27,30 @@ buried in a Rust match (`crates/mindtape-cli/src/render/columns.rs`,
 `assignee` means "do the rows disagree", everything else means "does any
 cell have text". Making those expressible as condition predicates is what
 lets one `when` expression replace the `visibility` / `rules` pair. This
-task builds the domain and moves the evaluation to where the facts live; it
-changes no config surface.
+task builds the domain and moves the evaluation to where the facts live. It
+does not change any config surface.
 
 
 == Scope
 
-The condition language is documented as ambient facts only
+The docs describe the condition language as ambient facts only
 (`crates/mindtape/src/condition.rs`, module doc: "ambient environment facts,
-never a task"). These predicates are not ambient — they depend on the
+never a task"). These predicates are not ambient: they depend on the
 selected rows and on which columns the caller asked for. Extend the injected
 environment rather than reaching for globals, keeping the module pure:
 
-- `nonempty()` — any cell in this column carries text
-- `contested()` — the rows disagree about this column's value
-- `named()` — the column was explicitly requested (`--columns`, a view's
+- `nonempty()`: any cell in this column carries text
+- `contested()`: the rows disagree about this column's value
+- `named()`: the column was explicitly requested (`--columns`, a view's
   `columns`, an `[[ls.rules]]` columns override)
 
 `ready`'s current significance is `readiness.is_blocked`, not literally
 non-empty. Either add a fourth predicate or prove the two coincide (a
-settled task renders blank, so they may) — do not assume it.
+settled task renders blank, so they may). Do not assume it.
 
 Resolution moves out of `crates/mindtape-cli/src/ls_columns.rs` and into
 `resolve_order` (`crates/mindtape-cli/src/render/columns.rs`), which already
-receives `(config, handles, readiness)` and so has the rows; it needs the
+receives `(config, handles, readiness)` and so has the rows. It needs the
 ambient environment threaded in as well and gains a `Result`. Both the table
 and CSV renderers call it, which is what keeps them agreeing on the column
 set.
@@ -62,8 +62,8 @@ error naming the column rather than a column that silently never renders.
 
 = Watch for
 
-`named()` is a property of the REQUEST, never of the outcome — it reads
-`explicit_order`, which is set from what the caller asked for. Feeding it
+`named()` is a property of the request, never of the outcome. It reads
+`explicit_order`, which comes from what the caller asked for. Feeding it
 from the resolved column set instead would make the predicate depend on the
 decision it is an input to. Is there any path where a rule's `columns`
 facet, itself resolved earlier, can reach `named()` after the fact?

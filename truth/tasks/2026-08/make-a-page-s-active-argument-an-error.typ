@@ -19,11 +19,12 @@
 
 == Summary
 
-`www/utils/page.typ` accepts two forms during the migration: the page's own
-metadata dict spread as named arguments, and the older `active:`-only form that
-resolves title and summary back out of the generated manifest. Once no page
-passes `active:`, close it — passing `active:` becomes a panic naming the page,
-and the manifest-resolution branch goes with it.
+`www/utils/page.typ` accepts two forms during the migration. One is the page's
+own metadata dict spread as named arguments. The other is the older
+`active:`-only form that resolves title and summary back out of the generated
+manifest. Once no page passes `active:`, close it. Passing `active:` then
+becomes a panic that reports the page, and the manifest-resolution branch goes
+with it.
 
 Left open, the shim is a working second way to write a page whose facts come
 from somewhere other than the page. That is the failure this umbrella exists to
@@ -33,5 +34,6 @@ to come back and shut it.
 == Scope
 
 - `www/utils/page.typ`: the `active:` branch and the `site.typ` import both go.
-  `route` becomes required — a page passing neither fails naming what it passed.
+  `route` becomes required. A page that passes neither fails with a message
+  reporting what it passed.
 - Verify the panic fires and names the offending page before calling this done.

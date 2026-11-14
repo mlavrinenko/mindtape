@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the gate the hook asserts stays fresh across integrate, so no one is tempted to bypass it],
+      enforced-practice: helps[the gate the hook asserts stays fresh across integrate, so no one has a reason to bypass it],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -35,10 +35,10 @@
 + Committing after a just integrate
 + 🔴 #raw(".just/scripts/integrate.sh"): integrate.sh asserts the gate in the worktree (line 157), then fast-forwards (line 170) without telling main's .mmz/cache. Main's gate is stale, so .githooks/pre-commit refuses the next commit until just check re-runs: about 10 minutes, twice today.
 
-mmz records are portable: `.mmz/cache/SLUG-HASH.yaml` holds command, input_digest, status and ran_at, and the digest comes from repo-relative paths and content hashes. Not tested across two live checkouts.
+mmz records are portable: `.mmz/cache/SLUG-HASH.yaml` holds command, `input_digest`, status and `ran_at`, and the digest comes from repo-relative paths and content hashes. Not tested across two live checkouts.
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("a copy step in .just/scripts/integrate.sh").
 
 == TO-BE
@@ -47,12 +47,12 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `.just/scripts/integrate.sh`: after line 170, copy the worktree's `.mmz/cache/*.yaml` into main's; mmz stays the judge, so a record whose digest differs stays stale.
+- `.just/scripts/integrate.sh`: after line 170, copy the worktree's `.mmz/cache/*.yaml` into main's. mmz stays the judge, so a record whose digest differs stays stale.
 - Red test first: integrate a fixture branch, assert `mmz --is-fresh --tag gate` in main exits 0.
 
 == Rollback
 
-- Revert the commit; main's gate goes stale after integrate again.
+- Revert the commit. Main's gate goes stale after integrate again.
 
 == Out of scope
 

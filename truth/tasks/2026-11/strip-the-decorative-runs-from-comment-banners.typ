@@ -32,7 +32,7 @@
 
 + Run `git grep -nE '[-=*_~#]{5,}$' -- '*.rs' '*.sh' '*.css'` before this change.
 + 🔴 It prints 129 comment lines, one per decorative section header.
-+ Run `just check`; no gate names a new one.
++ Run `just check`. No gate states a new one.
 
 ```
 $ sed -n 13p .just/scripts/_gate-drift-lib.sh
@@ -43,7 +43,7 @@ $ sed -n 13p .just/scripts/_gate-drift-lib.sh
 == TO-BE
 
 - 🟢 Every comment keeps its words and loses the run.
-- 🟢 The same `git grep` prints nothing.
+- 🟢 The same `git grep` comes back empty.
 - 🟢 The 40 touched files keep their tests, prose and behaviour.
 
 ```
@@ -63,7 +63,7 @@ $ sed -n 13p .just/scripts/_gate-drift-lib.sh
 
 == Out of scope
 
-- The Vale gate that holds the tree clean; it waits for Vale 3.27.
+- The Vale gate that holds the tree clean stays out. It waits for Vale 3.27.
 - Typst comments: the only banners are in generated `tola.typ`.
 - Markdown tables and `---` rules: they are syntax, not decoration.
 

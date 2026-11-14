@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the completion paragraph matches the line `mt install` now prints],
+      docs-match-code: helps[the completion paragraph matches the line `mt install` prints],
     ),
   ),
   assignee: "agent",
@@ -38,7 +38,7 @@
 
 == TO-BE
 
-- 🟢 The Quickstart says only what a newcomer needs, in the wording the product owner approved: paste the completion line, `mt add` asks for a title, `mt ls` shows open tasks, the project decides its statuses.
+- 🟢 The Quickstart says only what a newcomer needs, in the wording the product owner approved. It says paste the completion line, that `mt add` asks for a title, that `mt ls` shows open tasks, and that the project decides its statuses.
 
 
 == Source of truth

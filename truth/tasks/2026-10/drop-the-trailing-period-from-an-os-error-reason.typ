@@ -61,5 +61,5 @@
 
 == Dogfood
 
-Not applicable. This repo is developed on Linux.
+Not applicable. The maintainers develop this repo on Linux.
 

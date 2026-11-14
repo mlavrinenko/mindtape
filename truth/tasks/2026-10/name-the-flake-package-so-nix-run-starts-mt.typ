@@ -33,18 +33,18 @@
 == AS-IS
 
 + Run `nix run github:mlavrinenko/mindtape/v0.3.0 -- --version`.
-+ 🔴 It fails with `unable to execute '/nix/store/…-rust-workspace-0.3.0/bin/rust-workspace': No such file or directory`. naersk names the package after the virtual workspace, and nothing sets `mainProgram`.
++ 🔴 It fails with `unable to execute '/nix/store/…-rust-workspace-0.3.0/bin/rust-workspace': No such file or directory`. `naersk` names the package after the virtual workspace, and nothing sets `mainProgram`.
 
 
 == Environment
 
-Nix on Linux, the flake at `v0.3.0`. The Quickstart's Install section documents this command.
+Nix on Linux, the flake at `v0.3.0`. The Install section of the Quickstart documents this command.
 
 
 == TO-BE
 
 - 🟢 `nix run github:mlavrinenko/mindtape -- --version` prints `mt`'s version.
-- 🟢 The store path is named `mindtape-<version>`.
+- 🟢 Nix names the store path `mindtape-<version>`.
 
 
 == Changes

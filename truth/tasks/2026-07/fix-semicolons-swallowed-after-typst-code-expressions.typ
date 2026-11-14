@@ -15,7 +15,7 @@
 
 == Summary
 
-In Typst markup a semicolon written immediately after a code expression is silently consumed and never rendered, so two sentences on the comparison page ship as run-ons in the built HTML. Fix the instances and record the gotcha so it does not recur.
+In Typst markup, a semicolon written immediately after a code expression is silently consumed and never rendered. Two sentences on the comparison page then run together in the built HTML. Fix the instances and record the gotcha so it does not recur.
 
 == Scope
 

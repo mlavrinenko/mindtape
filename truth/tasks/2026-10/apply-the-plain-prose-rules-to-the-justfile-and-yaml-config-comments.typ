@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[a comment states the current behaviour; history stays in git log],
+      docs-match-code: helps[a comment states the current behaviour, and history stays in git log],
     ),
   ),
   assignee: "agent",
@@ -35,11 +35,11 @@
 + Writing check-doc-prose, which scans only the doc sources.
 + 🔴 #raw("Justfile"): The comments in the Justfile, .just/docs.just, .mmz/config.yaml, outdatty.yaml and .linecop.yaml tell history and shout, and no check scans them.
 
-`rg -c -i '#.*\b(used to|no longer|anymore|formerly)\b'` counts 12 lines across the Justfile, `.just/docs.just` and the three YAML configs, and 35 more across `.just/scripts/*.sh` and `www/*.{sh,jq}`. `Justfile:3` reads "now that this file no longer holds all"; `.mmz/config.yaml:319` reads "TEN OF THEM ARE NAMED BY NO RULE".
+`rg -c -i '#.*\b(used to|no longer|anymore|formerly)\b'` counts 12 lines across the Justfile, `.just/docs.just` and the three YAML configs, and 35 more across `.just/scripts/*.sh` and `www/*.{sh,jq}`. `Justfile:3` reads "now that this file no longer holds all". `.mmz/config.yaml:319` reads "TEN OF THEM ARE NAMED BY NO RULE".
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw(".just/scripts/check-doc-prose.sh").
 
 == TO-BE
@@ -56,7 +56,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-Revert the commit; the scan scope is one list in the script.
+Revert the commit. The scan scope is one list in the script.
 
 == Out of scope
 
@@ -67,4 +67,4 @@ Revert the commit; the scan scope is one list in the script.
 
 == Dogfood
 
-Every later gate and config comment in this repo is written and checked under these rules.
+The rules cover every later gate and config comment in this repo, and the check enforces them.

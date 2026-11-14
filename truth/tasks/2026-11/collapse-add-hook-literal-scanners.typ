@@ -77,7 +77,7 @@ let (name, consumed) = tail
 
 == Out of scope
 
-- Escaped quotes inside a template name. The current scanner does not unescape them either.
+- Escaped quotes inside a template name. The current scanner does not decode the escapes either.
 
 
 == Dogfood

@@ -42,7 +42,7 @@
 == Changes
 
 - `.just/scripts/outdatty-check.sh`, `.mmz/config.yaml`, `outdatty.yaml`: the script, its mmz scope and its group entry go.
-- `Justfile`, `docs/src/contributing.typ`: the recipe calls `outdatty check` and the doc sentence is reworded.
+- `Justfile`, `docs/src/contributing.typ`: the recipe calls `outdatty check` and the change rewords the doc sentence.
 - `flake.lock`, `outdatty.lock`: outdatty 0.6.0, and the nine task-files dependents recorded.
 
 == Rollback

@@ -12,9 +12,9 @@
   tags: ("docs", "gating", "stateless", "tooling"),
   x-goals: (
     product: (
-      readable-tasks: helps[a new task bullet reads under the same rules as a docs page],
+      readable-tasks: helps[A new task bullet reads under the same rules as a docs page.],
       implementable-tasks: neutral,
-      enforced-practice: helps[a prose rule the gate holds cannot be skipped by memory],
+      enforced-practice: helps[The gate holds a prose rule that memory cannot skip.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -30,7 +30,7 @@
     2026,
     11,
     14,
-  )[the 2026-12 section turns the 32 AI-tell rules on, and the docs name it the first gated month],
+  )[the 2026-12 section turns the 32 AI-tell rules on. The docs name it the first gated month],
   links: supersedes("hold-task-bodies-to-the-record-prose-rules.typ"),
 )
 
@@ -38,7 +38,7 @@
 
 + Run `grep -n '^\[truth/tasks' .config/vale.ini`. It lists `[truth/tasks/*/*.typ]`, the three older-month sections and `swept/`, and no section for a month after `2026-11`.
 + Run `grep -c '^Prose\..* = NO$' .config/vale.ini`. It prints 39, the seven record exceptions and the 32 AI-tell rules, all under `[truth/tasks/*/*.typ]`.
-+ 🔴 A task filed in `2026-12` inherits all 32 `NO` lines, so the gate skips them on a new task, and the Task bodies paragraph states no first month for them.
++ 🔴 A task filed in `2026-12` inherits all 32 `NO` lines. The gate then skips them on a new task, and the Task bodies paragraph states no first month for them.
 
 ```
 $ grep -c '^Prose\..* = NO$' .config/vale.ini
@@ -61,21 +61,21 @@ Prose.DoubleHyphen = error
 
 == Changes
 
-- `.config/vale.ini`: add the `2026-12` section with the 32 AI-tell rules at error; keep the `2026-07` to `2026-09` `BasedOnStyles = NONE` sections, the 32 `NO` lines under `[truth/tasks/*/*.typ]`, and `swept/`.
+- `.config/vale.ini`: add the `2026-12` section with the 32 AI-tell rules at error. Keep the `2026-07` to `2026-09` `BasedOnStyles = NONE` sections, the 32 `NO` lines under `[truth/tasks/*/*.typ]`, and `swept/`.
 - `docs/src/contributing/documentation.typ`: the Task bodies paragraph, which states `2026-12` as the first month under the 32 rules.
 
 == Alternatives
 
 - Backfill every month and drop the 32 `NO` lines. That rewrites the 872 alerts in `2026-10` and `2026-11`, and the older months need their own cleanup.
-- Gate from `2026-11` after the 208 alerts in that month are fixed. It covers the rest of November at the cost of a partial backfill.
+- Gate from `2026-11` after fixing the 208 alerts in that month. It covers the rest of November at the cost of a partial backfill.
 - Leave the gate as is. New tasks keep skipping the 32 rules.
 
 == Out of scope
 
 - Backfilling `2026-07` to `2026-11`, or editing any existing task body.
-- The `2026-11` month, which stays ungated under the cutoff.
+- The `2026-11` month, which stays outside the gate under the cutoff.
 - New rules beyond the 32 AI-tell rules.
 
 == Dogfood
 
-Copy a task that trips `Prose.BareNames` into `truth/tasks/2026-12/`; `just docs vale-tasks` fails it. Move the same file to `truth/tasks/2026-11/` and the gate passes.
+Copy a task that trips `Prose.BareNames` into `truth/tasks/2026-12/`. `just docs vale-tasks` fails it. Move the same file to `truth/tasks/2026-11/` and the gate passes.

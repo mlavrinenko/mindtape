@@ -22,7 +22,7 @@
 
 == Summary
 
-`let-an-empty-allowlist-mean-no-children.typ` commits the empty-allowlist semantics and the 0.1.1 bump in the artifact-gate repository without releasing them. Pushing and publishing is the maintainer's step, and this repo cannot adopt the version until crates.io serves it.
+`let-an-empty-allowlist-mean-no-children.typ` commits the empty-allowlist semantics and the 0.1.1 bump in the artifact-gate repository without releasing them. Pushing and publishing is the maintainer's step, and the version reaches this repo only once crates.io serves it.
 
 
 == Scope
@@ -32,5 +32,5 @@ In the artifact-gate repository, push `main`, then tag `v0.1.1` and push the tag
 
 == Dogfood
 
-Not applicable: a release step. The new version is dogfooded in `adopt-the-empty-allowlist-from-artifact-gate-0-1-1.typ`.
+Not applicable: a release step. `adopt-the-empty-allowlist-from-artifact-gate-0-1-1.typ` dogfoods the new version.
 

@@ -33,13 +33,13 @@
 == AS-IS
 
 + Rewriting /derived-tags/, which made the same claim
-+ 🔴 #raw("crates/mindtape/src/validate.rs"): The check\_tags comment says a closed task keeps the tags its folder derived when it was filed, but the loader derives folder tags again on every load.
++ 🔴 #raw("crates/mindtape/src/validate.rs"): The `check_tags` comment says a closed task keeps the tags its folder derived at filing time, but the loader derives folder tags again on every load.
 
 `crates/mindtape/src/validate.rs:368` reads "a closed task keeps the tags it was filed with, authored and derived alike", while `crates/mindtape/src/loader.rs:178` sets `task.derived_tags = item.folder_tags.clone()` on every load. The `[tasks.tags] allowed` description in `crates/mindtape/src/config_tasks.rs:207` (and `schema/config.schema.json`) says "a terminal task keeps the tags it was filed with", which reads the same way.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/validate.rs").
 
 == TO-BE

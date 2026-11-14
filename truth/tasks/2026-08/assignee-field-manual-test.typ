@@ -10,7 +10,7 @@
   difficulty: 3,
   tags: ("cli", "substrate", "tests"),
   estimate: (files: 2),
-  status: done(2026, 8, 5)[session run 2026-08-05; all four probes behaved],
+  status: done(2026, 8, 5)[session run 2026-08-05, all four probes behaved],
   links: related("assignee-field-core.typ")[
     the implementation this session verifies
   ],
@@ -18,7 +18,7 @@
 
 == Summary
 
-Run mt add under a harness with and without MINDTAPE\_PRINCIPAL against a required \[tasks.assignee\], and mt check a task with an out-of-list assignee.
+Run mt add under a harness with and without `MINDTAPE_PRINCIPAL` against a required \[tasks.assignee\], and mt check a task with an out-of-list assignee.
 
 == Outcome
 

@@ -13,7 +13,7 @@
 
 == Summary
 
-Two CLI tests read global state and raced: apply_flex queried the real terminal so the None-guard test failed under a TTY, and the stdin-title inner-child test wrote into a pipe the early-returning child never reads, panicking on BrokenPipe under tarpaulin's slower timing. Inject terminal width into apply_flex and tolerate BrokenPipe on the unread-pipe write.
+Two CLI tests read global state and raced. `apply_flex` queried the real terminal, so the None-guard test failed under a TTY. The stdin-title inner-child test wrote into a pipe the early-returning child never reads, panicking on BrokenPipe under tarpaulin's slower timing. Inject terminal width into `apply_flex` and tolerate BrokenPipe on the unread-pipe write.
 
 == Scope
 

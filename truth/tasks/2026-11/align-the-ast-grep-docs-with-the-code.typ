@@ -20,7 +20,7 @@
   tags: ("found", "www", "docs", "stateless"),
   x-goals: (
     product: (
-      readable-tasks: helps[the page states the real granularity and the path rule],
+      readable-tasks: helps[the page states the real counting unit and the path rule],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -39,19 +39,19 @@
 == AS-IS
 
 + Reviewing both waves of the ast-grep milestone after it landed
-+ 🔴 #raw("www/content/estimates.typ"): The new pages claim ast-grep sees macro expansions and call-site granularity, say a collector names no path set, and the skill still imports 0.3.0.
++ 🔴 #raw("www/content/estimates.typ"): The new pages claim ast-grep sees macro expansions and call-site counts, say a collector has no path set, and the skill still imports 0.3.0.
 
-- `www/content/estimates.typ` says text cannot see a call site a macro produces, implying ast-grep can; it cannot see expansions.
-- `www/content/rules.typ` says a rule bounds a call-site count; `derived.callers` is one path per file.
-- `www/content/config.typ` says the collector names no path set, while the same paragraph allows a `@name` glob.
+- `www/content/estimates.typ` says text cannot see a call site a macro produces, implying ast-grep can. It cannot see expansions.
+- `www/content/rules.typ` says a rule bounds a call-site count. `derived.callers` is one path per file.
+- `www/content/config.typ` says the collector has no path set, while the same paragraph allows a `@name` glob.
 - `skills/mindtape/references/hand-editing.md` imports `@local/mindtape:0.3.0`, and `lib/typst.toml` is 0.4.0.
-- Neither collector page says globs use repository-root paths, so a nested project's `src/**` matches nothing.
+- Both collector pages stay silent on repository-root globs, and a nested project's `src/**` then fails to match.
 
 == TO-BE
 
 - 🟢 The macro sentence says what ast-grep actually does: it matches source shape, not comments, strings or definitions.
 - 🟢 The collector text says file count, not call-site count.
-- 🟢 `glob` is described as an optional narrowing set, not a missing path set.
+- 🟢 The docs describe `glob` as an optional narrowing set, not a missing path set.
 - 🟢 Both collector pages say paths are repository-root relative, as `changed()` reads them.
 - 🟢 The skill imports 0.4.0.
 

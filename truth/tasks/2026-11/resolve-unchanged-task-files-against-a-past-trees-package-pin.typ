@@ -41,11 +41,11 @@
 let tasks = self.tasks.iter().filter_map(|task| { ... }).collect();
 ```
 
-A range across a pin move therefore uses the commit's `lib/` only for task files that commit touched. A pin path or name also comes from the working tree's config, not the past tree's.
+A range across a pin move uses the commit's `lib/` only for task files that commit touched. A pin path or name also comes from the working tree's config, not the past tree's.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The finding lives here rather
+than in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/commit/tasks.rs").
 
 == TO-BE
@@ -67,7 +67,7 @@ ok: 2 commits
 
 == Out of scope
 
-- A pin whose manifest is missing still serves every version; that fallback is deliberate and separate.
+- A pin whose manifest is missing still serves every version. That fallback is deliberate and separate.
 
 
 == Dogfood

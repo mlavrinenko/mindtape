@@ -40,9 +40,9 @@
 
 + Read the pages against the code.
 + 🔴 `links.typ:16` and `concepts.typ:42` say a link target is a filename stem. `mt` resolves it as a path relative to the linking file (`crates/mindtape/src/model.rs:277`).
-+ 🔴 `dsl.typ:64` says each status in the legend is a constructor. The prelude ships 11 fixed names (`lib/prelude.typ:52-62`); another status needs `status("name", y, m, d)`, which no page shows.
-+ 🔴 `recurring.typ:84` says `mt check` parses the raw string either way; it returns early when a gate is closed (`recur.rs:395`). Shipped builds lack the `rrule` feature, and no page says how to enable it.
-+ Live evaluation and the `x-<ns>` seam are explained on four or five pages each.
++ 🔴 `dsl.typ:64` says each status in the legend is a constructor. The prelude provides 11 fixed names (`lib/prelude.typ:52-62`). Another status needs `status("name", y, m, d)`, which no page shows.
++ 🔴 `recurring.typ:84` says `mt check` parses the raw string either way. It returns early when a gate closes (`recur.rs:395`). Release builds lack the `rrule` feature, and no page says how to enable it.
++ Four or five pages each explain live evaluation and the `x-<ns>` seam.
 
 
 == TO-BE
@@ -63,17 +63,17 @@
 == Changes
 
 - `www/content/{quickstart,concepts,dsl,links,recurring}.typ`: rewrite whole.
-- `www/utils/dsl-field-notes.typ`: every constructor takes a date (drop "dated today"); "tuple" becomes "array"; fix "below" pointers to sections that moved.
+- `www/utils/dsl-field-notes.typ`: every constructor takes a date (drop "dated today"). Change "tuple" to "array", and fix "below" pointers to sections that moved.
 - `examples/links`, `examples/recurring`: `docs:slice` markers for the blocks the pages need.
 - `.just/scripts/check-doc-blocks.sh`: drop these pages from the list.
 
 
 == Out of scope
 
-- The quickstart's capture mechanism: the capture task builds it.
+- The capture task builds the capture mechanism on the Quickstart page.
 
 
 == Dogfood
 
-This repo's own tasks use the links and recurrence these pages describe; `just check-examples` validates the slices.
+This repo's own tasks use the links and recurrence these pages describe. `just check-examples` validates the slices.
 

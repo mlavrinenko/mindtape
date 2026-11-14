@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[parse/eval invariants are stated over generated input],
+      sound-codebase: helps[the tests state parse/eval invariants over generated input],
       docs-match-code: neutral,
     ),
   ),
@@ -31,35 +31,35 @@
     2026,
     10,
     1,
-  )[No bug evidence behind it; the filter has no printer to round-trip, and the unwrap/indexing/panic denies already cover the no-panic property. Cost of a grammar generator outweighs a speculative return.],
+  )[No bug evidence behind it. The filter has no printer to round-trip, and the unwrap/indexing/panic denies already cover the no-panic property. Cost of a grammar generator outweighs a speculative return.],
 )
 
 == AS-IS
 
 + Read the filter language tests under `crates/mindtape/src/filter*` and the date/recur tests.
-+ 🔴 Those parsers take open input (expressions, dates, rrule strings) but every test samples a handful of literals by hand; no test states the invariant over all inputs, so wrong specs and parse/eval asymmetries survive both the suite and the sweep.
-+ Property-based testing finds the spec you forgot to write, where mutation testing finds the assertion you forgot; the discussion's example was filters, recur and date parsing.
++ 🔴 Those parsers take open input (expressions, dates, rrule strings) but every test samples a handful of literals by hand. No test states the invariant over all inputs, so wrong specs and parse/eval asymmetries survive both the suite and the sweep.
++ Property-based testing finds the spec you forgot to write, where mutation testing finds the assertion you forgot. The discussion's example was filters, recur and date parsing.
 
 == TO-BE
 
 - 🟢 `proptest` is a dev-dependency with a small strategy module for generated filter expressions, dates and rrule strings.
-- 🟢 Invariants are pinned over generated inputs (parse then eval round-trips, accepted rrules round-trip through the RRULE crate, malformed input errors rather than panics), with shrinking naming a minimal counterexample.
-- 🟢 Failures are reproducible from the persisted proptest seed file.
+- 🟢 Property tests pin invariants over generated inputs: parse then eval round-trips, accepted `rrule` values round-trip through the RRULE crate, and malformed input errors rather than panics. Shrinking names a minimal counterexample.
+- 🟢 Failures are reproducible from the persisted `proptest` seed file.
 
 == Changes
 
 - `Cargo.toml` `[workspace.dependencies]` and `crates/mindtape/Cargo.toml` `[dev-dependencies]`: add `proptest`.
 - `crates/mindtape/src/filter_tests.rs` (or a new `filter_proptests.rs`): expression generator plus the parse/eval invariants.
 - `crates/mindtape/src/recur*`'s tests: date/rrule invariants.
-- Keep the proptest regression seed file committed.
+- Keep the `proptest` regression seed file committed.
 
 == Rollback
 
-Remove the dependency and the property modules; the example tests are untouched.
+Remove the dependency and the property modules. The example tests stay.
 
 == Out of scope
 
-- Replacing example-based tests: both stay; properties state invariants, examples document behaviour.
+- Replacing example-based tests: both stay. Properties state invariants, examples document behaviour.
 - `cargo-fuzz`/`afl.rs` and coverage-guided fuzzing: separate decision, not this task.
 
 == Dogfood

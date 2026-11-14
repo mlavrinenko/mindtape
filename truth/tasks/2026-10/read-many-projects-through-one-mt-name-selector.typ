@@ -19,7 +19,7 @@
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
-      plain-files: helps[an overview of every project reads their files on each run, with no index or daemon],
+      plain-files: helps[an overview of every project reads their files on each run, with no index or daemon.],
     ),
     process: (
       sound-codebase: neutral,
@@ -31,23 +31,23 @@
     2026,
     10,
     16,
-  )[agreed: at.toml with \[at.\<name>\] sets, bare mt \@x runs board, ls grouped by project, forks opt-in, no default board outside a project],
+  )[agreed: at.toml with \[at.\<name>\] sets, bare mt \@x runs board, ls grouped by project, forks opt-in, no default board outside a project.],
   links: supersedes("../2026-07/worktree-aliases.typ")
     + related(
       "../2026-07/named-views-and-contexts.typ",
-    )[a set is picked per command, never remembered as a context],
+    )[each command picks its own set, with no remembered context.],
 )
 
 == AS-IS
 
-+ Keep Mindtape tasks in many repos, such as the 30 under `~/projects/home`.
++ Keep the tool's tasks in many repos, such as the 30 under `~/projects/home`.
 + Run `mt @home ls` to see them together.
 + 🔴 It prints `error: unknown worktree: '@home'`, because `@name` and `worktrees.toml` pick one project per run.
 
 
 == TO-BE
 
-- 🟢 `~/.config/mindtape/at.toml` replaces `worktrees.toml`, and `mt at` replaces `mt worktrees`. Each `[at.<name>]` names a project or a set through `include`, `exclude` and `forks`.
+- 🟢 `~/.config/mindtape/at.toml` replaces `worktrees.toml`, and `mt at` replaces `mt worktrees`. Each `[at.<name>]` names a project or a set. The keys are `include`, `exclude` and `forks`.
 - 🟢 On a set, `ls`, `find`, `check` and `board` run on every project in parallel, each under its own config. Other commands refuse a set.
 - 🟢 A bare `mt @x` runs `mt @x board`, one row per project, with columns from `[board]`.
 - 🟢 `mt @x ls` groups rows by project, with `-n` per project.

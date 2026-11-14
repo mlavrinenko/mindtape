@@ -41,7 +41,7 @@
 == TO-BE
 
 - 🟢 `Query::AstGrep { language, pattern, glob }` parses the `ast-grep` dict, labels itself, compiles the grammar and pattern, and matches files.
-- 🟢 Only `rust` (alias `rs`) is a language in this wave; any other name leaves the unit unresolved with a problem naming the supported set.
+- 🟢 Only `rust` (alias `rs`) is a language in this wave. Any other name leaves the unit unresolved with a problem that states the supported set.
 - 🟢 A bad pattern leaves the unit unresolved with a problem, never a panic.
 - 🟢 A file matching twice counts once, and the count is the distinct files in the unit's path set.
 
@@ -67,7 +67,7 @@ estimate.src-files = 3
 == Alternatives
 
 - Shelling out to `sg`: needs `mt allow`, gives a different result on each host and re-parses the tree in another process.
-- Falling back to a regex when the grammar cannot run: a silent text proxy is the failure this task exists to remove.
+- A fallback to a regex when the grammar cannot run restores the silent text proxy this task exists to remove.
 
 
 == Out of scope

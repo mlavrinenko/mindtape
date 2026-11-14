@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the module path names the file, and the area's internals can go private to its folder],
+      sound-codebase: helps[the module path gives the file's name, and the area's internals can go private to its folder],
       docs-match-code: neutral,
     ),
   ),
@@ -37,25 +37,25 @@
 == AS-IS
 
 + Run `ls crates/*/src`.
-+ 🔴 `model.rs`, `marker.rs`, `fields.rs`, `field_descriptor.rs`, `numeric.rs`, `canonical.rs`, `handle.rs`, `naming.rs`, `task_spans.rs` sit flat at the crate root, so the module path does not name the file and nothing marks the area's internals.
++ 🔴 `model.rs`, `marker.rs`, `fields.rs`, `field_descriptor.rs`, `numeric.rs`, `canonical.rs`, `handle.rs`, `naming.rs`, `task_spans.rs` sit flat at the crate root, so the module path does not mirror the file and nothing marks the area's internals.
 
 == TO-BE
 
 - 🟢 `crates/mindtape/src/model/`: `mod.rs`, `marker`, `fields`, `field_descriptor`, `numeric`, `canonical`, `handle`, `naming`, `task_spans`.
-- 🟢 Each moved file's tests move beside it (`x_tests.rs`); a `mod.rs` loads a plain `mod tests;` from `tests.rs`.
+- 🟢 Each moved file's tests move beside it (`x_tests.rs`). A `mod.rs` loads a plain `mod tests;` from `tests.rs`.
 - 🟢 `mod.rs` opens with a `//!` map of the folder's files.
-- 🟢 `just check` passes; the commit is moves plus path edits, so `git log --follow` traces every file.
+- 🟢 `just check` passes. The commit is moves plus path edits, so `git log --follow` traces every file.
 
 == Changes
 
 - The moved files: `git mv`, then `mod`/`use`/`#[path]`/doc-link paths. A cross-folder caller gets `pub(crate)`, never an alias at the old path.
 - `outdatty.yaml`, `crap-baseline.json` (`just crap-baseline`) and every comment or doc that cites a moved path.
-- The widest move: `numeric` and `fields` are read almost everywhere. speconaut's `mindtape::model::resolve_link_path` keeps its path.
+- The widest move changes `numeric` and `fields`, which the code reads almost everywhere. speconaut's `mindtape::model::resolve_link_path` keeps its path.
 
 == Out of scope
 
 - Renames beyond dropping the folder's prefix.
-- Tightening visibility past what compiles; a later sweep owns that.
+- Tightening visibility past what compiles. A later sweep owns that.
 - Done tasks citing old paths: they are history.
 
 == Dogfood

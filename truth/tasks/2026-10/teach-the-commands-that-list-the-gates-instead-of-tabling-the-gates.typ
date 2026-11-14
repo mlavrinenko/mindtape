@@ -48,7 +48,7 @@
 
 - `docs/src/contributing.typ`: replace the gate table with the commands.
 - `docs/src/contributing/gates.typ`: describe the stages and how to read them from `just`.
-- `www/utils/gate-notes.typ`: delete; the table was its only reader.
+- `www/utils/gate-notes.typ`: delete. The table was its only reader.
 - `.just/scripts/check-doc-facts.sh`: drop the arm that required a gate-notes entry per gate.
 
 

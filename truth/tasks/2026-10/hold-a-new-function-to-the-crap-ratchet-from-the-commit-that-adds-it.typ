@@ -16,13 +16,13 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a function's CRAP score is ratcheted from the commit that adds it, not from the next re-mint],
+      enforced-practice: helps[the commit that adds a function also ratchets its CRAP score, not the next re-mint.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[an undertested new function can't slide in under the threshold with no baseline to hold it],
+      sound-codebase: helps[an undertested new function can't slide in under the threshold with no baseline to hold it.],
       docs-match-code: neutral,
     ),
   ),
@@ -33,7 +33,7 @@
 == AS-IS
 
 + On main at d811e6e7, run `just crap-baseline` and diff `crap-baseline.json` against the committed one.
-+ 🔴 Functions that earlier commits added have no entry, among them `date_tokens` (crates/mindtape-cli/src/cli/tree_json.rs), `handle` (crates/mindtape-cli/src/cmd/add/output.rs), `stem_hashes_with` (crates/mindtape-cli/src/util.rs) and `DateToken::render` (crates/mindtape/src/date/mod.rs). The ratchet in `.just/scripts/_crap-ratchet-lib.sh` compares only functions the baseline lists, so until someone re-mints, nothing stops these from getting worse.
++ 🔴 Functions that earlier commits added have no entry. They include `date_tokens` (crates/mindtape-cli/src/cli/tree_json.rs) and `handle` (crates/mindtape-cli/src/cmd/add/output.rs). The list also holds `stem_hashes_with` (crates/mindtape-cli/src/util.rs) and `DateToken::render` (crates/mindtape/src/date/mod.rs). The ratchet in `.just/scripts/_crap-ratchet-lib.sh` compares only functions the baseline lists. Until someone re-mints, nothing stops these from getting worse.
 + The branch for `refuse-a-commit-range-that-leaves-a-task-it-names-in-progress-at-its-tip` re-minted the baseline to pass `just crap`, rewriting about 280 lines, so its one real rise (`check_commit`, 7 to 8) sat among unrelated changes.
 
 
@@ -46,7 +46,7 @@
 == Changes
 
 - `.just/scripts/_crap-ratchet-lib.sh`: a scored function absent from the baseline fails the ratchet, as a rise does. The red test first, in the ratchet's control script (`.just/scripts/_crap-ratchet-control.sh`).
-- `docs/src/contributing/crap-baseline.typ` (or wherever the baseline is documented) and its generated md: a new function means a re-mint in the same commit.
+- `docs/src/contributing/crap-baseline.typ` (or wherever the baseline docs live) and its generated Markdown. A new function means a re-mint in the same commit.
 - `crap-baseline.json`: re-minted once so main starts complete.
 
 

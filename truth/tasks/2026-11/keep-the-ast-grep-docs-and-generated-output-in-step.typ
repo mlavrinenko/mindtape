@@ -13,7 +13,7 @@
   tags: ("mt", "docs", "stateless", "no-repro"),
   x-goals: (
     product: (
-      readable-tasks: helps[a reader learns the shape query from the same page as grep and glob],
+      readable-tasks: helps[a reader finds the shape query on the same page as grep and glob],
       implementable-tasks: neutral,
       enforced-practice: neutral,
       cheap-adoption: neutral,
@@ -43,7 +43,7 @@
 - 🟢 `www/content/estimates.typ` documents `ast_grep(language, pattern, glob?)`, the Rust-only set and the unresolved-problem behavior.
 - 🟢 The page shows a count over real call sites and the `mt eval` breakdown.
 - 🟢 `CHANGELOG.md` names the shared engine and the shape query under `[Unreleased]`.
-- 🟢 Generated output is regenerated, never hand-edited.
+- 🟢 The build regenerates generated output, and nobody hand-edits it.
 
 
 == Source of truth
@@ -62,7 +62,7 @@
 
 == Out of scope
 
-- A new docs page; the estimate page already owns file-count queries.
+- A new docs page stays out. The estimate page already owns file-count queries.
 - The collector docs, which ride with the collector wave.
 
 

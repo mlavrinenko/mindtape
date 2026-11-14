@@ -33,7 +33,7 @@
 == AS-IS
 
 + Reviewing the import commits 851468df to 8b99e87b
-+ 🔴 #raw("crates/mindtape-cli/src/import.rs"): \`mt import\` writes every record into one folder and ignores its \`file\`, so a cross-folder link breaks; the stem check sees that folder only; the report hides a \`-2\` rename.
++ 🔴 #raw("crates/mindtape-cli/src/import.rs"): \`mt import\` writes every record into one folder and ignores its \`file\`. A cross-folder link then breaks, the stem check sees that folder only, and the report hides a \`-2\` rename.
 
 ```
 3 filed, 1 skipped
@@ -42,18 +42,18 @@
     - tasks/hb3.typ:6: depends-on: link target `tasks/a/dup.typ` not found
 Error: 1 record(s) skipped
 ```
-An id taken in another folder is skipped as `duplicate id`; one taken in the destination lands as `alpha-2.typ`, reported `alpha: filed`.
+The import skips an id taken in another folder as `duplicate id`. An id taken in the destination lands as `alpha-2.typ`, reported `alpha: filed`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape-cli/src/import.rs").
 
 == TO-BE
 
 - 🟢 With neither `--into` nor `--to`, a record lands at its `file` when that lies under a configured root.
 - 🟢 A stem taken anywhere in the project gets the `-2` suffix, not a duplicate-id skip.
-- 🟢 The report names the stem written: `alpha: filed as alpha-2`.
+- 🟢 The report states the stem it wrote: `alpha: filed as alpha-2`.
 
 
 == Changes
@@ -66,7 +66,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-- Revert the commit; every record lands in one destination again.
+- Revert the commit. Every record lands in one destination again.
 
 
 == Out of scope
@@ -76,4 +76,4 @@ left in a closing report no one rereads. It belongs in
 
 == Dogfood
 
-Not applicable; this repo files tasks with `mt add`, not import.
+Not applicable. This repo files tasks with `mt add`, not import.

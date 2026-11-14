@@ -19,7 +19,7 @@
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
-      plain-files: helps[the link from code to task is derived from git, never hand-kept in the task],
+      plain-files: helps[git derives the link from code to task, never hand-kept in the task],
     ),
     process: (
       sound-codebase: neutral,
@@ -34,7 +34,7 @@
 == AS-IS
 
 + An agent is about to edit `crates/mindtape/src/ready.rs`.
-+ 🔴 No command answers which tasks shaped that file; the only route is `git log` on it and reading each `Refs:` trailer by hand.
++ 🔴 Every command ignores which tasks shaped that file. The only route is `git log` on it and reading each `Refs:` trailer by hand.
 
 
 == TO-BE
@@ -49,8 +49,8 @@ $ mt ls 'touches("crates/mindtape/src/ready.rs")'
 
 - 🟢 A value resolves by its stem, written as a stem or a legacy path.
 - 🟢 A stem renamed by `mt mv` resolves to the current task through git renames under the task roots (`git log -M --diff-filter=R`).
-- 🟢 A stem retired by `mt rm` matches nothing; `--json` lists the retired stems met, for git archaeology.
-- 🟢 Outside a git repository `touches()` fails naming the reason; every other command keeps working.
+- 🟢 A stem retired by `mt rm` does not match anything. `--json` lists the retired stems met, for git archaeology.
+- 🟢 Outside a git repository `touches()` fails and names the reason. Every other command keeps working.
 
 
 == Changes
@@ -63,7 +63,7 @@ $ mt ls 'touches("crates/mindtape/src/ready.rs")'
 
 == Alternatives
 
-- A hand-kept `modifiedFiles` field as in Backlog.md: drifts from what was committed.
+- A hand-kept `modifiedFiles` field as in Backlog.md: it drifts from what the commits changed.
 - A `formerly:` field written by `mt mv`: `mt rm` deletes tasks, so resolution needs git history anyway.
 
 

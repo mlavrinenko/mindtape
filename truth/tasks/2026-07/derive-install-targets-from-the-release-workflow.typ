@@ -15,7 +15,7 @@
 
 == Summary
 
-The quickstart lists only nix run and build-from-source while the release workflow ships prebuilt binaries for several targets and publishes to crates.io. Generate the install options from the workflow so the page cannot claim an artifact the pipeline does not produce.
+The quickstart lists only nix run and build-from-source while the release workflow publishes prebuilt binaries for many targets and publishes to crates.io. Generate the install options from the workflow so the page cannot claim an artifact the pipeline does not produce.
 
 == Scope
 

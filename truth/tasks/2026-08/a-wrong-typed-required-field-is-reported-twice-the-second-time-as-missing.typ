@@ -15,17 +15,17 @@
     2026,
     8,
     21,
-  )[a FIELD-level shape error masks the required answer at each check's input; an element error still lets it fire, since the field itself read],
+  )[a field-level shape error masks the required answer at each check's input. An element error still lets it fire, since the field itself read],
   links: related(
     "report-a-wrong-typed-element-inside-a-well-shaped-core-field.typ",
   )[
-    the shape-error channel this is the loud half of; found while closing it
+    the shape-error channel this is the loud half of, found while closing it
   ],
 )
 
 == Summary
 
-A wrong-typed core field is reported by `Task::from_marker` now — and still
+`Task::from_marker` reports a wrong-typed core field, and the field still
 degrades to absent, so a `required` field reports twice, the second time
 wrongly. `status: "wip"` yields both:
 
@@ -35,17 +35,17 @@ status: missing required status
 ```
 
 The second line is false: the author wrote a status. It sends them to add a
-field that is already there, which is the exact misdirection the shape-error
-work set out to end — closed for the silent half, still open for the loud one.
-Every other `required` field a shape error empties (`priority`, `estimate`,
+field that is already there, the exact misdirection the shape-error work set out
+to end. The work closed that for the silent half and left it open for the loud
+one. Every other `required` field a shape error empties (`priority`, `estimate`,
 `assignee`, `kind`) reads the same way.
 
 == Scope
 
-- suppress the `required` violation for a field already carrying a FIELD-level
-  shape error — `status`, not `status.date`: an element error leaves the field
+- suppress the `required` violation for a field already carrying a field-level
+  shape error: `status`, not `status.date`. An element error leaves the field
   readable, and the required check on it is then correct
 - decide where that lives: `check_required` reading the shape-error set, or
   `validate::check_all` filtering after the fact
 - regression test: a task whose only mistake is a wrong-typed required field
-  reports exactly one violation, and it names the type
+  reports exactly one violation, and that violation reports the type

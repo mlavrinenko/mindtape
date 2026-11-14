@@ -23,7 +23,7 @@
 
 Five recipes open with `#!/usr/bin/env bash`, and only two of them set strict
 mode. `[script]` plus `set script-interpreter := ["bash", "-eo", "pipefail"]`
-moves the interpreter and its flags into one setting, so strict mode arrives by
+moves the interpreter and its flags into one setting. Strict mode then arrives by
 construction instead of by remembering to type it, and the five shebang lines go
 away. `count-tests` is the live bug that makes this more than tidying.
 
@@ -37,9 +37,9 @@ count-tests:
     cargo test --workspace 2>&1 | grep "test result:" | awk '{sum += $4} END {print sum " tests"}'
 ```
 
-No `set -eo pipefail`, so the pipeline exits with awk's status. A failing suite
-prints a partial count and exits 0 — a wrong number, silently, which is the
-failure mode this repo files tasks about everywhere else.
+The recipe lacks `set -eo pipefail`. The pipeline exits with the status of
+`awk`. A failing suite prints a partial count and exits 0, a wrong number,
+silently. That is the failure mode this repo files tasks about everywhere else.
 
 == The five recipes
 
@@ -50,13 +50,13 @@ change, not a refactor. Each one needs its post-change behaviour asserted, not
 assumed.
 
 - `count-tests` starts failing loudly instead of printing a wrong number. Under
-  `pipefail` a red suite aborts the recipe, so it prints nothing at all. Decide
-  whether that is the wanted shape for an advisory recipe or whether the count
-  should survive a red suite by other means — and write the decision down.
+  `pipefail` a red suite aborts the recipe, so no count appears at all. Decide
+  whether an advisory recipe should have that shape or whether the count
+  should survive a red suite by other means, and write the decision down.
 - `file-sizes` ends `| sort -rn | head -20`. `head` exits at line 20 and `sort`
-  takes SIGPIPE, so under `pipefail` the pipeline can report 141 and the recipe
+  takes `SIGPIPE`, so under `pipefail` the pipeline can report 141 and the recipe
   fails on a perfectly good run. This is the same trap the agent rules already
-  name for gate commands ending in `| head`/`| tail`. It must be handled, and a
+  name for gate commands ending in `| head`/`| tail`. Handle it, and a
   run of `just file-sizes` on this repo must exit 0.
 - `uninstall-lib` ends `[ -L "$TARGET" ] && rm ... && echo ... || echo ...`,
   which survives `-e` because the `||` consumes the failure — verify that the

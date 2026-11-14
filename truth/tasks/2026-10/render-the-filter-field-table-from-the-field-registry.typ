@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent writing a filter reads the fields and which of them sort off the code that resolves them],
+      implementable-tasks: helps[an agent writing a filter reads the fields and which of them sort off the code that resolves them.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[a field added, renamed or made sortable changes the page in the same build],
+      docs-match-code: helps[a field added, renamed or made sortable changes the page in the same build.],
     ),
   ),
   assignee: "agent",
@@ -31,23 +31,23 @@
   links: parent("keep-the-user-docs-generated-or-gated-not-restated.typ")
     + depends-on(
       "list-the-template-slot-kinds-from-one-slotkind-registry.typ",
-    )[both add a registry to tree\_json.rs and generate-facts.sh, so landing in turn avoids a conflict in the same lines]
+    )[both add a registry to tree\_json.rs and generate-facts.sh, so landing together avoids a conflict in the same lines.]
     + depends-on(
       "split-the-cli-docs-drift-group-by-the-prose-each-source-feeds.typ",
-    )[it edits the outdatty group the split creates for fields.rs],
+    )[it edits the outdatty group the split creates for fields.rs.],
 )
 
 == AS-IS
 
 + Open the field table in `www/content/filters.typ` and the field list in `skills/mindtape/references/filters.md`.
-+ 🔴 Both are typed by hand, and `filters.typ` says "Every field in the table sorts except `role`, `estimate.<unit>` and `estimate`" in prose. `check-doc-facts` checks the filter functions' names on both pages, but no arm reads `FIELDS` in `crates/mindtape/src/model/fields.rs`, so a renamed field leaves both green.
++ 🔴 A writer types both by hand, and `filters.typ` says "Every field in the table sorts except `role`, `estimate.<unit>` and `estimate`" in prose. `check-doc-facts` checks the filter functions' names on both pages, but no arm reads `FIELDS` in `crates/mindtape/src/model/fields.rs`. A renamed field then leaves both green.
 
 
 == TO-BE
 
 - 🟢 `mt _cli --json` carries `fields`: every `FIELDS` entry, each marked sortable by `mindtape::sort::is_sort_field`.
-- 🟢 The filters page renders its field table from that fact and `www/utils/filter-field-notes.typ`. A note whose name is not in `FIELDS`, such as `role` or `tags`, renders as filter only, so the sort sentence comes from the data.
-- 🟢 The build fails on a field with no note, and `check-doc-facts` fails when `filters.md` names no span for a field.
+- 🟢 The filters page renders its field table from that fact and `www/utils/filter-field-notes.typ`. A note whose name is not in `FIELDS`, such as `role` or `tags`, renders as filter only. The sort sentence then comes from the data.
+- 🟢 The build fails on a field with no note, and `check-doc-facts` fails when `filters.md` has no span for a field.
 
 
 == Source of truth
@@ -69,7 +69,7 @@
 
 == Out of scope
 
-- The function table's meanings and arities, which keep the name check they have.
+- The function table's meanings and argument counts, which keep the name check they have.
 - Filter-only fields as a registry of their own. They live in the notes until a second consumer needs them.
 
 

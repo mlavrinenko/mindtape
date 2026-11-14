@@ -15,7 +15,7 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[an agent answers which tasks touch a host from the filter language instead of parsing mt ls --json with jq],
+      implementable-tasks: helps[an agent answers which tasks touch a host from the filter language instead of parsing `mt ls --json` with jq],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
@@ -32,7 +32,7 @@
 
 == AS-IS
 
-+ In a dotfiles repo, `x-machine` marks each open task's host(s); `mt ls 'x-machine == "alpha"'` should list alpha's tasks.
++ In a personal-config repo, `x-machine` marks each open task's host(s). `mt ls 'x-machine == "alpha"'` should list alpha's tasks.
 
 + 🔴 It prints `Error: unknown field in filter: x-machine`: an `x-<ns>` slot supports presence only (`has()` / `miss()`), so no expression reads its value.
 
@@ -43,7 +43,7 @@
 
 == TO-BE
 
-- 🟢 Any `x-<ns>` value is readable, declared in `[tasks.fields.x-<ns>]` or not; the declaration adds validation and the `mt add` slot, not readability.
+- 🟢 Any `x-<ns>` value is readable, declared in `[tasks.fields.x-<ns>]` or not. The declaration adds validation and the `mt add` slot, not readability.
 
 - 🟢 A scalar value compares like a core field: `x-machine == "alpha"`, `!=`, `<`, `>`, `matches(...)`, `in_dict(...)`, `--sort`.
 
@@ -74,34 +74,34 @@
 
 - `crates/mindtape/src/fields.rs`: `FieldValue` gains the list shape membership compares.
 
-- `crates/mindtape/src/filter_compare.rs`: `==` / `!=` on a list; an ordering against a list is false.
+- `crates/mindtape/src/filter_compare.rs`: `==` / `!=` on a list. An ordering against a list is false.
 
 - `crates/mindtape/src/filter_predicates.rs`: the two-argument `has()`, which `crates/mindtape/src/filter_eval.rs` dispatches to.
 
 - `crates/mindtape/src/filter_strings.rs`, `crates/mindtape/src/sort.rs`: the new value shape's arms. `commit_expr.rs` matches no `FieldValue` and only calls `filter_compare`, so it needs none.
 
-- `www/content/filters.typ` and `skills/mindtape/references/filters.md`: extras are readable, and `has()` gains its value form. `www/content/rules.typ` stops saying a filter cannot name an extra.
+- `www/content/filters.typ` and `skills/mindtape/references/filters.md`: extras are readable, and `has()` gains its value form. `www/content/rules.typ` stops saying a filter cannot read an extra.
 
 - `CHANGELOG.md`: the addition.
 
 
 == Alternatives
 
-- Infix `"alpha" in x-machine`: evalexpr 12.0.3 has no `in`, and a pre-lex rewrite needs operand boundaries, a mini expression parser (rejected for one operator).
-- `==` as membership for a list: `==` would mean two things by value shape; the exact `==` / membership `has` split is kept.
-- Declared-only readability: `[tasks.fields.x-<ns>]` gates validation, not reading; `has()` already reads undeclared names.
-- `contains("alpha", x-machine)` as membership: substring, not exact; left to a separate decision.
+- Infix `"alpha" in x-machine`: `evalexpr` 12.0.3 has no `in`, and a pre-lex rewrite needs operand boundaries, a mini expression parser (rejected for one operator).
+- `==` as membership for a list: `==` would mean two things by value shape. The design keeps the exact `==` / membership `has` split.
+- Declared-only readability: `[tasks.fields.x-<ns>]` gates validation, not reading. `has()` already reads undeclared names.
+- `contains("alpha", x-machine)` as membership: substring, not exact. That is a separate decision.
 
 
 == Out of scope
 
 - Path-addressed flattening of dict extras, ADR 002's fuller promise.
-- `--sort` for list-valued extras: no order is defined for a list.
+- `--sort` for list-valued extras: a list has no defined order.
 - Extending `contains()` to extras.
 - Writing extras from `mt set`.
 
 
 == Dogfood
 
-The `.nix` backlog drops its jq workaround and filters `x-machine`; Mindtape's own `x-goals` stays presence-only because it is a dict.
+The `.nix` backlog drops its jq workaround and filters `x-machine`. This repo's own `x-goals` stays presence-only because it is a dict.
 

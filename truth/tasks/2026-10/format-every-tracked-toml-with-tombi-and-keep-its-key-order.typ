@@ -21,7 +21,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[every tracked TOML is held to one format],
+      sound-codebase: helps[one format covers every tracked TOML.],
       docs-match-code: neutral,
     ),
   ),
@@ -40,12 +40,12 @@
 == TO-BE
 
 - 🟢 `just fmt-check` holds every tracked TOML to tombi's format.
-- 🟢 tombi never reorders table keys or array values; commented groups stay put.
+- 🟢 tombi never reorders table keys or array values. Commented groups stay put.
 
 
 == Changes
 
-- `flake.nix`: a dedicated nixpkgs input pinned for tombi >= 1.5 only, so typst and tinymist stay put; the tombi comment no longer claims 0.9+.
+- `flake.nix`: a dedicated nixpkgs input pinned for tombi >= 1.5 only, so typst and tinymist stay put. The comment beside tombi drops the 0.9+ claim.
 - `flake.lock`: the new input.
 - `tombi.toml`: turns the ordering rules off.
 - `Justfile`: `TOML_FMT_PATHS` covers every tracked `*.toml`.
@@ -53,7 +53,7 @@
 
 == Rollback
 
-Revert the commit; the old tombi and the six-path list return.
+Revert the commit. The old tombi and the six-path list return.
 
 
 == Out of scope

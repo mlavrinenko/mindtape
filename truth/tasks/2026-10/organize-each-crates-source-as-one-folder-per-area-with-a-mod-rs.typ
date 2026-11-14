@@ -22,7 +22,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a module path names its file, and an area's internals stay private to its folder],
+      sound-codebase: helps[a module path is its file path, and an area's internals stay private to its folder],
       docs-match-code: neutral,
     ),
   ),
@@ -35,19 +35,19 @@
 + Run `ls crates/mindtape/src | wc -l`.
 + 🔴 It prints 229: about 15 areas spelled as flat prefixed files (`filter_compare.rs`), with half of them `_tests.rs` siblings.
 + Run `rg -n '#\[path = "filter_eval.rs"\]' crates/mindtape/src`.
-+ 🔴 `filter.rs:430` loads `crate::filter::eval` from `src/filter_eval.rs`: about 20 child modules are kept flat with `#[path]`, beside self-named folders (`emit.rs` + `emit/`) and `mod.rs` folders (`render/mod.rs`). Four layouts, so a module path does not name its file.
++ 🔴 `filter.rs:430` loads `crate::filter::eval` from `src/filter_eval.rs`: about 20 child modules sit flat with `#[path]`, beside self-named folders (`emit.rs` + `emit/`) and `mod.rs` folders (`render/mod.rs`). Four layouts, so a module path isn't its file path.
 
 == TO-BE
 
-- 🟢 A module path is its file path. An area is a folder whose `mod.rs` opens with a `//!` map of its files; `self_named_module_files = "deny"` in `[workspace.lints.clippy]` refuses `foo.rs` + `foo/`.
-- 🟢 Tests stay ejectest siblings (`filter/eval.rs` + `filter/eval_tests.rs`); a `mod.rs` ejects to a plain `mod tests;` in `tests.rs` (ejectest `--mod-rs-tests tests`).
+- 🟢 A module path is its file path. An area is a folder whose `mod.rs` opens with a `//!` map of its files. `self_named_module_files = "deny"` in `[workspace.lints.clippy]` refuses `foo.rs` + `foo/`.
+- 🟢 Tests stay ejectest siblings (`filter/eval.rs` + `filter/eval_tests.rs`). A `mod.rs` ejects to a plain `mod tests;` in `tests.rs` (ejectest `--mod-rs-tests tests`).
 - 🟢 `#[path]` names only a `*_tests*.rs` file or the `rrule` feature stub.
 
 == Changes
 
 - No code: the moves, the lint and the `#[path]` check are their own tasks. They place each file as below.
-- Library areas: `config/` (sections, layers, packs, schema, merge, name_cycle), `rules/` (`[[tasks.rules]]`: config_rules, eval, typst, sites), `filter/` (+ expr, condition, condition_env), `validate/` (+ candidate, violation, severity), `body/` (body_gate, headers, content, gate, content_gate, density), `commit/`, `git/`, `graph/` (+ ready, dep_rank, children), `model/` (+ marker, fields, field_descriptor, numeric, canonical, handle, naming, task_spans), `loader/` (+ cache, derive, app_dirs), `link/`, `framework/`, `recur/`, `template/` (+ add_slots), `emit/` (+ status_value), `date/`, `import_map/`; `format.rs`, `fs_atomic.rs`, `sort.rs`, `suggest.rs`, `worktrees.rs`, `test_support.rs` stay at the root.
-- CLI areas: `cli/` (cli, check, dump, command_class, task_ref, completion/), `cmd/<name>/` or `cmd/<name>.rs` per command, `render/` (+ output, breach, stdout); `git.rs`, `pre_write.rs`, `task_edit.rs`, `util.rs`, `test_util.rs` stay at the root.
+- Library areas: `config/` (`sections`, `layers`, `packs`, `schema`, `merge`, `name_cycle`), `rules/` (`[[tasks.rules]]`: `config_rules`, `eval`, `typst`, `sites`), `filter/` (`expr`, `condition`, `condition_env`), and `validate/` (`candidate`, `violation`, `severity`). Then `body/` (`body_gate`, `headers`, `content`, `gate`, `content_gate`, `density`), `commit/`, `git/`, `graph/` (`ready`, `dep_rank`, `children`), and `model/` (`marker`, `fields`, `field_descriptor`, `numeric`, `canonical`, `handle`, `naming`, `task_spans`). Last, `loader/` (`cache`, `derive`, `app_dirs`), `link/`, `framework/`, `recur/`, `template/` (`add_slots`), `emit/` (`status_value`), `date/`, and `import_map/`. `format.rs`, `fs_atomic.rs`, `sort.rs`, `suggest.rs`, `worktrees.rs` and `test_support.rs` stay at the root.
+- CLI areas: `cli/` (`cli`, `check`, `dump`, `command_class`, `task_ref`, `completion/`), `cmd/<name>/` or `cmd/<name>.rs` per command, `render/` (`output`, `breach`, `stdout`). `git.rs`, `pre_write.rs`, `task_edit.rs`, `util.rs` and `test_util.rs` stay at the root.
 
 == Out of scope
 

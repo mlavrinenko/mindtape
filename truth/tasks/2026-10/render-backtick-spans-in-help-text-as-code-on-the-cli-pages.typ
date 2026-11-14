@@ -41,8 +41,8 @@ $ mt ls --help
           Skip the first N rows after sorting. For page two of `-n 20`, use `--skip 20`. ...
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("www/utils/cli-ref.typ").
 
 == TO-BE

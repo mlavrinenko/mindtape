@@ -16,7 +16,7 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a commit rule can cap how many source files a commit changes, so a tweak stays one file],
+      enforced-practice: helps[a commit rule can cap how many source files a commit changes. A tweak then stays one file],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -33,13 +33,13 @@
 == AS-IS
 
 + Adding a commit rule that caps a tweak's commit at one source file
-+ 🔴 #raw("crates/mindtape/src/commit_expr.rs"): a commit rule cannot count \`files\`, and \`changed()\` is refused there
++ 🔴 #raw("crates/mindtape/src/commit_expr.rs"): a commit rule cannot count \`files\`, and the rule refuses \`changed()\` there
 
 `assert = 'changed("staged", "!README.md", …) <= 1'` in a `[[commits.rules]]` entry fails config load with `invalid filter: expected a field, got FunctionIdentifier { identifier: "changed" }`. `files` only takes `has`, `miss` and `matches`.
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("crates/mindtape/src/commit_expr.rs").
 
 == TO-BE
@@ -55,7 +55,7 @@ left in a closing report no one rereads. It belongs in
 
 == Rollback
 
-Revert the commit; a tweak's size is unchecked again.
+- Revert the commit. A tweak's size goes unchecked again.
 
 
 == Out of scope

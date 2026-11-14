@@ -17,12 +17,12 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a Windows user can paste every path `mt` prints into cmd or PowerShell as is],
+      cheap-adoption: helps[a Windows user can paste every path `mt` prints into `cmd` or PowerShell as is],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[one helper renders each kind of path, so a Linux test pins what Windows prints],
+      sound-codebase: helps[one helper renders each kind of path.A Linux test pins what Windows prints],
       docs-match-code: neutral,
     ),
   ),
@@ -55,7 +55,7 @@ tasks/a.typ
 
 == Changes
 
-- `crates/mindtape/src/path_text.rs` (new), `path_text_tests.rs`: the red tests first, with an injected separator; `display_path`, `slash_path` moved here, and `init_path_separator`.
+- `crates/mindtape/src/path_text.rs` (new), `path_text_tests.rs`: the red tests first, with an injected separator. `display_path`, `slash_path` moved here, and `init_path_separator`.
 - `crates/mindtape/src/lib.rs`: export them.
 - `crates/mindtape-cli/src/cli/mod.rs`: the global `--path-separator` flag, one ASCII character.
 - `crates/mindtape-cli/src/main.rs`: set the separator before any command runs.
@@ -66,7 +66,7 @@ tasks/a.typ
 
 == Alternatives
 
-- `/` everywhere: a Windows user can't paste a path into cmd, which reads `/` as a switch.
+- `/` everywhere: a Windows user can't paste a path into `cmd`, which reads `/` as a switch.
 - Native in JSON too, as cargo does: a script then parses the output differently on each OS, and a stored record means different things.
 - A `--path-separator` on each command: `--color` is global because every command prints errors, and errors carry paths too.
 
@@ -79,5 +79,5 @@ tasks/a.typ
 
 == Dogfood
 
-Not applicable: this repo is developed on Linux, where the native separator is `/` already.
+Not applicable: this repo's maintainers develop on Linux, where the native separator is `/` already.
 

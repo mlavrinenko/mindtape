@@ -44,21 +44,21 @@ crates/mindtape-cli/src/cmd/add/interactive.rs:122:    let status = Command::new
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so this task files it here rather
+than leaving it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/allow.rs").
 
 == TO-BE
 
 - 🟢 `allow::commands` lists `[go] editor` and `[add] editor` beside the `run` lines, so a clone or a pack that sets one asks `mt allow` first.
 - 🟢 Until then, `mt go` and the editor fill fall back to `$VISUAL`, then `$EDITOR`, and warn once naming the held command.
-- 🟢 An editor set in the user's own `<config home>/mindtape/defaults.toml` needs no approval. An ancestor's `.mindtape/defaults.toml` can sit inside a clone, so it is held like the project's file.
+- 🟢 An editor set in the user's own `<config home>/mindtape/defaults.toml` doesn't need approval. An ancestor's `.mindtape/defaults.toml` can sit inside a clone, so mt holds it like the project's file.
 - 🟢 One `mt allow` covers the editors and the `run` lines, and `mt ls`'s open takes the same gate, since it spawns `[go] editor` too.
 
 
 == Changes
 
-- `crates/mindtape/src/allow_tests.rs`: the red tests first: a project `[go] editor` is held, a user-layer one runs.
+- `crates/mindtape/src/allow_tests.rs`: the red tests first: mt holds a project `[go] editor` for approval, and a user-layer one runs.
 - `crates/mindtape/src/allow.rs`: list the two editor commands unless the user's global layer set them (`UserCommands`, stamped on the `Config` at load by `config/layers.rs`), and `runnable_editor` decides whether a caller may spawn one, holding it otherwise.
 - `crates/mindtape-cli/src/cmd/go.rs`, `crates/mindtape-cli/src/cmd/add/mod.rs`, `crates/mindtape-cli/src/cmd/add/interactive.rs`, `crates/mindtape-cli/src/cmd/ls/interactive/mod.rs`: skip a held editor and fall back.
 - `www/content/config.typ`, `www/content/cli/allow.typ`, `www/content/templates.typ`, `www/utils/cli-notes.typ`, `docs/src/skill.typ`: say the editor keys wait for `mt allow`.
@@ -72,10 +72,10 @@ left in a closing report no one rereads. It belongs in
 
 == Out of scope
 
-- Other keys that spawn nothing: only a key whose value `mt` executes needs approval.
+- Other keys that don't spawn anything: only a key whose value `mt` executes needs approval.
 
 
 == Dogfood
 
-This repo sets no editor key, so `mt go` here keeps using `$VISUAL`.
+This repo doesn't set an editor key, so `mt go` here keeps using `$VISUAL`.
 

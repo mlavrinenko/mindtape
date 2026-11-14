@@ -43,7 +43,7 @@
 == TO-BE
 
 - 🟢 The page is `www/content/packs.typ`, titled "Packs", at `/packs/`, and every link, slice, capture and outdatty entry names it there.
-- 🟢 Its content is unchanged: the leaves of `share-config-between-projects-through-packs.typ` rewrite it section by section.
+- 🟢 Its content stays unchanged, down to the leaves of `share-config-between-projects-through-packs.typ`, which rewrites it section by section.
 
 
 == Source of truth

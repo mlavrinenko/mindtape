@@ -33,7 +33,7 @@
 == AS-IS
 
 + Reviewing commit 2a3e070f with a \`git mv\` in a scratch repository
-+ 🔴 #raw("crates/mindtape/src/commit_msg.rs"): count(files) counts a rename as two files where changed() counts one, and the 14-glob exclude list is copied into both src-budget and tweak-stays-one-file.
++ 🔴 #raw("crates/mindtape/src/commit_msg.rs"): count(files) counts a rename as two files where changed() counts one, and both src-budget and tweak-stays-one-file copy the 14-glob exclude list.
 
 After `git mv src/old.rs src/new.rs`, the task rule `changed("staged", "src/**") <= 1` passes and the commit rule `count(files, "src/**") <= 1` refuses:
 ```

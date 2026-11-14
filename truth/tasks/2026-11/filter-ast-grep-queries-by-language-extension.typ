@@ -22,13 +22,13 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[a shape count reads only the language's source files, so a rule can trust it],
+      enforced-practice: helps[A shape count reads only the language's source files. A rule can trust it.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the shared engine filters by the grammar's own extension map instead of a second walk],
+      sound-codebase: helps[The shared engine filters by the grammar's own extension map instead of a second walk.],
       docs-match-code: neutral,
     ),
   ),
@@ -39,7 +39,7 @@
 == AS-IS
 
 + Reviewing both waves of the ast-grep milestone after it landed
-+ 🔴 #raw("crates/mindtape/src/query/mod.rs"): `ast_grep` parses every git-listed UTF-8 file as Rust, so a broad query counts Markdown, TOML and the task file that declares it.
++ 🔴 #raw("crates/mindtape/src/query/mod.rs"): `ast_grep` parses every git-listed UTF-8 file as Rust. A broad query then counts Markdown, TOML and the task file that declares it.
 
 A temp git project held `README.txt`, `docs/notes.md`, `src.rs` and the task's own `tasks/a.typ`, each containing `warm(1)`. The task estimated:
 
@@ -57,12 +57,12 @@ $ mt eval a --json | jq .derived
 {"callers": ["README.txt", "docs/notes.md", "src.rs", "tasks/a.typ"]}
 ```
 
-`crates/mindtape/src/query/mod.rs` reads every candidate and runs the Rust grammar over it; no extension check exists.
+`crates/mindtape/src/query/mod.rs` reads every candidate and runs the Rust grammar over it. The code has no extension check.
 
 == TO-BE
 
-- 🟢 Only files with the language's extensions are parsed, `.rs` for `rust` and `rs`.
-- 🟢 A `.md` or `.typ` file with the same text matches nothing, and a task file that declares the query no longer matches itself.
+- 🟢 The engine parses only files with the language's extensions, `.rs` for `rust` and `rs`.
+- 🟢 A `.md` or `.typ` file with the same text does not match, and a task file that declares the query stops matching itself.
 - 🟢 The estimates page and the collector pages say which files a language query reads.
 - 🟢 A red test pins a `.rs` match beside `.md` and `.typ` decoys.
 
@@ -78,15 +78,15 @@ estimate.files = 2
 - `crates/mindtape/src/query/mod.rs`: carry the language beside the compiled pattern and filter candidates by `SupportLang::from_path`.
 - `crates/mindtape/src/query/tests.rs`: a `.rs` file matches while a `.md` and `.typ` with the same text do not.
 - `crates/mindtape/src/collect/tests.rs` and `crates/mindtape/src/estimate_queries_tests.rs`: one red test each that a non-Rust file is not counted.
-- `www/content/estimates.typ`, `config.typ`, `rules.typ`: name the extension rule.
+- `www/content/estimates.typ`, `config.typ`, `rules.typ`: state the extension rule.
 - `CHANGELOG.md`: say a shape query reads only its language's files.
 
 == Out of scope
 
-- Extra grammars; this wave stays Rust-only.
-- Matching macro expansions; ast-grep reads source, not expanded code.
+- Extra grammars stay out. This wave stays Rust-only.
+- Matching macro expansions stays out. ast-grep reads source, not expanded code.
 - A persistent parse cache.
 
 == Dogfood
 
-The estimates fixture's shape query counts only its `src/*.rs` files, and the task that declares the query no longer matches itself.
+The estimates fixture's shape query counts only its `src/*.rs` files, and the task that declares the query stops matching itself.

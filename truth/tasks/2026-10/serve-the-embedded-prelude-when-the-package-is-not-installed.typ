@@ -53,7 +53,7 @@
 - `typst-world`, the sibling crate: `World::with_file_provider`, so a host can wrap the disk provider. Release it.
 - `crates/mindtape/src/loader/embedded.rs`: the red test first, then a provider that falls back to the embedded package.
 - `crates/mindtape/src/loader/mod.rs`: `with_packages` installs it.
-- `crates/mindtape-cli/src/cmd/init/mod.rs`: read the prelude and its version from the library, which now holds the copy.
+- `crates/mindtape-cli/src/cmd/init/mod.rs`: read the prelude and its version from the library, which holds the copy.
 - `crates/mindtape-cli/src/cmd/check/`: no missing-prelude warning for the embedded version.
 - `www/content/quickstart.typ`: `mt install` serves the editor.
 
@@ -65,5 +65,5 @@
 
 == Dogfood
 
-This repo pins `lib/` under `[[typst.local-packages]]` and keeps reading it. canibump's and mmz's CI run `mt check` with no install.
+This repo pins `lib/` under `[[typst.local-packages]]` and keeps reading it. The CI of `canibump` and `mmz` runs `mt check` with no install.
 

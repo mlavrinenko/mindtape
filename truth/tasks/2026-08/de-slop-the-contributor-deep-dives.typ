@@ -17,9 +17,8 @@
 == Summary
 
 `docs/src/contributing.typ` and the six deep dives behind it total 1082 lines
-of source, much of it arguing decisions at a length that made sense while the
-decision was being made and no longer serves a reader who has to follow the
-process. They also restate each other: the gate list appears in
+of source. Much of that argues decisions at a length that suited the decision in
+progress rather than a reader who has to follow the process. They also restate each other: the gate list appears in
 `contributing.typ` and again in `contributing/gates.typ`, and coverage
 thresholds appear in two of the six.
 
@@ -34,7 +33,7 @@ Tighten them, and fold each duplicated fact into the one place that derives it.
 == Rules
 
 Every gate name, recipe, threshold, flag and file path stays. The `#just.*`
-calls and the `fact(...)` reads stay — those are the anti-drift machinery, not
+calls and the `fact(...)` reads stay. Those are the anti-drift machinery, not
 prose. What goes: the second telling of a rule, the paragraph that explains
 why an obvious thing is obvious, and hedged advice that never resolves into an
 instruction. This task does not touch `docs/src/readme.typ`, `agents.typ`,

@@ -40,13 +40,13 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 - 🟢 `error: bad.json:1:2: not JSON: expected ident`.
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/import/mod.rs`, `crates/mindtape-cli/src/cmd/import/input.rs`: one line with the file and place; the skip count stays a summary.
-- `crates/mindtape-cli/src/cmd/init/compose.rs`, `crates/mindtape-cli/src/cmd/init/preset.rs`, `crates/mindtape-cli/src/cmd/init/wizard/mod.rs`: shorten the long messages; drop the `allow`s and their `diag/allowlist.rs` entries for `import` and `init` in `crates/mindtape-cli/src/cmd/mod.rs`.
+- `crates/mindtape-cli/src/cmd/import/mod.rs`, `crates/mindtape-cli/src/cmd/import/input.rs`: one line with the file and place, and the skip count stays a summary.
+- `crates/mindtape-cli/src/cmd/init/compose.rs`, `crates/mindtape-cli/src/cmd/init/preset.rs`, `crates/mindtape-cli/src/cmd/init/wizard/mod.rs`: shorten the long messages, and drop the `allow`s and their `diag/allowlist.rs` entries for `import` and `init` in `crates/mindtape-cli/src/cmd/mod.rs`.
 
 == Out of scope
 

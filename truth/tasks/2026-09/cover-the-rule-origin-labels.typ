@@ -15,13 +15,13 @@
     product: (
       readable-tasks: neutral,
       implementable-tasks: neutral,
-      enforced-practice: helps[the origin column is how a repo checks which pack supplied a rule, so its labels have to be pinned],
-      cheap-adoption: helps[a repo adopting a pack trusts the merge only as far as it can see where each rule came from],
+      enforced-practice: helps[the origin column is how a repo checks which pack supplied a rule. The repo needs a test on its labels],
+      cheap-adoption: helps[a repo adopting a pack accepts the merge only as far as it can see where each rule came from.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the one function over the CRAP threshold goes back under it],
+      sound-codebase: helps[the one function over the CRAP threshold goes back under it.],
       docs-match-code: neutral,
     ),
   ),
@@ -41,17 +41,17 @@
 == TO-BE
 
 - 🟢 A test pins each of the six origin labels `mt config show --origin` can print: `embedded`, `xdg`, `dir`, `project`, `pack <name>` and `pack <path>`.
-- 🟢 `just crap` reports no function over the threshold.
+- 🟢 Every function stays under the CRAP threshold.
 
 
 == Changes
 
-- `crates/mindtape-cli/src/config_cmd_tests.rs`: red tests first, over a project whose rules arrive from an embedded pack, a path pack, an ancestor layer and the project itself, asserting the `--origin` line each rule gets. Where a case cannot be reached through `render_origin`, call `describe_rule_origin` directly and say why in the commit body.
+- `crates/mindtape-cli/src/config_cmd_tests.rs`: red tests first, over a project whose rules arrive from an embedded pack, a path pack, an ancestor layer and the project itself, asserting the `--origin` line each rule gets. Where `render_origin` cannot reach a case, call `describe_rule_origin` directly and say why in the commit body.
 
 
 == Out of scope
 
-- Rewriting `describe_rule_origin`: a flat match over six variants reads fine; the coverage is what is missing.
+- Rewriting `describe_rule_origin`: a flat match over six variants reads fine. The coverage is what is missing.
 - `just crap-baseline`: re-mint it only if the threshold arm still fails once the tests land.
 
 

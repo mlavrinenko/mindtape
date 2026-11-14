@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[every error says what failed and what to try, in one shape],
+      cheap-adoption: helps[every error says what failed and what to try, in one shape.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -31,7 +31,7 @@
     2026,
     10,
     8,
-  )[Breaches, commit-message problems and the range error go to stderr through Diag; the last line counts the problems.],
+  )[Breaches, commit-message problems and the range error go to stderr through `Diag`. The last line counts the problems.],
   links: depends-on(
     "build-an-error-dsl-that-fixes-the-message-format-and-the-exit-code.typ",
   ),
@@ -46,15 +46,15 @@
 
 == TO-BE
 
-- 🟢 Each message is built with `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
+- 🟢 Each message goes through `Diag` (`crates/mindtape-cli/src/diag/`), so it follows the format in that module's docs: one `error:` line, the typed value single-quoted, the next step on a `hint:` line.
 - 🟢 Every breach goes to stderr, a load error under `mt check` is `error:`, and the last line is `error: 3 problems in 2 tasks`. `ok:` stays on stdout.
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/check/mod.rs`: breaches and load errors to stderr through `emit`; the summary as one `Diag`.
+- `crates/mindtape-cli/src/cmd/check/mod.rs`: breaches and load errors to stderr through `emit`. The summary is one `Diag`.
 - `crates/mindtape-cli/src/cmd/check/commit.rs`: commit-message problems to stderr.
 - `crates/mindtape-cli/src/cmd/check/range.rs`: `error: can't read commit range: 'HEAD~5..HEAD': <git's reason>`.
-- `crates/mindtape-cli/src/cmd/mod.rs`: drop the `allow` and its `diag/allowlist.rs` entry for `check` once `templates.rs` is converted too.
+- `crates/mindtape-cli/src/cmd/mod.rs`: drop the `allow` and its `diag/allowlist.rs` entry for `check` once `templates.rs` follows too.
 
 == Out of scope
 

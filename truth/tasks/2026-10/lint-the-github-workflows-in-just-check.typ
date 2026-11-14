@@ -33,13 +33,13 @@
 == AS-IS
 
 1. Edit `.github/workflows/ci.yml` so a job `needs` a job that doesn't exist.
-2. 🔴 Run `just check`. It passes: no gate reads the workflows, so the error shows only on GitHub, after a push.
+2. 🔴 Run `just check`. It passes: no gate reads the workflows.The error shows only on GitHub, after a push.
 3. 🔴 `tests/it/release_workflow_e2e.rs` runs a step of `release.yml`, but `just test` and `just cover` don't hash `.github/workflows/`, so a `release.yml` edit leaves both falsely fresh.
 
 
 == TO-BE
 
-- 🟢 `just check-workflows` runs actionlint, with shellcheck on each `run:` block, and `just check` runs it.
+- 🟢 `just check-workflows` runs `actionlint`, with `shellcheck` on each `run:` block, and `just check` runs it.
 - 🟢 A workflow edit re-runs `just test` and `just cover`.
 
 ```yaml
@@ -52,8 +52,8 @@ rules: [{name: just check-workflows, tags: [gate], inputs: [workflows, gates-met
 
 - `Justfile`: a `check-workflows` gate in `_check-fast`.
 - `.mmz/config.yaml`: a `workflows` scope, read by the new gate, `just test` and `just cover`.
-- `flake.nix`: actionlint and shellcheck in the dev shell.
-- `.github/workflows/release.yml`: the one shellcheck finding, `tr 'A-Z' 'a-z'`.
+- `flake.nix`: `actionlint` and `shellcheck` in the dev shell.
+- `.github/workflows/release.yml`: the one `shellcheck` finding, `tr 'A-Z' 'a-z'`.
 
 
 == Rollback

@@ -37,12 +37,12 @@
 == AS-IS
 
 + After the captures move, run `rg -l learn-piano . -g '!examples/learn-piano/**' -g '!truth/**'`.
-+ 🔴 Only gate wiring still names it (`Justfile` `check-examples`, `TYPST_FMT_PATHS`, `.mmz/config.yaml`), so the gate keeps validating a fixture nothing reads.
++ 🔴 Only gate wiring still references it (`Justfile` `check-examples`, `TYPST_FMT_PATHS`, `.mmz/config.yaml`). The gate then keeps validating a fixture nothing reads.
 
 
 == TO-BE
 
-- 🟢 `examples/learn-piano/` is gone, and no gate, path list or doc names it.
+- 🟢 The change removes `examples/learn-piano/`, and no gate, path list or doc references it.
 
 
 == Changes
@@ -61,7 +61,7 @@ Revert the commit to restore the directory.
 
 == Out of scope
 
-- The other single-subject fixtures: pages still slice them.
+- Pages still slice the other single-subject fixtures.
 
 
 == Dogfood

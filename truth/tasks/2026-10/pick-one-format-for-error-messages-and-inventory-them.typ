@@ -17,7 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a newcomer understands what `mt` does and how to use it on the first read],
+      cheap-adoption: helps[a newcomer sees what `mt` does and how to use it on the first read.],
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
@@ -31,7 +31,7 @@
     2026,
     10,
     7,
-  )[the format is in the task and the DSL's module docs; the inventory split became the fan-out tasks],
+  )[the format is in the task and in the module docs for the DSL. The inventory split became the fan-out tasks],
   links: depends-on("give-the-docs-a-conversational-voice.typ"),
 )
 
@@ -52,7 +52,7 @@
 
 == Changes
 
-- An inventory of every message `mt` prints, grouped by where it is built, and one format for all, shown on three real messages.
+- An inventory of every message `mt` prints, grouped by where it comes from, and one format for all, shown on three real messages.
 - A follow-up task for the mechanical rewrite of the rest.
 
 Proposed format, from the inventory in `target/error-inventory.md`:
@@ -64,14 +64,14 @@ note: <context, no action>
 warning: <same shape; nothing was refused>
 ```
 
-- `crates/mindtape-cli/src/main.rs`: prints errors itself, so no `Error:` or `Caused by:`; a cause chain joins into one line. Exit 0 ok, 1 refused or failed, 2 bad command line.
-- Quoting: user values in single quotes, as clap does; field and rule names bare; at most two hints.
-- Breaches keep `error: tasks/x.typ:2: rules.one-wip: <message>`. On a write, `error:` means nothing was written.
+- `crates/mindtape-cli/src/main.rs`: prints errors itself, with no `Error:` or `Caused by:` prefix. A cause chain joins into one line. Exit 0 ok, 1 refused or failed, 2 bad command line.
+- Quoting: user values in single quotes, as clap does. Field and rule names bare, and at most two hints.
+- Breaches keep `error: tasks/x.typ:2: rules.one-wip: <message>`. On a write, `error:` means the command did not write the file.
 - Batches: no summary for one target, else `error: flipped 1 of 3 tasks; 2 failed`.
-- A config `message` is the imperative next step; a gate's becomes the hint.
-- Typst: `error: file:line:col: <Typst's words>` plus Typst's hints. Only the prefix is coloured.
+- A config `message` is the imperative next step. A gate's becomes the hint.
+- Typst: `error: file:line:col: <Typst's words>` plus Typst's hints. Only the prefix carries colour.
 
-Rewrite split, at most 5 files each, the first one first: renderer and `main`; refs and suggestions; batches; single writes and check; filter parse; filter functions; config load; validators A; validators B; framework and body; Typst diagnostics; `mt add`; mv, rm, recur; other commands; rule messages.
+Rewrite split, at most 5 files each, the first one first. The order is renderer and `main`, refs and suggestions, batches, single writes and check, then filter parse. After that come filter functions, config load, validators A, validators B, framework and body. The tail is Typst diagnostics, `mt add`, `mv`, `rm`, recur, other commands, and rule messages.
 
 == Out of scope
 

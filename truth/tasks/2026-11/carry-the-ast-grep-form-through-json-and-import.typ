@@ -35,7 +35,7 @@
 
 + Export a task whose estimate uses `ast_grep(...)` with `mt ls --json`.
 + 🔴 `CanonicalQuery` has `Grep` and `Glob` only, so the ast-grep query cannot serialize.
-+ Re-import the export and the shape query is lost.
++ Re-import the export and the shape query disappears.
 
 
 == TO-BE
@@ -58,7 +58,7 @@
 
 == Changes
 
-- `crates/mindtape/src/model/canonical.rs`: the `AstGrep` variant, its serde tag and both conversions, which `import_map` reads to rebuild the query.
+- `crates/mindtape/src/model/canonical.rs`: the `AstGrep` variant, its `serde` tag and both conversions, which `import_map` reads to rebuild the query.
 - `crates/mindtape/src/emit/mod.rs`: write `ast_grep(...)` back.
 - `crates/mindtape/src/emit/tests.rs`: red round-trip test for the authored form.
 - `crates/mindtape-cli/tests/it/estimate_queries_e2e.rs`: `ls --json | import` keeps the shape query.
@@ -69,7 +69,7 @@
 
 == Alternatives
 
-- Reuse `CanonicalQuery::Grep` with a language field: changes what an existing tag means and leaves an old consumer guessing.
+- Reuse `CanonicalQuery::Grep` with a language field: changes what an existing tag means and leaves an old consumer without an answer.
 - Carry the source as a free-form string: import would have to parse Typst again.
 
 

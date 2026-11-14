@@ -15,7 +15,7 @@
 
 == Summary
 
-The publish job in .github/workflows/release.yml still runs \`cargo publish -p typst-harvest --locked\`, but typst-harvest is no longer a workspace member (consumed from crates.io) — the step fails the job. Drop it and its sleep, keep mindtape -> sleep 30 -> mindtape-cli.
+The publish job in .github/workflows/release.yml still runs `cargo publish -p typst-harvest --locked`. typst-harvest is not a workspace member and comes from crates.io. That step fails the job. Drop it and its sleep, and keep mindtape -> sleep 30 -> mindtape-cli.
 
 == Scope
 

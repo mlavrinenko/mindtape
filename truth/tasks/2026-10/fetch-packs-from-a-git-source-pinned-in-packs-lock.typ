@@ -17,9 +17,9 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
-      cheap-adoption: helps[a team adopts its own packs from one repository, pinned, without a submodule or a copy per project],
+      cheap-adoption: helps[a team adopts its own packs from one repository, pinned, without a submodule or a copy per project.],
       typst-over-markdown: neutral,
-      plain-files: hurts[a fetched pack lives outside the repo, though `mt packs install` restores it from the committed lock],
+      plain-files: hurts[a fetched pack lives outside the repo, though `mt packs install` restores it from the committed lock.],
     ),
     process: (
       sound-codebase: neutral,
@@ -31,7 +31,7 @@
     2026,
     10,
     26,
-  )[agreed: \[pack-sources\] in the project layer, a committed packs.lock, a sha256-addressed cache, mt packs install and update, and no fetch in read commands],
+  )[Agreed: \[pack-sources\] in the project layer, a committed packs.lock, a sha256-addressed cache, and mt packs install and update. Read commands never fetch.],
   links: parent("share-config-between-projects-through-packs.typ")
     + related(
       "../2026-09/let-a-config-extend-rule-packs.typ",
@@ -41,8 +41,8 @@
 == AS-IS
 
 + Keep a team's packs in their own git repository and adopt them in more than one project.
-+ 🔴 An `extends` entry is a built-in name or a path inside the project, so each project carries the packs as a submodule or a copy, and every `just fork` worktree must initialise the submodule again.
-+ 🔴 Nothing records which revision a project adopted, or notices a hand-edited copy.
++ 🔴 An `extends` entry is a built-in name or a path inside the project. Each project then carries the packs as a submodule or a copy, and every `just fork` worktree must initialise the submodule again.
++ 🔴 The project tracks neither the revision it adopted nor a hand-edited copy.
 
 
 == TO-BE
@@ -56,14 +56,14 @@ ref = "v1"   # a tag, branch or commit
 ```
 
 - 🟢 `.mindtape/packs.lock`, written by `mt` and committed, pins each source's commit and the sha256 of its files.
-- 🟢 A source is fetched once per machine into `<cache dir>/mindtape/packs/<sha256>/`, shared by every project and worktree, and re-hashed on each load.
+- 🟢 `mt` fetches a source once per machine into `<cache dir>/mindtape/packs/<sha256>/`. Every project and worktree shares that copy, and each load re-hashes it.
 - 🟢 Read commands never fetch. `mt packs install` fetches what the lock pins, as `npm ci` does, and `mt packs update` moves sources along their `ref` and prints what changed.
 - 🟢 Fetching runs `git`, so private repositories use the user's own credentials.
 
 
 == Changes
 
-- `truth/tasks/*.typ`: the leaves that build it, linked with `parent` to `share-config-between-projects-through-packs.typ`. This decision changes no file itself.
+- `truth/tasks/*.typ`: the leaves that build it, linked with `parent` to `share-config-between-projects-through-packs.typ`. This decision alone has no file change.
 
 
 == Alternatives

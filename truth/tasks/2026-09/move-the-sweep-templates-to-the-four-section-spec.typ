@@ -16,7 +16,7 @@
     2026,
     9,
     15,
-  )[The four sweep templates moved to the six-section shape with their slot names unchanged, so the ask-refactoring scripts needed no edit.],
+  )[The four sweep templates moved to the six-section shape with their slot names unchanged. The ask-refactoring scripts stay as they are.],
   links: depends-on(
     "replace-the-task-section-set-with-a-closed-four-section-spec.typ",
   ),
@@ -24,7 +24,7 @@
 
 == Summary
 
-`just ask-refactoring` files tasks from four templates that write Summary and Scope. Once the four-section spec is defined, every swept task is filed in the old shape and has to be migrated by hand, and the sweep would block closing the allowlist.
+`just ask-refactoring` files tasks from four templates that write Summary and Scope. Once the four-section spec exists, the sweep files every task in the old shape, and a writer has to migrate it by hand. The sweep would also block closing the allowlist.
 
 
 == Scope

@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running `just check` on main after four parallel branches landed, each rebased onto main first
-+ 🔴 #raw(".just/scripts/wt-carry-lcov.sh"): after a branch is rebased and landed, main's `just crap` fails on a stale lcov, though `just cover` read fresh in the branch's records
++ 🔴 #raw(".just/scripts/wt-carry-lcov.sh"): after a rebase and land, main's `just crap` fails on a stale lcov, though `just cover` read fresh in the branch's records
 
 ```
 just crap: target/coverage/lcov.info predates crates/mindtape/src/filter/eval.rs — run `just cover` first
@@ -42,8 +42,8 @@ check: 1 of 29 gates failed: just crap
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw(".just/scripts/wt-carry-lcov.sh").
 
 == TO-BE
@@ -54,12 +54,12 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- `.just/scripts/wt-carry-lcov.sh` and `.just/scripts/_lcov-stale-reason.sh`: judge staleness by content, as mmz does, not by mtime (a rebase gives touched files new mtimes); or report the skip.
+- `.just/scripts/wt-carry-lcov.sh` and `.just/scripts/_lcov-stale-reason.sh`: judge staleness by content, as mmz does, not by modification time, since a rebase gives touched files new modification times. Otherwise report the skip.
 
 
 == Rollback
 
-- Revert the commit. Main pays a `just cover` after a rebased land, as now.
+- Revert the commit. Main pays a `just cover` after a rebased land, as today.
 
 
 == Out of scope

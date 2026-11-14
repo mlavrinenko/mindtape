@@ -61,7 +61,7 @@ One carrier serves this task and `place-a-config-warning-at-the-pack-or-layer-th
 
 - `crates/mindtape-cli/src/cmd/config_tests.rs`: the red test first, the output above.
 - `crates/mindtape/src/config/origins.rs`: `KeyOrigin`, `ParamOrigin` and the `Sources` methods that record them.
-- `crates/mindtape/src/config/packs.rs`, `crates/mindtape/src/config/pack_fold.rs`: record each pack's leaf keys and parameters while folding, from the per-pack tables `PackLayer` keeps, and the layer's own after them so a replaced key names the layer.
+- `crates/mindtape/src/config/packs.rs`, `crates/mindtape/src/config/pack_fold.rs`: record each pack's leaf keys and parameters while folding, from the per-pack tables `PackLayer` keeps, and the layer's own after them. A replaced key then points at the layer.
 - `crates/mindtape/src/config/params.rs`: `apply_params` returns each resolved parameter and whether the entry's `with` set it.
 - `crates/mindtape/src/config/layers.rs`, `crates/mindtape/src/config/mod.rs`, `crates/mindtape/src/lib.rs`: `Config::key_origins` and `Config::param_origins`, and the re-exported types.
 - `crates/mindtape-cli/src/cmd/config.rs`: print them.

@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running mt check on a hand-written task in examples/api-service to see what the docs captures will show
-+ 🔴 #raw("crates/mindtape/src/gate.rs"): One mt check listing prints breaches in three shapes: a task rule with an error prefix and a file and line, a missing body section with neither, and a body content rule with a file and line but no prefix.
++ 🔴 #raw("crates/mindtape/src/gate.rs"): One mt check listing prints breaches in three shapes. A task rule has an error prefix and a file and line, and a missing body section has neither. A body content rule has a file and line but no prefix.
 
 ```
 error: tasks/cache-the-product-list.typ:2: rules.split-big-work: split it into tasks of 5 source files or fewer
@@ -42,20 +42,20 @@ tasks/cache-the-product-list.typ:8: body.content.rules.problem-is-numbered-steps
 ```
 
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("crates/mindtape/src/gate.rs").
 
 == TO-BE
 
-- 🟢 Every breach line in an `mt check` listing starts with its severity, then the file and line, so a reader scans one column.
+- 🟢 Every breach line in an `mt check` listing starts with its severity, then the file and line. A reader then scans one column.
 - 🟢 A missing section reports at the task's `task.with(` line, the line a `[[tasks.rules]]` breach already uses.
 
 
 == Changes
 
 - `crates/mindtape/src/gate.rs`: when a diagnostic has no line, `diagnostic_to_violation` falls back to the task's `task.with(` line.
-- `crates/mindtape-cli/src/check.rs`: `print_violation` prints a prefix on every breach. Its doc comment argues the prefix belongs to `[[tasks.rules]]` only, so the comment changes with it.
+- `crates/mindtape-cli/src/check.rs`: `print_violation` prints a prefix on every breach. Its doc comment argues the prefix belongs to `[[tasks.rules]]` only. The comment changes with it.
 
 
 == Rollback

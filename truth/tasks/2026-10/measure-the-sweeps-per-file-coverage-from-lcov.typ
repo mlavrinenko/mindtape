@@ -33,7 +33,7 @@
 == AS-IS
 
 + Running `just ask-refactoring` after the first sweep batch landed
-+ 🔴 #raw("contrib/ask-refactoring/coverage.sh"): the coverage arm reads `cargo llvm-cov report --json --summary-only`, which counts a line once per monomorphized copy of the binary crate, so all 9 files it reports sit at or above the floor in `lcov.info`
++ 🔴 #raw("contrib/ask-refactoring/coverage.sh"): the coverage arm reads `cargo llvm-cov report --json --summary-only`, which counts a line once per generic instantiation in the binary crate, so all 9 files it reports sit at or above the floor in `lcov.info`
 
 ```
 crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs   json  75.0  lcov 100.0
@@ -42,8 +42,8 @@ crates/mindtape-cli/src/cmd/preset.rs           json  79.7  lcov  93.2
 crates/mindtape-cli/src/cmd/review.rs           json  79.1  lcov  88.1
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it, so I filed it here rather than
+leave it in a closing report no one rereads. It belongs in
 #raw("contrib/ask-refactoring/coverage.sh").
 
 == TO-BE

@@ -39,8 +39,8 @@
 git stash pop in voice-contributor applied "On voice-site-guide: chunkB" (aa4a00dd) instead of its own entry
 ```
 
-This fell outside the task that surfaced it, so it is filed here rather than
-left in a closing report no one rereads. It belongs in
+This fell outside the task that surfaced it. The fix lives here rather than
+in a closing report no one rereads. Its home is
 #raw("docs/src/contributing.typ").
 
 == TO-BE

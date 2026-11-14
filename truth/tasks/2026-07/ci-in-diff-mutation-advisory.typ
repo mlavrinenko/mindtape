@@ -12,12 +12,12 @@
     2026,
     7,
     21,
-  )[decided against in simplify-the-mutants-daily-loop: TIMEOUT verdicts are untrustworthy on a shared runner; run just mutants-diff locally],
+  )[decided against in simplify-the-mutants-daily-loop: `TIMEOUT` verdicts are untrustworthy on a shared runner. Run just mutants-diff locally],
 )
 
 == Summary
 
-Decide whether a per-PR `cargo mutants --in-diff` advisory check earns its keep now that the equivalent-mutant floor in `.cargo/mutants.toml` is stable (10 entries, each with a documented reason). Scoped to touched lines, so fast; non-blocking at first. Promote to a gate only if it proves low-noise.
+Decide whether a per-PR `cargo mutants --in-diff` advisory check earns its keep with the equivalent-mutant floor in `.cargo/mutants.toml` stable (10 entries, each with a documented reason). The check covers only touched lines, so it is fast, and non-blocking at first. Promote to a gate only if it proves low-noise.
 
 == Scope
 

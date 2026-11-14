@@ -15,14 +15,14 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[a template names a field's example without copying the field's allowed values, and the caller still sees the list],
+      implementable-tasks: helps[a template gives a field's example without copying the field's allowed values, and the caller still sees the list.],
       enforced-practice: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the template check no longer depends on the order of a config list],
+      sound-codebase: helps[the template check does not depend on the order of a config list.],
       docs-match-code: neutral,
     ),
   ),
@@ -48,7 +48,7 @@
 
 == TO-BE
 
-- 🟢 A template slot that is the value of a `task.with` field with config `values` (`kind`, an `x-<ns>` field), and declares no `choices` of its own, is a choice over those values:
+- 🟢 A template slot that is the value of a `task.with` field with config `values` (`kind`, an `x-<ns>` field), and does not declare its own `choices`, is a choice over those values:
 
   ```typ
   kind: slot("kind", example: "test"),
@@ -66,7 +66,7 @@
 
 == Changes
 
-- `crates/mindtape-cli/tests/add_inherited_choices_e2e.rs`: red tests first: a template's own `kind` slot refuses a value outside config and lists the choices; `--describe` shows them. `add_config_scaffold_e2e.rs` sits at its line cap, so they get a file of their own.
+- `crates/mindtape-cli/tests/add_inherited_choices_e2e.rs`: red tests first: a template's own `kind` slot refuses a value outside config and lists the choices. `--describe` shows them. `add_config_scaffold_e2e.rs` sits at its line cap, so they get a file of their own.
 
 - `crates/mindtape/src/add_slots.rs`: `inherit_field_choices` resolves the field a slot sits in and inherits the field's config values as its choices.
 
@@ -82,7 +82,7 @@
 == Alternatives
 
 - Copy the values into the slot's `choices`: a second list that drifts.
-- A plain string slot: config still validates, but the caller loses the list.
+- A plain string slot lets config still validate, but the caller loses the list.
 - Keep the config order: the template check depends on list order.
 
 

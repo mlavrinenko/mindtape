@@ -15,14 +15,14 @@
   x-goals: (
     product: (
       readable-tasks: neutral,
-      implementable-tasks: helps[a finding carries the task that surfaced it, so the next reader follows the graph without rereading a report],
-      enforced-practice: helps[the template and mt check both refuse a finding with no origin],
+      implementable-tasks: helps[a finding carries the task that surfaced it. The next reader then follows the graph without rereading a report],
+      enforced-practice: helps[the template and mt check both refuse a finding with no origin.],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[a finding cannot be filed untraceable],
+      sound-codebase: helps[a finding cannot land untraceable.],
       docs-match-code: neutral,
     ),
   ),
@@ -47,8 +47,8 @@ $
 - 🟢 `mt add -t finding` requires a `links` slot with one `surfaced-by` edge, and refuses a value that holds none.
 - 🟢 `surfaced-by` is a project kind with `max = 1`, non-blocking, so the origin can close while the finding stays open.
 - 🟢 A rule refuses an open `found` task with no `surfaced-by` edge, and the finding template's filled example passes it.
-- 🟢 The project prelude exports `surfaced-by(...)`, so a hand-written task writes `links: surfaced-by("origin.typ")`.
-- 🟢 The AS-IS sentence is gone; the edge is the one place naming the origin.
+- 🟢 The project prelude exports `surfaced-by(...)`. A hand-written task then writes `links: surfaced-by("origin.typ")`.
+- 🟢 The AS-IS sentence disappears. The edge is the one place that states the origin.
 
 ```
 # .mindtape/config.toml
@@ -81,8 +81,8 @@ assert = 'links("surfaced-by")'
 == Out of scope
 
 - Backfilling the 191 closed findings. The rule's `!terminal` leaves history alone.
-- A pack that ships the kind and template. The prelude task decides the pack/prelude seam; this repo keeps the kind local.
+- A pack that provides the kind and template stays out. The prelude task sets the pack/prelude seam, and this repo keeps the kind local.
 
 == Dogfood
 
-The next out-of-scope finding is filed with `mt add -t finding -f -`, and `mt ls 'links("surfaced-by")'` walks from any finding to the work that exposed it.
+The next out-of-scope finding arrives through `mt add -t finding -f -`, and `mt ls 'links("surfaced-by")'` walks from any finding to the work that exposed it.

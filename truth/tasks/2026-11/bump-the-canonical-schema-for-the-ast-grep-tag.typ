@@ -39,14 +39,14 @@
 == AS-IS
 
 + Reviewing both waves of the ast-grep milestone after it landed
-+ 🔴 #raw("crates/mindtape/src/model/canonical.rs"): `SCHEMA_VERSION` stays 1 while `mt ls --json` can now emit an `ast-grep` query an older `mt import` cannot parse.
++ 🔴 #raw("crates/mindtape/src/model/canonical.rs"): `SCHEMA_VERSION` stays 1 while `mt ls --json` can emit an `ast-grep` query that an older `mt import` cannot parse.
 
-`crates/mindtape/src/model/canonical.rs` declares `pub const SCHEMA_VERSION: u32 = 1;` and the new `CanonicalQuery::AstGrep` variant sits beside the old tags. The module comment says to bump when a shape change could break `mt import`, and `crates/mindtape-cli/src/cmd/import/input.rs` implements the friendly newer-version check. A 0.4 export still says `"schema_version": 1`, so an older importer fails in the enum instead of the version check.
+`crates/mindtape/src/model/canonical.rs` declares `pub const SCHEMA_VERSION: u32 = 1;` and the new `CanonicalQuery::AstGrep` variant sits beside the old tags. The module comment says to bump when a shape change could break `mt import`, and `crates/mindtape-cli/src/cmd/import/input.rs` implements the friendly newer-version check. A 0.4 export still says `"schema_version": 1`. An older importer then fails in the enum instead of the version check.
 
 == TO-BE
 
 - 🟢 A current export says `"schema_version": 2`.
-- 🟢 An older binary refuses with the existing upgrade hint, not an unknown-variant serde error.
+- 🟢 An older binary refuses with the existing upgrade hint, not an unknown-variant `serde` error.
 - 🟢 The version tests use the constant, so the bump is one line.
 
 ```
@@ -58,7 +58,7 @@ $ mt eval a --json | jq .schema_version
 
 - `crates/mindtape/src/model/canonical.rs`: bump `SCHEMA_VERSION` to 2 and update the comment.
 - `crates/mindtape/src/model/canonical_tests.rs`: pin the new version where a literal remains.
-- `www/content/schema.typ`: no text change unless it names the number.
+- `www/content/schema.typ`: no text change unless it states the number.
 
 == Out of scope
 

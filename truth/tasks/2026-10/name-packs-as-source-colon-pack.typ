@@ -38,7 +38,7 @@
 == AS-IS
 
 + Run `mt config show --origin` in this repo.
-+ 🔴 The built-in pack reads `pack mindtape-tasks`: a built-in is told apart only by a reserved `mindtape-` prefix, a form with no room for a pack from another source.
++ 🔴 The built-in pack prints `pack mindtape-tasks`: only a reserved `mindtape-` prefix marks a built-in, a form with no room for a pack from another source.
 
 
 == TO-BE
@@ -48,8 +48,8 @@ extends = ["mindtape:tasks", "./team.toml"]
 ```
 
 - 🟢 An entry with a `/` is a path. Any other entry must be `<source>:<pack>`, and `mindtape` is the one source known without a declaration.
-- 🟢 `mindtape-tasks` is refused as unknown, with `mindtape:tasks` as the suggestion. An unknown `<pack>` lists what the source holds. A source other than `mindtape` is refused as an unknown pack source, listing the known sources.
-- 🟢 The pack file moves to `crates/mindtape/src/packs/tasks.toml`. The mmz scopes and outdatty sources glob `crates/mindtape/src/packs/*.toml`, and the docs generator copies each pack to `www/generated/packs/<pack>.toml`, so a new pack needs no edit outside its own file, the registry and `TOML_FMT_PATHS`.
+- 🟢 `mt` refuses `mindtape-tasks` as unknown, with `mindtape:tasks` as the suggestion. An unknown `<pack>` lists what the source holds. It refuses a source other than `mindtape` as an unknown pack source, listing the known sources.
+- 🟢 The pack file moves to `crates/mindtape/src/packs/tasks.toml`. The mmz scopes and outdatty sources glob `crates/mindtape/src/packs/*.toml`, and the docs generator copies each pack to `www/generated/packs/<pack>.toml`. A new pack then touches only its own file, the registry and `TOML_FMT_PATHS`.
 
 
 == Changes
@@ -71,7 +71,7 @@ extends = ["mindtape:tasks", "./team.toml"]
 
 == Alternatives
 
-- Keep `mindtape-tasks` as an alias: the project ships no compatibility before its first release.
+- Keep `mindtape-tasks` as an alias: the project carries no compatibility before its first release.
 - `@mindtape/tasks`: the `/` already marks a path.
 
 

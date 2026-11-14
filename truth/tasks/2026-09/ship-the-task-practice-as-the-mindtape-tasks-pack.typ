@@ -18,8 +18,8 @@
     + depends-on("move-goal-verdicts-into-x-goals.typ"),
   x-goals: (
     product: (
-      readable-tasks: helps[every adopting repo's tasks share one skimmable shape],
-      implementable-tasks: helps[every adopting repo's tasks carry reproduction steps and named files],
+      readable-tasks: helps[adopting repos get tasks with one easy-to-scan shape],
+      implementable-tasks: helps[adopting repos get tasks with reproduction steps and named files.],
       enforced-practice: neutral,
       cheap-adoption: helps[a repo gets the flagship task practice from one line, and later fixes with the binary],
       typst-over-markdown: neutral,
@@ -35,7 +35,7 @@
 == AS-IS
 
 + Run `mt init` in a new repo, then `mt add` a task with an empty body.
-+ 🔴 Nothing refuses it. The six-section rules, the word caps and the imperative-title rule live only in this repo's `.mindtape/config.toml`, a block another repo can only copy and then watch drift.
++ 🔴 The tool never refuses it. The six-section rules, the word caps and the imperative-title rule live only in this repo's `.mindtape/config.toml`, a block another repo can only copy and then watch drift.
 
 
 == TO-BE
@@ -64,7 +64,7 @@ extends = ["mindtape-tasks"]
 
 == Out of scope
 
-- A goals rule: goals and the function that checks them belong to each repo, as `move-goal-verdicts-into-x-goals.typ` sets up here.
+- Goals and the function that checks them belong to each repo, as `move-goal-verdicts-into-x-goals.typ` sets up here.
 - This repo's own policy, such as the `agent` and `max` assignees and the close gate.
 
 

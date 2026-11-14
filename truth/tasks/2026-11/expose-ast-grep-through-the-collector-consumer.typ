@@ -21,7 +21,7 @@
       plain-files: neutral,
     ),
     process: (
-      sound-codebase: helps[the collector reuses the query engine and adds no second file walk],
+      sound-codebase: helps[the collector reuses the query engine and doesn't add a second file walk],
       docs-match-code: neutral,
     ),
   ),
@@ -34,14 +34,14 @@
 == AS-IS
 
 + Read `[[tasks.collectors]]` in `crates/mindtape/src/config/collect.rs`.
-+ 🔴 A collector query is a body-section regex or a Typst function; it cannot read a code fact.
++ 🔴 A collector query is a body-section regex or a Typst function. It cannot read a code fact.
 + So a rule cannot read `derived.<name>` for a call-site count.
 
 
 == TO-BE
 
 - 🟢 A collector query `{ ast_grep = { language, pattern, glob? } }` reuses the query engine and returns `["path"]`.
-- 🟢 The collector names no path set of its own; a rule reads `count_paths(derived.<name>, "@source")`, as it does for any path list.
+- 🟢 The collector has no path set of its own. A rule reads `count_paths(derived.<name>, "@source")`, as it does for any path list.
 - 🟢 `mt rules` shows the collector kind and its readers.
 - 🟢 A bad pattern or unknown language is a collector problem, as a bad regex is today.
 
@@ -67,14 +67,14 @@ returns = ["path"]
 
 == Alternatives
 
-- A separate `[[tasks.derive]]` table: the collector contract already names its field, so a second table is one concept too many.
+- A separate `[[tasks.derive]]` table: the collector contract already states its field, so a second table is one concept too many.
 - A Typst function that shells out to `sg`: needs `mt allow` and varies by host.
 
 
 == Out of scope
 
 - Extra language grammars and a Typst grammar.
-- A persistent parse cache; the process cache is enough until a profile says otherwise.
+- A persistent parse cache stays out. The process cache is enough until a profile says otherwise.
 
 
 == Dogfood
