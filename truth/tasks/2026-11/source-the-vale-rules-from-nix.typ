@@ -31,13 +31,13 @@
 
 == AS-IS
 
-+ Run `git show --stat a4cb45cc`. It adds 41 rule files under `.config/vale/styles/Prose/`, about 4k lines of upstream YAML.
-+ Run `ls .config/vale/styles/Prose`. It holds 40 fetched rules, five local rules, `words.txt` and a notice, and the upstream revision is a comment.
-+ 🔴 A rule update is a manual copy, and the repo carries every upstream file in git.
++ The repo carried 40 copied rule files and a notice under `.config/vale/styles/Prose/`, about 4k lines of upstream YAML.
++ `ls .config/vale/styles/Prose` printed 40 fetched rules, five local rules, `words.txt` and a notice. The upstream revision was a comment.
++ 🔴 A rule update was a manual copy, and the repo carried every upstream file in git.
 
 ```
-$ git show --stat a4cb45cc | tail -1
-184 files changed, 4749 insertions(+), 1127 deletions(-)
+$ ls .config/vale/styles/Prose | wc -l
+47
 ```
 
 == TO-BE
