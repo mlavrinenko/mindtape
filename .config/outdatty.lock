@@ -650,7 +650,7 @@ groups:
       examples/task-files/tasks/log-failed-logins.typ: 30d1a0f50122d56da2a3039c3f3987f34f044d06e09dc840a36fdbd537adcb73
   vale-docs:
     source:
-      .config/vale.ini: 30fe2867aa064e7a0eee75ac57d9ea80ec134467bd5cee35a32cea2fbc8002f2
+      .config/vale.ini: 40e547309784170f5423393a13c83327dfbc239ffc6ff9dfbab4a2e36bf559a2
       .config/vale/styles/Prose/AICompoundPhrases.yml: 8b31276c40ada05b2d4f5018f1eceed1d0a553de2a901d8c49c66805f0d15a12
       .config/vale/styles/Prose/AnthropomorphicCognition.yml: 216320ab43578e1f3539efedeac46e4c52ab20a6c3635327510700c701e1806e
       .config/vale/styles/Prose/AnthropomorphicJustification.yml: e5941ff2931e5529c9337968423a7a568ec41167dac199829fe240967b9040bc
@@ -700,7 +700,7 @@ groups:
       .config/vale/styles/config/vocabularies/Prose/accept.txt: b0bd78149f83d244df37be3005b7e10fdd73ed18b4572f3289230919f5c398fe
       .config/vale/styles/config/vocabularies/Prose/reject.txt: cdfdcde6963710e94fbec497007690991983c01ab5e10caea8cb376a9ed71eb3
     dependents:
-      docs/src/contributing/documentation.typ: 4c25475e3653baff92ba46fc08e9ab5b1336f54289456555b0e8397ec27759ae
+      docs/src/contributing/documentation.typ: 8bcbb22bc46567f39c8b04038157a451d1416508581803db8c83659145e5e0c7
       docs/src/contributing/gates.typ: e8981f7405c252c02c37db9c15fe1b1cbe3517150a3fea29016fc323e81acedc
   waits-docs:
     source:

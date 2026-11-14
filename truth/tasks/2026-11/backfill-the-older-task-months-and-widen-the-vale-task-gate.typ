@@ -26,7 +26,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 14),
+  status: done(
+    2026,
+    11,
+    14,
+  )[the 2026-12 section turns the 32 AI-tell rules on, and the docs name it the first gated month],
   links: supersedes("hold-task-bodies-to-the-record-prose-rules.typ"),
 )
 

@@ -298,10 +298,11 @@ Every rule sits at `error`. The example shows what the rule flags.
 
 == Task bodies
 
-#just.docs-vale-tasks() runs the same style over `truth/tasks`. Thirty-two
-AI-tell rules stay off until the task prose passes them. Seven more stay off
-because a task record differs from a page, and `.config/vale.ini` argues each
-one. A task records a
+#just.docs-vale-tasks() runs the same style over `truth/tasks`. The section
+for `2026-12` turns the 32 AI-tell rules back on, which makes it the first
+month under the full rule set. An older month keeps its exemptions until a
+task cleans it. Seven rules stay off for every month because a task record
+differs from a page, and `.config/vale.ini` argues each one. A task records a
 change, and `Prose.History` would flag its AS-IS and TO-BE. The task shape
 mandates headings such as `AS-IS` and `TO-BE`, which `Prose.HeadingCase` would
 rename. A task has no `#mindtape` constant for `Prose.ProductName`. It quotes
