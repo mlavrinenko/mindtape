@@ -26,7 +26,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 14),
+  status: done(
+    2026,
+    11,
+    15,
+  )[The Vale gate reads Rust doc comments and the first commit clears 215 hits.],
 )
 
 == AS-IS

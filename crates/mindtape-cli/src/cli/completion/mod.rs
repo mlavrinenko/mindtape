@@ -9,7 +9,7 @@
 //!
 //! ## Where an argument's values come from
 //!
-//! [`SOURCES`] is the one place that answers it, and it answers for EVERY
+//! [`SOURCES`] is the one place that answers it, and it answers for every
 //! value-taking argument `mt` declares. [`Source::None`] is an answer too,
 //! carrying the reason no project value fits. Two readers share the table:
 //! [`decorate`] hangs each entry's completer on the clap tree, and

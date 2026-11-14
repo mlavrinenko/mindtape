@@ -367,9 +367,9 @@ fn commit(
 /// values came from an interactive `--edit` buffer, a rejection parks the
 /// rendered task in a scratch file and names it.
 ///
-/// The buffer is minutes of typing that the editor's own temp file no longer
+/// The buffer is minutes of typing that the editor's own temp file does not
 /// holds, and refusing the write is exactly what makes it unrecoverable —
-/// which is why the file used to be kept in the tasks root instead. Parking it
+/// which is why the file is not kept in the tasks root. Parking it
 /// outside every root keeps the recovery without the cost: no later `mt`
 /// command ever loads it. A `-f`/`--set` rejection parks nothing; the values
 /// are still in the shell history that produced them.
@@ -435,7 +435,7 @@ fn markup_safe(
 /// a rejected task is therefore a real file by the time the error surfaces. It
 /// is kept rather than removed — silently deleting a file to tidy up an error
 /// message is the worse trade — but "wrote X" followed by a bare error read as
-/// if `add` had cleaned up after itself. It never did; now it says so.
+/// if `add` had cleaned up after itself. It never did, and the message says so.
 ///
 /// Under a root the order is the other way round ([`pre_verify`]) and no such
 /// file exists, so this note is never printed there.

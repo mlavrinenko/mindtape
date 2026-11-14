@@ -1,7 +1,7 @@
 //! Date helpers: today's date, relative thresholds for the staleness
 //! predicate, and a configurable display formatter.
 //!
-//! "Today" is the machine's LOCAL calendar date, not UTC (see
+//! "Today" is the machine's local calendar date, not UTC (see
 //! `truth/tasks/2026-07/decide-whether-today-is-utc-or-local.typ`): a task filed at
 //! 01:00 on the 29th is stamped the 29th, whatever the offset. Only
 //! [`local_epoch_days`] knows about zones — everything downstream is a plain

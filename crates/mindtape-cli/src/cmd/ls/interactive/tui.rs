@@ -1,5 +1,5 @@
 //! Terminal lifecycle for the interactive picker: entering/leaving the
-//! alternate screen and raw mode, and the RAII guard that restores the
+//! alternate screen and raw mode, and the resource guard that restores the
 //! terminal state on drop even when the event loop errors out.
 
 use std::io;
@@ -14,7 +14,7 @@ use crossterm::terminal::{
 };
 use crossterm::{cursor, execute};
 
-/// RAII guard for the alternate-screen + raw-mode terminal state. Restores the
+/// Resource guard for the alternate-screen + raw-mode terminal state. Restores the
 /// terminal on drop; [`suspend`] temporarily restores it around an editor spawn.
 pub(super) struct Tui {
     enhanced: bool,

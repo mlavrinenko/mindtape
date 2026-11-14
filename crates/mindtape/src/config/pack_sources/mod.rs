@@ -22,8 +22,8 @@
 //! - `listing.rs`, `listing_tests.rs`: the blobs of a commit's tree, and
 //!   the paths no platform may write differently.
 //! - `lock.rs`: `.mindtape/packs.lock`, its entries, and [`write_lock`].
-//! - `remote.rs`, `remote_tests.rs`: [`resolve`], the commit a `ref` names
-//!   now.
+//! - `remote.rs`, `remote_tests.rs`: [`resolve`], the commit a `ref` names.
+//!
 //! - `scratch.rs`, `scratch_tests.rs`: the directory a fetch builds in, its
 //!   sweep, and the rename into the cache.
 //! - `tests.rs`: the unit tests, through a full config load.

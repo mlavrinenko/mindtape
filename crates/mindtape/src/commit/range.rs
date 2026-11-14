@@ -13,7 +13,7 @@
 //! shares one [`crate::StateLoader`] across its commits, so an unchanged task
 //! file is not evaluated again and a linear range reuses the previous commit's
 //! `staged` state as the next commit's `head`. A [`StateSource::differs`] list
-//! is no longer needed; the field stays empty for API compatibility.
+//! is not needed; the field stays empty for API compatibility.
 
 use std::path::Path;
 

@@ -170,7 +170,7 @@ fn set_recurred_from_preserves_existing_edges() {
 }
 
 /// Spawning from an occurrence that is itself a spawn: its own
-/// `recurred-from` is REPLACED, not added to. `recurred-from` allows one edge
+/// `recurred-from` is replaced, not added to. `recurred-from` allows one edge
 /// per task, so appending wrote an occurrence `mt check` refuses — and that is
 /// every second hop of the ordinary recurrence loop, not a corner.
 #[test]

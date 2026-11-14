@@ -13,7 +13,7 @@
 //!
 //! A stem names the task by its name when the trailer was written; `mt mv`
 //! has renamed some since. Every `.typ` rename is recorded, and the ones
-//! under the task roots resolve a stem to the task it is now
+//! under the task roots resolve a stem to the task it identifies
 //! ([`RefsCache::touching`]). A token no loaded task answers to, even through
 //! a rename, and matching no external pattern belongs to a retired task: it
 //! matches nothing, and is kept so `mt ls --json` can list it.
@@ -272,7 +272,7 @@ fn task_name(
     current_name(token, renamed, current)
 }
 
-/// The name `stem` goes by now: the first along its renames a task in
+/// The name `stem` carries: the first along its renames a task in
 /// `current` bears, `None` when none does; with no `current`, the last.
 fn current_name(
     stem: &str,

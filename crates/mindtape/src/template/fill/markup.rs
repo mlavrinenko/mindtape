@@ -8,9 +8,9 @@
 //! letting a bad value surface later as a bare compiler diagnostic about a
 //! file the caller never hand-wrote.
 //!
-//! This check reads the value as top-level MARKUP, which is the plane a
+//! This check reads the value as top-level markup, which is the plane a
 //! `#slot(…)` in the body actually lands on. A `raw` slot spliced into an
-//! ARGUMENT position is a different plane — there the value is an expression,
+//! argument position is a different plane — there the value is an expression,
 //! and markup treats parens and `*` as ordinary text, so `(files: 2` and
 //! `*emphasis*` both parse clean here and reach the file. `mt add` then fails
 //! loading what it just wrote. That is a known gap, not an oversight; the

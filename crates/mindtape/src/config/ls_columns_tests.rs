@@ -56,7 +56,7 @@ fn a_task_field_in_a_when_fails_at_load() {
 }
 
 /// `Condition` reads an empty expression as the always-matching one, so a
-/// blank `when` would render the column always while an ABSENT `when` renders
+/// blank `when` would render the column always while an absent `when` renders
 /// it never — two spellings of "nothing written here" with opposite answers.
 /// It is refused instead, and the message says what to write.
 #[test]

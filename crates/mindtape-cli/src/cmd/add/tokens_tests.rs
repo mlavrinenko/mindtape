@@ -67,7 +67,7 @@ fn file_operator_reads_the_value_from_the_file() {
     );
 }
 
-/// Only TRAILING line terminators go. Interior blank lines are the shape of a
+/// Only trailing line terminators go. Interior blank lines are the shape of a
 /// prose or markup value and stripping them would be a conversion step, which
 /// this operator deliberately has none of; leading whitespace is the first
 /// line's own indentation.

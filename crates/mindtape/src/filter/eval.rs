@@ -1,5 +1,5 @@
 //! The walk over a parsed filter's `evalexpr` tree, split out of `filter/mod.rs`
-//! (file-size gate): the boolean operators, the function table, the AST
+//! (file-size gate): the boolean operators, the function table, the syntax tree
 //! helpers those read, and `in_view` recursion. [`Ctx`] and `field_value`
 //! stay in the parent; [`eval_bool`] is re-exported there so the sibling walk
 //! modules keep their `crate::filter::eval_bool` path.

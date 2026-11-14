@@ -48,7 +48,7 @@ impl NamingConfig {
     /// and never touches `dedup` sees no behaviour change from before dedup
     /// modes reached the templated-stem path; a bare (unset) `stem` keeps
     /// [`DedupMode::Fail`], today's hard error. This is the single place the
-    /// default lives — collision *handling* itself no longer branches on
+    /// default lives — collision *handling* itself does not branch on
     /// whether the stem came from a template (`mindtape_cli::cmd::add::dedup`).
     #[must_use]
     pub fn effective_dedup(&self) -> DedupMode {

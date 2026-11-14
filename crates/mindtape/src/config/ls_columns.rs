@@ -18,7 +18,7 @@
 //!
 //! The predicates are what make that expressible. `nonempty()`, `contested()`,
 //! `named()` and `blocked()` describe the listing, so the built-in policy each
-//! column used to get from a Rust match is now a line of the embedded floor:
+//! column from a Rust match is a line of the embedded floor:
 //! `#` and `title` are `true`, `status` / `priority` / `due` are `nonempty()`,
 //! `assignee` is `contested()`, `ready` is `blocked()`, and `file` is the
 //! expression above.

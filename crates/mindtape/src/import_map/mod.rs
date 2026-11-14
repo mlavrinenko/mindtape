@@ -6,7 +6,7 @@
 //! tracker → canonical, config-blind); [`map_canonical`] does the *policy*
 //! map (canonical → valid-for-this-project), the only part that needs the
 //! loaded [`Config`]. Pure over `(&CanonicalTask, &Config, &MapOptions)`: no
-//! IO, no source writing. `mt import` (a later CLI task) deserializes JSON
+//! I/O, no source writing. `mt import` (a later CLI task) deserializes JSON
 //! into [`CanonicalTask`] via its existing `serde::Deserialize`, calls this,
 //! then hands the resulting [`Task`] to `emit::emit_task`.
 //!

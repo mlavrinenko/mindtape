@@ -155,7 +155,7 @@ pub fn held_back() -> Vec<String> {
 
 /// Take the commands held back for the project at `root`, sorted, so a caller
 /// that warns for one member of a set names that project, and [`held_back`]
-/// no longer lists them.
+/// does not list them.
 #[must_use]
 pub fn take_held(root: &Path) -> Vec<String> {
     let mut held = HELD.lock().unwrap_or_else(PoisonError::into_inner);

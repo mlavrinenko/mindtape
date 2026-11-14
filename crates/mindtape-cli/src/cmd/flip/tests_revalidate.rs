@@ -1,10 +1,10 @@
 //! What a flip refuses, and what it tolerates.
 //!
-//! Two halves that used to be one. A rewrite that would leave the flipped task
-//! invalid is now caught as a *candidate*, before the write — so these tests
+//! Two halves with one seam. A rewrite that would leave the flipped task
+//! invalid is caught as a *candidate*, before the write, so these tests
 //! assert the file is byte-identical afterwards, which the old
 //! write-then-reload order could not offer. What still runs after the batch is
-//! the cross-task net: a problem a landed flip caused on some OTHER task, which
+//! the cross-task net: a problem a landed flip caused on some other task, which
 //! no per-candidate check can see. The tolerance tests pin that net's scope —
 //! pre-existing breakage on untouched files and tasks is not the batch's doing.
 //!

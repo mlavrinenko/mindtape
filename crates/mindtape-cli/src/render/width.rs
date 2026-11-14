@@ -1,6 +1,7 @@
 //! Width-aware string helpers using Unicode display width.
 //!
-//! A double-width character (e.g. CJK ideographs, many emoji) counts as
+//! A double-width character (e.g. Chinese, Japanese and Korean ideographs,
+//! many emoji) counts as
 //! width 2 in a fixed-width terminal cell grid. All functions here operate on
 //! *display* width rather than byte or `char` count.
 

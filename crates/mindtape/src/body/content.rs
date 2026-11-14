@@ -1,9 +1,9 @@
 //! Config types for `[tasks.body.content]` — the section-content gating rules
 //! ([`ContentRuleConfig`]) compiled by [`crate::body::content_gate`].
 //!
-//! Where `[tasks.body.headers]` constrains the heading TREE (which headings
+//! Where `[tasks.body.headers]` constrains the heading tree (which headings
 //! exist, their order, their vocabulary), this constrains what is written
-//! UNDER a heading: the section's content, everything from the heading down
+//! under a heading: the section's content, everything from the heading down
 //! to the next heading of the same or higher level.
 
 use serde::{Deserialize, Deserializer};

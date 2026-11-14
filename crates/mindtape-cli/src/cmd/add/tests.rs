@@ -74,7 +74,7 @@ fn injects_default_status_proposed() {
 /// Every in-tree template is multi-line with trailing commas, which is exactly
 /// why the single-line shape — legal Typst, and a reasonable thing to write —
 /// went untested until it wrote `title: "Do thing"status: proposed(…)`, a file
-/// that cannot parse. The injected argument brings its own separator now, so
+/// that cannot parse. The injected argument brings its own separator, so
 /// the template's shape is the header's business and not the injection's.
 #[test]
 fn injects_status_into_a_single_line_header() {
@@ -249,7 +249,7 @@ fn output_stem_applies_naming_template_when_configured() {
     assert_eq!(stem.len(), "ship-it.task-".len() + 6);
 }
 
-/// `output_stem` is pure minting now: it never consults a destination and
+/// `output_stem` is pure minting: it never consults a destination and
 /// never disambiguates, even when the rendered stem would collide. That
 /// decision moved wholesale into `resolve_outcome`/`cmd::add::dedup::resolve`, the
 /// one place a collision under any stem shape is decided — see
@@ -374,7 +374,7 @@ fn markup_safe_escapes_text_slots_and_nothing_else() {
 /// The rescue for a rejected `--edit` buffer: the parked file must actually
 /// hold the render and outlive the call. A path that reads back empty, or no
 /// path at all, is the same silent loss of the user's typing that keeping the
-/// invalid task on disk used to prevent.
+/// invalid task on disk prevents.
 #[test]
 fn park_writes_the_rejected_source_to_a_readable_file() {
     let source = "#show: task.with(title: \"Parked\")\n";

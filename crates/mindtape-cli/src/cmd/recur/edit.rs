@@ -105,7 +105,7 @@ pub fn status_due_start_edits(
 /// `recurred-from("<stem>.typ")` edge, creating the argument when absent and
 /// preserving every edge of any other kind.
 ///
-/// It REPLACES rather than appends, and the difference is the whole point. A
+/// It replaces rather than appends, and the difference is the whole point. A
 /// spawn's source is its predecessor's source, so an occurrence spawned from an
 /// occurrence already carries a `recurred-from` — and that kind allows one edge
 /// per task ([`mindtape::link::builtin_kinds`]). Appending wrote a second one,

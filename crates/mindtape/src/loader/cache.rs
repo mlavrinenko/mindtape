@@ -6,7 +6,7 @@
 //! `<root>/.mindtape/cache/` instead of re-evaluating the file through Typst.
 //! Only files whose bytes changed since the last run miss the cache and pay for
 //! a fresh eval; this stacks with the cold-path batch harvester
-//! ([`typst_harvest::batch_harvest`]), which the loader now runs over the
+//! ([`typst_harvest::batch_harvest`]), which the loader runs over the
 //! misses alone.
 //!
 //! # Key

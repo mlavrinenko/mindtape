@@ -192,7 +192,7 @@ fn the_full_walk_asks_plain_questions() {
 }
 
 /// Input that ends at the first prompt takes every default: each axis and the
-/// extras gate read EOF and fall back rather than loop.
+/// extras gate reach end of input and fall back rather than loop.
 #[test]
 fn eof_at_every_prompt_takes_the_defaults() {
     let (answers, prompts) = walk(&Flags::default(), true, "");

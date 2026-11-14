@@ -119,7 +119,7 @@ fn prelude_version_hint(version: &str) -> Hint {
 }
 
 /// The warning for a past commit or tree `mt check --commits` skips because
-/// its prelude is no longer supported: the commit, the version, the first file
+/// its prelude is not supported: the commit, the version, the first file
 /// that failed and the set.
 pub(crate) fn skipped_prelude_commit_diag(
     commit: &str,

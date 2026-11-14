@@ -284,7 +284,7 @@ fn dedup_add_suffix_writes_under_a_disambiguated_stem_with_a_templated_stem() {
 /// The config-default half of the fix: a project that configures
 /// `[tasks.naming] stem` and never touches `dedup` must still see `add-suffix`
 /// with no `--dedup` flag at all — the behaviour a templated stem always had,
-/// now sourced from `NamingConfig::effective_dedup` instead of a
+/// sourced from `NamingConfig::effective_dedup` instead of a
 /// pre-disambiguation special case in `output_stem`.
 #[test]
 fn templated_stem_dedup_defaults_to_add_suffix_without_the_flag() {

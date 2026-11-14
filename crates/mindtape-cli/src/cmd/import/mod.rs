@@ -7,7 +7,7 @@
 //!
 //! One bad record does not refuse the batch: the rest still land, and the
 //! per-record report says which did, and the run exits 1 once it has printed it
-//! if any was skipped. What it no longer does is land the bad
+//! if any was skipped. What it does not do is land the bad
 //! one first — the whole batch is validated before a byte is written, so a
 //! rejected record is never created. That discipline lives in [`mod@write`]; input
 //! parsing lives in [`input`].

@@ -304,7 +304,7 @@ fn task_with_priority(priority: HVal) -> Task {
 }
 
 /// Unwraps `task.priority` as a framework priority, panicking with the same
-/// message the inlined `let else` used to give when it wasn't one.
+/// message the inlined `let else` gives when it isn't one.
 fn expect_framework_priority(task: Task) -> (String, BTreeMap<String, InputValue>) {
     let NumValue::Framework { name, inputs } = task.priority.unwrap() else {
         panic!("expected framework priority");

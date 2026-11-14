@@ -96,7 +96,7 @@ pub(crate) struct CompiledCheck {
 }
 
 impl CompiledCheck {
-    /// Build the reusable state for one `check` rule. Does no IO and no Typst
+    /// Build the reusable state for one `check` rule. Does no I/O and no Typst
     /// evaluation itself — the first cost lands on the first
     /// [`Self::evaluate`] call, so a rule declared but never reached (a `when`
     /// that excludes every task) still pays nothing.
@@ -157,7 +157,7 @@ impl TypstCall {
     /// the project root: the module resolves from it, and so does every
     /// `@local` package override.
     ///
-    /// Does no IO and no Typst evaluation itself, so a call that never happens
+    /// Does no I/O and no Typst evaluation itself, so a call that never happens
     /// pays nothing.
     #[must_use]
     pub fn new(config: &Config, root: &Path, typst: &str, function: &str) -> Self {

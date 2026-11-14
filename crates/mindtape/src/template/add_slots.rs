@@ -8,7 +8,7 @@
 //! schema, and writing them into the final task. A slot the template does
 //! declare for such a field inherits the field's config `values` as its
 //! choices ([`inherit_field_choices`]). Consumer-blind: pure over [`Config`]
-//! and the template source, no IO.
+//! and the template source, no I/O.
 
 use typst_edit::{Call, Edit, EditError, apply, find_calls, find_method_calls};
 

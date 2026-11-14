@@ -4,7 +4,7 @@
 //! The batch's happy paths live in `cmd/flip/tests.rs` and `cmd/link/tests.rs`;
 //! here are the two decisions `revalidate` can only make against a project
 //! built for each — a landed file that failed to reload, and a landed task
-//! that now violates a fatal rule. Both are constructed directly because
+//! that violates a fatal rule. Both are constructed directly because
 //! neither can be reached through `run_with`: the pre-write check refuses each
 //! before the file lands (`crate::pre_write`), leaving this net as the
 //! backstop for a reload that disagrees with it.

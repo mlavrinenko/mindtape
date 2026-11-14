@@ -1,6 +1,6 @@
 //! End-to-end tests for the `key@path` operator: `mt add -- summary@notes.txt`
 //!
-//! Its whole design is that the SLOT'S KIND decides what the file's bytes
+//! Its whole design is that the slot'S kind decides what the file's bytes
 //! become, and that nothing between the file and the slot converts anything.
 //! That is only provable through the binary — the parser hands every operator
 //! the same `RawValue::Str`, so a unit test cannot tell a `text` fill from a
@@ -81,7 +81,7 @@ fn a_raw_slot_splices_the_file_verbatim() {
     support::check_ok(dir.path());
 }
 
-/// The operator reads the file for EVERY kind, not only the two the design
+/// The operator reads the file for every kind, not only the two the design
 /// argues for. It is a carrier, not a converter: gating it by kind would
 /// invent a second diagnostic for a mistake the fill layer already reports by
 /// name, and would buy nothing a caller can act on.

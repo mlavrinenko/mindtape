@@ -95,7 +95,7 @@ fn real_prelude_parses_typed_links_end_to_end() {
 
 /// The array spelling of the same thing. Every helper returns an array, so
 /// writing `links:` as the tuple every other multi-valued field takes nests one
-/// level — and used to reach the model as zero edges, validating clean while the
+/// level, and reaches the model as zero edges, validating clean while the
 /// dependency graph sat empty. A task that loads with no links here is the
 /// regression.
 #[test]
@@ -273,10 +273,10 @@ fn real_prelude_still_refuses_what_the_sink_refused() {
     );
 }
 
-/// The regression this file exists for: `link()` returns content, content is
-/// the note, so `depends-on(link("a.typ"))` used to yield an edge array with no
-/// edge in it. Nothing downstream could see the loss — the marker carried an
-/// empty `links`, `mt check` passed, and the task reported ready. The helper
+/// The regression this file guards: `link()` returns content, content is the
+/// note, so `depends-on(link("a.typ"))` must yield an edge in the array. With
+/// no edge, nothing downstream sees the loss: the marker carries an empty
+/// `links`, `mt check` passes, and the task reports ready. The helper
 /// must name itself and say why the target vanished.
 #[test]
 fn real_prelude_rejects_a_link_target_in_an_edge_helper() {
@@ -345,16 +345,16 @@ fn real_prelude_rejects_argument_shapes_that_would_be_dropped() {
     }
 }
 
-/// The other half of the same seam: a wrong-typed value INSIDE a well-shaped
+/// The other half of the same seam: a wrong-typed value inside a well-shaped
 /// field must survive eval and arrive at the Rust layer as a shape error
 /// naming its position.
 ///
-/// Each of these used to fail eval instead, by accident rather than by design
+/// Each of these must reach the shape check rather than fail eval by accident
 /// — the card render reached for a method the value did not have (`raw(tag)`,
 /// `status.at("name")`, `on.join(", ")`). That produced a message naming
-/// neither the field nor the task, and would have vanished the moment the
-/// render stopped making that call. The render owes nobody validation, so it
-/// is total now and this is where the check lives.
+/// neither the field nor the task, and would vanish the moment the render
+/// stopped making that call. The render owes nobody validation, so it is
+/// total, and this is where the check lives.
 #[test]
 fn real_prelude_carries_a_wrong_typed_element_to_the_rust_shape_error() {
     let cases = [

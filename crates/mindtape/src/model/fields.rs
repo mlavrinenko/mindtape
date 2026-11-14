@@ -36,7 +36,7 @@
 //!
 //! `path` is the task's project-root-relative source path
 //! ([`Task::file_key`]), and is deliberately not spelled `file`: the `file`
-//! COLUMN renders the same task's path relative to the working directory, so
+//! column renders the same task's path relative to the working directory, so
 //! one name covered two values that coincide inside the project root and
 //! diverge under `-w <other-project>` — where a filter copied from the
 //! listing matched nothing, silently, an empty listing being also what a

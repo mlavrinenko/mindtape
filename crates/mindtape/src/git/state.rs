@@ -111,7 +111,7 @@ impl GitStatus {
 
     /// [`Self::read`] with every rename split into its two sides — the source
     /// deleted, the destination added — for a caller that needs both paths
-    /// rather than the path the tree now holds.
+    /// rather than the path the tree holds.
     ///
     /// # Errors
     /// As [`Self::read`].
@@ -131,7 +131,7 @@ impl GitStatus {
 
     /// Parse `git status --porcelain -z` output. A rename or copy record is
     /// followed by a record holding its source path, which is skipped: the
-    /// change counts against the path the tree now holds. A record too short
+    /// change counts against the path the tree holds. A record too short
     /// to carry a path is dropped.
     #[must_use]
     pub fn parse(text: &str) -> Self {

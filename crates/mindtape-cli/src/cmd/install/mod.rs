@@ -1,4 +1,4 @@
-//! `mt install` — set up the USER ENVIRONMENT: the `@local/mindtape` Typst
+//! `mt install` — set up the user environment: the `@local/mindtape` Typst
 //! package, the XDG global `defaults.toml` app-config layer, the JSON Schemas
 //! for `.mindtape/config.toml`, `at.toml` and every machine output, and the
 //! shell completion hooks.
@@ -7,7 +7,7 @@
 //! By default performs all four installs; `--no-lib`/`--no-defaults`/
 //! `--no-schema`/`--no-completions` skip any of them.
 //!
-//! The completion hook is the odd one out in what it CONTAINS: the other three
+//! The completion hook is the odd one out in what it contains: the other three
 //! files carry content, this one carries a call. Each is the couple of lines
 //! that ask `mt` itself for the completion on every tab press
 //! ([`crate::cli::completion`]), never a generated completion script — a script

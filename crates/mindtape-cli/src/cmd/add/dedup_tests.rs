@@ -37,7 +37,7 @@ fn effective_mode_falls_back_to_fail_when_nothing_set() {
 /// The regression this task fixes, pinned at the `effective_mode` layer: a
 /// project that configures `[tasks.naming] stem` but never touches `dedup`
 /// must still default to `add-suffix` — the behaviour a templated stem got
-/// before dedup modes existed — even though the decision now flows through
+/// before dedup modes existed — even though the decision flows through
 /// the same function a bare stem uses.
 #[test]
 fn effective_mode_defaults_to_add_suffix_when_only_stem_is_configured() {

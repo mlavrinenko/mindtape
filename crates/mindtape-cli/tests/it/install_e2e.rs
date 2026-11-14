@@ -304,14 +304,14 @@ fn ls_output(project: &Path, data: &std::ffi::OsStr) -> (String, String) {
 }
 
 /// The install and the read must name the same directory. `$MINDTAPE_DATA_HOME`
-/// moved where `mt install` WRITES the `@local/mindtape` package long before it
-/// moved where the loader READS it — resolution went through `typst-world`,
+/// moved where `mt install` writes the `@local/mindtape` package long before it
+/// moved where the loader reads it — resolution went through `typst-world`,
 /// which looked the directory up through `dirs` and had never heard of the
 /// variable. Pointed at a tempdir, `mt install` filled that tempdir while every
 /// task file kept importing the machine's own package.
 ///
 /// The pair is what makes this a test rather than a coincidence: a data home
-/// that HAS the package loads the task, and a second one that does not still
+/// that has the package loads the task, and a second one that does not still
 /// loads it from the copy in the binary.
 #[test]
 fn ls_resolves_the_prelude_from_the_configured_data_home() {

@@ -74,8 +74,8 @@ impl ConditionEnv {
 /// facts about the column against the selected rows, and one about the listing.
 ///
 /// These are the predicates that let a `when` expression say everything the
-/// render layer used to decide for itself, which is what moved the per-column
-/// visibility policy out of a Rust match and into the embedded floor.
+/// render layer decides for itself, which puts the per-column
+/// visibility policy in the embedded floor, not a Rust match.
 // Four independent, orthogonal facts, one per predicate — the lint's advice
 // (a state machine, or two-variant enums) would name states this record does
 // not have and cost the predicate table its one-field-per-call shape.
@@ -92,7 +92,7 @@ pub struct ColumnFacts {
     /// `named()`: the caller asked for this column by name (`--columns`, a
     /// view's `columns`, an `[[ls.rules]]` columns override).
     ///
-    /// A property of the REQUEST, never of the outcome. The render order is
+    /// A property of the request, never of the outcome. The render order is
     /// fixed before any column's visibility is decided, so this can never read
     /// back the decision it is an input to; and an `[[ls.rules]]` condition —
     /// the one place a `columns` override is itself chosen — sees the

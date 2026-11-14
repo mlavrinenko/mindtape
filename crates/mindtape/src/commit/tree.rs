@@ -81,7 +81,7 @@ impl TaskSource {
 
 /// One state's tree, read through git.
 pub(crate) struct StateTree<'a> {
-    /// The project root, used to resolve relative paths and run `cat-file`.
+    /// The project root, for resolving relative paths and running `cat-file`.
     root: &'a Path,
     /// The repository root above `root`.
     repo: PathBuf,

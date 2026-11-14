@@ -61,7 +61,7 @@ pub struct Cli {
     #[arg(long, value_name = "WHEN", default_value_t, global = true)]
     pub color: ColorChoice,
 
-    /// Write SEP between folders in every path mt shows you.
+    /// Write the separator between folders in every path mt shows you.
     ///
     /// Defaults to your platform's own, `\` on Windows and `/` elsewhere.
     /// Paths a program reads keep `/`: the JSON and CSV `file` field, and
@@ -112,8 +112,8 @@ enum Command {
     Check(check::CheckArgs),
     /// Rewrite the files an mt upgrade left behind.
     ///
-    /// `prelude-import` rewrites an older `@local/mindtape` import this mt no
-    /// longer reads to the current version, changing only the version bytes.
+    /// `prelude-import` rewrites an older `@local/mindtape` import this mt does
+    /// not read to the current version, changing only the version bytes.
     /// `--dry-run` prints every edit, `--check` exits 1 while an unsupported
     /// import remains, and `--all` scans the whole project tree.
     Fix(fix::FixArgs),

@@ -176,8 +176,8 @@ pub(super) fn presets_in(user_dir: Option<&Path>) -> Vec<CompletionCandidate> {
 /// This project's tag vocabulary: `[tasks.tags] allowed` when it bounds one,
 /// otherwise every tag its tasks actually carry, folder-derived ones included.
 ///
-/// The bounded case wins because it is the set a write would be VALIDATED
-/// against — offering a tag in use but no longer allowed would complete
+/// The bounded case wins because it is the set a write would be validated
+/// against — offering a tag in use but not allowed would complete
 /// straight into a refusal.
 fn tags() -> BTreeSet<String> {
     let Some(project) = project() else {

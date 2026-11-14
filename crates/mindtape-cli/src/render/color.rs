@@ -225,7 +225,7 @@ mod tests {
     }
 
     /// Every name the legend accepts, mapped to the colour it must produce.
-    /// Asserting `is_some()` per name (as twelve separate tests used to) never
+    /// Asserting `is_some()` per name across twelve separate tests never
     /// pinned the mapping: a mutant routing "cyan" to `AnsiColor::Red` survived
     /// all of them, because the result was still `Some`.
     #[test]
@@ -263,7 +263,7 @@ mod tests {
         }
     }
 
-    /// Names are case-insensitive, and a hex spec maps to its exact RGB triple.
+    /// Names are case-insensitive, and a hex spec maps to its exact red-green-blue triple.
     #[test]
     fn parse_color_accepts_uppercase_and_hex() {
         assert_eq!(

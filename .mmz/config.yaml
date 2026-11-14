@@ -311,6 +311,7 @@ scopes:
   outdatty-sources:
     - ".config/wt.toml"
     - ".config/vale.ini"
+    - ".config/vale-code.ini"
     - ".config/vale/local/**"
     - ".gitattributes"
     - ".githooks/commit-msg"
@@ -359,6 +360,12 @@ scopes:
   vale-config:
     - ".config/vale.ini"
     - ".config/vale/local/**"
+
+  # The code-comment Vale config. It loads the same local Prose style as
+  # `vale-config`, and its rules come from the pinned flake inputs
+  # `gates-meta` covers.
+  vale-code-config:
+    - ".config/vale-code.ini"
 
   # The task bodies `docs::vale-tasks` reads. No gate-tagged rule may name them
   # (see "Note on scope" above), so that untagged rule is the only one taking
@@ -416,6 +423,8 @@ scopes:
     - ".just/scripts/check-doc-recipes.sh"
   script-check-doc-prose:
     - ".just/scripts/check-doc-prose.sh"
+  script-check-code-prose:
+    - ".just/scripts/check-code-prose.sh"
   script-doc-prose-lib:
     - ".just/scripts/_doc-prose-lib.sh"
   script-check-doc-blocks:
@@ -596,6 +605,14 @@ commands:
   - name: just lint::banners
     tags: [gate]
     inputs: [rust, examples, shell-scripts, docs, vale-config, gates-meta]
+
+  # The prose gate over Rust doc comments reads every source under `crates/`
+  # (`rust`) with the config in `vale-code-config` and the local Prose rules in
+  # `vale-config`. `gates-meta` carries the pinned Vale and its style build,
+  # and `script-check-code-prose` is the recipe body.
+  - name: just lint::vale-code
+    tags: [gate]
+    inputs: [rust, vale-config, vale-code-config, gates-meta, script-check-code-prose]
 
   # linecop scans every language `.config/linecop.yaml` gives a base limit
   # (Rust, Markdown, Shell and Typst, with target/archive/var excluded by config), so

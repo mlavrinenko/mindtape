@@ -87,7 +87,7 @@ const KINDS: [&str; 7] = [
 ///
 /// Both halves are stamped onto a loaded task rather than searched for in the
 /// backlog: a backlog whose every task is closed is a legitimate state — the
-/// one this test used to unwrap a `None` on — and the assertion is about the
+/// one this test unwraps a `None` on, and the assertion is about the
 /// config's `required` rule, not about what the backlog holds today.
 #[test]
 fn dogfood_config_requires_kind_on_open_tasks_only() {

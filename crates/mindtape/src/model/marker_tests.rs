@@ -1,5 +1,5 @@
 //! The marker projection's shape-error channel: a field, or an element inside
-//! one, that does not match the shape it projects into must be REPORTED, never
+//! one, that does not match the shape it projects into must be reported, never
 //! read as unset. Every test here goes through [`Task::from_marker`] rather
 //! than the private helpers, because what is being pinned is what an author
 //! gets back — the field path they can count to in their own source.
@@ -60,7 +60,7 @@ fn assert_reports_shape_error(
 /// `tags: ("backend")` — a Typst tuple missing its trailing comma, so a plain
 /// string rather than a one-element array — must not silently look like no
 /// tags authored at all: `from_marker` still coerces `tags` to empty (the
-/// field is typed `Vec<String>`), but now names the mismatch in
+/// field is typed `Vec<String>`), but names the mismatch in
 /// `shape_errors` instead of leaving it unpoliced.
 #[test]
 fn reports_tags_wrong_shape_instead_of_silent_empty() {
@@ -99,7 +99,7 @@ fn reports_links_wrong_shape_instead_of_silent_empty() {
     assert!(task.links.is_empty());
 }
 
-/// A well-shaped `tags:` array with one wrong-typed ENTRY keeps every entry it
+/// A well-shaped `tags:` array with one wrong-typed entry keeps every entry it
 /// can read and names the position of the one it cannot — the case a
 /// field-level check passes clean, since the field itself is the right shape.
 #[test]
@@ -196,7 +196,7 @@ fn reports_a_non_scalar_framework_input_by_its_key() {
 }
 
 /// `ice(impact: 8)` arrives with `confidence: none` and `ease: none` — the
-/// prelude passes its own parameter defaults through. A `none` DICT entry is
+/// prelude passes its own parameter defaults through. A `none` dict entry is
 /// an unset key, so it must stay silent here; whether the framework requires
 /// it is `framework_validate`'s question, not a shape one.
 #[test]
@@ -218,8 +218,8 @@ fn an_omitted_framework_input_is_not_a_shape_error() {
 }
 
 /// A `status:` that is not the prelude's `(name, date, note)` dict at all.
-/// `status: "wip"` is the spelling that skips the constructor, and it used to
-/// read as no status — leaving `check` with nothing to say but "missing
+/// `status: "wip"` is the spelling that skips the constructor, and it
+/// reads as no status — leaving `check` with nothing to say but "missing
 /// required status", about a field the author had written.
 #[test]
 fn reports_a_status_that_is_not_a_status_dict() {
@@ -262,8 +262,8 @@ fn reports_a_wrong_typed_status_part_and_keeps_the_status() {
     assert_eq!(status.date, None);
 }
 
-/// Every scalar string slot reports the same way — the class `field_str` used
-/// to drop wholesale. `id` is in the list because a wrong-typed one silently
+/// Every scalar string slot reports the same way, and the class `field_str`
+/// carries the rule for all of them. `id` is in the list because a wrong-typed
 /// falls back to the file stem, which looks exactly like no `id:` authored.
 #[test]
 fn reports_every_wrong_typed_scalar_string_slot() {
@@ -292,7 +292,7 @@ fn a_datetime_date_slot_is_not_a_shape_error() {
 
 /// `shape_error` names the Typst kind of the offending value in its message,
 /// via `hval_kind` — one arm per `HVal` variant. `Null` reaches it only from
-/// an array element (the `field` helper filters a `none` FIELD out), so it is
+/// an array element (the `field` helper filters a `none` field out), so it is
 /// exercised directly here.
 #[test]
 fn shape_error_names_every_hval_kind() {

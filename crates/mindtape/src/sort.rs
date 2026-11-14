@@ -46,8 +46,8 @@ pub fn is_sort_field_with(name: &str, collectors: &[CollectorSpec]) -> bool {
 ///
 /// # Errors
 /// Returns a message string if [`is_sort_field`] rejects the field, or if a
-/// `:` suffix is anything but `asc`/`desc`. A misspelled direction used to
-/// mean ascending, silently.
+/// `:` suffix is anything but `asc`/`desc`. A misspelled direction is
+/// refused, not read as ascending.
 pub fn validate_sort_spec(spec: &str) -> Result<(), Problem> {
     validate_sort_spec_with(spec, &[])
 }

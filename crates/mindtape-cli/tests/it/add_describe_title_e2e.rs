@@ -1,6 +1,6 @@
 //! `mt add --describe` takes its format after `=`, so a word beside it lands
-//! in the title and used to describe the default template without a word. It
-//! is refused instead, naming the template when the word is one.
+//! in the title. It is refused instead, naming the template when the word is
+//! one.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;

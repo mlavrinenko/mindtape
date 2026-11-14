@@ -68,7 +68,7 @@ pub enum SlotKind {
     /// is not, so `kind: "raw"` is the template's own assertion that this
     /// slot's filler is safe to splice.
     ///
-    /// What IS checked is narrow, and the name is honest about it. A value
+    /// What is checked is narrow, and the name is honest about it. A value
     /// that fails to parse as Typst markup is rejected at [`fill()`] time,
     /// naming the slot; that catches a markup-position slot, which is what
     /// the kind is for. It cannot catch a slot spliced into an argument

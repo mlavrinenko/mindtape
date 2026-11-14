@@ -395,7 +395,7 @@ fn a_hook_append_reaches_a_composite_tags_expression_once() {
 
 /// A strict priority has no scalar form, so `--priority` is refused; the
 /// refusal names the manual priority rather than the framework leaves the
-/// replaced expression used to leave unfilled.
+/// replaced expression leaves unfilled.
 #[test]
 fn a_strict_framework_refuses_a_manual_priority_by_name() {
     let dir =

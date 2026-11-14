@@ -1,7 +1,7 @@
 //! `mt fix` — run the fixers that repair files an `mt` upgrade left behind.
 //!
 //! Today there is one fixer. `prelude-import` rewrites an import of
-//! `@local/mindtape` at an older version this binary no longer reads, changing
+//! `@local/mindtape` at an older version this binary does not read, changing
 //! only the version bytes. `--check` reports an unsupported pin without writing
 //! and exits 1 while one remains; `--dry-run` prints every edit; `--list`
 //! names the fixers.

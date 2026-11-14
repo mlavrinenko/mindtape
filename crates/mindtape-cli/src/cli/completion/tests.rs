@@ -35,7 +35,7 @@ fn every_value_taking_argument_names_a_source() {
     );
 }
 
-/// The reverse: a `SOURCES` entry naming an argument clap no longer declares
+/// The reverse: a `SOURCES` entry naming an argument clap does not declare
 /// is a rule that cannot fire, and reads as coverage that is not there.
 #[test]
 fn every_source_entry_names_a_real_argument() {

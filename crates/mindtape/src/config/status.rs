@@ -154,7 +154,7 @@ impl Legend {
     }
 
     /// The statuses reachable from the initial state by walking `to` edges
-    /// (the initial state included). Used to flag structurally dead states: a
+    /// (the initial state included). Flags structurally dead states: a
     /// task whose current status is outside this set can only have arrived by a
     /// hand-edit or under a since-changed graph. Empty when there is no initial
     /// state (every entry terminal, or the legend cleared).

@@ -7,7 +7,7 @@
 //! Space re-evaluates the project, and Esc / Ctrl+C leaves. Every letter is a
 //! hash digit, so no letter quits. See `truth/tasks/ls-interactive-mode.typ`.
 //!
-//! Terminal entry/exit (raw mode, alternate screen, the [`tui::Tui`] RAII
+//! Terminal entry/exit (raw mode, alternate screen, the [`tui::Tui`] resource
 //! guard) lives in the [`tui`] submodule; this module owns the picker's
 //! state machine — key classification, the hash-buffer selection, and the
 //! draw/refresh loop built on top of it.
@@ -189,7 +189,7 @@ enum Action {
     Quit,
 }
 
-/// The intent a key carries, decoded independently of any IO so it stays
+/// The intent a key carries, decoded independently of any I/O so it stays
 /// testable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Intent {

@@ -183,8 +183,8 @@ fn retire_status(config: &Config) -> Result<String> {
         })
 }
 
-/// A move breaks path-based link resolution (`tasks/gone.typ` no longer
-/// exists), so every surviving task's inbound edge to a moved file is
+/// A move breaks path-based link resolution (`tasks/gone.typ` does not
+/// exist), so every surviving task's inbound edge to a moved file is
 /// retargeted onto its new relative path — the tombstone must leave no
 /// dangling edge, the same invariant the other strategies keep.
 fn retarget_inbound_edges(

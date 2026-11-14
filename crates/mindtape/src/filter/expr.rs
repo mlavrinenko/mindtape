@@ -1,4 +1,4 @@
-//! Shared `evalexpr`-AST helpers, used purely as a parser by both
+//! Shared `evalexpr` syntax-tree helpers, used purely as a parser by both
 //! [`crate::filter`] (task-field comparisons) and [`crate::filter::condition`]
 //! (environment-predicate comparisons). `evalexpr` never evaluates these
 //! trees itself — both callers walk the parsed [`Node`] by hand.

@@ -9,7 +9,7 @@ use crate::config::Config;
 use crate::model::naming::{MintContext, NamingError, mint_stem};
 
 /// Slugify `title` into a filename-stem-safe token: lowercase Unicode
-/// alphanumerics (Cyrillic, CJK, accented Latin all kept) survive, apostrophes
+/// alphanumerics (Cyrillic, wide scripts, accented Latin all kept) survive, apostrophes
 /// (`'` and `’`) are dropped rather than treated as separators, other runs
 /// collapse to a single `-`, and the result is trimmed of leading/trailing
 /// dashes.

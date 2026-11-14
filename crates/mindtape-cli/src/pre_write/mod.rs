@@ -22,7 +22,7 @@
 //!   them over each candidate beside [`mindtape::validate()`], so a task
 //!   `mt check` would reject never lands in the first place.
 //!
-//! What this seam deliberately does NOT do is restore. A rewrite that fails
+//! What this seam deliberately does not do is restore. A rewrite that fails
 //! its check is simply not written — the file on disk is still the one the
 //! user authored, untouched, and there is nothing to put back. Restoring
 //! would mean a *second* write, which can fail on its own (a permission, a
@@ -195,7 +195,7 @@ impl Verdict {
 
 /// Check every entry of `pending` as one batch, as if all of them had already
 /// been written, against `world` — the project's tasks as the caller believes
-/// them to stand right now.
+/// them to stand.
 ///
 /// Pass `&project.outcome.tasks` for a batch computed in one go; pass a set the
 /// caller has been folding accepted writes into when the batch lands file by

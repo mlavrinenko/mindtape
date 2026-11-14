@@ -1,7 +1,7 @@
 //! End-to-end proof that a work-in-progress cap is a plain `[[tasks.rules]]`
 //! entry over `count(...)`
 //! (`truth/tasks/2026-09/retire-task-limits-in-favour-of-count-rules.typ`), the shape
-//! `[[tasks.limits]]` used to be its own table and checker for.
+//! `[[tasks.limits]]` was its own table and checker for.
 //!
 //! A breach still refuses `mt flip` at `severity = "error"`, exactly as the
 //! limit did, and still names every task in the capped set: the candidate

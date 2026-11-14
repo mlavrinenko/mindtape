@@ -4,7 +4,7 @@
 //! status: a task keeps the same assignee through proposed/accepted/wip/done,
 //! and a blocked task is still assigned to whoever unblocks and finishes it. It
 //! is not ownership — the worker is mutable and can ping-pong between actors,
-//! and saying who works it now carries no statement about who else may help.
+//! and saying who works it carries no statement about who else may help.
 //!
 //! The field is plain free text by default; `allowed` constrains it to a
 //! project's declared actors, and `required` (a boolean or a filter expression,

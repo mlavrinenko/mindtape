@@ -106,7 +106,7 @@ fn regex_validator_uses_the_sibling_pattern() {
     );
 }
 
-/// `validate = "regex"` with no sibling `regex` key is a CONFIG error, not a
+/// `validate = "regex"` with no sibling `regex` key is a config error, not a
 /// silently permissive kind: caught at load, before any task is read.
 #[test]
 fn regex_without_pattern_is_a_config_error() {

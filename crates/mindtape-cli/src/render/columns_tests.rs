@@ -13,8 +13,8 @@ fn rows<'a>(data: &[(&'a str, &'a Task)]) -> Vec<(String, &'a Task)> {
 
 /// Whether the shipped floor's `when` for `col` resolves true over `rows`.
 ///
-/// The per-column policy used to be a Rust match (`auto_significant`) and is
-/// now one `when` expression per column in `defaults.toml`, so these tests ask
+/// The per-column policy is one `when` expression per column in `defaults.toml`,
+/// not a Rust match (`auto_significant`), so these tests ask
 /// the floor rather than a fixture restating it: a fixture would pass while the
 /// floor said anything. `named` is the request fact `resolve_order` derives
 /// from `[ls] columns-order`; the environment is otherwise blank, which is the

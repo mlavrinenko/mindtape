@@ -2,7 +2,7 @@
 //! (`truth/tasks/2026-09/write-every-authored-file-through-one-atomic-writer.typ`).
 //!
 //! `std::fs::write` truncates then writes: a process killed between the two
-//! (Ctrl-C, OOM, a full disk) leaves an empty or torn file, and a concurrent
+//! (Ctrl-C, running out of memory, a full disk) leaves an empty or torn file, and a concurrent
 //! reader (tinymist, a hook's `mt ls`, an editor reload) can observe the gap.
 //! [`write_atomic`] instead writes a sibling temp file, fsyncs it, then
 //! renames it over the target — a killed writer leaves the old file whole,

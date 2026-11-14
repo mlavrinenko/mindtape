@@ -57,6 +57,11 @@ dry-baseline:
 banners:
     git ls-files --cached --others --exclude-standard -- '*.rs' '*.sh' '*.css' | xargs -r vale --no-global --config=.config/vale.ini --output=line
 
+[doc("Fail on prose in Rust doc comments")]
+[group("gate")]
+vale-code:
+    bash .just/scripts/check-code-prose.sh
+
 [doc("Fail if the working tree carries a committed credential")]
 [group("gate")]
 secrets:

@@ -62,7 +62,7 @@ pub fn status_value(name: &str, ymd: (i32, u8, u8), note: Option<&str>) -> Strin
 /// leaders: the delimiters that open a block (`[`, `]`), the code/math/emphasis
 /// leaders (`#`, `$`, `*`, `_`, `` ` ``), and the two sigils that swallow the
 /// word after them (`@` reference, `<` label). A closing `>` needs no escape —
-/// it is only special after a `<` that is now escaped — but it survives the
+/// it is only special after a `<` that is escaped — but it survives the
 /// round trip either way.
 ///
 /// Every writer that splices caller text into markup must route through this:

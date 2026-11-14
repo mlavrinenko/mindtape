@@ -1,0 +1,10 @@
+# .config/vale/local/config/views/RustDoc.yml — the View `lint::vale-code`
+# reads. A tree-sitter query keeps the two Rust doc comment forms and drops an
+# inline `//` comment. Vale strips the comment marker before it parses the
+# body as Markdown, so a fenced doc test and a code span stay out too.
+engine: tree-sitter
+scopes:
+  - expr: |
+      ((line_comment) @doc
+       (#match? @doc "^///([^/]|$)|^//!"))
+    type: md

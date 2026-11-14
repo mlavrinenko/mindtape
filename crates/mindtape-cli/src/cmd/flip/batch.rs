@@ -36,7 +36,7 @@ impl Landed {
 /// The batch's post-write pass, over one reload of the project.
 ///
 /// # Errors
-/// Returns an error if the config no longer loads after the batch's writes.
+/// Returns an error if the config does not load after the batch's writes.
 pub(crate) fn after_batch_diags(
     root: &Path,
     landed: &Landed,

@@ -284,7 +284,7 @@ impl Task {
     /// filter language's `path` field and the `--sort path` key both read (see
     /// `truth/tasks/2026-07/filter-and-sort-tasks-by-file.typ`, and
     /// `truth/tasks/2026-09/the-file-filter-field-and-the-file-column-name-different-paths.typ`
-    /// for why that field is no longer spelled `file`). Built from
+    /// for why that field is not spelled `file`). Built from
     /// [`Path::components`] and rejoined with `/` rather than [`Path::display`],
     /// so the same value comes out on every platform: `Display` would print the
     /// OS-native separator (`\` on Windows), making a filter or `[views.*]`

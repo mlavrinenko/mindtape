@@ -262,8 +262,8 @@ const SINGLE_LINE_TEMPLATE: &str = mindtape::typst_task!(
 );
 
 /// `add` injects `status:` into whatever `task.with(…)` the template declares.
-/// Against a single-line call it used to write `title: "…"status: proposed(…)`
-/// — a file that cannot parse, reported only *after* it was on disk. The whole
+/// Against a single-line call, the injection must add a separator; without
+/// one it writes `title: "…"status: proposed(…)`, a file that cannot parse. The whole
 /// point of this test is being the other shape: the multi-line one every
 /// in-tree template uses is covered several times over above, which is how this
 /// got through.
@@ -412,8 +412,8 @@ fn no_verify_writes_a_task_that_would_be_refused() {
 /// A project-configured content rule (this repo's own "every `TO-BE` bullet
 /// opens with 🟢") — mirroring
 /// `truth/tasks/2026-09/validate-body-rules-before-mt-add-writes-a-task.typ`'s own
-/// Problem: `mt check` already refuses this shape, but a filled task used to
-/// reach disk anyway and wait for that later check to catch it.
+/// Problem: `mt check` already refuses this shape, but a filled task reached
+/// disk anyway and waited for that later check to catch it.
 const TO_BE_CONTENT_RULE_CONFIG: &str = r#"[tasks]
 roots = ["tasks"]
 
@@ -437,7 +437,7 @@ const TO_BE_TEMPLATE: &str = mindtape::typst_task!(
 "#
 );
 
-/// The Problem this task exists to fix, end to end: `mt add` now runs the same
+/// The Problem this task fixes, end to end: `mt add` runs the same
 /// content gate `mt check` does, refuses the task before writing it, and
 /// leaves nothing behind for a later `mt check` to catch.
 #[test]

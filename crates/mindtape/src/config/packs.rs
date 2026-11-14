@@ -35,9 +35,9 @@
 //!
 //! Per rule array, entries fold in source order — every pack a layer extends
 //! (in `extends` order), then the layer's own declared entries — and a later
-//! entry sharing an earlier one's `name` replaces it IN PLACE rather than
+//! entry sharing an earlier one's `name` replaces it in place rather than
 //! appending a second copy. That replacement only ever looks at entries from
-//! an EARLIER source: two same-named entries within one source's own array
+//! an earlier source: two same-named entries within one source's own array
 //! are both kept untouched, so a same-file mistake still reaches
 //! [`crate::body::headers::validate_header_rules`] /
 //! [`crate::body::content::validate_content_rules`] as a duplicate-name error
@@ -279,8 +279,8 @@ struct RuleAccumulator {
 
 impl RuleAccumulator {
     /// Fold one source's own array in, in order. A name this accumulator
-    /// already placed (from an EARLIER source) is replaced in place; a name
-    /// repeated within THIS batch is left alone — see the module doc for why.
+    /// already placed (from an earlier source) is replaced in place; a name
+    /// repeated within this batch is left alone — see the module doc for why.
     /// `lines` holds each entry's header line, and is used only when it counts
     /// the batch exactly.
     fn extend_batch(&mut self, batch: Vec<toml::Value>, origin: &RuleOrigin, lines: &[usize]) {
@@ -395,7 +395,7 @@ fn layer_parse_error(source: &LayerSource, error: toml::de::Error) -> ConfigErro
     }
 }
 
-/// The directory a layer's OWN relative paths resolve against: every layer
+/// The directory a layer's own relative paths resolve against: every layer
 /// file lives two segments under it (`<dir>/.mindtape/config.toml`,
 /// `<dir>/.mindtape/defaults.toml`, or XDG's `<config-home>/mindtape/
 /// defaults.toml`), so its grandparent is that directory — `root` itself for

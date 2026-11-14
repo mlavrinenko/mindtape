@@ -1,4 +1,4 @@
-//! Graph-derived per-task ranks: where a task sits in the dependency DAG
+//! Graph-derived per-task ranks: where a task sits in the dependency graph
 //! ([`Task::topo`]) and how much work waits behind it ([`Task::blocks`]) —
 //! plus how far its children have got ([`Task::children`],
 //! [`Task::children_done`]), counted over `parent` edges by [`crate::graph::children`].

@@ -12,8 +12,8 @@
 //! and value; it never silently falls through to the system clock. An empty
 //! value counts as unset, same as `$MINDTAPE_WORKTREE`.
 //!
-//! `$SOURCE_DATE_EPOCH` is deliberately NOT honoured: `mt`'s "today" is an
-//! operational query concept (what is ready / stale / overdue right now), not a
+//! `$SOURCE_DATE_EPOCH` is deliberately not honoured: `mt`'s "today" is an
+//! operational query concept (what is ready / stale / overdue), not a
 //! build-artifact timestamp, and Nix dev/CI shells export
 //! `SOURCE_DATE_EPOCH=315532800` (1980-01-01) — honouring it would silently
 //! time-travel every `mt ls` there. Reproducible output pins `$MINDTAPE_NOW`.

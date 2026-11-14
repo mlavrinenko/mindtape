@@ -1,7 +1,7 @@
 //! Dependency readiness: a one-hop, status-only classification of a task set.
 //!
 //! A task is *ready* when it is non-terminal and every direct blocking-kind
-//! edge target is terminal — it can be started now. `depends-on` is the only
+//! edge target is terminal, so it can start. `depends-on` is the only
 //! built-in kind flagged blocking (see [`crate::link::blocking_kinds`]); a
 //! project's custom `[[tasks.links.kinds]]` can opt another kind in. It is
 //! *blocked* when some direct target is non-terminal or names no loaded task.
@@ -30,7 +30,7 @@ use crate::model::Task;
 /// A task's readiness, derived from its direct `depends-on` targets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReadyState {
-    /// Non-terminal with every direct dependency terminal — startable now.
+    /// Non-terminal with every direct dependency terminal: startable.
     Ready,
     /// Non-terminal with some dependency non-terminal or unresolved.
     Blocked,

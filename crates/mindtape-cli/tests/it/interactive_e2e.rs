@@ -289,8 +289,8 @@ const CURSOR_SHOW: &str = "\x1b[?25h";
 /// Quitting must restore the terminal: leave the alternate screen and show the
 /// cursor again, after having entered and hidden them.
 ///
-/// `.config/mutants.toml` used to excuse `Tui::drop` and `leave_screen` as
-/// unobservable, on the reasoning that `leave_screen` errors (or is a no-op)
+/// `.config/mutants.toml` must not excuse `Tui::drop` and `leave_screen` as
+/// unobservable, on the reasoning that they error (or are a no-op)
 /// without a TTY. Under this pty there *is* a TTY, so both write real bytes
 /// into the captured stream: an empty `Drop` body or a `leave_screen` replaced
 /// by `Ok(())` leaves the transcript without `LEAVE_ALT`/`CURSOR_SHOW` and
@@ -411,7 +411,7 @@ fn opening_a_task_holds_a_project_editor_and_falls_back_to_editor() {
 }
 
 /// The risk `truth/tasks/2026-07/hyperlink-the-handle-column.typ` exists to guard:
-/// the `slug#` column's cells now carry an OSC 8 wrap (and, once a row is typed,
+/// the `slug#` column's cells carry an OSC 8 wrap (and, once a row is typed,
 /// an invert-colour wrap on top of that), but the key loop reads real key
 /// events off the terminal (crossterm), never the rendered screen — so typing
 /// a stem hash and Enter must still select and open the right task with

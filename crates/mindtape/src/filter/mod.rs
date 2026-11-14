@@ -1,6 +1,6 @@
 //! The filter-expression query language, evaluated over live tasks.
 //!
-//! `evalexpr` is used only as a parser: its AST is walked and evaluated against
+//! `evalexpr` is used only as a parser: its syntax tree is walked and evaluated against
 //! each [`Task`] in memory (never against a database).
 //!
 //! # Syntax
@@ -65,8 +65,8 @@
 //! `now()` evaluates to today's ISO date string (`YYYY-MM-DD`) and may appear
 //! on the right-hand side of a comparison: `start <= now()`, `due < now()`.
 //!
-//! Dependency-aware predicates `ready` and `blocked` answer "what can I start
-//! now" over the whole loaded set (see [`Readiness`]). They take no argument and
+//! Dependency-aware predicates `ready` and `blocked` answer "what can start
+//! " over the whole loaded set (see [`Readiness`]). They take no argument and
 //! may be written bare (`ready`) or as a call (`ready()`). The `terminal`
 //! predicate (likewise bare or `terminal()`) matches a task whose status is
 //! flagged terminal in config.
@@ -84,7 +84,7 @@
 //! - `set.rs`: the fields a filter takes from the whole task set.
 //! - `strings.rs`: `contains` and the other string predicates.
 //! - `views.rs`: `in_view` and the `@name` sugar.
-//! - `expr.rs`: the AST helpers and the kebab-name rewrite.
+//! - `expr.rs`: the syntax-tree helpers and the kebab-name rewrite.
 //! - `parse_error.rs`: a syntax error in plain words.
 //! - `problems.rs`: what makes a saved expression unusable at config load.
 //! - `condition.rs`: a config-held filter expression, parsed once.

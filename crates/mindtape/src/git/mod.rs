@@ -4,7 +4,7 @@
 //! Parses `.git/HEAD` directly rather than shelling out or adding a git
 //! library: `ref: refs/heads/<name>` names a branch, a raw commit sha is a
 //! detached `HEAD`, and a `.git` *file* (`gitdir: <path>`, the worktree/
-//! submodule form) redirects to `<path>/HEAD`. Any IO error, or a `HEAD` this
+//! submodule form) redirects to `<path>/HEAD`. Any I/O error, or a `HEAD` this
 //! module cannot parse, resolves to `None` — `on_branch` treats that the same
 //! as "not a git repo".
 //!

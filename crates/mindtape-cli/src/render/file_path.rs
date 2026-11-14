@@ -2,7 +2,7 @@
 //!
 //! `Task.file` is stored root-relative (`truth/tasks/x.typ`), but the table's
 //! `file` column shows a path relative to the process's working directory —
-//! the form an IDE-integrated terminal (Zed, VS Code, `JetBrains`) turns into
+//! the form an editor-integrated terminal (Zed, Visual Studio Code, `JetBrains`) turns into
 //! a ctrl-click with no escape sequences involved
 //! (`truth/tasks/2026-07/opt-in-file-column-for-mt-ls.typ`). [`relativize`] is the
 //! pure core; the root comes from [`super::RenderCtx`], so one process can

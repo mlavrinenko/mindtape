@@ -1,5 +1,5 @@
 //! Folder-derived tags: virtual tags injected from a task's location under its
-//! root. Pure (no IO) — the loader supplies the path relative to the root dir.
+//! root. Pure (no I/O) — the loader supplies the path relative to the root dir.
 //!
 //! A [`RootDeriver`] is built once per root (it compiles the gating globs),
 //! then queried per file. Tags are the union of the root name plus the

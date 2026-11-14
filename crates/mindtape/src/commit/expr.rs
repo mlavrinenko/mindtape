@@ -20,7 +20,7 @@
 //!   parent. The CLI skips it unless `--check-merges` asks for it.
 //!
 //! Functions: `has(field)` / `miss(field)` (a non-empty subject, at least one
-//! ref or file) and `matches(field, "regex")` — over a list, whether ANY entry
+//! ref or file) and `matches(field, "regex")` — over a list, whether any entry
 //! matches, so `!matches(files, "^services/")` reads "touches nothing under
 //! `services/`".
 //!

@@ -24,10 +24,10 @@
 //!
 //! # What `none` means
 //!
-//! A `none` DICT ENTRY reads as an unset key, never a report: the prelude's
+//! A `none` dict entry reads as an unset key, never a report: the prelude's
 //! helpers pass their own defaults through, so `ice(impact: 8)` arrives with
 //! `confidence: none` and `ease: none` in `inputs`, and an omitted field is
-//! `none` by the same route. A `none` ARRAY ELEMENT is reported like any other
+//! `none` by the same route. A `none` array element is reported like any other
 //! wrong-typed one — an array has no unset slot, so a `none` in it is a value
 //! the author wrote.
 
@@ -174,7 +174,7 @@ pub(crate) fn parse_num_value(
 
 /// Project the `inputs` dict of a framework value into typed input values.
 /// An input that is not a scalar is reported as `<field>.inputs.<key>`;
-/// whether a scalar is the RIGHT one for the framework (and whether a required
+/// whether a scalar is the right one for the framework (and whether a required
 /// one is missing) is [`crate::framework::validate`]'s question.
 fn parse_inputs(
     value: Option<&HVal>,

@@ -285,7 +285,7 @@ pub fn rewrite_into(when: &str, replace: impl Fn(&str) -> String) -> String {
 }
 
 /// Every status named by an `into(...)` call in `when`, in source order (may
-/// contain duplicates). Used to check a hook against the configured legend at
+/// contain duplicates). Checks a hook against the configured legend at
 /// load, so a typo'd status is one config error rather than a hook that quietly
 /// never fires.
 #[must_use]
@@ -329,7 +329,7 @@ pub(crate) fn scan_call(when: &str, call: &str, replace: &dyn Fn(&str) -> String
 /// A `for` over a fixed bound, not `while cursor < when.len()`: every mutant of
 /// the cursor advance (`+=` -> `-=`/`*=`, a `copy_in_string` that returns 0, a
 /// rewrite reporting length 0) otherwise spins forever, pushing another char
-/// onto `rewritten` each turn — measured on 2026-09-29 at 45 GB RSS before the
+/// onto `rewritten` each turn — measured on 2026-09-29 at a 45 GB resident set before the
 /// host's earlyoom killed the whole sweep. Correct code consumes at least one
 /// byte per turn, so the bound is never reached; a mutant returns a wrong scan.
 pub(crate) fn scan_expression(

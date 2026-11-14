@@ -15,7 +15,7 @@ pub const PRELUDE: &str = include_str!("../../../../lib/prelude.typ");
 ///
 /// # Panics
 /// Panics if writing the package files under `dir` fails — a test-only helper,
-/// so an IO failure against a fresh tempdir is a test-harness bug, not a case
+/// so an I/O failure against a fresh tempdir is a test-harness bug, not a case
 /// to recover from.
 pub fn write_lib_package(dir: &Path, prelude: &str) {
     write_package(&dir.join("lib"), prelude);
@@ -152,10 +152,10 @@ pub fn home_and_project() -> (tempfile::TempDir, PathBuf, PathBuf) {
 /// every test that needs a real project on disk repeats, and deliberately
 /// nothing more — a scenario-specific config overwrites the file, and the lib
 /// override ([`write_lib_package`]) is a separate decision, since a test about
-/// package resolution wants a project WITHOUT one.
+/// package resolution wants a project without one.
 ///
 /// # Panics
-/// Panics if writing under `dir` fails — a test-only helper, so an IO failure
+/// Panics if writing under `dir` fails — a test-only helper, so an I/O failure
 /// against a fresh tempdir is a test-harness bug, not a case to recover from.
 #[allow(clippy::unwrap_used)]
 pub fn write_bare_project(dir: &Path) {

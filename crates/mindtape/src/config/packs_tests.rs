@@ -285,7 +285,7 @@ fn a_same_file_duplicate_name_is_left_for_validation_not_collapsed_at_merge() {
 /// entries sharing a name within the project's own file fail
 /// `Config::validate` (`validate_header_rules`), the same treatment
 /// `rejects_duplicate_rule_names_within_one_array`
-/// (`rules/tests.rs`) now gives `[[tasks.rules]]`. Cross-file
+/// (`rules/tests.rs`) gives `[[tasks.rules]]`. Cross-file
 /// replacement by name is a different scenario entirely — see
 /// `same_name_project_rule_replaces_the_ancestors_in_place` — and stays
 /// legal.

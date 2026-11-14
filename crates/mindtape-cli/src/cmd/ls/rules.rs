@@ -219,7 +219,7 @@ fn condition_holds(rule: &LsRule, env: &ConditionEnv) -> Result<bool> {
 
 /// A rule's display identity: its `name`, else its `condition` text, else
 /// [`UNNAMED_RULE`]. Never empty — the label is a source name in its own right
-/// now (a rule's own overrides are attributed to it), and an empty one would
+/// (a rule's own overrides are attributed to it), and an empty one would
 /// render as `applied:  (filter)`.
 fn rule_label(rule: &LsRule) -> String {
     rule.name
@@ -238,7 +238,7 @@ const UNNAMED_RULE: &str = "rule";
 /// matched rule — only what the rule itself imports or overrides applies.
 ///
 /// A rule's own overrides are attributed to the rule, not to `manual`: an
-/// explicit CLI argument can now win one facet while the rule keeps another,
+/// explicit CLI argument can win one facet while the rule keeps another,
 /// and one shared label would report the two as one source.
 fn compose_rule(config: &Config, rule: &LsRule) -> Result<(Bundle, Applied)> {
     let label = rule_label(rule);
@@ -320,7 +320,7 @@ fn splice_view_refs(
 
 /// Layer the CLI's own `--sort` / `--columns` flags on top of `(bundle,
 /// applied)`, highest precedence. Mirrors the pre-B2 `effective_sort` /
-/// `resolve_columns` behaviour exactly, now also updating the attribution.
+/// `resolve_columns` behaviour exactly, and also updates the attribution.
 fn apply_cli_overrides(
     project: &util::Project,
     args: &LsArgs,

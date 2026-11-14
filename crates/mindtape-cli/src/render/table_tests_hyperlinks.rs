@@ -150,7 +150,7 @@ fn hyperlink_wrap_does_not_disturb_column_layout() {
 // highlight + link composition (the interactive risk)
 
 /// The real risk this task exists to guard against: `apply_highlight` colours
-/// the slug# cell reverse-video for `mt ls -i`, and the same cell now also
+/// the slug# cell reverse-video for `mt ls -i`, and the same cell also
 /// carries a hyperlink target. The two must compose — the invert style rides
 /// inside the OSC 8 wrap without disturbing it, and stripping the OSC 8 wrap
 /// back out restores exactly the highlighted (but unlinked) rendering.

@@ -107,10 +107,10 @@ fn check_shape(task: &Task, out: &mut Vec<Violation>) {
     }
 }
 
-/// Whether the projection reported `name` ITSELF unreadable — a FIELD-level
+/// Whether the projection reported `name` itself unreadable — a field-level
 /// [`crate::model::marker::ShapeError`], whose path is the field name and nothing more.
 /// Exact equality is the whole test, and it is exact by that module's path
-/// convention rather than by luck: every element path EXTENDS the field name
+/// convention rather than by luck: every element path extends the field name
 /// (`status.date`, `tags[1]`, `priority.inputs.ease`), so the one path equal to
 /// the name is the one case where the projection came away with nothing.
 fn shape_reported(task: &Task, name: &str) -> bool {
@@ -118,11 +118,11 @@ fn shape_reported(task: &Task, name: &str) -> bool {
 }
 
 /// A `required` answer with the fields the marker could not read at all masked
-/// out. A FIELD-level shape error means the author DID write the field and
+/// out. A field-level shape error means the author did write the field and
 /// [`check_shape`] already reported it naming the type; "missing required" on
 /// top of that sends them to add a field that is on the page.
 ///
-/// The mask sits HERE, at the input to each check, rather than as a pass over
+/// The mask sits here, at the input to each check, rather than as a pass over
 /// the finished violations: after the fact the only handle on the report to
 /// drop is its rendered message — `required field is missing`, spelled
 /// independently by four checks, and `missing required status` by a fifth — so
@@ -130,7 +130,7 @@ fn shape_reported(task: &Task, name: &str) -> bool {
 /// genuinely different violation worded the same way. The `required` bool is
 /// the real input, and the input is what is wrong.
 ///
-/// An ELEMENT error is deliberately NOT masked: it leaves the field itself
+/// An element error is deliberately not masked: it leaves the field itself
 /// readable, so the required check on what survives is correct and must fire.
 /// `estimate: (days: "two")` is an estimate whose only unit did not parse, and
 /// reporting both the element and the empty estimate is two true statements.

@@ -170,7 +170,7 @@ fn contested_reads_whether_the_rows_disagree() {
     assert!(captured(config(), &agreed, ColumnId::Title));
 }
 
-/// `named()` reads the REQUEST — whether the caller asked for this column —
+/// `named()` reads the request — whether the caller asked for this column —
 /// never the outcome. Same expression, same rows, two different column
 /// requests.
 #[test]

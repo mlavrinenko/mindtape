@@ -3,7 +3,7 @@
 //!
 //! These drive the same protocol the installed shell hook does — `COMPLETE=`
 //! plus the word list after `--` — rather than a Rust-level call, because the
-//! thing under test is exactly that a tab press reaches a LIVE project. A unit
+//! thing under test is exactly that a tab press reaches a live project. A unit
 //! test over a source function would pass while the hook handed clap the wrong
 //! argv, which is the failure a user would see.
 //!
@@ -62,7 +62,7 @@ fn complete(dir: &Path, words: &[&str]) -> Vec<String> {
 }
 
 /// The red test this whole change was written against: `mt flip <TAB>` in
-/// `examples/minimal` offers THAT project's four-value legend. `todo` is
+/// `examples/minimal` offers that project's four-value legend. `todo` is
 /// minimal's and `proposed` is api-service's, so a baked list, a list read from
 /// the wrong project, and the right one are three distinguishable answers.
 #[test]
@@ -277,7 +277,7 @@ fn set_offers_nothing_once_an_assignment_carries_a_value() {
     assert!(project_values(&candidates).is_empty(), "{candidates:?}");
 }
 
-/// `mt set <task> tags=<TAB>` offers the tags a write is VALIDATED against:
+/// `mt set <task> tags=<TAB>` offers the tags a write is validated against:
 /// api-service declares an `allowed` list, and each candidate is a whole
 /// `tags=<tag>` token rather than a bare tag the token grammar would reject.
 #[test]

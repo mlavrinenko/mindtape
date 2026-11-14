@@ -75,7 +75,7 @@ pub struct RenderCtx<'a> {
 /// hashes — the unconfigured-project case nearly every render test wants.
 ///
 /// The floor rather than [`Config::default`], because every column's
-/// visibility now lives in `defaults.toml` as a `when` expression: a config
+/// visibility lives in `defaults.toml` as a `when` expression: a config
 /// that never went through `parse_config` describes no column, so it renders
 /// none, and a render test built on one would assert against an empty table.
 #[cfg(test)]

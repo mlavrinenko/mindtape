@@ -836,9 +836,11 @@ groups:
   - name: vale-docs
     source:
       - .config/vale.ini
+      - .config/vale-code.ini
       - .config/vale/local/Prose/*.yml
       - .config/vale/local/Prose/words.txt
       - .config/vale/local/Sep/*.yml
+      - .config/vale/local/config/views/*.yml
       - .config/vale/local/config/vocabularies/Prose/*.txt
       - nix/dev/vale-styles.nix
       - nix/dev/vale-grammars.nix
@@ -857,6 +859,7 @@ groups:
       - .just/scripts/check-doc-facts.sh
       - .just/scripts/check-doc-recipes.sh
       - .just/scripts/check-doc-prose.sh
+      - .just/scripts/check-code-prose.sh
       - .just/scripts/check-doc-prose.awk
       - .just/scripts/_doc-prose-lib.sh
       - .just/scripts/check-doc-blocks.sh

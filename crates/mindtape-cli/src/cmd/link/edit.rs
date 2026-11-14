@@ -1,7 +1,7 @@
 //! `mt link`'s pure half: render edges as prelude helper calls, and reconcile
 //! them with the `links:` a task already carries.
 //!
-//! No IO and no project here — a source string, the task's evaluated edges, and
+//! No I/O and no project here — a source string, the task's evaluated edges, and
 //! the edges the caller asked for go in; one [`typst_edit::Edit`] comes out (or
 //! `None`, when the file already says this). The same `task_edit::{task_with,
 //! upsert_named_arg}` + `typst_edit::apply` shape `cmd/flip/mod.rs` and `cmd/recur/edit.rs`

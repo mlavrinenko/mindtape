@@ -130,7 +130,7 @@ pub struct Outcome {
 /// run, where every un-flagged axis takes its default without a prompt.
 ///
 /// # Errors
-/// Propagates IO errors from reading the answers or writing the prompts.
+/// Propagates I/O errors from reading the answers or writing the prompts.
 pub fn resolve<R: BufRead, W: Write>(
     flags: &Flags,
     interactive: bool,
@@ -167,7 +167,7 @@ pub fn resolve<R: BufRead, W: Write>(
 /// else take the default.
 ///
 /// # Errors
-/// Propagates IO errors from reading the answer or writing the prompt.
+/// Propagates I/O errors from reading the answer or writing the prompt.
 fn choose<A: Axis, R: BufRead, W: Write>(
     flag: Option<A>,
     ask: bool,
@@ -184,7 +184,7 @@ fn choose<A: Axis, R: BufRead, W: Write>(
 }
 
 /// Render one axis's menu, read a choice (number, slug, or empty for the
-/// default), and re-prompt on anything unrecognised. EOF resolves to the
+/// default), and re-prompt on anything unrecognised. The end of input resolves to the
 /// default rather than looping.
 fn ask_axis<A: Axis, R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Result<A> {
     loop {
@@ -230,7 +230,7 @@ fn ask_axis<A: Axis, R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Re
 }
 
 /// The gate between the core questions and the extras. Empty or yes accepts the
-/// defaults; EOF accepts them too.
+/// defaults, and the end of input accepts them too.
 fn accept_defaults<R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Result<bool> {
     write!(
         writer,

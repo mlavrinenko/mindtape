@@ -1,6 +1,6 @@
 //! `@name` sugar and the `mt at` command.
 //!
-//! `at.toml` itself ([`mindtape::AtConfig`]) is pure; this module is the IO and
+//! `at.toml` itself ([`mindtape::AtConfig`]) is pure; this module is the I/O and
 //! CLI edge: locate and read the app-scoped file, resolve a leading `@token`,
 //! and rewrite it before clap parses. A project becomes `-w <path>`, so
 //! `mt @sn ls` reuses the existing worktree-override plumbing and every command

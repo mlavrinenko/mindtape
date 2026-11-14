@@ -1,7 +1,7 @@
 //! The shared per-source entry point for body-rule gating.
 //!
-//! [`crate::body::gate`] checks heading STRUCTURE and [`crate::body::content_gate`] checks
-//! section CONTENT; both take one task's source and a pre-compiled rule set.
+//! [`crate::body::gate`] checks heading structure and [`crate::body::content_gate`] checks
+//! section content; both take one task's source and a pre-compiled rule set.
 //! [`check_body_rules`] runs the two in the order `mt check` always has, so
 //! `mt check` and the candidate seam ([`crate::validate::candidate`]) call one function
 //! rather than each carrying its own copy of "run headers, then content." A

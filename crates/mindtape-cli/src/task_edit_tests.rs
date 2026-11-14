@@ -39,11 +39,11 @@ fn assert_loads(name: &str, source: &str) {
     verify_written(dir.path(), &file).unwrap();
 }
 
-/// The bug this seam was rewritten for: a `task.with(…)` call written on ONE
-/// line ends with no separator before its closing paren, and an injected
-/// `status:` used to land glued to the previous value —
-/// `title: "One line"status: wip(…)` — a file that cannot parse, written
-/// before the error surfaced. Legal Typst in, loadable Typst out.
+/// The bug this seam guards against: a `task.with(…)` call written on one
+/// line ends with no separator before its closing paren, so an injected
+/// `status:` must not land glued to the previous value:
+/// `title: "One line"status: wip(…)`, a file that cannot parse. Legal Typst
+/// in, loadable Typst out.
 #[test]
 fn injects_into_a_single_line_call() {
     let out = upsert(
@@ -95,8 +95,8 @@ fn injects_into_a_multi_line_call_unchanged() {
     assert_loads("multi.typ", &out);
 }
 
-/// An EMPTY argument list is the mirror case: nothing precedes the injected
-/// argument, so it must take NO leading comma. `task.with(,status: …)` would be
+/// An empty argument list is the mirror case: nothing precedes the injected
+/// argument, so it must take no leading comma. `task.with(,status: …)` would be
 /// as unparseable as the glued form this fix removes.
 #[test]
 fn injects_into_an_empty_argument_list_without_a_leading_comma() {

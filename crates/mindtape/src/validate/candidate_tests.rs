@@ -73,7 +73,7 @@ fn checks_a_candidate_without_creating_its_file() {
 }
 
 /// A status outside the legend is caught before the write, and the violation
-/// names the candidate — the case that used to leave a broken file behind.
+/// names the candidate instead of leaving a broken file behind.
 #[test]
 fn reports_a_violation_against_the_unwritten_candidate() {
     let dir = setup();

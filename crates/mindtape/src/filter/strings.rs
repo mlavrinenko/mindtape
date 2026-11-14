@@ -343,7 +343,7 @@ pub(crate) fn dict_miss(
 }
 
 /// `word(...)` reached boolean position. Named rather than left to the unknown
-/// function arm, because the name IS known — it is in the wrong place.
+/// function arm, because the name is known — it is in the wrong place.
 pub(crate) fn word_is_not_boolean() -> FilterError {
     FilterError::call(
         "word() gives text, not a condition",

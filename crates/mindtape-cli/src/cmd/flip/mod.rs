@@ -332,7 +332,7 @@ fn asked(task: &mindtape::Task, project: &Project) -> mindtape::Task {
 ///
 /// A refused flip is not written, and so is not restored either — the file
 /// still holds exactly what its author put there. `after_batch`'s revalidation
-/// stays as the net for what a landed flip does to OTHER tasks: this check only
+/// stays as the net for what a landed flip does to other tasks: this check only
 /// ever names the task being rewritten.
 fn flip_one(
     batch: &Batch<'_>,
@@ -356,7 +356,7 @@ fn flip_one(
 }
 
 /// Rewrite the `status:` argument of the first `task.with(…)` in `source` to
-/// `status` dated `ymd` with an optional note. Pure: no IO. Shared with the
+/// `status` dated `ymd` with an optional note. Pure: no I/O. Shared with the
 /// gitless `retire` rm strategy.
 pub(crate) fn status_edit(
     source: &str,

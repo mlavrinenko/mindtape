@@ -9,7 +9,7 @@
 //!    farthest ancestor first, so the nearest one wins.
 //! 4. The project's own `<root>/.mindtape/config.toml`.
 //!
-//! IO (locating and reading files, [`discover_layers`]) is kept separate from
+//! I/O (locating and reading files, [`discover_layers`]) is kept separate from
 //! the fold: [`crate::config::packs::merge_layers_with_packs`] takes the
 //! discovered [`Layer`]s and does the rest, so the merge order is testable
 //! without touching a filesystem (see that module's own tests). Every field
@@ -197,7 +197,7 @@ struct MergedDoc {
 /// `required` rule, a `[[tasks.rules]]` assertion, an `[[on.flip]]` gate — and
 /// none of those call sites has a project root to re-read the section with.
 ///
-/// It compiles BEFORE [`Config::validate`], not after. That pass dry-runs
+/// It compiles before [`Config::validate`], not after. That pass dry-runs
 /// every saved filter expression against a probe task, so an expression
 /// reaching a project dictionary — `in_dict("verbs", word(title, 1))`, the
 /// canonical rule — is checked against a config whose only dictionaries are

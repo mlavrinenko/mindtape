@@ -1,6 +1,6 @@
 //! Serialize a [`Task`] back to `#show: task.with(...)` Typst source — the
 //! one new primitive `mt import` needs (`truth/tasks/2026-07/task-to-typ-emitter.typ`).
-//! Pure: no IO, no config policy — the caller has already mapped values onto
+//! Pure: no I/O, no config policy — the caller has already mapped values onto
 //! the project's config before calling in. Field order is fixed (see
 //! [`emit_task`]), so two calls on an unchanged `Task` agree byte-for-byte.
 //!

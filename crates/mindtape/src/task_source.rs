@@ -166,7 +166,7 @@ impl TaskSource {
     }
 
     /// Whether a task filed at `path` would be a source, ignoring the kind of
-    /// entry there now: a `.typ` file under a configured root, outside every
+    /// entry there: a `.typ` file under a configured root, outside every
     /// reserved component and template dir.
     ///
     /// This is the lexical half of [`Self::is_source`], and the question a

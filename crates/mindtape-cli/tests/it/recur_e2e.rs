@@ -397,9 +397,9 @@ recur: every(weeks: 1),\n\
 
 /// `--advance N` for `N > 1` over a rule anchored on completion — the default
 /// anchor, and the one every hop but the first has to stop honouring. Both
-/// halves of the chain used to collapse onto the first occurrence: the anchor
-/// re-resolved from today each hop, so all N planned tomorrow, and the stem
-/// minter disambiguated against disk alone, so all N claimed one filename.
+/// halves of the chain must stay distinct: the anchor re-resolves from today
+/// each hop, so the N dates differ, and the stem minter sees the earlier
+/// planned files, so the N filenames differ.
 #[test]
 fn advance_lays_out_a_chain_of_distinct_occurrences() {
     let body = WEEKLY_SPAWN.replace("recur: every(weeks: 1),", "recur: every(days: 1),");

@@ -115,7 +115,7 @@ fn path_field_equality_matches_the_full_root_relative_path() {
 }
 
 /// `file` must fail loudly rather than silently: a reader who copies a path
-/// out of the `file` COLUMN and writes `file` into a filter used to get an
+/// out of the `file` column and writes `file` into a filter that gets an
 /// empty listing, which is also what a correct filter over an empty result
 /// set looks like
 /// (`truth/tasks/2026-09/the-file-filter-field-and-the-file-column-name-different-paths.typ`).

@@ -10,7 +10,7 @@
 
 use std::collections::BTreeMap;
 
-/// State marks for the cycle-detection DFS.
+/// State marks for the cycle-detection depth-first search.
 const UNSEEN: u8 = 0;
 const ACTIVE: u8 = 1;
 const DONE: u8 = 2;

@@ -2,7 +2,7 @@
 //! marker could not read is reported once, naming the type, and never a second
 //! time as missing. Split out of `validate/tests_fields.rs` (file-size gate),
 //! whose subject is what a single field's constraints say about a value that
-//! DID load.
+//! did load.
 
 #![allow(clippy::unwrap_used)]
 
@@ -92,8 +92,8 @@ fn unreadable(name: &str, path: &str, message: &str) -> Task {
     t
 }
 
-/// The one violation `validate` returned. Every case here is about the COUNT as
-/// much as the content — the bug WAS a second report — so the assertion is
+/// The one violation `validate` returned. Every case here is about the count as
+/// much as the content — the bug was a second report — so the assertion is
 /// shared rather than restated per case, and it is what keeps the read
 /// index-free under `clippy::indexing_slicing`.
 fn only(violations: &[Violation], what: &str) -> Violation {

@@ -12,7 +12,7 @@
 //! value it appends. `apply_token` is the map-shaped wrapper the tests keep
 //! for callers that only need the merged value.
 //!
-//! Split out of `cmd/add/values.rs` — which is about where values come FROM
+//! Split out of `cmd/add/values.rs` — which is about where values come from
 //! (`-f` sources, the environment, the template's defaults) — so the grammar
 //! itself has one home to read, and the sources file keeps room to grow.
 
@@ -94,7 +94,7 @@ pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<
     Ok(())
 }
 
-/// Split a token at its FIRST operator character, `=` or `@`, whichever comes
+/// Split a token at its first operator character, `=` or `@`, whichever comes
 /// first.
 ///
 /// One rule for both operators, so neither needs quoting inside the other's
@@ -134,7 +134,7 @@ fn split_token(token: &str) -> Result<(&str, Op, &str), Diag> {
 /// coercion on a file whose visible contents are a perfectly good date.
 ///
 /// Every other byte reaches the slot unchanged. What happens to it next is
-/// the slot KIND's business, exactly as for a command-line value: a `text`
+/// the slot kind's business, exactly as for a command-line value: a `text`
 /// slot markup-escapes it, a `raw` slot splices it verbatim, and a typed slot
 /// coerces it and fails naming itself. Nothing here converts anything —
 /// notably, nothing turns Markdown into Typst, so a `.md` file fills a `text`

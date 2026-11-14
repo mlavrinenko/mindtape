@@ -169,7 +169,7 @@ pub fn toposort_kind<'a>(tasks: &'a [Task], kind: &str) -> Result<Vec<&'a Task>,
     Ok(walk.order)
 }
 
-/// Per-node DFS state: a node on the current path (a cycle if re-entered) or one
+/// Per-node depth-first state: a node on the current path (a cycle if re-entered) or one
 /// fully emitted into the order.
 enum Mark {
     OnPath,
@@ -177,7 +177,7 @@ enum Mark {
 }
 
 /// Depth-first post-order walk accumulating the topological `order` and the
-/// active `path` used to reconstruct a cycle.
+/// active `path` reconstructs a cycle.
 struct Walk<'a> {
     mark: HashMap<&'a Path, Mark>,
     path: Vec<&'a Task>,

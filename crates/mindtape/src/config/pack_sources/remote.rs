@@ -1,4 +1,4 @@
-//! Resolving a source's `ref` to the commit it names now: a commit id is
+//! Resolving a source's `ref` to the commit it names: a commit id is
 //! itself, and any other `ref` is looked up with `git ls-remote`, run through
 //! the same [`Git`] as a fetch.
 //!
@@ -14,7 +14,7 @@ use crate::config::pack_sources::FetchError;
 use crate::config::pack_sources::fetch::is_commit_id;
 use crate::config::pack_sources::git::Git;
 
-/// The commit `reference` of the repository `git` names now. git runs in
+/// The commit `reference` of the repository `git` names. git runs in
 /// `cache_root`, as a fetch does.
 ///
 /// # Errors

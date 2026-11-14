@@ -91,7 +91,7 @@ fn fill_stdin_reads_piped_title() {
 /// `std::io::stdin().is_terminal()`).
 ///
 /// Original:  A || B || C   (returns early when title already set)
-/// Mutant:    A && B || C   (only returns early when title AND stdin-terminal)
+/// Mutant:    A && B || C   (only returns early when title and stdin-terminal)
 ///
 /// When title is pre-set but stdin is a pipe (`is_terminal()` = false),
 /// the original returns early (A=true); the mutant computes
@@ -119,8 +119,8 @@ fn fill_stdin_existing_title_is_not_overwritten() {
 /// `args.values.iter().any(|source| source == "-")`).
 ///
 /// Original:  A || B || C   (returns early when "-" is in values)
-/// Mutant:    A || B && C   (only returns early when BOTH stdin-terminal
-///                           AND "-" in values)
+/// Mutant:    A || B && C   (only returns early when both stdin-terminal
+///                           and "-" in values)
 ///
 /// When stdin is a pipe (`is_terminal()` = false) and "-" is in values,
 /// the original returns early (C=true); the mutant computes
@@ -271,7 +271,7 @@ fn run_with_no_verify_skips_validation() {
 /// Env var gating the inner/outer split; also the variable the template names.
 const ENV_FILL_INNER: &str = "_MT_ADD_ENV_FILL";
 
-/// A template whose `title` slot declares `env:` — deliberately NOT the
+/// A template whose `title` slot declares `env:` — deliberately not the
 /// implicit `MINDTAPE_ADD_TITLE` name, so only the declared lookup can fill it.
 const ENV_TEMPLATE: &str = mindtape::typst_task!(
     r#"(

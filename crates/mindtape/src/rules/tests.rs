@@ -140,7 +140,7 @@ fn label_prefers_the_name_over_the_index() {
     assert_eq!(anonymous.label(7), "rules[7]");
 }
 
-/// Two entries in `[[tasks.rules]]` sharing a `name` — WITHIN one file — is a
+/// Two entries in `[[tasks.rules]]` sharing a `name` — within one file — is a
 /// config error naming both, the same treatment
 /// `crate::body::headers::validate_header_rules` /
 /// `crate::body::content::validate_content_rules` already give their own

@@ -149,7 +149,7 @@ fn parse_recur_non_array_on_reports_shape_error_not_silent_empty() {
     assert_eq!(errors[0].message, "expected an array, found a string");
 }
 
-/// A well-shaped `on:` array with unreadable ENTRIES: a string that is no
+/// A well-shaped `on:` array with unreadable entries: a string that is no
 /// weekday and a value that is no string. Each names its own index, and the
 /// entries that did read survive — narrowing a period to fewer days than the
 /// author wrote is exactly the silent change `mt recur` would then act on.

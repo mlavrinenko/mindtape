@@ -322,7 +322,7 @@ fn task(title: &str) -> String {
     )
 }
 
-/// Without a task-scope rule the hook used to skip the states and build the
+/// Without a task-scope rule the hook would skip the states and build the
 /// record from the working tree. The index's task and config must win instead.
 #[test]
 fn a_commit_with_no_task_rule_reads_the_staged_tasks_and_config() {

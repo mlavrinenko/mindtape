@@ -1,7 +1,7 @@
 //! Rewrite the prelude version an import names.
 //!
 //! A task file imports `@local/mindtape` by version, and a version this `mt`
-//! no longer reads fails the whole project. This module finds those imports on
+//! does not read fails the whole project. This module finds those imports on
 //! the parse plane and reports the one edit a fixer may make: replace the
 //! version bytes of an older unsupported spec with
 //! [`crate::PRELUDE_VERSION`]. Every other byte, including the quotes, the

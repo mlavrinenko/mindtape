@@ -2,7 +2,7 @@
 //! against no project at all.
 //!
 //! That makes it the only surface where the config it renders against is a
-//! choice rather than a lookup, and since every column's visibility now lives
+//! choice rather than a lookup, and since every column's visibility lives
 //! in `crates/mindtape/src/config/defaults.toml` as a `when` expression, the choice
 //! decides whether anything renders: `Config::default()` bypasses the floor, so
 //! it describes no column and prints a header-less blank

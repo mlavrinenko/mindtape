@@ -4,7 +4,7 @@
 //! `[tasks.fields.<name>]` siblings) takes `true`, `false`, or a filter
 //! expression naming exactly the tasks that must carry the field. The shipped
 //! idiom is `required = "!terminal"` — required until the task reaches a
-//! terminal status. Anything the filter language can say is now sayable here,
+//! terminal status. Anything the filter language can say is sayable here,
 //! e.g. `required = "kind == \"bug\""`.
 //!
 //! Expressions are checked once, at config load: [`validate_requirements`]

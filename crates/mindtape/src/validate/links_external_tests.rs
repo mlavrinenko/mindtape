@@ -30,7 +30,7 @@ fn external_target_is_not_resolved_against_tasks() {
     assert!(violations.is_empty(), "got {violations:?}");
 }
 
-/// A malformed external target IS an error, and the message names the kind,
+/// A malformed external target is an error, and the message names the kind,
 /// the validator, and the offending value.
 #[test]
 fn malformed_external_target_names_kind_validator_and_value() {

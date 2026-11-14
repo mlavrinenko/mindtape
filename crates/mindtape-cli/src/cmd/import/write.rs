@@ -8,10 +8,10 @@
 //! batch" is and stays *land the rest*, which is what the per-record
 //! `N filed, M skipped` report has always said.
 //!
-//! What changed is the order. This used to write everything, reload, and
-//! `remove_file` the failures — so a rejected record existed on disk for the
-//! length of a full project reload, and a removal that failed left it there
-//! for good. Nothing is created for a rejected record now, so nothing has to
+//! The order is the change. The batch is validated before any write, so a
+//! rejected record never exists on disk for a full project reload, and no
+//! removal can leave it there. Nothing is created for a rejected record, so
+//! nothing has to
 //! be taken back.
 //!
 //! `--dry-run` differs from a real run in one line: it skips the write. It

@@ -230,7 +230,7 @@ mod tests {
     }
 
     /// `editor_command` with a valid non-blank config returns the command.
-    /// The `delete !` mutant would NOT take the `&& !is_empty` branch and would
+    /// The `delete !` mutant would not take the `&& !is_empty` branch and would
     /// fall through to env vars.
     #[test]
     fn editor_command_uses_configured_value() {

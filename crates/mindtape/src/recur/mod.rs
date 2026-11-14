@@ -173,7 +173,7 @@ const WEEKDAY_EXPECTED: &str = "a weekday name (mon, tue, wed, thu, fri, sat, su
 /// passed through one of those helpers (`every(weeks: "two")`, an `on:` entry
 /// that is not a weekday) or a hand-edited dict. Either way it is reported
 /// into `errors` as a [`crate::model::marker::ShapeError`] rather than read as no
-/// recurrence at all. Reports name the AUTHORED position — `recur.on[1]`,
+/// recurrence at all. Reports name the authored position — `recur.on[1]`,
 /// `recur.weeks` — since that is what the author can count to in their own
 /// source; only a shape no helper can produce is named by its marker path
 /// (`recur.rule`).

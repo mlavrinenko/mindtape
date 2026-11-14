@@ -1,11 +1,11 @@
 //! Unit tests for `import`'s internal helpers: source reading, record parsing,
 //! the `--map` option parser, record labelling, and the report writer.
 //!
-//! Per-record problem attribution used to be tested here, against a
-//! `problems_for` helper that read a post-write reload. That reload is gone —
-//! the batch is checked as candidates before anything is written — and the
-//! attribution it did now belongs to `mindtape::check_candidates`, tested in
-//! `candidate_tests.rs` and `pre_write_tests.rs`. So is the temp project mirror
+//! Per-record problem attribution belongs to `mindtape::check_candidates`,
+//! tested in `candidate_tests.rs` and `pre_write_tests.rs`, because the batch
+//! is checked as candidates before anything is written. The `problems_for`
+//! helper that read a post-write reload is gone, and so is the temp project
+//! mirror
 //! `--dry-run` needed: a candidate is validated without a file, so there is
 //! nothing left to mirror.
 //!

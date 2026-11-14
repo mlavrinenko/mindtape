@@ -44,7 +44,7 @@ impl Report {
 }
 
 /// A source `mt packs update` moved: its lock entry before, the repository
-/// its `git` names now, and the tree it moved to.
+/// its `git` names, and the tree it moved to.
 pub(super) struct Moved<'a> {
     pub(super) name: &'a str,
     pub(super) old: Option<&'a LockedSource>,
@@ -76,7 +76,7 @@ impl Moved<'_> {
     }
 
     /// The tree `old` pins, fetched by its commit when the cache lacks it:
-    /// from `old`'s own `git`, else from the source's `git` now, since a
+    /// from `old`'s own `git`, else from the source's `git`, since a
     /// source may move hosts. The lock's hash checks either.
     fn old_tree(
         &self,

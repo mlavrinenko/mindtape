@@ -227,8 +227,8 @@ fn commands_without_a_task_table_do_not_offer_the_flag() {
     }
 }
 
-/// The flag moved from the top level to the commands that use it, so it no
-/// longer goes before the subcommand.
+/// The flag moved from the top level to the commands that use it, so it
+/// does not go before the subcommand.
 #[test]
 fn the_flag_goes_after_the_command_not_before_it() {
     let dir = support::project_with_task("Rewrite auth");

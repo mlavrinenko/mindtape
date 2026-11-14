@@ -16,7 +16,7 @@ use crate::model::Task;
 use crate::test_support::{bare_task, home_and_project};
 use crate::validate::Violation;
 
-/// Build the typed [`Config`] a project whose ONLY `.mindtape/config.toml`
+/// Build the typed [`Config`] a project whose only `.mindtape/config.toml`
 /// content is `extends` would load — against the real
 /// [`crate::config::pack_registry::EMBEDDED_PACKS`], not a fixture registry,
 /// so this proves the pack actually shipped, not just that the merge

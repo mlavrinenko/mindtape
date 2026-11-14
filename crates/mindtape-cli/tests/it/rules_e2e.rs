@@ -304,7 +304,7 @@ fn mt_flip_lets_a_warn_rule_through() {
 }
 
 /// The mechanism above is proven on a synthetic project. This checks the
-/// ADOPTION itself
+/// adoption itself
 /// (truth/tasks/2026-09/enforce-an-imperative-verb-at-the-start-of-task-titles.typ):
 /// that `start-title-with-verb` reaches this repo's own backlog at `error`,
 /// loading the committed config rather than a scaffold, so a config edit that
@@ -319,13 +319,13 @@ fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec 
 }
 
 /// This repo's own `.mindtape/config.toml`
-/// (`truth/tasks/2026-09/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) no
-/// longer declares `start-title-with-verb` itself — it inherits it from the
+/// (`truth/tasks/2026-09/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) does
+/// not declare `start-title-with-verb` itself — it inherits it from the
 /// embedded `mindtape:tasks` pack via `extends`. `parse_config` cannot prove
 /// that (it never resolves `extends`/`disable`; see `crate::config::packs`),
 /// so this loads the full layered config against the real repo root instead,
 /// through the real, non-fixture `EMBEDDED_PACKS` registry — proving both
-/// that the rule still lands here AND that the pack actually shipped.
+/// that the rule still lands here and that the pack actually shipped.
 #[test]
 fn this_repos_own_config_carries_the_rule_at_error() {
     let config = mindtape::load_config(&repo_root()).unwrap();
