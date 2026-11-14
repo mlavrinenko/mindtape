@@ -360,8 +360,8 @@ groups:
       .just/scripts/wt-carry-lcov.sh: a4d4b96d24cee1d76f8d19ddcc10b6f4b99a1cb9f7c8ec3143cf487f2bb9861c
       Justfile: f1ad21cb7d652e76a1eafaa7ac9f4eb74e768c6a74634f6e289ca7f07753b8c2
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
-      nix/dev/flake.nix: 4272c7e414ff67f94e9ed6917f7b9155beecdcbcb0adc0b1f563e7641a0fd30b
-      nix/dev/shell.nix: 8b84707ce133d6754c73809f607c33f71d61dba940fc36c7371273c88323d915
+      nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
+      nix/dev/shell.nix: df1913cc025f77f7af3cfa8b9024c95794a286b8b3c695de233bc1f2b4090636
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
       nix/dev/vale.nix: 81aea241ac2c1c09020609c048a00489a5ca04c9762289ee732ab1b39d31384c
     dependents:
@@ -370,12 +370,12 @@ groups:
       docs/src/contributing/coverage-crap.typ: c4e809f14523f241190bc0d7684ae0f28ca83a6a4d7ea09da7913176a4d1b0d8
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
       docs/src/contributing/docs-site-build.typ: 6dee8629cb4d56d1eebb8b47f07c33859d4a00f1f6855f2f067383e0fd61d918
-      docs/src/contributing/documentation.typ: 47eace011e05dd0c74014ea7e7fbb4403102e6b333b508e8abe579e25899b4de
+      docs/src/contributing/documentation.typ: b70c84deaba50becc6b79af7b75e4ee3e4df6cf944f8e8d5a376075ba1997c19
       docs/src/contributing/example-projects.typ: ea12a8a93ac900912ef1fad437fc6727b7dc10233c5f3d1ae04687eaf28ac264
       docs/src/contributing/gates.typ: e8981f7405c252c02c37db9c15fe1b1cbe3517150a3fea29016fc323e81acedc
       docs/src/contributing/mutation-testing.typ: fd3b81fd022bbfbfd8161cdebc1b2fa65fcd0a9979ba455a384ca6a2b0e5dfb5
       docs/src/contributing/signal-sweep.typ: 526ee365344240fa05b5035b8b3644c92a7cd0a490a988e7a2d1b2fc41e74f12
-      docs/src/contributing/windows.typ: 47d316719d329be2412a0a861228988e84a7d9b6cb6f478e727cd1aa32664467
+      docs/src/contributing/windows.typ: 07a0c6c5821031a886959ef415a8348e2d0d6d4aebf8e7affb419de710709ab2
   dict-words-docs:
     source:
       crates/mindtape/src/dicts/dev-verbs.txt: 1d44018123133b9cd533d473d9f9df0f24a44131e77961178424f7311782d648
@@ -394,13 +394,13 @@ groups:
       .just/scripts/check-doc-coverage.sh: 53d59ca20009df201bb0336f5723671e06a901f6d3eca7240217be0d3906bb46
       .just/scripts/check-doc-facts.sh: dfba4a6322799338f1a132fc448279f7c26065bf795314feaf4637741389ef84
       .just/scripts/check-doc-prose.awk: d2bcb8ad4e59d6a0af6164a0f06d7959237450843b51e0cf6b14e45198688fe1
-      .just/scripts/check-doc-prose.sh: 643e54ed908756175e08683bba7e91c979e53813c1aae14a16f94fcc7c4d5dd3
+      .just/scripts/check-doc-prose.sh: 7b9c61284d99fbd9787230230abf1ac4490b09edfe224b9c24199fee14f8a044
       .just/scripts/check-doc-recipes.sh: 16b6391dfd3673c5a56053269affe591eb385d60490584662c0d11f5104f4010
       .just/scripts/check-doc-spans.jq: 41528a59d42cc6f3721798ecc4547ea559bbfbddfdf6103edaf449294da3bd84
       .just/scripts/check-doc-spans.sh: 746b4f2c77eef7d3db280b7d0fb842c054aabfcddd5879e94bd2ed31b2df132c
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: 47eace011e05dd0c74014ea7e7fbb4403102e6b333b508e8abe579e25899b4de
+      docs/src/contributing/documentation.typ: b70c84deaba50becc6b79af7b75e4ee3e4df6cf944f8e8d5a376075ba1997c19
       docs/src/contributing/generated-docs.typ: 142dc4fcd0e0008fce4b4957181dc160cc4383976e3c244d007350870de84972
   filter-docs:
     source:
@@ -650,57 +650,21 @@ groups:
       examples/task-files/tasks/log-failed-logins.typ: 30d1a0f50122d56da2a3039c3f3987f34f044d06e09dc840a36fdbd537adcb73
   vale-docs:
     source:
-      .config/vale.ini: 5a3cd251225ce0e0e357e4ffba620dd041aa1110d7f36d027056e2b2b2d57cd5
-      .config/vale/styles/Prose/AICompoundPhrases.yml: 8b31276c40ada05b2d4f5018f1eceed1d0a553de2a901d8c49c66805f0d15a12
-      .config/vale/styles/Prose/AnthropomorphicCognition.yml: 216320ab43578e1f3539efedeac46e4c52ab20a6c3635327510700c701e1806e
-      .config/vale/styles/Prose/AnthropomorphicJustification.yml: e5941ff2931e5529c9337968423a7a568ec41167dac199829fe240967b9040bc
-      .config/vale/styles/Prose/BareNames.yml: 719b04eaebf740582995b511cb9e7d391bd9fa8f904aeae7d0dffda18af57d5a
-      .config/vale/styles/Prose/ClosingPleasantries.yml: 68ebcaa6faa70f02c3678273b924659ea85bd06c9af174dcad6936461398b949
-      .config/vale/styles/Prose/ConclusionMarkers.yml: 7ba2bcdfb4a57cf5ce56f0e0e1c5d409c4b3d4a3299c517cd9b4f7684e3ba6c6
-      .config/vale/styles/Prose/ConsequenceClause.yml: 9cca80a7458e62b32c0061757dcd662da2be3e6201b4f4faa4f97300b003bf30
-      .config/vale/styles/Prose/DoubleHyphen.yml: 4171b700551731969d3482118dc0ea0521c4c2902aeb6b3b413507f843eb7c60
-      .config/vale/styles/Prose/EmDash.yml: 75ca415e3ec91941a396856968f709b6ee74a284c7d54388f75177045044e0cf
-      .config/vale/styles/Prose/ExplainerHeadings.yml: 55d8c037905fa44bffa84484c6cc1a875abc69c1116b28a4e7a0f3f6b1e73909
-      .config/vale/styles/Prose/ExplainerLeads.yml: fe1cb466fe4f605c000fee8c53e612f4bb93de58b7b2fd8786ee8031b1ac7448
-      .config/vale/styles/Prose/FalseExclusivity.yml: c6fe0589e4e0c165cf24244247c62bd7d65a4af16a2fece2e269ab77a260bb60
-      .config/vale/styles/Prose/FillerPhrases.yml: 738b6c9fcbdaab0cecce00ec9be503ad2c55521f36b74c2d0237646ad51577ce
-      .config/vale/styles/Prose/FormalRegister.yml: f15489b6d2429b3f02701dd8c9c7246f62ea21a0f2f2e913bdcd7fe9731fe5c3
-      .config/vale/styles/Prose/FormalTransitions.yml: fc295f090caf82cc5358d905931e3a3dc5647d264a8b1e78fb732c198305ba24
-      .config/vale/styles/Prose/HeadingCase.yml: 87016b4046cfd0c24a5f09b77d07e276b2cd2a6cfe4bde78665488c4a63dc8d3
-      .config/vale/styles/Prose/HeadingPunctuation.yml: 444099c106a459e160f77a978c64ff30f477738eef67891e8f7909cb19bf449e
-      .config/vale/styles/Prose/HedgingPhrases.yml: 9b209f6b3988d75b8a608e7eb0614a0b3597cce8adf1594a74f96d2875d89f65
-      .config/vale/styles/Prose/History.yml: c9c0b6fe2947c6c7155f4e2261bbda150695fc1112fbe713a176061de7e62df8
-      .config/vale/styles/Prose/JourneyMetaphors.yml: d8a12aca876e31547f5aa99de6774e57d90b08d3a95b439dd60fef7c205fbe8d
-      .config/vale/styles/Prose/LabelAndExplain.yml: 434df0af1c945596b06d0b0ac4a714aea0a7b0b7357041d31fee989b05bb9983
-      .config/vale/styles/Prose/Latin.yml: 2005ae97b9bd698124a7af7c9fa5b7972fbd435dd08309b7880a7142d423b5e7
-      .config/vale/styles/Prose/NegatedObject.yml: 798411d6459c272762029a3cfed215b353edfc5d35f1b4dfe2c2f3d87c54cb37
-      .config/vale/styles/Prose/NegatedSubject.yml: 942906da01d9a7fd123844fd7e05dfcdc4b98a45a1a02a778c0e6452c1011af9
-      .config/vale/styles/Prose/OpeningCliches.yml: ff8b9f747b7f0c3090d11a47bb9219142a92efc3efa361f7aad70631ddd2d9b1
-      .config/vale/styles/Prose/OverusedVocabulary.yml: c39aad7b60a6d9358fc39628565c3c735c82b3a82075ab236cb92750be6b21a9
-      .config/vale/styles/Prose/PassiveVoice.yml: ce8cb58fca0abd8178804e0d62cab3d1b0cbaaf6e2119c5a82e6e2df4460e40b
-      .config/vale/styles/Prose/ProductName.yml: 4010ddd31b30d18ad80acbd10b98cd5d45b8d7895a77709b803ff9afeaa95900
-      .config/vale/styles/Prose/PromotionalPuffery.yml: 2a552d8969c197b8d873bac4a69b099b2ccaf91ae78e6094ee5292887e5564a7
-      .config/vale/styles/Prose/PseudoCleft.yml: fe08c325f955e6a76823f8cfaa6490f8e97cb6ef1ab1c48517704ce98a9a8cdf
-      .config/vale/styles/Prose/RestatementMarkers.yml: 3c49a91e78258cf30119d3670833f663ec5b65412c74250a593c5fdc03447957
-      .config/vale/styles/Prose/Semicolon.yml: dd346432997caa2e9a270f55ddb1750efb80ca63526e4dd5c9017e2d5f4527db
-      .config/vale/styles/Prose/SentenceLength.yml: cf8f1d3e0053060d5e8cd741a53142fa3d0eb3335ed311fa21bfd86bf65b1951
-      .config/vale/styles/Prose/ServesAsDodge.yml: 817ac31bbdc7c4c260f017781872cd3484b92d2a0040314869bccc5ed0813e40
-      .config/vale/styles/Prose/ShellNounCopula.yml: 7ae7b7ef3bc92e5fe7be2ce02e98dc4226fc53fc8f1e3388dde5697dc47d39df
-      .config/vale/styles/Prose/ShipOveruse.yml: d4ec66bbc807c85b984958cdd2b1f717af3eef403228e297899f0f08e3ac4653
-      .config/vale/styles/Prose/Shouting.yml: ebe002358549c9c30d34331990219dc035b4c5c7a83e029708c1045301a8ef35
-      .config/vale/styles/Prose/Spelling.yml: e4bb507f460b884814fe3d551e2494e35966014ad1ddf9839c8d53c3a50afa35
-      .config/vale/styles/Prose/StructureAnnouncements.yml: 7304838565c78e779fdaea3af4bf86bec44b26ff849af4ce4480e07ea7d83e71
-      .config/vale/styles/Prose/SycophancyMarkers.yml: fd6ded038cfe242ba306d278da88b6119cffb40204d4dd536c9c0cef1a023d87
-      .config/vale/styles/Prose/UnpackExplore.yml: 36ca10c7c8f6dfa8c6c6b5dec4c03cf3a16465f68d240ba5461e9ff639a6498b
-      .config/vale/styles/Prose/UrgencyInflation.yml: 188cb3b94584d6c6742945abe33497bb40ab96f1daf1597833efe20a8f5b9249
-      .config/vale/styles/Prose/VagueAttributions.yml: 9c81c5d9b9be1eda376745d95693e9ed5bda9666acb06ea65807472b0db65051
-      .config/vale/styles/Prose/Weasel.yml: 9bd7b18c13c2a90f5cba024478e636af34241a10260714468e6fadbcd757709b
-      .config/vale/styles/Prose/Wordiness.yml: dbbd94d81b9588ab966a6567cdd97b2e254222171f3ce0aef93a6ca6a71fed83
-      .config/vale/styles/Prose/words.txt: 5d447d41c858cc86e3c802bb6641fc1df1f4729bc102f4c8f7ea5643993e3416
-      .config/vale/styles/config/vocabularies/Prose/accept.txt: b0bd78149f83d244df37be3005b7e10fdd73ed18b4572f3289230919f5c398fe
-      .config/vale/styles/config/vocabularies/Prose/reject.txt: cdfdcde6963710e94fbec497007690991983c01ab5e10caea8cb376a9ed71eb3
+      .config/vale.ini: 5df297b8102910ea8d18edb45ce820d653c812e1bc8e6092105ccbafb0b12fbd
+      .config/vale/local/Prose/EmDash.yml: 75ca415e3ec91941a396856968f709b6ee74a284c7d54388f75177045044e0cf
+      .config/vale/local/Prose/History.yml: c9c0b6fe2947c6c7155f4e2261bbda150695fc1112fbe713a176061de7e62df8
+      .config/vale/local/Prose/ProductName.yml: 4010ddd31b30d18ad80acbd10b98cd5d45b8d7895a77709b803ff9afeaa95900
+      .config/vale/local/Prose/Shouting.yml: ebe002358549c9c30d34331990219dc035b4c5c7a83e029708c1045301a8ef35
+      .config/vale/local/Prose/Spelling.yml: e4bb507f460b884814fe3d551e2494e35966014ad1ddf9839c8d53c3a50afa35
+      .config/vale/local/Prose/words.txt: 5d447d41c858cc86e3c802bb6641fc1df1f4729bc102f4c8f7ea5643993e3416
+      .config/vale/local/config/vocabularies/Prose/accept.txt: b0bd78149f83d244df37be3005b7e10fdd73ed18b4572f3289230919f5c398fe
+      .config/vale/local/config/vocabularies/Prose/reject.txt: cdfdcde6963710e94fbec497007690991983c01ab5e10caea8cb376a9ed71eb3
+      nix/dev/flake.lock: d0d0de3305080ab59fd24099a2d3cac3363ab2984694731ac628da6a1583d5cb
+      nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
+      nix/dev/shell.nix: df1913cc025f77f7af3cfa8b9024c95794a286b8b3c695de233bc1f2b4090636
+      nix/dev/vale-styles.nix: 1fd7a813874d23bc51bbff3917abe3a4e2e656c8a5c0d5f0b2170ea3b260068d
     dependents:
-      docs/src/contributing/documentation.typ: 4cf92307579ff71bddb33ff9a95a24d19a2998e851bd535cc26edc6152d1977a
+      docs/src/contributing/documentation.typ: b70c84deaba50becc6b79af7b75e4ee3e4df6cf944f8e8d5a376075ba1997c19
       docs/src/contributing/gates.typ: e8981f7405c252c02c37db9c15fe1b1cbe3517150a3fea29016fc323e81acedc
   waits-docs:
     source:

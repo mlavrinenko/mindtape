@@ -2263,7 +2263,11 @@
         "mmz": "mmz",
         "nixpkgs-tombi": "nixpkgs-tombi",
         "qahq": "qahq_2",
-        "tola": "tola_4"
+        "tola": "tola_4",
+        "vale-ai-tells": "vale-ai-tells",
+        "vale-google": "vale-google",
+        "vale-microsoft": "vale-microsoft",
+        "vale-write-good": "vale-write-good"
       }
     },
     "rust-analyzer-src": {
@@ -3046,6 +3050,74 @@
         "owner": "tola-rs",
         "ref": "v0.7.1",
         "repo": "tola-ssg",
+        "type": "github"
+      }
+    },
+    "vale-ai-tells": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789442525,
+        "narHash": "sha256-GwgAMjcxFqjuGqTc8OP5uvJb2jQiRhkIBxM+DQpauME=",
+        "owner": "tbhb",
+        "repo": "vale-ai-tells",
+        "rev": "dd60c5dc0d5432f71b0113fe2003fb06d069a71f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tbhb",
+        "ref": "v1.37.0",
+        "repo": "vale-ai-tells",
+        "type": "github"
+      }
+    },
+    "vale-google": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794510084,
+        "narHash": "sha256-KYnVm9LthNrcPBRUYzIAptyBPP4FXbeAIYiajdBUB6Y=",
+        "owner": "vale-cli",
+        "repo": "Google",
+        "rev": "a52f66760a243816c8004d3b57399d62100ebf18",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vale-cli",
+        "ref": "v0.7.2",
+        "repo": "Google",
+        "type": "github"
+      }
+    },
+    "vale-microsoft": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794510081,
+        "narHash": "sha256-BrdGsj+8oh/3tuJeH2ZSyG+Xe05rorq/YxwgQCRttDE=",
+        "owner": "vale-cli",
+        "repo": "Microsoft",
+        "rev": "6ea641c159c406a91505170276c8e165b20e3858",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vale-cli",
+        "ref": "v0.15.2",
+        "repo": "Microsoft",
+        "type": "github"
+      }
+    },
+    "vale-write-good": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1717968676,
+        "narHash": "sha256-W/eHlXklAVlAnY8nLPi/SIKsg8UUnH8UkH99BDo5yKk=",
+        "owner": "vale-cli",
+        "repo": "write-good",
+        "rev": "90c06e68dc5b6dddbc06c5961d94ba56a96b60d4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vale-cli",
+        "ref": "v0.4.1",
+        "repo": "write-good",
         "type": "github"
       }
     }

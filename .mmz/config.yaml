@@ -311,7 +311,7 @@ scopes:
   outdatty-sources:
     - ".config/wt.toml"
     - ".config/vale.ini"
-    - ".config/vale/styles/**"
+    - ".config/vale/local/**"
     - ".gitattributes"
     - ".githooks/commit-msg"
     - ".githooks/local-paths"
@@ -353,10 +353,12 @@ scopes:
     - ".github/**"
     - "examples/large/generate.sh"
 
-  # Vale's config and styles: an edit changes what `docs::vale-prose` finds.
+  # Vale's config and local style: an edit changes what `docs::vale-prose`
+  # finds. The fetched rules come from the pinned flake inputs, which
+  # `gates-meta` already covers.
   vale-config:
     - ".config/vale.ini"
-    - ".config/vale/styles/**"
+    - ".config/vale/local/**"
 
   # The task bodies `docs::vale-tasks` reads. No gate-tagged rule may name them
   # (see "Note on scope" above), so that untagged rule is the only one taking

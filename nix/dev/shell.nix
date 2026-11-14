@@ -16,6 +16,18 @@
       # LLVM 21) — a mismatched llvm-profdata rejects the profraw format.
       llvm = pkgs.llvmPackages_21.llvm;
 
+      # The Vale style, built from the dev shell's pinned inputs. The shellHook
+      # links it at target/vale/styles, which .config/vale.ini reads.
+      valeStyles = pkgs.callPackage ./vale-styles.nix {
+        inherit (inputs)
+          vale-ai-tells
+          vale-google
+          vale-microsoft
+          vale-write-good
+          ;
+        local = ../../.config/vale/local;
+      };
+
       # Windows cross-check toolchain (see `devShells.windows`).
       mingw = pkgs.pkgsCross.mingwW64;
       mingwBin = "${mingw.stdenv.cc}/bin/${mingw.stdenv.cc.targetPrefix}";
@@ -44,6 +56,7 @@
               buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_26; };
             })
             (pkgs.callPackage ./typst2vast.nix { })
+            valeStyles
             pkgs-tombi.tombi
             # `wt` forks and lands worktrees: `just fork` and `just land` run
             # it, and .config/wt.toml holds the hooks it fires. The main pin
@@ -154,6 +167,10 @@
           # Prepended idempotently: direnv reloads a shell it has already
           # loaded, and a second copy would only grow PATH.
           mt_root=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
+          # Vale reads the style from this gitignored link. Rebuilding the shell
+          # repoints it at the new store path.
+          mkdir -p "$mt_root/target/vale"
+          ln -sfn ${valeStyles} "$mt_root/target/vale/styles"
           # A working-tree build points `$schema` at this checkout's copies,
           # so a local run never names a raw URL that may not exist yet.
           export MINDTAPE_SCHEMA_BASE="file://$mt_root/schema/output"

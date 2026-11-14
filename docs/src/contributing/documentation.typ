@@ -170,16 +170,18 @@ as few lines as it takes.
 == The Vale gate
 
 #just.docs-vale-prose() runs Vale over `docs/src`, `www/content` and
-`www/utils`, using the style in `.config/vale.ini` and
-`.config/vale/styles/Prose/`. Every rule sits at `error`, so one alert fails
-the gate. The rules come from Microsoft, Google and write-good, from the
-ai-tells package, and from this repo. The repo vendors them all. A run works
-offline.
+`www/utils`, using the style in `.config/vale.ini`. The dev shell builds the
+rule set from pinned flake inputs, through `nix/dev/vale-styles.nix`, and links
+it at `target/vale/styles`. Every rule sits at `error`, so one alert fails the
+gate. The rules come from Microsoft, Google and write-good, from the ai-tells
+package, and from this repo. The repo keeps its own rules and vocabulary under
+`.config/vale/local/`, and the flake fetches the rest.
 
 A new rule starts at `warning`. Clear its alerts over the docs, then move its
 level to `error` in `.config/vale.ini`. The level lives in the config, not in
-the rule file. When the prose can't satisfy a rule, drop the rule by name and
-write the reason beside its level block.
+the rule file. The build strips the upstream `level`, so a fetched rule cannot
+set one. When the prose can't satisfy a rule, drop the rule by name and write
+the reason beside its level block.
 
 == Rules the prose follows
 

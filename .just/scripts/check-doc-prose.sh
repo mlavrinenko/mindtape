@@ -24,7 +24,7 @@
 # `mt _cli --json` are read the same way, labelled `cli.json:` and the command
 # path. The rules it enforces are listed in
 # docs/src/contributing/documentation.typ under "Plain prose"; the Typst prose
-# arm of those rules lives in the Vale style under `.config/vale/styles/Prose/`.
+# arm of those rules lives in the Vale style built by `nix/dev/vale-styles.nix`.
 #
 # One rule applies only to text a reader sees on the site, in an editor or in
 # `--help`: an em dash is a hit in the rendered prose and string literals of

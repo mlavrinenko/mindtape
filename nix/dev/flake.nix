@@ -23,6 +23,24 @@
     };
     # Typst-native static site generator that builds the docs under www/.
     tola.url = "github:tola-rs/tola-ssg/v0.7.1";
+    # Vale rules. `vale-styles.nix` builds the style from these revisions, so
+    # the root lock stays free of a prose gate only the dev shell reads.
+    vale-ai-tells = {
+      url = "github:tbhb/vale-ai-tells/v1.37.0";
+      flake = false;
+    };
+    vale-google = {
+      url = "github:vale-cli/Google/v0.7.2";
+      flake = false;
+    };
+    vale-microsoft = {
+      url = "github:vale-cli/Microsoft/v0.15.2";
+      flake = false;
+    };
+    vale-write-good = {
+      url = "github:vale-cli/write-good/v0.4.1";
+      flake = false;
+    };
   };
 
   outputs = _: { };

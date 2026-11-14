@@ -834,9 +834,13 @@ groups:
   - name: vale-docs
     source:
       - .config/vale.ini
-      - .config/vale/styles/Prose/*.yml
-      - .config/vale/styles/Prose/words.txt
-      - .config/vale/styles/config/vocabularies/Prose/*.txt
+      - .config/vale/local/Prose/*.yml
+      - .config/vale/local/Prose/words.txt
+      - .config/vale/local/config/vocabularies/Prose/*.txt
+      - nix/dev/vale-styles.nix
+      - nix/dev/flake.nix
+      - nix/dev/flake.lock
+      - nix/dev/shell.nix
     dependents:
       - docs/src/contributing/documentation.typ
       - docs/src/contributing/gates.typ
