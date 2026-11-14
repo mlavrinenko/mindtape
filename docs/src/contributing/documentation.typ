@@ -30,19 +30,16 @@ The span, recipe, prose and block gates read the Typst sources through one
 extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with
 `typstyle --ast` and prints each inline raw, block raw line, comment line and
 prose line with its file and line. A fence inside a string then hides nothing.
-The same file lists the sources the gates read, and fails when an entry
-matches no file.
+The same file lists the sources the gates read and fails on an unmatched entry.
 
-The span gate passes each `mt` command line it finds in a span to
-`mt _cli --check-argv`. It finds them after a `$ ` prompt, `VAR=value` words
-or `&&`. That runs the `@name` rewrite, clap and the status-verb parser that
-`mt` itself runs. The gate reuses the command grammar instead of copying it. A
-missing required argument passes, because a span shows part of a command.
-
-It reads a config key span, such as `[ls] hyperlinks`, against
-`schema/config.schema.json`, or against `schema/at.schema.json` when the span's
-first segment is an `at.toml` key such as `[board]` or `[at.<name>]`. A key
-that neither schema has fails with the closest one.
+The span gate passes each `mt` command line it finds, after a `$ ` prompt,
+`VAR=value` words or `&&`, to `mt _cli --check-argv`. That runs the `@name`
+rewrite, clap and the status-verb parser `mt` itself runs. The gate reuses the
+command grammar instead of copying it. A missing required argument passes,
+because a span shows part of a command. It reads a config key span such as
+`[ls] hyperlinks` against `schema/config.schema.json`, or
+`schema/at.schema.json` when its first segment is an `at.toml` key such as
+`[board]`. A key that neither schema has fails with the closest one.
 
 = Doc sources
 
@@ -78,12 +75,11 @@ behavior that would need a caveat, fix the behavior and describe it fixed.
 = State each fact once
 
 A generated fact (`www/generated/*.json`, read by both render paths) can't
-drift. A hand-written sentence can. Two pages state the same fact in
-different words, one of them changes, and no gate fails. State a fact on one
-page and link to it from the others. Content that both render paths show
-lives once in a module both call (`www/utils/demo.typ`). That covers the
-tagline, the recipe table and the Typst section in README and on the site
-root.
+drift. A hand-written sentence can. Two pages state the same fact in different
+words, one of them changes, and no gate fails. State a fact on one page and
+link to it from the others. Content that both render paths show lives once in a
+module both call (`www/utils/demo.typ`). That covers the tagline, the recipe
+table and the Typst section in README and on the site root.
 
 The #just.docs-dup-prose() audit reports two kinds of repeat that are deliberate:
 
@@ -97,8 +93,7 @@ The #just.docs-dup-prose() audit reports two kinds of repeat that are deliberate
 
 A code block in the docs comes from a real file under `examples/` that
 `mt check` validates, from a capture of a real run, or from a derived fact. A
-hand-typed snippet goes stale when the code changes, and the reader can't
-tell.
+hand-typed snippet goes stale when the code changes, and the reader can't tell.
 
 - To show a fixture, mark the lines between `// docs:slice <id>` and
   `// docs:end`. `www/generate-examples.sh` cuts them into `www/generated/`,
@@ -173,16 +168,20 @@ the code does and why, in as few lines as it takes.
 rule set from pinned flake inputs through `nix/dev/vale-styles.nix` and links
 it at `target/vale/styles`. Every rule sits at `error`, so one alert fails the
 gate. The rules come from Microsoft, Google, write-good, the ai-tells package
-and this repo. The repo keeps its own under `.config/vale/local/`.
-
-The prose gates and the code-comment gate call `vale` 3.27. One binary reads
-comments and Typst prose, and `nix/dev/shell.nix` builds it.
+and this repo's own `.config/vale/local/`. The prose gates and the code-comment
+gate call `vale` 3.27. One binary reads comments and Typst prose, and
+`nix/dev/shell.nix` builds it.
 
 A new rule starts at `NO`. Clear its alerts over the docs, then move its level
 to `error` in `.config/vale.ini`. The level lives in the config, not in the
 rule file. The build strips the upstream `level`, so a fetched rule cannot set
 one. When the prose can't satisfy a rule, keep it at `NO` and write the reason
 beside its level block.
+
+Every level has a check. #just.lint-vale-levels() fails on a `MinAlertLevel`
+other than `error`, on any rule set to `warning`, and on a rule of an enabled
+style with no level line. It reads the rule names from `target/vale/styles`.
+A new rule needs a line in every config that enables its style.
 
 == Rules the prose follows
 

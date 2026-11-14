@@ -62,6 +62,11 @@ banners:
 vale-code:
     bash .just/scripts/check-code-prose.sh
 
+[doc("Fail on a Vale level below error or a rule with no level")]
+[group("gate")]
+vale-levels:
+    bash .just/scripts/check-vale-levels.sh
+
 [doc("Fail if the working tree carries a committed credential")]
 [group("gate")]
 secrets:

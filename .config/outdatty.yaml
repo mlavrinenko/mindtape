@@ -842,6 +842,7 @@ groups:
       - .config/vale/local/Sep/*.yml
       - .config/vale/local/config/views/*.yml
       - .config/vale/local/config/vocabularies/Prose/*.txt
+      - .just/scripts/check-vale-levels.sh
       - nix/dev/vale-styles.nix
       - nix/dev/vale-grammars.nix
       - nix/dev/flake.nix

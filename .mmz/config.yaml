@@ -354,6 +354,12 @@ scopes:
     - ".github/**"
     - "examples/large/generate.sh"
 
+  # Every Vale config, which `just lint::vale-levels` reads in full. The glob
+  # makes a new `.config/vale-*.ini` an input on arrival, so a level line in it
+  # cannot leave the rule false-fresh.
+  vale-ini:
+    - ".config/vale*.ini"
+
   # Vale's config and local style: an edit changes what `docs::vale-prose`
   # finds. The fetched rules come from the pinned flake inputs, which
   # `gates-meta` already covers.
@@ -425,6 +431,8 @@ scopes:
     - ".just/scripts/check-doc-prose.sh"
   script-check-code-prose:
     - ".just/scripts/check-code-prose.sh"
+  script-check-vale-levels:
+    - ".just/scripts/check-vale-levels.sh"
   script-doc-prose-lib:
     - ".just/scripts/_doc-prose-lib.sh"
   script-check-doc-blocks:
@@ -613,6 +621,13 @@ commands:
   - name: just lint::vale-code
     tags: [gate]
     inputs: [rust, vale-config, vale-code-config, gates-meta, script-check-code-prose]
+
+  # The level gate reads every `.config/vale*.ini` (`vale-ini`) and the rule
+  # names the style build produces (`gates-meta`, plus the local rules in
+  # `vale-config`). `script-check-vale-levels` is the recipe body.
+  - name: just lint::vale-levels
+    tags: [gate]
+    inputs: [vale-ini, vale-config, gates-meta, script-check-vale-levels]
 
   # linecop scans every language `.config/linecop.yaml` gives a base limit
   # (Rust, Markdown, Shell and Typst, with target/archive/var excluded by config), so
