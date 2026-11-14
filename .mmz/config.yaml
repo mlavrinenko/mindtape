@@ -588,6 +588,15 @@ commands:
     tags: [gate]
     inputs: [shell-scripts, gates-meta]
 
+  # Vale reads Rust, Shell and CSS comments through the tree-sitter grammars
+  # and the `Sep` style from `vale-config`. The file kinds span three scopes:
+  # `rust` and `examples` hold every `.rs` file, `shell-scripts` every `.sh`,
+  # and `docs` the CSS under `www/`. `gates-meta` carries Vale, the grammars
+  # and the recipe itself.
+  - name: just lint::banners
+    tags: [gate]
+    inputs: [rust, examples, shell-scripts, docs, vale-config, gates-meta]
+
   # linecop scans every language `.config/linecop.yaml` gives a base limit
   # (Rust, Markdown, Shell and Typst, with target/archive/var excluded by config), so
   # the input list has to cover all four. `crates/**/*.rs` is `rust`; the

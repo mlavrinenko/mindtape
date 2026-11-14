@@ -64,7 +64,7 @@ just’s `--fmt` flag alone formats the root `Justfile` and skips every `mod` fi
 
 ## Pre-commit assertions
 
-`.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then `.githooks/local-paths`, `typstyle --check truth`, `vale` over `truth/tasks` and `mt check`. It refuses the commit when any of them fails.
+`.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then `.githooks/local-paths`, `typstyle --check truth`, `vale-prose` over `truth/tasks` and `mt check`. It refuses the commit when any of them fails.
 
 `.githooks/local-paths` refuses a staged file that names your `$HOME`, the checkout or the primary checkout. Such a path arrives in a pasted error or log, and it is local only to your machine, so no gate in CI can catch it. Write `<repo>`, `<worktree>` or `~` in its place. `.githooks/commit-msg` runs the same scan over the message.
 

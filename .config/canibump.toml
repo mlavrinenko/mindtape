@@ -1,10 +1,3 @@
 #:schema https://raw.githubusercontent.com/mlavrinenko/canibump/main/schema/canibump.schema.json
 # Upstream changes this repo's workarounds wait on. `just canibump` says which
 # can go. Add a blocker whenever a comment explains a workaround.
-
-[[blocker]]
-id = "vale-grammars"
-note = "wire the comment-banner gate; `Grammars` needs vale 3.27"
-version = "repology:vale"
-repo = "nix_unstable"
-at-least = "3.27.0"

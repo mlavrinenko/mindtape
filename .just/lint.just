@@ -52,6 +52,11 @@ dry:
 dry-baseline:
     jscpd {{ DRY_FLAGS }} --update-baseline -r silent crates
 
+[doc("Fail on a decorative banner at the end of a Rust, Shell or CSS comment")]
+[group("gate")]
+banners:
+    git ls-files --cached --others --exclude-standard -- '*.rs' '*.sh' '*.css' | xargs -r vale --no-global --config=.config/vale.ini --output=line
+
 [doc("Fail if the working tree carries a committed credential")]
 [group("gate")]
 secrets:

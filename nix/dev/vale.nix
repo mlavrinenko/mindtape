@@ -1,6 +1,7 @@
-# Vale 3.26 is the newest release the pinned Go toolchain builds: 3.27 asks
-# for Go 1.27.3. `typst2vast` support needs 3.18, and the pinned nixpkgs
-# carries 3.14. The recipe is nixpkgs' own, with the version and both hashes
+# Vale 3.27 reads code comments through tree-sitter grammars, shipped as
+# WebAssembly modules (see vale-grammars.nix). `typst2vast` support needs
+# 3.18, and this build needs Go 1.27.3, which the pinned nixpkgs-tombi
+# carries. The recipe is nixpkgs' own, with the version and both hashes
 # pinned here so a gate reads one tool version in every checkout.
 {
   lib,
@@ -9,18 +10,18 @@
 }:
 buildGoModule (finalAttrs: {
   pname = "vale";
-  version = "3.26.0";
+  version = "3.27.0";
 
   src = fetchFromGitHub {
     owner = "vale-cli";
     repo = "vale";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-mUABzCStq/gA8vZmqAo+1cuW5vjNyd6XRyH7VYTO4tw=";
+    hash = "sha256-jV8Oe8DCWijjhHMBhnTn0NehG5EjEPdjC/JDTSkZSNc=";
   };
 
   # go-tree-sitter/php ships headers only, which `go mod vendor` prunes.
   proxyVendor = true;
-  vendorHash = "sha256-BaJcmBJj86Sohgs5mZtRnlv1h121dUD2CoKvPU4mTEA=";
+  vendorHash = "sha256-XDvUiBTTpO4K3bHdXNBoLOCxwx37wQJVY8VAEwzWglw=";
   subPackages = [ "cmd/vale" ];
   ldflags = [
     "-s"

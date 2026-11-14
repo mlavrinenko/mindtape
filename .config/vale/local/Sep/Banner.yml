@@ -1,0 +1,9 @@
+# A decorative run at the end of a comment: `// ----`, `# =====`, `/* *** */`.
+# Vale hands the rule comment text with its delimiters stripped, so the run is
+# the last thing the rule sees whether the comment is a line or a block.
+extends: existence
+message: "Delete the decorative run; keep any label it frames."
+level: error
+nonword: true
+tokens:
+  - '[=\-*_~#]{5,}\s*$'

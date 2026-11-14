@@ -719,6 +719,8 @@ groups:
       - nix/dev/shell.nix
       - nix/dev/typst2vast.nix
       - nix/dev/vale.nix
+      - nix/dev/vale-grammars.nix
+      - nix/dev/vale-prose.nix
       - Justfile
       - .config/nextest.toml
       - .config/wt.toml
@@ -828,16 +830,20 @@ groups:
     dependents:
       - docs/src/contributing.typ
 
-  # Vale's Typst prose rules, which documentation.typ lists by rule code and
+  # Vale's rules and readers, which documentation.typ lists by rule code and
   # gates.typ says how the non-gate task arm runs. The dictionary and the
-  # vocabulary decide what a rule flags, so they belong to the same group.
+  # vocabulary decide what a prose rule flags, and the grammars decide whether
+  # a code comment reaches a rule at all, so they belong to the same group.
   - name: vale-docs
     source:
       - .config/vale.ini
       - .config/vale/local/Prose/*.yml
       - .config/vale/local/Prose/words.txt
+      - .config/vale/local/Sep/*.yml
       - .config/vale/local/config/vocabularies/Prose/*.txt
       - nix/dev/vale-styles.nix
+      - nix/dev/vale-grammars.nix
+      - nix/dev/vale-prose.nix
       - nix/dev/flake.nix
       - nix/dev/flake.lock
       - nix/dev/shell.nix

@@ -20,7 +20,7 @@ let
 in
 runCommandLocal "mindtape-vale-styles" { nativeBuildInputs = [ yq-go ]; } ''
   ai=${ai}
-  mkdir -p "$out/Prose" "$out/config/vocabularies/Prose"
+  mkdir -p "$out/Prose" "$out/Sep" "$out/config/vocabularies/Prose"
 
   for rule in \
     AICompoundPhrases \
@@ -84,5 +84,6 @@ runCommandLocal "mindtape-vale-styles" { nativeBuildInputs = [ yq-go ]; } ''
     "$out/Prose/NegatedObject.yml"
 
   cp -r ${local}/Prose/. "$out/Prose/"
+  cp -r ${local}/Sep/. "$out/Sep/"
   cp -r ${local}/config/. "$out/config/"
 ''

@@ -177,6 +177,11 @@ gate. The rules come from Microsoft, Google and write-good, from the ai-tells
 package, and from this repo. The repo keeps its own rules and vocabulary under
 `.config/vale/local/`, and the flake fetches the rest.
 
+The prose gates call `vale-prose`, a 3.26 pin. Vale 3.27 joins a wrapped
+paragraph into one sentence, which exposes alerts in prose written for the old
+reader. A backfill task cleans them, and the prose gates then call `vale` with
+the code-comment gate.
+
 A new rule starts at `warning`. Clear its alerts over the docs, then move its
 level to `error` in `.config/vale.ini`. The level lives in the config, not in
 the rule file. The build strips the upstream `level`, so a fetched rule cannot
@@ -305,6 +310,18 @@ body passes the same 48 rules as a docs page, with no month or task section in
 `.config/vale.ini`. `Prose.HeadingCase` lists `AS-IS` and `TO-BE` as terms,
 because `mt check` matches those headings literally. That arm carries no `gate`
 tag, since `mt flip` writes the task file it would read.
+
+== Code comments
+
+#just.lint-banners() runs `vale`, the 3.27 pin, over every tracked Rust, Shell
+and CSS file. Vale reads a comment through its tree-sitter grammar. The rule sees the comment
+and never the code around it. `Sep.Banner` fails a comment whose text ends in
+five or more `-`, `=`, `*`, `_`, `~` or `#` characters. Delete the run and keep
+any label it frames. The grammars come from the same pinned release as Vale,
+through `nix/dev/vale-grammars.nix`, and the dev shell exports them. The gate
+runs offline.
+
+Shell needs a `[formats]` mapping, explained in `.config/vale.ini`.
 
 == Prose gate coverage
 

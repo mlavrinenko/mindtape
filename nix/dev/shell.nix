@@ -6,8 +6,8 @@
   perSystem =
     { pkgs, system, ... }:
     let
-      # Only `tombi` and `worktrunk` are read from this one; see the input's
-      # comment in nix/dev/flake.nix.
+      # Only `tombi`, `worktrunk` and Vale's Go 1.27 toolchain are read from
+      # this one; see the input's comment in nix/dev/flake.nix.
       pkgs-tombi = (import inputs.nixpkgs-tombi) { inherit system; };
 
       # nixpkgs' rustc ships no `llvm-tools-preview` component, so
@@ -15,6 +15,19 @@
       # Point it at a standalone LLVM of the SAME major as rustc's (1.92 →
       # LLVM 21) — a mismatched llvm-profdata rejects the profraw format.
       llvm = pkgs.llvmPackages_21.llvm;
+
+      # Vale reads `.typ` through `typst2vast` and code comments through
+      # tree-sitter grammars. Both binaries come from source pins here, since
+      # the main nixpkgs carries neither a `typst2vast` nor a Vale new enough
+      # for either reader. The prose gates call the 3.26 pin until the wrapped
+      # line alerts it never saw are cleaned; vale-prose.nix has the reason.
+      vale = pkgs-tombi.callPackage ./vale.nix {
+        buildGoModule = pkgs-tombi.buildGoModule.override { go = pkgs-tombi.go_1_27; };
+      };
+      valeProse = pkgs.callPackage ./vale-prose.nix {
+        buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_26; };
+      };
+      valeGrammars = pkgs.callPackage ./vale-grammars.nix { inherit vale; };
 
       # The Vale style, built from the dev shell's pinned inputs. The shellHook
       # links it at target/vale/styles, which .config/vale.ini reads.
@@ -49,12 +62,8 @@
             inputs.qahq.packages.${system}.linecop
             inputs.qahq.packages.${system}.outdatty
             inputs.tola.packages.${system}.default
-            # The prose gate: Vale reads `.typ` through `typst2vast`. The
-            # pinned nixpkgs has no `typst2vast` and only Vale 3.14, which
-            # predates Typst support, so the shell builds both here.
-            (pkgs.callPackage ./vale.nix {
-              buildGoModule = pkgs.buildGoModule.override { go = pkgs.go_1_26; };
-            })
+            vale
+            valeProse
             (pkgs.callPackage ./typst2vast.nix { })
             valeStyles
             pkgs-tombi.tombi
@@ -171,6 +180,9 @@
           # repoints it at the new store path.
           mkdir -p "$mt_root/target/vale"
           ln -sfn ${valeStyles} "$mt_root/target/vale/styles"
+          # The tree-sitter grammars are separate from the style: the link above
+          # is read-only, and `vale sync` would need the network.
+          export VALE_GRAMMARS_PATH=${valeGrammars}
           # A working-tree build points `$schema` at this checkout's copies,
           # so a local run never names a raw URL that may not exist yet.
           export MINDTAPE_SCHEMA_BASE="file://$mt_root/schema/output"

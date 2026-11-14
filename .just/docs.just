@@ -74,12 +74,12 @@ prose:
 [doc("Lint Typst prose with the full Vale style")]
 [group("gate")]
 vale-prose:
-    vale --no-global --config=.config/vale.ini docs/src www/content www/utils
+    vale-prose --no-global --config=.config/vale.ini docs/src www/content www/utils
 
 [doc("Lint a task body with the Vale rules that fit a record")]
 [group("gate")]
 vale-tasks:
-    vale --no-global --config=.config/vale.ini truth/tasks
+    vale-prose --no-global --config=.config/vale.ini truth/tasks
 
 [doc("Fail on a code block typed by hand into a doc source")]
 [group("gate")]
