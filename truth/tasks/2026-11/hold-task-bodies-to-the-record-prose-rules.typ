@@ -26,7 +26,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 14),
+  status: cancelled(
+    2026,
+    11,
+    14,
+  )[superseded by the widened gate from 2026-12, which holds new tasks and leaves the older bodies exempt],
 )
 
 == AS-IS

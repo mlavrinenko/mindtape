@@ -1,20 +1,20 @@
 #import "/truth/prelude/1/lib.typ": *
 
 #show: task.with(
-  title: "Backfill the older task months and widen the Vale task gate",
+  title: "Widen the Vale task gate to new task months",
   kind: "feat",
   priority: ice(
-    impact: 5,
-    confidence: 0.8,
+    impact: 4,
+    confidence: 0.9,
     ease: 5,
   ),
   difficulty: 2,
-  tags: ("docs", "gating", "stateless"),
+  tags: ("docs", "gating", "stateless", "tooling"),
   x-goals: (
     product: (
-      readable-tasks: helps[an older task reads under the same prose rules as a new one],
+      readable-tasks: helps[a new task bullet reads under the same rules as a docs page],
       implementable-tasks: neutral,
-      enforced-practice: neutral,
+      enforced-practice: helps[a prose rule the gate holds cannot be skipped by memory],
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
@@ -27,52 +27,51 @@
   ),
   assignee: "agent",
   status: proposed(2026, 11, 14),
+  links: supersedes("hold-task-bodies-to-the-record-prose-rules.typ"),
 )
 
 == AS-IS
 
-+ Run `grep -n 'BasedOnStyles = NONE' .config/vale.ini`.
-+ 🔴 It prints a section for `2026-07`, `2026-08`, `2026-09` and `swept/`, so those months never run `Prose.Shouting` or `Prose.EmDash`.
-+ Run `vale --config=.config/vale.ini truth/tasks/2026-07` and it reports nothing, though 78 of the month's 115 files hold an em dash.
-+ Run `vale --config=.config/vale.ini truth/tasks/2026-10`; it reports 20 em dashes in the oldest month the gate reads, so the gate is red today.
++ Run `grep -n '^\[truth/tasks' .config/vale.ini`. It lists `[truth/tasks/*/*.typ]`, the three older-month sections and `swept/`, and no section for a month after `2026-11`.
++ Run `grep -c '^Prose\..* = NO$' .config/vale.ini`. It prints 39, the seven record exceptions and the 32 AI-tell rules, all under `[truth/tasks/*/*.typ]`.
++ 🔴 A task filed in `2026-12` inherits all 32 `NO` lines, so the gate skips them on a new task, and the Task bodies paragraph states no first month for them.
 
 ```
-$ vale --config=.config/vale.ini truth/tasks/2026-07
-✔ 0 errors, 0 warnings and 0 suggestions in 115 files.
-$ vale --config=.config/vale.ini truth/tasks/2026-10
-✖ 20 errors, 0 warnings and 0 suggestions in 502 files.
+$ grep -c '^Prose\..* = NO$' .config/vale.ini
+39
 ```
 
 == TO-BE
 
-- 🟢 Every month runs `Prose.Shouting` and `Prose.EmDash`, and the three month sections are gone from `.config/vale.ini`.
-- 🟢 `swept/` stays out, because a sweep batch is a generated record rather than prose.
-- 🟢 `just docs vale-tasks` passes over every task in `truth/tasks/`, `2026-10` included.
+- 🟢 `.config/vale.ini` adds `[truth/tasks/2026-12/*.typ]` with the 32 AI-tell rules at error. The seven record exceptions stay inherited from `[truth/tasks/*/*.typ]`.
+- 🟢 `2026-07` to `2026-11` keep their current exemptions, and no existing task body changes.
+- 🟢 `just docs vale-tasks` stays green over the backlog, and a task filed under `2026-12` that trips one of the 32 rules fails it.
+- 🟢 The Task bodies paragraph states `2026-12` as the first month under the full rule set.
 
 ```ini
-[truth/tasks/swept/*.typ]
-BasedOnStyles = NONE
+[truth/tasks/2026-12/*.typ]
+Prose.OpeningCliches = error
+# The other 31 AI-tell rules, each set back to error.
+Prose.DoubleHyphen = error
 ```
 
 == Changes
 
-- `.config/vale.ini`: drop the `2026-07`, `2026-08` and `2026-09` sections; keep `swept/`.
-- `truth/tasks/2026-07/*.typ`: replace each em dash, and put each shouted word in a code span or its plain case.
-- `truth/tasks/2026-08/*.typ`: the same for the month's 119 files with an em dash.
-- `truth/tasks/2026-09/*.typ`: the same for the month's 79 files with an em dash.
-- `truth/tasks/2026-10/*.typ`: the 20 em dashes the gate reports today, so the widened gate is green.
-- `.config/vale/styles/Prose/Shouting.yml`: add each true acronym the older months use.
+- `.config/vale.ini`: add the `2026-12` section with the 32 AI-tell rules at error; keep the `2026-07` to `2026-09` `BasedOnStyles = NONE` sections, the 32 `NO` lines under `[truth/tasks/*/*.typ]`, and `swept/`.
+- `docs/src/contributing/documentation.typ`: the Task bodies paragraph, which states `2026-12` as the first month under the 32 rules.
 
 == Alternatives
 
-- Leave the three months out: their prose stays unchecked while the rest of the backlog is gated.
-- A one-off rewrite script: it cannot tell a shouted word from a name, so each file still needs a read.
+- Backfill every month and drop the 32 `NO` lines. That rewrites the 872 alerts in `2026-10` and `2026-11`, and the older months need their own cleanup.
+- Gate from `2026-11` after the 208 alerts in that month are fixed. It covers the rest of November at the cost of a partial backfill.
+- Leave the gate as is. New tasks keep skipping the 32 rules.
 
 == Out of scope
 
-- New rules beyond `Prose.Shouting` and `Prose.EmDash`, which task 1 adds.
-- Rewriting a closed decision: the pass changes punctuation, capitalisation and the acronym list, not what a task decided.
+- Backfilling `2026-07` to `2026-11`, or editing any existing task body.
+- The `2026-11` month, which stays ungated under the cutoff.
+- New rules beyond the 32 AI-tell rules.
 
 == Dogfood
 
-`just docs vale-tasks` passes over every task month, not only the months filed after this gate.
+Copy a task that trips `Prose.BareNames` into `truth/tasks/2026-12/`; `just docs vale-tasks` fails it. Move the same file to `truth/tasks/2026-11/` and the gate passes.
