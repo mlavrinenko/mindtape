@@ -1,7 +1,7 @@
-# The tree-sitter grammars Vale 3.27 reads code comments through, one
-# WebAssembly module per language. The modules ship as release assets of the
-# Vale version the shell pins; `VALE_GRAMMARS_PATH` in shell.nix points here,
-# so a lint run needs no network and no `vale sync`.
+# The tree-sitter grammars Vale 3.27 reads comments through, one WebAssembly
+# module per language. The modules ship as release assets of the Vale version
+# the shell pins; `VALE_GRAMMARS_PATH` in shell.nix points here, so a lint run
+# needs no network and no `vale sync`.
 {
   lib,
   runCommandLocal,
@@ -14,6 +14,7 @@ let
     bash = "sha256-OD9B2se6f/a2IxCukPvsrVhytCHhY2JCjoX20zgygqQ=";
     css = "sha256-78mCupKIKN9p06Co0X/0CVtYkNn5GMQc40rf+UDTFSk=";
     rust = "sha256-BAeIUAx0FLPnifCPAoHk0S/c8ZdyC+sjjicTm95RFjE=";
+    yaml = "sha256-gYSmzyMp9svGdI+/iAeuW1jeerIPmhnxMB79HDakuXE=";
   };
 in
 runCommandLocal "vale-grammars-${vale.version}" { nativeBuildInputs = [ unzip ]; } ''

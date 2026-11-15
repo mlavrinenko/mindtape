@@ -1,0 +1,18 @@
+# The strings of `mt _cli --json` that reach `--help`: the root about and
+# after_help, and every command's or argument's about and long_about.
+# `search` skips the root, so the root keys get scopes of their own. The `?`
+# lets a generated help without one pass.
+engine: dasel
+scopes:
+  - name: root_about
+    expr: about?
+    type: md
+  - name: root_after_help
+    expr: after_help?
+    type: md
+  - name: about
+    expr: search(has("about")).map(about)
+    type: md
+  - name: long_about
+    expr: search(has("long_about")).map(long_about)
+    type: md

@@ -350,7 +350,7 @@ groups:
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
-      .just/docs.just: 37f84ad9f74d182a4aa586df6ecad7c94d22c1ae554b062d1968ec19ed031418
+      .just/docs.just: 4fcb8f287543864724f0bdd8b47f26c266e12a37aa298e55b39ee63e9611b07e
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
       .just/lint.just: 5e0431f3508a1c51e2cc56ee78f186ebb907864fea75ad4e69d25418a0bc10a2
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
@@ -364,7 +364,7 @@ groups:
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
       nix/dev/shell.nix: 0307091b3825c70025cbb4676e7477429a4eb054b9756462488db445466d9316
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
-      nix/dev/vale-grammars.nix: 1d7d01f2702db43df232857473c49762e28772a6f7d63a511c261187dce7b4de
+      nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
     dependents:
       docs/src/agents.typ: 56cf68acbfa93c542dcd149dfc618c7e1759e79374aec8e01ab03b9b95ed4d4c
@@ -372,7 +372,7 @@ groups:
       docs/src/contributing/coverage-crap.typ: dfd3234c064a7403e05bac07755428caa51e21d49d084eff17a9a2eee6d93243
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
       docs/src/contributing/docs-site-build.typ: 6dee8629cb4d56d1eebb8b47f07c33859d4a00f1f6855f2f067383e0fd61d918
-      docs/src/contributing/documentation.typ: dff2ac0934dc7a9b9da85cdbb58c2d676150471279e0fb3b49d2b575ccd39286
+      docs/src/contributing/documentation.typ: 8e1d878660f1bf9f06b1c6e4fc9e4bdca2d9541d9497e640903cc42d39d75257
       docs/src/contributing/example-projects.typ: 952534459fb3f06fe43736e8949beffdc296319a3c8ad2a979587f2fcd887ca0
       docs/src/contributing/gates.typ: 085f219a061c85977265725521e885fc15a45537c798143fc6e5e3057f76dd72
       docs/src/contributing/mutation-testing.typ: fd3b81fd022bbfbfd8161cdebc1b2fa65fcd0a9979ba455a384ca6a2b0e5dfb5
@@ -391,20 +391,17 @@ groups:
       www/content/start-titles-with-a-verb.typ: 2a23361986efcae08b47744e2e9a2e39da542a09d7276bc5809c8ebdef8e147b
   doc-gate-scripts-docs:
     source:
-      .just/scripts/_doc-blocks-lib.sh: a33f51afe2298cdcd21584d3dd313f282249e001bde750f642afa591d28e158e
-      .just/scripts/_doc-prose-lib.sh: d3dfd9392263b2433a8f2dc8c772692488ab26e9dae05e793fe011ff337040b2
+      .just/scripts/_doc-blocks-lib.sh: a56fc67b79f96ae816f8b45a56e619e8c0c437fab5c6698cdca76379f73f4bb3
       .just/scripts/check-code-prose.sh: 3a814b758ccc0920a945614dd4bea55ad77b5b69b832329ea5f2090a3c338c0b
       .just/scripts/check-doc-blocks.sh: a0716896accb4fbde245e409d74c7b2468d380a4ab3d4fb723e840ddb8c7c1a5
       .just/scripts/check-doc-coverage.sh: 53d59ca20009df201bb0336f5723671e06a901f6d3eca7240217be0d3906bb46
       .just/scripts/check-doc-facts.sh: dfba4a6322799338f1a132fc448279f7c26065bf795314feaf4637741389ef84
-      .just/scripts/check-doc-prose.awk: d2bcb8ad4e59d6a0af6164a0f06d7959237450843b51e0cf6b14e45198688fe1
-      .just/scripts/check-doc-prose.sh: 7b9c61284d99fbd9787230230abf1ac4490b09edfe224b9c24199fee14f8a044
       .just/scripts/check-doc-recipes.sh: 16b6391dfd3673c5a56053269affe591eb385d60490584662c0d11f5104f4010
       .just/scripts/check-doc-spans.jq: 41528a59d42cc6f3721798ecc4547ea559bbfbddfdf6103edaf449294da3bd84
       .just/scripts/check-doc-spans.sh: 746b4f2c77eef7d3db280b7d0fb842c054aabfcddd5879e94bd2ed31b2df132c
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: e71262b286b69f677b6a15c4e8438406040c14ea55005f502665a16d2f996a0c
+      docs/src/contributing/documentation.typ: fdbcbfe66127f79c65380facb75a4a1ff6d1bd8520ffe18052310ab1e194ce52
       docs/src/contributing/generated-docs.typ: 6e0382e17d14f1a9e6a13c8929fcfbc7cdd2ea7d331d44a189d53a7c0e2f9de5
   filter-docs:
     source:
@@ -656,7 +653,7 @@ groups:
     source:
       .config/vale-code.ini: dbd75428cbbb7fd474f29f9a9de9d68fd03a0ccfba8d87751755b21700c77e84
       .config/vale-commits.ini: c4c1eeaff52d47fb663277020113a91b1968fa3206f5d7d8cc10f9f29ff899cf
-      .config/vale.ini: df856a588058d63cc0ee772d7d76c037374d780685ff094580337fdc5572533f
+      .config/vale.ini: f645e45f6bb5dae2c400de9f18afa128c9e9cc18376772483aff78ef3ce0aae8
       .config/vale/local/Commits/EmDash.yml: fd75141aae51dba37a08f7714a40ab0e9d528b6bbe7000ad0f7927b2aa752ec6
       .config/vale/local/Commits/History.yml: baac46ff79c20fb2877f7c9f8bd4c60d5917d8833b94d535c1df1f464d24d26f
       .config/vale/local/Commits/Imperative.yml: a9e620f87216d1901e7b9bbab59ec5cc76ac086edd96d0cce865eecc88e895a1
@@ -671,7 +668,10 @@ groups:
       .config/vale/local/Sep/Banner.yml: 112d8b3a26d91b9e84013e7de0169b7f575a85e6a5ce4b8168f23cbab2f2d52a
       .config/vale/local/config/scripts/Imperative.body.tengo: 330da4cada8db114b0e69d371f69490a2830c3e9681edfb5edd7de6f015a4b25
       .config/vale/local/config/scripts/SubjectLength.tengo: ceefdf3aca14edc8d992cbfad994c8247d95b0c907ba11a2b01b67d1d5734b20
+      .config/vale/local/config/views/Comments.yml: 46db2cdf095f28258228cfbf34a1a28460d40ba04932e850f23297168a53032f
+      .config/vale/local/config/views/Help.yml: c025fc6f6c5aa09b50a227fc5fcba4b9264786afd1104546ad81177a362bde6f
       .config/vale/local/config/views/RustDoc.yml: 693f135dfb5e1d967b31414d01902a8b13f40be76369c0743aef662d21dfc2ea
+      .config/vale/local/config/views/Schema.yml: 965e6bfc56da0dd51a6f98132c4c1a45ef5a7f87dc25e91be2d14d6b97cde8d0
       .config/vale/local/config/vocabularies/Prose/accept.txt: b0bd78149f83d244df37be3005b7e10fdd73ed18b4572f3289230919f5c398fe
       .config/vale/local/config/vocabularies/Prose/reject.txt: cdfdcde6963710e94fbec497007690991983c01ab5e10caea8cb376a9ed71eb3
       .just/scripts/check-commit-prose.sh: 696fd7b2957a0124ac1e050efe6f70836a49828df8b06a28b1310fd22605fc4d
@@ -679,11 +679,11 @@ groups:
       nix/dev/flake.lock: fd22c22f17ee7d0f926de24231a428d89f821025de4177a0348e84050aace0d5
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
       nix/dev/shell.nix: 0307091b3825c70025cbb4676e7477429a4eb054b9756462488db445466d9316
-      nix/dev/vale-grammars.nix: 1d7d01f2702db43df232857473c49762e28772a6f7d63a511c261187dce7b4de
-      nix/dev/vale-styles.nix: 09fd76cf51a26efb5934ede825dd269325d6a56c76aeddd811fd731eb236fc4a
+      nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
+      nix/dev/vale-styles.nix: 067f8733c68801bd50fec716d70b954bde36f225ae1350bae874c794c4b35bd4
     dependents:
       docs/src/contributing/commit-messages.typ: df4b5654240800f07bfe5b2f3ccb217ccf8fb8cd37a1bf3a62363ec3c15e4f31
-      docs/src/contributing/documentation.typ: dff2ac0934dc7a9b9da85cdbb58c2d676150471279e0fb3b49d2b575ccd39286
+      docs/src/contributing/documentation.typ: 8e1d878660f1bf9f06b1c6e4fc9e4bdca2d9541d9497e640903cc42d39d75257
       docs/src/contributing/gates.typ: 085f219a061c85977265725521e885fc15a45537c798143fc6e5e3057f76dd72
   waits-docs:
     source:

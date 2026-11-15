@@ -66,15 +66,21 @@ facts:
 recipes:
     bash .just/scripts/check-doc-recipes.sh
 
-[doc("Fail on history words, all-caps emphasis, an em dash in site text or a typed product name in doc prose, config comments and schema descriptions")]
+[doc("Fail on history words, shouting or an em dash in Markdown, comments, schema descriptions and help")]
 [group("gate")]
+[script]
 prose:
-    bash .just/scripts/check-doc-prose.sh
+    cargo build -p mindtape-cli --tests -q
+    ./target/debug/mt _cli --json > target/cli.help
+    status=0
+    vale --no-global --config=.config/vale-plain.ini --output=line skills/mindtape/references/*.md skills/mindtape/evals/README.md schema/config.schema.json schema/at.schema.json target/cli.help || status=1
+    git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.just' '*.yaml' '*.yml' Justfile '*/Justfile' | xargs -0 -r vale --no-global --config=.config/vale-plain.ini --output=line || status=1
+    exit $status
 
 [doc("Lint Typst prose with the full Vale style")]
 [group("gate")]
 vale-prose:
-    vale --no-global --config=.config/vale.ini docs/src www/content www/utils
+    vale --no-global --config=.config/vale.ini docs/src www/content www/utils $(find www/templates -name '*.typ' ! -name tola.typ)
 
 [doc("Lint task bodies with the full Vale style")]
 [group("gate")]

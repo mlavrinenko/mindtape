@@ -1,0 +1,7 @@
+# A code comment's prose. The query reads the same `#` comment in a shell
+# script, a Justfile and a YAML file. `md` keeps a code span out, and the
+# config's token ignores keep a quoted example out.
+engine: tree-sitter
+scopes:
+  - expr: (comment) @comment
+    type: md

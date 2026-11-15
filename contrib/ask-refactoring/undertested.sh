@@ -1,4 +1,4 @@
-# ask-refactoring: the undertested arm — per-FUNCTION complexity x coverage.
+# ask-refactoring: the undertested arm — per-function complexity x coverage.
 #
 # Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
 # that script's globals (`$repo`, `$MT`, `$WRITE`, the thresholds) and calls its

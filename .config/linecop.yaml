@@ -92,12 +92,10 @@ overrides:
   - pattern: "./docs/contributing/*.md"
     exclude: true
 
-  # Sourced by five doc gates, so a split would add a third file every one of them must load. The scanner and the extractor already read as two sections of one parse of the Typst tree.
+  # Sourced by the span, recipe and block gates and by the block control, so a
+  # split would add a third file every one of them must load. The scanner and
+  # the extractor already read as two sections of one parse of the Typst tree.
   - pattern: "**/.just/scripts/_doc-blocks-lib.sh"
-    limit: 360
-
-  # One gate with one job, stopping history and shouting in prose. Its name scan, comment scan and schema scan share the awk rules, so a split would copy them.
-  - pattern: "**/.just/scripts/check-doc-prose.sh"
     limit: 360
 
 count_mode: total

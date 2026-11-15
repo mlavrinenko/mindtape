@@ -349,8 +349,8 @@ scopes:
     - ".just/scripts/**"
 
   # The tracked shell scripts, YAML files and Justfile modules outside the
-  # directories other scopes cover, for `just docs::prose`, which reads the
-  # full-line comments of every file of those kinds that git lists.
+  # directories other scopes cover, for `just docs::prose`, which runs Vale
+  # over every `#` comment of those files.
   comment-sources:
     - ".github/**"
     - "examples/large/generate.sh"
@@ -373,6 +373,13 @@ scopes:
   # `gates-meta` covers.
   vale-code-config:
     - ".config/vale-code.ini"
+
+  # The prose gate's config, `Plain` style and Views: an edit changes what
+  # `docs::prose` finds. The fetched rules come from the pinned flake inputs,
+  # which `gates-meta` already covers.
+  vale-plain-config:
+    - ".config/vale-plain.ini"
+    - ".config/vale/local/**"
 
   # The task bodies `docs::vale-tasks` reads. No gate-tagged rule may name them
   # (see "Note on scope" above), so that untagged rule is the only one taking
@@ -428,14 +435,10 @@ scopes:
     - ".just/scripts/check-doc-facts.sh"
   script-check-doc-recipes:
     - ".just/scripts/check-doc-recipes.sh"
-  script-check-doc-prose:
-    - ".just/scripts/check-doc-prose.sh"
   script-check-code-prose:
     - ".just/scripts/check-code-prose.sh"
   script-check-vale-levels:
     - ".just/scripts/check-vale-levels.sh"
-  script-doc-prose-lib:
-    - ".just/scripts/_doc-prose-lib.sh"
   script-check-doc-blocks:
     - ".just/scripts/check-doc-blocks.sh"
   script-doc-blocks-control:
@@ -736,20 +739,20 @@ commands:
     tags: [gate]
     inputs: [docs, gates-meta, script-check-doc-recipes, script-doc-blocks-lib]
 
-  # Scans the doc sources (`docs`) for history words and all-caps emphasis, and
-  # the full-line comments of every tracked shell script, YAML file and Justfile
-  # module: the Justfile and .just/*.just (`gates-meta`), .mmz/config.yaml
-  # (`mmz-config`), .config/outdatty.yaml (`outdatty-config`),
-  # .config/linecop.yaml (`file-size-config`), .just/scripts (`scripts-all`) and the rest
-  # (`comment-sources`, `docs`). It also reads the descriptions in both schemas
-  # (`policy`) and the help strings of `mt _cli --json`, so it builds `mt`
-  # (`rust`), as docs::spans does. It reads no generated file.
+  # Reads every prose source outside a Typst document: the skill's Markdown
+  # (`docs`), the comments of every tracked shell script, YAML file and
+  # Justfile module (`gates-meta`, `mmz-config`, `outdatty-config`,
+  # `file-size-config`, `scripts-all`, `comment-sources`, `docs`), the schema
+  # descriptions (`policy`) and the help strings of `mt _cli --json`
+  # (`rust`). The style, Views and config live in `vale-plain-config`, and the
+  # pinned Vale comes from `gates-meta`. It reads no committed generated file.
   - name: just docs::prose
     tags: [gate]
-    inputs: [rust, docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, scripts-all, comment-sources, script-check-doc-prose, script-doc-prose-lib, script-doc-blocks-lib]
+    inputs: [rust, docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, scripts-all, comment-sources, vale-plain-config]
 
-  # Reads the Typst doc sources (`docs`) through typst2vast, which the dev
-  # shell pins (`gates-meta`), with the styles and config in `vale-config`.
+  # Reads the Typst doc sources (`docs`), including `www/templates` but not
+  # tola's generated helper, through typst2vast, which the dev shell pins
+  # (`gates-meta`), with the styles and config in `vale-config`.
   # Vale skips comments, raw spans and code, so this arm needs no `rust` input.
   - name: just docs::vale-prose
     tags: [gate]

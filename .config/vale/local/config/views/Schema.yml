@@ -1,0 +1,12 @@
+# The descriptions of a JSON schema, at the root and wherever one nests.
+# `search` skips the root, so the root description has a scope of its own. The
+# `?` lets a schema without one pass. `md` keeps a code span such as `mt ls`
+# out of a rule.
+engine: dasel
+scopes:
+  - name: root
+    expr: description?
+    type: md
+  - name: nested
+    expr: search(has("description")).map(description)
+    type: md

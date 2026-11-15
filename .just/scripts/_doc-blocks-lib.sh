@@ -1,7 +1,7 @@
 # .just/scripts/_doc-blocks-lib.sh — the doc sources' shared reader. It holds
-# the scanner `just docs::blocks` runs, the extractor that check-doc-spans,
-# check-doc-recipes and check-doc-prose read, and the source manifest. Sourced
-# by those gates and by the blocks control. Runs from the repo root.
+# the scanner `just docs::blocks` runs, the extractor that check-doc-spans and
+# check-doc-recipes read, and the source manifest. Sourced by those gates and
+# by the blocks control. Runs from the repo root.
 #
 # The scanner reads Typst's own parse tree (`typstyle --ast`, the formatter the
 # dev shell already pins) instead of matching text, so a fence inside a

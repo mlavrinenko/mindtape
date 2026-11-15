@@ -31,8 +31,8 @@
 #let SITE_URL = TOLA.site.info.url.trim("/", at: end)
 
 // The product's name, read from the site title in tola.toml, so a doc source
-// writes `#mindtape` and never types the name. `just docs::prose` fails on
-// a typed one.
+// writes `#mindtape` and never types the name. `just docs::vale-prose` fails on
+// a typed one in prose.
 #let mindtape = TOLA.site.info.title
 
 // GitHub Pages serves the site under the URL's path ("/mindtape"). u()

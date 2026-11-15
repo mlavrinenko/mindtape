@@ -1,0 +1,3 @@
+# The all-caps rule for every source outside a Typst document. See
+# Prose/Shouting.yml for the words a reader accepts.
+extends: Prose.Shouting

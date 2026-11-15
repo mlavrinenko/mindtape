@@ -24,7 +24,7 @@ let
 in
 runCommandLocal "mindtape-vale-styles" { nativeBuildInputs = [ yq-go ]; } ''
   ai=${ai}
-  mkdir -p "$out/Prose" "$out/Sep" "$out/Commits" "$out/config/vocabularies/Prose" "$out/config/scripts"
+  mkdir -p "$out/Prose" "$out/Sep" "$out/Commits" "$out/Plain" "$out/config/vocabularies/Prose" "$out/config/scripts"
 
   for rule in \
     AICompoundPhrases \
@@ -90,6 +90,7 @@ runCommandLocal "mindtape-vale-styles" { nativeBuildInputs = [ yq-go ]; } ''
   cp -r ${local}/Prose/. "$out/Prose/"
   cp -r ${local}/Sep/. "$out/Sep/"
   cp -r ${local}/Commits/. "$out/Commits/"
+  cp -r ${local}/Plain/. "$out/Plain/"
   cp -r ${local}/config/. "$out/config/"
 
   # The imperative rule reads the same verbs as `word(title, 1)`. Tengo has no

@@ -18,15 +18,14 @@ The doc gates catch mechanical errors:
 - #just.docs-facts() finds a derived fact with no entry.
 - #just.docs-recipes() finds a hand-typed recipe name.
 - #just.docs-vale-prose() holds Typst prose to the Vale style.
-- #just.docs-prose() finds history words, shouting, an em dash or a typed name
-  in Markdown, comments, schema descriptions and help text, where Vale does
-  not read.
+- #just.docs-prose() holds Markdown, a code comment, a schema description and
+  a help string to the same style.
 - #just.docs-blocks() finds a hand-typed code block.
 
 No gate finds duplicated prose or a page that doesn't help its reader. The
 rules below cover what the gates can't.
 
-The span, recipe, prose and block gates read the Typst sources through one
+The span, recipe and block gates read the Typst sources through one
 extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with
 `typstyle --ast` and prints each inline raw, block raw line, comment line and
 prose line with its file and line. A fence inside a string then hides nothing.
@@ -59,9 +58,8 @@ Edit the source, never the render: #just.docs-md() overwrites it.
 = Rewrite the whole file
 
 Before you change a file, decide who reads it and what they can do after.
-Then rewrite the whole file for that reader. A file can pass every gate and
-still waste its reader's time, because each paragraph that stayed was
-cheaper to keep than to delete.
+Rewrite the whole file for that reader. A file can pass every gate and still
+waste its reader's time.
 
 A file at its line cap covers too much, and trimming words to fit doesn't fix
 that. Rewrite it whole, or move the argument to a `docs/contributing/*.md`
@@ -69,8 +67,8 @@ file and leave a link in the always-loaded source.
 
 = Fix the bug, not the page
 
-The docs never mention a bug or a workaround. When writing a page turns up
-behavior that would need a caveat, fix the behavior and describe it fixed.
+The docs never mention a bug or a workaround. When a page would need a caveat,
+fix the behavior and describe it fixed.
 
 = State each fact once
 
@@ -84,8 +82,7 @@ table and the Typst section in README and on the site root.
 The #just.docs-dup-prose() audit reports two kinds of repeat that are deliberate:
 
 - A document an agent reads whole (AGENTS.md, the skill and its references)
-  keeps its own copy of what it needs, because its reader may have no site
-  access.
+  keeps its own copy, because its reader may have no site access.
 - You may move shared code into one place, such as a render loop or a crate
   table. Never paraphrase it, because reworded code is worse than either.
 
@@ -108,18 +105,16 @@ hand-typed snippet goes stale when the code changes, and the reader can't tell.
 `exit-code(<slug>)` prints the exit code of a refusal the page shows, the
 last command that exited non-zero. For a capture with two refusals, pick one
 with `step: <n>`, the command's index from 0. The build fails when that
-command passed or doesn't exist. A step that exits with an unexpected code
-fails the build. Every refusal exits 1 and
-every usage error 2. A refusal capture gives its reason with
-`--expect <regex>`, and the build fails unless the output, without its
-color, matches it. It also fails on a non-zero `--exit` with no `--expect`.
+command passed or is absent, or when a step exits with an unexpected code.
+A refusal exits 1 and a usage error 2. A refusal capture gives its reason with
+`--expect <regex>`, and the build fails unless the colorless output matches it.
+It also fails on a non-zero `--exit` with no `--expect`.
 
-To quote one line of what a capture printed, such as an `error:` or `hint:`
-line, write `capture-line(<slug>, <regex>)`. It renders the first line of the
-capture that matches the regex, and the build fails when none does. The span
-gate fails on an inline span that starts with `error:`, `warning:`, `hint:` or
-`note:` followed by text, because a hand-typed copy goes stale when the
-message changes.
+To quote one line of a capture, such as an `error:` or `hint:` line, write
+`capture-line(<slug>, <regex>)`. It renders the first matching line, and the
+build fails when none does. The span gate fails on an inline span that starts
+with `error:`, `warning:`, `hint:` or `note:` followed by text, because a
+hand-typed copy goes stale.
 
 #just.docs-blocks() fails on a fenced block, or a block `raw(...)`,
 whose text you write in the source. If no fixture can hold a block, such as
@@ -163,20 +158,22 @@ the code does and why, in as few lines as it takes.
 
 == The Vale gate
 
-#just.docs-vale-prose() runs Vale over `docs/src`, `www/content` and
-`www/utils`, using the style in `.config/vale.ini`. The dev shell builds the
-rule set from pinned flake inputs through `nix/dev/vale-styles.nix` and links
-it at `target/vale/styles`. Every rule sits at `error`, so one alert fails the
-gate. The rules come from Microsoft, Google, write-good, the ai-tells package
-and this repo's own `.config/vale/local/`. The prose gates and the code-comment
-gate call `vale` 3.27. One binary reads comments and Typst prose, and
-`nix/dev/shell.nix` builds it.
+#just.docs-vale-prose() reads a Typst source through `.config/vale.ini`:
+`docs/src`, `www/content`, `www/utils` and the hand-written `www/templates`
+files. #just.docs-prose() reads every other prose source through
+`.config/vale-plain.ini`: the skill's Markdown, every tracked shell, Justfile
+and YAML comment, both schema descriptions and the `mt _cli --json` help
+strings. Its `Plain` style extends `Prose.History`, `Prose.Shouting` and
+`Prose.EmDash`. A word list lives in one file.
 
-A new rule starts at `NO`. Clear its alerts over the docs, then move its level
-to `error` in `.config/vale.ini`. The level lives in the config, not in the
-rule file. The build strips the upstream `level`, so a fetched rule cannot set
-one. When the prose can't satisfy a rule, keep it at `NO` and write the reason
-beside its level block.
+The dev shell builds both styles from pinned flake inputs through
+`nix/dev/vale-styles.nix`, links them at `target/vale/styles`, and builds
+`vale` 3.27. Every rule sits at `error`, so one alert fails the gate.
+
+A new rule starts at `NO`. Clear its alerts, then move its level to `error`
+in `.config/vale.ini`. The level lives in the config, not in the rule file.
+The build strips the upstream `level`, so a fetched rule cannot set one. When
+the prose can't satisfy a rule, keep it at `NO` with the reason beside it.
 
 Every level has a check. #just.lint-vale-levels() fails on a `MinAlertLevel`
 other than `error`, on any rule set to `warning`, and on a rule of an enabled
@@ -185,7 +182,9 @@ A new rule needs a line in every config that enables its style.
 
 == Rules the prose follows
 
-Every rule sits at `error`. The example shows what the rule flags.
+Every rule sits at `error`, and the example shows what it flags. A Typst source
+gets the full `Prose` style. The `Plain` style extends `History`, `Shouting`
+and `EmDash` for every other source.
 
 === Sentence shape
 
@@ -301,10 +300,9 @@ Every rule sits at `error`. The example shows what the rule flags.
 == Task bodies
 
 #just.docs-vale-tasks() runs the same style over `truth/tasks`. Every task
-body passes the same 48 rules as a docs page, with no month or task section in
-`.config/vale.ini`. `Prose.HeadingCase` lists `AS-IS` and `TO-BE` as terms,
-because `mt check` matches those headings literally. That arm carries no `gate`
-tag, since `mt flip` writes the task file it would read.
+body passes the same 48 rules as a docs page. `Prose.HeadingCase` lists
+`AS-IS` and `TO-BE`, because `mt check` matches those headings literally. That
+arm carries no `gate` tag, since `mt flip` writes the task file it would read.
 
 == Code comments
 
@@ -320,18 +318,21 @@ any label it frames. The dev shell exports the pinned grammars from
 tree-sitter query that keeps `///` and `//!` and drops an inline `//` comment.
 `[formats] rs = md` parses each comment body as Markdown. A code span and a doc
 test stay out. `Prose.History` and `Prose.Shouting` sit at `error`. Every other
-`Prose` rule is `NO` until a backfill task moves it to `error`. Shell comments
-join later through the `[*.sh]` section the config carries.
+`Prose` rule is `NO` until a backfill task moves it to `error`. A shell,
+Justfile or YAML comment belongs to `.config/vale-plain.ini`.
 
 == Prose gate coverage
 
-#just.docs-prose() keeps four older checks for Markdown, the full-line
-comments of every tracked shell script, YAML file and Justfile, both schema
-descriptions and every `mt _cli --json` help string. It also checks a shell
-constant, written as `$NAME`, `${NAME}` or `NAME=`, and a lone capital beside
-an all-caps word. A quoted example passes in both gates. The word lists are in
-`.just/scripts/_doc-prose-lib.sh`, and `.just/scripts/check-doc-prose.sh`
-argues what the scan skips.
+A View tells Vale where the prose is. `Comments` reads a `#` comment through
+the tree-sitter grammar and parses it as Markdown. `Schema` selects every
+`description` in a JSON schema, and `Help` selects the `about`, `long_about`
+and `after_help` strings in `mt _cli --json`. A constant such as `$NAME` or
+`NAME=`, a `shellcheck` directive and a quoted example are code or quotation,
+not prose. The token ignores say how each passes. Markdown adds `Vale.Terms`
+and `Vale.Avoid`, so a typed `MindTape` fails.
+
+Vale drops a Typst comment and a string literal, because typst2vast keeps only
+the rendered text. A rule cannot read either one.
 
 The rest needs a reader's judgment:
 

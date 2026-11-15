@@ -1,0 +1,3 @@
+# The em-dash rule for a schema description and a help string. See
+# Prose/EmDash.yml.
+extends: Prose.EmDash

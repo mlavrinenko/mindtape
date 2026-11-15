@@ -1,0 +1,4 @@
+# The history rule for every source outside a Typst document: the skill's
+# Markdown, a shell, Justfile or YAML comment, a schema description and a help
+# string. It extends Prose.History, so the word list lives in one place.
+extends: Prose.History
