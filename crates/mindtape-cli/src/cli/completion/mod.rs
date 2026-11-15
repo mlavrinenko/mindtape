@@ -41,7 +41,7 @@
 //!
 //! - `sources.rs`: the value sources a completion can draw on, and their lookups.
 //! - `verbs.rs`: the status shortcut verbs a completion run sees.
-//! - `cmd/ls/interactive/tests.rs`, `sources_tests.rs`: the table's coverage tests.
+//! - `tests.rs`, `sources_tests.rs`: the table's coverage tests.
 //!
 //! Refs: `truth/tasks/2026-09/emit-shell-completions-from-the-binary-that-answers-them.typ`
 

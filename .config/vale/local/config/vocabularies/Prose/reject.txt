@@ -5,3 +5,5 @@ Javascript
 Typescript
 E-mail
 e-mail
+Co-Authored-By
+co-authored-by

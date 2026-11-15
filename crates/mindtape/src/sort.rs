@@ -1,6 +1,6 @@
 //! Default list ordering and the configurable sort comparator, shared by `list`
 //! (when the caller gives no `--sort`) and the sort field definitions used by
-//! the `--sort` flag. [`default_order_with`] honours `config.query.default_sort`.
+//! the `--sort` flag. [`default_order_with`] honours `config.ls.default_sort`.
 
 use std::cmp::Ordering;
 
@@ -246,7 +246,7 @@ pub fn default_order(tasks: &mut [Task], config: &Config) {
 
 /// Sort `tasks` into the default order.
 ///
-/// When `config.query.default_sort` holds a chain, [`sort_by_specs`] applies it
+/// When `config.ls.default_sort` holds a chain, [`sort_by_specs`] applies it
 /// (validated at load). Otherwise the built-in chain applies: ready work first
 /// (ready → blocked → settled), then priority descending, status lifecycle, due
 /// ascending, id as stable tiebreak.

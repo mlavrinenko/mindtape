@@ -1,0 +1,10 @@
+# A co-author trailer claims a second author wrote the commit. The project
+# records one author per commit, and the harness's own signature is a claim
+# too, so the trailer fails the message whatever casing it names.
+extends: existence
+message: "Drop the co-author trailer: '%s'."
+level: error
+ignorecase: true
+nonword: true
+tokens:
+  - 'co-authored-by'

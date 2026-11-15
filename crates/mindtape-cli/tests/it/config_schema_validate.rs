@@ -2,7 +2,7 @@
 //!
 //! `schemars` derives the schema from the config structs, and the bundled
 //! configs parse into those same structs. Agreement follows by construction.
-//! This test guards the seam that construction does not cover: the four
+//! This test guards the seam that construction does not cover: the seven
 //! hand-written `JsonSchema` impls (`config/schema.rs`) and any accidental
 //! over/under-strict keyword. A real draft-2020-12 validator catches both
 //! end-to-end.

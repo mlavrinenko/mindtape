@@ -351,7 +351,7 @@ pub(crate) fn sort_tasks(
     readiness: &Readiness,
 ) -> Result<()> {
     if specs.is_empty() {
-        // default_order_with honours config.query.default_sort when set, then
+        // default_order_with honours config.ls.default_sort when set, then
         // falls back to the built-in chain.
         default_order_with(tasks, config, readiness);
         return Ok(());

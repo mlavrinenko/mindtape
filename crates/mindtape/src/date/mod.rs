@@ -11,7 +11,7 @@
 //! "Today" is pinnable for reproducible output (see
 //! `truth/tasks/2026-07/pinnable-clock-for-reproducible-output.typ`).
 //! [`crate::init_pinned_today`] (re-exported at the crate root, backed by
-//! `crate::date_pin`) resolves `$MINDTAPE_NOW` once per process and caches the
+//! `crate::date::pin`) resolves `$MINDTAPE_NOW` once per process and caches the
 //! result. `today_epoch_days`, below, is the single point every helper here
 //! reads through, and no other function in this module touches the clock
 //! directly.

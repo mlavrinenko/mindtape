@@ -72,7 +72,7 @@ groups:
   cli-check-docs:
     source:
       crates/mindtape-cli/src/cmd/check/commit.rs: c1db1b845d8567aefa7d9aa9266415c4ce676012fb7a850487000f4dc3860ef2
-      crates/mindtape-cli/src/cmd/check/mod.rs: 60ab42fb0456224865655e0e65bb560972d08f303809f5d29ce64de3f5493b0f
+      crates/mindtape-cli/src/cmd/check/mod.rs: 1f4ebf584b3172b946ec949b271395e1e75ed8a9d46ab21ce443ab61f7008604
       crates/mindtape-cli/src/cmd/check/range.rs: bf0609b52778580915fd1bd475ed97b91db6f6bd9f0fdb7a34b546d95da81347
       crates/mindtape-cli/src/cmd/check/run.rs: 745b5dcc58380f805b82eeac7473660924bfc917612c814201e6261376df9cab
       crates/mindtape-cli/src/cmd/check/templates.rs: 9e029dd4d38cfb72b4f57430145add383975cb23f5e3a800bdff6276ab4ec29d
@@ -85,7 +85,7 @@ groups:
       www/content/templates.typ: b52d2ae41732d90e797e6aaaa1f489e2a4707dd3515b6f64d0605b0c543598f1
   cli-completion-docs:
     source:
-      crates/mindtape-cli/src/cli/completion/mod.rs: 5050fbafd83dbfb1ad974ca7211a7d5ea0ff20192f479603cf435e9789bda170
+      crates/mindtape-cli/src/cli/completion/mod.rs: 448c99129ac79572c72b56c0265f1b320563c9c0766a57db150d84bed5917e6a
     dependents:
       www/content/quickstart.typ: b76d49b8880baa90d19717c5ff230ba51838948a622cc5e06e8bec7ded6f4786
       www/utils/cli-notes.typ: 48bb8cd575c63ee49666392cc35b555b5954ec6084823f289dc5f51906334a4b
@@ -206,7 +206,7 @@ groups:
       www/utils/cli-notes.typ: 48bb8cd575c63ee49666392cc35b555b5954ec6084823f289dc5f51906334a4b
   cli-ls-docs:
     source:
-      crates/mindtape-cli/src/cmd/ls/mod.rs: d3e638351238066b68e652408f96d2d4b9005ba18b868e4a4ccce1129793782c
+      crates/mindtape-cli/src/cmd/ls/mod.rs: dddec30960bd199965d885b5b047f4e3117ea6d0509c82fe3f0d5337ee220727
       crates/mindtape-cli/src/cmd/ls/rules.rs: 6ba7545a087fa2560593e7e3aa59498b22cba3f89834d2f2857ebeb790bdb305
     dependents:
       docs/src/skill.typ: 40c0030d30809cb8e5fae560ccdc7e8f0c579a08c67afedaacd35bf649167c71
@@ -654,7 +654,9 @@ groups:
       .config/vale-code.ini: c1bc7f0ed987d973cb963d17ef48504880db065cd7c37398aa20535cfa465b63
       .config/vale-commits.ini: c4c1eeaff52d47fb663277020113a91b1968fa3206f5d7d8cc10f9f29ff899cf
       .config/vale.ini: f645e45f6bb5dae2c400de9f18afa128c9e9cc18376772483aff78ef3ce0aae8
+      .config/vale/local/Commits/CoAuthor.yml: 515a0c1e3b1032117c34e56bb873288091d70decfedb15dd0065e103781b4c6b
       .config/vale/local/Commits/EmDash.yml: fd75141aae51dba37a08f7714a40ab0e9d528b6bbe7000ad0f7927b2aa752ec6
+      .config/vale/local/Commits/Generated.yml: e73d2edaf5b1ed719f567bc897f79726342061df87e9ab7f623df65d6c6abddb
       .config/vale/local/Commits/History.yml: baac46ff79c20fb2877f7c9f8bd4c60d5917d8833b94d535c1df1f464d24d26f
       .config/vale/local/Commits/Imperative.yml: a9e620f87216d1901e7b9bbab59ec5cc76ac086edd96d0cce865eecc88e895a1
       .config/vale/local/Commits/Shouting.yml: f7bfb10c4a5e46fa599330b3e0bddfcd21a7e58f93d100287d1e496e11c1f190
@@ -673,7 +675,7 @@ groups:
       .config/vale/local/config/views/RustDoc.yml: 693f135dfb5e1d967b31414d01902a8b13f40be76369c0743aef662d21dfc2ea
       .config/vale/local/config/views/Schema.yml: 965e6bfc56da0dd51a6f98132c4c1a45ef5a7f87dc25e91be2d14d6b97cde8d0
       .config/vale/local/config/vocabularies/Prose/accept.txt: b0bd78149f83d244df37be3005b7e10fdd73ed18b4572f3289230919f5c398fe
-      .config/vale/local/config/vocabularies/Prose/reject.txt: cdfdcde6963710e94fbec497007690991983c01ab5e10caea8cb376a9ed71eb3
+      .config/vale/local/config/vocabularies/Prose/reject.txt: a3b08836e6c7cf1ed5a3336dd61288b513049ab260e651f74f8d474e8bbbe501
       .just/scripts/check-commit-prose.sh: 696fd7b2957a0124ac1e050efe6f70836a49828df8b06a28b1310fd22605fc4d
       .just/scripts/check-vale-levels.sh: 918948dbcd7ed7959cff8b7479c88a7b0d3a10f325f31fb7c1052b43acb6dcb6
       nix/dev/flake.lock: fd22c22f17ee7d0f926de24231a428d89f821025de4177a0348e84050aace0d5
@@ -682,7 +684,7 @@ groups:
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale-styles.nix: 067f8733c68801bd50fec716d70b954bde36f225ae1350bae874c794c4b35bd4
     dependents:
-      docs/src/contributing/commit-messages.typ: df4b5654240800f07bfe5b2f3ccb217ccf8fb8cd37a1bf3a62363ec3c15e4f31
+      docs/src/contributing/commit-messages.typ: fad91cf24ea6a0f21a4cb053989aef3e1135db045c1ae4d5baae652e984338d2
       docs/src/contributing/documentation.typ: 3025af9ac2ded8531bafafd66ad83b91634d5a43f7c7137804f137b7395cfb5e
       docs/src/contributing/gates.typ: c2f44ddb83d885c8d587db03426578a521e79424bb702191ce96c0046114dbe4
   waits-docs:
