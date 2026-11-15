@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-commit: five cheap assertions, no heavy work.
+# Pre-commit: five cheap assertions under a wall-clock budget.
 #
 # 1. The memoized close gate already passed against this worktree. `just
 #    check` records every sub-gate through mmz; `mmz --is-fresh --tag gate`
@@ -25,23 +25,71 @@
 #    must survive `mt flip`'s own writes), so a mis-formatted task file busts
 #    nothing. The shared `truth/*.typ` files every task imports sit beside it.
 #    The tree is small, so check all of it directly.
-# 4. Task structure — the close gate delegates this here by policy.
-# 5. Task prose through Vale, with the config the `docs::vale-tasks` arm reads.
-#    That arm is untagged, so a `truth/tasks/**`-only commit skips assertion 1
-#    and this is the run that sees the file.
+# 4. Task structure through `just mmz mt-check`, the untagged arm `just check`
+#    runs. The close gate skips it because `mt flip` writes the task file the
+#    arm reads; a task edit after a check re-runs it here.
+# 5. Task prose through `just mmz docs::vale-tasks`, the same recipe the
+#    `docs::vale-tasks` arm runs. That arm is untagged, so a `truth/tasks/**`-
+#    only commit skips assertion 1 and this is the run that sees the file. Its
+#    record still hits when `just check` ran after the last task edit.
+#
+# 6. The whole hook fits MINDTAPE_PRECOMMIT_BUDGET_MS (10s by default). A
+#    commit after `just check` must stay cheap: the gate records pass 1, the
+#    task-structure record passes 4, the task-prose record passes 5,
+#    `typstyle` over `truth/` is small, and a full `just check` builds
+#    target/mt-dev for the commit-msg hook, so nothing compiles at commit time.
+#    A run over the budget fails even when every assertion passed, prints each
+#    step's time, and says to make the slow step cheap. Raise the budget only to
+#    measure this guard, never to hide a regression.
 set -eo pipefail
 root="$(git rev-parse --show-toplevel)"
+budget_ms="${MINDTAPE_PRECOMMIT_BUDGET_MS:-10000}"
+start_ns="$(date +%s%N)"
+steps=()
+
+step() {
+    local name="$1" status begin end
+    shift
+    begin="$(date +%s%N)"
+    if "$@"; then status=0; else status=$?; fi
+    end="$(date +%s%N)"
+    steps+=("$(((end - begin) / 1000000))"$'\t'"$name")
+    return "$status"
+}
+
+on_exit() {
+    local status=$? elapsed_ms
+    elapsed_ms=$((($(date +%s%N) - start_ns) / 1000000))
+    if ((status == 0 && elapsed_ms > budget_ms)); then
+        printf 'pre-commit: the hook passed but took %d.%01ds, over its %d.%01ds budget.\n' \
+            $((elapsed_ms / 1000)) $(((elapsed_ms % 1000) / 100)) \
+            $((budget_ms / 1000)) $(((budget_ms % 1000) / 100)) >&2
+        printf "pre-commit: a commit after \`just check\` must stay cheap, so a slow step is a bug.\n" >&2
+        printf 'pre-commit: per-step time:\n' >&2
+        printf '%s\n' "${steps[@]}" | sort -rn | while IFS=$'\t' read -r ms name; do
+            printf '  %6d ms  %s\n' "$ms" "$name" >&2
+        done
+        printf "pre-commit: make the slow step cheap: memoize it through mmz, or build what it needs in \`just check\`.\n" >&2
+        printf 'pre-commit: do not raise the budget to hide it. See docs/contributing/gates.md, "Pre-commit assertions".\n' >&2
+        exit 1
+    fi
+    exit "$status"
+}
+trap on_exit EXIT
+
 if [[ -n "${MINDTAPE_GATE_SCOPE:-}" ]]; then
     echo "pre-commit: MINDTAPE_GATE_SCOPE=${MINDTAPE_GATE_SCOPE} — skipping mmz --is-fresh --tag gate (commit-msg requires a matching Gate-Scope trailer)" >&2
 elif git diff --cached --name-only | grep -qv '^truth/tasks/'; then
-    direnv exec "$root" mmz --is-fresh --tag gate
+    step "mmz --is-fresh --tag gate" direnv exec "$root" mmz --is-fresh --tag gate
 fi
-"$root/.githooks/local-paths"
-direnv exec "$root" typstyle --check truth
-# A pass prints only its summary, which the hook hides; a failure keeps the
-# alerts that name the file and line.
-if ! vale_out=$(direnv exec "$root" vale --no-global --config=.config/vale.ini truth/tasks 2>&1); then
-    printf '%s\n' "$vale_out"
+step ".githooks/local-paths" "$root/.githooks/local-paths"
+step "typstyle --check truth" direnv exec "$root" typstyle --check truth
+vale_log="$(mktemp)"
+if step "vale (docs::vale-tasks via mmz)" direnv exec "$root" just mmz docs::vale-tasks >"$vale_log" 2>&1; then
+    rm -f "$vale_log"
+else
+    cat "$vale_log"
+    rm -f "$vale_log"
     exit 1
 fi
-exec direnv exec "$root" cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check -q
+step "mt-check (via mmz)" direnv exec "$root" just mmz mt-check

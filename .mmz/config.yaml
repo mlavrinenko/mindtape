@@ -19,14 +19,14 @@
 # the task file it is gating, so a gate-tagged rule keyed on those files would
 # go stale the moment a status is stamped. The close gate would flip itself
 # stale mid-command, and a multi-target or sequential close could never pass.
-# An untagged rule may name them: `docs::vale-tasks` reads the task bodies and
-# stays out of the close predicate, so a task-prose error still fails
-# `just check` without stranding the arm's own record. `just fmt-check`
-# typstyle-checks `truth/` (see the Justfile), so a full `just check` still
-# rejects a mis-formatted task file. Only the memoization of that read is given
-# up: a task-file-only formatting change escapes the freshness shortcut, in
-# return for a gate that survives its own writes. Task structure is validated
-# by the pre-commit hook (`cargo run -- check`), not by the gate.
+# Untagged rules may name them: `docs::vale-tasks` reads the task bodies and
+# `mt-check` the task structure, both staying out of the close predicate, so a
+# task-prose or task-structure error still fails `just check` without stranding
+# the arm's own record. `just fmt-check` typstyle-checks `truth/` (see the
+# Justfile), so a full `just check` still rejects a mis-formatted task file.
+# Only the memoization of that read is given up: a task-file-only formatting
+# change escapes the freshness shortcut, in return for a gate that survives its
+# own writes.
 
 scopes:
   # Everything that builds the rust crates: every file under crates/, not just
@@ -381,11 +381,17 @@ scopes:
     - ".config/vale-plain.ini"
     - ".config/vale/local/**"
 
-  # The task bodies `docs::vale-tasks` reads. No gate-tagged rule may name them
-  # (see "Note on scope" above), so that untagged rule is the only one taking
-  # this scope.
+  # The task bodies `docs::vale-tasks` and `mt-check` read. No gate-tagged rule
+  # may name them (see "Note on scope" above), so the two untagged rules are
+  # the only ones taking this scope.
   tasks:
     - "truth/tasks/**"
+
+  # The shared Typst modules under `truth/` that task files import. `mt-check`
+  # evaluates them, so a change busts its rule. `typ-fmt` also lists them, but
+  # that scope carries the docs and examples a task check never reads.
+  truth-shared:
+    - "truth/*.typ"
 
   # The scripts outside .just/scripts/ that a `just check` arm can reach, for
   # `just meta::gate-drift`, which follows the call graph out of `check` and
@@ -766,6 +772,16 @@ commands:
   # the gate, and the close predicate is the one place the arm is absent.
   - name: just docs::vale-tasks
     inputs: [tasks, vale-config, gates-meta]
+
+  # Runs the project's own task check (`mt check`) against every task and
+  # template. Not gate-tagged for the same reason as the prose arm: `mt flip`
+  # writes the task file it is gating, so a tagged record would go stale on the
+  # close that writes it. `just check` runs this arm anyway, so a task-structure
+  # error still fails the gate, and the close predicate is the one place the arm
+  # is absent. `truth-shared` carries the `truth/*.typ` modules the tasks
+  # import, and `policy` the config and templates the check reads.
+  - name: just mt-check
+    inputs: [rust, tasks, truth-shared, policy, gates-meta, mmz-config]
 
   # Parses www/content, www/utils and docs/src (`docs`) with typstyle, which
   # the dev shell pins (`gates-meta`), and runs its control over synthetic

@@ -45,6 +45,15 @@ if want fast "$@"; then just _check-fast >>"$stages" 2>&1 || red=1; fi
 if [ "$red" -eq 0 ] && want build "$@"; then just _check-build >>"$stages" 2>&1 || red=1; fi
 if [ "$red" -eq 0 ] && want cover "$@"; then just _check-cover >>"$stages" 2>&1 || red=1; fi
 
+# The commit-msg hook runs `mt check --commit-msg` from target/mt-dev, which
+# no gate builds. Build it here after a check that includes the build stage, so
+# a commit never pays that build. The pre-commit hook's task check is the
+# `mt-check` gate, which uses `target/debug/mt`. A fast-only check stays
+# build-free, as its own docs promise.
+if [ "$red" -eq 0 ] && want build "$@"; then
+    just build-mt
+fi
+
 total=$(jq --args '.recipes as $r | [$ARGS.positional[] | $r[.].dependencies[]] | length' \
     "${selected[@]}" <<<"$dump")
 

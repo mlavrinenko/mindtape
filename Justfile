@@ -58,7 +58,7 @@ _check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "lint::machete") (mmz "lint::
 
 [parallel]
 [private]
-_check-build: (mmz "test") (mmz "lint::rustdoc") (mmz "check-examples") (mmz "docs::coverage") (mmz "docs::facts") (mmz "docs::spans") (mmz "docs::prose") (mmz "docs::vale-prose") (mmz "docs::vale-tasks") (mmz "docs::check") (mmz "docs::md-check") (mmz "docs::pages-fixture")
+_check-build: (mmz "test") (mmz "mt-check") (mmz "lint::rustdoc") (mmz "check-examples") (mmz "docs::coverage") (mmz "docs::facts") (mmz "docs::spans") (mmz "docs::prose") (mmz "docs::vale-prose") (mmz "docs::vale-tasks") (mmz "docs::check") (mmz "docs::md-check") (mmz "docs::pages-fixture")
 
 [private]
 _check-cover: (mmz "cover") (mmz "crap::check")
@@ -114,6 +114,13 @@ build-mt:
 [positional-arguments]
 test *ARGS:
     cargo nextest run --workspace --status-level fail --cargo-quiet "$@"
+
+[doc("Check every task and template against the project's rules")]
+[group("dev")]
+[group("gate")]
+mt-check:
+    cargo build -p mindtape-cli --tests -q
+    ./target/debug/mt check -q
 
 [doc("Run coverage with cargo-llvm-cov")]
 [group("gate")]

@@ -42,9 +42,9 @@ haven't changed since its last pass. `.mmz/config.yaml` declares the inputs,
 and tags a rule `gate` when its own writes cannot stale its record. Then
 `mmz --is-fresh --tag gate` asserts that every tagged rule passed against the
 current tree, without running any of them. The pre-commit hook asserts it, and
-so does `mt flip` into a terminal status, through an `[[on.flip]]` hook. One
-arm, #just.docs-vale-tasks(), carries no tag, and "Inputs a plain glob can't
-name" below says why.
+so does `mt flip` into a terminal status, through an `[[on.flip]]` hook. Two
+arms, #just.docs-vale-tasks() and #just.mt-check(), carry no tag, and "Inputs a
+plain glob can't name" below says why.
 
 A passing #just.check() prints one line, such as
 `check: <n> gates passed (<ran> run, <cached> cached)`. An agent reads
@@ -80,13 +80,14 @@ would make the rule stale in the middle of the flip. So the `secrets-tree`
 scope is `**` with `exclude: ["truth/tasks"]`. The scan still reads the task
 files. A change to one doesn't re-run the arm.
 
-#just.docs-vale-tasks() selects `truth/tasks/**` and carries no `gate` tag. It
-is the one arm whose inputs include a task file. #just.check() runs it, and a
-task body with a shouted word or an em dash fails the build. The close
-predicate, `mmz --is-fresh --tag gate`, skips the arm. `mt flip` stamps the
-status into the file the arm reads. A tagged record would go stale on the close
-that writes it, and the close could never pass. A close doesn't check the task
-prose. The arm's last #just.check() does.
+#just.docs-vale-tasks() and #just.mt-check() select `truth/tasks/**` and carry
+no `gate` tag. #just.mt-check() also selects the shared `truth/*.typ` modules.
+They are the arms whose inputs include task files. #just.check() runs both, so
+a task body with a shouted word, an em dash, or a broken structure fails the
+build. The close predicate, `mmz --is-fresh --tag gate`, skips both. `mt flip`
+stamps the status into the files the arms read. A tagged record would go stale
+on the close that writes it, and the close could never pass. A close checks
+neither the task structure nor its prose. The arms' last #just.check() does.
 
 == Arms must not read what another arm writes
 
@@ -125,6 +126,14 @@ that way and runs `./target/debug/mt`, because `cargo run` takes no
 `--tests`. A build with other features writes to another target directory.
 #just.build-mt() does that with `target/mt-dev`.
 
+#just.mt-check() runs `./target/debug/mt check`, so the task gate and the test
+arm share one binary.
+
+When the build stage passes, #just.check() ends with #just.build-mt(). That is
+the binary `.githooks/commit-msg` runs. A full green check leaves the
+commit-msg hook's `mt` warm, and a commit compiles nothing. It is not a gate:
+cargo's own fingerprints decide whether it compiles.
+
 #just.meta-gate-drift() fails naming file and line on any build of
 `mindtape-cli` that a #just.check() arm reaches without `--tests` or a flag
 that writes elsewhere.
@@ -162,8 +171,16 @@ drifted modules and a clean one that sorts last.
 = Pre-commit assertions
 
 `.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then
-`.githooks/local-paths`, `typstyle --check truth`, `vale` over
-`truth/tasks` and `mt check`. It refuses the commit when any of them fails.
+`.githooks/local-paths`, `typstyle --check truth`, #just.mmz("docs::vale-tasks")
+and #just.mmz("mt-check"). It refuses the commit when any of them fails.
+
+The hook also enforces a 10s wall-clock budget on itself, even when every
+assertion passes. A commit after a full #just.check() must stay cheap: the gate
+records are fresh, the task-structure and task-prose records hit, and
+#just.build-mt() ran at the end of the check. A run over budget prints each
+step's time and fails, naming the step to make cheap. The fix is to memoize
+that step or move its work into #just.check(), never to raise
+`MINDTAPE_PRECOMMIT_BUDGET_MS`.
 
 `.githooks/local-paths` refuses a staged file that names your `$HOME`, the
 checkout or the primary checkout. Such a path arrives in a pasted error or
