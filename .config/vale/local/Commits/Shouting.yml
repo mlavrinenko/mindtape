@@ -1,0 +1,3 @@
+extends: Prose.Shouting
+message: "Don't shout: '%s'. Use emphasis sparingly, or drop the word."
+level: error

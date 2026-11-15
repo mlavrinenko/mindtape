@@ -205,7 +205,8 @@ pub(crate) fn run(
     for breach in &breaches {
         crate::diag::emit(&breach_diag(breach, file));
     }
-    let failures = ref_problems.len() + failing(&breaches);
+    let external = crate::cmd::check::run::check(project, &text, None)?;
+    let failures = ref_problems.len() + failing(&breaches) + external;
     if failures > 0 {
         return Err(Diag::commit_message_problems(failures));
     }

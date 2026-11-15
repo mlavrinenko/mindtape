@@ -35,6 +35,7 @@
           vale-write-good
           ;
         local = ../../.config/vale/local;
+        dicts = ../../crates/mindtape/src/dicts;
       };
 
       # Windows cross-check toolchain (see `devShells.windows`).

@@ -1,8 +1,9 @@
 //! `mt check --commits <range>` — hold every commit of a range to
 //! `[commits]`, as `mt check --commit-msg` holds the one being written: a hook
-//! skipped with `--no-verify` still fails where the range is checked. Then the
-//! `scope = "tip"` rules hold the tasks the range names to the state its
-//! newest commit leaves them in.
+//! skipped with `--no-verify` still fails where the range is checked. The
+//! `[commits] run` command runs over each message too, so an external check
+//! does not depend on a hook either. Then the `scope = "tip"` rules hold the
+//! tasks the range names to the state its newest commit leaves them in.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -30,9 +31,10 @@ use crate::util;
 /// task the range names, over the tasks as the newest commit holds them.
 ///
 /// # Errors
-/// Fails when git cannot read the range, or when any commit carries a trailer
-/// naming no task and matching no external pattern, or breaks an error-severity
-/// rule.
+/// Fails when git cannot read the range, when the `[commits] run` command
+/// cannot start, or when any commit carries a trailer naming no task and
+/// matching no external pattern, breaks an error-severity rule, or fails the
+/// message command.
 pub(crate) fn run(
     project: &util::Project,
     range: &str,
@@ -276,6 +278,11 @@ fn check_one(
     record.in_range = true;
     record.is_merge = commit.is_merge;
     let breaches = check_commit(&record, Some(&states), config);
+    let external = crate::cmd::check::run::check(
+        project,
+        &past.message,
+        Some((commit.short.as_str(), message.subject.as_str())),
+    )?;
     let has_errors = states.head.errors.len() + states.staged.errors.len() > 0;
     if !(problems.is_empty() && breaches.is_empty() && !has_errors) {
         report_commit(
@@ -295,7 +302,7 @@ fn check_one(
         .cloned()
         .collect();
     Ok(Checked {
-        broke: !problems.is_empty() || failing(&breaches) > 0,
+        broke: !problems.is_empty() || failing(&breaches) > 0 || external > 0,
         refs,
         tip: Some(states.staged),
         skipped: false,

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt check` can run a project's own message check.** `[commits] run` names
+  a command that `mt check --commit-msg` and `mt check --commits` run once per
+  message, from the project root, with the message on stdin. A non-zero exit
+  fails the check and each output line is reported under the commit's id.
+  This repo points it at Vale, which refuses a subject over 72 characters, a
+  non-imperative opener, a history word, an em dash or a shouted word.
 - **An `[[on.add]]` `dir` takes date macros.** `{date}`, `{date:FMT}`, `{yy}`,
   `{mm}` and `{dd}` expand from the pinned or system date, with the same tokens
   as `[tasks.naming] stem`, so `dir = "tasks/{date:YYYY}-{date:MM}"` files a new

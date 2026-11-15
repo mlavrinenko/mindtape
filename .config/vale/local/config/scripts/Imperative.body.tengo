@@ -1,0 +1,48 @@
+// Imperative.body.tengo — the body of the Commits.Imperative rule. The build
+// in nix/dev/vale-styles.nix prepends the `verbs` array from the two
+// dictionaries `mt` ships, so a commit subject and a task title agree on what
+// an imperative verb is.
+//
+// A Conventional Commits prefix (`feat(vale): `) is not the opener; the first
+// word after it is. A subject that starts with something other than a word
+// also fails, since no word there can be imperative.
+text := import("text")
+
+matches := []
+
+lines := text.split(scope, "\n")
+subject := ""
+if len(lines) > 0 {
+    subject = text.trim_right(lines[0], "\r")
+}
+
+start := 0
+prefix := text.re_find("^[a-z]+(?:\\([^)]*\\))?!?:[ ]*", subject)
+if !is_undefined(prefix) {
+    start = prefix[0][0].end
+    subject = subject[start:]
+}
+
+word := text.re_find("^[A-Za-z][A-Za-z0-9-]*", subject)
+if !is_undefined(word) {
+    found := false
+    lower := text.to_lower(word[0][0].text)
+    for _, verb in verbs {
+        if verb == lower {
+            found = true
+        }
+    }
+    if !found {
+        matches = append(matches, {
+            begin: start + word[0][0].begin,
+            end: start + word[0][0].end,
+            message: "Start the subject with an imperative verb, not '" + word[0][0].text + "'."
+        })
+    }
+} else if subject != "" {
+    matches = append(matches, {
+        begin: start,
+        end: start + 1,
+        message: "Start the subject with an imperative verb."
+    })
+}

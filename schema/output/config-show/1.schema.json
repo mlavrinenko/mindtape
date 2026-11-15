@@ -657,6 +657,17 @@
           },
           "type": "array"
         },
+        "run": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfigCommand"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A command that checks each commit message. `mt check --commit-msg`\nand `mt check --commits` run it once per message, from the project\nroot, with the message on stdin. A non-zero exit fails the check, and\neach line the command prints is reported as one problem. Absent means\nno external message check."
+        },
         "trailer": {
           "default": "Refs",
           "description": "The trailer key whose values name tasks by stem (`Refs: <stem>`) or\nexternal work matching `external-refs`. Matched case-insensitively. A\nvalue that names no task and matches no external pattern is refused.",

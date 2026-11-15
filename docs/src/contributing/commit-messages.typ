@@ -24,6 +24,22 @@ The body says what changed and why, in plain prose.
 Refs: <stem>
 ```
 
+= Prose
+
+`.githooks/commit-msg` calls `mt check --commit-msg`, which runs the
+`[commits] run` command over the message. This repo points that command at
+`.just/scripts/check-commit-prose.sh`, which runs Vale with
+`.config/vale-commits.ini`. Its `Commits` style holds five rules. The subject
+is at most 72 characters. It opens with an imperative verb after the
+Conventional Commits prefix. The message carries no history word, no em dash
+and no shouted word. Vale prints each hit's line and quotes the word.
+
+`mt check --commits <range>` runs the same command over each past message, so
+a commit that skipped the hook still fails before the range lands. A command
+that exits non-zero is the finding, and its output is its own wording. The
+script skips a `fixup!`, `squash!` or `amend!` message, because autosquash
+drops it.
+
 = What checks them
 
 `.githooks/commit-msg` refuses a message that names your `$HOME` or the
@@ -69,10 +85,10 @@ one more rule:
 
 `mt check --commit-msg` also refuses a `Refs:` value that's a path to a task,
 or that doesn't refer to a task. A repo that tracks work elsewhere can accept
-the second kind instead. Its `[commits] external-refs` key lists regexes, and
-a value that doesn't refer to a task but matches one is an external ref, kept
-opaque. A value may list more than one ref, split on commas or whitespace, and
-a ref that contains either goes in double quotes or escapes that character
+the second kind instead. Its `[commits] external-refs` key lists regexes. A
+value that doesn't refer to a task but matches one is an external ref, kept
+opaque. A value may list more than one ref, split on commas or whitespace. A
+ref that contains either goes in double quotes, or escapes that character
 with a backslash.
 
 Last, `.just/scripts/outdatty-review-trailer.sh` requires a re-record to have

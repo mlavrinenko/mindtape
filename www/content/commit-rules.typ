@@ -75,6 +75,24 @@ space goes in double quotes, as in `Refs: "redesign one"`, or escapes that
 one character with a backslash. `touches()` and a `scope = "task"` rule ignore
 external refs.
 
+= The message command
+
+`[commits] run` names a command that checks every commit message.
+`mt check --commit-msg` and `mt check --commits` run it once per message, from
+the project root, with the message on stdin. A non-zero exit fails the check,
+and `mt` reports each line the command prints as one problem. The command is
+the project's, not `mt`'s: this repo points it at a Vale script, and another
+project can point it at its own checker.
+
+// docs:hand-typed the message command is a sketch until a fixture carries one
+```toml
+[commits]
+run = ["bash", ".just/scripts/check-commit-prose.sh"]
+```
+
+The `commit-msg` hook runs it through `mt check --commit-msg`, so a bad message
+never becomes a commit. A merge commit passes, as every commit check skips one.
+
 = Commit rules
 
 `[[commits.rules]]` takes the same keys as `[[tasks.rules]]`: `name`, `when`,

@@ -361,6 +361,14 @@ name = "sweeps"
 when = 'has_tag("swept")'
 actions = [{ dir = "truth/tasks/swept" }]
 
+# The generic external message check. `mt check --commit-msg` and
+# `mt check --commits` run the command once per message, on stdin, and fail
+# when it exits non-zero. The commit-msg hook therefore runs it through `mt`
+# itself. This repo points the command at .just/scripts/check-commit-prose.sh;
+# the rules and their levels are in .config/vale-commits.ini.
+[commits]
+run = ["bash", ".just/scripts/check-commit-prose.sh"]
+
 # Replaces the tasks pack's rule by name to exempt the commit `just release`
 # makes, whose subject is set in .config/release.toml. It dates CHANGELOG.md
 # and bumps the version, which is work on no task.

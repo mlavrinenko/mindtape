@@ -1,8 +1,11 @@
-# The Vale style the docs and task gates read. Upstream rules come from the
-# pinned inputs in nix/dev/flake.nix. The build strips each upstream `level`
-# so `.config/vale.ini` owns every level, applies the local edits, and overlays
-# the rules and vocabulary under `.config/vale/local/`. The dev shell links the
-# output at `target/vale/styles`, the path `.config/vale.ini` names.
+# The Vale style the docs, task and commit-message gates read. Upstream rules
+# come from the pinned inputs in nix/dev/flake.nix. The build strips each
+# upstream `level` so `.config/vale*.ini` owns every level, applies the local
+# edits, and overlays the rules and vocabulary under `.config/vale/local/`. The
+# dev shell links the output at `target/vale/styles`, the path the configs name.
+#
+# `dicts` holds the two verb dictionaries `mt` ships. The `Commits.Imperative`
+# rule embeds them, so a commit subject and a task title accept the same verbs.
 {
   runCommandLocal,
   yq-go,
@@ -11,6 +14,7 @@
   vale-microsoft,
   vale-write-good,
   local,
+  dicts,
 }:
 let
   ai = "${vale-ai-tells}/styles/ai-tells";
@@ -20,7 +24,7 @@ let
 in
 runCommandLocal "mindtape-vale-styles" { nativeBuildInputs = [ yq-go ]; } ''
   ai=${ai}
-  mkdir -p "$out/Prose" "$out/Sep" "$out/config/vocabularies/Prose"
+  mkdir -p "$out/Prose" "$out/Sep" "$out/Commits" "$out/config/vocabularies/Prose" "$out/config/scripts"
 
   for rule in \
     AICompoundPhrases \
@@ -85,5 +89,20 @@ runCommandLocal "mindtape-vale-styles" { nativeBuildInputs = [ yq-go ]; } ''
 
   cp -r ${local}/Prose/. "$out/Prose/"
   cp -r ${local}/Sep/. "$out/Sep/"
+  cp -r ${local}/Commits/. "$out/Commits/"
   cp -r ${local}/config/. "$out/config/"
+
+  # The imperative rule reads the same verbs as `word(title, 1)`. Tengo has no
+  # file reader, so the build writes the list into the script: one quoted entry
+  # per non-comment line of either dictionary, in declaration order.
+  {
+    printf 'verbs := [\n'
+    awk '!/^#/ && NF {
+        if (seen++) printf ",\n"
+        printf "  \"%s\"", $1
+    } END { if (seen) printf "\n" }' \
+      ${dicts}/verbs.txt ${dicts}/dev-verbs.txt
+    printf ']\n'
+    cat ${local}/config/scripts/Imperative.body.tengo
+  } > "$out/config/scripts/Imperative.tengo"
 ''

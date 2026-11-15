@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{ConfigCommand, run};
+use super::{ConfigCommand, run, run_with_input};
 
 fn argv(args: &[&str]) -> ConfigCommand {
     ConfigCommand::Argv(args.iter().map(|arg| (*arg).to_owned()).collect())
@@ -79,4 +79,15 @@ fn an_array_runs_its_program_directly() {
 fn an_array_with_no_program_is_refused_before_any_spawn() {
     let err = run(&argv(&[]), &std::env::temp_dir(), &[]).unwrap_err();
     assert_eq!(err.kind(), std::io::ErrorKind::InvalidInput);
+}
+
+/// `run_with_input` writes the message where the command reads stdin. A
+/// command that exits without reading it still reports its own output.
+#[cfg(unix)]
+#[test]
+fn input_reaches_the_command_on_stdin() {
+    let command = argv(&["sh", "-c", "cat"]);
+    let out = run_with_input(&command, &std::env::temp_dir(), &[], b"message\n").unwrap();
+    assert_eq!(out.code, Some(0));
+    assert_eq!(out.stdout, "message\n");
 }

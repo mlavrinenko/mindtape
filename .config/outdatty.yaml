@@ -141,6 +141,7 @@ groups:
       - crates/mindtape-cli/src/cmd/check/templates.rs
       - crates/mindtape-cli/src/cmd/check/commit.rs
       - crates/mindtape-cli/src/cmd/check/range.rs
+      - crates/mindtape-cli/src/cmd/check/run.rs
     dependents:
       - www/content/cli/check.typ
       - www/content/commit-rules.typ
@@ -533,6 +534,7 @@ groups:
       - www/content/filters.typ
       - www/content/packs.typ
       - skills/mindtape/references/filters.md
+      - nix/dev/vale-styles.nix
 
   # What `ready` and `blocked` mean once a `waits-on` checker can block a task.
   - name: waits-docs
@@ -830,19 +832,24 @@ groups:
       - docs/src/contributing.typ
 
   # Vale's rules and readers, which documentation.typ lists by rule code and
-  # gates.typ says how the non-gate task arm runs. The dictionary and the
+  # gates.typ says how the non-gate task arm runs. commit-messages.typ says
+  # which rules the commit style runs and where. The dictionary and the
   # vocabulary decide what a prose rule flags, and the grammars decide whether
   # a code comment reaches a rule at all, so they belong to the same group.
   - name: vale-docs
     source:
       - .config/vale.ini
       - .config/vale-code.ini
+      - .config/vale-commits.ini
       - .config/vale/local/Prose/*.yml
       - .config/vale/local/Prose/words.txt
       - .config/vale/local/Sep/*.yml
+      - .config/vale/local/Commits/*.yml
+      - .config/vale/local/config/scripts/*.tengo
       - .config/vale/local/config/views/*.yml
       - .config/vale/local/config/vocabularies/Prose/*.txt
       - .just/scripts/check-vale-levels.sh
+      - .just/scripts/check-commit-prose.sh
       - nix/dev/vale-styles.nix
       - nix/dev/vale-grammars.nix
       - nix/dev/flake.nix
@@ -850,6 +857,7 @@ groups:
       - nix/dev/shell.nix
     dependents:
       - docs/src/contributing/documentation.typ
+      - docs/src/contributing/commit-messages.typ
       - docs/src/contributing/gates.typ
 
   # The doc gates, whose rules documentation.typ states, and the render check

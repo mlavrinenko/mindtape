@@ -1,0 +1,3 @@
+extends: Prose.History
+message: "Leave out history: '%s'. Say what the behavior is today."
+level: error

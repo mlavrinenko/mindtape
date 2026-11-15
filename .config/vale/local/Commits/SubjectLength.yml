@@ -1,0 +1,5 @@
+extends: script
+level: error
+message: "Keep the subject to 72 characters or fewer."
+scope: raw
+script: SubjectLength.tengo

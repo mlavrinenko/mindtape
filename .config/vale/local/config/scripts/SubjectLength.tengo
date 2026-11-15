@@ -1,0 +1,22 @@
+// SubjectLength.tengo — the Commit.SubjectLength rule. `scope` is the whole
+// message; the subject is its first line. The limit matches the style's name
+// and the 72 characters a git log shows without wrapping.
+text := import("text")
+fmt := import("fmt")
+
+matches := []
+
+lines := text.split(scope, "\n")
+subject := ""
+if len(lines) > 0 {
+    subject = text.trim_right(lines[0], "\r")
+}
+
+limit := 72
+if len(subject) > limit {
+    matches = append(matches, {
+        begin: 0,
+        end: len(subject),
+        message: fmt.sprintf("Keep the subject to %d characters or fewer; this one is %d.", limit, len(subject))
+    })
+}

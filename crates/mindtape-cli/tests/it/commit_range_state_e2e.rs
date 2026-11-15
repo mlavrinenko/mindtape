@@ -3,6 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::{tempdir, write_file};
+use std::path::Path;
 
 use crate::commit_range_e2e::check_range;
 use crate::support::{commit, commit_repo, git, git_commit_all};
@@ -99,4 +100,57 @@ fn a_range_reads_each_commits_staged_tasks_and_config() {
         ok,
         "the commit's own config admits its external ref: {text}"
     );
+}
+
+/// The output of a range the check must refuse.
+#[cfg(unix)]
+fn refused(dir: &Path, range: &str) -> String {
+    let (ok, text) = check_range(dir, range);
+    assert!(!ok, "the range must fail: {text}");
+    text
+}
+
+/// `[commits] run` runs once per message, on stdin, and its output is a hit
+/// led by the commit's id. A range therefore refuses a message the commit-msg
+/// hook never saw.
+#[cfg(unix)]
+#[test]
+fn a_range_fails_a_message_the_configured_command_refuses() {
+    let dir = commit_repo(
+        "[commits]\nrun = [\"sh\", \"-c\", \"grep -n forbidden && exit 1 || exit 0\"]\n",
+    );
+    let root = dir.path();
+    write_file(root, "src/lib.rs", "work\n");
+    git(root, &["add", "src/lib.rs"]);
+    commit(root, "feat: a forbidden word");
+
+    let text = refused(root, "HEAD~1..HEAD");
+    assert!(
+        text.contains("commits.run: 1:feat: a forbidden word"),
+        "the hit states its line and leads with the config key: {text}"
+    );
+    assert!(
+        text.contains("note: commit: 'feat: a forbidden word'"),
+        "the hit names the commit's subject: {text}"
+    );
+    assert!(
+        text.contains("1 commit broke commit rules"),
+        "the commit counts as broken: {text}"
+    );
+}
+
+/// A configured command that cannot start fails the range with its reason,
+/// rather than passing the message through unchecked.
+#[cfg(unix)]
+#[test]
+fn a_range_fails_when_the_configured_command_cannot_start() {
+    let dir = commit_repo("[commits]\nrun = [\"/no/such/program\"]\n");
+    let root = dir.path();
+    write_file(root, "src/lib.rs", "work\n");
+    git(root, &["add", "src/lib.rs"]);
+    commit(root, "feat: work");
+
+    let (ok, text) = check_range(root, "HEAD~1..HEAD");
+    assert!(!ok, "a missing program must fail the range: {text}");
+    assert!(text.contains("can't run commits.run"), "{text}");
 }

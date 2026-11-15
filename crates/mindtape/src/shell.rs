@@ -1,5 +1,5 @@
 //! Running a config command: the one executor behind an `[[on.flip]]` `run`
-//! action and a `[[tasks.waits]]` checker.
+//! action, a `[[tasks.waits]]` checker and the `[commits] run` command.
 //!
 //! A `run` is a [`ConfigCommand`]: a string goes through the platform
 //! [`SHELL`], and an array of strings is a program and its arguments, spawned
@@ -12,8 +12,9 @@
 
 use std::ffi::OsStr;
 use std::fmt;
+use std::io::Write;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use serde::Deserialize;
 
@@ -95,9 +96,9 @@ pub struct ShellOutput {
     pub stderr: String,
 }
 
-/// Run `command` from `dir`, with `env` added to the caller's environment,
-/// capturing both streams. A line goes through [`SHELL`], and an array runs
-/// its program directly.
+/// Run `command` from `dir`, with `env` added to the caller's environment and
+/// no input, capturing both streams. A line goes through [`SHELL`], and an
+/// array runs its program directly.
 ///
 /// # Errors
 /// Returns the spawn error when the shell or the program cannot start, and
@@ -108,6 +109,24 @@ pub fn run(
     command: &ConfigCommand,
     dir: &Path,
     env: &[(&str, &OsStr)],
+) -> std::io::Result<ShellOutput> {
+    run_with_input(command, dir, env, &[])
+}
+
+/// [`run`] with `input` written to the command's stdin. A command that exits
+/// before reading all of it is not an error here, since a checker may answer
+/// from the first line.
+///
+/// # Errors
+/// Returns the spawn error when the shell or the program cannot start, and
+/// [`std::io::ErrorKind::InvalidInput`] for an array with no program. A
+/// command that runs and fails is not an error here: its [`ShellOutput`] says
+/// how it ended.
+pub fn run_with_input(
+    command: &ConfigCommand,
+    dir: &Path,
+    env: &[(&str, &OsStr)],
+    input: &[u8],
 ) -> std::io::Result<ShellOutput> {
     let mut process = match command {
         ConfigCommand::Line(line) => {
@@ -128,10 +147,17 @@ pub fn run(
             process
         }
     };
-    let output = process
+    let mut child = process
         .current_dir(dir)
         .envs(env.iter().copied())
-        .output()?;
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = stdin.write_all(input);
+    }
+    let output = child.wait_with_output()?;
     Ok(ShellOutput {
         code: output.status.code(),
         stdout: String::from_utf8_lossy(&output.stdout).into_owned(),

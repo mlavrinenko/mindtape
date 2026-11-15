@@ -61,6 +61,7 @@ use crate::config::Config;
 use crate::filter::FilterError;
 use crate::model::Task;
 use crate::problem::Problem;
+use crate::shell::ConfigCommand;
 use crate::validate::severity::Severity;
 
 /// How commits name the tasks they work on, or the work they track elsewhere,
@@ -79,6 +80,12 @@ pub struct CommitsConfig {
     /// whitespace; a ref that holds either goes in double quotes or escapes it
     /// with a backslash.
     pub external_refs: Vec<String>,
+    /// A command that checks each commit message. `mt check --commit-msg`
+    /// and `mt check --commits` run it once per message, from the project
+    /// root, with the message on stdin. A non-zero exit fails the check, and
+    /// each line the command prints is reported as one problem. Absent means
+    /// no external message check.
+    pub run: Option<ConfigCommand>,
     /// Assertions every checked commit must satisfy.
     pub rules: Vec<CommitRuleSpec>,
 }
@@ -88,6 +95,7 @@ impl Default for CommitsConfig {
         Self {
             trailer: "Refs".to_owned(),
             external_refs: Vec::new(),
+            run: None,
             rules: Vec::new(),
         }
     }
@@ -313,6 +321,14 @@ pub(crate) fn validate_commits(config: &Config) -> Vec<Problem> {
     let mut problems = Vec::new();
     if config.commits.trailer.trim().is_empty() {
         problems.push("commits.trailer: must name a trailer key".into());
+    }
+    if config
+        .commits
+        .run
+        .as_ref()
+        .is_some_and(ConfigCommand::is_blank)
+    {
+        problems.push("commits.run: must name a command".into());
     }
     for (index, pattern) in config.commits.external_refs.iter().enumerate() {
         if let Err(err) = regex::Regex::new(pattern) {

@@ -5,12 +5,14 @@
 //!
 //! - `commit.rs` — `--commit-msg`, the commit being written.
 //! - `range.rs` — `--commits`, a range of commits.
+//! - `run.rs` — the `[commits] run` command both arms run per message.
 //! - `set.rs` — a set named by `@name`: every member, reported together.
 //! - `templates.rs` — the template pass over every `mt add --list` template.
 //! - `cmd/ls/interactive/tests.rs`, `tests_rules.rs`, `*_tests.rs` — unit tests.
 
 pub(crate) mod commit;
 pub(crate) mod range;
+pub(crate) mod run;
 mod set;
 pub(crate) mod templates;
 

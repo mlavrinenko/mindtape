@@ -312,6 +312,7 @@ scopes:
     - ".config/wt.toml"
     - ".config/vale.ini"
     - ".config/vale-code.ini"
+    - ".config/vale-commits.ini"
     - ".config/vale/local/**"
     - ".gitattributes"
     - ".githooks/commit-msg"
@@ -513,6 +514,12 @@ scopes:
   # `just test` and `just cover` read this scope.
   script-wt-carry-lcov:
     - ".just/scripts/wt-carry-lcov.sh"
+  # .githooks/commit-msg runs `mt check --commit-msg`, which runs the
+  # `[commits] run` command from .mindtape/config.toml; `mt check --commits`
+  # runs the same command. The e2e test in
+  # crates/mindtape-cli/tests/it/commit_range_e2e.rs pins that arm.
+  script-check-commit-prose:
+    - ".just/scripts/check-commit-prose.sh"
   # .githooks/commit-msg runs this one, no recipe. The fixture gate
   # `just outdatty::trailer-fixture` commits through it, so that
   # rule reads both scopes.

@@ -12,6 +12,12 @@ The body says what changed and why, in plain prose.
 Refs: <stem>
 ```
 
+## Prose
+
+`.githooks/commit-msg` calls `mt check --commit-msg`, which runs the `[commits] run` command over the message. This repo points that command at `.just/scripts/check-commit-prose.sh`, which runs Vale with `.config/vale-commits.ini`. Its `Commits` style holds five rules. The subject is at most 72 characters. It opens with an imperative verb after the Conventional Commits prefix. The message carries no history word, no em dash and no shouted word. Vale prints each hit’s line and quotes the word.
+
+`mt check --commits <range>` runs the same command over each past message, so a commit that skipped the hook still fails before the range lands. A command that exits non-zero is the finding, and its output is its own wording. The script skips a `fixup!`, `squash!` or `amend!` message, because autosquash drops it.
+
 ## What checks them
 
 `.githooks/commit-msg` refuses a message that names your `$HOME` or the checkout, as the pre-commit hook refuses such a file ([docs/contributing/gates.md](docs/contributing/gates.md) says why). Then it runs `mt check --commit-msg`, which applies the per-commit `[[commits.rules]]` of the `mindtape:tasks` pack (`crates/mindtape/src/packs/tasks.toml`).
@@ -26,7 +32,7 @@ The `mindtape:commits` pack (`crates/mindtape/src/packs/commits.toml`) adds one 
 
 - `start-named-task-in-its-commit` refuses a commit whose `Refs:` task is neither `wip` nor terminal in the staged tree. A task still `proposed` fails it, and so does a flip you left unstaged. The rule refuses early because the repair afterwards means rewriting commits. A decision that closes in a task-only commit passes, since its staged status is `done`.
 
-`mt check --commit-msg` also refuses a `Refs:` value that’s a path to a task, or that doesn’t refer to a task. A repo that tracks work elsewhere can accept the second kind instead. Its `[commits] external-refs` key lists regexes, and a value that doesn’t refer to a task but matches one is an external ref, kept opaque. A value may list more than one ref, split on commas or whitespace, and a ref that contains either goes in double quotes or escapes that character with a backslash.
+`mt check --commit-msg` also refuses a `Refs:` value that’s a path to a task, or that doesn’t refer to a task. A repo that tracks work elsewhere can accept the second kind instead. Its `[commits] external-refs` key lists regexes. A value that doesn’t refer to a task but matches one is an external ref, kept opaque. A value may list more than one ref, split on commas or whitespace. A ref that contains either goes in double quotes, or escapes that character with a backslash.
 
 Last, `.just/scripts/outdatty-review-trailer.sh` requires a re-record to have the `Docs-Unaffected:` footer CONTRIBUTING.md’s Dependency Drift section asks for. It refuses a commit whose staged `.config/outdatty.lock` changes a group’s source hash while the commit changes none of that group’s dependents, unless a footer names the group. A dependent hash that the re-record includes doesn’t count, since no one edited that file. A merge commit passes, because the merged commits have their own footers. A rebase pick doesn’t run a hook at all.
 

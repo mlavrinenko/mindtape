@@ -1,0 +1,5 @@
+extends: script
+level: error
+message: "Start the subject with an imperative verb."
+scope: raw
+script: Imperative.tengo

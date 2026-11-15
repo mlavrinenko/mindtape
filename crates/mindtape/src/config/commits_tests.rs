@@ -3,6 +3,7 @@
 use super::check_commit;
 use crate::commit::CommitRecord;
 use crate::config::parse_config;
+use crate::shell::ConfigCommand;
 use crate::validate::severity::Severity;
 
 fn record(refs: &[&str], tasks_only: bool) -> CommitRecord {
@@ -25,6 +26,27 @@ const RULE: &str = "[[commits.rules]]\nname = \"name-task-in-refs-trailer\"\n\
 #[test]
 fn the_trailer_defaults_to_refs() {
     assert_eq!(parse_config("").unwrap().commits.trailer, "Refs");
+}
+
+#[test]
+fn a_message_command_is_optional_and_must_not_be_blank() {
+    assert!(parse_config("").unwrap().commits.run.is_none());
+
+    let config = parse_config("[commits]\nrun = [\"bash\", \"check.sh\"]\n").unwrap();
+    assert_eq!(
+        config.commits.run,
+        Some(ConfigCommand::Argv(vec![
+            "bash".to_owned(),
+            "check.sh".to_owned()
+        ]))
+    );
+
+    let blank = parse_config("[commits]\nrun = \"  \"\n").unwrap();
+    let problems = blank.validate().unwrap_err();
+    assert!(
+        problems.contains("commits.run: must name a command"),
+        "{problems}"
+    );
 }
 
 #[test]

@@ -3,14 +3,15 @@
 # fail the commit on its own.
 #
 # 1. No line names this machine's $HOME or checkout (.githooks/local-paths).
-# 2. `[[commits.rules]]` (`mindtape:tasks`: `name-task-in-refs-trailer`) — a
-#    `Refs: <stem>` footer naming the task this commit works on, via `cargo run`
-#    so a rebuild happens transparently (see .githooks/pre-commit). Built
-#    through `direnv exec`, so the dev shell's toolchain resolves even when
-#    this hook runs from a plain `git commit` outside it; no dev shell at
-#    all (direnv missing) fails here with direnv's own error rather than
-#    silently skipping the check. A merge is skipped: it joins commits
-#    checked on their own.
+# 2. `mt check --commit-msg` — the `[[commits.rules]]` of the `mindtape:tasks`
+#    pack (`name-task-in-refs-trailer` and the others) and the `[commits] run`
+#    command this repo points at .just/scripts/check-commit-prose.sh. Run via
+#    `cargo run` so a rebuild happens transparently (see .githooks/pre-commit).
+#    Built through `direnv exec`, so the dev shell's toolchain and Vale resolve
+#    even when this hook runs from a plain `git commit` outside it; no dev
+#    shell at all (direnv missing) fails here with direnv's own error rather
+#    than silently skipping the check. A merge is skipped by `mt check`: it
+#    joins commits checked on their own.
 # 3. A commit whose .config/outdatty.lock re-records a group and that edits
 #    none of the group's dependents names the group in a `Docs-Unaffected:`
 #    trailer (.just/scripts/outdatty-review-trailer.sh, which says why it is a
