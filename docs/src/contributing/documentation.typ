@@ -313,13 +313,13 @@ five or more `-`, `=`, `*`, `_`, `~` or `#` characters. Delete the run and keep
 any label it frames. The dev shell exports the pinned grammars from
 `nix/dev/vale-grammars.nix`, and the gate runs offline.
 
-#just.lint-vale-code() holds Rust doc comments to the prose rules.
-`.config/vale-code.ini` gives `crates/` to Vale with the `RustDoc` View, a
-tree-sitter query that keeps `///` and `//!` and drops an inline `//` comment.
-`[formats] rs = md` parses each comment body as Markdown. A code span and a doc
-test stay out. `Prose.History` and `Prose.Shouting` sit at `error`. Every other
-`Prose` rule is `NO` until a backfill task moves it to `error`. A shell,
-Justfile or YAML comment belongs to `.config/vale-plain.ini`.
+#just.lint-vale-code() holds a Rust doc comment to every rule in the table
+above, at `error`. `.config/vale-code.ini` gives `crates/` to Vale with the
+`RustDoc` View, a tree-sitter query that keeps `///` and `//!` and drops an
+inline `//` comment. `[formats] rs = md` parses each comment body as Markdown,
+so a code span and a doc test stay out. A doc comment has no `#mindtape` to
+render, so `Prose.ProductName` wants the name in a code span. `Prose.Spelling`
+reads `Prose/words.txt` and splits at an apostrophe. A possessive goes in a code span.
 
 == Prose gate coverage
 

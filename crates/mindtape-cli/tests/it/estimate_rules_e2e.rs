@@ -1,9 +1,9 @@
 //! End-to-end proof that an estimate budget and cap are plain `[[tasks.rules]]`
 //! entries (`truth/tasks/2026-09/retire-the-drift-check-and-estimate-bounds-in-favour-of-rules.typ`).
 //!
-//! Drives a real git working copy so `changed()` reads a real change set. No
-//! estimate check runs unless a rule asks for it: a project declaring an
-//! estimate unit and nothing else sees no warning however far the working tree
+//! Drives a real git working copy so `changed()` reads a real change set. An
+//! estimate check runs only when a rule requests it: a project that declares
+//! an estimate unit and nothing else passes however far the working tree
 //! outgrows the task.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -56,8 +56,9 @@ fn task_src(files: u32) -> String {
 }
 
 /// A git working copy holding a project under `rules` whose single in-flight
-/// task budgets `files` files, plus `extra` untracked files on top of the two
-/// the scaffold itself writes and one under the excluded `gen/`.
+/// task budgets `files` files. The copy also holds `extra` untracked files on
+/// top of the two the scaffold itself writes, and one under the excluded
+/// `gen/`.
 fn fixture(rules: &str, files: u32, extra: usize) -> tempfile::TempDir {
     let dir = tempdir();
     let root = dir.path();

@@ -8,8 +8,8 @@
 //!
 //! A command that touches a file uses [`Diag::cannot_read`] or
 //! [`Diag::cannot_write`] and adds a hint when it has a next step. Any other
-//! message that fails on I/O ends in [`Diag::io`], so the reason reads the same
-//! everywhere: the OS's words, lowercase, with Rust's `(os error 2)` and a
+//! message that fails on I/O ends in [`Diag::io`]. The reason then reads the
+//! same everywhere: the OS's words, lowercase, with Rust's `(os error 2)` and a
 //! final period left off.
 
 use std::io;
@@ -18,15 +18,15 @@ use std::path::Path;
 use super::Diag;
 
 impl Diag {
-    /// The file at `path` could not be read: `can't read: '<path>': <reason>`.
+    /// The read of the file at `path` failed: `can't read: '<path>': <reason>`.
     pub(crate) fn cannot_read(path: &Path, err: &io::Error) -> Self {
         Self::failed("can't read")
             .value(mindtape::display_path(path))
             .io(err)
     }
 
-    /// The file at `path` could not be written: `can't write: '<path>':
-    /// <reason>`. Nothing was written.
+    /// The write to the file at `path` failed: `can't write: '<path>':
+    /// <reason>`. The target file keeps its old bytes.
     pub(crate) fn cannot_write(path: &Path, err: &io::Error) -> Self {
         Self::failed("can't write")
             .value(mindtape::display_path(path))

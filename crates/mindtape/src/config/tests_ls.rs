@@ -1,4 +1,4 @@
-//! `[ls]`/`[views.*]` — the default view, rule import/gating, sort spec
+//! `[ls]`/`[views.*]`: the default view, rule import/gating, sort spec
 //! validation, and the columns table (`when`, order, duplicate names).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 

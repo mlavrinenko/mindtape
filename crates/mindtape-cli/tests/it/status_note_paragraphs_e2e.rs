@@ -1,6 +1,6 @@
-//! A multi-paragraph, bulleted status note must survive the `mt flip -m`
-//! write and the `mt ls --format json` read as readable prose, not one
-//! run-on word with the paragraph break and the list markers silently
+//! A multi-paragraph, bulleted status note must survive the `mt flip -m` write
+//! and the `mt ls --format json` read as readable prose. It must not collapse
+//! into one run-on word with the paragraph break and the list markers silently
 //! dropped (`truth/tasks/2026-09/fix-the-status-note-flattening-on-read.typ`).
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 

@@ -1,18 +1,18 @@
-//! Proof that the e2e harness keeps the machine's own `mt` configuration out
-//! of the suite — and that the layer it hides is really there.
+//! Proof that the e2e harness keeps the machine's own `mt` configuration out of
+//! the suite, and that the layer it hides is really there.
 //!
 //! `mt` merges a global `defaults.toml` (`dirs::config_dir()/mindtape/`) under
-//! every project config. That is a supported layer, so the binary honours it;
-//! what must not happen is a *test* honouring it, because then the suite
-//! answers a question about the developer's home directory. One test here
-//! shows `support::mt` sees no such layer, the other shows the loader still
-//! reads one when it is genuinely present — without the second, the first
-//! would keep passing if the layer quietly stopped working altogether.
+//! every project config. That is a supported layer, and the binary honors it.
+//! A *test* must not honor it, because then the suite reports on the developer's
+//! home directory. One test here shows that `support::mt` doesn't see such a
+//! layer. The other shows that the loader still reads one when the file is
+//! present. Without the second, the first would keep passing if the layer
+//! quietly stopped working altogether.
 //!
-//! Both halves are staged through `$MINDTAPE_CONFIG_HOME`
-//! (`mindtape::config_home`), the one override that lands on every platform:
-//! `dirs` reads `XDG_CONFIG_HOME`/`HOME` on Unix but a known-folder API on
-//! Windows, which no environment variable can move.
+//! Both halves go through `$MINDTAPE_CONFIG_HOME` (`mindtape::config_home`), the
+//! one override that lands on every platform. `dirs` reads
+//! `XDG_CONFIG_HOME`/`HOME` on Unix but a known-folder API on Windows, which no
+//! environment variable can move.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
@@ -49,7 +49,7 @@ fn config_home_with_defaults(body: &str) -> tempfile::TempDir {
     dir
 }
 
-/// The harness spawn reports no `xdg:` layer, whatever the machine holds.
+/// The harness spawn doesn't report an `xdg:` layer, whatever the machine holds.
 #[test]
 fn the_harness_spawn_merges_no_global_defaults() {
     let project = support::scaffold_project("[tasks]\nroots = [\"tasks\"]\n");
@@ -62,8 +62,8 @@ fn the_harness_spawn_merges_no_global_defaults() {
     );
 }
 
-/// Point the same spawn at a config home that does hold a `defaults.toml` and
-/// the layer appears — so the test above is isolation working, not the layer
+/// Point the same spawn at a config home that does hold a `defaults.toml`, and
+/// the layer appears. The test above is then isolation working, not the layer
 /// being dead.
 #[test]
 fn a_global_defaults_file_does_reach_the_loader_when_present() {

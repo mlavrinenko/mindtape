@@ -1,13 +1,13 @@
-//! The gitless `rm` strategies — what happens to inbound references when no
-//! git repository pins a SWHID tombstone: `reject` (refuse, listing every
-//! surviving referrer), `unlink` (strip the inbound edges, then delete), and
-//! `retire` (keep the file, flip it to a terminal status). The git-backed
-//! `git-tombstone` path lives in the parent module.
+//! The gitless `rm` strategies, which decide what happens to inbound
+//! references when no git repository pins a SWHID tombstone. `reject` refuses
+//! and lists every surviving referrer. `unlink` strips the inbound edges, then
+//! deletes. `retire` keeps the file and flips it to a terminal status. The
+//! git-backed `git-tombstone` path lives in the parent module.
 //!
 //! # Files
 //!
-//! - `report.rs` — the retire strategy's report and confirm helpers.
-//! - `unlink.rs` — the walk over the other files that name a task.
+//! - `report.rs`: the retire strategy's report and confirm helpers.
+//! - `unlink.rs`: the walk over the other files that reference a task.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -20,9 +20,9 @@ use crate::cmd::flip::status_edit;
 use crate::diag::{Diag, Hint, Note};
 use crate::git;
 
-/// The strategy for a run, resolved before anything is planned: the configured
-/// `[rm] strategy` wins; unset, a detected git repository defaults to
-/// `git-tombstone` (today's behaviour) and a gitless one to `reject` (the
+/// The strategy for a run, resolved before anything else happens. The
+/// configured `[rm] strategy` wins. Unset, a detected git repository defaults
+/// to `git-tombstone` (today's behaviour) and a gitless one to `reject` (the
 /// consumer must opt into `retire` or `unlink`).
 #[must_use]
 pub fn resolve_strategy(config: &Config, has_git: bool) -> RmStrategy {
@@ -33,7 +33,7 @@ pub fn resolve_strategy(config: &Config, has_git: bool) -> RmStrategy {
     })
 }
 
-/// The `reject` strategy's refusal: a note for every surviving task that
+/// The `reject` strategy's refusal, with a note for every surviving task that
 /// references a removed task, naming the removed ids it links to.
 pub fn reject_diag(referrers: &BTreeMap<PathBuf, BTreeSet<String>>) -> Diag {
     let refusal = Diag::refused("cannot remove tasks that other tasks link to").hint(Hint::new(
@@ -49,8 +49,8 @@ pub fn reject_diag(referrers: &BTreeMap<PathBuf, BTreeSet<String>>) -> Diag {
     })
 }
 
-/// The gix no-repository message carries the caller's absolute task-root path;
-/// swap it for a generic placeholder so the user's filesystem layout never
+/// The gix no-repository message carries the caller's absolute task-root path.
+/// Swap it for a generic placeholder so the user's filesystem layout never
 /// leaks into an error.
 #[must_use]
 pub fn redact_git_error(err: &typst_cleanup::Error, root: &Path) -> String {
@@ -59,9 +59,9 @@ pub fn redact_git_error(err: &typst_cleanup::Error, root: &Path) -> String {
 }
 
 /// Print the post-apply commit hint, but only when `root` sits inside a git
-/// work tree. Every strategy's success report ends here — the delete-style
-/// path (plain, git-tombstone, unlink) and the retire path — so gitless runs
-/// never point the user at a tool they deliberately do not have. Reuses
+/// work tree. Every strategy's success report ends here: the delete-style path
+/// (plain, git-tombstone, unlink) and the retire path. Gitless runs then never
+/// point the user at a tool they deliberately do not have. Reuses
 /// [`git::toplevel`], the same discovery [`resolve_strategy`]'s caller already
 /// runs to pick a default strategy, instead of a second probe.
 pub fn print_commit_hint(root: &Path) {
@@ -75,12 +75,12 @@ pub fn print_commit_hint(root: &Path) {
 mod unlink;
 pub use unlink::{Retarget, inbound_rewrites, retarget_raw, unlink_plan};
 
-/// The `retire` strategy's plan: keep the eligible task files, flip each to a
-/// terminal status (the configured `[retire] status`, else the legend's first
-/// terminal — an error if the legend declares none), and optionally move the
-/// file into a sibling folder (`[retire] rename`). No git, no tombstones. A
-/// task already in a terminal status is a tombstone already: it is only moved,
-/// never re-stamped.
+/// The `retire` strategy's plan. It keeps the eligible task files and flips
+/// each to a terminal status. That status is the configured `[retire] status`,
+/// else the legend's first terminal, and an error if the legend declares none.
+/// It optionally moves the file into a sibling folder (`[retire] rename`). No
+/// git, no tombstones. A task already in a terminal status is a tombstone
+/// already: it is only moved, never re-stamped.
 ///
 /// # Errors
 /// A legend with no terminal status and no configured `[retire] status`, an
@@ -184,8 +184,8 @@ fn retire_status(config: &Config) -> Result<String> {
 }
 
 /// A move breaks path-based link resolution (`tasks/gone.typ` does not
-/// exist), so every surviving task's inbound edge to a moved file is
-/// retargeted onto its new relative path — the tombstone must leave no
+/// exist). The plan then retargets every surviving task's inbound edge to a
+/// moved file onto its new relative path. The tombstone must not leave a
 /// dangling edge, the same invariant the other strategies keep.
 fn retarget_inbound_edges(
     tasks: &[Task],
@@ -255,11 +255,11 @@ fn dest_rel(rename: &Option<PathBuf>, file: &Path) -> PathBuf {
     }
 }
 
-/// The `retire` plan: `status` is the terminal status applied, `rename` the
-/// optional archive folder, `rewrites` the files written (status flips, and
-/// moves when `rename` is set), `link_rewrites` the surviving tasks whose
-/// inbound edges were retargeted onto moved files, `deletions` the originals
-/// of moved files.
+/// The `retire` plan. `status` is the terminal status applied, `rename` the
+/// optional archive folder, and `rewrites` the files written (status flips, and
+/// moves when `rename` holds a folder). `link_rewrites` holds the surviving
+/// tasks whose inbound edges the plan retargeted onto moved files, and
+/// `deletions` the originals of moved files.
 #[derive(Debug)]
 pub struct RetirePlan {
     pub status: String,

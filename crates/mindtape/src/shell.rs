@@ -7,8 +7,8 @@
 //!
 //! The trust boundary is a `Justfile`'s or a git hook's: the command comes from
 //! the project's own `.mindtape/config.toml`, and it runs with the caller's full
-//! authority. Nothing here is sandboxed, and nothing pretends to be. A config
-//! you would not run is a config you should not have checked out.
+//! authority. The command runs without a sandbox. A config you would not run is
+//! a config you should not have checked out.
 
 use std::ffi::OsStr;
 use std::fmt;
@@ -35,8 +35,8 @@ pub const SHELL: (&str, &str) = ("cmd", "/C");
 pub enum ConfigCommand {
     /// A command line for the platform shell: `sh -c`, or `cmd /C` on Windows.
     Line(String),
-    /// A program and its arguments, run directly with no shell, the same on
-    /// every platform. The program is found on `PATH`.
+    /// A program and its arguments, run directly without a shell, the same on
+    /// every platform. The lookup walks `PATH`.
     Argv(Vec<String>),
 }
 
@@ -114,7 +114,7 @@ pub fn run(
 }
 
 /// [`run`] with `input` written to the command's stdin. A command that exits
-/// before reading all of it is not an error here, since a checker may answer
+/// before reading every byte is not an error here, since a checker may answer
 /// from the first line.
 ///
 /// # Errors

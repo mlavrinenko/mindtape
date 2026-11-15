@@ -1,7 +1,7 @@
-//! The error format, end to end: every stderr line starts with `error:`,
-//! `hint:`, `note:` or `warning:`, a value the user typed is single-quoted, a
-//! single target gets no batch summary, and the exit code says whether the
-//! command line was wrong (2) or the work failed (1).
+//! The error format, end to end. Every stderr line starts with `error:`,
+//! `hint:`, `note:` or `warning:`, and a value the user typed is
+//! single-quoted. A single target skips the batch summary. The exit code says
+//! whether the command line was wrong (2) or the work failed (1).
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
@@ -198,7 +198,7 @@ fn an_unknown_status_is_a_usage_error() {
     assert_prefixed(&stderr);
 }
 
-/// An error no call site has converted yet still comes out as one prefixed
+/// An error the code has not converted yet still comes out as one prefixed
 /// line, its causes joined with `: `.
 #[test]
 fn a_values_file_that_cannot_be_read_is_one_error_without_caused_by() {

@@ -55,22 +55,23 @@ impl HeldSet {
 
 static HELD_SET: OnceLock<Option<HeldSet>> = OnceLock::new();
 
-/// Record the held set (or none) for this process. Call once from `main`;
-/// later calls are ignored.
+/// Record the held set (or none) for this process. Call once from `main`. The
+/// function ignores later calls.
 pub fn init_held_set(held: Option<HeldSet>) {
     let _ = HELD_SET.set(held);
 }
 
-/// The held set, or `None` when the command line named a project or no `@`.
+/// The held set, or `None` when the command line specified a project or no `@`.
 #[must_use]
 pub fn held_set() -> Option<&'static HeldSet> {
     HELD_SET.get().and_then(Option::as_ref)
 }
 
-/// The refusal for a command that opens one project while a set is held.
+/// The refusal for a command that opens one project while the process holds a
+/// set.
 ///
 /// # Errors
-/// Returns [`HeldSet::refusal`] when a set is held.
+/// Returns [`HeldSet::refusal`] when the process holds a set.
 pub fn refuse_held() -> Result<()> {
     held_set().map_or(Ok(()), |held| Err(held.refusal()))
 }
@@ -87,8 +88,9 @@ pub struct Member {
 
 /// Load every `(name, root)` of a set in parallel ([`mindtape::load_many`]),
 /// in the order given. Each member's config warnings and held-back commands
-/// print as warnings that name it; its load errors are left to the caller, as
-/// [`crate::util::open`] leaves them, and a config that fails is that member's error.
+/// print as warnings that reference it. The function leaves its load errors to
+/// the caller, as [`crate::util::open`] leaves them, and a config that fails is
+/// that member's error.
 #[must_use]
 pub fn open_set(members: &[(String, PathBuf)]) -> Vec<Member> {
     let roots: Vec<PathBuf> = members.iter().map(|(_, root)| root.clone()).collect();

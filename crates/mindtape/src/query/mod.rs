@@ -1,5 +1,5 @@
-//! The shared file-query engine: one query value, its parse, compile and
-//! match, plus the per-process caches behind them.
+//! The shared file-query engine. It holds one query value, its parse, compile
+//! and match, plus the per-process caches behind them.
 //!
 //! Each [`Query`] names files git lists in the working tree: tracked ones, and
 //! untracked ones `.gitignore` doesn't hide. Matching is native, `regex` over
@@ -26,6 +26,7 @@ use ast_grep_language::{LanguageExt, SupportLang};
 use typst_harvest::HVal;
 
 use crate::config::dicts::Dicts;
+use crate::error_text::last_line;
 use crate::git::state::{PathFilter, PathSetError, git, git_bytes};
 use crate::problem::Problem;
 
@@ -33,7 +34,7 @@ use crate::problem::Problem;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Query {
     /// `grep(regex, glob)`: the files whose bytes match `regex`, narrowed
-    /// to `glob` when it is set.
+    /// to `glob` when the query sets one.
     Grep {
         /// The pattern, in `regex` crate syntax.
         regex: String,
@@ -46,7 +47,7 @@ pub enum Query {
         pattern: String,
     },
     /// `ast_grep(language, pattern, glob)`: the files whose Rust source
-    /// matches `pattern`, narrowed to `glob` when it is set.
+    /// matches `pattern`, narrowed to `glob` when the query sets one.
     AstGrep {
         /// The language name, `rust` or its alias `rs`.
         language: String,
@@ -112,7 +113,7 @@ pub(crate) fn path_filter(glob: &str, dicts: &Dicts) -> Result<PathFilter, Probl
     })
 }
 
-/// Whether `language` names a grammar this build ships, with no file walk.
+/// Whether `language` names a grammar this build supports, with no file walk.
 pub(crate) fn check_language(language: &str) -> Result<(), String> {
     grammar(language).map(|_| ())
 }
@@ -157,7 +158,7 @@ pub(crate) const LS_FILES: [&str; 6] = [
 /// Why a read-only Git command did not answer.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum GitFailure {
-    /// The `git` executable could not be started.
+    /// The `git` executable failed to start.
     Unavailable,
     /// The directory is not inside a Git work tree.
     NotAWorkTree,
@@ -236,7 +237,7 @@ pub(crate) fn path_from_bytes(bytes: &[u8]) -> PathBuf {
 }
 
 /// Split NUL-separated `git ls-files -z` output into paths, keeping the bytes
-/// the filesystem holds. Empty records (a trailing NUL) are dropped.
+/// the filesystem holds. The split drops empty records (a trailing NUL).
 pub(crate) fn nul_paths(bytes: &[u8]) -> Vec<PathBuf> {
     bytes
         .split(|byte| *byte == 0)
@@ -333,7 +334,7 @@ fn compile_pattern(pattern: &str, language: SupportLang) -> Result<Pattern, Stri
     Ok(compiled)
 }
 
-/// The one grammar this wave ships, named as a task may write it.
+/// The one grammar this wave supports, named as a task may write it.
 fn grammar(language: &str) -> Result<SupportLang, String> {
     match language {
         "rust" | "rs" => Ok(SupportLang::Rust),
@@ -344,7 +345,7 @@ fn grammar(language: &str) -> Result<SupportLang, String> {
 }
 
 /// Whether `path` matches the compiled query. A tracked file deleted from the
-/// working tree is still listed; it matches nothing.
+/// working tree is still listed. It never matches.
 fn matches_file(tree: &Tree, path: &Path, compiled: &Compiled) -> bool {
     let file = tree.top.join(path);
     match compiled {
@@ -360,18 +361,8 @@ fn matches_file(tree: &Tree, path: &Path, compiled: &Compiled) -> bool {
     }
 }
 
-/// The last line of a `regex` error, which names what went wrong, without
+/// The last line of a `regex` error, which reports what went wrong, without
 /// its `error: ` label.
-fn last_line(text: &str) -> String {
-    let line = text
-        .lines()
-        .rev()
-        .find(|line| !line.trim().is_empty())
-        .unwrap_or(text)
-        .trim();
-    line.strip_prefix("error: ").unwrap_or(line).to_owned()
-}
-
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;

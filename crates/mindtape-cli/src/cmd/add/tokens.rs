@@ -3,7 +3,7 @@
 //!
 //! Three operators over one shape. `=` sets a slot, `+=` appends to its list,
 //! and `@` reads the value out of a file. The two carriers parse identically
-//! on purpose: `--set tags+=docs` and a trailing `tags+=docs` are the same
+//! on purpose. `--set tags+=docs` and a trailing `tags+=docs` are the same
 //! token reaching this parser, so the shorthand can never drift into a second
 //! grammar with its own rules.
 //!
@@ -12,9 +12,9 @@
 //! value it appends. `apply_token` is the map-shaped wrapper the tests keep
 //! for callers that only need the merged value.
 //!
-//! Split out of `cmd/add/values.rs` — which is about where values come from
-//! (`-f` sources, the environment, the template's defaults) — so the grammar
-//! itself has one home to read, and the sources file keeps room to grow.
+//! The module split out of `cmd/add/values.rs`, which covers where values come
+//! from (`-f` sources, the environment, the template's defaults). The grammar
+//! itself then has one home to read, and the sources file keeps room to grow.
 
 #[cfg(test)]
 use std::collections::BTreeMap;
@@ -27,20 +27,20 @@ use crate::diag::{Diag, Hint};
 /// Which operator a token carries, with a file's contents already read.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TokenOp {
-    /// `=` — the value is the rest of the token.
+    /// `=`: the value is the rest of the token.
     Set(String),
-    /// `+=` — one item to append to a list.
+    /// `+=`: one item to append to a list.
     Append(String),
-    /// `@` — the contents of the file the rest of the token named.
+    /// `@`: the contents of the file the rest of the token named.
     File(String),
 }
 
-/// Which operator a token carries, before its file is read.
+/// Which operator a token carries, before the parser reads its file.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Op {
-    /// `=` — the value is the rest of the token.
+    /// `=`: the value is the rest of the token.
     Set,
-    /// `@` — the value is the contents of the file the rest of the token names.
+    /// `@`: the value is the contents of the file the rest of the token names.
     File,
 }
 
@@ -48,7 +48,7 @@ enum Op {
 ///
 /// # Errors
 /// Returns an error when the token carries no operator, tries to append a
-/// file, or names a file that cannot be read.
+/// file, or names a file the reader cannot open.
 pub fn parse_token(token: &str) -> Result<(String, TokenOp), Diag> {
     let (key, op, rest) = split_token(token)?;
     let append = key.ends_with('+');
@@ -76,7 +76,7 @@ pub fn parse_token(token: &str) -> Result<(String, TokenOp), Diag> {
 ///
 /// # Errors
 /// Returns an error when the token carries no operator, or when a `@` file
-/// token names a file that cannot be read.
+/// token names a file the reader cannot open.
 pub fn token_name(token: &str) -> Result<&str, Diag> {
     let (key, _, _) = split_token(token)?;
     Ok(key.strip_suffix('+').unwrap_or(key))
@@ -100,11 +100,11 @@ pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<
 /// One rule for both operators, so neither needs quoting inside the other's
 /// value: `summary=a@b` sets the literal `a@b`, and `summary@a=b` reads the
 /// file named `a=b`. The same rule already decided that only the first `=`
-/// separates; a second operator does not get a second rule.
-/// One scan finds it, rather than a search per operator compared by index: a
-/// comparison would be deriving "first" from two answers, and `at < eq` has
-/// no `<=` case to distinguish (a byte is not both characters), so the
-/// comparison is untestable where the scan is self-evident.
+/// separates. A second operator does not get a second rule. One scan finds it,
+/// rather than a search per operator compared by index. A comparison would
+/// derive "first" from two answers, and `at < eq` has no `<=` case to
+/// distinguish (a byte is not both characters). The comparison is then
+/// untestable where the scan is self-evident.
 fn split_token(token: &str) -> Result<(&str, Op, &str), Diag> {
     let (index, op) = token
         .char_indices()
@@ -122,23 +122,23 @@ fn split_token(token: &str) -> Result<(&str, Op, &str), Diag> {
     Ok((key, op, rest.get(1..).unwrap_or_default()))
 }
 
-/// Read slot `name`'s value out of `path` — the `name@path` operator.
+/// Read slot `name`'s value out of `path`, the `name@path` operator.
 ///
-/// Trailing line terminators are stripped, and nothing else is. The operator
+/// The reader strips trailing line terminators and nothing else. The operator
 /// stands in for `--set "name=$(cat path)"`, and command substitution strips
-/// them too, so a token swapped in for the substitution splices identically —
+/// them too. A token swapped in for the substitution then splices identically.
 /// `contrib/ask-refactoring/size.sh` already depends on that, its spliced
 /// bullets abutting the literal ones that follow the slot. Stripping is also
-/// what keeps the operator usable for a typed slot at all: every editor ends
-/// a text file with a newline, and `due@date.txt` would otherwise fail
-/// coercion on a file whose visible contents are a perfectly good date.
+/// what keeps the operator usable for a typed slot at all. Every editor ends a
+/// text file with a newline, and `due@date.txt` would otherwise fail coercion
+/// on a file whose visible contents are a perfectly good date.
 ///
-/// Every other byte reaches the slot unchanged. What happens to it next is
-/// the slot kind's business, exactly as for a command-line value: a `text`
-/// slot markup-escapes it, a `raw` slot splices it verbatim, and a typed slot
-/// coerces it and fails naming itself. Nothing here converts anything —
-/// notably, nothing turns Markdown into Typst, so a `.md` file fills a `text`
-/// slot as the prose it literally is.
+/// Every other byte reaches the slot unchanged. The slot kind then governs what
+/// happens to it, exactly as for a command-line value. A `text` slot
+/// markup-escapes it, a `raw` slot splices it verbatim, and a typed slot
+/// coerces it and fails naming itself. This module converts nothing, and it
+/// never turns Markdown into Typst, so a `.md` file fills a `text` slot as the
+/// prose it literally is.
 fn read_slot_file(name: &str, path: &str, token: &str) -> Result<String, Diag> {
     if path == "-" {
         return Err(Diag::usage("@- does not read stdin").value(token).hint(Hint::new(
@@ -155,9 +155,9 @@ fn read_slot_file(name: &str, path: &str, token: &str) -> Result<String, Diag> {
 }
 
 /// Append `item` to slot `name`'s list value (the `name+=item` shape),
-/// creating the list on first use. A slot already set to a non-list value is
-/// replaced outright — the last shape written wins. Test-only: the `+tag`
-/// sugar reaches `mt add` as an ordered append.
+/// creating the list on first use. A slot already set to a non-list value gets
+/// replaced outright: the last shape written wins. Test-only: the `+tag` sugar
+/// reaches `mt add` as an ordered append.
 #[cfg(test)]
 pub fn append_list_value(values: &mut BTreeMap<String, RawValue>, name: &str, item: String) {
     match values

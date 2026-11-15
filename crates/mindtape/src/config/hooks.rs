@@ -1,11 +1,11 @@
-//! `[[on.flip]]` — actions bound to a task changing status.
+//! `[[on.flip]]` binds actions to a task changing status.
 //!
 //! One user-extensible mechanism for "when a task changes status, do
 //! something". Printing the open set on the way into work and running a
 //! machine-checkable command before a task may close are the same idea seen
-//! twice: both are actions on a flip. Shipping them as separate tables would
-//! give Mindtape two mechanisms for one concept, so there is one table,
-//! several action kinds, and the project decides what fires where.
+//! twice. Both are actions on a flip. Two separate tables would give
+//! `Mindtape` two mechanisms for one concept, so there is one table, a few
+//! action kinds, and the config states what fires where.
 //!
 //! ```toml
 //! [[on.flip]]
@@ -23,12 +23,13 @@
 //! ([`crate::config::packs`]), as for `[[tasks.rules]]`.
 //!
 //! `when` is a [filter expression](crate::filter) over the task **as it stands
-//! before the write** (so `status == "wip"` names the status being left), plus
-//! the `into("name")` predicate for the status being stamped. `into` is not a
-//! filter function: it is rewritten here, per transition, into a filter-language
-//! constant ([`desugar_into`]) before the expression is parsed — so the whole
-//! filter language composes with it and the evaluator stays unaware of it, the
-//! same trick `@view` sugar plays in [`crate::filter::views`].
+//! before the write** (so `status == "wip"` names the status the task leaves),
+//! plus the `into("name")` predicate for the status the flip stamps. `into` is
+//! not a filter function: this module rewrites it here, per transition, into a
+//! filter-language constant ([`desugar_into`]) before the expression parses.
+//! The whole filter language then composes with it and the evaluator stays
+//! unaware of it, the same trick `@view` sugar plays in
+//! [`crate::filter::views`].
 //!
 //! Only `mt flip` runs actions. `mt check`, `mt ls` and every other read command
 //! run none, because `mt check` runs inside editors and commit hooks, where a
@@ -37,7 +38,7 @@
 //! state. [`crate::shell`] runs both and states the trust boundary.
 //!
 //! This module holds the shape and the selection (which hooks fire for a given
-//! transition); running the actions is the CLI's job.
+//! transition). Running the actions is the CLI's job.
 
 use serde::Deserialize;
 use thiserror::Error;
@@ -80,8 +81,8 @@ pub struct FlipHook {
     /// name. An unnamed entry always appends and is never replaced. Also the
     /// label `mt explain rules` and `mt config show --origin` print.
     pub name: Option<String>,
-    /// Filter over the task being flipped, plus `into("status")` for the status
-    /// being stamped. Empty fires on every flip.
+    /// Filter over the task the flip acts on, plus `into("status")` for the
+    /// status the flip stamps. Empty fires on every flip.
     #[schemars(extend("x-expression" = "filter"))]
     pub when: String,
     /// Actions to run, in declaration order.
@@ -128,13 +129,13 @@ pub enum ActionKind<'a> {
         /// Heading printed above the table.
         title: Option<&'a str>,
     },
-    /// Execute `command`, or — when `command` is `None` — nothing: a gate
+    /// Execute `command`, or nothing when `command` is `None`: a gate
     /// declaring no `run` refuses unconditionally whenever its hook's `when`
     /// matches. `kind()` only ever produces a `None` command alongside
     /// `gate: true`.
     Run {
-        /// The command: a line for the platform shell, or an array run with
-        /// no shell. `None` for a run-less gate.
+        /// The command, either a line for the platform shell or an array that
+        /// runs without a shell. `None` for a run-less gate.
         command: Option<&'a ConfigCommand>,
         /// Whether a non-zero exit (or, with no command, always) refuses the
         /// flip.
@@ -148,9 +149,9 @@ impl FlipAction {
     /// Resolve which kind this action declares.
     ///
     /// # Errors
-    /// Returns a message naming the problem when the action declares no kind
-    /// (no `show` / `list` / `run`, and no `gate = true` either), more than
-    /// one, or a modifier belonging to a different kind (`title` outside
+    /// Returns a message that specifies the problem when the action has no
+    /// kind (no `show` / `list` / `run`, and no `gate = true` either), more
+    /// than one, or a modifier belonging to a different kind (`title` outside
     /// `list`, `gate` / `message` outside `run`).
     pub fn kind(&self) -> Result<ActionKind<'_>, String> {
         match (
@@ -208,7 +209,7 @@ fn reject(set: &[(&str, bool, &str)]) -> Result<(), String> {
     Ok(())
 }
 
-/// A `[[on.flip]]` entry whose `when` expression could not be evaluated.
+/// A `[[on.flip]]` entry whose `when` expression failed to evaluate.
 #[derive(Debug, Error)]
 #[error("on.flip[{index}].when: {source}: {}", crate::config::quote(.when))]
 pub struct HookError {
@@ -221,12 +222,12 @@ pub struct HookError {
     pub source: FilterError,
 }
 
-/// The `[[on.flip]]` hooks that fire when `task` is stamped `target`, in
+/// The `[[on.flip]]` hooks that fire when the flip stamps `task` `target`, in
 /// declaration order.
 ///
 /// `task` is the artifact as it stands before the write, so `when` reads the
-/// status being left; `target` answers `into(...)`. `readiness` must be
-/// computed over the whole loaded set (see [`Readiness::compute`]) for the
+/// status the task leaves. `target` answers `into(...)`. The caller computes
+/// `readiness` over the whole loaded set (see [`Readiness::compute`]) for the
 /// `ready` / `blocked` predicates.
 ///
 /// # Errors
@@ -264,9 +265,10 @@ fn fires(
 }
 
 /// Rewrite every `into("name")` call in `when` into a filter-language constant:
-/// [`ALWAYS`] when `name` is the status being stamped, [`NEVER`] otherwise. An
-/// `into` inside a string literal, or one whose call shape does not parse, is
-/// left verbatim — the filter parser then reports it as an unknown function.
+/// [`ALWAYS`] when `name` matches the status the flip stamps, [`NEVER`]
+/// otherwise. An `into` inside a string literal, or one whose call shape does
+/// not parse, stays verbatim, and the filter parser then reports it as an
+/// unknown function.
 #[must_use]
 pub fn desugar_into(when: &str, target: &str) -> String {
     rewrite_into(when, |name| {
@@ -275,19 +277,20 @@ pub fn desugar_into(when: &str, target: &str) -> String {
 }
 
 /// Rewrite every `into("name")` call in `when` into whatever `replace` makes
-/// of its name — the one scanner behind both [`desugar_into`] (a flip's
+/// of its name. This is the one scanner behind both [`desugar_into`] (a flip's
 /// constant) and a task-scope commit rule's state comparison
 /// ([`crate::commit::task_expr::desugar_commit_into`]). String literals pass
-/// through untouched, and `into` is recognised only as a whole identifier.
+/// through untouched, and the scanner recognises `into` only as a whole
+/// identifier.
 #[must_use]
 pub fn rewrite_into(when: &str, replace: impl Fn(&str) -> String) -> String {
     scan_call(when, "into", &replace).rewritten
 }
 
 /// Every status named by an `into(...)` call in `when`, in source order (may
-/// contain duplicates). Checks a hook against the configured legend at
-/// load, so a typo'd status is one config error rather than a hook that quietly
-/// never fires.
+/// contain duplicates). Checks a hook against the configured legend at load.
+/// A status outside the legend is then one config error rather than a hook
+/// that quietly never fires.
 #[must_use]
 pub fn into_targets(when: &str) -> Vec<String> {
     scan_call(when, "into", &|_: &str| String::new()).targets
@@ -302,8 +305,8 @@ pub(crate) struct CallScan {
 }
 
 /// Single pass over `when`: rewrite `<call>("name")` calls through `replace`
-/// and collect the names they reference. String literals are copied through
-/// untouched, and `call` is only recognised as a whole identifier —
+/// and collect the names they reference. String literals pass through
+/// untouched, and the scan recognises `call` only as a whole identifier, so
 /// `zinto("x")` and `into_view("x")` pass through. Shared by `into(...)` and
 /// `from_template(...)`.
 pub(crate) fn scan_call(when: &str, call: &str, replace: &dyn Fn(&str) -> String) -> CallScan {
@@ -326,12 +329,13 @@ pub(crate) fn scan_call(when: &str, call: &str, replace: &dyn Fn(&str) -> String
 /// consume a code span at the start of `rest`: it returns the bytes consumed
 /// and appends the replacement, or `None` to copy one character.
 ///
-/// A `for` over a fixed bound, not `while cursor < when.len()`: every mutant of
+/// A `for` over a fixed bound, not `while cursor < when.len()`. Every mutant of
 /// the cursor advance (`+=` -> `-=`/`*=`, a `copy_in_string` that returns 0, a
 /// rewrite reporting length 0) otherwise spins forever, pushing another char
-/// onto `rewritten` each turn — measured on 2026-09-29 at a 45 GB resident set before the
-/// host's earlyoom killed the whole sweep. Correct code consumes at least one
-/// byte per turn, so the bound is never reached; a mutant returns a wrong scan.
+/// onto `rewritten` each turn. One such run, measured on 2026-09-29, reached a
+/// 45 GB resident set before the host's earlyoom killed the whole sweep.
+/// Correct code consumes at least one byte per turn, so the bound is never
+/// reached, and a mutant returns a wrong scan.
 pub(crate) fn scan_expression(
     when: &str,
     rewritten: &mut String,
@@ -364,7 +368,7 @@ pub(crate) fn scan_expression(
 
 /// Copy one character of a string literal through verbatim, consuming the
 /// character after a backslash so an escaped quote does not close the literal.
-/// Returns how many bytes were consumed and clears `in_string` on the closing
+/// Returns the byte count it consumed and clears `in_string` on the closing
 /// quote.
 fn copy_in_string(rest: &str, ch: char, out: &mut String, in_string: &mut bool) -> usize {
     out.push(ch);
@@ -395,8 +399,8 @@ pub(crate) fn parse_named_call(rest: &str, call: &str) -> Option<(String, usize)
 /// Whether `ch` can appear inside a filter-language identifier.
 ///
 /// `-` joins a kebab-case field name (`x-template`) and `.` walks into a
-/// record (`derived.template`), so a scan for a bare name must treat both as
-/// part of the word, or `x-template` would read as the `template` test.
+/// record (`derived.template`). A scan for a bare name must treat both as part
+/// of the word, or `x-template` would read as the `template` test.
 pub(crate) fn is_ident_char(ch: char) -> bool {
     ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.')
 }
@@ -404,11 +408,11 @@ pub(crate) fn is_ident_char(ch: char) -> bool {
 /// Check every `[[on.flip]]` entry at config load, returning one message per
 /// problem, prefixed with its dotted TOML path.
 ///
-/// Each `when` is desugared against a status no legend can hold, parsed, and
-/// dry-run against a probe task; each `into(...)` name is checked against the
-/// legend; each action must resolve to exactly one kind, and a `list` filter
-/// must parse. A malformed hook is one config error at load — not a surprise
-/// halfway through a batch flip, with some tasks already written.
+/// The check desugars each `when` against a status no legend can hold, parses
+/// it, and dry-runs it against a probe task. It checks each `into(...)` name
+/// against the legend. Each action must resolve to exactly one kind, and a
+/// `list` filter must parse. A malformed hook is one config error at load, not
+/// a surprise halfway through a batch flip, with some tasks already written.
 pub(crate) fn validate_flip_hooks(config: &Config) -> Vec<Problem> {
     let probe = Task::default();
     let mut problems = Vec::new();

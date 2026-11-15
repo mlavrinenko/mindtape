@@ -13,22 +13,22 @@ use mindtape::shell::ConfigCommand;
 use crate::cmd::flip::chain::{Chain, ENV_CHAIN};
 use crate::diag::{Diag, Result};
 
-/// Absolute path of the task being flipped.
+/// Absolute path of the task the flip targets.
 pub(crate) const ENV_FILE: &str = "MINDTAPE_TASK_FILE";
-/// Identity of the task being flipped (its file stem, unless `id:` overrides).
+/// Identity of the task the flip targets (its file stem, unless `id:` overrides).
 pub(crate) const ENV_STEM: &str = "MINDTAPE_TASK_STEM";
-/// The status being stamped — the `into(...)` of the transition.
+/// The status the flip stamps, taken from the transition's `into(...)`.
 pub(crate) const ENV_STATUS: &str = "MINDTAPE_TASK_STATUS";
 
 /// The transition a command runs for, as the command sees it.
 pub(crate) struct RunCtx<'a> {
-    /// Project root; the command's working directory.
+    /// Project root, and the command's working directory.
     pub root: &'a Path,
     /// Absolute path of the task file.
     pub path: &'a Path,
     /// The task's identity.
     pub stem: &'a str,
-    /// The status being stamped.
+    /// The status the flip stamps.
     pub target: &'a str,
     /// The flips in progress above this one.
     pub chain: &'a Chain,
@@ -45,7 +45,7 @@ pub(crate) struct CommandReport {
 }
 
 impl CommandReport {
-    /// How the run ended, for a message: an exit code, or a signal.
+    /// The run's outcome for a message: an exit code, or a signal.
     pub fn verdict(&self) -> String {
         self.code.map_or_else(
             || "terminated by signal".to_owned(),
@@ -58,13 +58,13 @@ impl CommandReport {
 /// the transition in the environment ([`ENV_FILE`], [`ENV_STEM`],
 /// [`ENV_STATUS`]) and the chain with this flip added ([`ENV_CHAIN`]).
 ///
-/// Output is captured rather than inherited so a gate's evidence can be printed
-/// under the refusal that rests on it, and so a scripted flip stays clean when
-/// the command succeeds.
+/// The run captures output rather than inheriting it. A gate's evidence prints
+/// under the refusal that rests on it, and a scripted flip stays clean when the
+/// command succeeds.
 ///
 /// # Errors
-/// Returns an error when the shell itself cannot be spawned. A command that
-/// runs and fails is not an error here — it is a [`CommandReport`] the caller
+/// Returns an error when the shell itself fails to spawn. A command that
+/// runs and fails is not an error here: it is a [`CommandReport`] the caller
 /// decides about.
 pub(crate) fn run_command(command: &ConfigCommand, ctx: &RunCtx<'_>) -> Result<CommandReport> {
     let chain = ctx.chain.passed_down(ctx.path, ctx.stem, ctx.target);

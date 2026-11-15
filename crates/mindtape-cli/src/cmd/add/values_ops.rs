@@ -1,13 +1,13 @@
 //! Ordered value operations from `-f`/`--values` and the `--set` tokens.
 //!
-//! Collection keeps the caller's order instead of collapsing it into one map:
+//! Collection keeps the caller's order instead of collapsing it into one map.
 //! `tags+=a` followed by `tags=b` reaches a writer as an append and then a set,
 //! so the writer can drop the earlier append rather than guess what the map
 //! meant. A single [`Collected`] feeds both slot fill and the writable-field
 //! writer in [`super::field_values`].
 //!
-//! Split out of `values.rs` to keep that file under its line budget; the
-//! source readers it depends on stay there.
+//! The module split out of `values.rs` to keep that file under its line budget.
+//! The source readers it depends on stay there.
 
 use std::collections::BTreeMap;
 
@@ -20,8 +20,7 @@ use crate::diag::{Command, Diag, Hint, Note};
 
 type Result<T> = std::result::Result<T, Diag>;
 
-/// Every ordered value operation for one `mt add`, before the template's slots
-/// are known.
+/// Every ordered value operation for one `mt add`, before slot discovery.
 #[derive(Debug)]
 pub struct Collected {
     /// Sources and tokens in caller order: `-f` keys first, then `--set`, then
@@ -46,13 +45,15 @@ impl Collected {
     }
 }
 
-/// Merge `--values` sources (paths; `-` = stdin; JSON or YAML, see
-/// [`super::values::parse_source`]), then the `key OP value` tokens — `--set`
-/// entries first, then the bare arguments after `--` — into ordered operations.
+/// Merge `--values` sources (paths, `-` for stdin, JSON or YAML, see
+/// [`super::values::parse_source`]) and then the `key OP value` tokens into
+/// ordered operations. The `--set` entries come first, then the bare arguments
+/// after `--`.
 ///
-/// Sources are applied left to right: a later source's value for a key is a
-/// later `Set`, and an explicit `null`/`~` removes every earlier operation for
-/// that key — the same "last source wins" rule extended to an explicit unset.
+/// The merge applies sources left to right. A later source's value for a key is
+/// a later `Set`, and an explicit `null`/`~` removes every earlier operation for
+/// that key. That is the same "last source wins" rule extended to an explicit
+/// unset.
 ///
 /// # Errors
 /// Returns an error when a source is unreadable, not a JSON object or YAML
@@ -178,7 +179,7 @@ fn default_items(spec: &SlotSpec) -> Vec<String> {
 
 /// The hint for a field `mt add` writes by another spelling. `status` and `id`
 /// have an add-time answer of their own: the hints `mt set` gives (flip, mv)
-/// name a task that does not exist until the add files it.
+/// refer to a task that does not exist until the add files it.
 fn add_elsewhere(name: &str) -> Option<&'static str> {
     match name {
         "status" => Some("use --status to file the new task at a status"),
@@ -187,13 +188,13 @@ fn add_elsewhere(name: &str) -> Option<&'static str> {
     }
 }
 
-/// Reject any operation key that names no slot in `specs` and no writable
-/// field — a `--set`/`-f` typo would otherwise silently vanish (the template
-/// default fills in instead) with nothing in the output to notice.
+/// Reject any operation key outside `specs` and the writable fields. A
+/// `--set`/`-f` typo would otherwise silently vanish (the template default
+/// fills in instead) with nothing in the output to notice.
 ///
 /// # Errors
-/// Returns an error naming the unknown key(s), refusing a `+=` on a scalar
-/// writable field by name, or naming the command that owns a field written
+/// Returns an error that cites the unknown key(s), refuses a `+=` on a scalar
+/// writable field by name, or cites the command that owns a field written
 /// elsewhere.
 pub fn reject_unknown_keys(ops: &[(String, FieldOp)], specs: &[SlotSpec]) -> Result<()> {
     for (name, op) in ops {

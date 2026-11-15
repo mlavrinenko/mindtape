@@ -1,6 +1,7 @@
-//! The import report: what [`super::map_canonical`] mapped, defaulted,
+//! The import report records what [`super::map_canonical`] mapped, defaulted,
 //! dropped, or flagged while reconciling a canonical record against project
-//! config — plus the knobs (`MapOptions`) the CLI exposes over that policy.
+//! config. It also holds the knobs (`MapOptions`) the CLI exposes over that
+//! policy.
 
 use std::collections::BTreeMap;
 
@@ -10,8 +11,8 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct MapOptions {
     /// `--map old=new` status-name overrides, applied before legend
-    /// validation — so a foreign tracker's vocabulary can be renamed onto
-    /// this project's legend without failing the import.
+    /// validation. A foreign tracker's vocabulary can then map onto this
+    /// project's legend without failing the import.
     pub status_map: BTreeMap<String, String>,
     /// Drop a tag outside `[tasks.tags] allowed` instead of keeping it and
     /// reporting a violation.
@@ -21,16 +22,17 @@ pub struct MapOptions {
 /// What kind of event a [`ReportEntry`] records.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EntryKind {
-    /// An authored value was substituted for another via an explicit option
+    /// An explicit option substituted another value for the authored one
     /// (currently only `--map` on `status`).
     Mapped,
-    /// A missing/empty value was filled in with a project default.
+    /// A project default filled in a missing or empty value.
     Defaulted,
-    /// A value was dropped from its structured field rather than kept.
+    /// The mapper dropped a value from its structured field rather than keeping
+    /// it.
     Dropped,
     /// A hard policy problem (out-of-legend status, bad framework input, an
     /// out-of-allow-list tag kept rather than dropped, …). The mapper never
-    /// panics on one of these; the CLI decides fail vs skip vs continue.
+    /// panics on one of these. The CLI decides fail, skip or continue.
     Violated,
 }
 
@@ -84,7 +86,7 @@ pub struct ImportReport {
 }
 
 impl ImportReport {
-    /// Whether the mapping produced no noteworthy event at all.
+    /// Whether the mapping ran without recording a noteworthy event.
     #[must_use]
     pub fn is_clean(&self) -> bool {
         self.entries.is_empty()

@@ -1,7 +1,7 @@
 //! `mindtape:tasks` declaring the `kind` field and the comment policy its own
-//! rules read, and `mindtape:dogfood`: its four rules, its `allow-only-declared-sections`
-//! replacing the tasks pack's by name, and the drift test that keeps the two
-//! allowlists one `Dogfood` apart.
+//! rules read, and `mindtape:dogfood` with its four rules. The dogfood pack's
+//! `allow-only-declared-sections` replaces the tasks pack's by name, and a
+//! drift test keeps the two allowlists one `Dogfood` apart.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::tests_budget::load;

@@ -1,5 +1,5 @@
-//! End-to-end: every write command names a task by its stem in its report,
-//! whatever the user typed for it: the stem, a path or a stem hash.
+//! End-to-end: every write command reports a task by its stem, whatever the user
+//! typed for it: the stem, a path or a stem hash.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
@@ -116,8 +116,8 @@ fn closing_a_recurring_task_names_its_stem_for_a_hash() {
     );
 }
 
-/// A spawn introduces a new file, so it names the file as `mt add` does: by its
-/// path from the project root.
+/// A spawn introduces a new file, so it reports the file as `mt add` does: by
+/// its path from the project root.
 #[test]
 fn a_spawn_names_the_new_file_from_the_project_root() {
     let spawn = STANDUP.replace(", materialize: \"mutate\"", "");

@@ -1,8 +1,8 @@
 //! Every description in the config and `at.toml` schemas is hover text in an
 //! editor, and the config schema's are cells on the docs site's Configuration
-//! page, so each must read as user prose.
-//! A Rust path or a rustdoc intra-doc link in one means a developer note
-//! leaked out of a doc comment; that note belongs in a `//` comment instead.
+//! page. Each must then read as user prose. A Rust path or a rustdoc intra-doc
+//! link in one means a developer note leaked out of a doc comment. That note
+//! belongs in a `//` comment instead.
 #![allow(clippy::unwrap_used)]
 
 use serde_json::Value;

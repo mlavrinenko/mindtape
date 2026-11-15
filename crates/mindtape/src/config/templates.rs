@@ -12,7 +12,7 @@ use crate::config::add_hooks::BUILTIN_TEMPLATE;
 pub struct TemplatesConfig {
     /// Directories, relative to the project root, holding `*.typ` task templates.
     pub dirs: Vec<String>,
-    /// Template stem `mt add` uses when none is named.
+    /// Template stem `mt add` uses when the caller gives none.
     pub default: String,
     /// How `mt check` reports a breach of the built-in template, which `mt add`
     /// falls back to when no template dir holds `task.typ`. A project's own
@@ -25,11 +25,11 @@ pub struct TemplatesConfig {
     pub check_defaults: bool,
 }
 
-/// How severely a breach of the built-in template is reported.
+/// How severely `mt check` reports a breach of the built-in template.
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum FallbackSeverity {
-    /// Print the breach; `mt check` still succeeds. The default.
+    /// Print the breach, and `mt check` still succeeds. The default.
     #[default]
     Warning,
     /// Print the breach and fail `mt check`.
@@ -53,8 +53,8 @@ impl Default for TemplatesConfig {
 
 impl TemplatesConfig {
     /// The template directories as normalized [`PathBuf`]s, each still
-    /// relative to the project root unless it is absolute: `.` components are
-    /// dropped and interior `..` is resolved lexically.
+    /// relative to the project root unless it is absolute. The method drops `.`
+    /// components and resolves interior `..` lexically.
     #[must_use]
     pub fn normalized_dirs(&self) -> Vec<PathBuf> {
         (self.dirs.iter())

@@ -1,14 +1,14 @@
 //! `[tasks]` config: the section struct itself, plus the small field types it
-//! owns directly and that never grew big enough to earn their own module —
-//! priority (numeric field + scoring framework selection), task id format,
-//! ad-hoc field constraints, the tag allow-list, and body-shape config.
+//! owns directly and that never grew big enough to earn their own module.
+//! Those are priority (numeric field + scoring framework selection), task id
+//! format, ad-hoc field constraints, the tag allow-list, and body-shape config.
 //!
 //! Field types that already outgrew this file live in their own sibling
-//! instead and are only referenced here: roots/derive-tags (`config/roots.rs`),
-//! the status legend (`config/status.rs`), assignee (`config/assignee.rs`),
-//! estimate (`config/estimate.rs`), naming (`crate::model::naming`), links
-//! (`crate::link`), recur (`crate::recur`), rules (`rules/mod.rs`), and
-//! comments (`config/comments.rs`).
+//! instead, and this file only references them. They are roots/derive-tags
+//! (`config/roots.rs`), the status legend (`config/status.rs`), assignee
+//! (`config/assignee.rs`), estimate (`config/estimate.rs`), naming
+//! (`crate::model::naming`), links (`crate::link`), recur (`crate::recur`),
+//! rules (`rules/mod.rs`), and comments (`config/comments.rs`).
 
 use std::collections::{BTreeMap, HashSet};
 
@@ -27,7 +27,7 @@ use crate::model::numeric::NumericField;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// Where tasks live and how they are constrained.
+/// Where tasks live and how the config constrains them.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TasksConfig {
@@ -47,9 +47,9 @@ pub struct TasksConfig {
     /// `x-<ns>` extension field, keyed by field name. Any other key fails
     /// config load.
     pub fields: BTreeMap<String, FieldConfig>,
-    /// Which actors `assignee:` may name, and whether it is required.
+    /// Which actors `assignee:` may name, and whether a task must carry one.
     pub assignee: crate::config::assignee::AssigneeConfig,
-    /// Allowed estimate units, and whether an estimate is required.
+    /// Allowed estimate units, and whether a task must carry an estimate.
     pub estimate: EstimateConfig,
     /// Tag allow-list, checked on open tasks only.
     pub tags: TagsConfig,
@@ -58,12 +58,12 @@ pub struct TasksConfig {
     /// Task id format.
     pub id: IdConfig,
     /// The filename stem template `mt add` and `mt recur` use, and what
-    /// `mt add` does when the stem is taken (`dedup`).
+    /// `mt add` does when another task already holds the stem (`dedup`).
     pub naming: crate::model::naming::NamingConfig,
     /// Custom link kinds that `links:` edges may use, beside the built-in ones.
     pub links: crate::link::LinksConfig,
-    /// Whether recurring tasks are enabled, and the units, anchors and limits
-    /// `mt recur` accepts.
+    /// Whether the config enables recurring tasks, and the units, anchors and
+    /// limits `mt recur` accepts.
     pub recur: crate::recur::RecurConfig,
     /// Assertions every selected task must satisfy. `mt check` enforces them,
     /// and so does every write command before it writes.
@@ -168,18 +168,19 @@ impl<'de> Deserialize<'de> for IdFormat {
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct FieldConfig {
     /// Allowed values. Empty accepts any value, and a non-empty list takes a
-    /// string, or a list of distinct strings for an `x-<ns>` field. An entry `@<dict>` stands for every entry of
-    /// `[dicts.<dict>]`, so the list may mix literal values and dictionaries.
+    /// string, or a list of distinct strings for an `x-<ns>` field. An entry
+    /// `@<dict>` stands for every entry of `[dicts.<dict>]`, so the list may mix
+    /// literal values and dictionaries.
     // `expand_dict_refs` expands the `@<dict>` entries at config load.
     pub values: Vec<String>,
-    /// Value `mt add` fills in when the field is required and neither the
+    /// Value `mt add` fills in when the field is mandatory and neither the
     /// template nor the caller sets it. `mt check` never applies it.
     pub default: Option<String>,
-    /// Whether the field must be set.
+    /// Whether a task must carry the field.
     #[schemars(extend("x-expression" = "filter"))]
     pub required: Requirement,
-    /// A filter naming the tasks held to `values`; every other task keeps
-    /// whatever it carries. Absent holds every task.
+    /// A filter that selects the tasks held to `values`. Every other task
+    /// keeps whatever it carries. Absent holds every task.
     #[schemars(extend("x-expression" = "filter"))]
     pub values_when: Option<String>,
     /// Whether an `x-<ns>` field holds a list of strings rather than one
@@ -210,12 +211,12 @@ pub enum FieldExample {
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TagsConfig {
     /// Allowed tag names. Empty accepts any tag. The loader derives folder tags
-    /// again on every load, so a moved file gets its new folder's tags. An entry
-    /// `@<dict>` stands for every entry of `[dicts.<dict>]`.
+    /// again on every load, and a moved file then gets its new folder's tags.
+    /// An entry `@<dict>` stands for every entry of `[dicts.<dict>]`.
     // `expand_dict_refs` expands the `@<dict>` entries at config load.
     pub allowed: Vec<String>,
-    /// A filter naming the tasks held to `allowed`. Absent means `!terminal`,
-    /// so a closed task keeps a tag dropped from the list.
+    /// A filter that selects the tasks held to `allowed`. Absent means
+    /// `!terminal`, and a closed task then keeps a tag dropped from the list.
     #[schemars(extend("x-expression" = "filter"))]
     pub values_when: Option<String>,
 }
@@ -223,19 +224,18 @@ pub struct TagsConfig {
 /// Expand every `@<dict>` reference in `[tasks.tags] allowed` and each
 /// `[tasks.fields.<name>] values` against `dicts`, in place. Run once, at
 /// config load (`crate::config::layers::build_config`), after `[dicts]`
-/// itself has compiled — never per task — so every downstream reader
-/// (validation, `mt add` slot completion, the generated schema) sees a plain,
-/// already-resolved list and needs no change of its own.
+/// itself has compiled, never per task. Every downstream reader (validation,
+/// `mt add` slot completion, the generated schema) then sees a plain,
+/// already-resolved list, and each one works from that list alone.
 ///
-/// A `@`-prefixed entry always names a dictionary — the same sigil `mt ls`
-/// reads as a view reference — so there is no escape for a literal tag or
-/// field value that itself starts with `@`: an unresolvable one fails the
-/// load exactly like a typo'd dict name (see [`expand_list`]). A list may mix
-/// literal entries and `@<dict>` references freely; the result is their
-/// union in declaration order, deduplicated (first occurrence wins) — a
-/// referenced dictionary contributes its own entries in the dictionary's own
-/// (alphabetical) order, since [`Dicts`] carries no declaration order of its
-/// own to preserve.
+/// A `@`-prefixed entry always names a dictionary, the same sigil `mt ls`
+/// reads as a view reference. A literal tag or field value that itself starts
+/// with `@` fails the load when it does not resolve, exactly like a misspelled
+/// dict name (see [`expand_list`]). A list may mix literal entries
+/// and `@<dict>` references freely. The result is their union in declaration
+/// order, deduplicated (first occurrence wins). A referenced dictionary
+/// contributes its own entries in the dictionary's own (alphabetical) order,
+/// since [`Dicts`] carries no declaration order of its own to preserve.
 ///
 /// # Errors
 /// One message per unknown dictionary name referenced, each carrying a
@@ -258,9 +258,9 @@ pub(crate) fn expand_dict_refs(tasks: &mut TasksConfig, dicts: &Dicts) -> Result
     }
 }
 
-/// Expand one `values`/`allowed` list in place against `dicts`: a `@<dict>`
-/// entry is replaced by that dictionary's entries, a literal entry is kept
-/// as-is, and the whole result is deduplicated (first occurrence wins).
+/// Expand one `values`/`allowed` list in place against `dicts`. A `@<dict>`
+/// entry becomes that dictionary's entries, a literal entry stays as-is, and
+/// the result keeps the first occurrence of each value.
 /// `label` names the list in an error message (`tasks.tags.allowed`,
 /// `tasks.fields.kind.values`).
 fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(), Problem> {
@@ -313,9 +313,9 @@ const OWN_TABLE_FIELDS: [&str; 9] = [
     "recur",
 ];
 
-/// Load-time check of every `[tasks.fields.<name>]` key: only `kind` and
-/// `x-<ns>` names are read by validation, so any other key is refused instead
-/// of loading as an inert declaration. `kind` holds one string, so it takes no
+/// Load-time check of every `[tasks.fields.<name>]` key. Validation reads only
+/// `kind` and `x-<ns>` names, and refuses any other key instead of loading it
+/// as an inert declaration. `kind` holds one string, so it takes no
 /// `multiple`.
 pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
     let mut out: Vec<String> = tasks

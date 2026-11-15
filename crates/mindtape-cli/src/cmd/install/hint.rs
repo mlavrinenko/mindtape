@@ -6,11 +6,12 @@
 //!   <package root>/local/mindtape/<version>/typst.toml)`, a path
 //!   and not a remedy. Every task in the project fails the same way, so
 //!   [`crate::util::report_load_problems`] folds them into the one
-//!   [`prelude_diag`] that names the command and the config key.
-//!   [`prelude_hints`] puts the same advice on a refused write's own error.
+//!   [`prelude_diag`] that reports the command and the config key.
+//!   [`prelude_hints`] puts the same advice on the error a refused write
+//!   returns.
 //! - A task body is Typst markup, so a literal `#` in prose (`Channel #N
 //!   carries it`) opens an inline expression and the file fails with `unknown
-//!   variable: N`. The message names a variable the reader never wrote and
+//!   variable: N`. The message reports a variable the reader never wrote and
 //!   never mentions `\#`, so [`escaped_hash_hint`] says it.
 //! - A misspelled status helper (`status: finished(…)`) fails with `unknown
 //!   variable: finished`, so [`status_hint`] names the command that lists the
@@ -27,8 +28,8 @@ use mindtape::model::task_spans::CallRegion;
 use crate::diag::{Command, Diag, Hint, Kind, Note};
 
 /// The path segment Typst searched under the package root, whatever that root
-/// is. Matched instead of the diagnostic's wording, which is Typst's to
-/// change; separators are normalised so this holds on Windows too.
+/// is. The match reads this instead of the wording of the diagnostic, which is
+/// Typst's to change. It normalizes separators, so this holds on Windows too.
 const PRELUDE_PKG_PATH: &str = "/local/mindtape/";
 
 /// What Typst searched when no package root resolves at all (an empty
@@ -45,16 +46,16 @@ pub(crate) fn names_prelude_package(message: &str) -> bool {
     message.replace('\\', "/").contains(PRELUDE_PKG_PATH) || message.contains(PRELUDE_SPEC)
 }
 
-/// The diagnostic Typst emits for an identifier that resolves to nothing —
+/// The diagnostic Typst emits for an identifier that resolves to nothing,
 /// which is what `#N` in prose is.
 const UNKNOWN_VARIABLE: &str = "unknown variable";
 
 /// Whether `message` is the unknown-variable diagnostic itself.
 ///
-/// Anchored at the start rather than searched for: an error that merely quotes
-/// the phrase, such as a task titled `unknown variable` or a nested diagnostic
-/// naming another failure's text, is a different failure, and pointing its
-/// author at `\#` sends them after a `#` that is not there.
+/// The match anchors at the start rather than searching. An error that merely
+/// quotes the phrase, such as a task titled `unknown variable` or a nested
+/// diagnostic carrying another failure's text, is a different failure.
+/// Pointing its author at `\#` sends them after a `#` that is not there.
 fn is_unknown_variable(message: &str) -> bool {
     message.starts_with(UNKNOWN_VARIABLE)
 }
@@ -68,9 +69,9 @@ fn searched_path(message: &str) -> Option<&str> {
 }
 
 /// The one error for a prelude that did not resolve, however many task files
-/// failed on it: the package, where Typst looked (from the first failure's
-/// `message`), the command that installs it, and the config key that pins a
-/// copy instead.
+/// failed on it. It carries the package, where Typst looked (from the first
+/// failure's `message`), the command that installs it, and the config key that
+/// pins a copy instead.
 pub(crate) fn prelude_diag(kind: Kind, message: &str) -> Diag {
     let diag = Diag::of(kind, "can't find the prelude package").value("@local/mindtape");
     let diag = match searched_path(message) {
@@ -94,8 +95,8 @@ pub(crate) fn prelude_hints(diag: Diag) -> Diag {
 }
 
 /// The one diagnostic for a task file importing a prelude version this `mt`
-/// does not support: the file, the version, the set, and the hint that fits
-/// the version's side of the current one.
+/// does not support. It carries the file, the version, the set, and the hint
+/// that fits the version's side of the current one.
 pub(crate) fn unsupported_prelude_diag(kind: Kind, version: &str, file: &Path) -> Diag {
     let diag = Diag::verbatim(
         kind,
@@ -140,7 +141,7 @@ pub(crate) fn skipped_prelude_commit_diag(
     .note(Note::new("commit").value(subject))
 }
 
-/// The hint for a body whose prose was read as markup. Names both remedies,
+/// The hint for a body whose prose reads as markup. It gives both remedies,
 /// because a run of `#`-heavy prose is better off in a code block than
 /// escaped hash by hash.
 fn escaped_hash_hint() -> Hint {
@@ -161,8 +162,8 @@ fn status_hint() -> Hint {
     )
 }
 
-/// The region hints one run has given, so each rides on the first load error
-/// that needs it and a project with many such errors reads it once.
+/// The region hints one run has given. Each rides on the first load error that
+/// needs it. A project with many such errors then reads it once.
 #[derive(Debug, Default)]
 pub(crate) struct RegionHints {
     hash: bool,
@@ -171,7 +172,7 @@ pub(crate) struct RegionHints {
 
 impl RegionHints {
     /// The hint an `unknown variable` `error` gets the first time its region
-    /// asks for one: [`escaped_hash_hint`] outside the `task.with(…)` call,
+    /// needs one: [`escaped_hash_hint`] outside the `task.with(…)` call,
     /// [`status_hint`] in its `status:` argument. An error elsewhere in the
     /// call gets neither and uses neither up.
     pub(crate) fn hint_for(&mut self, error: &LoadError) -> Option<Hint> {
@@ -242,7 +243,7 @@ mod tests {
         assert!(is_unknown_variable("unknown variable: N"));
     }
 
-    /// The reason the match is anchored: an error that quotes the phrase
+    /// The match anchors at the start because an error that quotes the phrase
     /// mid-text is some other failure, and `\#` is not its remedy.
     #[test]
     fn ignores_the_phrase_mid_text() {

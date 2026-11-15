@@ -1,10 +1,10 @@
-//! Config types for `[tasks.body.content]` — the section-content gating rules
+//! Config types for `[tasks.body.content]`, the section-content gating rules
 //! ([`ContentRuleConfig`]) compiled by [`crate::body::content_gate`].
 //!
 //! Where `[tasks.body.headers]` constrains the heading tree (which headings
-//! exist, their order, their vocabulary), this constrains what is written
-//! under a heading: the section's content, everything from the heading down
-//! to the next heading of the same or higher level.
+//! exist, their order, their vocabulary), this constrains what a heading
+//! holds. That is the section's content, everything from the heading down to
+//! the next heading of the same or higher level.
 
 use serde::{Deserialize, Deserializer};
 
@@ -21,15 +21,15 @@ pub struct ContentConfig {
 /// One entry in `[[tasks.body.content.rules]]`.
 ///
 /// `path` selects sections by heading path, the same way a header rule does.
-/// `assert` is checked against each matched section's content. Like a header
-/// rule, it takes an optional `when` filter and `message` override.
+/// The rule checks `assert` against each matched section's content. Like a
+/// header rule, it takes an optional `when` filter and `message` override.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ContentRuleConfig {
     /// The name a report shows for the rule (`body.content.rules.<name>`).
     /// Optional: an unnamed rule reports by its position instead
     /// (`body.content.rules[0]`). Two rules in this array sharing a name is a
-    /// config error naming both.
+    /// config error that reports both.
     #[serde(default)]
     pub name: Option<String>,
     /// Path through the heading tree selecting the sections to assert over.
@@ -45,19 +45,19 @@ pub struct ContentRuleConfig {
 
 /// The assertion a content rule makes over a matched section.
 ///
-/// - `"non-empty"` — the section must contain any non-whitespace content.
-/// - `{ min-words = N }` / `{ max-words = N }` — at least / at most `N` words
+/// - `"non-empty"`: the section must contain any non-whitespace content.
+/// - `{ min-words = N }` / `{ max-words = N }`: at least / at most `N` words
 ///   (any whitespace-delimited token containing an alphanumeric character,
-///   over the whole section slice — markup, code blocks, and nested
+///   over the whole section slice, so markup, code blocks, and nested
 ///   subsection headings all count).
-/// - `{ must-match = "regex" }` / `{ must-not-match = "regex" }` — the
+/// - `{ must-match = "regex" }` / `{ must-not-match = "regex" }`: the
 ///   section's source text as written must / must not match the regex.
-/// - `{ density = { pattern = "regex", max = N, per = "section" } }` — no
-///   single unit may carry more than `N` matches of the regex; `per` is
+/// - `{ density = { pattern = "regex", max = N, per = "section" } }`: no
+///   single unit may carry more than `N` matches of the regex. `per` is
 ///   `section` (the default), `paragraph`, or `sentence`. Unlike the word
-///   counts and the regex asserts above, code, fenced or inline, is excluded
-///   from matching entirely — see [`crate::body::content_gate`] for the unit-split
-///   rules.
+///   counts and the regex asserts above, the check excludes code, fenced or
+///   inline, from matching entirely. See [`crate::body::content_gate`] for the
+///   unit-split rules.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ContentAssert {
     /// The section must contain any non-whitespace content.
@@ -90,13 +90,13 @@ pub struct DensitySpec {
     pub per: DensityUnit,
 }
 
-/// Unit granularity for a [`ContentAssert::Density`] assertion.
+/// The unit a [`ContentAssert::Density`] assertion counts matches in.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum DensityUnit {
     /// The whole matched section content is one unit (the default).
     #[default]
     Section,
-    /// Blank-line-separated paragraphs; each list item is its own paragraph.
+    /// Blank-line-separated paragraphs. Each list item is its own paragraph.
     Paragraph,
     /// Each paragraph split further into sentences.
     Sentence,
@@ -189,9 +189,9 @@ impl<'de> Deserialize<'de> for ContentAssert {
 }
 
 impl ContentRuleConfig {
-    /// How this rule identifies itself in a report: `body.content.rules.<name>`
-    /// if it has one, else its position, `body.content.rules[<index>]` — the
-    /// same convention [`crate::body::headers::HeaderRuleConfig::label`] uses.
+    /// The name this rule reports under: `body.content.rules.<name>` if it has
+    /// one, else its position, `body.content.rules[<index>]`. That is the same
+    /// convention [`crate::body::headers::HeaderRuleConfig::label`] uses.
     #[must_use]
     pub fn label(&self, index: usize) -> String {
         rule_label(self.name.as_deref(), "body.content.rules", index)

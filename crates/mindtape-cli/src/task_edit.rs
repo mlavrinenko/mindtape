@@ -15,7 +15,7 @@ use crate::util::Project;
 /// The first `task.with(…)` call in `source`.
 ///
 /// # Errors
-/// Returns an error when the source holds no `task.with(…)` call.
+/// Returns an error when the source doesn't hold a `task.with(…)` call.
 pub fn task_with(source: &str) -> Result<Call> {
     find_method_calls(source, "task", "with")
         .into_iter()
@@ -28,18 +28,18 @@ pub fn task_with(source: &str) -> Result<Call> {
 /// there.
 ///
 /// The insertion anchors immediately after the last argument's value and
-/// carries its own leading comma, rather than landing before the closing paren
-/// and relying on a separator already sitting there. A call written on one line
+/// carries its own leading comma. It does not land before the closing paren and
+/// rely on a separator already sitting there. A call written on one line
 /// (`task.with(title: slot("title"))`) or without a trailing comma has nothing
-/// to separate from at the paren, and the old anchor spliced the new argument
-/// straight onto the previous value — writing a file that could not parse.
-/// Carrying the separator also keeps the edit self-composing: any number of
-/// insertions share the anchor, apply in the order they were pushed, and each
-/// arrives already separated from the one before.
+/// to separate from at the paren. The old anchor spliced the new argument
+/// straight onto the previous value, which wrote a file that could not parse.
+/// Carrying the separator also keeps the edit self-composing. Any number of
+/// insertions share the anchor and apply in the order the caller pushed them,
+/// and each arrives already separated from the one before.
 ///
-/// An empty argument list is the opposite case — nothing precedes the new
-/// argument, so it takes no leading comma and keeps the trailing one instead,
-/// which is what separates a second insertion from it.
+/// An empty argument list is the opposite case. The new argument comes first,
+/// so it doesn't take a leading comma and keeps the trailing one instead, which
+/// is what separates a second insertion from it.
 ///
 /// # Errors
 /// Returns an error when the call range is empty (malformed source).
@@ -73,12 +73,12 @@ pub fn upsert_named_arg(source: &str, call: &Call, name: &str, value_text: &str)
 }
 
 /// The source of the task file at `abs` with `name: value_text` set in its
-/// `task.with(…)` call. Reads the file and writes nothing: the caller checks
-/// the result before it lands.
+/// `task.with(…)` call. This reads the file and doesn't write it: the caller
+/// checks the result before it lands.
 ///
 /// # Errors
-/// Returns an error when the file can't be read, holds no `task.with(…)`
-/// call, or the edit can't be applied.
+/// Returns an error when the read fails, the file doesn't hold a
+/// `task.with(…)` call, or the edit can't apply.
 pub fn rewrite_field(abs: &Path, name: &str, value_text: &str) -> Result<String> {
     let source = std::fs::read_to_string(abs).map_err(|err| Diag::cannot_read(abs, &err))?;
     let call = task_with(&source).map_err(|err| {
@@ -94,13 +94,13 @@ pub fn rewrite_field(abs: &Path, name: &str, value_text: &str) -> Result<String>
     })
 }
 
-/// The status name a freshly written task (`mt add`) or occurrence
-/// (`mt recur` spawn/mutate) should stamp: the legend's own initial (first
-/// non-terminal) value, falling back to the legend's first entry when every
-/// entry happens to be terminal. `None` only when the legend is genuinely
-/// empty (a project that cleared it with `status = []`) — the caller must
-/// then leave the status slot unfilled and let validation report the real
-/// problem, rather than inventing a value.
+/// The status name that a freshly written task (`mt add`) or occurrence
+/// (`mt recur` spawn/mutate) should stamp. It is the legend's own initial
+/// (first non-terminal) value, falling back to the legend's first entry when
+/// every entry happens to be terminal. `None` only when the legend is empty (a
+/// project that cleared it with `status = []`). The caller must then leave the
+/// status slot unfilled and let validation report the real problem, rather than
+/// inventing a value.
 #[must_use]
 pub fn initial_status(config: &Config) -> Option<String> {
     let legend = &config.tasks.status;
@@ -111,10 +111,10 @@ pub fn initial_status(config: &Config) -> Option<String> {
 }
 
 /// The status `mt add` files a task from `template` at: `explicit`
-/// (`--status`), else the status the template's own `status:` names, as a
+/// (`--status`), else the status the template's own `status:` specifies, as a
 /// shortcut (`done(…)`) or the generic `status("done", …)`, else
-/// [`initial_status`]. The template's date and note are not kept; the status
-/// is stamped today.
+/// [`initial_status`]. The function drops the template's date and note.
+/// `splice_config_slots` stamps the status with today's date.
 #[must_use]
 pub fn filing_status(config: &Config, template: &str, explicit: Option<&str>) -> Option<String> {
     explicit
@@ -123,8 +123,8 @@ pub fn filing_status(config: &Config, template: &str, explicit: Option<&str>) ->
         .or_else(|| initial_status(config))
 }
 
-/// The status name a template's `status:` argument writes, if it is a status
-/// call.
+/// The status name that a template's `status:` argument writes, if it is a
+/// status call.
 fn template_status(template: &str) -> Option<String> {
     let call = task_with(template).ok()?;
     let value = template.get(call.named("status")?.value_range.clone())?;
@@ -140,8 +140,9 @@ fn template_status(template: &str) -> Option<String> {
 }
 
 /// Reload the project rooted at `root` and report any load error or
-/// validation violation that touches `file` — the shared post-write check
-/// `mt add` and `mt recur` both run on a freshly written or rewritten task.
+/// validation violation that touches `file`. This is the shared post-write
+/// check that `mt add` and `mt recur` both run on a freshly written or
+/// rewritten task.
 ///
 /// # Errors
 /// Returns an error if the file failed to load, harvested no task marker, or
@@ -174,12 +175,12 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
 }
 
 /// Print every violation, and fail with the last fatal one, or succeed when
-/// none was. Each line carries its outcome in the prefix — `error:` for a fatal
-/// violation, `warning:` for a breach the project declared at that severity —
-/// and the refusal is the last `error:` line, with no summary after it.
+/// none was. Each line carries its outcome in the prefix: `error:` for a fatal
+/// violation, `warning:` for a breach the project declared at that severity.
+/// The refusal is the last `error:` line, with no summary after it.
 ///
 /// A `[[tasks.rules]]` breach at `severity = "warn"` prints alongside the rest
-/// and is then not counted: the file already exists by the time this runs, and
+/// and is then not counted. The file already exists by the time this runs, and
 /// a warning is a report about it, not a reason to call the write a failure.
 fn report_issues(issues: &[Violation]) -> Result<()> {
     let mut lines: Vec<Diag> = issues.iter().map(Diag::from).collect();
@@ -192,25 +193,25 @@ fn report_issues(issues: &[Violation]) -> Result<()> {
     Err(refusal)
 }
 
-/// Validate a rendered task *before* it is written, so a rejected write leaves
-/// nothing on disk. `source` is checked as if it already sat at `file`, against
-/// the project's already-loaded tasks — the same load and the same
-/// [`validate()`] pass [`verify_written`] runs, in the other order.
+/// Validate a rendered task *before* the write. A rejected write then leaves
+/// nothing on disk. The check reads `source` as if it already sat at `file`,
+/// against the project's already-loaded tasks. It runs the same load and the
+/// same [`validate()`] pass as [`verify_written`], in the other order.
 ///
 /// Returns `false` when `file` lies outside the project root (`mt add --dir
 /// /elsewhere`), where there is no project-relative path to evaluate the
-/// candidate at; the caller then falls back to [`verify_written`]. A `true`
+/// candidate at. The caller then falls back to [`verify_written`]. A `true`
 /// return means the check ran and passed.
 ///
-/// `mt add`'s door onto [`crate::pre_write`] — one file, and the only writer
-/// with somewhere to fall back to when the destination is out of root. A
-/// problem names the task by `template`, the one it was filled from, since
-/// there is no path yet: `<new task from template 'task'>:2`.
+/// This is `mt add`'s door onto [`crate::pre_write`]: one file, and the only
+/// writer with somewhere to fall back to when the destination is out of root. A
+/// problem references the task by `template`, its source template, since there
+/// is no path yet: `<new task from template 'task'>:2`.
 ///
 /// # Errors
-/// Returns an error if the source failed to evaluate, harvested no task
-/// marker, or violates a rule — none of which mention a file to repair,
-/// because none was created.
+/// Returns an error if the source failed to evaluate, harvested no task marker,
+/// or violates a rule. None of those mention a file to repair, because the
+/// function never created one.
 pub fn verify_candidate(
     project: &Project,
     file: &Path,

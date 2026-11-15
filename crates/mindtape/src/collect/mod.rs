@@ -1,24 +1,25 @@
 //! Run the project's `[[tasks.collectors]]` and write each result into
 //! [`Task::derived`].
 //!
-//! A collector runs after a task is loaded and after the whole-set facts are
-//! known, because its `when` may read `ready`, `blocked` or `count(...)`. A
-//! regex collector reads a body section and returns one string per match: the
-//! pattern's first capture group when it has one, else the whole match, or the
-//! capture group `group` names. A missing section is an empty list. An
-//! ast-grep collector reuses [`crate::query`] and returns one path per file it
-//! matches. A task the `when` excludes carries no field at all.
+//! A collector runs after the loader reads a task and after the load settles
+//! the whole-set facts, because its `when` may read `ready`, `blocked` or
+//! `count(...)`. A regex collector reads a body section and returns one string
+//! per match. The string is the pattern's first capture group when it has one,
+//! else the whole match, or the capture group `group` names. A missing section
+//! is an empty list. An ast-grep collector reuses [`crate::query`] and returns
+//! one path per file it matches. A task the `when` excludes carries no field at
+//! all.
 //!
 //! The section slice is the one [`crate::body::content_gate`] uses: everything
 //! from the end of the heading down to the next heading of the same or higher
 //! level. Collectors run in declaration order, so a later collector's `when`
 //! may read an earlier one's field.
 //!
-//! A per-task failure — the Typst kind's evaluation error, a wrong-typed
-//! result or a file query that cannot run — is recorded on the task and
-//! reported as a `Collector` violation by [`crate::validate()`]. The regex and
-//! ast-grep kinds fail at load, where their pattern, group, language, glob and
-//! `returns` are checked ([`crate::config::collect`]).
+//! The load records a per-task failure on the task, and [`crate::validate()`]
+//! reports it as a `Collector` violation. That covers the Typst kind's
+//! evaluation error, a wrong-typed result or a file query that cannot run. The
+//! regex and ast-grep kinds fail at load, where the config load checks their
+//! pattern, group, language, glob and `returns` ([`crate::config::collect`]).
 
 use regex::Regex;
 use typst_cst::{parse_headings, tree};
@@ -107,9 +108,9 @@ impl<'a> Compiled<'a> {
 /// Run every collector over `tasks`, in declaration order, and write each
 /// result into the task's [`derived`](Task::derived) map.
 ///
-/// `readiness` is computed over the same slice, so a `when` that reads the
-/// set sees every task of the load. A task the collector's `when` excludes
-/// keeps no field for that collector.
+/// The load computes `readiness` over the same slice. A `when` that reads the
+/// set then sees every task of the load. A task the collector's `when` excludes
+/// carries no field for that collector.
 pub fn annotate(tasks: &mut [Task], config: &Config) {
     for task in tasks.iter_mut() {
         task.derived.clear();

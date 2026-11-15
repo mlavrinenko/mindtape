@@ -1,19 +1,20 @@
 //! A range of past commits, read the way `mt check --commit-msg` reads the
-//! commit being written, so the same `[[commits.rules]]` hold them.
+//! commit a developer is writing, so the same `[[commits.rules]]` hold them.
 //!
-//! Each commit is checked against its first parent only: the message is its
-//! `%B`, the files are what it changes against that parent, and its
+//! The check reads each commit against its first parent only. The message is
+//! its `%B`, the files are what it changes against that parent, and its
 //! [`StatePlan`] puts the commit's tree as `staged` and the parent's as `head`,
-//! with no working tree. A root commit's parent is the empty tree. A merge is
-//! marked [`RangeCommit::is_merge`], so the CLI can skip it by default: it
-//! joins commits that were checked on their own, and its first-parent diff
+//! with no working tree. A root commit's parent is the empty tree. A merge
+//! carries [`RangeCommit::is_merge`], and the CLI skips it by default. It
+//! joins commits that the check read on their own, and its first-parent diff
 //! repeats them. `--check-merges` reads it like any other commit.
 //!
 //! Each state reads its whole tree ([`crate::commit::tasks`]), and a range
-//! shares one [`crate::StateLoader`] across its commits, so an unchanged task
-//! file is not evaluated again and a linear range reuses the previous commit's
-//! `staged` state as the next commit's `head`. A [`StateSource::differs`] list
-//! is not needed; the field stays empty for API compatibility.
+//! shares one [`crate::StateLoader`] across its commits. The loader does not
+//! evaluate an unchanged task file again, and a linear range reuses the
+//! previous commit's `staged` state as the next commit's `head`. A
+//! [`StateSource::differs`] list is not needed. The field stays empty for API
+//! compatibility.
 
 use std::path::Path;
 
@@ -27,7 +28,7 @@ pub struct RangeCommit {
     pub id: String,
     /// The abbreviated id git would show.
     pub short: String,
-    /// The first parent; `None` for a root commit.
+    /// The first parent, or `None` for a root commit.
     pub parent: Option<String>,
     /// Whether the commit has more than one parent.
     pub is_merge: bool,
@@ -39,7 +40,7 @@ pub struct CommitRange {
     /// Every commit `git rev-list <range>` lists, oldest first.
     pub commits: Vec<RangeCommit>,
     root_prefix: String,
-    /// The empty tree's id: a root commit's parent.
+    /// The empty tree's id, which a root commit uses as its parent.
     empty_tree: String,
 }
 
@@ -56,8 +57,8 @@ pub struct PastCommit {
 }
 
 impl CommitRange {
-    /// List the commits `range` names — anything `git rev-list` reads, most
-    /// often `<from>..<to>` — in the repository holding `root`.
+    /// List the commits `range` names (anything `git rev-list` reads, most
+    /// often `<from>..<to>`) in the repository holding `root`.
     ///
     /// # Errors
     /// [`CommitMsgError`] when git cannot read the range or the repository.

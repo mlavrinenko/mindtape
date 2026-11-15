@@ -1,4 +1,4 @@
-//! Config types for `[tasks.body.headers]` — the body-header gating rules
+//! Config types for `[tasks.body.headers]`, the body-header gating rules
 //! ([`HeaderRuleConfig`]) compiled into `artifact-gate` rules by [`crate::body::gate`].
 
 use std::collections::HashMap;
@@ -26,7 +26,7 @@ pub struct HeaderRuleConfig {
     /// The name a report shows for the rule (`body.headers.rules.<name>`).
     /// Optional: an unnamed rule reports by its position instead
     /// (`body.headers.rules[0]`). Two rules in this array sharing a name is a
-    /// config error naming both.
+    /// config error that reports both.
     #[serde(default)]
     pub name: Option<String>,
     /// Whether the target headings must exist, must not, or must be unique, or
@@ -41,8 +41,8 @@ pub struct HeaderRuleConfig {
     /// Path whose headings must come after (`order`).
     #[serde(default)]
     pub after: Vec<HeaderPathSegment>,
-    /// Path selecting scopes whose children are constrained (`allowlist`);
-    /// omit to constrain top-level headings.
+    /// Path selecting the scopes whose children the rule constrains
+    /// (`allowlist`). Omit it to constrain top-level headings.
     #[serde(default)]
     pub scope: Vec<HeaderPathSegment>,
     /// The permitted headings (`allowlist`).
@@ -58,7 +58,8 @@ pub struct HeaderRuleConfig {
 /// One step in a heading path.
 ///
 /// - A bare TOML string is an exact, case-sensitive, direct-child match.
-/// - `{ match = "regex" }` is a regex match; `recursive = true` finds any descendant.
+/// - `{ match = "regex" }` is a regex match, and `recursive = true` finds any
+///   descendant.
 #[derive(Debug, Clone, PartialEq)]
 pub enum HeaderPathSegment {
     /// Exact heading text, direct-child position.
@@ -73,21 +74,21 @@ pub enum HeaderPathSegment {
 }
 
 impl HeaderRuleConfig {
-    /// How this rule identifies itself in a report: `body.headers.rules.<name>`
-    /// if it has one, else its position, `body.headers.rules[<index>]` — the
-    /// same name-or-position fallback [`crate::rules::RuleSpec::label`]
-    /// uses for `[[tasks.rules]]`.
+    /// The name this rule reports under: `body.headers.rules.<name>` if it has
+    /// one, else its position, `body.headers.rules[<index>]`. That is the same
+    /// name-or-position fallback [`crate::rules::RuleSpec::label`] uses for
+    /// `[[tasks.rules]]`.
     #[must_use]
     pub fn label(&self, index: usize) -> String {
         rule_label(self.name.as_deref(), "body.headers.rules", index)
     }
 }
 
-/// How a body rule identifies itself in a report: its `name` if it has one,
-/// else its position in the array. Shared by [`HeaderRuleConfig::label`] and
+/// The name a body rule reports under: its `name` if it has one, else its
+/// position in the array. Shared by [`HeaderRuleConfig::label`] and
 /// `ContentRuleConfig::label` in [`crate::body::content`], since a
 /// `[[tasks.body.headers.rules]]` entry and a `[[tasks.body.content.rules]]`
-/// one report the same way — only the array's own dotted path (`prefix`)
+/// one report the same way. Only the array's own dotted path (`prefix`)
 /// differs.
 #[must_use]
 pub(crate) fn rule_label(name: Option<&str>, prefix: &str, index: usize) -> String {
@@ -97,10 +98,10 @@ pub(crate) fn rule_label(name: Option<&str>, prefix: &str, index: usize) -> Stri
     }
 }
 
-/// Cross-check one body-rule array (`prefix` is its dotted TOML path, e.g.
-/// `tasks.body.headers.rules`) for a name two entries share, returning one
-/// problem per collision naming both positions. An absent (`None`) name never
-/// collides — only two rules that both opted into a name can clash.
+/// Cross-check one body-rule array (`prefix` is its dotted TOML path, such as
+/// `tasks.body.headers.rules`) for a name two entries share, returning
+/// one problem per collision that reports both positions. An absent (`None`)
+/// name never collides. Only two rules that both opted into a name can clash.
 pub(crate) fn duplicate_rule_names<'a>(
     names: impl Iterator<Item = Option<&'a str>>,
     prefix: &str,
@@ -131,7 +132,7 @@ pub enum HeaderAction {
     Unique,
     /// `before` headings must precede `after` headings.
     Order,
-    /// Only `allowed` headings are permitted under the scope.
+    /// The rule permits only the `allowed` headings under the scope.
     Allowlist,
 }
 

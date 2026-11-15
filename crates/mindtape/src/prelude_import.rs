@@ -5,7 +5,7 @@
 //! the parse plane and reports the one edit a fixer may make: replace the
 //! version bytes of an older unsupported spec with
 //! [`crate::PRELUDE_VERSION`]. Every other byte, including the quotes, the
-//! `#import`, the imported items and the whitespace around them, is preserved.
+//! `#import`, the imported items and the whitespace around them, stays as it is.
 //!
 //! Only a string-literal source of a `#import` counts. [`typst_syntax`] gives
 //! the exact byte span, so a `#include`, a comment, a computed source or
@@ -71,9 +71,9 @@ pub struct PreludeImport {
 /// The `@local/mindtape` imports in `source`, in document order.
 ///
 /// `pinned` is the version a project-local `@local/mindtape` pin declares, if
-/// any. An import naming that same unsupported version is refused rather than
-/// rewritten: the pin, not the binary's embedded copy, is what that project
-/// means the import to read.
+/// any. The code refuses an import that references that same unsupported
+/// version rather than rewriting it. The pin, not the binary's embedded copy,
+/// is what that project means the import to read.
 #[must_use]
 pub fn prelude_imports(source: &str, pinned: Option<&str>) -> Vec<PreludeImport> {
     let pinned = pinned.and_then(|version| version.parse::<PackageVersion>().ok());
@@ -101,7 +101,7 @@ fn walk(
 }
 
 /// The import `node` holds, or `None` when its source is not a string literal
-/// naming exactly [`PACKAGE`].
+/// that references exactly [`PACKAGE`].
 fn import_at(
     node: &LinkedNode<'_>,
     import: ast::ModuleImport<'_>,
@@ -170,7 +170,7 @@ fn classify(
     }
 }
 
-/// A malformed spec: there is no version span to edit.
+/// A malformed spec, which has no version span to edit.
 fn refused(spec: &str, reason: PreludeRefusal) -> PreludeImport {
     PreludeImport {
         version: None,
@@ -182,8 +182,8 @@ fn refused(spec: &str, reason: PreludeRefusal) -> PreludeImport {
 
 /// Apply every rewrite in `imports` to `source`.
 ///
-/// Returns the rewritten source, or `None` when an edit cannot be applied —
-/// which the callers treat as a refusal before anything is written.
+/// Returns the rewritten source, or `None` when an edit fails to apply. The
+/// callers treat that as a refusal before they write anything.
 #[must_use]
 pub fn apply_rewrites(source: &str, imports: &[PreludeImport]) -> Option<String> {
     let edits: Vec<typst_edit::Edit> = imports

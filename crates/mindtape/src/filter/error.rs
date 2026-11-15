@@ -32,13 +32,13 @@ pub enum FilterError {
         /// The closest declared status and every declared status.
         unknown: crate::suggest::Unknown,
     },
-    /// An `in_view` / `@` reference naming no declared view.
+    /// An `in_view` / `@` reference to an undeclared view.
     #[error("unknown view in filter: {0}")]
     UnknownView(String),
-    /// An `in_dict` reference naming no compiled dictionary — neither a
-    /// `[dicts.<name>]` section nor a built-in. `unknown` carries the nearest
-    /// match and every dictionary name, because a dictionary name is invisible
-    /// in the listing a wrong one produces.
+    /// An `in_dict` reference to a dictionary the config never compiles,
+    /// neither a `[dicts.<name>]` section nor a built-in. `unknown` carries the
+    /// nearest match and every dictionary name, because a dictionary name is
+    /// invisible in the listing a wrong one produces.
     #[error("unknown dict in filter: {name}")]
     UnknownDict {
         /// The name as written in the expression.
@@ -46,8 +46,8 @@ pub enum FilterError {
         /// The nearest dictionary and the dictionaries to choose from.
         unknown: crate::suggest::Unknown,
     },
-    /// A `@name` path set in `changed()` or `count(files, ...)` that no
-    /// dictionary answers to.
+    /// A `@name` path set in `changed()` or `count(files, ...)` that the
+    /// dictionaries don't cover.
     #[error("unknown path set '@{name}'; declare it as [dicts.{name}]")]
     UnknownPathSet {
         /// The set as written, without its `@`.
@@ -67,9 +67,9 @@ pub enum FilterError {
     /// A structurally invalid expression.
     #[error("invalid filter: {0}")]
     Invalid(String),
-    /// `changed()` or `touches()` asked git and git could not answer —
-    /// outside a repository, or git missing. A `[[tasks.rules]]` entry
-    /// reading it is skipped rather than failed ([`crate::rules`]).
+    /// `changed()` or `touches()` asked git and git could not answer: outside
+    /// a repository, or git missing. The code skips a `[[tasks.rules]]` entry
+    /// that reads it rather than failing it ([`crate::rules`]).
     #[error("{call}() cannot read git: {reason}")]
     Git {
         /// The function that asked.

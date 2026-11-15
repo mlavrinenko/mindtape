@@ -1,11 +1,11 @@
-//! `mt ls` and `mt find` over a project with a task file that fails to load:
-//! each warns naming the file, lists the rest, counts the broken file last in
-//! the line under the table, and exits 0.
+//! `mt ls` and `mt find` over a project with a task file that fails to load.
+//! Each command warns about the file by name, lists the rest, counts the
+//! broken file last in the line under the table, and exits 0.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
 
-/// A task whose `title` is misspelt, so the prelude refuses the call.
+/// A task that misspells `title`. The prelude refuses the call.
 const MISSPELT: &str = "#import \"@local/mindtape:0.4.0\": *\n\n\
                         #show: task.with(\n  titel: \"Gamma\",\n  status: wip(2026, 6, 1),\n)\n";
 

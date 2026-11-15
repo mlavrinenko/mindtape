@@ -1,12 +1,12 @@
 //! End-to-end tests for the jq source adapters (`contrib/jq/*.jq`,
-//! `truth/tasks/2026-07/jq-source-adapters.typ`): shells `jq -f` on a fixture (real
-//! subprocess stdin/stdout, same reasoning `import_e2e.rs` gives for
-//! shelling `mt` itself), then pipes the adapter's output into `mt import`
-//! and validates the imported project with `mt check`.
+//! `truth/tasks/2026-07/jq-source-adapters.typ`). Each test shells `jq -f` on a
+//! fixture (real subprocess stdin/stdout, the same reasoning `import_e2e.rs`
+//! gives for shelling `mt` itself), then pipes the adapter's output into
+//! `mt import` and validates the imported project with `mt check`.
 //!
-//! Requires `jq` on `PATH` — added to the flake devShell specifically for
-//! this coverage (`flake.nix`'s `devShells.default`). A missing/failing `jq`
-//! panics with a clear message rather than silently skipping: this test
+//! Requires `jq` on `PATH`, added to the flake devShell specifically for this
+//! coverage (`flake.nix`'s `devShells.default`). A missing or failing `jq`
+//! panics with a clear message rather than silently skipping. This test
 //! exists to prove the adapters work, not to be a no-op in an
 //! under-provisioned environment.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 use crate::support;
 
 /// The repo root, derived from this crate's manifest dir
-/// (`crates/mindtape-cli` -> `../..`), so the test finds `contrib/jq/*`
+/// (`crates/mindtape-cli` -> `../..`). The test finds `contrib/jq/*` from it
 /// regardless of the working directory `cargo test` runs from.
 fn repo_root() -> PathBuf {
     mindtape::canonical(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap()
@@ -52,7 +52,7 @@ fn run_jq(script: &Path, input: &Path) -> String {
 }
 
 /// Assert `jq -f contrib/jq/<source>.jq contrib/jq/fixtures/<source>.in.json`
-/// is structurally equal (`serde_json::Value` equality — key order never
+/// is structurally equal (`serde_json::Value` equality: key order never
 /// matters) to `contrib/jq/fixtures/<source>.out.json`, the golden.
 fn assert_golden(source: &str) {
     let jq_dir = repo_root().join("contrib/jq");
@@ -75,7 +75,7 @@ fn assert_golden(source: &str) {
 
 /// The project `mt init --no-input` writes, with this checkout's prelude. The
 /// adapters are config-blind, so they must emit status names the default
-/// legend holds: a reader's first import lands in exactly this project.
+/// legend holds. A reader's first import lands in exactly this project.
 fn scaffold() -> tempfile::TempDir {
     let dir = tempdir();
     support::run_ok(dir.path(), &["init", "--no-input"]);

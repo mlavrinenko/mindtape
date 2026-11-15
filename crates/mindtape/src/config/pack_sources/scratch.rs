@@ -1,7 +1,7 @@
 //! The scratch directory a fetch builds its tree in, inside the cache root,
-//! and the rename that lands the tree. A scratch directory a killed fetch
-//! left behind is swept by the next fetch once it is an hour old, since
-//! `Drop` doesn't run on Ctrl-C.
+//! and the rename that lands the tree. The next fetch sweeps a scratch
+//! directory a killed fetch left behind, once it is an hour old, since `Drop`
+//! doesn't run on Ctrl-C.
 
 use std::path::{Path, PathBuf};
 use std::time::Duration;

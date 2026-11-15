@@ -1,11 +1,11 @@
-//! `[[tasks.rules]]` — project-declared assertions over every task.
+//! `[[tasks.rules]]` holds project-declared assertions over every task.
 //!
-//! Every other constraint Mindtape enforces is one it knows by name: a
+//! Every other constraint `Mindtape` enforces is one it knows by name: a
 //! status legend, a numeric scale, a tag allow-list, a heading path. A rule
-//! constrains no field in particular, because it names the field itself, in
+//! constrains no field of its own, because it references the field itself, in
 //! one of two shapes:
 //!
-//! - `assert` — an expression in the filter language, evaluated true/false:
+//! - `assert` is an expression in the filter language, evaluated true/false:
 //!
 //!   ```toml
 //!   [[tasks.rules]]
@@ -16,8 +16,8 @@
 //!   severity = "error"
 //!   ```
 //!
-//! - `check` — a Typst function the project already has, for a structure no
-//!   filter expression can name (see [`crate::rules::typst`]):
+//! - `check` is a Typst function the project already has, for a structure the
+//!   filter language cannot express (see [`crate::rules::typst`]):
 //!
 //!   ```toml
 //!   [[tasks.rules]]
@@ -28,13 +28,13 @@
 //!   ```
 //!
 //! `name`, `when`, `message` and `severity` work the same for either shape.
-//! [`RuleSpec`] takes exactly one of `assert`/`check` — [`validate_rules`]
+//! [`RuleSpec`] takes exactly one of `assert`/`check`, and [`validate_rules`]
 //! refuses a rule declaring both or neither at config load.
 //!
-//! Rules are evaluated inside the validation pass ([`check_all`], called from
-//! [`crate::validate::validate`]) rather than in `mt check` alone. Every write
+//! The validation pass evaluates rules ([`check_all`], called from
+//! [`crate::validate::validate`]) rather than `mt check` alone. Every write
 //! command validates before it writes, so `mt add`, `flip`, `link`, `import`,
-//! `recur` and `review` enforce a rule for free — a convention that only fails
+//! `recur` and `review` enforce a rule for free. A convention that only fails
 //! hours later at check time is a convention nobody keeps.
 //!
 //! A breach reports at the task's marker line, prefixed by its severity:
@@ -43,18 +43,18 @@
 //! error: tasks/rewrite-loader.typ:3: rules.start-title-with-verb: start the title with an imperative verb
 //! ```
 //!
-//! `warn` (the default) prints and lets the command through; `error` fails it,
+//! `warn` (the default) prints and lets the command through. `error` fails it,
 //! and on a write refuses it before anything lands. That distinction is the
 //! [`Severity`] every config-declared rule carries, and it travels out of the
-//! pass on [`crate::validate::Violation::severity`] — the one place a
-//! violation's fatality is a project's choice rather than Mindtape's.
+//! pass on [`crate::validate::Violation::severity`]. That field is the one
+//! place a violation's fatality is a project's choice rather than
+//! `Mindtape`'s.
 //!
-//! An `assert` rule's expression is dry-run once at config load
-//! ([`validate_rules`]), the way `required` is, so a malformed one is one
-//! config error rather than one violation per artifact. A
-//! `check` rule's Typst module is checked for existence and export the same
-//! way, but needs the project root to read it — see
-//! [`crate::rules::typst::validate_load`], run from
+//! The config load dry-runs an `assert` rule's expression once
+//! ([`validate_rules`]), the way it does `required`, so a malformed one is one
+//! config error rather than one violation per artifact. A `check` rule's Typst
+//! module gets the same existence and export check, but needs the project root
+//! to read it. See [`crate::rules::typst::validate_load`], run from
 //! [`crate::config::layers`] rather than from here, against [`RulesRoot`]
 //! rather than a `root` parameter threaded through every validation call
 //! site.
@@ -62,7 +62,7 @@
 //! # Files
 //!
 //! - `eval.rs`: the engine, compiling each declared entry and asking it about every task.
-//! - `sites.rs`: where each rule is declared, so a report about the rule opens it.
+//! - `sites.rs`: where each rule comes from, so a report about the rule opens it.
 //! - `typst.rs`: `check = { typst, ... }` rules, calling a project's own Typst function.
 
 pub(crate) mod sites;
@@ -78,23 +78,23 @@ use crate::model::Task;
 use crate::problem::Problem;
 use crate::validate::severity::Severity;
 
-/// The project root a loaded [`Config`] was built for, resolved once by
-/// `crate::config::layers::build_config` and carried on the config itself —
-/// the same reason [`Config::compiled_dicts`] resolves `[dicts]` `path`
-/// entries at load rather than making every downstream filter evaluation
-/// take a `root` parameter to re-read the section with. A `[[tasks.rules]]
-/// check` entry reads it here to resolve `typst`, both at load
-/// ([`crate::rules::typst::validate_load`]) and per task
+/// The project root a loaded [`Config`] carries, resolved once by
+/// `crate::config::layers::build_config`. [`Config::compiled_dicts`] resolves
+/// `[dicts]` `path` entries at load for the same reason, rather than making
+/// every downstream filter evaluation take a `root` parameter to re-read the
+/// section with. A `[[tasks.rules]] check` entry reads it here to resolve
+/// `typst`, both at load ([`crate::rules::typst::validate_load`]) and per task
 /// ([`crate::rules::typst::CompiledCheck`]).
 ///
 /// Empty for a [`Config`] built through [`crate::config::parse_config`] alone
-/// (no project on disk, e.g. most unit tests) — a `check` rule then resolves
-/// `typst` against the process's current directory, the same "best effort,
-/// no project to root against" reading [`crate::config::dicts::compile_dicts_rootless`]
-/// already takes for a dict's own `path` entries.
+/// (no project on disk, as in most unit tests). A `check` rule then resolves
+/// `typst` against the process's current directory. That is the same "best
+/// effort, no project to root against" reading
+/// [`crate::config::dicts::compile_dicts_rootless`] already takes for the
+/// `path` entries of a dict.
 ///
-/// Never equal-compared: two configs with the same declared content are the
-/// same config regardless of which directory loaded them, the reading
+/// Never equal-compared. Two configs with the same declared content are the
+/// same config regardless of which directory loaded them. That is the reading
 /// [`crate::config::dicts::DictCache`]'s own `PartialEq` already takes for the
 /// same kind of load-derived state.
 #[derive(Debug, Clone, Default)]
@@ -155,12 +155,12 @@ pub struct RuleSpec {
     #[serde(default)]
     pub name: Option<String>,
     /// Filter expression that must evaluate true for every task the rule
-    /// applies to. Exactly one of this and `check` is set.
+    /// applies to. The rule sets exactly one of this and `check`.
     #[serde(default, rename = "assert")]
     #[schemars(extend("x-expression" = "filter"))]
     pub assertion: Option<String>,
-    /// A Typst function to call instead of an `assert` expression. Exactly
-    /// one of this and `assert` is set.
+    /// A Typst function to call instead of an `assert` expression. The rule
+    /// sets exactly one of this and `assert`.
     #[serde(default)]
     pub check: Option<CheckSpec>,
     /// Filter expression gating which tasks the rule applies to. Absent means
@@ -169,8 +169,8 @@ pub struct RuleSpec {
     #[schemars(extend("x-expression" = "filter"))]
     pub when: Option<String>,
     /// What an `assert` breach tells the author to do, in place of the
-    /// default advice naming the `assert` expression. A `check` rule ignores
-    /// it and prints each string its function returns.
+    /// default advice that quotes the `assert` expression. A `check` rule
+    /// ignores it and prints each string its function returns.
     #[serde(default)]
     pub message: Option<String>,
     /// Whether a breach fails the command or only reports. Default `warn`.
@@ -179,14 +179,14 @@ pub struct RuleSpec {
 }
 
 impl RuleSpec {
-    /// How this rule identifies itself in a report: its `name` if it has one,
-    /// else its position in `[[tasks.rules]]`.
+    /// The label this rule reports under is its `name` if it has one, else its
+    /// position in `[[tasks.rules]]`.
     ///
-    /// The index is the fallback rather than the `assert` expression because a
-    /// report has to be greppable back to the config entry that produced it,
-    /// and two rules may legitimately share an expression while differing in
-    /// `when`. The expression still reaches the reader — as the default
-    /// message, where it says what to fix rather than which rule to find.
+    /// The index is the fallback rather than the `assert` expression, because a
+    /// report has to be greppable back to the config entry that produced it.
+    /// Two rules may legitimately share an expression while differing in
+    /// `when`. The expression still reaches the reader, as the default message,
+    /// where it says what to fix rather than which rule to find.
     #[must_use]
     pub fn label(&self, index: usize) -> String {
         match &self.name {
@@ -195,8 +195,8 @@ impl RuleSpec {
         }
     }
 
-    /// What an `assert` breach tells the author: the rule's `message`, else
-    /// `must satisfy` and the expression. A `check` rule never reads this.
+    /// The text an `assert` breach shows the author is the rule's `message`,
+    /// else `must satisfy` and the expression. A `check` rule never reads this.
     pub(crate) fn advice(&self) -> String {
         self.message.clone().unwrap_or_else(|| {
             let expr = self.assertion.as_deref().unwrap_or_default();
@@ -205,7 +205,7 @@ impl RuleSpec {
     }
 }
 
-/// Compilation and evaluation of a declared rule; split out to keep this file
+/// Compilation and evaluation of a declared rule, split out to keep this file
 /// under its line budget. See [`check_all`].
 mod eval;
 pub(crate) use eval::check_all;
@@ -215,11 +215,11 @@ pub(crate) use eval::check_all;
 /// dotted TOML path.
 ///
 /// A rule declaring both `assert` and `check`, or neither, is one problem.
-/// Both filter expressions are parsed and dry-run against a probe task, so an
-/// unknown field, view or dictionary is caught here — where it is one config
-/// error — instead of once per artifact at validation time. A `check` rule's
-/// Typst module needs the project root to read, which this function does not
-/// have; [`crate::rules::typst::validate_load`] covers it separately,
+/// The check parses both filter expressions and dry-runs them against a probe
+/// task. An unknown field, view or dictionary then fails here, where it is one
+/// config error, instead of once per artifact at validation time. A `check`
+/// rule's Typst module needs the project root to read, which this function
+/// does not have. [`crate::rules::typst::validate_load`] covers it separately,
 /// from [`crate::config::layers`], the one caller with root in hand.
 pub(crate) fn validate_rules(config: &Config) -> Vec<Problem> {
     let probe = Task::default();
@@ -256,16 +256,16 @@ pub(crate) fn validate_rules(config: &Config) -> Vec<Problem> {
 /// Cross-check for `[[tasks.rules]]`, folded into [`Config::validate`]: no two
 /// entries share a `name`. Mirrors
 /// [`crate::body::headers::validate_header_rules`] /
-/// [`crate::body::content::validate_content_rules`] — `RuleSpec` already had a
+/// [`crate::body::content::validate_content_rules`]. `RuleSpec` already had a
 /// `name` before either of those did, but never a check that two entries
 /// couldn't share one.
 ///
-/// This only ever sees a same-FILE duplicate: [`crate::config::packs`]'s merge
-/// collapses two entries sharing a name to one, in place, the moment they
-/// come from different sources (a nearer layer or an extended pack replacing
-/// a farther one's same-named rule), so by the time this runs — over the
-/// fully merged [`Config::tasks`] — two surviving entries with the same name
-/// can only mean one file (a layer's own array, or a pack's) declared both.
+/// This only ever sees a same-FILE duplicate. [`crate::config::packs`]'s merge
+/// collapses two entries sharing a name to one, in place, the moment they come
+/// from different sources. A nearer layer or an extended pack replaces a
+/// farther one's same-named rule. By the time this runs, over the fully merged
+/// [`Config::tasks`], two surviving entries with the same name can only mean
+/// one file declared both. That file is a layer's own array, or a pack's.
 pub(crate) fn validate_rule_names(config: &Config) -> Vec<String> {
     crate::body::headers::duplicate_rule_names(
         config.tasks.rules.iter().map(|rule| rule.name.as_deref()),
@@ -277,13 +277,12 @@ pub(crate) fn validate_rule_names(config: &Config) -> Vec<String> {
 /// `rules[<index>]`), for `crate::validate::candidate::elsewhere_violations` to
 /// recognize a rule breach among the violations it attributes across a batch.
 ///
-/// A set-aware rule — one asserting `count(...)`, or reading the `links:`
-/// graph through `ready`/`blocked`/`blocks`/`topo` — can start or stop
-/// breaching on a task the batch never touches, purely because a sibling
-/// candidate changed the set. A rule with no such dependency can never see
-/// that diff (nothing about an unrelated task's fields moved), so widening
-/// the check to every rule label costs nothing and needs no per-rule
-/// declaration of which kind it is.
+/// A set-aware rule, one asserting `count(...)` or reading the `links:` graph
+/// through `ready`/`blocked`/`blocks`/`topo`, can start or stop breaching on a
+/// task the batch never touches. The cause is a sibling candidate that changed
+/// the set. A rule with no such dependency can never see that diff (nothing
+/// about an unrelated task's fields moved). Widening the check to every rule
+/// label is free, and it avoids a per-rule declaration of which kind it is.
 pub(crate) fn labels(config: &Config) -> HashSet<String> {
     config
         .tasks

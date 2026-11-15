@@ -20,9 +20,9 @@ fn ls_with_when(column: &str, when: &str) -> LsConfig {
     }
 }
 
-/// The single problem `problems` must carry — every case below asserts the
-/// count as part of the claim, so a second, unrelated message is a failure
-/// rather than something the assertion reads past.
+/// The single problem `problems` must carry. Every case below asserts the count
+/// as part of the claim, so a second, unrelated message is a failure rather
+/// than something the assertion reads past.
 fn only(problems: &[Problem]) -> &str {
     assert_eq!(problems.len(), 1, "{problems:?}");
     &problems.first().unwrap().text
@@ -44,8 +44,8 @@ fn an_unparseable_when_names_the_column() {
 }
 
 /// A task field carried over from filter syntax is the mistake the condition
-/// grammar's bare-identifier rejection exists for; it has to fail at load,
-/// where it names the column, not at render, where a missing column and a
+/// grammar's bare-identifier rejection exists for. It has to fail at load,
+/// where it references the column, not at render, where a missing column and a
 /// never-true `when` look identical.
 #[test]
 fn a_task_field_in_a_when_fails_at_load() {
@@ -55,10 +55,10 @@ fn a_task_field_in_a_when_fails_at_load() {
     assert!(msg.contains("ls.columns.assignee.when"), "{msg}");
 }
 
-/// `Condition` reads an empty expression as the always-matching one, so a
-/// blank `when` would render the column always while an absent `when` renders
-/// it never — two spellings of "nothing written here" with opposite answers.
-/// It is refused instead, and the message says what to write.
+/// `Condition` reads an empty expression as the always-matching one. A blank
+/// `when` would then render the column always, while an absent `when` renders
+/// it never: two spellings of "nothing written here" with opposite answers.
+/// The validator refuses it instead, and the message says what to write.
 #[test]
 fn a_blank_when_is_refused_rather_than_read_as_always() {
     for blank in ["", "   "] {
@@ -70,8 +70,8 @@ fn a_blank_when_is_refused_rather_than_read_as_always() {
     }
 }
 
-/// A column with no `when` at all is legal config — it is how a project drops
-/// a column the floor ships — so it must not report.
+/// A column with no `when` at all is legal config. It is how a project drops a
+/// column the floor provides, so it must not report.
 #[test]
 fn an_absent_when_reports_nothing() {
     let ls = LsConfig {
@@ -81,9 +81,9 @@ fn an_absent_when_reports_nothing() {
     assert!(validate_ls_columns(&ls).is_empty());
 }
 
-/// An unknown column name still reports, and reports only once — the `when` of
-/// a column that does not exist is not also validated, which would bury the
-/// real problem under derived noise.
+/// An unknown column name still reports, and reports only once. The validator
+/// does not also check the `when` of a column that does not exist, which would
+/// bury the real problem under derived noise.
 #[test]
 fn an_unknown_column_with_a_when_reports_only_the_unknown_name() {
     let ls = ls_with_when("fiel", "ttty()");
@@ -99,7 +99,7 @@ fn a_when_round_trips_through_toml() {
     assert_eq!(column.when.as_deref(), Some("!tty()"));
 }
 
-/// A scalar replaces wholesale across config layers, so a project turns a
+/// A scalar replaces wholesale across config layers. A project can then turn a
 /// floored column off with one line and no opt-out convention.
 #[test]
 fn a_project_when_replaces_the_floor_s() {
@@ -108,15 +108,15 @@ fn a_project_when_replaces_the_floor_s() {
     assert_eq!(file.when.as_deref(), Some("false"));
 }
 
-/// The floor is the complete statement of what `mt ls` shows: every column in
-/// the vocabulary carries a `when` there, so no column is left to a built-in
-/// default the render layer would have to hold.
+/// The floor is the complete statement of what `mt ls` shows. Every column in
+/// the vocabulary carries a `when` there, so the render layer never falls back
+/// to a built-in default.
 ///
-/// Read through [`crate::test_support::floor_config`], the fixture the CLI's
-/// render tests are built on, so the two cannot come to mean different things —
-/// and asserted against [`Config::default`] in the same breath, because that is
-/// the whole distinction the helper exists to draw: an unfloored config
-/// describes no column, and so renders none.
+/// The test reads it through [`crate::test_support::floor_config`], the fixture
+/// the CLI's render tests build on, so the two cannot come to mean different
+/// things. It also asserts against [`Config::default`] in the same breath,
+/// because that is the whole distinction the helper exists to draw. An
+/// unfloored config describes no column, and so renders none.
 #[test]
 fn the_floor_gives_every_column_a_when() {
     let config = crate::test_support::floor_config();

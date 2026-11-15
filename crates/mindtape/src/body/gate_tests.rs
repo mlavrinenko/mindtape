@@ -16,7 +16,7 @@ fn rx(pattern: &str, recursive: bool) -> HeaderPathSegment {
     }
 }
 
-/// A blank rule of the given action; fill the fields the action uses.
+/// A blank rule of the given action. Fill the fields the action uses.
 fn cfg(action: HeaderAction) -> HeaderRuleConfig {
     HeaderRuleConfig {
         name: None,

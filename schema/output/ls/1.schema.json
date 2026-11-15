@@ -88,21 +88,21 @@
       "type": "object"
     },
     "Blocker": {
-      "description": "What a blocked task waits on: one unfinished direct blocking-kind target,\nor one `waits-on` entry whose checker did not say the wait is over.",
+      "description": "One thing a blocked task waits on: an unfinished direct blocking-kind\ntarget, or a `waits-on` entry whose checker did not say the wait is over.",
       "properties": {
         "kind": {
           "description": "The blocking edge kind, or `waits-on`.",
           "type": "string"
         },
         "status": {
-          "description": "The target's status name; `None` when the target is not loaded or\ncarries no status. For a `waits-on` entry, the checker's reason.",
+          "description": "The target's status name, `None` when the target is not loaded or\ncarries no status. For a `waits-on` entry, the checker's reason.",
           "type": [
             "string",
             "null"
           ]
         },
         "stem": {
-          "description": "The target's stem, or the edge's own target stem when it names no\nloaded task. For a `waits-on` entry, the entry itself.",
+          "description": "The target's stem, or the edge's own target stem when the target is not\nloaded. For a `waits-on` entry, the entry itself.",
           "type": "string"
         }
       },
@@ -146,11 +146,11 @@
       "description": "`links:` edge in the canonical schema.",
       "properties": {
         "kind": {
-          "description": "Edge kind (e.g. `depends-on`, `related`).",
+          "description": "Edge kind, such as `depends-on` or `related`.",
           "type": "string"
         },
         "note": {
-          "description": "Free-form note; kind-dependent requirement.",
+          "description": "Free-form note, with a kind-dependent requirement.",
           "type": [
             "string",
             "null"
@@ -207,7 +207,7 @@
             },
             "score": {
               "default": null,
-              "description": "Read-side computed score (`config.tasks.priority.resolve`);\n`null`/absent when unresolvable. Ignored on import.",
+              "description": "Read-side computed score (`config.tasks.priority.resolve`), `null`\nor absent when unresolvable. Ignored on import.",
               "format": "double",
               "type": [
                 "number",
@@ -334,14 +334,14 @@
       "description": "`recur:` in the canonical schema. See [`Recur::to_canonical`] and\n[`CanonicalRecur::to_recur`].",
       "properties": {
         "anchor": {
-          "description": "`\"completion\"` or `\"due\"`; `None` = the project's `default-anchor`.",
+          "description": "`\"completion\"` or `\"due\"`. `None` = the project's `default-anchor`.",
           "type": [
             "string",
             "null"
           ]
         },
         "count": {
-          "description": "Remaining occurrence budget; `None` = unbounded.",
+          "description": "Remaining occurrence budget. `None` = unbounded.",
           "format": "uint32",
           "minimum": 0,
           "type": [
@@ -350,7 +350,7 @@
           ]
         },
         "materialize": {
-          "description": "`\"spawn\"` or `\"mutate\"`; `None` = the project's `materialize` default.",
+          "description": "`\"spawn\"` or `\"mutate\"`. `None` = the project's `materialize` default.",
           "type": [
             "string",
             "null"
@@ -361,7 +361,7 @@
           "description": "The period or rrule rule."
         },
         "until": {
-          "description": "Series end date (`YYYY-MM-DD`); `None` = unbounded.",
+          "description": "Series end date (`YYYY-MM-DD`). `None` = unbounded.",
           "type": [
             "string",
             "null"
@@ -384,7 +384,7 @@
               "type": "string"
             },
             "on": {
-              "description": "Weekday names (`\"mon\"`, …); empty when unnarrowed.",
+              "description": "Weekday names (`\"mon\"`, …), empty when unnarrowed.",
               "items": {
                 "type": "string"
               },
@@ -439,14 +439,14 @@
       "description": "`status:` in the canonical schema.",
       "properties": {
         "date": {
-          "description": "Date the status was set, `YYYY-MM-DD`.",
+          "description": "Date the task entered the status, `YYYY-MM-DD`.",
           "type": [
             "string",
             "null"
           ]
         },
         "name": {
-          "description": "Lifecycle name, e.g. `proposed`, `wip`, `done`.",
+          "description": "Lifecycle name, such as `proposed`, `wip`, `done`.",
           "type": "string"
         },
         "note": {
@@ -479,14 +479,14 @@
         },
         "children": {
           "default": 0,
-          "description": "How many tasks name this one with a `parent` edge (read-only).",
+          "description": "How many tasks reference this one with a `parent` edge (read-only).",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"
         },
         "collector_problems": {
           "default": [],
-          "description": "Why a collector produced no field, one message per failure.",
+          "description": "Why a collector failed to produce a field, one message per failure.",
           "items": {
             "type": "string"
           },
@@ -494,11 +494,11 @@
         },
         "derived": {
           "default": {},
-          "description": "Fields `[[tasks.collectors]]` computed, keyed by the collector's name.\nRead-only: `mt import` ignores them and writes no collector."
+          "description": "Fields `[[tasks.collectors]]` computed, keyed by the collector's name.\nRead-only: `mt import` ignores them and doesn't write a collector."
         },
         "derived_tags": {
           "default": [],
-          "description": "Folder-derived virtual tags (read-only; never authored).",
+          "description": "Folder-derived virtual tags (read-only, never authored).",
           "items": {
             "type": "string"
           },
@@ -581,7 +581,7 @@
         },
         "progress": {
           "default": null,
-          "description": "Terminal children over all children, `0..1` — the fraction the filter\nlanguage compares, where the table renders `3/5`; `null` with no\nchildren (read-only).",
+          "description": "Terminal children over all children, `0..1`, the fraction the filter\nlanguage compares, where the table renders `3/5`. `null` with no\nchildren (read-only).",
           "format": "double",
           "type": [
             "number",
@@ -647,7 +647,7 @@
         },
         "why": {
           "default": [],
-          "description": "What the task waits on: its unfinished direct blocking-kind targets\n(read-only). Needs the whole task set, so [`Self::from_task`] leaves\nit empty and a listing fills it from its [`crate::Readiness`].",
+          "description": "The unfinished direct blocking-kind targets the task waits on\n(read-only). Needs the whole task set, so [`Self::from_task`] leaves it\nempty and a listing fills it from its [`crate::Readiness`].",
           "items": {
             "$ref": "#/$defs/Blocker"
           },
@@ -702,7 +702,7 @@
       "description": "Which rule and view won each facet."
     },
     "retired": {
-      "description": "The stems a `touches()` call met that no task answers to.",
+      "description": "The stems a `touches()` call met with no matching task.",
       "items": {
         "type": "string"
       },

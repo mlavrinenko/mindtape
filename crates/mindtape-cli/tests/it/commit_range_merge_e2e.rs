@@ -11,7 +11,7 @@ use support::{commit, commit_repo, git, stage_file};
 
 /// A repository whose `HEAD` is a `--no-ff` merge of `side` into its first
 /// parent, with `side` and `main` as the branch commit messages. Both branches
-/// add a file, so the merge changes both against either parent.
+/// add a file, and the merge then changes both against either parent.
 fn merged_with(dir: &Path, side: &str, main: &str) {
     git(dir, &["checkout", "-q", "-b", "side"]);
     stage_file(dir, "src/b.rs");

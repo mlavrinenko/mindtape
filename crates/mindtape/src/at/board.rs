@@ -1,4 +1,5 @@
-//! The board: one row per project, one cell per `[[board.columns]]` entry.
+//! The board holds one row per project and one cell per `[[board.columns]]`
+//! entry.
 //!
 //! A column is a `filter`, whose cell counts the project's matching tasks, or
 //! a `top`, whose cell is the first matching task in the project's default
@@ -6,7 +7,7 @@
 //! project's view, and `fallback` stands in when the project lacks one.
 //! `hide` and `sort` read the cells by column name.
 //!
-//! The shipped columns are `board.toml`. `[board]` overrides them key by key,
+//! The built-in columns are `board.toml`. `[board]` overrides them key by key,
 //! and `[at.<name>.board]` overrides that for one set. A layer that sets
 //! `columns` starts with no `sort` or `hide` but its own.
 
@@ -24,10 +25,10 @@ use crate::graph::ready::Readiness;
 use crate::model::Task;
 use crate::sort::default_order_with;
 
-/// The shipped board, the bottom layer under `[board]`.
+/// The built-in board, the bottom layer under `[board]`.
 const SHIPPED: &str = include_str!("board.toml");
 
-/// One board layer as written: each key overrides the layer below it.
+/// One board layer as written. Each key overrides the layer below it.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct BoardSpec {
@@ -36,8 +37,8 @@ pub struct BoardSpec {
     /// Row order: `column`, `column:asc` or `column:desc`, ties broken by
     /// the next entry and then by set order.
     pub sort: Option<Vec<String>>,
-    /// An expression over the cells; a row it holds for is hidden. Empty hides
-    /// nothing.
+    /// An expression over the cells. The board hides a row the expression holds
+    /// for. An empty expression leaves every row visible.
     pub hide: Option<String>,
 }
 
@@ -78,7 +79,7 @@ pub enum Cell {
     Count(usize),
     /// A `top` column: the first matching task, if any matched.
     Top(Option<TopTask>),
-    /// The column's filter failed; the message names the column.
+    /// The column's filter failed. The message references the column.
     Failed(String),
 }
 
@@ -100,11 +101,12 @@ enum HideValue {
 }
 
 impl Board {
-    /// Layer `specs` from the bottom up over the shipped board, then check
+    /// Layer `specs` from the bottom up over the built-in board, then check
     /// the result.
     ///
     /// # Errors
-    /// A message naming the first malformed column, sort spec or `hide`.
+    /// A message that references the first malformed column, sort spec or
+    /// `hide`.
     pub(crate) fn resolve(specs: &[Option<&BoardSpec>]) -> Result<Self, String> {
         let shipped: BoardSpec = toml::from_str(SHIPPED).map_err(|err| err.to_string())?;
         let mut board = Self {
@@ -215,15 +217,15 @@ impl Board {
             .collect()
     }
 
-    /// Whether `hide` hides a row with these cells. A row whose `hide` reads
-    /// a failed cell stays, so its failure shows.
+    /// Whether `hide` hides a row with these cells. A row whose `hide` reads a
+    /// failed cell stays. Its failure then shows.
     #[must_use]
     pub fn hides(&self, cells: &[Cell]) -> bool {
         self.eval_hide(cells).unwrap_or(false)
     }
 
     /// Sort `rows` by `sort`, reading each row's cells through `cells`. A
-    /// failed or missing cell sorts last either way; ties keep their order.
+    /// failed or missing cell sorts last either way. Ties keep their order.
     pub fn sort_rows<T>(&self, rows: &mut [T], cells: impl Fn(&T) -> &[Cell]) {
         let keys: Vec<(usize, bool)> = self
             .sort
@@ -277,7 +279,7 @@ impl Board {
         Ok(compare_ordering(op, ordering))
     }
 
-    /// A comparison side: a column's cell or a literal.
+    /// Hold one comparison side: a column's cell or a literal.
     fn value(&self, node: &Node<DefaultNumericTypes>, cells: &[Cell]) -> Result<HideValue, String> {
         match unwrap_root(node).operator() {
             Operator::VariableIdentifierRead { identifier } => {
@@ -315,8 +317,8 @@ impl Board {
     }
 }
 
-/// One cell: the column's filter, or its fallback when the project lacks a
-/// view the filter names.
+/// Build one cell: the column's filter, or its fallback when the project lacks
+/// a view the filter names.
 fn cell(
     column: &BoardColumn,
     tasks: &[Task],

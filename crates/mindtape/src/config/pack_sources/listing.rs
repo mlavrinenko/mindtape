@@ -1,6 +1,6 @@
 //! Reading a `git ls-tree -r -z` listing into the blobs to write, and
 //! refusing a path that a platform would write differently or outside the
-//! tree. Every check runs on every platform, so a lock names the same tree
+//! tree. Every check runs on every platform. A lock then names the same tree
 //! everywhere.
 //!
 //! A path is ASCII, so lowercasing it is the one case fold Windows and

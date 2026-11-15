@@ -1,7 +1,7 @@
-//! How `mt` reports a problem. A line for stderr is built here as a [`Diag`]
-//! and printed by [`render`], so a message can't leave the format. Every
-//! command returns `Result<_, Diag>`, and clippy refuses `std::io::stderr`
-//! outside this folder, so no line reaches stderr unrendered.
+//! How `mt` reports a problem. This module builds a line for stderr as a
+//! [`Diag`] and [`render`] prints it, so a message can't leave the format.
+//! Every command returns `Result<_, Diag>`, and clippy refuses
+//! `std::io::stderr` outside this folder, so no line reaches stderr unrendered.
 //!
 //! ```text
 //! error: <what failed>: '<value>'[: <why>]
@@ -10,10 +10,10 @@
 //! warning: <same shape as error; nothing was refused>
 //! ```
 //!
-//! - The text is a `&'static str`, so a value can't be formatted into it. A
+//! - The text is a `&'static str`, so no value can enter it by formatting. A
 //!   value the user typed goes through [`Diag::value`] or [`Diag::context`],
 //!   which single-quote it the way a shell takes it back: `'it'\''s'`.
-//!   Several go through [`Diag::values`], each quoted: `'a', 'b'`.
+//!   [`Diag::values`] takes a list and quotes each entry: `'a', 'b'`.
 //! - A field or rule name is bare: [`Diag::rule`].
 //! - A problem tied to a file starts with its place: [`Diag::at`] renders
 //!   `error: tasks/x.typ:2: rules.one-wip: <message>`.
@@ -32,28 +32,28 @@
 //! - The [`Kind`] decides the exit code: 2 when the command line was wrong
 //!   ([`Diag::usage`]), 1 when the project refused the work or it failed
 //!   ([`Diag::refused`], [`Diag::failed`]). No command picks a number.
-//! - For a write command, `error:` means nothing was written for that task.
-//!   A batch of several targets ends with one [`Diag::batch`] summary; a
+//! - For a write command, `error:` means the command wrote nothing for that
+//!   task. A batch of many targets ends with one [`Diag::batch`] summary. A
 //!   single target gets none.
 //! - Colour goes on the prefix only, when stderr is a terminal or `--color`
 //!   says so.
 //!
 //! # Files
 //!
-//! - `hint.rs` — [`Hint`], [`Note`] and [`Command`], the lines under an error.
-//! - `json.rs` — a [`Diag`] as a JSON object, for `--json` reports.
-//! - `render.rs` — the renderer and the one writer to stderr.
-//! - `summary.rs`, `summary_tests.rs` — the closing count of a command that found several
-//!   problems, and the exit status of a command it ran.
-//! - `io.rs` — the failed read or write and the OS's reason for it.
-//! - `prompt.rs` — the confirmation question, the one line stderr gets that
-//!   isn't a `Diag`: a prompt is not a diagnostic, so it has no prefix.
-//! - `cleanup.rs` — a typst-cleanup error into a `Diag`, every unpinnable file named.
-//! - `from_lib.rs` — library errors into a `Diag`, one exhaustive match each.
-//! - `quoting.rs` — the quoted form of a filter whose bare word was meant as
-//!   text, for the hint under `unknown field`.
-//! - `from_lib_tests.rs` — unit tests for the library-error conversions.
-//! - `tests.rs`, `tests_cleanup.rs`, `tests_dict.rs`, `tests_fill.rs` — unit tests.
+//! - `hint.rs`: [`Hint`], [`Note`] and [`Command`], the lines under an error.
+//! - `json.rs`: a [`Diag`] as a JSON object, for `--json` reports.
+//! - `render.rs`: the renderer and the one writer to stderr.
+//! - `summary.rs`, `summary_tests.rs`: the closing count of a command that
+//!   found more than one problem, and the exit status of a command it ran.
+//! - `io.rs`: the failed read or write and the OS's reason for it.
+//! - `prompt.rs`: the confirmation question. A prompt is not a diagnostic, so
+//!   it has no prefix, and it is the one line stderr gets that isn't a `Diag`.
+//! - `cleanup.rs`: a typst-cleanup error into a `Diag`, every unpinnable file named.
+//! - `from_lib.rs`: library errors into a `Diag`, one exhaustive match each.
+//! - `quoting.rs`: the quoted form of a filter whose bare word the user meant
+//!   as text, for the hint under `unknown field`.
+//! - `from_lib_tests.rs`: unit tests for the library-error conversions.
+//! - `tests.rs`, `tests_cleanup.rs`, `tests_dict.rs`, `tests_fill.rs`: unit tests.
 
 mod cleanup;
 mod from_lib;
@@ -87,8 +87,8 @@ pub(crate) use render::{
 };
 pub(crate) use summary::dedupe_notes;
 
-/// The `next:` line a command prints on stdout when it names the command to run
-/// next, as `mt init` does. A successful command is not a [`Diag`], so this
+/// The `next:` line a command prints on stdout when it points at the command to
+/// run next, as `mt init` does. A successful command is not a [`Diag`], so this
 /// returns the line for its caller to print.
 pub(crate) fn next_line(text: impl fmt::Display) -> String {
     format!("next: {text}")
@@ -100,7 +100,7 @@ pub(crate) fn hint_line(text: impl fmt::Display) -> String {
     format!("hint: {text}")
 }
 
-/// What a command returns: its result, or the [`Diag`] `main` prints.
+/// A command's result, or the [`Diag`] `main` prints.
 pub(crate) type Result<T, E = Diag> = std::result::Result<T, E>;
 
 /// What kind of problem a [`Diag`] reports, which decides the exit code.
@@ -111,10 +111,10 @@ pub(crate) enum Kind {
     Usage,
     /// The project's rules refused the work. Exit 1.
     Refused,
-    /// The work failed: a missing task, I/O, git, a broken config. Exit 1.
+    /// The work failed, on a missing task, I/O, git or a broken config. Exit 1.
     Failed,
-    /// Nothing was refused. Printed with [`emit`]; returned as an error it
-    /// exits 1.
+    /// The command did not refuse the work. Printed with [`emit`]. Returned as
+    /// an error it exits 1.
     Warning,
 }
 
@@ -274,8 +274,8 @@ impl Diag {
         self
     }
 
-    /// Several values that failed, as the user typed them. Each is rendered
-    /// single-quoted: `'to-be', 'changes'`.
+    /// The values that failed, as the user typed them. The renderer
+    /// single-quotes each one: `'to-be', 'changes'`.
     pub(crate) fn values(mut self, values: impl IntoIterator<Item = impl Into<String>>) -> Self {
         self.0.values = values.into_iter().map(Into::into).collect();
         self
@@ -288,7 +288,7 @@ impl Diag {
         self
     }
 
-    /// The file place the problem is tied to: `path:line[:col]`.
+    /// The file place that holds the problem: `path:line[:col]`.
     pub(crate) fn at(mut self, path: &Path, line: usize, col: Option<usize>) -> Self {
         self.0.place = Some(Place::File {
             path: path.to_path_buf(),
@@ -298,7 +298,7 @@ impl Diag {
         self
     }
 
-    /// The file the problem is tied to, when no line of it is known.
+    /// The file that holds the problem, when the code has no line for it.
     pub(crate) fn at_file(mut self, path: &Path) -> Self {
         self.0.place = Some(Place::File {
             path: path.to_path_buf(),
@@ -380,8 +380,8 @@ impl Diag {
     }
 
     /// The same message under another kind, for a value that came from the
-    /// project rather than the command line: a config hook's bad value is a
-    /// failed write, not a usage error.
+    /// project rather than the command line. A config hook's bad value counts
+    /// as a failed write, not a usage error.
     pub(crate) fn reclassified(mut self, kind: Kind) -> Self {
         self.0.kind = kind;
         self

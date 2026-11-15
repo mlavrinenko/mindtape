@@ -1,5 +1,5 @@
-//! The last line of a command that found several problems, and the verdict of
-//! a command it ran: counts and exit statuses, worded once.
+//! The last line of a command that found more than one problem, and the
+//! verdict of a command it ran: counts and exit statuses, worded once.
 //!
 //! ```text
 //! error: 3 problems in 2 tasks
@@ -40,8 +40,8 @@ impl Diag {
         Self::refused("").reason(format!("{broke} broke commit rules"))
     }
 
-    /// How a command we ran ended: `exit 1`, or `terminated by signal` when
-    /// it left no code.
+    /// The end of a command we ran: `exit 1`, or `terminated by signal` when
+    /// the command exited without a code.
     pub(crate) fn exit(self, code: Option<i32>) -> Self {
         self.reason(code.map_or_else(
             || "terminated by signal".to_owned(),
@@ -50,8 +50,8 @@ impl Diag {
     }
 }
 
-/// Keep each note once across the problems of one batch: a breach raised on
-/// another task by several targets is context for the batch, not for each.
+/// Keep each note once across the problems of one batch. A breach that many
+/// targets raise on another task is context for the batch, not for each.
 pub(crate) fn dedupe_notes(problems: &mut [Diag]) {
     let mut seen = std::collections::BTreeSet::new();
     for problem in problems {

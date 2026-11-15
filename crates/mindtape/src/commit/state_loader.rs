@@ -1,11 +1,11 @@
 //! Caches for loading commit states across a range or a `commit-msg` hook.
 //!
-//! A linear range only needs the previous state: its unchanged tasks are
-//! reused by source identity, and changed files are evaluated again. A regular
-//! file's identity is its blob id; a symlink's is the final target's blob id,
-//! so a target change cannot reuse a stale task. The working-tree load seeds
-//! the same reuse map for a hook, so a clean index does not re-evaluate the
-//! whole backlog.
+//! A linear range only needs the previous state. The loader reuses its
+//! unchanged tasks by source identity, and evaluates changed files again. A
+//! regular file's identity is its blob id. The identity of a symlink is the
+//! blob id of its final target, so a target change cannot reuse a stale task.
+//! The working-tree load seeds the same reuse map for a hook, so a clean index
+//! does not re-evaluate the whole backlog.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -65,7 +65,8 @@ pub struct StateLoader<'a> {
     packages: PackageCache,
     /// The working-tree load's OIDs and task indices, for a hook.
     working_seed: Option<(String, HashMap<PathBuf, SeenFile>)>,
-    /// The previous state only: a linear range needs it as the next `head`.
+    /// Holds the previous state only, because a linear range needs it as the
+    /// next `head`.
     last_state: Option<LastState>,
     /// Injected only by tests, so no test reads the developer's config layers.
     layers: Option<ConfigDirs>,
@@ -135,8 +136,8 @@ impl<'a> StateLoader<'a> {
     }
 
     /// The project `source` names in `plan`, evaluated against its own config
-    /// and packages. The returned state carries that config, so a caller builds
-    /// the commit's record from the same config the state loaded with.
+    /// and packages. The returned state carries that config. A caller then
+    /// builds the commit's record from the same config the state loaded with.
     fn state(
         &mut self,
         plan: &StatePlan,

@@ -1,6 +1,6 @@
 //! Width-aware string helpers using Unicode display width.
 //!
-//! A double-width character (e.g. Chinese, Japanese and Korean ideographs,
+//! A double-width character (such as Chinese, Japanese and Korean ideographs,
 //! many emoji) counts as
 //! width 2 in a fixed-width terminal cell grid. All functions here operate on
 //! *display* width rather than byte or `char` count.
@@ -23,10 +23,10 @@ pub fn display_width(s: &str) -> usize {
 /// Truncate `s` to at most `max_width` display cells, appending `…` if truncated.
 ///
 /// The ellipsis occupies 1 display cell. The function never splits a
-/// multi-cell grapheme — it stops at the last char that fits whole.
+/// multi-cell grapheme: it stops at the last char that fits whole.
 ///
 /// # Panics
-/// Does not panic; returns an empty string when `max_width` is 0.
+/// Does not panic. Returns an empty string when `max_width` is 0.
 #[must_use]
 pub fn truncate_to_width(s: &str, max_width: usize) -> String {
     if display_width(s) <= max_width {
@@ -53,7 +53,7 @@ pub fn truncate_to_width(s: &str, max_width: usize) -> String {
 
 /// Pad `s` on the right with spaces until its display width reaches `width`.
 ///
-/// If `s` already meets or exceeds `width`, it is returned unchanged.
+/// If `s` already meets or exceeds `width`, the function returns it unchanged.
 #[must_use]
 pub fn pad_to_width(s: &str, width: usize) -> String {
     let current = display_width(s);

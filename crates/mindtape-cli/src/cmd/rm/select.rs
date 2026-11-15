@@ -1,5 +1,6 @@
 //! Resolve `mt rm`'s variadic `target` argument into the set of task ids to
-//! retire — split out of `cmd/rm/mod.rs` to stay under the file-size gate.
+//! retire. This module lives apart, split out of `cmd/rm/mod.rs` to stay under
+//! the file-size gate.
 
 use std::collections::HashSet;
 
@@ -11,15 +12,16 @@ use crate::util::{self, Refs};
 
 /// Resolve the variadic `targets` into the set of task ids to retire.
 ///
-/// Each entry resolves as [`resolve_one`] says — a reference, else a filter
-/// parse + [`select`]; every entry's matches are unioned, deduplicated by id —
-/// the same task named twice, or named once directly and again by a filter,
-/// retires once. An empty `targets` applies the configured `[rm] default_filter`.
+/// Each entry resolves as [`resolve_one`] says: a reference, else a filter
+/// parse plus [`select`]. The function unions every entry's matches and
+/// deduplicates them by id. The same task named twice, or named once directly
+/// and again by a filter, retires once. An empty `targets` applies the
+/// configured `[rm] default_filter`.
 ///
 /// # Errors
 /// A lone entry that neither resolves as a reference nor parses as a filter
-/// is that entry's own error. With several, each prints on its own and a batch
-/// summary ends the run.
+/// is that entry's own error. With more than one, each prints on its own and a
+/// batch summary ends the run.
 pub(super) fn select_targets(
     project: &util::Project,
     targets: &[String],
@@ -41,7 +43,7 @@ pub(super) fn select_targets(
     Ok(ids)
 }
 
-/// The ids the configured `[rm] default_filter` selects — today's zero-target
+/// The ids the configured `[rm] default_filter` selects, today's zero-target
 /// behaviour, applied when `targets` is empty.
 fn default_targets(project: &util::Project, readiness: &Readiness) -> Result<HashSet<String>> {
     match project.config.rm.default_filter.as_deref() {
@@ -108,9 +110,9 @@ fn unclaimed_word(
 /// The ids of every task under the directory `spec` names, or `None` when
 /// `spec` is no directory, so it resolves as a task or a filter.
 ///
-/// A path is read from the working directory, as a task path is. A directory
-/// that is no configured root, nor inside one, is refused: `rm` retires only
-/// what the project tracks.
+/// The function reads a path from the working directory, as a task path is. It
+/// refuses a directory that is no configured root, nor inside one, because `rm`
+/// retires only what the project tracks.
 ///
 /// # Errors
 /// Refuses a directory outside every root.
@@ -142,9 +144,9 @@ fn folder_ids(project: &util::Project, spec: &str) -> Result<Option<HashSet<Stri
     Ok(Some(ids))
 }
 
-/// Whether a reference named its task by path or stem rather than by stem
-/// hash. A stem several tasks share counts: it is refused, never read as a
-/// filter that could retire more than the one task meant.
+/// Whether a reference gave its task by path or stem rather than by stem hash.
+/// A stem that more than one task shares counts: `rm` refuses it, and never
+/// reads it as a filter that could retire more than the one task meant.
 fn names_by_name(found: &std::result::Result<Resolved<'_>, RefError>) -> bool {
     match found {
         Ok(found) => found.via != Via::Hash,

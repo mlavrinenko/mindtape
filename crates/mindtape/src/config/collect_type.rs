@@ -2,7 +2,7 @@
 //!
 //! An atom (`bool`, `int`, `number`, `string`, `path`, `date`), a one-element
 //! list `[T]`, or a record `{ field = T }`. The regex collector accepts only
-//! `["string"]` or `["path"]`; the Typst collector accepts every shape.
+//! `["string"]` or `["path"]`, and the Typst collector accepts every shape.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -42,7 +42,7 @@ impl CollectorAtom {
     /// Parse one atom name.
     ///
     /// # Errors
-    /// A message naming the unknown atom and the known ones.
+    /// A message that specifies the unknown atom and the known ones.
     pub fn parse(text: &str) -> Result<Self, String> {
         match text {
             "bool" => Ok(Self::Bool),

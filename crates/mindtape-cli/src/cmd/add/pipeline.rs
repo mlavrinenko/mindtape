@@ -1,10 +1,10 @@
-//! The `mt add` render pipeline after values are collected: fill the slots,
-//! run `[[on.add]]` hooks over a draft, and apply the fields no slot holds.
+//! The `mt add` render pipeline after value collection: fill the slots, run
+//! `[[on.add]]` hooks over a draft, and apply the non-slot writable fields.
 //!
-//! The fast path — no hooks and no non-slot field — is today's full fill. Any
-//! hook or non-slot field needs a draft task the hook's `when` can read, so the
-//! explicit slot values are filled first, status and id are stamped once, and
-//! the rest of the slots stay as `slot(...)` calls until the final fill.
+//! The fast path (no hooks and no non-slot field) is today's full fill. Any hook
+//! non-slot field needs a draft task the hook's `when` can read. So the
+//! pipeline fills the explicit slot values first, stamps status and id once,
+//! and leaves the rest of the slots as `slot(...)` calls until the final fill.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::IsTerminal;
@@ -20,9 +20,10 @@ use super::title::{fill_title_from_args_in, fill_title_from_stdin_in, split_posi
 use super::values::{Collected, collect_values, layer_env, reject_unknown_keys};
 use super::{draft, field_values, hooks, inject_header, interactive, markup_safe, target};
 
-/// What one render leaves the caller: the filled source, the values the stem
-/// is minted from, the hook-chosen destination, the explicit field names the
-/// refusal hint needs, and the fields a hook touched.
+/// What one render leaves the caller. It holds the filled source, the values
+/// that mint the stem, and the hook-chosen destination. It also holds the
+/// explicit field names that the refusal hint needs, and the fields a hook
+/// touched.
 pub(super) struct Ready {
     pub(super) filled: String,
     pub(super) values: BTreeMap<String, RawValue>,
@@ -152,7 +153,7 @@ fn refuse_flag_and_set(
     Ok(())
 }
 
-/// The core field a name addresses: a slot alias maps back to the field it
+/// The core field that a name addresses. A slot alias maps back to the field it
 /// fills, and a core name maps to itself.
 fn canonical_field<'a>(name: &'a str, aliases: &'a BTreeMap<String, String>) -> &'a str {
     aliases.get(name).map_or(name, String::as_str)
@@ -185,9 +186,9 @@ pub(super) fn field_aliases(source: &str) -> BTreeMap<String, String> {
     aliases
 }
 
-/// Rewrite a core field name to the slot that fills it: `--kind feat` against
-/// `kind: slot("type")` becomes a write of `type`, so the slot keeps its value
-/// and the field writer does not replace the whole argument.
+/// Rewrite a core field name to the slot that fills it. `--kind feat` against
+/// `kind: slot("type")` becomes a write of `type`. The slot then keeps its
+/// value, and the field writer does not replace the whole argument.
 pub(super) fn route_ops(ops: &mut [(String, FieldOp)], aliases: &BTreeMap<String, String>) {
     let by_field: BTreeMap<&str, &str> = aliases
         .iter()
@@ -209,8 +210,8 @@ fn title_slot(aliases: &BTreeMap<String, String>) -> String {
         .map_or_else(|| "title".to_owned(), |(slot, _)| slot.clone())
 }
 
-/// Keep the core `title` value the stem is minted from when the template fills
-/// it through an aliased slot. `fill` ignores the extra key: no slot reads it.
+/// Keep the core `title` value that mints the stem when the template fills it
+/// through an aliased slot. `fill` ignores the extra key: no slot reads it.
 fn ensure_title_value(values: &mut BTreeMap<String, RawValue>, aliases: &BTreeMap<String, String>) {
     if values.contains_key("title") {
         return;
@@ -224,7 +225,7 @@ fn ensure_title_value(values: &mut BTreeMap<String, RawValue>, aliases: &BTreeMa
     }
 }
 
-/// The final source, the slot values it was filled from, and the hook-chosen
+/// The final source, the slot values the fill used, and the hook-chosen
 /// destination.
 pub(super) struct Rendered {
     /// The rendered task source.
@@ -255,9 +256,9 @@ pub(super) struct Input<'a> {
 /// Fill, hook and field-write one new task.
 ///
 /// # Errors
-/// A value the template refuses, a draft that does not evaluate, a hook that
-/// cannot run, a field write the writer refuses, or an outside-root explicit
-/// destination when hooks are enabled.
+/// A value the template refuses, a draft that does not evaluate, or a hook that
+/// cannot run. Also a field write the writer refuses, or an outside-root
+/// explicit destination when hooks run.
 pub(super) fn render(input: &Input<'_>) -> Result<Rendered> {
     let Input {
         args,
@@ -305,10 +306,11 @@ pub(super) fn render(input: &Input<'_>) -> Result<Rendered> {
     finish(&task, specs, values, &touched, outcome.dir)
 }
 
-/// The explicit field names a hook may not override: the caller's `=` tokens,
-/// plus each core field whose whole `task.with(…)` value is a slot the caller
-/// set under another name (`kind: slot("type")` with `--set type=bug`). The
-/// token names stay as written for the caller-facing hints.
+/// The explicit field names that a hook may not override. They are the
+/// caller's `=` tokens, plus each core field whose whole `task.with(…)` value
+/// is a slot the caller set under another name (`kind: slot("type")` with
+/// `--set type=bug`). The token names stay as written for the caller-facing
+/// hints.
 fn hook_explicit(source: &str, explicit: &BTreeSet<String>) -> BTreeSet<String> {
     let mut expanded = explicit.clone();
     for (slot, field) in field_aliases(source) {
@@ -319,15 +321,15 @@ fn hook_explicit(source: &str, explicit: &BTreeSet<String>) -> BTreeSet<String> 
     expanded
 }
 
-/// The final source after the hooks: every touched field is upserted into the
-/// still-slot-bearing template, then one fill applies the caller's values, the
-/// template's defaults and every value a hook changed.
+/// The final source after the hooks. The pipeline upserts every touched field
+/// into the still-slot-bearing template, then one fill applies the caller's
+/// values, the template's defaults and every value a hook changed.
 ///
 /// Upserting a touched field replaces its whole named argument. A composite
-/// expression (`("base",) + slot("tags")`) a hook appended to therefore loses
-/// its embedded slot instead of being filled on top of the hook's value, and a
-/// strict-framework priority a caller set by number loses the leaf slots a
-/// hook replaced, so the refusal names the real problem.
+/// expression (`("base",) + slot("tags")`) that a hook appended to loses its
+/// embedded slot instead of gaining the hook's value on top. A strict-framework
+/// priority a caller set by number loses the leaf slots a hook replaced. The
+/// refusal then cites the real problem.
 fn finish(
     task: &draft::Draft,
     specs: &[SlotSpec],

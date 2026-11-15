@@ -6,10 +6,10 @@ use clap_complete::env::Shells;
 use super::{Source, decorate, lookup};
 use crate::cli::Cli;
 
-/// Every value-taking argument clap declares must be named by `SOURCES`.
+/// `SOURCES` must cover every value-taking argument clap declares.
 ///
 /// The `just docs::facts` arm asserts the same thing through the reflected
-/// JSON, which is what makes it visible in CI output; this one fails first and
+/// JSON, which is what makes it visible in CI output. This test fails first and
 /// locally, on the commit that adds the argument, without a docs regenerate.
 #[test]
 fn every_value_taking_argument_names_a_source() {
@@ -35,8 +35,8 @@ fn every_value_taking_argument_names_a_source() {
     );
 }
 
-/// The reverse: a `SOURCES` entry naming an argument clap does not declare
-/// is a rule that cannot fire, and reads as coverage that is not there.
+/// The reverse case is a `SOURCES` entry for an argument clap does not declare.
+/// Such a rule cannot fire, and reads as coverage that is not there.
 #[test]
 fn every_source_entry_names_a_real_argument() {
     let mut declared = Vec::new();
@@ -123,7 +123,7 @@ fn walk(cmd: &clap::Command, path: &str, visit: &mut impl FnMut(&str, &clap::Arg
 }
 
 /// `mt _cli --json` reports each source by this name, so the exact spelling is
-/// machine-visible. Pins every name and `Source::None`'s `None`; a stale or
+/// machine-visible. Pins every name and `Source::None`'s `None`. A stale or
 /// placeholder return leaves the reflection wrong for every argument.
 #[test]
 fn source_labels_are_the_reflected_names() {

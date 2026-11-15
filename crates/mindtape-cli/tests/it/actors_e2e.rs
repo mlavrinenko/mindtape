@@ -2,9 +2,9 @@
 //! registry, driven through the compiled `mt` binary.
 //!
 //! `crates/mindtape/src/filter/actors_tests.rs` covers the same behaviour
-//! against a hand-built `Config` only — nothing exercised it through TOML
-//! parsing, project loading and `mt ls`/`mt check` until the 2026-08-07
-//! manual session that surfaced the gap
+//! against a hand-built `Config` only. No test exercised it through TOML
+//! parsing, project loading and `mt ls`/`mt check` until the 2026-08-07 manual
+//! session that surfaced the gap
 //! (`truth/tasks/2026-08/cover-the-actors-filters-end-to-end.typ`). This file closes
 //! it.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
@@ -15,7 +15,7 @@ use std::path::Path;
 use crate::support;
 
 /// `[[roles]]` + `[[actors]]`: `ada` (human) holds only `reviewer`, `gpt`
-/// (llm) holds only `author` — a clean partition, so `role == "<x>"` matches
+/// (llm) holds only `author`, a clean partition, so `role == "<x>"` matches
 /// exactly the tasks assigned to one actor.
 const REGISTRY: &str = "[[roles]]\nname = \"reviewer\"\n\n\
      [[roles]]\nname = \"author\"\n\n\
@@ -23,7 +23,7 @@ const REGISTRY: &str = "[[roles]]\nname = \"reviewer\"\n\n\
      [[actors]]\nname = \"gpt\"\nkind = \"llm\"\nroles = [\"author\"]\n";
 
 /// `(stem, assignee)` for every task the fixture files. `eve` is never
-/// declared in [`REGISTRY`] — the undeclared-assignee case.
+/// declared in [`REGISTRY`], the undeclared-assignee case.
 const TASKS: &[(&str, &str)] = &[
     ("ada-one", "ada"),
     ("ada-two", "ada"),
@@ -107,12 +107,12 @@ fn assignee_filter_matches_by_actor_name() {
     );
 }
 
-/// An assignee naming nobody in the registry claims no role at all — it must
-/// not fall through and match either side of the partition. `role != "..."`
-/// is documented (`crates/mindtape/src/filter/mod.rs`) as the exact complement of
-/// `role == "..."` under the missing-field rule, so this only asserts `==`:
-/// the undeclared assignee resolving `role` to anything but `Missing` would
-/// be the actual regression this task exists to catch.
+/// An assignee naming nobody in the registry takes no role at all, and it must
+/// not fall through and match either side of the partition. The docs
+/// (`crates/mindtape/src/filter/mod.rs`) describe `role != "..."` as the exact
+/// complement of `role == "..."` under the missing-field rule, so this only
+/// asserts `==`. The undeclared assignee resolving `role` to anything but
+/// `Missing` would be the actual regression this task exists to catch.
 #[test]
 fn undeclared_assignee_resolves_no_role_rather_than_falling_through() {
     let dir = scaffold("");
@@ -138,8 +138,8 @@ fn check_rejects_undeclared_assignee_once_allowed_is_set() {
         .stderr(predicates::str::contains("eve-mystery"));
 }
 
-/// A registry violation fails the whole command at config load — before any
-/// task is even read — rather than showing up as a per-task violation.
+/// A registry violation fails the whole command at config load, before any task
+/// is even read, rather than showing up as a per-task violation.
 #[test]
 fn registry_violations_surface_as_config_load_errors() {
     let cases = [

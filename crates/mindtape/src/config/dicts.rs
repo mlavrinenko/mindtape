@@ -1,27 +1,27 @@
 //! `[dicts.<name>]` config: named string sets.
 //!
-//! A dictionary names a set of strings so more than one rule can share it. It
-//! is a top-level section, sibling of `[views.<name>]`, because a set is not a
-//! property of tasks: an allow-list, the filter language and a future consumer
+//! A dictionary specifies a set of strings so more than one rule can share it.
+//! It is a top-level section, sibling of `[views.<name>]`, because a set is not
+//! a property of tasks. An allow-list, the filter language and a future consumer
 //! all read the same name.
 //!
-//! Three sources feed one set — `values` (inline), `path` (a file relative to
-//! the project root, one entry per line, `#` comments and blank lines skipped)
-//! and `include` (other dicts, project or built-in, unioned in) — and any
-//! combination is legal so long as at least one is present. `case` decides how
-//! a lookup compares: `fold` (the default) is ASCII-case-insensitive, `exact`
-//! is byte equality.
+//! Three sources feed one set. `values` holds entries inline, and `path` names a
+//! file relative to the project root (one entry per line, `#` comments and blank
+//! lines skipped). `include` unions in other dicts, project or built-in. Any
+//! combination is legal so long as at least one is present. `case` decides how a
+//! lookup compares: `fold` (the default) is ASCII-case-insensitive, `exact` is
+//! byte equality.
 //!
-//! Two dictionaries ship embedded in the binary under the reserved `mindtape-`
+//! Two dictionaries come embedded in the binary under the reserved `mindtape-`
 //! prefix ([`BUILTIN_PREFIX`]): `mindtape-verbs` and `mindtape-dev-verbs`. They
 //! are always compiled, declared or not, so a project may `include` either
-//! without restating it; naming a project dict `mindtape-*` is a config error,
-//! so the namespace stays the tool's.
+//! without restating it. Naming a project dict `mindtape-*` is a config error,
+//! and the namespace stays the tool's.
 //!
-//! Everything is checked once, at config load ([`compile_dicts`]), never per
-//! task: the whole section either compiles or fails as one message. The result
-//! rides on the config as a [`DictCache`], because the filter language's
-//! `in_dict()` runs wherever a filter runs and none of those call sites has a
+//! The loader checks everything once, at config load ([`compile_dicts`]), never
+//! per task. The whole section either compiles or fails as one message. The
+//! result rides on the config as a [`DictCache`]. The filter language's
+//! `in_dict()` runs wherever a filter runs, and none of those call sites has a
 //! project root to re-read the section with.
 
 use std::borrow::Cow;
@@ -35,13 +35,13 @@ use crate::config::name_cycle::find_cycle;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// The dictionary-name prefix reserved for the sets `mt` ships. A project dict
+/// The dictionary-name prefix reserved for the sets `mt` embeds. A project dict
 /// carrying it is a config error.
 pub const BUILTIN_PREFIX: &str = "mindtape-";
 
 /// The dictionaries embedded in the binary, in declaration order. Each text is
-/// the data file verbatim, header comments included — they parse as comments
-/// under the same reader a project's `path` file goes through, so the shipped
+/// the data file verbatim, header comments included. They parse as comments
+/// under the same reader a project's `path` file goes through, and the embedded
 /// files document their own provenance without a second format.
 const BUILTIN_SOURCES: &[(&str, &str)] = &[
     ("mindtape-verbs", include_str!("../dicts/verbs.txt")),
@@ -61,15 +61,16 @@ pub struct DictSpec {
     /// Entries written inline.
     pub values: Vec<String>,
     /// A file of entries, one per line, relative to the project root, or to
-    /// the directory of the pack that declares the dictionary. Blank
-    /// lines and lines whose first non-blank character is `#` are skipped, and
-    /// each entry is trimmed. May leave the root (`../shared/verbs.txt`), the
-    /// same rule `[[typst.local-packages]] path` follows.
+    /// the directory of the pack that declares the dictionary. The reader skips
+    /// blank lines and lines whose first non-blank character is `#`, and trims
+    /// each entry. May leave the root (`../shared/verbs.txt`), the same rule
+    /// `[[typst.local-packages]] path` follows.
     pub path: Option<String>,
-    /// Other dictionaries, project or built-in, whose entries are unioned in.
-    /// The entries arrive raw, and this dict's own `case` decides how they compare.
+    /// Other dictionaries, project or built-in, whose entries the compiler
+    /// unions in. The entries arrive raw, and this dictionary's own `case`
+    /// decides how they compare.
     pub include: Vec<String>,
-    /// How a lookup compares against the entries: `fold` (the default) is
+    /// How a lookup compares against the entries. `fold` (the default) is
     /// ASCII-case-insensitive, `exact` is byte equality.
     pub case: DictCase,
 }
@@ -88,8 +89,8 @@ pub enum DictCase {
     Exact,
 }
 
-/// One compiled dictionary: the resolved entry set, already normalised for the
-/// case policy, so a lookup is a set probe and nothing more.
+/// One compiled dictionary, holding the resolved entry set already normalised
+/// for the case policy, so a lookup is a set probe and nothing more.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Dict {
     entries: BTreeSet<String>,
@@ -143,8 +144,8 @@ impl Dict {
         self.entries.len()
     }
 
-    /// A compiled dictionary is never empty — that is a config error — so this
-    /// is always `false`; it exists because `len` without it is a clippy lint.
+    /// A compiled dictionary is never empty (that is a config error), so this is
+    /// always `false`. It exists because `len` without it is a clippy lint.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
@@ -169,7 +170,7 @@ impl Dicts {
     }
 
     /// Is `value` in the dictionary named `name`? An unknown name reads as a
-    /// miss — the caller validates the name where it is written.
+    /// miss, and the caller validates the name where it appears.
     #[must_use]
     pub fn contains(&self, name: &str, value: &str) -> bool {
         self.get(name).is_some_and(|dict| dict.contains(value))
@@ -210,16 +211,16 @@ fn builtin_dicts() -> Dicts {
 /// the filter language's `in_dict()` has the entries without a project root in
 /// hand.
 ///
-/// A cache, not a declaration — which is why [`PartialEq`] here is always
-/// `true`. Its contents are a function of the `[dicts]` section (which `Config`
-/// compares, field by field) and of the project root a `path` entry resolves
-/// against, which `Config` does not carry at all. Comparing the cache would
-/// therefore make two configs with byte-identical declared settings unequal for
-/// having been loaded from different directories, a distinction `Config`
-/// equality has never claimed to draw.
+/// A cache, not a declaration, so [`PartialEq`] here is always `true`. Its
+/// contents are a function of the `[dicts]` section (which `Config` compares,
+/// field by field) and of the project root a `path` entry resolves against,
+/// which `Config` does not carry at all. Comparing the cache would make two
+/// configs with byte-identical declared settings unequal for having loaded from
+/// different directories, a distinction `Config` equality has never claimed to
+/// draw.
 ///
 /// It defaults to the built-ins alone, so `in_dict("mindtape-verbs", ...)`
-/// resolves against any `Config` — including `Config::default()` and one
+/// resolves against any `Config`, including `Config::default()` and one
 /// deserialized without ever touching a filesystem.
 #[derive(Debug, Clone)]
 pub struct DictCache(Arc<Dicts>);
@@ -231,7 +232,7 @@ impl Default for DictCache {
 }
 
 impl PartialEq for DictCache {
-    /// Always equal — see the type's own documentation for why a derived
+    /// Always equal. See the type's own documentation for why a derived
     /// comparison would be the wrong answer.
     fn eq(&self, _other: &Self) -> bool {
         true
@@ -262,13 +263,13 @@ fn parse_entries(text: &str) -> Vec<String> {
         .collect()
 }
 
-/// The checks that need no filesystem: the reserved prefix, a dict with no
-/// source at all, an unknown `include` target (with a nearest-match
+/// The checks that don't touch the filesystem: the reserved prefix, a dict with
+/// no source at all, an unknown `include` target (with a nearest-match
 /// suggestion), and an `include` cycle. Returns one message per problem.
 ///
 /// Run from [`crate::config::Config::validate`], so every path that validates a
-/// config catches them, and again from [`compile_dicts`], which additionally
-/// needs the graph proven acyclic before it walks it.
+/// config catches them, and again from [`compile_dicts`], which also needs the
+/// graph proven acyclic before it walks it.
 #[must_use]
 pub fn validate_dicts(dicts: &BTreeMap<String, DictSpec>) -> Vec<Problem> {
     let mut problems = Vec::new();
@@ -356,26 +357,26 @@ fn resolve(
 /// load, so a broken dictionary is one config error rather than one per task.
 ///
 /// # Errors
-/// Returns every problem found, joined with `; ` — a reserved name, an unknown
+/// Returns every problem found, joined with `; `: a reserved name, an unknown
 /// or cyclic `include`, an unreadable `path`, a dict with no source, or one
 /// that resolves empty.
 pub fn compile_dicts(dicts: &BTreeMap<String, DictSpec>, root: &Path) -> Result<Dicts, Problem> {
     compile_dicts_in(dicts, Some(root))
 }
 
-/// [`compile_dicts`] with no project root: a `path` source contributes nothing,
+/// [`compile_dicts`] with no project root: a `path` source doesn't contribute,
 /// because there is nothing to resolve it against. Every other check still
 /// runs.
 ///
 /// This is what [`crate::config::parse_config`] hydrates its [`DictCache`]
-/// with — it is handed a string and never learns where the project lives — so a
+/// with. It receives a string and never learns where the project lives, so a
 /// `Config` built from text alone still answers `in_dict()` for its inline and
 /// `include`-sourced dictionaries. Config load re-compiles against the real
 /// root ([`crate::config::layers`]) and that result wins.
 ///
 /// # Errors
-/// As [`compile_dicts`], minus the unreadable-`path` case — a dict sourced from
-/// a `path` alone resolves to no entries here and fails on that instead.
+/// As [`compile_dicts`], minus the unreadable-`path` case. A dict sourced from a
+/// `path` alone resolves to no entries here and fails on that instead.
 pub(crate) fn compile_dicts_rootless(dicts: &BTreeMap<String, DictSpec>) -> Result<Dicts, Problem> {
     compile_dicts_in(dicts, None)
 }
@@ -423,8 +424,8 @@ fn compile_dicts_in(
 }
 
 /// Every dictionary to compile and the case policy it compiles under: the
-/// built-ins (always `fold` — their data files are lowercase) followed by the
-/// project's own.
+/// built-ins (always `fold`, since their data files are lowercase) followed by
+/// the project's own.
 fn compile_order(dicts: &BTreeMap<String, DictSpec>) -> Vec<(String, DictCase)> {
     builtin_dict_names()
         .into_iter()

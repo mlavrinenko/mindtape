@@ -2,11 +2,11 @@
 //! an endless loop.
 //!
 //! A `[[on.flip]]` command may run `mt flip` itself, and that nested flip runs
-//! its own task's hooks, so no gate is skipped. Every command runs with
+//! its own task's hooks, so no gate drops out. Every command runs with
 //! [`ENV_CHAIN`] listing the flips in progress, outermost first, each a task
 //! and the status it is taking. A nested flip that repeats one of them would
-//! start the same hooks again, so it is refused and the refusal names the
-//! chain. Within one project that bounds a chain by tasks times statuses, and
+//! start the same hooks again, so `mt flip` refuses it and the refusal gives the
+//! chain. Within one project that bounds a chain by tasks times statuses.
 //! [`MAX_DEPTH`] bounds what no pair check can see, such as a hook that adds a
 //! fresh task and flips it.
 
@@ -19,13 +19,13 @@ use crate::diag::{Diag, Hint, Note};
 /// outermost first, as `<status>\t<id>\t<path>`.
 pub(crate) const ENV_CHAIN: &str = "MINDTAPE_FLIP_CHAIN";
 
-/// How many flips may be in progress above a flip before it is refused.
+/// How many flips may be in progress above a flip before `mt flip` refuses it.
 pub(crate) const MAX_DEPTH: usize = 16;
 
 /// One flip in progress.
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Link {
-    /// The status being stamped.
+    /// The status the flip stamps.
     status: String,
     /// The task's id, for the refusal.
     id: String,
@@ -64,8 +64,8 @@ impl Chain {
             .unwrap_or_default()
     }
 
-    /// Read [`ENV_CHAIN`]'s value. A line that isn't three fields is skipped,
-    /// which [`MAX_DEPTH`] still counts on.
+    /// Read [`ENV_CHAIN`]'s value. The parser skips a line that isn't three
+    /// fields, which [`MAX_DEPTH`] still counts on.
     fn parse(raw: &str) -> Self {
         Self(
             raw.lines()

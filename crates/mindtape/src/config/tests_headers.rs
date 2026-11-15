@@ -1,5 +1,5 @@
-//! `[tasks.body.headers.rules]` — section-heading gate parsing: path segment
-//! shapes (exact string vs. `{ match, recursive }` pattern), the
+//! `[tasks.body.headers.rules]` holds section-heading gate parsing: path
+//! segment shapes (exact string versus `{ match, recursive }` pattern), the
 //! require/forbid action enum, and the malformed-shape error message.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 

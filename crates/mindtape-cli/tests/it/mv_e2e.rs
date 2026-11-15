@@ -1,11 +1,11 @@
-//! End-to-end battery for `mt mv` — renaming a task's file stem, which is its
+//! End-to-end battery for `mt mv`: renaming a task's file stem, which is its
 //! identity, and retargeting every inbound `links:` edge onto the new one.
 //!
-//! Lives here (not an inline `#[path]` unit test) so it exercises the real
-//! prelude edge helpers (`depends-on`, `related`, `edge`), a real git repo (the
-//! move goes through `git mv` when there is one), and the compiled `mt` binary
-//! end-to-end — then proves `mt check` stays green, which is the whole point: a
-//! rename that missed an inbound edge leaves a dangling one.
+//! This lives here rather than as an inline `#[path]` unit test, so it runs the
+//! compiled `mt` binary end-to-end. It exercises the real prelude edge helpers
+//! (`depends-on`, `related`, `edge`) and a git repo, where the move goes
+//! through `git mv`, then proves `mt check` stays green. That is the whole
+//! point: a rename that missed an inbound edge leaves a dangling one.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;
@@ -17,7 +17,7 @@ use crate::support;
 /// `edge("blocks", …)` needs to resolve.
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n";
 
-/// The task being renamed.
+/// The task the rename targets.
 const SUBJECT: &str = mindtape::typst_task!(
     "(\n  \
 title: \"Subject\",\n  \
@@ -44,7 +44,8 @@ links: depends-on(\"old.typ\") + related(\"old.typ\")[why] + edge(\"blocks\", \"
 );
 
 /// An inbound edge from a sub-folder, authored as a relative path. Only the
-/// last component names the task, so the `../` prefix must survive the rewrite.
+/// last component identifies the task, so the `../` prefix must survive the
+/// rewrite.
 const NESTED: &str = mindtape::typst_task!(
     "(\n  \
 title: \"Nested\",\n  \

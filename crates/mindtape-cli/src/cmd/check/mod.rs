@@ -1,14 +1,14 @@
-//! `mt check` — validate tasks, and the tasks every template files, against
-//! the project configuration.
+//! `mt check` validates tasks, and the tasks every template files, against the
+//! project configuration.
 //!
 //! # Files
 //!
-//! - `commit.rs` — `--commit-msg`, the commit being written.
-//! - `range.rs` — `--commits`, a range of commits.
-//! - `run.rs` — the `[commits] run` command both arms run per message.
-//! - `set.rs` — a set named by `@name`: every member, reported together.
-//! - `templates.rs` — the template pass over every `mt add --list` template.
-//! - `cmd/ls/interactive/tests.rs`, `tests_rules.rs`, `*_tests.rs` — unit tests.
+//! - `commit.rs`: `--commit-msg`, the commit under construction.
+//! - `range.rs`: `--commits`, a range of commits.
+//! - `run.rs`: the `[commits] run` command both arms run per message.
+//! - `set.rs`: a set named by `@name`, every member reported together.
+//! - `templates.rs`: the template pass over every `mt add --list` template.
+//! - `cmd/ls/interactive/tests.rs`, `tests_rules.rs`, `*_tests.rs`: unit tests.
 
 pub(crate) mod commit;
 pub(crate) mod range;
@@ -50,8 +50,9 @@ pub struct CheckArgs {
     /// Check merge commits too.
     ///
     /// A merge joins commits already checked on their own, so `--commit-msg`
-    /// and `--commits` skip one by default. With this flag, a merge is checked
-    /// like any other commit, and `is_merge` tells its rules that it is one.
+    /// and `--commits` skip one by default. With this flag, the check treats a
+    /// merge like any other commit, and `is_merge` tells its rules that it is
+    /// one.
     #[arg(long)]
     pub check_merges: bool,
     /// Print the problems as JSON on stdout instead of text on stderr.
@@ -162,7 +163,7 @@ fn check_project(
 /// Check one project's tasks, its templates and its comments.
 ///
 /// # Errors
-/// Returns an error when a file can't be read or a rule doesn't compile.
+/// Returns an error on an unreadable file or a rule that doesn't compile.
 pub(crate) fn gather(project: &util::Project, body_rules: BodyRules<'_>) -> Result<Findings> {
     let mut violations = validate(&project.outcome.tasks, &project.config);
     violations.extend(body_violations(project, body_rules)?);

@@ -2,7 +2,7 @@
 //!
 //! Split out of `filter/mod.rs` for the file-size gate. [`Ctx`] carries the
 //! task under test, the config, the readiness oracle, the `in_view` depth, the
-//! dry-run flag, and — for an `[[on.add]]` `when` only — the pre-hook draft
+//! dry-run flag, and, for an `[[on.add]]` `when` only, the pre-hook draft
 //! `old("field")` reads.
 
 use crate::config::Config;
@@ -10,22 +10,23 @@ use crate::filter::{FilterError, Readiness};
 use crate::model::Task;
 use crate::model::fields::{self, FieldValue};
 
-/// Shared context threaded through the filter walk: the task under test, the
-/// config (framework scores, terminal set, view lookup), the readiness oracle
-/// (`ready` / `blocked`), the current `in_view` recursion depth, whether this
-/// is the load-time dry run, and the pre-hook draft when one exists.
+/// Shared context threaded through the filter walk. It holds the task under
+/// test, the config (framework scores, terminal set, view lookup), the
+/// readiness oracle (`ready` / `blocked`), and the current `in_view` recursion
+/// depth. It also records whether this is the load-time dry run, and the
+/// pre-hook draft when one exists.
 pub(crate) struct Ctx<'a> {
     pub(crate) task: &'a Task,
     pub(crate) config: &'a Config,
     pub(crate) readiness: &'a Readiness,
     pub(crate) depth: usize,
     pub(crate) dry: bool,
-    /// Whether the task exists in the commit state being read — `Some` only
-    /// under a task-scope commit rule's `head(...)` / `staged(...)` /
+    /// Whether the task exists in the commit state the caller reads: `Some`
+    /// only under a task-scope commit rule's `head(...)` / `staged(...)` /
     /// `worktree(...)`, where `exists` means something.
     pub(crate) exists: Option<bool>,
     /// The task before any `[[on.add]]` action ran. `Some` only inside an
-    /// add hook's `when`; every other caller leaves it `None`, so `old()`
+    /// add hook's `when`. Every other caller leaves it `None`, so `old()`
     /// refuses there instead of inventing a value.
     pub(crate) old: Option<&'a Task>,
 }
@@ -33,7 +34,7 @@ pub(crate) struct Ctx<'a> {
 impl<'a> Ctx<'a> {
     /// A context reading `task` as one commit state holds it
     /// ([`crate::commit::task_expr`]): `exists` answers whether the state holds
-    /// the file at all, `readiness` is computed over that state's task set.
+    /// the file at all, and `readiness` covers that state's task set.
     pub(crate) fn in_state(
         task: &'a Task,
         config: &'a Config,
@@ -52,7 +53,7 @@ impl<'a> Ctx<'a> {
         }
     }
 
-    /// The same context evaluating `task` instead — what `count` hands its
+    /// The same context evaluating `task` instead: what `count` hands its
     /// argument for each task it counts.
     pub(crate) fn over<'b>(&self, task: &'b Task) -> Ctx<'b>
     where
@@ -87,8 +88,8 @@ impl<'a> Ctx<'a> {
 }
 
 /// Resolve a field name to its value on `task`, via the shared
-/// [`crate::model::fields`] registry — the single place every generically
-/// comparable field is wired, so a field usable here is usable in `--sort` too.
+/// [`crate::model::fields`] registry, the single place that wires every
+/// generically comparable field. A field usable here is usable in `--sort` too.
 /// `pub(crate)` so [`crate::filter::predicates`]'s `present`/`contains_value`
 /// can share it.
 pub(crate) fn field_value(

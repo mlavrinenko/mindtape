@@ -1,12 +1,12 @@
-//! `mt preset save` / `mt preset ls` — capture and inspect user presets.
+//! `mt preset save` / `mt preset ls`: capture and inspect user presets.
 //!
 //! A preset is a `.mindtape/config.toml` body plus its `templates/` (see
-//! [`crate::cmd::init::preset`]); `mt init --preset` reads one, this module writes and
-//! lists them. `save` captures the *current project's* config verbatim — no
-//! reverse-engineering of the wizard answers that would have produced it,
-//! since a wrong guess would silently change what the preset means — and
-//! `ls` surfaces the one thing that is otherwise invisible until it
-//! surprises someone: a user preset shadowing a built-in of the same name.
+//! [`crate::cmd::init::preset`]). `mt init --preset` reads one, and this module
+//! writes and lists them. `save` captures the *current project's* config
+//! verbatim, with no reverse-engineering of the answers that the wizard would
+//! have produced. A wrong guess would silently change what the preset means.
+//! `ls` surfaces what is otherwise invisible until it surprises someone: a
+//! user preset shadowing a built-in of the same name.
 
 use std::path::{Path, PathBuf};
 
@@ -55,8 +55,8 @@ pub struct SaveArgs {
 /// Run the `preset` command.
 ///
 /// # Errors
-/// Returns an error if the current directory is not inside a Mindtape
-/// project, the user config directory cannot be determined, or the write (for
+/// Returns an error if the current directory is not inside a `Mindtape`
+/// project, the user config directory does not resolve, or the write (for
 /// `save`) or read (for `ls`) fails.
 pub fn run(args: &PresetArgs) -> Result<()> {
     match &args.action {
@@ -93,14 +93,13 @@ pub fn run(args: &PresetArgs) -> Result<()> {
 /// directory.
 ///
 /// Refuses to overwrite an existing user preset of the same name unless
-/// `force`; a `force`d overwrite also clears a same-named flat `<name>.toml`
-/// preset, so the freshly written nested layout is not silently shadowed by
-/// it on the next resolve.
+/// `force`. A `force`d overwrite also clears a same-named flat `<name>.toml`
+/// preset, so the next resolve cannot silently pick the flat one over the
+/// freshly written nested layout.
 ///
 /// # Errors
-/// Returns an error if the project's config cannot be read, an existing
-/// preset blocks the write without `force`, or the destination cannot be
-/// written.
+/// Returns an error if the project's config does not read, an existing preset
+/// blocks the write without `force`, or the write to the destination fails.
 pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Result<PathBuf> {
     let config_path = root.join(".mindtape").join("config.toml");
     let config = std::fs::read_to_string(&config_path)
@@ -147,7 +146,8 @@ pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Res
     Ok(dest)
 }
 
-/// Create `dir` and its parents, or say which directory could not be made.
+/// Create `dir` and its parents, or say which directory the call could not
+/// create.
 fn create_dir(dir: &Path) -> Result<()> {
     std::fs::create_dir_all(dir).map_err(|err| {
         Diag::failed("can't create")
@@ -157,12 +157,12 @@ fn create_dir(dir: &Path) -> Result<()> {
 }
 
 /// Render `mt preset ls`: every built-in, then every user preset (if the
-/// user preset directory resolves and holds any), each annotated with
-/// whichever of "default" / "shadowed by user preset" / "shadows built-in"
-/// applies — shadowing is otherwise invisible until it surprises someone.
+/// user preset directory resolves and holds any). Each line carries whichever
+/// of "default" / "shadowed by user preset" / "shadows built-in" applies.
+/// Shadowing is otherwise invisible until it surprises someone.
 ///
 /// # Errors
-/// Returns an error if the user preset directory exists but cannot be read.
+/// Returns an error if the user preset directory exists but does not read.
 pub(crate) fn render_ls(user_dir: Option<&Path>) -> Result<String> {
     let builtins = preset::list_builtins();
     let user_names = match user_dir {
@@ -209,13 +209,13 @@ pub(crate) fn render_ls(user_dir: Option<&Path>) -> Result<String> {
 }
 
 /// `mt preset ls --json`: one `presets` entry per built-in then per user
-/// preset: `name`, `origin` (`built-in` or `user`), `description` (`null` for
-/// a user preset), `default`, and `shadows` (a user preset hiding a built-in)
-/// or `shadowed` (a built-in a user preset hides), inside its `$schema`
-/// envelope.
+/// preset. Each entry holds `name`, `origin` (`built-in` or `user`),
+/// `description` (`null` for a user preset), `default`, and `shadows` (a user
+/// preset hiding a built-in) or `shadowed` (a built-in a user preset hides),
+/// inside its `$schema` envelope.
 ///
 /// # Errors
-/// Returns an error if the user preset directory exists but cannot be read.
+/// Returns an error if the user preset directory exists but does not read.
 pub(crate) fn ls_json(user_dir: Option<&Path>) -> Result<Envelope<PresetsPayload>> {
     let builtins = preset::list_builtins();
     let user_names = match user_dir {

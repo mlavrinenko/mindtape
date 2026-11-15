@@ -1,8 +1,9 @@
-//! What `mt add` says about a fill that went through: each config-spliced core
-//! field the template did not declare and the caller did not set, naming the
-//! value, where it came from, and the `--set` that overrides it; and each `text`
-//! slot whose markup was escaped. A sibling module because `cmd/add/mod.rs`
-//! sits at the linecop cap; the seam is "decide what was filled" vs "say so".
+//! What `mt add` says about a fill that went through. It reports each
+//! config-spliced core field the template did not declare and the caller did
+//! not set. Each note gives the value, where it came from, and the `--set` that
+//! overrides it. It also reports each `text` slot whose markup the escape pass
+//! changed. A sibling module because `cmd/add/mod.rs` sits at the linecop cap.
+//! The seam separates the fill decision from the report.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -55,8 +56,8 @@ pub(super) fn report_injected(
 
 /// Whether `names` already supplied this field itself, by `--set`/`-f`/`--` or
 /// as a hook's field. A strict-framework priority has no scalar `priority=`
-/// key; supplying any of its leaves counts as taking it over, so the note stays
-/// quiet.
+/// key. Supplying any of its leaves counts as taking it over, and the note then
+/// stays quiet.
 fn supplied(slot: &RequiredSlot, names: &BTreeSet<String>) -> bool {
     names.contains(&slot.field)
         || discover_slots(&slot.call)
@@ -74,11 +75,11 @@ fn display_value(raw: &str) -> String {
 }
 
 /// Warn once per `text` slot whose value holds a backtick, which escaping
-/// files as a literal one. Only the backtick counts: every other markup
-/// leader has a common literal use in prose (a path's `_`, `issue #4`,
-/// `a < b`, `$5`, `@ada`), while a backtick almost always opens a code span
-/// the author meant to render. `mt check` draws the same line for a slot's
-/// example. The task still files.
+/// files as a literal one. Only the backtick counts. Every other markup leader
+/// has a common literal use in prose: a path's `_`, `issue #4`, `a < b`, `$5`,
+/// `@ada`. A backtick almost always opens a code span the author meant to
+/// render. `mt check` draws the same line for a slot's example. The task still
+/// files.
 pub(super) fn report_escaped_spans(values: &BTreeMap<String, RawValue>, specs: &[SlotSpec]) {
     for spec in specs.iter().filter(|spec| spec.kind == SlotKind::Text) {
         if let Some(RawValue::Str(text)) = values.get(&spec.name)

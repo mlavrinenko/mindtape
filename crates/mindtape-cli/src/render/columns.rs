@@ -7,12 +7,13 @@
 //!
 //! # Why visibility resolves here
 //!
-//! Whether a column renders is `[ls.columns.<name>] when`, and that expression
-//! reads facts about the rows — whether any cell carries text, whether the rows
-//! disagree, whether anything is blocked (`nonempty()`, `contested()`,
-//! `blocked()`) — plus whether the caller named the column (`named()`). This
-//! module is where the rows are, so this is where the expression is evaluated,
-//! against the [`mindtape::ColumnFacts`] built here per column.
+//! A column renders when its `[ls.columns.<name>] when` expression holds. That
+//! expression reads facts about the rows: whether any cell carries text,
+//! whether the rows disagree, whether anything blocks the column
+//! (`nonempty()`, `contested()`, `blocked()`). It also reads whether the caller
+//! named the column (`named()`). This module holds the rows, so it evaluates
+//! the expression here, against the [`mindtape::ColumnFacts`] built here per
+//! column.
 //!
 //! No visibility policy lives in this file. The per-column defaults are lines
 //! of `crates/mindtape/src/config/defaults.toml`, and a column with no `when` at all
@@ -52,14 +53,14 @@ pub enum ColumnId {
 }
 
 /// Built-in column order, used when `[ls] columns-order` is unset. `File` is
-/// last: under the shipped floor it renders only when named explicitly or when
-/// the output is a captured table, so appending it after `Title` cannot disturb
+/// last: under the built-in floor it renders only when named explicitly or when
+/// the output is a captured table. Appending it after `Title` cannot disturb
 /// the built-in look of an unconfigured `mt ls` on a terminal.
 ///
-/// `Assignee` sits with the other short scalars, before the flex `Title`,
-/// rather than being tacked on at the end like `File`: when it renders at all
-/// it is because the rows disagree about it, and that is metadata to read
-/// alongside status and priority, not a trailing path.
+/// `Assignee` sits with the other short scalars, before the flex `Title`, not
+/// tacked on at the end like `File`. When it renders at all, the rows disagree
+/// about it, and that is metadata to read alongside status and priority, not a
+/// trailing path.
 pub const ORDER: [ColumnId; 11] = [
     ColumnId::StemHash,
     ColumnId::Status,
@@ -120,8 +121,8 @@ impl ColumnId {
         ORDER.into_iter().find(|col| col.key() == key)
     }
 
-    /// The flex column absorbs remaining terminal width; the rest size to their
-    /// natural content. Only `title` flexes today.
+    /// The flex column absorbs remaining terminal width, and the rest size to
+    /// their natural content. Only `title` flexes today.
     #[must_use]
     pub fn is_flex(self) -> bool {
         matches!(self, ColumnId::Title)
@@ -148,15 +149,14 @@ impl ColumnId {
         }
     }
 
-    /// The listing facts this column's `when` expression is decided against —
-    /// the four it reads as `nonempty()`, `contested()`, `named()` and
-    /// `blocked()`.
+    /// The listing facts this column's `when` expression decides against: the
+    /// four it reads as `nonempty()`, `contested()`, `named()` and `blocked()`.
     ///
-    /// `nonempty` and `contested` come from one pass over the rows, which
-    /// stops as soon as both are settled: a column whose first two cells
-    /// differ and carry text never touches row three. A blank counts as its
-    /// own value for `contested`, so a half-filled column is contested — the
-    /// blanks are exactly what a reader wants to see there.
+    /// `nonempty` and `contested` come from one pass over the rows, which stops
+    /// as soon as it settles both: a column whose first two cells differ and
+    /// carry text never touches row three. A blank counts as its own value for
+    /// `contested`, which makes a half-filled column contested. The blanks are
+    /// exactly what a reader wants to see there.
     #[must_use]
     pub fn facts(self, rows: &[(String, &Task)], ctx: RenderCtx<'_>, named: bool) -> ColumnFacts {
         let mut facts = ColumnFacts {
@@ -182,15 +182,15 @@ impl ColumnId {
     /// Resolve this column's visibility for one run: evaluate
     /// `[ls.columns.<key>] when` against the facts `env` carries.
     ///
-    /// A column the config does not describe — no entry, or an entry with no
-    /// `when` — does not render. The embedded floor carries one per column, so
+    /// A column the config does not describe, with no entry or an entry with no
+    /// `when`, does not render. The embedded floor carries one per column, so
     /// reaching that case means a config layer deleted the column's answer, not
     /// that a built-in one is waiting.
     ///
     /// # Errors
-    /// Returns an error naming the column if the expression fails to parse or
-    /// evaluate. Config load already validates every one of them, so this only
-    /// recurs for a config built in memory rather than parsed.
+    /// Returns an error that specifies the column if the expression fails to
+    /// parse or evaluate. Config load already validates every one of them, so
+    /// this only recurs for a config built in memory rather than parsed.
     fn visible(self, config: &Config, env: &ConditionEnv) -> Result<bool> {
         let key = self.key();
         let Some(expr) = config
@@ -230,11 +230,11 @@ pub fn rows<'t>(tasks: &'t [Task], hashes: &StemHashes) -> Vec<(String, &'t Task
 /// columns that resolve visible for this task list.
 ///
 /// Shared by every `ls` renderer (`table`, `csv`) so they agree on which
-/// columns render and in what order — only their per-cell formatting differs.
+/// columns render and in what order. Only their per-cell formatting differs.
 ///
-/// Each column is resolved against `ctx.env` with its own [`ColumnFacts`]
-/// swapped in, so a `when` asking `nonempty()` gets this column's answer and
-/// the next column's `when` gets its own.
+/// Each column resolves against `ctx.env` with its own [`ColumnFacts`] swapped
+/// in, so a `when` asking `nonempty()` gets this column's answer and the next
+/// column's `when` gets its own.
 ///
 /// # Errors
 /// Returns an error if a column's `when` fails to parse or evaluate (see
@@ -294,7 +294,7 @@ pub fn joined_rows<'t>(groups: &[(&'t [Task], RenderCtx<'_>)]) -> Result<Joined<
     Ok((rows, union_order(&shown)))
 }
 
-/// The columns of a table that joins several listings: every column any of
+/// The columns of a table that joins more than one listing: every column any of
 /// `shown` resolved visible, each listing's own order kept. A column new to
 /// the union lands right after the column it follows in its own listing, so
 /// `[slug#, title]` then `[slug#, status, title]` joins as
@@ -316,12 +316,12 @@ pub fn union_order(shown: &[Vec<ColumnId>]) -> Vec<ColumnId> {
     union
 }
 
-/// Per-row hyperlink target URIs, shared by every column OSC 8 wraps (`slug#` and
-/// `file` — see `render/link.rs`). The target is a property of the row (the
-/// task's file), not of any one column, so this is built once per render and
-/// the same list is attached to both columns rather than recomputed per
-/// column. Built from `[ls] hyperlink-target`, defaulting to
-/// [`file_path::DEFAULT_HYPERLINK_TARGET`]; `table.rs` decides whether to
+/// Per-row hyperlink target URIs, shared by every column OSC 8 wraps (`slug#`
+/// and `file`). See `render/link.rs`. The target is a property of the row (the
+/// task's file), not of any one column. The render builds it once and attaches
+/// the same list to both columns rather than recomputing it per column. It
+/// comes from `[ls] hyperlink-target`, defaulting to
+/// [`file_path::DEFAULT_HYPERLINK_TARGET`]. `table.rs` decides whether to
 /// actually apply it (`--hyperlinks`).
 #[must_use]
 pub fn row_hyperlink_targets(rows: &[(String, &Task)], ctx: RenderCtx<'_>) -> Vec<String> {
@@ -344,7 +344,7 @@ fn plain(text: String) -> CellSpec {
     }
 }
 
-/// A readiness cell: a glyph and short label, coloured per `[ls.ready]`
+/// A readiness cell holds a glyph and a short label, coloured per `[ls.ready]`
 /// (green/ready, red/blocked by embedded-floor default). Settled (terminal)
 /// tasks render blank.
 #[must_use]
@@ -376,7 +376,7 @@ pub fn ready_cell(state: ReadyState, config: &Config) -> CellSpec {
     }
 }
 
-/// The child count, blank for a task with none — a leaf is not a parent with
+/// The child count, blank for a task with none. A leaf is not a parent with
 /// zero children to a reader scanning the column.
 fn children_text(task: &Task) -> String {
     if task.children == 0 {
@@ -387,7 +387,7 @@ fn children_text(task: &Task) -> String {
 }
 
 /// Progress as `done/children` (`3/5`), blank with no children. The table
-/// shows the counts a reader can check; the filter language, `--json` and CSV
+/// shows the counts a reader can check. The filter language, `--json` and CSV
 /// carry the same value as the `0..1` fraction (`progress == 1`).
 fn progress_text(task: &Task) -> String {
     if task.children == 0 {
@@ -414,8 +414,8 @@ fn priority_cell(task: &Task, config: &Config) -> CellSpec {
 /// Due cell: accented with `[ls] overdue-color` (red by embedded-floor
 /// default) when the task is overdue (past due, non-terminal), else plain.
 ///
-/// The overdue check compares the raw ISO value; only the displayed text is
-/// reformatted via the configured `date_format` (or the default `YYYY-MM-DD`).
+/// The overdue check compares the raw ISO value. Only the displayed text goes
+/// through the configured `date_format` (or the default `YYYY-MM-DD`).
 #[must_use]
 pub fn due_cell(task: &Task, config: &Config) -> CellSpec {
     let raw = task.due.as_deref().unwrap_or_default();

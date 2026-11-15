@@ -37,8 +37,8 @@ fn task_file(version: &str) -> String {
 }
 
 /// Every listed version must evaluate through the copy in the binary, with no
-/// package directory to hold it: that is what keeps an old pin loadable on a
-/// fresh clone or a CI runner.
+/// package directory to hold it. An old pin then stays loadable on a fresh
+/// clone or a CI runner.
 #[test]
 fn every_supported_prelude_loads_where_no_package_directory_holds_it() {
     let empty = tempfile::tempdir().unwrap();
@@ -119,7 +119,7 @@ fn an_unsupported_prelude_names_the_version_and_the_supported_set() {
     assert!(message.contains("0.2.0, 0.3.0, 0.4.0"), "{message}");
 }
 
-/// The gate runs before any package directory: a working `0.1.0` install
+/// The gate runs before any package directory. A working `0.1.0` install
 /// cannot make an unsupported version load.
 #[test]
 fn an_installed_unsupported_prelude_is_still_refused() {
@@ -185,7 +185,7 @@ fn every_supported_snapshot_carries_the_task_fields() {
     }
 }
 
-/// The archived snapshot is immutable: a re-copy that changes a byte, even
+/// The archived snapshot is immutable. A re-copy that changes a byte, even
 /// with the same DSL, fails until support is deliberately dropped.
 #[test]
 fn the_archived_0_2_0_snapshot_is_immutable() {
@@ -193,8 +193,8 @@ fn the_archived_0_2_0_snapshot_is_immutable() {
     assert_eq!(snapshot_digest(snapshot.source), ARCHIVED_0_2_0_SHA256);
 }
 
-/// The checksum reads LF even where a checkout or an editor hands the test
-/// CRLF, so the same fixture passes on Windows.
+/// The checksum reads LF even where a checkout or an editor writes CRLF. The
+/// same fixture then passes on Windows.
 #[test]
 fn the_archived_snapshot_checksum_normalizes_crlf() {
     let snapshot = prelude_snapshot("0.2.0").unwrap();
@@ -237,7 +237,7 @@ fn snapshot_digest(source: &str) -> String {
     crate::loader::cache::hex(&sha2::Sha256::digest(lf.as_bytes()))
 }
 
-/// `PRELUDE_VERSION` and `lib/typst.toml` name one version; a bump that
+/// `PRELUDE_VERSION` and `lib/typst.toml` name one version. A bump that
 /// changes one and not the other fails here.
 #[test]
 fn the_current_version_mirrors_the_library_manifest() {

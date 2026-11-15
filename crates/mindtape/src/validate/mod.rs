@@ -1,16 +1,16 @@
 //! Config-driven validation of loaded tasks.
 //!
-//! Enforces the declared status lifecycle, enum field constraints, the estimate
-//! unit allow-list, the `required` rules (a filter expression per field, see
-//! [`crate::config::required`]), the tag allow-list, the priority framework
-//! scoring/manual-override policy (see [`crate::validate::priority`]), and the
-//! typed `links:` edges (resolution, cardinality, notes, cycles — see
-//! [`crate::validate::links`]), and that each `waits-on` entry names a declared
-//! checker with a shell-safe id.
+//! The checks cover the declared status lifecycle, enum field constraints, the
+//! estimate unit allow-list, the `required` rules (a filter expression per
+//! field, see [`crate::config::required`]), and the tag allow-list. They also
+//! cover the priority framework scoring/manual-override policy (see
+//! [`crate::validate::priority`]) and the typed `links:` edges (resolution,
+//! cardinality, notes, cycles, see [`crate::validate::links`]). Each `waits-on`
+//! entry must also reference a declared checker with a shell-safe id.
 //!
 //! # Files
 //!
-//! - `candidate.rs`: validates a rendered task before it is written.
+//! - `candidate.rs`: validates a rendered task before a writer writes it.
 //! - `links.rs`: the typed `links:` edge checks.
 //! - `priority.rs`: priority framework and manual-override checks.
 //! - `recur/mod.rs`: the task-level `recur` policy check.
@@ -100,17 +100,18 @@ fn check_collector_problems(task: &Task, out: &mut Vec<Violation>) {
 
 /// A field the marker held with the wrong Typst shape (coerced to
 /// empty/absent by [`Task::from_marker`]) always fails `check`, regardless of
-/// project config — a type mismatch is never a matter of policy.
+/// project config. A type mismatch is never a matter of policy.
 fn check_shape(task: &Task, out: &mut Vec<Violation>) {
     for err in &task.shape_errors {
         push(out, task, &err.field, err.message.clone());
     }
 }
 
-/// Whether the projection reported `name` itself unreadable — a field-level
-/// [`crate::model::marker::ShapeError`], whose path is the field name and nothing more.
-/// Exact equality is the whole test, and it is exact by that module's path
-/// convention rather than by luck: every element path extends the field name
+/// Whether the projection reported `name` itself unreadable, a field-level
+/// [`crate::model::marker::ShapeError`], whose path is the field name and
+/// nothing more. Exact equality is the whole test, and it is exact by that
+/// module's path convention rather than by luck. Every element path extends the
+/// field name
 /// (`status.date`, `tags[1]`, `priority.inputs.ease`), so the one path equal to
 /// the name is the one case where the projection came away with nothing.
 fn shape_reported(task: &Task, name: &str) -> bool {
@@ -118,16 +119,16 @@ fn shape_reported(task: &Task, name: &str) -> bool {
 }
 
 /// A `required` answer with the fields the marker could not read at all masked
-/// out. A field-level shape error means the author did write the field and
-/// [`check_shape`] already reported it naming the type; "missing required" on
-/// top of that sends them to add a field that is on the page.
+/// out. A field-level shape error means the author did write the field, and
+/// [`check_shape`] already reported it naming the type. A "missing required"
+/// report on top of that sends them to add a field that is on the page.
 ///
 /// The mask sits here, at the input to each check, rather than as a pass over
-/// the finished violations: after the fact the only handle on the report to
-/// drop is its rendered message — `required field is missing`, spelled
-/// independently by four checks, and `missing required status` by a fifth — so
-/// filtering would pin prose no gate holds still and would equally swallow a
-/// genuinely different violation worded the same way. The `required` bool is
+/// the finished violations. After the fact the only handle on the report to
+/// drop is its rendered message. That message is `required field is missing`,
+/// spelled independently by four checks, and `missing required status` by a
+/// fifth. Filtering would pin prose no gate holds still, and it would equally
+/// swallow a different violation worded the same way. The `required` bool is
 /// the real input, and the input is what is wrong.
 ///
 /// An element error is deliberately not masked: it leaves the field itself
@@ -257,9 +258,9 @@ fn check_status_note(task: &Task, legend: &Legend, status: &Status, out: &mut Ve
     }
 }
 
-/// Flag a task sitting in a status no legal path reaches from the initial state.
-/// Only a reachability check — the snapshot carries no history, so this cannot
-/// prove the task walked a legal path, only that its current state is not a
+/// Flag a task sitting in a status the initial state cannot reach. This is only
+/// a reachability check. The snapshot carries no history, so it cannot prove the
+/// task walked a legal path. It can only show that the current state is not a
 /// structurally dead one (a hand-edit into an orphan, or a since-changed graph).
 /// No-op when the graph is absent (any-to-any) or has no initial state.
 fn check_status_reachable(
@@ -282,8 +283,8 @@ fn check_status_reachable(
     }
 }
 
-/// One described field: a missing required value, and a held value outside
-/// the allowed ones for the tasks the field's `values-when` selects.
+/// Check one described field for a missing required value, and for a held value
+/// outside the allowed ones for the tasks the field's `values-when` selects.
 fn check_field(task: &Task, config: &Config, field: &Descriptor, out: &mut Vec<Violation>) {
     let name = field.name;
     let Some(value) = fields::held(task, name) else {
@@ -348,12 +349,12 @@ pub(crate) fn check_in_scale(
 }
 
 /// Validate a task's estimate: presence when `required`, allowed unit names,
-/// and a `count(...)` unit that resolved. A quantity is never checked here — a cap is a `[[tasks.rules]]`
-/// entry reading `estimate.<unit>`.
+/// and a `count(...)` unit that resolved. A quantity is never checked here,
+/// since a cap is a `[[tasks.rules]]` entry reading `estimate.<unit>`.
 ///
-/// Units and counts are skipped once a task is terminal — it cannot be re-estimated any
-/// more, so retiring a unit is one edit to `units` rather than a rewrite of
-/// every closed task that ever carried it.
+/// The check skips units and counts once a task is terminal. A terminal task
+/// takes no further estimate, so retiring a unit is one edit to `units` rather
+/// than a rewrite of every closed task that ever carried it.
 fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Violation>) {
     let estimate = &config.tasks.estimate;
     if task.estimate.is_empty() && task.estimate_counts.is_empty() {

@@ -3,7 +3,7 @@
 //! Filter / sort defaults, the global date format, and the column render
 //! order. The column-name vocabulary ([`LS_COLUMNS`]) lives here as the single
 //! validated source shared by `[ls.columns]`, `[ls] columns-order`, and any
-//! consumer renderer; one column's own settings (its `when` expression) live
+//! consumer renderer. One column's own settings (its `when` expression) live
 //! in [`crate::config::ls_columns`].
 
 use std::collections::BTreeMap;
@@ -17,21 +17,21 @@ use crate::problem::Problem;
 use crate::sort::validate_sort_spec_with;
 use crate::suggest::Unknown;
 
-/// Canonical `mt ls` column names, in built-in render order. The single
+/// Canonical `mt ls` column names, in built-in render order. This is the single
 /// validated vocabulary shared by `[ls.columns]` and `[ls] columns-order` (and
-/// any consumer): `slug#` is the stem hash column, `title` the flex column,
-/// `file` (last) the task's source path — opt-in only, since its cell is never
-/// blank and `nonempty()` would pin it permanently visible; the floor gives it
-/// `named()` instead.
+/// any consumer). `slug#` is the stem hash column, `title` the flex column, and
+/// `file` (last) the task's source path. `file` is opt-in only, since its cell
+/// is never blank and `nonempty()` would pin it permanently visible. The floor
+/// gives it `named()` instead.
 ///
-/// `assignee` joins the short scalars ahead of `title` on a third rule again —
-/// `contested()`, "do the rows disagree". Neither of the others fits: the
+/// `assignee` joins the short scalars ahead of `title` on a third rule again:
+/// `contested()`, "do the rows disagree". The other two rules don't fit. The
 /// ordinary `nonempty()` test would pin a column onto `mt ls @agent` repeating
-/// one name down every row the filter already named, and `file`'s `named()`
-/// would keep it off a mixed listing, which is the one place it says something.
+/// one name down every row the filter already named. `file`'s `named()` would
+/// keep it off a mixed listing, which is the one place it says something.
 ///
 /// All three live as one `when` expression per column in
-/// `crates/mindtape/src/config/defaults.toml`, not in Rust — see
+/// `crates/mindtape/src/config/defaults.toml`, not in Rust. See
 /// [`crate::config::ls_columns`].
 pub const LS_COLUMNS: [&str; 11] = [
     "slug#", "status", "ready", "priority", "due", "assignee", "title", "why", "children",
@@ -43,13 +43,13 @@ pub const LS_COLUMNS: [&str; 11] = [
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsConfig {
     /// Name of the view that drives the default `mt ls` listing when the
-    /// caller passes no filter: falls back to the `[views.default]` view when
-    /// this is unset, or matches every task when neither is declared.
-    /// Validated at config load.
+    /// caller passes no filter. It falls back to the `[views.default]` view
+    /// when this is unset, and matches every task when the config declares
+    /// neither. Validated at config load.
     pub default_view: Option<String>,
     /// Default sort chain for `mt ls` when the caller passes no `--sort`.
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
-    /// Validated at config load. When absent the shipped built-in chain applies.
+    /// Validated at config load. When absent the built-in chain applies.
     pub default_sort: Vec<String>,
     /// Date format for every date column. Tokens, longest match first: `YYYY`
     /// 4-digit year, `YY` 2-digit year, `MMMM` full month name, `MMM`
@@ -57,8 +57,8 @@ pub struct LsConfig {
     /// zero-padded day, `D` bare day. Other characters print as written.
     /// Absent prints ISO `YYYY-MM-DD`.
     pub date_format: Option<String>,
-    /// Per-column display settings, keyed by column name. The shipped
-    /// defaults set `when` on every column; a column with no `when` never
+    /// Per-column display settings, keyed by column name. The built-in
+    /// defaults set `when` on every column. A column with no `when` never
     /// renders.
     // The embedded floor lists every column in `LS_COLUMNS`, so an entry
     // missing here is one a config layer deleted.
@@ -68,7 +68,7 @@ pub struct LsConfig {
     /// column set and order.
     pub columns_order: Vec<String>,
     /// Glyph, color and label for the ready and blocked states in the `READY`
-    /// column. An unset key takes the shipped default.
+    /// column. An unset key takes the built-in default.
     pub ready: ReadyConfig,
     /// Color for the overdue due-date accent. Defaults to `"red"`.
     pub overdue_color: Option<String>,
@@ -89,7 +89,7 @@ pub struct LsConfig {
     pub hyperlink_target: Option<String>,
     /// Fields that `contains()` searches when a call names none, in order.
     /// Takes any filter field name, plus `body`, `note` and `tags`. Empty (the
-    /// default) searches `title`, `id` and `body`. A call that names its
+    /// default) searches `title`, `id` and `body`. A call that specifies its
     /// field, such as `contains("x", note)`, ignores this key. An unknown name
     /// is a config error.
     // `deserialize_contains_fields` checks each name against
@@ -99,12 +99,12 @@ pub struct LsConfig {
 }
 
 /// Deserialize `[ls] contains-fields`, rejecting any name outside
-/// `crate::model::fields::is_contains_field`'s vocabulary — the same one an explicit
-/// `contains("x", field)` call validates against. Runs only when the key is
-/// present (a missing key keeps the struct-level `#[serde(default)]` empty
-/// vec, silently valid since nothing was configured); a bad name surfaces as
-/// a config parse error at load, naming the field and the valid set, rather
-/// than a silently ignored entry.
+/// `crate::model::fields::is_contains_field`'s vocabulary, the same one an
+/// explicit `contains("x", field)` call validates against. It runs only when
+/// the key is present. A missing key keeps the struct-level `#[serde(default)]`
+/// empty vec, which is silently valid. A bad name surfaces as a config parse
+/// error at load, naming the field and the valid set, rather than a silently
+/// ignored entry.
 fn deserialize_contains_fields<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
 where
     D: Deserializer<'de>,
@@ -126,8 +126,8 @@ where
 /// `hyperlink-target`. The `--hyperlinks` flag takes the same values.
 ///
 /// A terminal without OSC 8 support can print the escape sequence as visible
-/// text, and no terminal reports whether it supports OSC 8. That is why the
-/// default is `never`.
+/// text, and no terminal reports whether it supports OSC 8. The default is
+/// `never`.
 // The CLI crate mirrors this enum one-to-one as
 // `crate::render::link::HyperlinkChoice`, because only that crate depends on
 // `clap`.
@@ -154,7 +154,7 @@ pub enum HyperlinkChoice {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsRule {
-    /// Shown in the trailer and the JSON envelope's `applied.rule`; falls
+    /// Shown in the trailer and the JSON envelope's `applied.rule`. Falls
     /// back to the condition text when unset.
     pub name: Option<String>,
     /// Condition expression over environment predicates such as
@@ -168,11 +168,11 @@ pub struct LsRule {
     /// (`"view(filter, sort)"`) naming just the facets to import.
     pub import_views: Vec<String>,
     /// Manual filter override. It has the highest precedence for the filter facet.
-    /// Same grammar as `[views]`; may use `@view` / `in_view`.
+    /// Same grammar as `[views]`, and may use `@view` / `in_view`.
     #[schemars(extend("x-expression" = "filter"))]
     pub filter: Option<String>,
     /// Manual sort override. It has the highest precedence for the sort facet.
-    /// Same spec grammar as `--sort`; an entry may splice `@view`.
+    /// Same spec grammar as `--sort`, and an entry may splice `@view`.
     pub sort: Vec<String>,
     /// Manual column list. It has the highest precedence for the columns facet.
     /// An entry may reference a view's columns with `@view`.
@@ -198,13 +198,13 @@ impl Facet {
 }
 
 /// One resolved `import-views` entry: the view it names, plus which facets it
-/// contributes. A bare `"view"` entry selects all three; `"view(sort,
+/// contributes. A bare `"view"` entry selects all three. `"view(sort,
 /// columns)"` selects a subset.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ImportView {
     /// The named view.
     pub view: String,
-    /// Facets this entry contributes, in declaration order (may repeat; the
+    /// Facets this entry contributes, in declaration order (may repeat, and the
     /// caller composing facets treats that as harmless).
     pub facets: Vec<Facet>,
 }
@@ -214,8 +214,8 @@ pub struct ImportView {
 ///
 /// # Errors
 /// Returns a message for an empty entry, a missing view name, an unterminated
-/// selector, an empty selector (`"view()"` — drop the parens for all facets
-/// instead), or an unknown facet name.
+/// selector, an empty selector (`"view()"`, where dropping the parens selects
+/// all facets), or an unknown facet name.
 pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
     let entry = entry.trim();
     if entry.is_empty() {
@@ -270,17 +270,17 @@ pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
     })
 }
 
-/// Validate every `[[ls.rules]]` entry: `condition` parses in the condition
-/// grammar (which already rejects a task-field identifier or an unknown
-/// predicate — see [`crate::filter::condition::Condition::parse`]); each
-/// `import-views` entry parses and names a declared view; a manual `filter`
-/// parses and its `@view` / `in_view` references resolve; a manual `sort` /
+/// Validate every `[[ls.rules]]` entry. `condition` parses in the condition
+/// grammar, which already rejects a task-field identifier or an unknown
+/// predicate (see [`crate::filter::condition::Condition::parse`]). Each
+/// `import-views` entry parses and names a declared view. A manual `filter`
+/// parses, and its `@view` / `in_view` references resolve. A manual `sort` or
 /// `columns` entry is either a legal spec or an `@view` reference that
 /// resolves. Returns one message per problem, prefixed `ls.rules[<i>]`.
 ///
-/// A rule can only ever be a *sink* in the view-reference graph (nothing can
-/// `import-views` or `@`-reference a rule back), so it cannot participate in
-/// a cycle; [`crate::config::views::validate_views`] already guarantees the
+/// A rule can only ever be a *sink* in the view-reference graph, since nothing
+/// can `import-views` or `@`-reference a rule back. So it cannot participate in
+/// a cycle. [`crate::config::views::validate_views`] already guarantees the
 /// views-only graph is acyclic, which is all the acyclicity this needs.
 #[must_use]
 pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
@@ -288,7 +288,7 @@ pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -
 }
 
 /// [`validate_ls_rules`] over a project's collectors too, so a rule's sort
-/// may name a scalar derived field.
+/// may reference a scalar derived field.
 #[must_use]
 pub fn validate_ls_rules_with(
     rules: &[LsRule],
@@ -403,7 +403,7 @@ fn validate_view_spliced(
 }
 
 /// Glyph, color and label for the ready and blocked states in the `READY`
-/// column. An omitted key takes the shipped default.
+/// column. An omitted key takes the built-in default.
 // One block covers both states, outside `[ls.columns.ready]`, because
 // `ColumnConfig` carries only `when`. An omitted key falls back to the
 // embedded floor, then to the renderer's literal fallback.

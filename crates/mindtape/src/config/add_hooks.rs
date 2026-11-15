@@ -1,4 +1,4 @@
-//! `[[on.add]]` — defaults a project or a pack applies to a newly added task.
+//! `[[on.add]]`: defaults a project or a pack applies to a newly added task.
 //!
 //! ```toml
 //! [[on.add]]
@@ -7,33 +7,33 @@
 //! actions = [{ set = { due = "2026-12-01" }, dir = "tasks/fixes" }]
 //! ```
 //!
-//! `when` is a [filter expression](crate::filter) over the task being added.
+//! `when` is a [filter expression](crate::filter) over the task `mt add` creates.
 //! `template == "name"` and `template != "name"` compare the template `mt add`
 //! used, and `from_template("name")` is the same test as `==`. A bare
 //! `template`, another operator or a non-literal name is a config error, as is
-//! a name no configured template dir holds. An empty `when` fires on every add.
-//! Like `into(...)` on a flip, the two forms are rewritten into a
-//! filter-language constant before parsing ([`desugar_add_when`]), so the
-//! evaluator stays unaware of them.
+//! a name that the configured template dirs do not hold. An empty `when` fires
+//! on every add. Like `into(...)` on a flip, the two forms are rewritten into a
+//! filter-language constant before parsing ([`desugar_add_when`]). The
+//! evaluator then stays unaware of them.
 //!
 //! Each action sets at least one of `set`, `append`, `derive` and `dir`. The
-//! first two name writable fields ([`crate::model::writable`]): a `set` value
-//! is checked through the same writer `mt set` uses, and an `append` must name
-//! a list field and carry at least one item. `dir` is not a field, so
-//! `set.dir` is refused by name. `dir` is a project-root-relative template over
-//! `{template}`, the add-safe scalar fields and the date macros `{date}`,
-//! `{date:FMT}`, `{yy}`, `{mm}` and `{dd}`, expanded by the add pipeline with
-//! [`DirTemplate::expand`]; an unknown macro or an absolute path is a config
-//! error, and the empty string is the project root.
+//! first two target writable fields ([`crate::model::writable`]). The check
+//! sends a `set` value through the same writer `mt set` uses, and an `append`
+//! must specify a list field and carry at least one item. `dir` is not a field.
+//! The config refuses `set.dir` by name. `dir` is a project-root-relative
+//! template over `{template}`, the add-safe scalar fields and the date macros
+//! `{date}`, `{date:FMT}`, `{yy}`, `{mm}` and `{dd}`, expanded by the add
+//! pipeline with [`DirTemplate::expand`]. An unknown macro or an absolute path
+//! is a config error, and the empty string is the project root.
 //!
 //! `derive = { typst, function, field }` calls a project's own Typst function
 //! and replaces `field` with what it returns, the same call a rule's `check`
 //! makes ([`crate::rules::typst`]). It needs `field`, which must be writable and
 //! absent from the same action's `set` and `append`. `dir = { derive = { typst,
-//! function } }` derives the destination instead; it takes no `field`, and the
-//! function returns a project-root-relative path. Both forms are checked for a
-//! module that exists and exports the function at config load, through the same
-//! loader a `check` uses ([`crate::rules::typst::validate_call`]).
+//! function } }` derives the destination instead. It takes no `field`, and the
+//! function returns a project-root-relative path. Config load checks both forms
+//! for a module that exists and exports the function, through the same loader a
+//! `check` uses ([`crate::rules::typst::validate_call`]).
 //!
 //! `[[on.add]]` merges by name across packs and layers like `[[on.flip]]`
 //! ([`crate::config::packs`]): a nearer entry with the same name replaces an
@@ -66,7 +66,7 @@ pub struct AddHook {
     /// name. An unnamed entry always appends. Also the label
     /// `mt config show --origin` prints.
     pub name: Option<String>,
-    /// Filter over the task being added, plus the two template tests. Empty
+    /// Filter over the task the add creates, plus the two template tests. Empty
     /// fires on every add.
     #[schemars(extend("x-expression" = "filter"))]
     pub when: String,
@@ -79,7 +79,8 @@ pub struct AddHook {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct AddAction {
-    /// Fields to set, by writable name. `dir` is not a field and is refused.
+    /// Fields to set, by writable name. `dir` is not a field, and the config
+    /// refuses it.
     pub set: BTreeMap<String, AddValue>,
     /// List fields to append to, by writable name.
     pub append: BTreeMap<String, Vec<String>>,
@@ -105,7 +106,8 @@ pub struct DeriveAction {
     pub field: Option<String>,
 }
 
-/// A value a hook sets: the scalar shapes a TOML config writes naturally.
+/// A value a hook sets, in one of the scalar shapes a TOML config writes
+/// naturally.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum AddValue {
@@ -150,7 +152,7 @@ pub enum DirValue {
 }
 
 /// `dir = { derive = { typst, function } }`: call `function` from the `typst`
-/// module and use the relative path it returns. It takes no `field`; the
+/// module and use the relative path it returns. It takes no `field`. The
 /// destination is the value.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -221,10 +223,10 @@ pub fn is_add_safe(name: &str) -> bool {
 /// modules resolve against.
 ///
 /// # Errors
-/// Returns the joined problems when a hook names an unknown template, field or
-/// macro, a value the shared writer refuses, a field in both `set` and
-/// `append` (or in the action's `derive`), `set.dir`, an absolute `dir`, or a
-/// derive whose module or function does not load.
+/// Returns the joined problems when a hook references an unknown template,
+/// field or macro, or a value the shared writer refuses. It also reports a
+/// field in both `set` and `append` (or in the action's `derive`), `set.dir`,
+/// an absolute `dir`, or a derive whose module or function does not load.
 pub fn validate_add_hooks(config: &Config, root: &Path) -> Result<(), String> {
     let names = template_names(config, root);
     let known: Vec<&str> = names.iter().map(String::as_str).collect();
@@ -390,8 +392,8 @@ impl Checker<'_> {
         }
     }
 
-    /// Whether a derive's module exists and exports its function, through the
-    /// loader a rule's `check` uses.
+    /// Whether the module a derive references exists and exports its function,
+    /// through the loader a rule's `check` uses.
     fn call(&self, typst: &str, function: &str) -> Result<(), String> {
         crate::rules::typst::validate_call(self.config, self.root, typst, function)
     }

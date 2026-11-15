@@ -1,22 +1,22 @@
-//! `mt mv <task> <new-stem>` — rename a task and rewrite its inbound links.
+//! `mt mv <task> <new-stem>` renames a task and rewrites its inbound links.
 //!
-//! A task's identity is its filename stem, so a stem written before the task
-//! settled names the wrong thing for as long as the file lives. Renaming it by
-//! hand means a `git mv` plus an edit of every `links:` target that points at
-//! it, with nothing checking the result until `mt check` reports a dangling
-//! edge — one missed target and the graph quietly loses one.
+//! A task's identity is its filename stem. A stem written before the task
+//! settled specifies the wrong thing for as long as the file lives. Renaming it
+//! by hand means a `git mv` plus an edit of every `links:` target that points at
+//! it. The result goes unchecked until `mt check` reports a dangling edge, and
+//! one missed target loses one edge from the graph.
 //!
-//! So this command owns both halves as one move: the file changes name, and
-//! every inbound edge is retargeted onto the new stem through the walk `mt rm`
-//! already owns ([`crate::cmd::rm::inbound_rewrites`]) — `rm` points those edges at
-//! nothing, a rename points them at the new stem, and removal is the null
-//! target of the same walk.
+//! This command owns both halves as one move. The file changes name, and every
+//! inbound edge moves onto the new stem through the walk `mt rm` already owns
+//! ([`crate::cmd::rm::inbound_rewrites`]). `rm` points those edges at nothing, a
+//! rename points them at the new stem, and removal is the null target of the
+//! same walk.
 //!
-//! What it deliberately does not touch: the `title:`, which is independent of
-//! the stem by design and belongs to its own edit, and the file's folder, since
-//! moving a task between roots or folders changes its derived tags and is a
-//! decision of its own — a stem carrying a separator is refused rather than
-//! guessed at.
+//! It deliberately leaves two things alone. The `title:` is independent of the
+//! stem by design and belongs to its own edit. The file's folder stays put,
+//! because moving a task between roots or folders changes its derived tags and
+//! is a decision of its own. `mt mv` refuses a stem that carries a separator
+//! rather than guessing at it.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -37,7 +37,7 @@ use crate::{git, util};
 pub struct MvArgs {
     #[command(flatten)]
     pub task: crate::cli::task_ref::TaskRef,
-    /// The new stem: a file name without `.typ` and without a folder.
+    /// The new stem, given as a file name without `.typ` and without a folder.
     pub new_stem: String,
     /// Show what would change, without changing anything.
     ///
@@ -50,15 +50,15 @@ pub struct MvArgs {
 /// Run the `mv` command.
 ///
 /// Refuses a taken stem before anything moves, plans the inbound rewrites in
-/// memory, validates the whole set through [`crate::pre_write`], and only then
-/// moves the file and writes the rewrites. Like `mt rm`, it does not commit —
-/// the user reviews the diff.
+/// memory, and validates the whole set through [`crate::pre_write`]. Only then
+/// does it move the file and write the rewrites. Like `mt rm`, it does not
+/// commit. The user reviews the diff.
 ///
 /// # Errors
-/// An unresolvable task, a stem that is empty, carries a path separator, is
-/// already the task's own, or is taken by another task or an existing file; a
-/// referring file that cannot be read or spliced; a rewrite the project would
-/// refuse; or a failed move or write.
+/// An unresolvable task. A stem that is empty, carries a path separator, or
+/// equals the task's own. A stem that another task or an existing file already
+/// holds. A referring file that the command cannot read or splice. A rewrite
+/// the project would refuse. A failed move or write.
 pub fn run(args: &MvArgs) -> Result<()> {
     let project = util::open_warned()?;
 
@@ -104,12 +104,12 @@ pub fn run(args: &MvArgs) -> Result<()> {
     Ok(())
 }
 
-/// The stem the user asked for, as a stem: a trailing `.typ` is the natural
-/// slip when the argument is a filename and is dropped rather than turned into
-/// `new.typ.typ`.
+/// The stem the user asked for, as a stem. A trailing `.typ` is the natural
+/// slip when the argument is a filename. The function drops it rather than
+/// turning it into `new.typ.typ`.
 ///
 /// # Errors
-/// An empty stem, or one carrying a path separator — `mv` renames in place.
+/// An empty stem, or one carrying a path separator. `mv` renames in place.
 fn new_stem(raw: &str) -> Result<&str> {
     let stem = raw.strip_suffix(".typ").unwrap_or(raw);
     if stem.is_empty() {
@@ -128,9 +128,9 @@ fn new_stem(raw: &str) -> Result<&str> {
     Ok(stem)
 }
 
-/// `file` with its stem replaced, extension and folder kept — the same rename
-/// the inbound edge targets get, so the file and the edges that name it cannot
-/// disagree about what the new name is.
+/// `file` with its stem replaced, and its extension and folder kept. This is
+/// the same rename the inbound edge targets get, which keeps the file and the
+/// edges that name it in agreement about the new name.
 fn renamed(file: &Path, stem: &str) -> PathBuf {
     let name = file
         .file_name()
@@ -138,13 +138,14 @@ fn renamed(file: &Path, stem: &str) -> PathBuf {
     file.with_file_name(retarget_raw(&name, stem))
 }
 
-/// Refuse a stem another task already answers to, or a destination file that
-/// exists — before anything has moved, so a refused rename leaves the tree
+/// Refuse a stem another task already holds, or a destination file that
+/// exists. Both checks run before anything moves. A refusal leaves the tree
 /// exactly as it was.
 ///
-/// Both checks, not one: a loaded task proves the identity is taken, and the
-/// bare path catches a file the project does not load (an unparseable one, or a
-/// stem outside the configured roots) that a rename would silently clobber.
+/// The two checks cover different cases. A loaded task proves another task
+/// holds the identity. The bare path catches a file the project does not load
+/// (an unparseable one, or a stem outside the configured roots) that a rename
+/// would silently clobber.
 ///
 /// # Errors
 /// Names the file already holding the stem.
@@ -164,12 +165,12 @@ fn refuse_taken(project: &Project, stem: &str, to: &Path) -> Result<()> {
 }
 
 /// Ask the project whether the whole move may land: the task at its new path,
-/// and every retargeted referrer, as one batch — a referrer's new edge only
-/// resolves *given* the renamed file, so they cannot be checked apart.
+/// and every retargeted referrer, as one batch. A referrer's new edge only
+/// resolves *given* the renamed file. The two checks go through together.
 ///
 /// # Errors
-/// Names each problem and refuses the batch; nothing has been written when it
-/// does.
+/// Names each problem and refuses the batch. A refusal leaves every file
+/// untouched.
 fn verify(project: &Project, to: &Path, source: &str, rewrites: &[Rewrite]) -> Result<()> {
     let mut pending = vec![Pending { file: to, source }];
     pending.extend(rewrites.iter().map(|rewrite| Pending {
@@ -179,14 +180,15 @@ fn verify(project: &Project, to: &Path, source: &str, rewrites: &[Rewrite]) -> R
     pre_write::ensure(project, &pending)
 }
 
-/// Move the task file: `git mv` inside a repository, so the rename lands staged
-/// and git carries the file's history across it, and a plain rename outside one
-/// — the same split `mt rm` makes between its git and gitless paths.
+/// Move the task file. Inside a repository it runs `git mv`, which lands the
+/// rename staged and lets git carry the file's history across it. Outside one
+/// it runs a plain rename, the same split `mt rm` makes between its git and
+/// gitless paths.
 ///
 /// A failed `git mv` falls through to the plain rename rather than failing the
-/// run: git refuses a path it does not track, which is every task filed since
-/// the last commit, and a rename it cannot stage is still a rename the user
-/// asked for.
+/// run. Git refuses a path it does not track, which is every task filed since
+/// the last commit. A rename it cannot stage is still a rename the user asked
+/// for.
 ///
 /// # Errors
 /// A filesystem rename that fails.
@@ -206,9 +208,9 @@ fn pick_another() -> Hint {
     Hint::new("pick another stem")
 }
 
-/// `git mv` in `root`, reporting only whether git took the rename. Output is
-/// captured rather than inherited: git's own wording about a path it does not
-/// track is not this command's report.
+/// `git mv` in `root`, reporting only whether git took the rename. The function
+/// captures the output rather than inheriting it, because git's own wording
+/// about a path it does not track is not this command's report.
 fn git_mv(root: &Path, from: &Path, to: &Path) -> bool {
     Command::new("git")
         .arg("-C")
@@ -232,8 +234,8 @@ fn report_plan(from: &Path, to: &Path, rewrites: &[Rewrite]) {
     println!("dry run: nothing written");
 }
 
-/// Print what the run just did, and — inside a repository, where there is
-/// something to commit — remind the user to review it.
+/// Print what the run just did. Inside a repository, where there is something
+/// to commit, remind the user to review it.
 fn report_applied(from: &Path, to: &Path, rewrites: &[Rewrite], root: &Path) {
     println!(
         "moved {} -> {}",
@@ -244,8 +246,8 @@ fn report_applied(from: &Path, to: &Path, rewrites: &[Rewrite], root: &Path) {
     print_commit_hint(root);
 }
 
-/// `<verb> N links in M files`, the files listed only when previewing:
-/// a plan is read to decide, and a finished report to confirm.
+/// `<verb> N links in M files`, listing the files only when previewing. A plan
+/// is for deciding, and a finished report is for confirming.
 fn report_rewrites(verb: &str, rewrites: &[Rewrite], list: bool) {
     if rewrites.is_empty() {
         return;

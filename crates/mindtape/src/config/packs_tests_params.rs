@@ -1,7 +1,7 @@
 //! `[params]` and `param()`: a pack's parameters, set from its `extends`
 //! entry's `with` table and written into the pack's expressions as literals
-//! at load. The shared `layer` fixture stays in the parent test module and is
-//! reached through `super::tests`.
+//! at load. The shared `layer` fixture lives in the parent test module, and
+//! `super::tests` provides it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::merge_layers_with_packs_using;

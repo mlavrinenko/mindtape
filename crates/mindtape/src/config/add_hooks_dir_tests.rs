@@ -11,7 +11,7 @@ fn accepts(dir: &str) {
     }
 }
 
-/// Assert that `dir` is refused with an error containing `needle`.
+/// Assert that `dir` draws a refusal whose error contains `needle`.
 fn refuses(dir: &str, needle: &str) {
     match validate_dir(dir) {
         Ok(()) => panic!("expected {dir:?} to be refused"),

@@ -30,8 +30,8 @@ required = {required}
     .unwrap()
 }
 
-/// A task in `status` carrying no priority — the shape every `required` rule is
-/// asked about.
+/// A task in `status` carrying no priority, the shape every `required` rule
+/// receives.
 fn task(id: &str, status: &str) -> Task {
     let mut item = bare_task(id);
     item.status = Some(Status {
@@ -282,7 +282,7 @@ fn an_unparsable_expression_compiles_to_never_required() {
     assert!(!rule.applies(&task("a", "wip"), &priority_config("false")));
 }
 
-/// Likewise for an expression that parses but cannot be evaluated.
+/// An expression that parses but fails to evaluate also reads as not required.
 #[test]
 fn an_unevaluatable_expression_reads_as_not_required() {
     let rule = RequirementRule::compile(&Requirement::Expr("bogus == 1".to_owned()));

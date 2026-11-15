@@ -1,10 +1,10 @@
 //! E2E test for `mt _cli`: runs the compiled binary in a subprocess.
 //!
 //! The only thing this can show that a unit test cannot is that `run` actually
-//! writes the dump to stdout — `replace run with Ok(())` is invisible in
+//! writes the dump to stdout. `replace run with Ok(())` is invisible in
 //! process, because the side effect is a `println!`. The dump's *contents*
-//! (the `schema` key, the `bin` name) are asserted in `cli/tree_json.rs` against
-//! `dump_json()` directly, so they are deliberately not re-asserted here.
+//! (the `schema` key, the `bin` name) get their assertion in `cli/tree_json.rs`
+//! against `dump_json()` directly, so this test deliberately skips them.
 #![allow(clippy::unwrap_used)]
 
 use crate::support;

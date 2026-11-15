@@ -1,5 +1,5 @@
 //! Pins what `skills/mindtape/evals/evals.json` asserts about the api-service
-//! fixture. The evals name its counts and its order by hand, and no model runs
+//! fixture. The evals state its counts and its order by hand, and no model runs
 //! in CI, so nothing else notices when the fixture drifts from the claim.
 //!
 //! The clock comes from `www/capture.sh`, the one place that declares it, so

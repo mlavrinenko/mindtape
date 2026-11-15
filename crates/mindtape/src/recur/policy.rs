@@ -3,13 +3,13 @@
 use super::{PeriodUnit, Recur, RecurConfig, Rule};
 
 /// Policy problems for `recur` against `config`: the feature gate, the
-/// unit/anchor allow-lists, materialize's fixed vocabulary, the
+/// unit/anchor allow-lists, the fixed vocabulary of `materialize`, the
 /// weekday-set/period-unit pairing, and the `rrule` gate and grammar.
 ///
-/// Pure and [`crate::model::Task`]-free — [`crate::validate::recur`] wraps each
-/// string into a [`crate::validate::Violation`] for `mt check`; `mt recur`
-/// calls this directly so a misconfigured task fails before any file is
-/// touched.
+/// Pure and [`crate::model::Task`]-free. [`crate::validate::recur`] wraps each
+/// string into a [`crate::validate::Violation`] for `mt check`, and `mt recur`
+/// calls this directly so a misconfigured task fails before it touches any
+/// file.
 #[must_use]
 pub fn check_policy(recur: &Recur, config: &RecurConfig) -> Vec<String> {
     let mut out = Vec::new();
@@ -44,7 +44,7 @@ fn check_rule(rule: &Rule, anchor: Option<&str>, config: &RecurConfig, out: &mut
 }
 
 /// The `rrule(...)` gates, in order: the config flag, the date-anchored-only
-/// restriction (RFC 5545 has no completion-relative primitive —
+/// restriction (RFC 5545 has no completion-relative primitive, per
 /// `truth/tasks/2026-07/rrule-escape-hatch.typ`), then the rule's own grammar
 /// (parse-time).
 fn check_rrule_rule(raw: &str, anchor: Option<&str>, config: &RecurConfig, out: &mut Vec<String>) {

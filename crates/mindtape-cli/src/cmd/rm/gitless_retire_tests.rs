@@ -11,8 +11,8 @@ use super::super::{retire_apply, retire_plan};
 use super::gitless_tests::legend;
 use super::{depends_survivor, gone_and_live, ids, survivor, task};
 
-/// A real task artifact for the file being retired — the status rewrite needs
-/// a `task.with(…)` call to target.
+/// A real task artifact for the file the test retires, because the status
+/// rewrite needs a `task.with(…)` call to target.
 fn artifact() -> String {
     mindtape::typst_task!(
         "(\n  title: \"Gone\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"

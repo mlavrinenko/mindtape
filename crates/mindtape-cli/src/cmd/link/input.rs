@@ -1,10 +1,10 @@
 //! `mt link --apply`'s input: the adjacency map, read as YAML.
 //!
-//! One parser covers both advertised formats — YAML 1.2 is a superset of JSON,
+//! One parser covers both advertised formats. YAML 1.2 is a superset of JSON,
 //! so a `.json` adjacency map parses here unchanged, with no extension sniffing
-//! and no second error vocabulary (`cmd/add/values.rs` sniffs because a `--set`
-//! patch's *values* are typed differently by the two parsers; an adjacency map
-//! is strings all the way down, so nothing here can disagree).
+//! and no second error vocabulary. `cmd/add/values.rs` sniffs because the two
+//! parsers type a `--set` patch's *values* differently. An adjacency map is
+//! strings all the way down, so nothing here can disagree.
 //!
 //! The shape, stem to kind to targets:
 //!
@@ -16,10 +16,10 @@
 //!       note: same export shape
 //! ```
 //!
-//! A target is a bare string, or a mapping carrying its own `note`. The whole
-//! document is walked by hand rather than deserialized into a typed tree: every
-//! rejection then names the stem and the kind it came from, which an `untagged`
-//! enum's "data did not match any variant" cannot.
+//! A target is a bare string, or a mapping carrying its own `note`. The parser
+//! walks the whole document by hand rather than deserializing it into a typed
+//! tree. Every rejection then reports the stem and the kind it came from, which
+//! an `untagged` enum's "data did not match any variant" cannot.
 
 use std::io::Read as _;
 
@@ -33,7 +33,7 @@ type Result<T> = std::result::Result<T, Diag>;
 /// One task's requested edges, as read from the map.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
-    /// The linking task, by filename stem — the map's top-level key.
+    /// The linking task, by filename stem: the map's top-level key.
     pub stem: String,
     /// Every edge declared under it, in document order.
     pub edges: Vec<EdgeSpec>,
@@ -42,7 +42,7 @@ pub struct Entry {
 /// Read `source` to a string: `-` reads stdin, anything else is a file path.
 ///
 /// # Errors
-/// Returns an error if stdin or the file cannot be read.
+/// Returns an error if stdin or the file fails to read.
 pub fn read_source(source: &str) -> Result<String> {
     if source == "-" {
         let mut text = String::new();
@@ -105,7 +105,7 @@ fn entry(key: &Value, value: &Value) -> Result<Entry> {
 }
 
 /// Every edge one `kind:` key declares. A bare string is a single target, so
-/// `parent: umbrella-task` needs no list.
+/// `parent: umbrella-task` doesn't need a list.
 fn kind_edges(stem: &str, kind: &str, targets: &Value) -> Result<Vec<EdgeSpec>> {
     let items = match targets {
         Value::Sequence(items) => items.as_slice(),
@@ -117,7 +117,8 @@ fn kind_edges(stem: &str, kind: &str, targets: &Value) -> Result<Vec<EdgeSpec>> 
         .collect()
 }
 
-/// One target entry: a bare string, or a mapping carrying `target` and `note`.
+/// Reads one target entry: a bare string, or a mapping carrying `target` and
+/// `note`.
 fn target_edge(stem: &str, kind: &str, item: &Value) -> Result<EdgeSpec> {
     // Every rejection names the task and the kind it came from.
     let refuse = |what: &'static str| Diag::usage(what).rule(stem).context("under", kind);

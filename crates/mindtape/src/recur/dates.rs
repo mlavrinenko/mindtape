@@ -1,10 +1,11 @@
 //! Pure next-occurrence date arithmetic for [`crate::recur::Recur`].
 //!
-//! No clock reads: every function takes its reference date as an argument —
-//! `mt recur` (`crates/mindtape-cli`) passes today's date and the task's
-//! current `due`. `chrono` gives calendar-correct period arithmetic
-//! (month/year-end clamping via [`Months`]); the weekday-set path is a plain
-//! forward scan. See `truth/tasks/2026-07/recurring-tasks.typ`'s "Anchor" section.
+//! Every function takes its reference date as an argument, so this module never
+//! reads the clock. `mt recur` (`crates/mindtape-cli`) passes today's date and
+//! the task's current `due`. `chrono` gives calendar-correct period arithmetic
+//! (month/year-end clamping via [`Months`]), and the weekday-set path is a
+//! plain forward scan. See `truth/tasks/2026-07/recurring-tasks.typ`'s "Anchor"
+//! section.
 
 use chrono::{Datelike, Days, Months, NaiveDate, Weekday};
 use thiserror::Error;
@@ -17,20 +18,22 @@ pub enum RecurError {
     /// Chrono arithmetic ran out of range (a date past `NaiveDate::MAX`).
     #[error("date arithmetic overflowed")]
     DateOverflow,
-    /// No weekday in the `on:` set was found within a full period — unreachable
-    /// for a non-empty set, but the scan is bounded rather than infinite.
+    /// The scan reached the end of a full period without a weekday in the `on:`
+    /// set. That is unreachable for a non-empty set, but the scan stops at the
+    /// period boundary rather than running forever.
     #[error("no weekday in the `on:` set was reachable within a period")]
     NoMatchingWeekday,
     /// [`next_date`]'s due-anchor catch-up hit its step ceiling without
     /// reaching a date after today. Carries the `due` it started from. Means
     /// either a rule that does not move forward (`every(days: 0)`) or a `due`
-    /// implausibly far in the past — the loop is bounded rather than infinite.
+    /// implausibly far in the past. The loop stops at the ceiling rather than
+    /// running forever.
     #[error("recurrence did not reach today within {MAX_CATCH_UP_STEPS} steps from {0}")]
     CatchUpExhausted(String),
-    /// The `rrule` crate could not produce a next occurrence: a malformed
-    /// rule (should already be caught by `mt check`'s parse-time gate), a
-    /// pathological rule that hits the crate's iteration bound, or the
-    /// rule's own embedded `COUNT=`/`UNTIL=` ending the series. Carries the
+    /// The `rrule` crate could not produce a next occurrence. The cause is a
+    /// malformed rule, which `mt check`'s parse-time gate should already catch,
+    /// or a pathological rule that hits the crate's iteration bound. The rule's
+    /// own embedded `COUNT=`/`UNTIL=` can end the series too. Carries the
     /// crate's own message.
     #[error("{0}")]
     RruleExpansion(String),
@@ -40,11 +43,11 @@ pub enum RecurError {
 /// `[tasks.recur] default-anchor` when omitted.
 ///
 /// `rrule(...)` is date-anchored only (RFC 5545 has no completion-relative
-/// primitive — see `truth/tasks/2026-07/rrule-escape-hatch.typ`): an omitted anchor
-/// always resolves to `"due"` for it, even when the project's
+/// primitive, per `truth/tasks/2026-07/rrule-escape-hatch.typ`). An omitted
+/// anchor always resolves to `"due"` for it, even when the project's
 /// `default-anchor` is `"completion"`. [`crate::recur::check_policy`] rejects
-/// an *explicit* `anchor: "completion"` on an `rrule(...)` task outright, so
-/// the only values reaching this function for one are `None` or `"due"`.
+/// an *explicit* `anchor: "completion"` on an `rrule(...)` task outright. The
+/// only values reaching this function for one are `None` or `"due"`.
 #[must_use]
 pub fn effective_anchor<'a>(recur: &'a Recur, config: &'a RecurConfig) -> &'a str {
     if matches!(recur.rule, Rule::Rrule { .. }) {
@@ -67,8 +70,8 @@ pub fn effective_materialize<'a>(recur: &'a Recur, config: &'a RecurConfig) -> &
 }
 
 /// Ceiling on [`next_date`]'s due-anchor catch-up. Bounds the loop against a
-/// rule that never advances; `10_000` steps is a daily task some 27 years stale,
-/// far past any plausible backlog.
+/// rule that never advances. `10_000` steps is a daily task some 27 years
+/// stale, far past any plausible backlog.
 const MAX_CATCH_UP_STEPS: usize = 10_000;
 
 /// Compute the single next occurrence date.
@@ -76,10 +79,10 @@ const MAX_CATCH_UP_STEPS: usize = 10_000;
 /// `anchor: "due"` catches up: advance by the rule from `due` (falling back
 /// to `today` when the task has none) until strictly after `today`, so a late
 /// completion never yields an already-overdue occurrence (Org `++`). Any
-/// other anchor (`"completion"`, the default) advances once from `today` —
-/// always in the future, so it needs no catch-up loop.
+/// other anchor (`"completion"`, the default) advances once from `today`, which
+/// is always in the future, so it skips the catch-up loop.
 ///
-/// The catch-up is bounded by [`MAX_CATCH_UP_STEPS`]: a rule that stands still
+/// [`MAX_CATCH_UP_STEPS`] bounds the catch-up. A rule that stands still
 /// (`every(days: 0)`) is [`RecurError::CatchUpExhausted`], not a hang.
 ///
 /// # Errors
@@ -126,7 +129,7 @@ pub fn advance_once(rule: &Rule, from: NaiveDate) -> Result<NaiveDate, RecurErro
 }
 
 /// Add one `unit`-`value` period to `from`, clamping month/year-end overflow
-/// (Jan 31 + 1 month = Feb 28/29) via chrono's [`Months`] arithmetic.
+/// (Jan 31 + 1 month = Feb 28/29) via the [`Months`] arithmetic in `chrono`.
 fn add_period(from: NaiveDate, unit: PeriodUnit, value: u32) -> Result<NaiveDate, RecurError> {
     match unit {
         PeriodUnit::Days => from.checked_add_days(Days::new(u64::from(value))),
@@ -139,8 +142,8 @@ fn add_period(from: NaiveDate, unit: PeriodUnit, value: u32) -> Result<NaiveDate
     .ok_or(RecurError::DateOverflow)
 }
 
-/// The Monday that fixes the weeks of every `every(weeks: N, on: …)` series:
-/// a week is an on-week when its Monday is a multiple of `N` weeks after this
+/// The Monday that fixes the weeks of every `every(weeks: N, on: …)` series. A
+/// week is an on-week when its Monday is a multiple of `N` weeks after this
 /// date.
 const SERIES_EPOCH: NaiveDate = match NaiveDate::from_ymd_opt(2001, 1, 1) {
     Some(date) => date,
@@ -158,10 +161,10 @@ fn is_on_week(date: NaiveDate, weeks: u32, start: Option<NaiveDate>) -> bool {
 }
 
 /// The next date strictly after `from` whose weekday is in `weekdays` and
-/// whose Monday-to-Sunday week is an on-week: every `weeks`-th week counted
-/// from the series origin (see [`is_on_week`]), whichever week `from` itself
-/// falls in. Bounded to
-/// `weeks` weeks of scan: any non-empty set matches within one period.
+/// whose Monday-to-Sunday week is an on-week. An on-week is every `weeks`-th
+/// week counted from the series origin (see [`is_on_week`]), whichever week
+/// `from` itself falls in. The scan covers `weeks` weeks, since any non-empty
+/// set matches within one period.
 fn next_weekday_after(
     from: NaiveDate,
     weekdays: &[Weekday],
@@ -178,9 +181,9 @@ fn next_weekday_after(
     Err(RecurError::NoMatchingWeekday)
 }
 
-/// Whether `next` overshoots the series' `until` bound — series end, not to
-/// be confused with an instance's own `due` (see the spec's "Stop
-/// conditions"). `until` unset or unparsable means unbounded.
+/// Whether `next` overshoots the series' `until` bound, which is series end and
+/// not an instance's own `due` (see the spec's "Stop conditions"). `until`
+/// unset or unparsable means unbounded.
 #[must_use]
 pub fn past_until(recur: &Recur, next: NaiveDate) -> bool {
     recur
@@ -197,14 +200,14 @@ pub fn exhausted(recur: &Recur) -> bool {
 }
 
 /// The carried-forward `count` after materializing one occurrence:
-/// decremented when set; `None` (unbounded) stays `None`.
+/// decremented when set, and `None` (unbounded) stays `None`.
 #[must_use]
 pub fn carry_count(recur: &Recur) -> Option<u32> {
     recur.count.map(|count| count.saturating_sub(1))
 }
 
-/// Parse a `YYYY-MM-DD` string into a [`NaiveDate`]; `None` on any malformed
-/// input.
+/// Parse a `YYYY-MM-DD` string into a [`NaiveDate`], and return `None` on any
+/// malformed input.
 #[must_use]
 pub fn parse_iso(text: &str) -> Option<NaiveDate> {
     let (year, month, day) = crate::date::parse_ymd(text)?;
@@ -218,13 +221,13 @@ pub fn format_iso(date: NaiveDate) -> String {
 }
 
 /// A `(year, month, day)` tuple (as returned by `mindtape::today_ymd`) as a
-/// [`NaiveDate`]; `None` for an out-of-range tuple.
+/// [`NaiveDate`], or `None` for an out-of-range tuple.
 #[must_use]
 pub fn ymd_to_date(ymd: (i32, u8, u8)) -> Option<NaiveDate> {
     NaiveDate::from_ymd_opt(ymd.0, u32::from(ymd.1), u32::from(ymd.2))
 }
 
-/// A [`NaiveDate`] as a `(year, month, day)` tuple — the shape
+/// A [`NaiveDate`] as a `(year, month, day)` tuple, the shape
 /// [`crate::model::naming::MintContext`] and `on(y, m, d)` Typst edits take.
 #[must_use]
 pub fn date_to_ymd(date: NaiveDate) -> (i32, u8, u8) {

@@ -9,8 +9,8 @@ use crate::model::canonical::CanonicalStatus;
 use super::report::{MapOptions, ReportEntry};
 
 /// Map a canonical `status`, reporting a default (missing status), a `--map`
-/// rename, or an out-of-legend violation — never silently accepting or
-/// inventing a value the legend does not sanction. Mirrors
+/// rename, or an out-of-legend violation. It never silently accepts or invents
+/// a value the legend does not sanction. Mirrors
 /// `mindtape-cli::task_edit::initial_status`'s "must not invent" rule for the
 /// missing-status case (duplicated here since the CLI depends on this crate,
 /// not the reverse).
@@ -64,10 +64,9 @@ pub(crate) fn map_status(
 }
 
 /// The natural status for a record that supplied none: the legend's initial
-/// (first non-terminal) value, falling back to the legend's first entry when
-/// every entry happens to be terminal. `None` only when the legend is
-/// genuinely empty — the caller must then leave the status unset rather than
-/// invent one.
+/// (first non-terminal) value. It falls back to the legend's first entry when
+/// every entry happens to be terminal. `None` only when the legend is empty,
+/// and the caller must then leave the status unset rather than invent one.
 fn initial_status(config: &Config) -> Option<String> {
     let legend = &config.tasks.status;
     legend

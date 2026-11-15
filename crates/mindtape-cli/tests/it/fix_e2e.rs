@@ -56,8 +56,8 @@ fn refused(dir: &Path, args: &[&str]) -> String {
     stderr
 }
 
-/// Every `needle` appears in `text`. Printed paths are compared with `/` on
-/// every platform; a package spec such as `@local/mindtape` has no separator
+/// Every `needle` appears in `text`. The check compares printed paths with `/`
+/// on every platform. A package spec such as `@local/mindtape` has no separator
 /// and stays as written.
 fn has(text: &str, needles: &[&str]) {
     let text = text.replace('\\', "/");

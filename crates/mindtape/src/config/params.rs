@@ -3,10 +3,10 @@
 //! `param("name")` call in the pack's expressions as the value's literal.
 //!
 //! [`crate::config::packs`] calls [`apply_params`] on each pack between
-//! resolving it and taking its rule arrays out, so a rule's `when` and
-//! `assert` reach the merge with the values already in them, and `[params]`
-//! never reaches the merged config. A layer's own expressions have no
-//! parameters to read: [`refuse_param_calls`] refuses a `param()` there.
+//! resolving it and taking its rule arrays out. A rule's `when` and `assert`
+//! then reach the merge with the values already in them, and `[params]` never
+//! reaches the merged config. A layer's own expressions have no parameters to
+//! read: [`refuse_param_calls`] refuses a `param()` there.
 //!
 //! The rewrite skips string literals, the way
 //! [`crate::filter::expr::join_kebab_names`] does, so `title ==
@@ -25,7 +25,7 @@ use crate::config::{ConfigError, quote};
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// One `extends` entry: a pack's name, or a table naming the pack and the
+/// One `extends` entry: a pack's name, or a table that gives the pack and the
 /// values of its parameters.
 // `mt` reads the entries from the raw TOML before this type is built, through
 // `packs_toml::read_extends`, so this type only describes them to the schema.
@@ -53,7 +53,7 @@ pub struct PackWith {
     pub with: BTreeMap<String, ParamValue>,
 }
 
-/// One parameter value: a string, a number or a boolean.
+/// One parameter value, either a string, a number or a boolean.
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum ParamValue {
@@ -82,9 +82,9 @@ pub(crate) struct ResolvedParam {
 ///
 /// # Errors
 /// Returns [`ConfigError::Invalid`] for a parameter that isn't a string, a
-/// number or a boolean, a `with` key the pack doesn't declare or of another
-/// type than its default, and a `param()` call that names no parameter or
-/// isn't one quoted name.
+/// number or a boolean. It also fails on a `with` key the pack doesn't declare
+/// or of another type than its default. A `param()` call that references an
+/// undeclared parameter, or isn't one quoted name, fails too.
 pub(super) fn apply_params(
     pack: &mut toml::Table,
     with: &toml::Table,
@@ -209,8 +209,8 @@ fn type_name(value: &toml::Value) -> &'static str {
     }
 }
 
-/// `value` as the filter language writes it: a string in double quotes with
-/// `\` and `"` escaped, anything else as TOML prints it.
+/// `value` as the filter language writes it. A string takes double quotes with
+/// `\` and `"` escaped, and anything else appears as TOML prints it.
 fn literal(value: &toml::Value) -> String {
     match value {
         toml::Value::String(text) => {
@@ -224,7 +224,7 @@ fn literal(value: &toml::Value) -> String {
 /// language joins kebab names in, the new text out.
 type Rewrite<'f> = dyn FnMut(&str, &str, bool) -> Result<String, ConfigError> + 'f;
 
-/// [`Rewrite`] for one expression key, whose language is settled.
+/// [`Rewrite`] for one expression key, with the language already settled.
 type RewriteAt<'f> = dyn FnMut(&str, &str) -> Result<String, ConfigError> + 'f;
 
 /// Run `rewrite` over every string at one of the [`expression_keys`] in
@@ -363,7 +363,7 @@ fn name_len(text: &str, joins_kebab: bool) -> usize {
 }
 
 /// The name a call's `("name")` passes, and the text after its `)`. `None`
-/// when `tail` opens no call.
+/// when `tail` doesn't open a call.
 fn call_argument(tail: &str) -> Result<Option<(String, &str)>, CallError> {
     let Some(inner) = tail.trim_start().strip_prefix('(') else {
         return Ok(None);

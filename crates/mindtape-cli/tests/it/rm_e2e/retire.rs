@@ -1,7 +1,8 @@
-//! End-to-end tests for `mt rm`'s retire strategy: flipping the removed task to
-//! a terminal status in place, moving it into a `[retire] rename` archive
-//! folder, and the confirmation-prompt and dry-run paths. Shares the `gone`/
-//! `live` fixtures and the scaffolding in `rm_e2e/mod.rs` through `use super::*`.
+//! End-to-end tests for `mt rm`'s retire strategy. The strategy flips the
+//! removed task to a terminal status in place, moves it into a `[retire] rename`
+//! archive folder, and covers the confirmation-prompt and dry-run paths. The
+//! tests share the `gone`/`live` fixtures and the scaffolding in `rm_e2e/mod.rs`
+//! through `use super::*`.
 #![allow(clippy::unwrap_used)]
 
 use super::*;

@@ -1,8 +1,8 @@
 //! Config-driven body-header gating: rule compilation and heading-tree matching.
 //!
-//! Rules are declared in `[[tasks.body.headers.rules]]` in `.mindtape/config.toml`.
-//! Compile them once with [`compile_rules`], then call [`check_headers`] once per
-//! task's source text.
+//! A project declares rules in `[[tasks.body.headers.rules]]` in
+//! `.mindtape/config.toml`. Compile them once with [`compile_rules`], then call
+//! [`check_headers`] once per task's source text.
 
 use thiserror::Error;
 use typst_cst::{HeadingNode, parse_headings, tree};
@@ -18,7 +18,7 @@ use crate::validate::{Location, Violation};
 pub struct CompiledRule {
     engine_rule: artifact_gate::Rule,
     when: Option<Filter>,
-    /// This rule's name if it has one, else its position — see
+    /// This rule's name if it has one, else its position. See
     /// [`HeaderRuleConfig::label`].
     label: String,
 }
@@ -26,7 +26,7 @@ pub struct CompiledRule {
 /// Errors from compiling header rules.
 #[derive(Debug, Error)]
 pub enum GateError {
-    /// A path segment regex could not be compiled.
+    /// A path segment regex that does not compile.
     #[error("invalid regex '{pattern}': {error}")]
     Regex {
         /// The offending pattern.
@@ -34,13 +34,13 @@ pub enum GateError {
         /// Compiler error message.
         error: String,
     },
-    /// A `when` expression could not be parsed.
+    /// A `when` expression that does not parse.
     #[error("invalid `when` expression: {0}")]
     Filter(#[from] FilterError),
     /// A rule carries an empty path.
     #[error("rule path must not be empty")]
     EmptyPath,
-    /// A rule names a field that its action does not accept.
+    /// A rule references a field that its action does not accept.
     #[error("action '{action}' does not accept: {fields}")]
     UnexpectedFields {
         /// The rule's action.
@@ -66,8 +66,8 @@ pub fn compile_rules(rules: &[HeaderRuleConfig]) -> Result<Vec<CompiledRule>, Ga
 /// Run compiled header rules against a task's source text.
 ///
 /// Parses the heading structure with [`typst_cst`] then evaluates every rule.
-/// `require` violations carry no location; `forbid` violations carry the location
-/// of the offending heading.
+/// `require` violations carry no location. `forbid` violations carry the
+/// location of the offending heading.
 #[must_use]
 pub fn check_headers(
     task: &Task,

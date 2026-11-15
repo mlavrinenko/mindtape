@@ -1,4 +1,4 @@
-//! Where each `[[tasks.rules]]` entry is declared, so a report that is about
+//! Where each `[[tasks.rules]]` entry comes from, so a report that is about
 //! the rule rather than a task opens the rule.
 //!
 //! [`crate::config::packs`] already records which layer or pack each merged rule
@@ -22,7 +22,7 @@ const RULES_PREFIX: &str = "tasks.";
 /// Each `[[tasks.rules]]` entry's location, by the label its reports carry
 /// (`rules.<name>` or `rules[<index>]`).
 ///
-/// Derived at load, never declared, never equal-compared: two configs with the
+/// Derived at load, never declared, never equal-compared. Two configs with the
 /// same declared content are the same config wherever their rules came from,
 /// the reading [`crate::rules::RulesRoot`] takes for the same kind of
 /// load-derived state. Empty for a [`crate::config::Config`] built through
@@ -51,14 +51,14 @@ impl RuleSites {
         Self(sites)
     }
 
-    /// Where the rule reported as `label` is declared, if the load recorded it.
+    /// Where the rule reported as `label` comes from, if the load recorded it.
     pub(crate) fn get(&self, label: &str) -> Option<&Location> {
         self.0.get(label)
     }
 }
 
-/// One entry's location: its source file, or the `<source>:<pack>` name of
-/// a built-in or cached pack.
+/// The location of one entry is its source file, or the `<source>:<pack>` name
+/// of a built-in or cached pack.
 fn site(entry: &RuleOriginEntry, root: &Path) -> Option<Location> {
     let line = entry.line?;
     match &entry.origin {

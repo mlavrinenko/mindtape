@@ -74,8 +74,8 @@ impl Installed<'_> {
     }
 }
 
-/// Each declared source with its lock entry, by name. A lock entry no source
-/// declares is left out.
+/// Each declared source with its lock entry, by name. The map leaves out a lock
+/// entry that references a source the project does not declare.
 fn locked(sources: &PackSources) -> impl Iterator<Item = (&str, &LockedSource)> {
     sources.sources.keys().filter_map(|name| {
         let locked = sources.lock.entries.get(name)?;

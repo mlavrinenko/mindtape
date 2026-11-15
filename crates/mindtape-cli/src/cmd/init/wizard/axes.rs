@@ -1,11 +1,11 @@
 //! The `mt init` configuration axes: one enum per axis, its choices and their
 //! TOML fragments.
 //!
-//! This is the declaration half. The walk that asks a user over these axes —
-//! and the composing of their answers — lives in [`super`]; the
-//! shared contract between the two is [`super::Axis`]. The `super::axis!`
-//! macro, textually in scope here because this module is declared after it,
-//! generates each enum, its [`super::Axis`] impl and its `clap::ValueEnum`.
+//! This is the declaration half. The walk that prompts a user over these axes,
+//! and the composing of their answers, lives in [`super`]. The shared contract
+//! between the two is [`super::Axis`]. The `super::axis!` macro, textually in
+//! scope here because this module comes after it, generates each enum, its
+//! [`super::Axis`] impl and its `clap::ValueEnum`.
 
 use super::Axis;
 
@@ -75,8 +75,8 @@ axis!(Recurrence ("How do you write repeating tasks?", default = Off) {
 });
 
 /// The `spec` body-headers choice needs a template that produces its sections,
-/// or the very first `mt add` writes a task its own config rejects. Ship the
-/// same task template the `gated` preset does.
+/// or the first `mt add` writes a task its own config rejects. Use the same
+/// task template the `gated` preset does.
 const SPEC_TEMPLATE: &str = include_str!("../presets/gated/templates/task.typ");
 
 impl Headers {

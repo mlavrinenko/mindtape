@@ -2,19 +2,19 @@
 //! came from: [`EMBEDDED_PACKS`] under the one source known without a
 //! declaration, [`EMBEDDED_SOURCE`], and the origin types `mt config show
 //! --origin` prints. [`crate::config::pack_resolve`] looks a `<source>:<pack>`
-//! entry up here; [`crate::config::packs`] folds what it returns.
+//! entry up here. [`crate::config::packs`] folds what it returns.
 
 use std::fmt;
 use std::path::{Path, PathBuf};
 
 use crate::config::layers::LayerSource;
 
-/// The source of the packs compiled into the binary: an `extends` entry
-/// `mindtape:<pack>` names one. It is the one source known without a
+/// The source of the packs compiled into the binary. An `extends` entry
+/// `mindtape:<pack>` references one. It is the one source known without a
 /// declaration.
 pub(crate) const EMBEDDED_SOURCE: &str = "mindtape";
 
-/// The file a directory pack's table is read from.
+/// The file that holds a directory pack's table.
 pub(crate) const PACK_FILE: &str = "pack.toml";
 
 /// Packs compiled into the binary, `(pack, TOML text)`, each under
@@ -37,8 +37,8 @@ pub enum PackOrigin {
     /// A `mindtape:<pack>` entry resolved against [`EMBEDDED_PACKS`], held as
     /// the whole `<source>:<pack>` name.
     Embedded(String),
-    /// A path pack naming a TOML file, resolved to an absolute (or as-given,
-    /// if the base couldn't be made absolute) path.
+    /// A path pack that references a TOML file, resolved to an absolute path
+    /// (or the path as given, when the base could not become absolute).
     Path(PathBuf),
     /// A directory pack, held as the directory: its `pack.toml` is the pack,
     /// and its `templates/` joins `templates.dirs`.
@@ -57,8 +57,8 @@ pub enum PackOrigin {
 }
 
 impl PackOrigin {
-    /// How an error names the pack: its `<source>:<pack>` name, or its
-    /// resolved path.
+    /// The name an error reports for the pack: its `<source>:<pack>` name, or
+    /// its resolved path.
     pub(crate) fn label(&self) -> String {
         match self {
             Self::Embedded(name) | Self::Cached { name, .. } => name.clone(),
@@ -88,7 +88,7 @@ impl PackOrigin {
 
     /// The directory every file the pack names must stay inside: a cached
     /// pack's source tree, which came from the network. A local pack may
-    /// name any file, as the project itself may.
+    /// reference any file, as the project itself may.
     pub(crate) fn bound(&self) -> Option<&Path> {
         match self {
             Self::Cached { tree, .. } => Some(tree),
@@ -125,7 +125,7 @@ impl fmt::Display for RuleOrigin {
 /// came from. Backs `mt config show --origin`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RuleOriginEntry {
-    /// e.g. `tasks.rules.start-title-with-verb` or `tasks.body.headers.rules[2]`.
+    /// Such as `tasks.rules.start-title-with-verb` or `tasks.body.headers.rules[2]`.
     pub label: String,
     /// The pack or layer this entry's current content came from.
     pub origin: RuleOrigin,

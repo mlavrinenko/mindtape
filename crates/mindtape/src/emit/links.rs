@@ -1,11 +1,11 @@
 //! `links:` field emission: group edges by kind, then by note, into one
-//! prelude helper call per (kind, note) group, joined with ` + ` — the
-//! DSL-call-level mirror of `lib/prelude.typ`'s own `_links-by-kind`
-//! grouping (which operates on the already-evaluated marker for the rendered
-//! card). Edges of the same kind but different notes need separate calls,
-//! since a helper's trailing content block applies its note to every target
-//! in that one call — so a kind can legally appear more than once in the
-//! joined expression.
+//! prelude helper call per (kind, note) group, joined with ` + `. This is the
+//! DSL-call-level mirror of `lib/prelude.typ`'s own `_links-by-kind` grouping,
+//! which operates on the already-evaluated marker for the rendered card.
+//! Edges of the same kind but different notes need separate calls, since a
+//! helper's trailing content block applies its note to every target in that
+//! one call. A kind can then legally appear more than once in the joined
+//! expression.
 
 use crate::link::{Link, is_builtin_kind};
 
@@ -30,7 +30,7 @@ pub(super) fn emit_links(links: &[Link]) -> Option<String> {
     Some(format!("links: {}", calls.join(" + ")))
 }
 
-/// One kind's helper calls: grouped by note (first-seen order), so a kind
+/// The helper calls for one kind, grouped by note in first-seen order. A kind
 /// whose edges carry different notes emits one call per distinct note.
 fn kind_calls(kind: &str, links: &[Link]) -> Vec<String> {
     let mut notes: Vec<Option<&str>> = Vec::new();
@@ -53,9 +53,10 @@ fn kind_calls(kind: &str, links: &[Link]) -> Vec<String> {
         .collect()
 }
 
-/// One helper call: the built-in name directly (`depends-on(...)`), else the
-/// generic `edge("kind", ...)` escape hatch; a trailing `[note]` content
-/// block when `note` is set.
+/// One helper call. A built-in kind uses its own name directly
+/// (`depends-on(...)`), and any other kind uses the generic
+/// `edge("kind", ...)` escape hatch. A trailing `[note]` content block follows
+/// when `note` carries a value.
 fn call(kind: &str, targets: &[&str], note: Option<&str>) -> String {
     let args = targets
         .iter()

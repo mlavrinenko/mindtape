@@ -3,17 +3,18 @@
 //! advance).
 //!
 //! The question is the loader's own ([`mindtape::would_be_visible`]): would a
-//! task written here be loaded back? A reserved path (`.mindtape`, `.git`, a
-//! `[templates] dirs` entry) and a new file under an ignore rule are answered
-//! "no", and the write is refused before a directory or file exists. A tracked
-//! file under an ignore rule is still visible, so mutating or skipping one is
-//! allowed while a new sibling beside it is not.
+//! task written here load back? A reserved path (`.mindtape`, `.git`, a
+//! `[templates] dirs` entry) and a new file under an ignore rule both answer
+//! "no", and the guard refuses the write before a directory or file exists. A
+//! tracked file under an ignore rule is still visible. The guard allows
+//! mutating or skipping one, and refuses a new sibling beside it.
 //!
-//! The path is resolved first, against the filesystem, so a symlinked
-//! directory or a `..` after one cannot make the policy inspect a lexical path
-//! other than the one the write would reach: `.` and `..` are folded and every
-//! symlink on the nearest existing ancestor is followed, with the components
-//! below it appended. Only then does [`mindtape::would_be_visible`] answer.
+//! The guard resolves the path first, against the filesystem. A symlinked
+//! directory or a `..` after one then cannot make the policy inspect a lexical
+//! path other than the one the write would reach. The resolver folds `.` and
+//! `..` and follows every symlink on the nearest existing ancestor, with the
+//! components below it appended. Only then does [`mindtape::would_be_visible`]
+//! answer.
 //!
 //! A destination outside every root is not this guard's to refuse: it stays
 //! the warning [`crate::cmd::add::warn_if_outside_roots`] has always printed.
@@ -47,14 +48,14 @@ impl Mode {
 
 /// Refuse `path` when a task written there would be invisible to the loader.
 ///
-/// Nothing is created here, so a preview can ask the same question a real run
-/// does. The refusal names the resolved final path and the reason
+/// The check doesn't create anything, and a preview gets the same answer a real
+/// run does. The refusal reports the resolved final path and the reason
 /// [`mindtape::would_be_visible`] gave, with the fix `mode` reads.
 ///
 /// # Errors
-/// A [`Diag`] when the resolved destination is reserved, a symlink, not a
-/// `.typ` file, a directory, ignored by Git, or a path Git could not answer
-/// for. A destination outside every configured root is accepted.
+/// A [`Diag`] when the resolved destination is a reserved path, a symlink, not
+/// a `.typ` file, a directory, ignored by Git, or a path Git could not answer
+/// for. The guard accepts a destination outside every configured root.
 pub(crate) fn check(project: &Project, path: &Path, mode: Mode) -> Result<()> {
     let candidate = mindtape::TaskPath::new(&project.root, &resolve(path));
     let resolved = candidate.abs();
@@ -75,9 +76,9 @@ pub(crate) fn check(project: &Project, path: &Path, mode: Mode) -> Result<()> {
 /// symlink and refuse it. Following it here would answer for the target, and a
 /// write through the link would leave a task source the loader never lists.
 ///
-/// A parent whose nearest existing ancestor cannot be resolved keeps its
-/// absolute lexical form, so the policy still answers rather than the guard
-/// failing on an unrelated filesystem error.
+/// A parent whose nearest existing ancestor does not resolve keeps its absolute
+/// lexical form. The policy then still answers rather than the guard failing on
+/// an unrelated filesystem error.
 pub(crate) fn resolve(path: &Path) -> PathBuf {
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     let (Some(name), Some(parent)) = (absolute.file_name(), absolute.parent()) else {
@@ -88,13 +89,14 @@ pub(crate) fn resolve(path: &Path) -> PathBuf {
     resolved
 }
 
-/// `path` as the filesystem reaches it when it names a directory: the nearest
-/// existing ancestor canonicalized, then the components below it appended.
+/// `path` as the filesystem reaches it when it references a directory: the
+/// nearest existing ancestor canonicalized, then the components below it
+/// appended.
 ///
-/// Unlike [`resolve`], the final component is resolved too when it already is
-/// a directory (or a symlink to one), so a root reached through a symlink names
-/// the directory it reaches. A path that does not exist yet keeps its missing
-/// tail, as [`resolve`] does.
+/// Unlike [`resolve`], the final component resolves too when it already is a
+/// directory (or a symlink to one), so a root reached through a symlink
+/// references the directory it reaches. A path that does not exist yet keeps
+/// its missing tail, as [`resolve`] does.
 pub(crate) fn resolve_directory(path: &Path) -> PathBuf {
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     resolve_dir(&absolute)

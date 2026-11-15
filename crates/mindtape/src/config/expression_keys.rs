@@ -56,8 +56,8 @@ pub(crate) fn expression_keys() -> &'static [ExpressionKey] {
 pub(crate) type Visit<'f> = dyn FnMut(&[String], &Map<String, Value>) + 'f;
 
 /// Call `visit` on every schema node under `root`, with the TOML path it
-/// describes. A `$ref` is followed into `$defs`, once per path, so a
-/// recursive type ends.
+/// describes. The walk follows a `$ref` into `$defs` once per path, which ends
+/// a recursive type.
 pub(crate) fn walk_schema(root: &Value, visit: &mut Visit) {
     walk(root, root, &mut Vec::new(), &mut Vec::new(), visit);
 }

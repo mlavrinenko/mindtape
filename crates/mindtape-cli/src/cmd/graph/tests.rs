@@ -197,7 +197,7 @@ fn mermaid_renders_related_edge() {
     assert!(out.contains("-.->"));
 }
 
-/// A target outside the backlog renders as its own distinctly-styled leaf —
+/// A target outside the backlog renders as its own distinctly-styled leaf,
 /// never a task node, and never on the readiness palette.
 #[test]
 fn dot_renders_an_external_target_as_a_distinct_node() {

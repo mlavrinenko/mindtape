@@ -4,8 +4,8 @@ use super::format_typst;
 
 const HEADER: &str = crate::typst_task!("(\n  title: \"x\",\n)\n");
 
-/// A body paragraph carrying hundreds of leading spaces — the exact drift
-/// `mt add` left behind — is flattened to column zero.
+/// A body paragraph carrying hundreds of leading spaces, the exact drift
+/// `mt add` left behind, lands at column zero.
 #[test]
 fn strips_deep_body_indentation() {
     let drift = format!(
@@ -41,8 +41,8 @@ fn idempotent() {
     assert_eq!(once, twice, "second pass changed the output");
 }
 
-/// A clean header round-trips unchanged — the common `mt flip` case where the
-/// file was already canonical must not churn.
+/// A clean header round-trips unchanged. The common `mt flip` case, where the
+/// file was already canonical, must not churn.
 #[test]
 fn clean_source_unchanged() {
     let clean = format!("{HEADER}\n== Summary\n\nAlready clean.\n");

@@ -11,13 +11,13 @@ fn rows<'a>(data: &[(&'a str, &'a Task)]) -> Vec<(String, &'a Task)> {
     data.iter().map(|(h, t)| (h.to_string(), *t)).collect()
 }
 
-/// Whether the shipped floor's `when` for `col` resolves true over `rows`.
+/// Whether the built-in floor's `when` for `col` resolves true over `rows`.
 ///
 /// The per-column policy is one `when` expression per column in `defaults.toml`,
-/// not a Rust match (`auto_significant`), so these tests ask
-/// the floor rather than a fixture restating it: a fixture would pass while the
-/// floor said anything. `named` is the request fact `resolve_order` derives
-/// from `[ls] columns-order`; the environment is otherwise blank, which is the
+/// not a Rust match (`auto_significant`). These tests read the floor itself
+/// rather than a fixture that restates it, because a fixture would pass while
+/// the floor said anything. `named` is the request fact `resolve_order` derives
+/// from `[ls] columns-order`. The environment is otherwise blank, which is the
 /// captured-but-formatless shape (`!tty()`, no `format()`).
 fn shows(col: ColumnId, rows: &[(String, &Task)], readiness: &Readiness, named: bool) -> bool {
     let fixture = TestCtx {
@@ -77,9 +77,9 @@ fn ready_hidden_when_nothing_is_blocked() {
     );
 }
 
-/// The reason `ready` reads `blocked()` rather than `nonempty()`: on an
-/// all-ready listing every cell carries a label, so the two disagree, and the
-/// column that says "something is stuck" must follow the one that means it.
+/// `ready` reads `blocked()` rather than `nonempty()` because on an all-ready
+/// listing every cell carries a label, so the two disagree. The column that
+/// reports a stuck task must follow the one that means it.
 #[test]
 fn ready_reads_blocked_not_nonempty() {
     let task = bare_task("t");
@@ -258,7 +258,7 @@ fn assignee_rendered(config: &Config, a: &str, b: &str) -> bool {
 }
 
 /// The floor with `[ls.columns.assignee] when` replaced. A scalar replaces
-/// wholesale across config layers, so this is exactly what a project writes.
+/// wholesale across config layers, so one line overrides it.
 fn assignee_when(when: &str) -> Config {
     let mut config = floor_config();
     config.ls.columns.insert(

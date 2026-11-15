@@ -1,10 +1,10 @@
-//! `mt recur --advance N` — pre-materialize N future spawns forward from a
-//! task, without closing the current instance. Split out of `cmd/recur/mod.rs` to
-//! stay under the file-size gate: the single-step materialize paths
-//! (`spawn`/`mutate`/`skip`) and the planning primitives this chain builds on
-//! (`dates`, `plan_next`, `mint_stem`, `spawn_source`, `occurrence_index`,
-//! `guard_double_spawn`) stay there, since `do_spawn` leans on the same
-//! toolkit — `--advance` is the one materialize path that walks it in a loop
+//! `mt recur --advance N`: pre-materialize N future spawns forward from a
+//! task, without closing the current instance. This module lives apart from
+//! `cmd/recur/mod.rs` to stay under the file-size gate. The single-step
+//! materialize paths (`spawn`/`mutate`/`skip`) and the planning primitives this
+//! chain builds on (`dates`, `plan_next`, `mint_stem`, `spawn_source`,
+//! `occurrence_index`, `guard_double_spawn`) stay there. `do_spawn` leans on the
+//! same toolkit. `--advance` is the one materialize path that walks it in a loop
 //! instead of once.
 
 use std::collections::HashSet;
@@ -70,16 +70,18 @@ pub(super) fn check_advance_preconditions(
 
 /// Chain `count` future spawns forward from `task` in memory: each entry's
 /// content already carries its own `recurred-from` back to the previous one.
-/// Nothing is written yet — [`write_advance_chain`] decides dry-run vs write.
-/// Stops early (without erroring) once a stop condition trips on a
-/// non-empty chain, since the earlier spawns are still a valid partial batch.
+/// The chain only builds the sources, and [`write_advance_chain`] decides
+/// dry-run against write. The chain stops early (without erroring) once a stop
+/// condition trips on a non-empty chain, since the earlier spawns are still a
+/// valid partial batch.
 ///
 /// The first hop is anchor-aware (`plan_next`) and every hop after it steps
-/// off the previous occurrence's date instead (`plan_step`) — see that
-/// function for why an anchor cannot be re-asked mid-chain. Each minted stem
-/// is claimed as it is planned, so a later hop landing on the same name
-/// (a `{slug}`-only template, or a rule that repeats a date) gets the
+/// off the previous occurrence's date instead (`plan_step`). See that function
+/// for why an anchor cannot be re-asked mid-chain. The chain claims each minted
+/// stem as it plans it. A later hop that lands on the same name then gets the
 /// `-2`/`-3` suffix rather than the file the hop before it already spoke for.
+/// A `{slug}`-only template, or a rule that repeats a date, is how that
+/// collision happens.
 pub(super) fn build_advance_chain(
     project: &Project,
     task: &Task,
@@ -156,15 +158,15 @@ pub(super) fn build_advance_chain(
 /// Print a preview (dry-run), or check the whole chain and write it.
 ///
 /// The destination guard runs over every member first, for a preview as much
-/// as for a write: each occurrence lands beside its predecessor, so one
+/// as for a write. Each occurrence lands beside its predecessor, so one
 /// invisible member refuses the batch before its folder exists.
 ///
-/// The check is all-or-nothing, and the chain is why: every occurrence's source
-/// is the previous one rewritten, and each names its predecessor through a
-/// `recurred-from` edge. So the members are only valid as a set — a lone
-/// occurrence whose predecessor was refused points at a file that does not
-/// exist — and one rejected entry condemns every entry after it. Refusing the
-/// batch writes nothing at all, which is the only outcome with no half-chain to
+/// The check is all-or-nothing, and the chain is why. Every occurrence's source
+/// is the previous one rewritten, and each carries a `recurred-from` edge back
+/// to its predecessor. The members are only valid as a set. A lone occurrence
+/// whose predecessor the guard refused points at a file that does not exist,
+/// and one rejected entry condemns every entry after it. Refusing the batch
+/// leaves the disk untouched, which is the only outcome with no half-chain to
 /// unpick afterwards.
 pub(super) fn write_advance_chain(
     project: &Project,

@@ -1,11 +1,11 @@
 //! Tests for the `[[on.flip]]` command executor: capture, verdict, context.
 //!
 //! The cases below are shell lines, written in the shell
-//! `mindtape::shell::SHELL` names and split by platform: the POSIX set carries the full
-//! contract (including the signal verdict, which Windows has no analogue for),
-//! and a smaller `cmd` set pins the same capture-and-context behaviour there.
-//! An array `run` needs no shell, so `tests/it/argv_run_e2e.rs` covers it on
-//! every platform at once.
+//! `mindtape::shell::SHELL` names and split by platform. The POSIX set carries
+//! the full contract (including the signal verdict, which Windows has no
+//! analogue for), and a smaller `cmd` set pins the same capture-and-context
+//! behaviour there. An array `run` doesn't need a shell, so
+//! `tests/it/argv_run_e2e.rs` covers it on every platform at once.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::{tempdir, tempdir_with_files};
@@ -17,7 +17,7 @@ use crate::cmd::flip::chain::Chain;
 
 use super::{CommandReport, ENV_FILE, ENV_STATUS, ENV_STEM, RunCtx, run_command};
 
-/// `text` as a shell line, the form every case below is written in.
+/// `text` as a shell line, the form every case below uses.
 fn line(text: &str) -> ConfigCommand {
     ConfigCommand::Line(text.to_owned())
 }
@@ -49,7 +49,7 @@ fn run_line(text: &str) -> CommandReport {
     run_in(dir.path(), text).0
 }
 
-/// A shell that cannot start is an error, not a failed command: a missing
+/// A shell that cannot start is an error, not a failed command. A missing
 /// project root leaves the spawn nothing to run in, so the caller must not read
 /// the absence of a verdict as a pass.
 #[test]
@@ -76,7 +76,7 @@ fn a_passing_command_reports_success_and_its_output() {
     assert_eq!(report.output, "hello\n");
 }
 
-/// Both streams are captured: a gate's evidence is usually on stderr.
+/// The report captures both streams, because a gate's evidence can sit on stderr.
 #[cfg(not(windows))]
 #[test]
 fn stdout_and_stderr_are_both_captured() {
@@ -88,10 +88,10 @@ fn stdout_and_stderr_are_both_captured() {
     assert_eq!(report.verdict(), "exit 4");
 }
 
-/// A signal leaves no exit code, and the verdict says so rather than inventing
-/// one — a gate killed by a timeout must not read as a clean failure. Unix
-/// only: a Windows process always ends with an exit code, so there is no state
-/// to reach `verdict`'s `None` arm with.
+/// A signal doesn't leave an exit code, and the verdict says so rather than
+/// inventing one. A gate killed by a timeout must not read as a clean failure.
+/// Unix only: a Windows process always ends with an exit code, so there is no
+/// state to reach `verdict`'s `None` arm with.
 #[cfg(unix)]
 #[test]
 fn a_signalled_command_has_no_code() {
@@ -102,7 +102,7 @@ fn a_signalled_command_has_no_code() {
 }
 
 /// The command runs in the project root, with the transition in its
-/// environment — the contract a gate script is written against.
+/// environment: the contract a gate script relies on.
 #[cfg(not(windows))]
 #[test]
 fn the_command_sees_the_root_and_the_transition() {
@@ -118,8 +118,8 @@ fn the_command_sees_the_root_and_the_transition() {
 
 /// The same executor contract under `cmd /C`. Deliberately thinner than the
 /// POSIX set above and asserted with `contains` rather than equality: `cmd`
-/// echoes CRLF and its own quoting rules, and the behaviour under test is the
-/// capture, the code, and the context — not the shell's formatting.
+/// echoes CRLF and its own quoting rules. The behaviour under test is the
+/// capture, the code, and the context, not the shell's formatting.
 #[cfg(windows)]
 mod windows {
     use super::{ENV_FILE, ENV_STATUS, ENV_STEM, run_in, run_line, tempdir_with_files};
@@ -132,7 +132,8 @@ mod windows {
         assert_eq!(report.output.trim(), "hello");
     }
 
-    /// A non-zero exit is reported, not raised — the caller decides about it.
+    /// The report carries a non-zero exit rather than raising it: the caller
+    /// decides about it.
     #[test]
     fn a_failing_command_reports_its_code() {
         let report = run_line("exit /b 4");
@@ -141,7 +142,8 @@ mod windows {
         assert_eq!(report.verdict(), "exit 4");
     }
 
-    /// Both streams are captured: a gate's evidence is usually on stderr.
+    /// The report captures both streams, because a gate's evidence can sit on
+    /// stderr.
     #[test]
     fn stdout_and_stderr_are_both_captured() {
         let report = run_line("echo out& echo err 1>&2");

@@ -1,9 +1,9 @@
 //! `mt packs update`: lock each source at the commit its `ref` points to.
 //!
-//! Every fetch runs before the lock is written, and the lock is written once
-//! and atomically, so a failure leaves the old lock whole. The report and
-//! its warnings wait for that write too, so a failed update prints only its
-//! error, not progress on a lock it never wrote.
+//! Every fetch runs before the code writes the lock, and the code writes the
+//! lock once and atomically. A failure leaves the old lock whole. The report
+//! and its warnings wait for that write too, and a failed update prints only
+//! its error, not progress on a lock it never wrote.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -76,7 +76,7 @@ fn pick<'a>(
 }
 
 /// One `mt packs update` run: where it reads and writes, and the report it
-/// prints once the lock is written.
+/// prints once the lock write lands.
 struct Update<'a> {
     root: &'a Path,
     cache: PathBuf,
@@ -84,7 +84,8 @@ struct Update<'a> {
 }
 
 impl Update<'_> {
-    /// Drop each lock entry no source declares, saying so. Whether any was.
+    /// Drop each lock entry that references a source the project does not
+    /// declare, saying so. Whether any was.
     fn drop_undeclared(
         &mut self,
         lock: &mut PackLock,

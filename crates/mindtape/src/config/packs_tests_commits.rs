@@ -1,6 +1,6 @@
 //! The `mindtape:tweaks` and `mindtape:commits` packs, loaded through the
 //! real registry: each alone over the floor, beside `mindtape:budget`, and the
-//! rules and path sets they ship. How the rules judge a commit is the CLI
+//! rules and path sets they carry. How the rules judge a commit is the CLI
 //! tests' business (`commit_packs_e2e.rs`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 

@@ -313,9 +313,9 @@ fn unknown_variable(file: &str, name: &str, region: CallRegion) -> LoadError {
     }
 }
 
-/// The status hint rides on the first error in a `status:` argument, the
-/// escaped-hash hint on the first one outside the call, and an error
-/// elsewhere in the call gets neither, nor uses either up.
+/// The status hint rides on the first error in a `status:` argument, and the
+/// escaped-hash hint on the first one outside the call. An error elsewhere in
+/// the call gets neither, nor uses either up.
 #[test]
 fn each_hint_rides_on_the_first_error_in_its_region() {
     let status = || CallRegion::Argument("status".to_owned());

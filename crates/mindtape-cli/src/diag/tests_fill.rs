@@ -7,8 +7,8 @@ fn plain(diag: &Diag) -> String {
     render(diag, false)
 }
 
-/// A slot fill rejected: the command line's mistakes exit 2 and say what to
-/// pass instead, the template's own exit 1.
+/// A rejected slot fill. The command line's mistakes exit 2 and say what to
+/// pass instead, and the template's own exit 1.
 #[test]
 fn a_rejected_fill_says_what_to_pass_instead() {
     use mindtape::{FillError, SlotKind};

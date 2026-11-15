@@ -1,8 +1,8 @@
 //! Borderless, copy-friendly list rendering.
 //!
 //! Replaces the box-drawing table with space-aligned columns: one line per task
-//! plus a single header line — greppable, diffable, paste-friendly. Colour and
-//! glyphs activate only on a TTY; piped output is plain.
+//! plus a single header line, greppable, diffable and paste-friendly. Colour
+//! and glyphs activate only on a TTY. Piped output is plain.
 
 use std::io::IsTerminal;
 
@@ -21,25 +21,25 @@ use super::width::{display_width, pad_to_width, truncate_to_width};
 const GAP: &str = "  ";
 const TITLE_MIN: usize = 16;
 
-/// A resolved visible column: its id, per-row cells, and display width.
+/// A resolved visible column holds its id, per-row cells, and display width.
 struct Column {
     id: ColumnId,
     cells: Vec<CellSpec>,
     width: usize,
     /// Per-row hyperlink target URI, populated for the `slug#` and `file`
-    /// columns — the only two OSC 8 wraps. Both share the same per-row list
-    /// (the target is a property of the row, not the column); `None` for
-    /// every other column, so `render_grid` skips the wrap there regardless
-    /// of whether hyperlinks are active.
+    /// columns, the only two OSC 8 wraps. Both share the same per-row list,
+    /// because the target is a property of the row, not the column. It is
+    /// `None` for every other column, so `render_grid` skips the wrap there
+    /// regardless of whether hyperlinks are active.
     link_uris: Option<Vec<String>>,
 }
 
 /// Render `tasks` as a borderless, space-aligned table.
 ///
 /// The column set, order, and visibility come from `[ls.columns]` /
-/// `[ls] columns-order`. Under the shipped floor's `when` expressions a column
-/// is dropped when it carries nothing — so a backlog with no priorities, no due
-/// dates, or no contested dependencies stays uncluttered.
+/// `[ls] columns-order`. Under the built-in floor's `when` expressions the
+/// renderer drops a column when it carries nothing. A backlog with no
+/// priorities, no due dates, or no contested dependencies stays uncluttered.
 ///
 /// # Errors
 /// Returns an error if a column's `when` fails to evaluate
@@ -51,8 +51,8 @@ pub fn render(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
 /// Render `tasks` with the interactive `slug#`-column highlight applied.
 ///
 /// `highlighted[i]` marks whether the `slug#` cell of display row `i` renders
-/// reverse-video; a shorter slice leaves the remaining rows un-highlighted. The
-/// invert effect rides the table's painter, so `--color never` drops it.
+/// reverse-video, and a shorter slice leaves the remaining rows un-highlighted.
+/// The invert effect rides the table's painter, so `--color never` drops it.
 ///
 /// # Errors
 /// Same as [`render`].
@@ -75,13 +75,14 @@ fn render_inner(tasks: &[Task], ctx: RenderCtx<'_>, highlighted: &[bool]) -> Res
     Ok(render_grid(&columns, glyph_mode, painter, linker))
 }
 
-/// Render several listings as one table, each listing's rows in a block, in
-/// order: a set's projects, each with its own [`RenderCtx`]. The columns are
-/// every column any listing resolves visible ([`crate::render::columns::union_order`]), and each cell
-/// is built by its own listing's context.
+/// Render more than one listing as one table, each listing's rows in a block,
+/// in order: a set's projects, each with its own [`RenderCtx`]. The columns are
+/// every column any listing resolves visible
+/// ([`crate::render::columns::union_order`]), and each cell comes from its own
+/// listing's context.
 ///
-/// A listing whose context turns hyperlinks off gets no OSC 8 wrap on its
-/// rows, whatever the others decide.
+/// A listing whose context turns hyperlinks off leaves its rows unwrapped,
+/// whatever the others decide.
 ///
 /// # Errors
 /// Returns an error if a column's `when` fails to evaluate
@@ -131,7 +132,7 @@ fn blank_unless(uris: Vec<String>, keep: bool) -> Vec<String> {
 }
 
 /// Paint the `slug#` column's cells reverse-video for the highlighted rows. A
-/// no-op when no row is flagged or the column is not visible.
+/// no-op when no row carries a flag or the column is not visible.
 fn apply_highlight(columns: &mut [Column], highlighted: &[bool]) {
     if highlighted.iter().all(|on| !on) {
         return;
@@ -146,13 +147,13 @@ fn apply_highlight(columns: &mut [Column], highlighted: &[bool]) {
     }
 }
 
-/// Emoji on a TTY; no glyphs when piped (keeps pipe output plain).
+/// Emoji on a TTY, and no glyphs when piped (keeps pipe output plain).
 fn glyph_mode() -> GlyphMode {
     glyph_mode_for(std::io::stdout().is_terminal())
 }
 
 /// [`glyph_mode`] with the terminal answer supplied, so both arms are reachable
-/// in a test regardless of how the suite was invoked.
+/// in a test regardless of how the suite invokes it.
 fn glyph_mode_for(tty: bool) -> GlyphMode {
     if tty {
         GlyphMode::Emoji
@@ -162,7 +163,7 @@ fn glyph_mode_for(tty: bool) -> GlyphMode {
 }
 
 /// Build each visible column's cells and width. The flex column (`title`)
-/// absorbs the remaining terminal width; the rest size to their content.
+/// absorbs the remaining terminal width, and the rest size to their content.
 fn build_columns(
     visible: &[ColumnId],
     rows: &[(String, &Task)],
@@ -174,7 +175,7 @@ fn build_columns(
     columns
 }
 
-/// [`build_columns`] at natural widths, before the flex column is fitted.
+/// [`build_columns`] at natural widths, before the flex column fits.
 fn group_columns(
     visible: &[ColumnId],
     rows: &[(String, &Task)],
@@ -221,8 +222,8 @@ fn group_columns(
 }
 
 /// Whether `id` is one of the two columns OSC 8 wraps. Fixed by design (see
-/// `truth/tasks/2026-07/hyperlink-the-handle-column.typ`) — there is no per-column
-/// `link` key to consult.
+/// `truth/tasks/2026-07/hyperlink-the-handle-column.typ`), and there is no
+/// per-column `link` key to consult.
 fn is_linked_column(id: ColumnId) -> bool {
     matches!(id, ColumnId::StemHash | ColumnId::File)
 }
@@ -261,11 +262,11 @@ fn terminal_width() -> Option<usize> {
     terminal_size::terminal_size().map(|(width, _)| width.0 as usize)
 }
 
-/// Lay out the header and one line per task. Every column is padded to its
-/// width except the last, which is truncated-not-padded so no trailing run
-/// survives (keeps output greppable / paste-friendly). `linker` wraps a data
-/// cell in its OSC 8 sequence, if any, strictly after width fitting and
-/// colour — same as colour, it never disturbs the padding math.
+/// Lay out the header and one line per task. The layout pads every column to
+/// its width except the last, which it truncates rather than pads so no
+/// trailing run survives (keeps output greppable / paste-friendly). `linker`
+/// wraps a data cell in its OSC 8 sequence, if any, strictly after width
+/// fitting and colour. Like colour, it never disturbs the padding math.
 fn render_grid(
     columns: &[Column],
     glyph_mode: GlyphMode,
@@ -315,7 +316,7 @@ fn render_grid(
     out
 }
 
-/// The last column: truncate to width but do not pad (no trailing run).
+/// The last column truncates to width but does not pad (no trailing run).
 fn render_unpadded(
     spec: &CellSpec,
     glyph_mode: GlyphMode,

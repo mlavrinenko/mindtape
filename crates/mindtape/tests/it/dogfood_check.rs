@@ -1,9 +1,8 @@
 //! The dogfood project (this repo's own `.mindtape/config.toml` +
 //! `truth/tasks/**/*.typ`) must pass full task validation, not just the
-//! JSON-schema shape check `config_schema_validate.rs` runs — otherwise a
-//! required field like `estimate` could be flipped on in config while the
-//! actual backlog silently fails only via the git pre-commit hook, never
-//! `cargo test`.
+//! JSON-schema shape check `config_schema_validate.rs` runs. Otherwise someone
+//! could flip a required field like `estimate` on in config while the actual
+//! backlog silently fails only via the git pre-commit hook, never `cargo test`.
 #![allow(clippy::unwrap_used)]
 
 use std::path::PathBuf;
@@ -12,10 +11,10 @@ fn root() -> PathBuf {
     [env!("CARGO_MANIFEST_DIR"), "..", ".."].iter().collect()
 }
 
-/// Loaded with both environment-derived directories dropped: through
-/// `load_config` this would merge the global `defaults.toml` of whoever runs
-/// the suite, and a `[tasks]` line there could fail the repo's own backlog on
-/// their machine alone.
+/// Loads the config with both environment-derived directories dropped. Through
+/// `load_config` this would merge the global `defaults.toml` of whoever runs the
+/// suite, and a `[tasks]` line there could fail the repo's own backlog on their
+/// machine alone.
 fn config() -> mindtape::Config {
     mindtape::load_config_layered_from(&root(), None, None)
         .unwrap()
@@ -69,9 +68,9 @@ fn dogfood_config_rejects_an_unknown_kind() {
     }
 }
 
-/// The commit types a task closes with — `dev` for the harness around the
-/// repo — plus `milestone`, which closes through its leaves rather than a
-/// commit of its own.
+/// The commit types a task closes with (`dev` for the harness around the repo),
+/// plus `milestone`, which closes through its leaves rather than a commit of its
+/// own.
 const KINDS: [&str; 7] = [
     "feat",
     "fix",
@@ -82,13 +81,13 @@ const KINDS: [&str; 7] = [
     "milestone",
 ];
 
-/// An open task names its kind; a closed one is exempt, so history is not
+/// An open task carries its kind, and a closed one is exempt, so history is not
 /// backfilled.
 ///
-/// Both halves are stamped onto a loaded task rather than searched for in the
-/// backlog: a backlog whose every task is closed is a legitimate state — the
-/// one this test unwraps a `None` on, and the assertion is about the
-/// config's `required` rule, not about what the backlog holds today.
+/// The test stamps both halves onto a loaded task rather than searching for them
+/// in the backlog. A backlog where every task has closed is a legitimate state,
+/// the one this test unwraps a `None` on. The assertion is about the config's
+/// `required` rule, not about what the backlog holds today.
 #[test]
 fn dogfood_config_requires_kind_on_open_tasks_only() {
     let root = root();
@@ -118,8 +117,8 @@ fn dogfood_config_requires_kind_on_open_tasks_only() {
 /// the `task.with(…)` head. `task.typ` files anything, so it leaves `kind` out
 /// and `mt add` splices a choice over the configured vocabulary instead of a
 /// second copy of it. `tweak.typ` files anything too, done, where the commit
-/// subject carries the kind. Matched at the head's own two-space indent; a body
-/// `slot(…, kind: "text")` argument sits there too, but never in the head,
+/// subject carries the kind. The match uses the head's own two-space indent. A
+/// body `slot(…, kind: "text")` argument sits there too, but never in the head,
 /// which ends at the first `)` line.
 #[test]
 fn dogfood_templates_stamp_a_known_kind_or_leave_it_to_config() {

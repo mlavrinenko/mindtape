@@ -1,4 +1,4 @@
-//! The retire strategy's report and confirm helpers — split out of
+//! The retire strategy's report and confirm helpers, split out of
 //! `cmd/rm/gitless/mod.rs` to stay under the file-size gate.
 
 use std::path::Path;
@@ -34,8 +34,8 @@ pub fn report_retire_plan(plan: &RetirePlan) {
     report_retarget(plan, "would rewrite");
 }
 
-/// Print what the retire plan just did, and remind the user to review — the
-/// commit hint only when `root` sits inside a git repository.
+/// Print what the retire plan just did, and remind the user to review. The
+/// commit hint appears only when `root` sits inside a git repository.
 pub fn report_retire_applied(plan: &RetirePlan, root: &Path) {
     println!(
         "retired {} (status → {}):",

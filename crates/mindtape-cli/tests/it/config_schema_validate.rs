@@ -1,10 +1,11 @@
-//! Validate the shipped configs against the generated JSON Schema.
+//! Validate the bundled configs against the generated JSON Schema.
 //!
-//! The schema is derived from the config structs, and the shipped configs parse
-//! into those same structs — so agreement is expected by construction. This
-//! guards the seam that construction does not cover: the four hand-written
-//! `JsonSchema` impls (`config/schema.rs`) and any accidental over/under-strict
-//! keyword, caught end-to-end through a real draft-2020-12 validator.
+//! `schemars` derives the schema from the config structs, and the bundled
+//! configs parse into those same structs. Agreement follows by construction.
+//! This test guards the seam that construction does not cover: the four
+//! hand-written `JsonSchema` impls (`config/schema.rs`) and any accidental
+//! over/under-strict keyword. A real draft-2020-12 validator catches both
+//! end-to-end.
 #![allow(clippy::unwrap_used)]
 
 /// Convert TOML config text to a `serde_json` value for schema validation.
@@ -13,8 +14,8 @@ fn toml_to_json(text: &str) -> serde_json::Value {
     serde_json::to_value(table).unwrap()
 }
 
-/// Every shipped config — the embedded floor, each `mt init` preset, and the
-/// dogfood config — must validate against the generated schema.
+/// Every bundled config must validate against the generated schema: the
+/// embedded floor, each `mt init` preset, and the dogfood config.
 #[test]
 fn shipped_configs_validate_against_schema() {
     let schema: serde_json::Value = serde_json::from_str(&mindtape::config_schema_json()).unwrap();
@@ -59,8 +60,8 @@ fn shipped_configs_validate_against_schema() {
     }
 }
 
-/// An unknown top-level key must be rejected (the schema mirrors the config's
-/// `deny_unknown_fields`), so a typo surfaces in the editor.
+/// An unknown top-level key must fail validation, because the schema mirrors
+/// the config's `deny_unknown_fields`. A typo then surfaces in the editor.
 #[test]
 fn unknown_key_is_rejected() {
     let schema: serde_json::Value = serde_json::from_str(&mindtape::config_schema_json()).unwrap();

@@ -3,33 +3,34 @@
 //!
 //! Three steps, each separable from where its input came from:
 //!
-//! - [`parse_message`] reads a message's text — a hook's message file today,
-//!   a past commit's `%B` for a commit range — into its subject and the
-//!   values of the configured trailer.
-//! - [`staged_files`] reads the index with git; the paths a past commit
+//! - [`parse_message`] reads a message's text (a hook's message file today, a
+//!   past commit's `%B` for a commit range) into its subject and the values of
+//!   the configured trailer.
+//! - [`staged_files`] reads the index with git. The paths a past commit
 //!   changed come in the same [`ChangedFiles`] shape
 //!   ([`crate::commit::range`]).
-//! - [`CommitRecord::build`] joins the two against the loaded tasks: a trailer
-//!   value splits on commas and whitespace into refs. A ref that names a task
-//!   becomes a stem; one matching `[commits] external-refs` stays external and
-//!   opaque; a path to a task, or a value that names no task and matches no
-//!   external pattern, becomes a [`RefProblem`] instead — refused whatever
-//!   rules a project declares, since a trailer that names nothing is never what
-//!   its author meant.
+//! - [`CommitRecord::build`] joins the two against the loaded tasks. A trailer
+//!   value splits on commas and whitespace into refs. A ref that references a
+//!   task becomes a stem. One matching `[commits] external-refs` stays
+//!   external and opaque. A path to a task, or a value that references no task
+//!   and matches no external pattern, becomes a [`RefProblem`] instead. The
+//!   check refuses it whatever rules a project declares, since a trailer that
+//!   references nothing is never what its author meant.
 //!
-//! Trailers are parsed here rather than by `git interpret-trailers`, so the
-//! parse is a pure function a test can pin: the last paragraph of the message
-//! (comment lines and everything below a `git commit -v` scissors line
-//! dropped) is the trailer block when every line in it is `Key: value` or an
-//! indented continuation, the rule git's own parser applies to a block with no
-//! non-trailer lines. Keys match case-insensitively, as git's do.
+//! The parser here reads trailers rather than calling `git interpret-trailers`,
+//! so the parse is a pure function a test can pin. The last paragraph of the
+//! message is the trailer block when every line in it is `Key: value` or an
+//! indented continuation. That is the rule git's own parser applies to a block
+//! with no non-trailer lines. The parser drops comment lines and everything
+//! below a `git commit -v` scissors line first. Keys match case-insensitively,
+//! as git's do.
 //!
 //! # Files
 //!
 //! - `amend.rs`: which commit a `commit-msg` hook's index becomes the child
 //!   of, and whether that commit is a merge.
 //! - `expr.rs`: the expression language of a `scope = "commit"` rule.
-//! - `range.rs`: a range of past commits, read the way the commit being written is.
+//! - `range.rs`: a range of past commits, read the way a `commit-msg` hook reads one.
 //! - `record.rs`: the record a `scope = "commit"` rule reads and its ref helpers.
 //! - `refs.rs`: which tasks shaped a file, from the trailers of its commits.
 //! - `task_expr.rs`: the task half of a `scope = "task"` rule's expression.
@@ -38,7 +39,7 @@
 //! - `packages.rs`: a commit state's pinned package files and their fingerprint.
 //! - `state_cache.rs`: file outcomes, reuse identities and their helpers.
 //! - `state_loader.rs`: the evaluation cache shared across a range and the hook.
-//! - `tree.rs`: a commit state's git tree — its task files and config.
+//! - `tree.rs`: a commit state's git tree, its task files and config.
 //! - `tree_io.rs`: git listings, blob reads, symlink resolution and path arithmetic.
 
 pub(crate) mod amend;
@@ -74,7 +75,7 @@ use thiserror::Error;
 use crate::config::Config;
 use crate::task_source::TaskSource;
 
-/// Why a commit could not be read.
+/// Why the check could not read a commit.
 #[derive(Debug, Error)]
 pub enum CommitMsgError {
     /// The project root is not inside a git working tree, so there is no
@@ -89,7 +90,7 @@ pub enum CommitMsgError {
         /// What git printed on stderr.
         stderr: String,
     },
-    /// git could not be run at all.
+    /// git failed to start at all.
     #[error("could not run git: {0}")]
     Spawn(#[from] std::io::Error),
 }
@@ -106,7 +107,7 @@ pub struct TrailerValue {
 /// A commit message, read: its subject and the configured trailer's values.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CommitMessage {
-    /// The first non-blank, non-comment line; empty for an empty message.
+    /// The first non-blank, non-comment line. Empty for an empty message.
     pub subject: String,
     /// Every value of the configured trailer, in message order.
     pub trailers: Vec<TrailerValue>,
@@ -143,8 +144,8 @@ fn is_scissors(line: &str) -> bool {
     line.starts_with('#') && line.contains(">8")
 }
 
-/// The trailer block: the last paragraph, when it is not the subject's own
-/// and every line in it is a trailer or a continuation. Empty otherwise.
+/// The trailer block, which is the last paragraph when it is not the subject's
+/// own and every line in it is a trailer or a continuation. Empty otherwise.
 fn trailer_block<'a>(lines: &'a [(usize, &'a str)]) -> Vec<&'a (usize, &'a str)> {
     let content: Vec<&(usize, &str)> = {
         let end = lines
@@ -209,26 +210,26 @@ pub struct ChangedFiles {
     /// Every changed path that is a symlink on the side the commit holds, or
     /// on the side it deletes from. Such a path is not a task file.
     pub symlinks: Vec<String>,
-    /// The old path of every rename among `paths`: the sides a count of
-    /// changed files leaves out, so a rename counts once.
+    /// The old path of every rename among `paths`, the sides a count of
+    /// changed files leaves out. A rename then counts once.
     pub renamed_from: Vec<String>,
     /// The project root's path within the repository (`git rev-parse
-    /// --show-prefix`): empty at the top level, else `/`-terminated.
+    /// --show-prefix`): empty at the top level, else ending in `/`.
     pub root_prefix: String,
 }
 
 /// The files staged in the index of the repository holding `root`: what the
 /// commit a `commit-msg` hook guards is about to record.
 ///
-/// While `git commit --amend` makes the commit, "staged" is judged against
-/// `HEAD^`, the parent the amended commit will have.
+/// While `git commit --amend` makes the commit, the check judges "staged"
+/// against `HEAD^`, the parent the amended commit will have.
 ///
 /// Read-only (`--no-optional-locks`), and it inherits `GIT_INDEX_FILE`, so
 /// under `git commit -a` or `git commit <paths>` it reads the temporary index
 /// the commit is actually built from.
 ///
 /// # Errors
-/// [`CommitMsgError::NotGit`] when `root` is not inside a git working tree;
+/// [`CommitMsgError::NotGit`] when `root` is not inside a git working tree.
 /// [`CommitMsgError::Git`] / [`CommitMsgError::Spawn`] when git fails.
 pub fn staged_files(root: &Path) -> Result<ChangedFiles, CommitMsgError> {
     let root_prefix = git(root, &["rev-parse", "--show-prefix"]).map_err(|err| match err {
@@ -259,7 +260,7 @@ pub(crate) fn index_revs(root: &Path) -> Result<Vec<String>, CommitMsgError> {
 }
 
 /// The repository-relative paths `git diff <revs>` changes, and the subset
-/// that is a symlink on either relevant side: renames split into their two
+/// that is a symlink on either relevant side. Renames split into their two
 /// sides, top-level-relative whatever the root's prefix is, so `files` reads
 /// the same from any project inside the repository.
 pub(crate) fn changed_paths(
@@ -293,7 +294,7 @@ pub(crate) fn changed_paths(
 }
 
 /// The old path of every rename `git diff -M <revs>` detects, top-level
-/// relative like [`changed_paths`]; the new side is already in that list.
+/// relative like [`changed_paths`]. The new side is already in that list.
 pub(crate) fn renamed_sources(root: &Path, revs: &[&str]) -> Result<Vec<String>, CommitMsgError> {
     let mut args = vec![
         "diff",
@@ -337,7 +338,7 @@ fn git_error(args: &[&str], output: &Output) -> CommitMsgError {
     }
 }
 
-/// Run one read-only git command in `root`; `None` when git exits 1, its
+/// Run one read-only git command in `root`. `None` when git exits 1, its
 /// answer for a `--verify` that found nothing.
 pub(crate) fn git_optional(root: &Path, args: &[&str]) -> Result<Option<String>, CommitMsgError> {
     let output = run_git(root, args)?;
@@ -360,7 +361,7 @@ pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, CommitMsgError> 
     }
 }
 
-/// A trailer value no task answers to.
+/// A trailer value that matches no task.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RefProblem {
     /// The value as written.
@@ -371,8 +372,9 @@ pub struct RefProblem {
     pub unknown: Option<crate::suggest::Unknown>,
 }
 
-/// The refs a message names: stems for the tasks it names, values as written
-/// for external refs, and one problem per value that needs rewriting.
+/// The refs a message carries, which are stems for the tasks it references,
+/// values as written for external refs, and one problem per value that needs
+/// rewriting.
 #[derive(Default)]
 struct RefLists {
     refs: Vec<String>,
@@ -381,8 +383,8 @@ struct RefLists {
 }
 
 /// Resolve every trailer value against `stems` and the task-source policy
-/// `source`. A path-form value naming no task contributes no stem; a bare
-/// value behaves as it always did.
+/// `source`. A path-form value that references no task contributes no stem. A
+/// bare value behaves as it always did.
 fn classify_refs(
     message: &CommitMessage,
     stems: &[String],

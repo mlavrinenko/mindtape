@@ -2,10 +2,11 @@
 //! live project.
 //!
 //! [`super::Source::attach`] hangs one of these resolvers on every value-taking
-//! argument clap declares; the resolution itself — project discovery, the
-//! per-source mapping and the quiet failure every source shares — lives here.
-//! Every source resolves the project itself and yields no candidates when that
-//! fails: a tab press lands on a command line the user is still typing, so a
+//! argument clap declares. This module holds the resolution itself, which covers
+//! project discovery, the per-source mapping, and the quiet failure every source
+//! shares. Every
+//! source resolves the project itself and returns an empty list when that
+//! fails. A tab press lands on a command line the user is still typing. A
 //! diagnostic there reads as a broken shell rather than a broken project.
 //!
 //! Refs: `truth/tasks/2026-09/emit-shell-completions-from-the-binary-that-answers-them.typ`
@@ -22,10 +23,10 @@ use crate::util::{self, Project};
 
 /// The loaded project, resolved at most once per completion process.
 ///
-/// One tab press can ask several sources at once (`mt link <task> <kind>`
-/// reaches both stems and kinds), and the load is the whole cost of answering
-/// any of them. `None` means discovery or the config failed — every source
-/// then yields nothing, which is the quiet failure this module promises.
+/// One tab press can ask more than one source at once (`mt link <task> <kind>`
+/// reaches both stems and kinds). The load is the whole cost of answering any
+/// of them. `None` means discovery or the config failed. Every source then
+/// returns an empty list, which is the quiet failure this module promises.
 pub(super) fn project() -> Option<&'static Project> {
     static PROJECT: OnceLock<Option<Project>> = OnceLock::new();
     PROJECT.get_or_init(|| util::open().ok()).as_ref()
@@ -40,9 +41,9 @@ fn from_project(
 
 /// Task stems, each helped by its title.
 ///
-/// A task whose own file failed to evaluate is simply absent: the load records
-/// it as an error rather than a task, and a completion has nothing to say
-/// about a file that does not parse.
+/// A task whose own file failed to evaluate is simply absent. The load records
+/// it as an error rather than a task, and a completion has nothing to say about
+/// a file that does not parse.
 pub(super) fn stems() -> Vec<CompletionCandidate> {
     from_project(|project| {
         project
@@ -54,8 +55,8 @@ pub(super) fn stems() -> Vec<CompletionCandidate> {
     })
 }
 
-/// Legend values, each helped by its glyph — the same column `mt ls` prints,
-/// so the candidate list reads like the table it will act on.
+/// Legend values, each helped by its glyph, the same column `mt ls` prints. The
+/// candidate list then reads like the table it will act on.
 pub(super) fn statuses() -> Vec<CompletionCandidate> {
     from_project(|project| {
         project
@@ -71,7 +72,7 @@ pub(super) fn statuses() -> Vec<CompletionCandidate> {
     })
 }
 
-/// View names under `prefix` — empty for `mt explain views <name>`, `@` for every
+/// View names under `prefix`: empty for `mt explain views <name>`, `@` for every
 /// argument that takes the reference sugar.
 pub(super) fn view_names(prefix: &str) -> Vec<CompletionCandidate> {
     from_project(|project| {
@@ -153,8 +154,8 @@ pub(super) fn link_kinds() -> Vec<CompletionCandidate> {
 /// The presets `mt preset ls` prints for `user_dir`: every built-in, helped
 /// by its description, then each user preset not already offered as one.
 ///
-/// A user directory that cannot be read yields the built-ins alone — the
-/// quiet failure every other source keeps; `mt preset ls` does the reporting.
+/// A user directory the code cannot read yields the built-ins alone, the quiet
+/// failure every other source keeps. `mt preset ls` does the reporting.
 pub(super) fn presets_in(user_dir: Option<&Path>) -> Vec<CompletionCandidate> {
     let builtins = crate::cmd::init::preset::list_builtins();
     let users = user_dir
@@ -176,9 +177,9 @@ pub(super) fn presets_in(user_dir: Option<&Path>) -> Vec<CompletionCandidate> {
 /// This project's tag vocabulary: `[tasks.tags] allowed` when it bounds one,
 /// otherwise every tag its tasks actually carry, folder-derived ones included.
 ///
-/// The bounded case wins because it is the set a write would be validated
-/// against — offering a tag in use but not allowed would complete
-/// straight into a refusal.
+/// The bounded case wins because it is the set the code validates a write
+/// against. Offering a tag in use but not allowed would complete straight into a
+/// refusal.
 fn tags() -> BTreeSet<String> {
     let Some(project) = project() else {
         return BTreeSet::new();
@@ -199,9 +200,9 @@ fn tags() -> BTreeSet<String> {
 /// `mt set`'s `<field>=<value>`: the fields it writes until the token carries
 /// an operator, then whatever the key's own source offers.
 ///
-/// A value completer sees the whole token, so every candidate it returns is a
-/// whole token too — clap filters an [`ArgValueCandidates`] list by prefix, but
-/// leaves a completer's output alone.
+/// A value completer sees the whole token, and every candidate it returns is a
+/// whole token too. Clap filters an [`ArgValueCandidates`] list by prefix, but
+/// leaves the output of a completer alone.
 ///
 /// [`ArgValueCandidates`]: clap_complete::engine::ArgValueCandidates
 pub(super) fn assignment(current: &OsStr) -> Vec<CompletionCandidate> {
@@ -226,7 +227,7 @@ pub(super) fn tag_token(current: &OsStr) -> Vec<CompletionCandidate> {
     current.to_str().and_then(tag_values).unwrap_or_default()
 }
 
-/// Candidates for a `tags=` / `tags+=` token, or `None` when the token names
+/// Candidates for a `tags=` / `tags+=` token, or `None` when the token holds
 /// some other key.
 fn tag_values(current: &str) -> Option<Vec<CompletionCandidate>> {
     let typed = current
@@ -242,7 +243,7 @@ fn tag_values(current: &str) -> Option<Vec<CompletionCandidate>> {
     )
 }
 
-/// A candidate's help line, dropped when the text is empty — an empty help
+/// A candidate's help line, dropped when the text is empty. An empty help
 /// renders as a dangling separator in zsh and fish.
 fn help(text: &str) -> Option<StyledStr> {
     (!text.trim().is_empty()).then(|| StyledStr::from(text.to_owned()))

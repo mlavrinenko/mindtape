@@ -4,10 +4,10 @@
 //! ([`super::color`], [`super::glyph`], [`super::width`]) and the concrete
 //! field families (legend, numeric). It defines:
 //!
-//! - [`CellSpec`] — the rendered value in text/glyph/colour form.
-//! - [`render_cell`] — lays out a `CellSpec` into a display string of a fixed
+//! - [`CellSpec`]: the rendered value in text/glyph/colour form.
+//! - [`render_cell`]: lays out a `CellSpec` into a display string of a fixed
 //!   column width, honouring glyph mode and colour activation.
-//! - [`Field`] — the trait every displayable task field implements.
+//! - [`Field`]: the trait every displayable task field implements.
 
 use std::borrow::Cow;
 
@@ -23,7 +23,7 @@ use super::width::{display_width, pad_to_width, truncate_to_width};
 
 /// A field value resolved into its displayable parts.
 ///
-/// The three parts are independent: a field may have text only, glyph only, or
+/// The three parts are independent. A field may have text only, glyph only, or
 /// all three. The [`render_cell`] function combines them according to the active
 /// [`GlyphMode`] and [`DensityMode`].
 #[derive(Debug, Clone, PartialEq)]
@@ -46,8 +46,8 @@ pub enum DensityMode {
     /// Show glyph (if any) followed by text.
     #[default]
     Full,
-    /// Show only the glyph; suppress text. Falls back to text when no glyph is
-    /// available.
+    /// Show only the glyph and suppress text. Falls back to text when no glyph
+    /// is available.
     GlyphOnly,
 }
 
@@ -59,9 +59,9 @@ pub enum DensityMode {
 /// Layout rules:
 /// 1. Determine the raw content string from `spec`, `glyph_mode`, and `density`.
 /// 2. Truncate or pad the content to `column_width` display cells.
-/// 3. Wrap in ANSI colour sequences when `painter` is enabled and `spec.color`
-///    is set (colour is applied after width layout so ANSI bytes don't confuse
-///    the width accounting).
+/// 3. Wrap in ANSI colour sequences when `painter` is on and `spec.color` holds
+///    a value (the code applies colour after width layout, so ANSI bytes stay
+///    out of the width accounting).
 ///
 /// `column_width == 0` returns an empty string.
 #[must_use]
@@ -108,14 +108,14 @@ fn build_content(spec: &CellSpec, glyph_mode: GlyphMode, density: DensityMode) -
 
 /// Truncate-or-pad `content` to exactly `width` display cells.
 ///
-/// Order matters here: `pad_to_width` runs first and short-circuits unchanged
+/// Order matters here. `pad_to_width` runs first and short-circuits unchanged
 /// on already-oversized content (its own `current >= width` early return), so
-/// oversized content reaches `truncate_to_width` untouched; undersized content
+/// oversized content reaches `truncate_to_width` untouched. Undersized content
 /// gets padded up to exactly `width`, at which point `truncate_to_width`'s own
 /// `display_width(s) <= max_width` early return makes it a no-op. The reverse
 /// order would re-pad a truncated result that fell short of `width` (a
 /// double-width char dropped whole at the boundary can leave the ellipsis
-/// short of the target), silently changing the truncated output.
+/// short of the target). That silently changes the truncated output.
 fn fit_to_width(content: &str, width: usize) -> String {
     truncate_to_width(&pad_to_width(content, width), width)
 }
@@ -143,17 +143,17 @@ pub trait Field {
     /// Stable column name used as a table header.
     const NAME: &'static str;
 
-    /// Extract the raw string value(s) for this field from `task`.
+    /// Read the raw string value(s) for this field from `task`.
     ///
-    /// Single-valued fields return 0 or 1 items. Multi-valued fields (e.g.
+    /// Single-valued fields return 0 or 1 items. Multi-valued fields (such as
     /// `tags`) return N items.
     fn values<'a>(task: &'a Task) -> Vec<Cow<'a, str>>;
 
     /// Resolve a single raw `value` to a [`CellSpec`] using `config` for
     /// legend / classification lookups.
     ///
-    /// Concrete per-field logic (colour maps, glyph legends) is implemented
-    /// by each field type; the default returns a plain-text spec.
+    /// Concrete per-field logic (colour maps, glyph legends) lives in each
+    /// field type. The default returns a plain-text spec.
     fn cell_spec(value: &str, config: &Config) -> CellSpec {
         let _ = config;
         CellSpec {

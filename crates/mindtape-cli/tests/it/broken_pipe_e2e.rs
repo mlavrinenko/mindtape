@@ -1,19 +1,19 @@
 //! End-to-end tests for what `mt` does when its reader walks away
 //! (`truth/tasks/2026-08/mt-exits-141-on-sigpipe-about-one-call-in-ten.typ`).
 //!
-//! Staged the only way a broken pipe can be staged honestly: spawn `mt` with a
-//! piped stdout and close the read end before it writes. Redirecting to a
-//! closed file descriptor or piping into `head` both leave the close racing the
-//! write, which is how the failure this pins stayed a "one call in ten" for
-//! weeks instead of a reproducer.
+//! The tests stage a broken pipe the only way possible: spawn `mt` with a piped
+//! stdout and close the read end before it writes. Redirecting to a closed file
+//! descriptor or piping into `head` both leave the close racing the write. The
+//! failure this pins stayed a "one call in ten" for weeks instead of a
+//! reproducer, because of that race.
 //!
-//! What is asserted is the pair the task named. `mt` must not die of a signal
-//! and must not exit 141 — the report's symptom, which turned out to belong to
-//! a shell wrapper on `PATH` rather than to this binary, and is asserted here
+//! The tests assert the pair the task named. `mt` must not die of a signal and
+//! must not exit 141, the report's symptom, which turned out to belong to a
+//! shell wrapper on `PATH` rather than to this binary. The tests assert it here
 //! so the binary's side of it can never quietly become true. And it must not
-//! panic, which before `crate::render::stdout` it always did: libstd ignores `SIGPIPE`,
-//! so the write returned `EPIPE` and the prelude's `println!` unwrapped it into
-//! exit 101 and a `failed printing to stdout` backtrace.
+//! panic, which before `crate::render::stdout` it always did: libstd ignores
+//! `SIGPIPE`, so the write returned `EPIPE` and the prelude's `println!`
+//! unwrapped it into exit 101 and a `failed printing to stdout` backtrace.
 #![allow(clippy::unwrap_used)]
 
 use std::io::Read;
@@ -23,7 +23,7 @@ use crate::support;
 
 /// Run `mt <args>` in `dir` with stdout piped, drop the read end immediately,
 /// and return the finished process. Everything the command would have printed
-/// goes into a pipe with no reader, so the first write fails.
+/// goes into a pipe with no reader. The first write then fails.
 fn run_with_closed_reader(dir: &std::path::Path, args: &[&str]) -> std::process::Output {
     let mut command = Command::new(env!("CARGO_BIN_EXE_mt"));
     command.current_dir(dir).args(args);
@@ -90,7 +90,7 @@ fn ls_survives_a_reader_that_closed_the_pipe() {
 }
 
 /// The JSON path prints one large `serde_json` string rather than the table
-/// renderer's, so it exercises a different write site with a different shape.
+/// renderer, so it exercises a different write site with a different shape.
 #[test]
 fn ls_json_survives_a_reader_that_closed_the_pipe() {
     let dir = support::project_with_tasks(&[("a.typ", "Alpha"), ("b.typ", "Beta")]);
@@ -98,9 +98,9 @@ fn ls_json_survives_a_reader_that_closed_the_pipe() {
     assert_clean_exit(&output, "mt ls --json");
 }
 
-/// A mutating command is the case the policy was chosen for: dropping the write
-/// must not drop the work, so the task is on disk afterwards and `mt` says so
-/// with a zero status rather than aborting half way through.
+/// A mutating command is the case the policy targets: dropping the write must
+/// not drop the work. The task is on disk afterwards, and `mt` says so with a
+/// zero status rather than aborting half way through.
 #[test]
 fn add_still_files_the_task_when_the_reader_is_gone() {
     let dir = support::scaffold_project("[tasks]\nroots = [\"tasks\"]\n");

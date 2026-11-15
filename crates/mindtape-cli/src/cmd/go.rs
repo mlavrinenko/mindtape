@@ -1,12 +1,13 @@
-//! `mt go <task>` — open a task file in the configured editor.
+//! `mt go <task>` opens a task file in the configured editor.
 //!
 //! Resolves the task by stem, stem hash, relative, or absolute path, then
-//! spawns the `[go] editor` command. A `{task}` token in the command is replaced
-//! with the resolved path; without it the path is appended. Editor resolution:
-//! `[go] editor` → `$VISUAL` → `$EDITOR`, then error — no `vi` floor, so a GUI
-//! user is told to configure `[go] editor` rather than dropped into `vi`. A
-//! `[go] editor` the user has not allowed (`mt allow`) counts as unset, and
-//! the end-of-run warning names it ([`mindtape::allow::runnable_editor`]).
+//! spawns the `[go] editor` command. A `{task}` token in the command takes the
+//! resolved path. Without that token the command appends the path. Editor
+//! resolution: `[go] editor` → `$VISUAL` → `$EDITOR`, then error. There is no
+//! `vi` floor. A GUI user gets a message to configure `[go] editor` rather than
+//! a drop into `vi`. A `[go] editor` the user has not allowed (`mt allow`)
+//! counts as unset, and the end-of-run warning references it
+//! ([`mindtape::allow::runnable_editor`]).
 
 use std::path::Path;
 use std::process::Command;
@@ -31,8 +32,9 @@ pub struct GoArgs {
 /// Run the `go` command.
 ///
 /// # Errors
-/// Returns an error if the task cannot be resolved, no editor is configured, the
-/// editor command is empty, or the editor exits without success.
+/// Returns an error if the task does not resolve, the editor command is empty,
+/// or the editor exits without success. It also errors when neither the config
+/// nor the environment supplies an editor.
 pub fn run(args: &GoArgs) -> Result<()> {
     let project = util::open_warned()?;
 
@@ -72,9 +74,9 @@ fn held_editor(editor: &str) -> Diag {
 
 /// Spawn the editor on `path` and wait for it to exit.
 ///
-/// The `template` is split into an argv with `{task}` substituted (or `path`
+/// Splits the `template` into an argv with `{task}` substituted (or `path`
 /// appended when absent). Blocks until the editor returns so a terminal editor
-/// holds the foreground; a GUI editor that forks returns immediately.
+/// holds the foreground. A GUI editor that forks returns immediately.
 ///
 /// # Errors
 /// Returns an error if the command is empty, the spawn fails, or the editor
@@ -98,14 +100,15 @@ pub(crate) fn spawn_editor(template: &str, path: &Path) -> Result<()> {
 /// Resolve the editor command: `[go] editor`, then `$VISUAL`, then `$EDITOR`.
 ///
 /// # Errors
-/// Returns an error naming `[go] editor` when none of the three is set.
+/// Returns an error that references `[go] editor` when neither the config nor
+/// the environment supplies one.
 fn editor_command(configured: Option<&str>) -> Result<String> {
     editor_from(configured, |var| std::env::var(var).ok())
 }
 
-/// [`editor_command`] with the environment injected, so each branch — blank
-/// config falling through, a blank env value being skipped, nothing set at all
-/// — is reachable from a test without touching the process environment.
+/// [`editor_command`] with the environment injected, so a test can reach each
+/// branch without touching the process environment: blank config falling
+/// through, a blank env value skipped, and nothing set at all.
 fn editor_from(
     configured: Option<&str>,
     lookup: impl Fn(&str) -> Option<String>,
@@ -133,10 +136,11 @@ fn empty_editor() -> Diag {
 }
 
 /// Split `template` into an argv, substituting `{task}` with `path`. When no
-/// token carries `{task}`, `path` is appended as the trailing argument.
+/// token carries `{task}`, the function appends `path` as the trailing
+/// argument.
 ///
 /// # Errors
-/// Returns an error if `template` holds no program word.
+/// Returns an error when `template` lacks a program word.
 fn build_argv(template: &str, path: &str) -> Result<Vec<String>> {
     let mut argv = Vec::new();
     let mut substituted = false;
@@ -214,7 +218,8 @@ mod tests {
     }
 
     /// A blank `[go] editor` is not a configured value: it falls through to the
-    /// environment, and with nothing there it is an error naming the setting.
+    /// environment, and with nothing there it is an error that references the
+    /// setting.
     /// The three tests this replaces each wrapped their assertion in an `if`
     /// over the ambient `$VISUAL`/`$EDITOR`, so on the wrong machine they
     /// asserted nothing at all.
@@ -241,7 +246,7 @@ mod tests {
     }
 
     /// With no configured value the environment supplies the editor, and
-    /// `$VISUAL` wins over `$EDITOR` — the precedence that decides which of a
+    /// `$VISUAL` wins over `$EDITOR`. That precedence picks which of a
     /// developer's two editors actually opens.
     #[test]
     fn visual_wins_over_editor() {
@@ -249,9 +254,9 @@ mod tests {
         assert_eq!(editor_from(None, both).unwrap(), "visual-editor");
     }
 
-    /// A blank `$VISUAL` is skipped rather than returned, so `$EDITOR` still
-    /// gets its turn. Under the `delete !` mutant on the env check, the blank
-    /// would be accepted and returned verbatim.
+    /// The lookup skips a blank `$VISUAL` rather than returning it, so `$EDITOR`
+    /// still gets its turn. Under the `delete !` mutant on the env check, the
+    /// blank would pass through and come back verbatim.
     #[test]
     fn blank_visual_falls_through_to_editor() {
         let lookup = |var: &str| match var {
@@ -263,7 +268,7 @@ mod tests {
 
     /// A task path under a tempdir. `spawn_editor` only ever passes it to the
     /// editor as an argument, but a shared literal like `/tmp/x` is a path
-    /// another process on the machine can own, so give each test its own.
+    /// another process on the machine can own. Give each test its own.
     fn task_path(dir: &tempfile::TempDir) -> std::path::PathBuf {
         dir.path().join("task.typ")
     }

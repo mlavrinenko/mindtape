@@ -3,16 +3,16 @@
 //! A framework turns typed, bounded inputs into a numeric priority score. Two
 //! shapes share one mechanism:
 //!
-//! - scalar — a `score` formula (evalexpr) over the inputs; the score feeds the
-//!   `[tasks.priority]` bands (e.g. ICE, RICE, WSJF).
-//! - categorical — a `category` list, each with a `when` predicate, a
-//!   representative `score`, and display glyph/color; categories must be
-//!   exhaustive and disjoint over the boolean/enum input domain (e.g.
-//!   Eisenhower, `MoSCoW`).
+//! - scalar: a `score` formula (evalexpr) over the inputs. The score feeds the
+//!   `[tasks.priority]` bands (ICE, RICE, WSJF).
+//! - categorical: a `category` list, each with a `when` predicate, a
+//!   representative `score`, and display glyph/color. Categories must be
+//!   exhaustive and disjoint over the boolean/enum input domain (Eisenhower,
+//!   `MoSCoW`).
 //!
 //! Frameworks live entirely in config data. Rust supplies only the evaluator
-//! (reusing `evalexpr`); the config-load-time validation lives in
-//! [`crate::framework::validate`]. Built-ins ship as a baked-in default config
+//! (reusing `evalexpr`), and the config-load-time validation lives in
+//! [`crate::framework::validate`]. Built-ins arrive as a baked-in default config
 //! layer, deep-merged under any user definitions.
 //!
 //! # Files
@@ -37,8 +37,8 @@ use crate::model::numeric::{InputValue, NumCell, NumValue, format_num};
 /// The baked-in framework definitions, parsed from the bundled TOML.
 const BUILTIN_FRAMEWORKS: &str = include_str!("frameworks.toml");
 
-/// One scoring framework: typed inputs, plus either a `score` formula or a
-/// list of categories.
+/// Holds one scoring framework: typed inputs, plus either a `score` formula or
+/// a list of categories.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Framework {
@@ -46,16 +46,17 @@ pub struct Framework {
     /// these names.
     pub inputs: BTreeMap<String, Input>,
     /// Arithmetic expression over the inputs that computes the score, such as
-    /// `impact * confidence * ease`. Cannot be combined with `category`.
+    /// `impact * confidence * ease`. Doesn't combine with `category`.
     #[schemars(extend("x-expression" = "formula"))]
     pub score: Option<String>,
     /// Categories to classify a task into. For any input values, exactly one
-    /// category's `when` must be true. Cannot be combined with `score`.
+    /// category's `when` must be true. Doesn't combine with `score`.
     #[serde(rename = "category")]
     pub categories: Vec<Category>,
 }
 
-/// One declared input: its type and bounds (numbers) or allowed values (enums).
+/// Holds one declared input: its type and bounds (numbers) or allowed values
+/// (enums).
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Input {
@@ -83,7 +84,7 @@ pub enum InputKind {
     Enum,
 }
 
-/// One category: the expression that selects it, its score and its display.
+/// One category, with the expression that selects it, its score and its display.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Category {
@@ -93,7 +94,7 @@ pub struct Category {
     pub when: String,
     /// Score of a task in this category, used for bands and sorting.
     pub score: f64,
-    /// Display label; falls back to empty when absent.
+    /// Display label, empty when absent.
     pub label: Option<String>,
     /// Optional decorative glyph.
     pub glyph: Option<String>,
@@ -108,7 +109,7 @@ impl Framework {
         !self.categories.is_empty()
     }
 
-    /// The numeric score for a set of inputs: a scalar formula evaluates; a
+    /// The numeric score for a set of inputs. A scalar formula evaluates, and a
     /// categorical framework yields its matched category's score.
     ///
     /// # Errors
@@ -135,7 +136,8 @@ impl Framework {
     }
 
     /// Validate provided input values against the declared inputs: each declared
-    /// input must be present and type/bounds-correct; no unknown inputs allowed.
+    /// input must be present and type/bounds-correct, and the check refuses an
+    /// unknown input.
     #[must_use]
     pub fn check_input_values(&self, inputs: &BTreeMap<String, InputValue>) -> Vec<String> {
         let mut out = Vec::new();
@@ -164,15 +166,17 @@ impl Framework {
 }
 
 impl PriorityConfig {
-    /// The active framework, if one is selected and present in the registry.
+    /// The active framework, when the config selects one and the registry holds
+    /// it.
     #[must_use]
     pub fn active_framework(&self) -> Option<&Framework> {
         self.frameworks.get(self.framework.as_deref()?)
     }
 
     /// Resolve a written value to its numeric score on the scale, if resolvable.
-    /// Frameworks evaluate through evalexpr; numbers and labels delegate to the
-    /// numeric field. Best-effort: `None` when unresolvable (used by sort/filter).
+    /// Frameworks evaluate through evalexpr, and numbers and labels delegate to
+    /// the numeric field. Best-effort: `None` when unresolvable (used by
+    /// sort/filter).
     #[must_use]
     pub fn resolve(&self, value: &NumValue) -> Option<f64> {
         match value {
@@ -184,8 +188,8 @@ impl PriorityConfig {
     }
 
     /// Resolve and classify a written value into its display cell. A categorical
-    /// framework yields its category cell; everything else classifies the score
-    /// through the numeric field's bands.
+    /// framework yields its category cell, and everything else classifies the
+    /// score through the numeric field's bands.
     #[must_use]
     pub fn cell(&self, value: &NumValue) -> Option<NumCell> {
         match value {
@@ -270,7 +274,7 @@ fn check_input_value(name: &str, input: &Input, value: &InputValue, out: &mut Ve
 /// `[tasks.priority.frameworks]`, mutating the parsed config document in place.
 ///
 /// The user's table wins field-by-field, so a project can activate a built-in
-/// with no boilerplate yet still override (say) one framework's `score`.
+/// without boilerplate yet still override (say) one framework's `score`.
 pub(crate) fn merge_builtin_frameworks(doc: &mut toml::Table) {
     let Ok(builtins) = toml::from_str::<toml::Table>(BUILTIN_FRAMEWORKS) else {
         return;

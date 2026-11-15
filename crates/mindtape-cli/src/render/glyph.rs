@@ -3,12 +3,12 @@
 /// The set of glyph styles the renderer can emit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
 pub enum GlyphMode {
-    /// Use emoji (e.g. ✅, 🔨).
+    /// Use emoji (such as ✅, 🔨).
     Emoji,
-    /// Use ASCII fallback characters (e.g. `[x]`, `WIP`).
+    /// Use ASCII fallback characters (such as `[x]`, `WIP`).
     #[default]
     Ascii,
-    /// Emit no decorative glyphs.
+    /// Skip every decorative glyph.
     None,
 }
 

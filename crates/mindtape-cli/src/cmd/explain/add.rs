@@ -1,5 +1,5 @@
-//! `mt explain add` — the `[[on.add]]` hooks the merged config applies, in the
-//! order they run, with what they do and where each came from.
+//! `mt explain add` lists the `[[on.add]]` hooks the merged config applies, in
+//! the order they run, with what they do and where each came from.
 //!
 //! A hook a nearer layer replaced or `disable` dropped is absent, because the
 //! listing reads the same merged config `mt add` does.
@@ -39,7 +39,7 @@ pub struct AddPayload {
 /// Run `mt explain add`.
 ///
 /// # Errors
-/// Returns an error if no project is found or its config fails to load.
+/// Returns an error if the project root does not resolve or its config fails to load.
 pub fn run(as_json: bool) -> Result<()> {
     let root = util::resolve_root()?;
     let (config, _, origins) = load_config_layered(&root)?;

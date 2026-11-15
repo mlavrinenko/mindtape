@@ -1,14 +1,14 @@
-//! The Typst-function collector: call a project function over one task and
-//! publish its value as `derived.<name>`.
+//! The Typst-function collector calls a project function over one task and
+//! publishes its value as `derived.<name>`.
 //!
-//! The call reuses [`crate::rules::typst::CompiledCheck`] — the same probe,
+//! The call reuses [`crate::rules::typst::CompiledCheck`], the same probe,
 //! world and shared [`typst_harvest::SourceSnapshot`] a `[[tasks.rules]]
 //! check` uses. The function receives the whole canonical task, or the field
-//! `query.field` names, exactly as a check does. A missing export is refused
-//! at config load ([`crate::rules::typst::validate_collector_load`]); an eval
-//! error, a `panic()` or a value that does not match `returns` is one
-//! [`Problem`] naming the module and function, which [`crate::validate()`]
-//! reports as a `Collector` violation at `derived.<name>`.
+//! `query.field` names, exactly as a check does. Config load refuses a missing
+//! export ([`crate::rules::typst::validate_collector_load`]). An eval error, a
+//! `panic()` or a value that does not match `returns` is one [`Problem`] that
+//! references the module and function, which [`crate::validate()`] reports as a
+//! `Collector` violation at `derived.<name>`.
 
 use std::path::Path;
 
@@ -53,8 +53,8 @@ impl CompiledTypst {
         }
     }
 
-    /// The value the function returned, or one problem naming the module and
-    /// function. A wrong-typed value is a problem too.
+    /// The value the function returned, or one problem that references the
+    /// module and function. A wrong-typed value is a problem too.
     pub(crate) fn evaluate(&self, task: &Task, config: &Config) -> Result<HVal, Problem> {
         let fail = |message: String| {
             Problem::new(format!(

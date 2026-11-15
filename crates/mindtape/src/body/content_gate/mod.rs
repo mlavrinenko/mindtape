@@ -1,27 +1,27 @@
 //! Section-content gating: compile `[[tasks.body.content.rules]]` and evaluate
 //! them against a task's source.
 //!
-//! Rules are declared in `[tasks.body.content]` in `.mindtape/config.toml`
-//! (types in [`crate::body::content`]). Compile them once with
-//! [`compile_content_rules`], then call [`check_content`] once per task's
-//! source text — the mirror image of the heading-tree gating in [`crate::body::gate`],
-//! whose path compiler it shares. [`artifact_gate::select_by`] picks the
-//! sections and [`typst_cst::Heading::section`] spans each one.
+//! A project declares its rules in `[tasks.body.content]` in
+//! `.mindtape/config.toml` (types in [`crate::body::content`]). Compile them once
+//! with [`compile_content_rules`], then call [`check_content`] once per task's
+//! source text. That is the mirror image of the heading-tree gating in
+//! [`crate::body::gate`], whose path compiler it shares.
+//! [`artifact_gate::select_by`] picks the sections and
+//! [`typst_cst::Heading::section`] spans each one.
 //!
 //! A `path` (the same `HeaderPathSegment` shape the heading rules use)
 //! selects one or more sections. A section's *content* is everything from the
-//! end of its heading down to the next heading of the same or higher level —
+//! end of its heading down to the next heading of the same or higher level,
 //! nested subsection prose and code blocks included. The assertion then runs
 //! over that raw source slice: non-empty, a minimum or maximum word count, a
-//! regex the slice must / must not match, or a density (no single unit —
-//! section, paragraph, or sentence, `content_gate_density`'s own
-//! `density_units` decides the split — may carry more than `max` matches of a
-//! regex). Words are
-//! whitespace-delimited tokens containing an alphanumeric character, so
-//! markup, code blocks, and nested subsection headings all count — a `Scope`
-//! section that is all `#raw` is a real shape and must not read as empty.
-//! Density is the one exception: its unit split drops code, fenced or inline,
-//! since a pattern inside a code sample is not prose.
+//! regex the slice must / must not match, or a density. A density means no
+//! single unit (section, paragraph, or sentence, as `content_gate_density`'s own
+//! `density_units` decides the split) may carry more than `max` matches of a
+//! regex. Words are whitespace-delimited tokens containing an alphanumeric
+//! character, so markup, code blocks, and nested subsection headings all count.
+//! A `Scope` section that is all `#raw` is a real shape and must not read as
+//! empty. Density is the one exception: its unit split drops code, fenced or
+//! inline, since a pattern inside a code sample is not prose.
 
 use artifact_gate::{Matcher, select_by};
 use regex::Regex;
@@ -46,7 +46,7 @@ pub struct CompiledContentRule {
     when: Option<Filter>,
     /// Override for the default violation message.
     message: Option<String>,
-    /// This rule's name if it has one, else its position — see
+    /// This rule's name if it has one, else its position. See
     /// [`crate::body::content::ContentRuleConfig::label`].
     label: String,
 }
@@ -71,7 +71,7 @@ enum CompiledAssert {
         re: Regex,
         /// The most matches a single unit may carry.
         max: usize,
-        /// Unit granularity the density is measured over.
+        /// The unit the density counts over.
         per: DensityUnit,
     },
 }

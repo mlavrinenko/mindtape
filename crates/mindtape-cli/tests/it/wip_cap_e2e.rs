@@ -4,12 +4,12 @@
 //! `[[tasks.limits]]` was its own table and checker for.
 //!
 //! A breach still refuses `mt flip` at `severity = "error"`, exactly as the
-//! limit did, and still names every task in the capped set: the candidate
-//! being flipped reports its own breach, and the already-`wip` task elsewhere
-//! in the set comes back as a note on the refusal
-//! ([`crate::validate::candidate::elsewhere_violations`], generalized from the link-cycle
-//! case to cover any `[[tasks.rules]]` breach a batch opens or closes on a task
-//! it never touches).
+//! limit did. It still lists every task in the capped set. The candidate that
+//! flips reports its own breach. The already-`wip` task elsewhere in the set
+//! comes back as a note on the refusal. That note comes from
+//! [`crate::validate::candidate::elsewhere_violations`], generalized from the
+//! link-cycle case to cover any `[[tasks.rules]]` breach a batch opens or
+//! closes on a task it never touches.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;

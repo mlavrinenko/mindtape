@@ -1,11 +1,12 @@
-//! `mt review <id>` — stamp `reviewed:` with today's date.
+//! `mt review <id>` stamps `reviewed:` with today's date.
 //!
-//! Resolves the task by slug, relative path, or absolute path; refuses terminal
-//! statuses; writes the `reviewed:` slot via [`typst_edit`], idempotent on the
-//! same day.
+//! Resolves the task by slug, relative path, or absolute path, and refuses
+//! terminal statuses. It writes the `reviewed:` slot via [`typst_edit`],
+//! idempotent on the same day.
 //!
-//! The rewrite goes through [`crate::pre_write`] first, so a stamp that would
-//! leave the task invalid is refused rather than landed and reported.
+//! The rewrite goes through [`crate::pre_write`] first. The command then refuses
+//! a stamp that would leave the task invalid rather than landing it and
+//! reporting it.
 
 use crate::diag::Result;
 use clap::Args;
@@ -26,8 +27,8 @@ pub struct ReviewArgs {
 /// Run the `review` command.
 ///
 /// # Errors
-/// Returns an error if the task cannot be resolved, is terminal, or the file
-/// is wrong-shaped (no `task.with(…)` call found).
+/// Returns an error if the task does not resolve, is terminal, or the file is
+/// wrong-shaped (no `task.with(…)` call found).
 pub fn run(args: &ReviewArgs) -> Result<()> {
     let project = util::open_warned()?;
 

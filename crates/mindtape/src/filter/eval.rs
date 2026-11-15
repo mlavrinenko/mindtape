@@ -1,7 +1,7 @@
 //! The walk over a parsed filter's `evalexpr` tree, split out of `filter/mod.rs`
 //! (file-size gate): the boolean operators, the function table, the syntax tree
 //! helpers those read, and `in_view` recursion. [`Ctx`] and `field_value`
-//! stay in the parent; [`eval_bool`] is re-exported there so the sibling walk
+//! stay in the parent. [`eval_bool`] is re-exported there so the sibling walk
 //! modules keep their `crate::filter::eval_bool` path.
 //!
 //! Maximum `in_view` nesting depth evaluated before bailing. Config load
@@ -60,7 +60,7 @@ macro_rules! non_boolean {
 /// The one registry of the language's predicates and functions. [`nullary`]
 /// and [`function`] dispatch through it, [`Filter::names_term`] reads its
 /// names, and `mt _cli --json` carries it so the docs gate can check that
-/// each name is documented.
+/// each name has documentation.
 pub(crate) const FUNCTIONS: [FilterFunction; 21] = [
     word("ready", exactly(0), |_, ctx| {
         Ok(ctx.readiness.is_ready(ctx.task))
@@ -229,7 +229,7 @@ pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
 }
 
 /// A bare identifier in boolean position: the registry's predicates of arity
-/// zero are valid; any other field is a type error (use a comparison).
+/// zero are valid, and any other field is a type error (use a comparison).
 fn nullary(identifier: &str, ctx: &Ctx) -> Result<bool, FilterError> {
     match lookup(identifier) {
         Some(entry) if entry.arity.max == Some(0) => (entry.run)(&[], ctx),

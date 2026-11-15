@@ -1,15 +1,15 @@
-//! The inbound-edge walk: which *other* task files name a task this run is
-//! taking away from where it stands, and how each of those edges is spliced so
-//! none of them is left dangling.
+//! The inbound-edge walk. It finds the *other* task files that reference a task
+//! this run is taking away from where it stands. It then splices each of those
+//! edges so none of them dangles.
 //!
 //! One walk serves both commands that need it, because they differ only in
-//! where the edge ends up ([`Retarget`]): `mt rm`'s `unlink` strategy strips
-//! the edge — removal is the null target — and `mt mv` points it at the file
-//! stem the task is renamed to. Locating an inbound edge, splicing it and
+//! where the edge ends up ([`Retarget`]). `mt rm`'s `unlink` strategy strips
+//! the edge, since removal is the null target, and `mt mv` points it at the
+//! file stem the task moves to. Locating an inbound edge, splicing it and
 //! counting it are the same work either way.
 //!
-//! Split out of `cmd/rm/gitless/mod.rs` to stay under the file-size gate; `mt mv`
-//! reaches it through `rm`'s re-exports rather than owning a second copy.
+//! Split out of `cmd/rm/gitless/mod.rs` to stay under the file-size gate. `mt
+//! mv` reaches it through `rm`'s re-exports rather than owning a second copy.
 
 use std::collections::HashSet;
 use std::ops::Range;
@@ -27,24 +27,26 @@ use super::super::artifacts;
 /// Where an inbound edge to a matched task points once the run is over.
 #[derive(Debug, Clone, Copy)]
 pub enum Retarget<'a> {
-    /// Nowhere: strip the edge whole, operator and all — `mt rm`'s `unlink`
-    /// strategy, and the null target the retarget generalises.
+    /// Nowhere: strip the edge whole, operator and all. This is `mt rm`'s
+    /// `unlink` strategy, and the null target the retarget generalises.
     Drop,
     /// At this file stem. Each raw target keeps its own directory prefix and
-    /// extension — `mt mv` renames in place, so only the last path component
+    /// extension. `mt mv` renames in place, so only the last path component
     /// changes and `"../sub/old.typ"` becomes `"../sub/new.typ"`.
     Stem(&'a str),
 }
 
-/// Rewrite every inbound edge naming a task in `matched`, across the task files
-/// that are *not* themselves matched — a matched task is the one going away or
-/// moving, and its own file is the caller's business, not this walk's.
+/// Rewrite every inbound edge that references a task in `matched`, across the
+/// task files that are *not* themselves matched. A matched task is the one
+/// going away or moving, and its own file is the caller's business, not this
+/// walk's.
 ///
 /// Returns one [`Rewrite`] per file whose source actually changed, sorted by
-/// relative path for a stable report. Nothing is written.
+/// relative path for a stable report. The walk leaves every file on disk
+/// untouched.
 ///
 /// # Errors
-/// A referring file that cannot be read, or a spliced source `typst_edit`
+/// A referring file that fails to read, or a spliced source `typst_edit`
 /// refuses to reassemble, fails the run.
 pub fn inbound_rewrites(
     tasks: &[Task],
@@ -82,7 +84,7 @@ pub fn inbound_rewrites(
 
 /// The edits one referring source needs, and how many inbound edges they cover.
 /// The count, not the edit count, is what the report quotes: stripping merges
-/// adjacent ranges, so one edit can carry several edges away.
+/// adjacent ranges, so one edit can carry more than one edge away.
 fn inbound_edits(
     source: &str,
     matched: &HashSet<String>,
@@ -105,10 +107,10 @@ fn inbound_edits(
     }
 }
 
-/// Point every target literal naming a matched task at `stem`, in place: the
-/// quoted literal is replaced and nothing around it moves, so a `related(…)`
-/// note, an `edge(…)` kind and the sibling edges of a sum survive byte for
-/// byte.
+/// Point every target literal that references a matched task at `stem`, in
+/// place. The edit replaces the quoted literal and moves nothing around it, so
+/// a `related(…)` note, an `edge(…)` kind and the sibling edges of a sum
+/// survive byte for byte.
 fn stem_edits(source: &str, matched: &HashSet<String>, stem: &str) -> Vec<typst_edit::Edit> {
     mindtape::link_target_spans(source)
         .into_iter()
@@ -121,12 +123,12 @@ fn stem_edits(source: &str, matched: &HashSet<String>, stem: &str) -> Vec<typst_
 }
 
 /// `raw` with its file stem replaced by `stem`, keeping the directory prefix
-/// and the extension it was authored with: `"../sub/old.typ"` with stem `new`
-/// is `"../sub/new.typ"`, and a bare `"old"` is `"new"`.
+/// and the extension the author wrote: `"../sub/old.typ"` with stem `new` is
+/// `"../sub/new.typ"`, and a bare `"old"` is `"new"`.
 ///
-/// String work rather than [`Path`] joining, because a link target is authored
-/// with `/` separators on every platform and rebuilding it through `Path` would
-/// emit `\` on Windows.
+/// String work rather than [`Path`] joining, because a link target carries `/`
+/// separators on every platform and rebuilding it through `Path` would emit
+/// `\` on Windows.
 #[must_use]
 pub fn retarget_raw(raw: &str, stem: &str) -> String {
     let (dir, name) = raw
@@ -146,8 +148,8 @@ pub fn retarget_raw(raw: &str, stem: &str) -> String {
 /// no tombstones.
 ///
 /// # Errors
-/// A survivor file that cannot be read, or a stripped source that cannot be
-/// spliced back together, fails the run.
+/// A survivor file that fails to read, or a stripped source that fails to
+/// splice back together, fails the run.
 pub fn unlink_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> Result<Plan> {
     Ok(Plan {
         deletions: typst_cleanup::delete_plan(&artifacts(tasks, eligible, root).0).deletions,
@@ -155,11 +157,11 @@ pub fn unlink_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> R
     })
 }
 
-/// Which byte ranges of `source` to strip to unlink every removed task: whole
-/// edge-helper calls (`depends-on("gone.typ") + related(...)[note]`) and
-/// whole `link("gone.typ")` calls, each extended across a `+` operator (and
+/// Which byte ranges of `source` to strip to unlink every removed task. That
+/// covers whole edge-helper calls (`depends-on("gone.typ") + related(...)[note]`)
+/// and whole `link("gone.typ")` calls, each extended across a `+` operator (and
 /// its whitespace) so no dangling operator survives. Returns the merged ranges
-/// and how many edges were stripped.
+/// and how many edges the strip removed.
 fn unlink_edits(source: &str, eligible: &HashSet<String>) -> (Vec<Range<usize>>, usize) {
     let mut ranges: Vec<Range<usize>> = Vec::new();
     for call in mindtape::link_edges(source) {
@@ -208,7 +210,7 @@ fn unlink_edits(source: &str, eligible: &HashSet<String>) -> (Vec<Range<usize>>,
 }
 
 /// When the stripped edges cover the whole `links:` value, the range of the
-/// named argument itself (separator comma and all) — dropping the edges alone
+/// named argument itself (separator comma and all). Dropping the edges alone
 /// would leave a dangling `links: ` key.
 fn whole_links_edit(source: &str, merged: &[Range<usize>]) -> Option<Range<usize>> {
     if let Ok(call) = task_with(source)
@@ -242,9 +244,10 @@ fn whole_links_edit(source: &str, merged: &[Range<usize>]) -> Option<Range<usize
     None
 }
 
-/// Extend `range` across a `+` operator — `edge + range` or `range + edge` —
-/// with its surrounding whitespace, so stripping the edge leaves no dangling
-/// `+`. Both directions: a removed operand may sit anywhere in the sum.
+/// Extend `range` across a `+` operator (`edge + range` or `range + edge`)
+/// with its surrounding whitespace, so stripping the edge does not leave a
+/// dangling `+`. Both directions: a removed operand may sit anywhere in the
+/// sum.
 fn sweep_operator(range: Range<usize>, source: &str) -> Range<usize> {
     let bytes = source.as_bytes();
     let mut start = range.start;
@@ -319,9 +322,9 @@ mod tests {
     }
 
     /// The wrapping whitespace on either side of an edge belongs to the
-    /// operator sweep: removing `edge` from `a + edge` must take the ` + `
-    /// too, whatever whitespace the author used, or a dangling operator is
-    /// left behind.
+    /// operator sweep. Removing `edge` from `a + edge` must take the ` + `
+    /// too, whatever whitespace the author used, or a dangling operator
+    /// remains.
     #[test]
     fn sweep_attaches_a_leading_operator_and_its_whitespace() {
         assert_eq!(sweep_operator(4..8, "a + edge"), 1..8);
@@ -332,8 +335,8 @@ mod tests {
         assert_eq!(sweep_operator(0..4, "edge + b"), 0..7);
     }
 
-    /// The whitespace after a trailing `+` is counted from the byte after the
-    /// operator, so each side can carry a different run length.
+    /// The sweep counts the whitespace after a trailing `+` from the byte after
+    /// the operator, so each side can carry a different run length.
     #[test]
     fn sweep_counts_whitespace_on_only_one_side_of_a_trailing_operator() {
         assert_eq!(sweep_operator(0..4, "edge+  b"), 0..7);
@@ -345,8 +348,8 @@ mod tests {
         assert_eq!(sweep_operator(3..7, "a+ edge"), 1..7);
     }
 
-    /// The scan stops at the start of the source rather than reading past it;
-    /// an all-whitespace prefix (or one that reaches index 0 before a `+`) is
+    /// The scan stops at the start of the source rather than reading past it.
+    /// An all-whitespace prefix (or one that reaches index 0 before a `+`) is
     /// where an inclusive bound would underflow.
     #[test]
     fn sweep_stops_at_the_start_of_the_source_without_underflow() {
@@ -368,8 +371,8 @@ mod tests {
         assert_eq!(stripped, 2);
     }
 
-    /// Removals with a kept edge between them are not merged, or the kept edge
-    /// would be deleted with them.
+    /// Removals with a kept edge between them stay separate, or the merge
+    /// would delete the kept edge with them.
     #[test]
     fn separated_removals_stay_separate() {
         let eligible = eligible(&["a", "b"]);
@@ -382,7 +385,7 @@ mod tests {
     }
 
     /// The whole-`links:` end is the end of the merged edits that start inside
-    /// the value; an edit beginning exactly at the value's end is outside it
+    /// the value. An edit beginning exactly at the value's end is outside it
     /// and must not stretch the removal any further.
     #[test]
     #[allow(clippy::single_range_in_vec_init)]

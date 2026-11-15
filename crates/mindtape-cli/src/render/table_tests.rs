@@ -10,7 +10,7 @@ use super::super::color::parse_color;
 use super::super::columns::due_cell;
 use super::{render, render_highlighted};
 
-/// The shipped floor with one column's `when` replaced — the whole of what a
+/// The built-in floor with one column's `when` replaced, the whole of what a
 /// project writes to change which columns a listing carries.
 fn with_column(key: &str, when: &str) -> Config {
     let mut config = floor_config();

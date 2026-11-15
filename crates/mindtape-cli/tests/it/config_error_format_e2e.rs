@@ -1,4 +1,4 @@
-//! A config that fails to load is reported in the error format: the project
+//! `mt` reports a config that fails to load in the error format. The project
 //! file and the line of the key at fault lead, a value is single-quoted, and
 //! a near match is a `hint:` line.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]

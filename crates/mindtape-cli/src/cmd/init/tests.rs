@@ -48,8 +48,8 @@ fn existing_config() -> (tempfile::TempDir, std::path::PathBuf) {
     (dir, config)
 }
 
-/// Without `--force` an existing config is refused and survives, so the
-/// caller writes no templates either.
+/// Without `--force` the function refuses an existing config and leaves it in
+/// place. The caller then skips the templates too.
 #[test]
 fn scaffold_refuses_existing_without_force() {
     let (dir, config) = existing_config();
@@ -84,7 +84,7 @@ fn templates_are_written_beside_the_config() {
     );
 }
 
-/// A preset with no templates creates no template directory.
+/// A preset without templates doesn't create a template directory.
 #[test]
 fn no_templates_writes_no_directory() {
     let dir = tempdir();
@@ -116,8 +116,8 @@ fn no_schema_omits_directive() {
     assert_eq!(out, SAMPLE);
 }
 
-/// A directive-carrying scaffold still parses and validates — `#:schema` is a
-/// TOML comment, ignored by the config loader.
+/// A directive-carrying scaffold still parses and validates, since `#:schema` is
+/// a TOML comment that the config loader ignores.
 #[test]
 fn directive_scaffold_still_parses() {
     let out = with_schema_directive(SAMPLE, &init_args(Some("config.schema.json"), false)).unwrap();
@@ -125,8 +125,8 @@ fn directive_scaffold_still_parses() {
     config.validate().unwrap();
 }
 
-/// The schema directive survives the stripped rendering: it is a comment, but
-/// it is prepended after stripping, so it must still be the first line.
+/// The schema directive survives the stripped rendering. It is a comment, but
+/// the code prepends it after stripping, so it must still be the first line.
 #[test]
 fn directive_survives_the_stripped_rendering() {
     let preset = preset::resolve(DEFAULT_PRESET, None).unwrap();
@@ -139,8 +139,8 @@ fn directive_survives_the_stripped_rendering() {
 
 /// The default directive is the published URL, not a machine-local path.
 ///
-/// `.mindtape/config.toml` is checked in, so a `file://` default meant every
-/// scaffold shipped a path that resolved only on the machine that ran
+/// The repo checks in `.mindtape/config.toml`, so a `file://` default meant every
+/// scaffold carried a path that resolved only on the machine that ran
 /// `mt init`. Guards the regression directly: no `file://`, and the exact
 /// published URL.
 #[test]
@@ -160,13 +160,13 @@ fn schema_directive_defaults_to_published_url() {
 /// the XDG schema path does not exist.
 ///
 /// The `!` deletion mutant reverses the existence check: the real code prints
-/// when the path is missing; the mutant prints when it exists. The self-spawn
+/// when the path is missing. The mutant prints when it exists. The self-spawn
 /// subprocess captures what `println!` writes to stdout so the parent can
 /// verify the note is present (real) or absent (mutant fails the assertion).
 ///
 /// The child gets an empty `$MINDTAPE_CONFIG_HOME`, so "the schema is missing"
-/// is a fact about the fixture rather than about the developer's machine:
-/// without it, `mindtape::config_home()` resolves to the real config directory
+/// is a fact about the fixture rather than about the developer's machine.
+/// Without it, `mindtape::config_home()` resolves to the real config directory
 /// and this test fails for anyone who has run `mt install --schema`.
 #[test]
 fn with_schema_directive_prints_note_when_schema_missing() {

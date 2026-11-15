@@ -1,18 +1,18 @@
-//! `mt flip <status> <task>...` — stamp a new status onto tasks.
+//! `mt flip <status> <task>...`: stamp a new status onto tasks.
 //!
 //! Mutates each task's `status:` to `<status>` dated today, the same shape
 //! `add` stamps the initial status (shortcut `name(y, m, d)` for a prelude name,
-//! generic `status("name", y, m, d)` otherwise — both via
+//! generic `status("name", y, m, d)` otherwise, both via
 //! [`mindtape::emit::status_value`]). The status must be a configured legend value.
 //!
 //! Every legend value also doubles as a top-level shortcut verb dispatched here:
 //! `mt done a7k x3m` == `mt flip done a7k x3m` (see [`run_external`]).
-//! Built-in subcommands win on a name clash; a shadowing legend value is warned
-//! about. `mt flip --list` prints the available shortcut verbs.
+//! Built-in subcommands win on a name clash, and a shadowing legend value draws
+//! a warning. `mt flip --list` prints the available shortcut verbs.
 //!
-//! Batch semantics mirror `rm`: every target is resolved before any file is
-//! written, then the valid edits are applied and any resolution or post-edit
-//! validation problem is reported without rolling the rest back.
+//! Batch semantics mirror `rm`. The command resolves every target before it
+//! writes any file, then applies the valid edits and reports any resolution or
+//! post-edit validation problem without rolling the rest back.
 //!
 //! A landed batch closes with one post-write revalidation over a single reload
 //! ([`crate::cmd::flip::batch`]).
@@ -20,21 +20,21 @@
 //! `flip` is also the one command that runs the project's `[[on.flip]]` actions
 //! ([`crate::cmd::flip::hooks`]). They run per target, after the transition and
 //! note-requirement guards and before the write, so a refusing gate leaves that
-//! task's file untouched. A hook's command may run `mt flip` too, and a
-//! nested flip of a task into a status it is already taking is refused
+//! task's file untouched. A hook's command may run `mt flip` too, and `mt flip`
+//! refuses a nested flip of a task into a status it is already taking
 //! ([`crate::cmd::flip::chain`]), so hooks can't loop.
 //!
 //! # Files
 //!
-//! - `batch.rs` — the post-write revalidation of a landed batch, and the
+//! - `batch.rs`: the post-write revalidation of a landed batch, and the
 //!   batch's error report.
-//! - `chain.rs` — the flips in progress above this `mt`, which a nested flip
+//! - `chain.rs`: the flips in progress above this `mt`, which a nested flip
 //!   may not repeat.
-//! - `guards.rs` — the transition and note guards cleared before a write.
-//! - `hooks.rs` — the `[[on.flip]]` action runner.
-//! - `hooks_cmd.rs` — executing a `run` action's command.
-//! - `verbs.rs` — the shortcut-verb errors, shadow warning and `--list`.
-//! - `tests*.rs`, `*_tests.rs` — unit tests.
+//! - `guards.rs`: the transition and note guards cleared before a write.
+//! - `hooks.rs`: the `[[on.flip]]` action runner.
+//! - `hooks_cmd.rs`: executing a `run` action's command.
+//! - `verbs.rs`: the shortcut-verb errors, shadow warning and `--list`.
+//! - `tests*.rs`, `*_tests.rs`: unit tests.
 
 pub(crate) mod batch;
 pub(crate) mod chain;
@@ -110,7 +110,7 @@ struct Shortcut {
 /// Run the canonical `flip` subcommand.
 ///
 /// # Errors
-/// Returns an error if the project cannot be opened, the status is not a legend
+/// Returns an error if the project fails to open, the status is not a legend
 /// value, or any target fails to resolve or validate after the edit.
 pub fn run(args: &FlipArgs) -> Result<()> {
     run_as(&util::open_warned()?, args, Via::Flip)
@@ -244,8 +244,8 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
     finish(problems, flipped, args.tasks.len())
 }
 
-/// `problem` with the task it is about named by its stem, when the batch has
-/// several.
+/// `problem` with the task it is about named by its stem, when the batch holds
+/// more than one target.
 fn name_target(problem: Diag, stem: &str, targets: usize) -> Diag {
     if targets > 1 {
         problem.note(Note::new("task").name(stem))
@@ -254,7 +254,7 @@ fn name_target(problem: Diag, stem: &str, targets: usize) -> Diag {
     }
 }
 
-/// The pre-write guards; split out to keep this file under its line budget.
+/// The pre-write guards, split out to keep this file under its line budget.
 /// See [`check_transition`].
 mod guards;
 use guards::{check_children, check_note_required, check_transition, check_unblocked};
@@ -263,7 +263,7 @@ use guards::{check_children, check_note_required, check_transition, check_unbloc
 struct Batch<'a> {
     project: &'a Project,
     args: &'a FlipArgs,
-    /// The status being stamped.
+    /// The status the flip stamps.
     status: &'a str,
     /// The project's `[[on.flip]]` runner.
     hooks: &'a Hooks<'a>,
@@ -271,12 +271,12 @@ struct Batch<'a> {
     ymd: (i32, u8, u8),
 }
 
-/// Guard, hook and write one target. `Ok(())` when the flip landed;
-/// `Err(diag)` says why it did not — the batch reports it and moves on, so a
+/// Guard, hook and write one target. `Ok(())` when the flip landed.
+/// `Err(diag)` says why it did not. The batch reports it and moves on, and a
 /// refused target leaves its own file untouched without rolling back the rest.
 ///
-/// Order matters: a flip already in progress above this `mt` is refused first,
-/// `--force` or not, since its hooks would start this one again. The
+/// Order matters. `mt flip` refuses a flip already in progress above this `mt`
+/// first, `--force` or not, since its hooks would start this one again. The
 /// transition graph and the note requirement are cheap, local checks, so they
 /// run before any configured command does.
 fn flip_target(
@@ -316,8 +316,8 @@ fn flip_target(
     Ok(())
 }
 
-/// `task` with every `waits-on` entry answered. The loader asks only for open
-/// tasks, so a flip out of a terminal status asks here before its guard reads
+/// `task` with every `waits-on` entry answered. The loader covers open tasks
+/// only, so a flip out of a terminal status asks here before its guard reads
 /// the answers.
 fn asked(task: &mindtape::Task, project: &Project) -> mindtape::Task {
     let mut task = task.clone();
@@ -330,10 +330,10 @@ fn asked(task: &mindtape::Task, project: &Project) -> mindtape::Task {
 /// it passes. The re-stamp determination (did the task already carry the
 /// status) is the caller's, computed before the write.
 ///
-/// A refused flip is not written, and so is not restored either — the file
+/// A refused flip is not written, and so is not restored either: the file
 /// still holds exactly what its author put there. `after_batch`'s revalidation
-/// stays as the net for what a landed flip does to other tasks: this check only
-/// ever names the task being rewritten.
+/// stays as the net for what a landed flip does to other tasks. This check
+/// covers only the task being rewritten.
 fn flip_one(
     batch: &Batch<'_>,
     world: &mut Vec<mindtape::Task>,
@@ -381,11 +381,11 @@ fn report_flip(task: &mindtape::Task, status: &str, restamp: bool) {
 }
 
 /// After a successful flip to a terminal status, notice a recurring task
-/// rather than staying silent: `mt done` stays a pure close — it never
-/// strips `recur` or advances anything (see
-/// `truth/tasks/2026-07/command-semantics-cqrs.typ`) — but a `spawn` series still has
-/// a next occurrence to materialize, so point at `mt recur`; a `mutate`
-/// series has no further file to advance, so note that this closes it.
+/// rather than staying silent. `mt done` stays a pure close: it never strips
+/// `recur` or advances anything (see
+/// `truth/tasks/2026-07/command-semantics-cqrs.typ`). A `spawn` series still has
+/// a next occurrence to materialize, so point at `mt recur`. A `mutate` series
+/// has no further file to advance, so note that this closes it.
 fn notice_recur(
     task: &mindtape::Task,
     status: &str,
@@ -408,7 +408,7 @@ fn notice_recur(
     }
 }
 
-/// Whether the post-write hooks should run: a non-quiet run attached to a
+/// Whether the post-write hooks should run, given a non-quiet run attached to a
 /// terminal. Split out so both operands are stageable without a pty.
 fn hooks_enabled(quiet: bool, stdout_tty: bool) -> bool {
     !quiet && stdout_tty

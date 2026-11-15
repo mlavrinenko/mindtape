@@ -4,7 +4,7 @@
 //! becomes its description. [`super::Forks`] has a hand-written
 //! `Deserialize`, which schemars cannot read, so [`forks`] spells out the
 //! values it takes. `mt install` writes the result beside
-//! `config.schema.json`, and the shipped `schema/at.schema.json` is this
+//! `config.schema.json`, and the committed `schema/at.schema.json` is this
 //! output, held to it by `tests`.
 
 use schemars::{Schema, SchemaGenerator, json_schema};
@@ -12,7 +12,7 @@ use schemars::{Schema, SchemaGenerator, json_schema};
 use super::RawFile;
 use crate::config::schema::stamped_schema_json;
 
-/// Where the schema is published, its `$id`. An editor fetches and caches it,
+/// The `$id` of the published schema. An editor fetches and caches it,
 /// so an `at.toml` gets completion with no local install.
 pub(super) const AT_SCHEMA_URL: &str =
     "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/at.schema.json";

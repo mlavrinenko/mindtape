@@ -223,7 +223,7 @@ fn a_path_like_expansion_is_refused() {
     assert!(!dir.path().join("tasks/slash.typ").exists());
 }
 
-/// Both a name no macro holds and a path that climbs out of the project fail
+/// Both an undefined macro name and a path that climbs out of the project fail
 /// the whole config, before any add runs.
 #[test]
 fn a_malformed_static_dir_is_a_config_error() {
@@ -238,8 +238,8 @@ fn a_malformed_static_dir_is_a_config_error() {
     }
 }
 
-/// A date macro in a static `dir` reads the pinned date, so the folder is
-/// chosen from the clock rather than derived by a Typst function.
+/// A date macro in a static `dir` reads the pinned date. The folder then comes
+/// from the clock rather than from a Typst function.
 #[test]
 fn date_macros_in_a_hook_dir_land_in_the_pinned_month() {
     let dir = project(
@@ -255,8 +255,8 @@ fn date_macros_in_a_hook_dir_land_in_the_pinned_month() {
     assert!(written.contains("title: \"Filed\""), "{written}");
 }
 
-/// A format that carries a separator expands to more than one path component,
-/// so the add is refused before it writes anything.
+/// A format that carries a separator expands to more than one path component.
+/// The command then refuses the add before it writes anything.
 #[test]
 fn a_date_format_with_a_separator_is_refused_before_the_write() {
     let dir =
@@ -393,9 +393,9 @@ fn a_hook_append_reaches_a_composite_tags_expression_once() {
     assert_eq!(written.matches("\"base\"").count(), 1, "{written}");
 }
 
-/// A strict priority has no scalar form, so `--priority` is refused; the
-/// refusal names the manual priority rather than the framework leaves the
-/// replaced expression leaves unfilled.
+/// A strict priority has no scalar form, so `--priority` fails. The refusal
+/// references the manual priority rather than the framework leaves the replaced
+/// expression leaves unfilled.
 #[test]
 fn a_strict_framework_refuses_a_manual_priority_by_name() {
     let dir =

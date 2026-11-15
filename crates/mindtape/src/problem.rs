@@ -1,6 +1,6 @@
-//! One config problem: the message, and what an unknown name in it could have
-//! been. The CLI turns the second into `hint:` lines, so no message carries a
-//! `did you mean` clause of its own.
+//! One config problem, holding the message and what an unknown name in it
+//! could have been. The CLI turns the second into `hint:` lines, so no message
+//! carries a `did you mean` clause of its own.
 
 use std::fmt;
 use std::ops::Deref;
@@ -28,7 +28,7 @@ impl Problem {
     }
 
     /// `self` with what the unknown name could have been. Empty when the
-    /// caller has nothing to offer, so no hint is made.
+    /// caller has nothing to offer, and the code then skips the hint.
     #[must_use]
     pub fn with(mut self, unknown: Unknown) -> Self {
         if unknown.nearest.is_some() || !unknown.names.is_empty() {

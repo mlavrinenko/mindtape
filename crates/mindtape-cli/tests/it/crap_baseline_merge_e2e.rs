@@ -1,8 +1,8 @@
 //! `.config/crap-baseline.json` merges entry by entry through the
 //! `crap-baseline` merge driver (`.just/scripts/crap-baseline-merge.sh`), which
 //! `just install-hooks` registers and `.gitattributes` assigns. The rebase test
-//! merges two branches in a throwaway repo; the others run the driver on three
-//! files, as git would.
+//! merges two branches in a throwaway repo, and the others run the driver on
+//! three files, as git would.
 //!
 //! Unix only: the driver needs `bash` and `jq`, which the dev shell provides
 //! and the Windows job, which has no dev shell, does not.

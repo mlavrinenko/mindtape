@@ -1,20 +1,21 @@
-//! `mt ls --interactive` — a terminal picker over the `ls` list.
+//! `mt ls --interactive` is a terminal picker over the `ls` list.
 //!
-//! Renders the same table `ls` prints, then holds the terminal in a raw-mode key
-//! loop on an alternate screen. Typing a `slug#` stem hash highlights the tasks
-//! whose hash starts with it (reverse-video); Enter opens the first highlighted
-//! task in the configured editor (`go`), Ctrl+Enter opens every listed task,
-//! Space re-evaluates the project, and Esc / Ctrl+C leaves. Every letter is a
-//! hash digit, so no letter quits. See `truth/tasks/ls-interactive-mode.typ`.
+//! It renders the same table `ls` prints, then holds the terminal in a raw-mode
+//! key loop on an alternate screen. Typing a `slug#` stem hash highlights the
+//! tasks whose hash starts with it (reverse-video). Enter opens the first
+//! highlighted task in the configured editor (`go`), Ctrl+Enter opens every
+//! listed task, Space re-evaluates the project, and Esc / Ctrl+C leaves. Every
+//! letter is a hash digit, so no letter quits. See
+//! `truth/tasks/ls-interactive-mode.typ`.
 //!
-//! Terminal entry/exit (raw mode, alternate screen, the [`tui::Tui`] resource
-//! guard) lives in the [`tui`] submodule; this module owns the picker's
-//! state machine — key classification, the hash-buffer selection, and the
-//! draw/refresh loop built on top of it.
+//! Terminal entry and exit (raw mode, alternate screen, the [`tui::Tui`]
+//! resource guard) lives in the [`tui`] submodule. This module owns the
+//! picker's state machine: key classification, the hash-buffer selection, and
+//! the draw/refresh loop built on top of it.
 //!
 //! # Files
 //!
-//! - `tui.rs` — terminal lifecycle: entering and leaving raw mode.
+//! - `tui.rs` holds the terminal lifecycle: entering and leaving raw mode.
 
 use std::io::{self, IsTerminal, Write};
 use std::path::PathBuf;
@@ -45,9 +46,9 @@ const HINTS: &str =
 /// Run the interactive picker over the view `args` selects from `project`.
 ///
 /// # Errors
-/// Returns an error when stdin/stdout is not a TTY, the format is not the table,
-/// the view cannot be built, the terminal cannot enter raw mode, or the editor
-/// fails to launch.
+/// Returns an error when stdin/stdout is not a TTY, the format is not the
+/// table, or the view fails to build. It also returns an error when the
+/// terminal cannot enter raw mode, or the editor fails to launch.
 pub fn run(args: &LsArgs, project: util::Project) -> Result<()> {
     guard(args)?;
     let mut state = State::from_project(project, args)?;
@@ -57,8 +58,8 @@ pub fn run(args: &LsArgs, project: util::Project) -> Result<()> {
     result
 }
 
-/// Reject the modes interactive cannot serve: a non-table format and a
-/// non-interactive terminal (piped stdin or stdout).
+/// Reject a non-table format and a non-interactive terminal (piped stdin or
+/// stdout), the two modes interactive cannot serve.
 fn guard(args: &LsArgs) -> Result<()> {
     guard_with(
         args,
@@ -70,10 +71,11 @@ fn guard(args: &LsArgs) -> Result<()> {
 /// process, so both arms are reachable in a test.
 ///
 /// Reading `is_terminal()` inside the check made the outcome depend on how the
-/// suite was invoked: piped (CI, `just check`, which runs the arm under
-/// `parallel`) it refused and the refusal test passed, but run straight from a
-/// terminal `cargo test` inherits the tty, the guard allowed, and that same test
-/// failed. A test whose verdict flips with the caller's stdout is not a test.
+/// caller invoked the suite. Piped (CI, `just check`, which runs the arm under
+/// `parallel`) it refused and the refusal test passed. Run straight from a
+/// terminal, `cargo test` inherits the tty, the guard allowed, and that same
+/// test failed. A test whose verdict flips with the caller's stdout is not a
+/// test.
 fn guard_with(args: &LsArgs, tty: bool) -> Result<()> {
     if !matches!(args.flags.format, OutputFormat::Table) {
         return Err(
@@ -90,7 +92,7 @@ fn guard_with(args: &LsArgs, tty: bool) -> Result<()> {
     Ok(())
 }
 
-/// The loop's mutable state: the resolved view plus the typed hash buffer.
+/// Hold the loop's mutable state: the resolved view plus the typed hash buffer.
 struct State {
     config: Config,
     root: PathBuf,
@@ -99,15 +101,18 @@ struct State {
     /// The environment a column's conditional visibility resolves against,
     /// rebuilt with the rest of the listing on every refresh.
     env: ConditionEnv,
-    /// The stem hashes of every loaded task; the `slug#` column and the
+    /// The stem hashes of every loaded task. The `slug#` column and the
     /// selection both read them.
     hashes: StemHashes,
     /// Whether the table prints hyperlinks, resolved for this project.
     hyperlinks: bool,
-    /// What `--limit` cut from the listed rows; recomputed on every refresh,
-    /// since a flip made in the editor can move a task in or out of the view.
+    /// What `--limit` cut from the listed rows. The loop recomputes it on every
+    /// refresh, since a flip made in the editor can move a task in or out of the
+    /// view.
     truncated: Option<Truncation>,
-    /// The typed stem hash prefix; empty means nothing is selected.
+    /// The typed stem hash prefix. The picker highlights every task whose hash
+    /// starts with it, and a row counts as selected only while the prefix is
+    /// non-empty.
     buffer: String,
 }
 
@@ -147,8 +152,8 @@ impl State {
         Ok(())
     }
 
-    /// A per-row mask: row `i` is highlighted when its stem hash starts with
-    /// the buffer. An empty buffer highlights nothing.
+    /// Build a per-row mask. Row `i` carries `true` when its stem hash starts
+    /// with the buffer. An empty buffer leaves every row `false`.
     fn highlight_mask(&self) -> Vec<bool> {
         (0..self.tasks.len()).map(|i| self.matches(i)).collect()
     }
@@ -179,7 +184,7 @@ impl State {
 /// What the loop does after one key.
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Action {
-    /// Stay; redraw from the current state.
+    /// Stay and redraw from the current state.
     Continue,
     /// Open the tasks at these indices in the editor (empty means no-op).
     Open(Vec<usize>),
@@ -207,8 +212,8 @@ enum Intent {
 /// Map a key event to its [`Intent`].
 ///
 /// `Ctrl+Enter` (open all) and `Ctrl+Backspace` (clear) only carry the modifier
-/// on terminals that negotiated the keyboard-enhancement protocol; elsewhere they
-/// fall back to plain Enter / Backspace, and `Del` is the reliable clear.
+/// on terminals that negotiated the keyboard-enhancement protocol. Elsewhere
+/// they fall back to plain Enter / Backspace, and `Del` is the reliable clear.
 fn classify(key: KeyEvent) -> Intent {
     let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
     match key.code {
@@ -251,8 +256,9 @@ fn handle_open(state: &mut State, tui: &Tui, indices: &[usize], args: &LsArgs) -
     Ok(())
 }
 
-/// Apply an intent: mutate the buffer, or resolve which tasks the open
-/// intents target. Pure in the `Tui` — the caller does the actual opening.
+/// Apply an intent: mutate the buffer, or resolve which tasks the open intents
+/// target. The function is pure in the `Tui`, and the caller does the actual
+/// opening.
 fn apply(state: &mut State, intent: Intent) -> Action {
     match intent {
         Intent::Digit(c) => {
@@ -311,10 +317,10 @@ fn draw(state: &State) -> Result<()> {
     Ok(())
 }
 
-/// The footer: a dim hint line, preceded by the live `slug#` buffer when typing
-/// and by the `truncated:` line when `--limit` hid rows. The picker can only
-/// open what it lists, so a caller who capped the listing has to be told the
-/// task they are looking for may be one of the rows `-n` cut.
+/// Build the footer: a dim hint line, preceded by the live `slug#` buffer when
+/// typing and by the `truncated:` line when `--limit` hid rows. The picker can
+/// only open what it lists. A caller who capped the listing needs to hear that
+/// the task they want may be one of the rows `-n` cut.
 fn footer(buffer: &str, truncated: Option<Truncation>) -> String {
     let painter = Painter::new(is_color_active());
     let dim = Style::new().effects(Effects::DIMMED);

@@ -6,7 +6,7 @@ use std::fmt;
 use super::Diag;
 use super::render::{quote, shell_word};
 
-/// A `hint:` line. Its text is a `&'static str`; anything the user typed
+/// A `hint:` line. Its text is a `&'static str`, and anything the user typed
 /// reaches it only through a [`Command`] argument, a did-you-mean, or an
 /// example rebuilt from the input.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -83,7 +83,7 @@ impl Hint {
 
     /// The word a dictionary lacks and the entries nearest it:
     /// `hint: 'Rote' is not in dict verbs; did you mean note, rate or rite?`.
-    /// The word is the task's, so it's quoted; names are bare.
+    /// The word is the task's, so it's quoted. Names are bare.
     pub(crate) fn not_in_dict(miss: mindtape::DictMiss) -> Self {
         Self(Shape::NotInDict(miss))
     }
@@ -289,25 +289,26 @@ impl fmt::Display for Note {
     }
 }
 
-/// A command line in a hint: literal words, and arguments the user typed,
-/// which are quoted only when a shell needs them to be, so the line pastes.
+/// A command line in a hint: literal words, and arguments the user typed.
+/// The code quotes an argument only when a shell needs it quoted. The line
+/// then pastes as it stands.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Command {
     /// The words after `mt` that pick the project it runs on: this run's own
     /// `@name` or `-w <dir>`, or a set member's `@name`. `None` when the run
     /// found its project from where it stood, and for a global command.
     scope: Option<String>,
-    /// The words after the scope: a subcommand, its flags and arguments.
+    /// The words after the scope, a subcommand with its flags and arguments.
     words: Vec<String>,
-    /// Whether the command reads no project, as `mt install` doesn't, so no
-    /// scope is put on it.
+    /// Whether the command skips the project, as `mt install` does, so the
+    /// line has no scope prefix.
     global: bool,
 }
 
 impl Command {
-    /// `mt`, for a command that runs on a project, to which words and
-    /// arguments are added. Under `mt @blog` or `mt -w <dir>`, it carries the
-    /// same words, so it runs on the same project as printed.
+    /// `mt`, for a command that runs on a project, with words and arguments
+    /// added. Under `mt @blog` or `mt -w <dir>`, it carries the same words, so
+    /// it runs on the same project as printed.
     pub(crate) fn mt() -> Self {
         Self::under(crate::selector::hint())
     }
@@ -321,7 +322,7 @@ impl Command {
         }
     }
 
-    /// `mt`, for a command that reads no project, such as `mt install`.
+    /// `mt`, for a command that skips the project, such as `mt install`.
     pub(crate) fn mt_global() -> Self {
         Self {
             global: true,
@@ -329,7 +330,7 @@ impl Command {
         }
     }
 
-    /// A literal word: a subcommand or a flag.
+    /// A literal word, a subcommand or a flag.
     pub(crate) fn word(mut self, word: &'static str) -> Self {
         self.words.push(word.to_owned());
         self

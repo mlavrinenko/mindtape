@@ -1,9 +1,9 @@
-//! Where `mt add`'s new task file lands: the destination directory, the
-//! minted stem, and the write outcome under `--dedup` collision policy — the
-//! three concerns of resolving the write target, split out of `cmd/add/mod.rs` to
-//! stay under the file-size gate. `dest_dir`/`warn_if_outside_roots` are also
-//! reused by `mt import`, which shares the same destination-resolution rules
-//! (see `crate::cmd::import`).
+//! Where `mt add`'s new task file lands: the destination directory, the minted
+//! stem, and the write outcome under `--dedup` collision policy. Those are the
+//! three concerns of resolving the write target, split out of `cmd/add/mod.rs`
+//! to stay under the file-size gate. `dest_dir`/`warn_if_outside_roots` are
+//! also reused by `mt import`, which shares the same destination-resolution
+//! rules (see `crate::cmd::import`).
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -21,12 +21,13 @@ use crate::util;
 
 /// Resolve the destination collision against `--dedup`/`[tasks.naming]
 /// dedup`, then guard the final path, and report a `skip` outcome immediately
-/// (nothing is written for it). Returns `None` for `skip` (the caller's cue to
-/// stop); `Some(outcome)` otherwise, carrying the exact path to write.
+/// (the run doesn't write a file for it). Returns `None` for `skip` (the
+/// caller's cue to stop). Otherwise it returns `Some(outcome)`, carrying the
+/// exact path to write.
 ///
-/// The guard runs on the path this resolution chose, suffix included: a
-/// suffix can change which ignore rule matches, and a `skip` collision writes
-/// nothing at all, so it needs no guard.
+/// The guard runs on the path this resolution chose, suffix included. A suffix
+/// can change which ignore rule matches, and a `skip` collision doesn't write a
+/// file at all, so it doesn't need a guard.
 ///
 /// # Errors
 /// Propagates [`crate::cmd::add::dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors
@@ -65,17 +66,17 @@ pub(super) fn resolve_outcome(
     })
 }
 
-/// Compute the new task's filename stem: an explicit `--name` wins outright
-/// (literal, never templated — an explicit request is trusted as-is).
-/// Otherwise the title's slug feeds the configured `[tasks.naming] stem`
-/// template (today's date; the pure expander never reads a clock — see
-/// [`mindtape::model::naming`]); unset naming keeps today's bare behaviour
-/// untouched.
+/// Compute the new task's filename stem. An explicit `--name` wins outright:
+/// the code takes it literally and never templates it, because the caller asked
+/// for it explicitly. Otherwise the title's slug feeds the configured
+/// `[tasks.naming] stem` template. That template sees today's date, and the
+/// pure expander never reads a clock (see [`mindtape::model::naming`]). Unset
+/// naming keeps today's bare behaviour untouched.
 ///
-/// Pure minting only — this never checks `dest` or decides what to do about
-/// a collision. Whatever produced the stem, [`resolve_outcome`] is the single
+/// Pure minting only: this never checks `dest` or decides what to do about a
+/// collision. Whatever produced the stem, [`resolve_outcome`] is the single
 /// place that resolves it against the destination and the effective `--dedup`
-/// mode; unifying that decision (rather than pre-disambiguating a templated
+/// mode. Unifying that decision (rather than pre-disambiguating a templated
 /// stem here, as before) is what makes `fail`/`skip` reachable under a
 /// templated `stem` at all.
 pub(super) fn output_stem(
@@ -123,9 +124,9 @@ fn title_slug(values: &BTreeMap<String, RawValue>) -> Result<String> {
 /// Resolve the one destination directory: `--dir` when given, else the first
 /// configured root.
 ///
-/// A relative `--dir` resolves from the project root, so the same command
-/// writes to the same place whatever directory it runs in. An absolute one is
-/// taken as-is.
+/// A relative `--dir` resolves from the project root. The same command then
+/// writes to the same place whatever directory it runs in. An absolute one
+/// stays as-is.
 pub(crate) fn dest_dir(dir: Option<&str>, project: &util::Project) -> PathBuf {
     let Some(dir) = dir else {
         let first = project
@@ -166,12 +167,12 @@ pub(super) fn resolve_dir(
     Ok(dest)
 }
 
-/// Refuse an explicit `--dir` outside every root before a hooked add builds
-/// its draft: a hooked add writes under the roots, where the filed task has a
+/// Refuse an explicit `--dir` outside every root before a hooked add builds its
+/// draft. A hooked add writes under the roots, where the filed task has a
 /// project-relative path, derived tags and a depth.
 ///
 /// # Errors
-/// A usage error naming the outside-root destination.
+/// A usage error that cites the outside-root destination.
 pub(super) fn refuse_outside_explicit(dir: Option<&str>, project: &util::Project) -> Result<()> {
     let Some(dir) = dir else {
         return Ok(());
@@ -195,11 +196,11 @@ fn outside_root(dir: &str) -> Diag {
 }
 
 /// Refuse the removed `--into`/`--to` flags by name, with the replacement in
-/// the hint. Both commands keep the old spellings declared but hidden, so a
-/// caller gets this instead of clap's generic unknown-argument error.
+/// the hint. Both commands keep the old spellings declared but hidden. A caller
+/// then gets this instead of clap's generic unknown-argument error.
 ///
 /// # Errors
-/// A usage error naming the first old flag that was passed.
+/// A usage error that cites the first old flag the caller passed.
 pub(crate) fn refuse_legacy(into: Option<&String>, to: Option<&String>) -> Result<()> {
     let flag = if into.is_some() {
         "--into"

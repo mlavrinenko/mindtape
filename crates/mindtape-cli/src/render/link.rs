@@ -4,13 +4,13 @@
 //! function and a render-time helper (`Linker` here, `Painter` there) that a
 //! disabled state turns into a no-op. One difference: [`resolve`] runs per
 //! project from [`crate::util::open`], not once in `main`, because the decision
-//! also consults `[ls] hyperlinks` — `--color` never had a config counterpart.
-//! The result rides in [`super::RenderCtx`].
+//! also consults `[ls] hyperlinks`, which `--color` never had. The result rides
+//! in [`super::RenderCtx`].
 //!
 //! There is no terminal capability query for OSC 8 support, so `auto` is a
-//! heuristic rather than a detection, and the default is `never` rather than
-//! `auto`: an unsupported terminal renders the escape payload as visible
-//! garbage instead of degrading to nothing the way colour does
+//! heuristic rather than a detection. The default is `never` rather than
+//! `auto`, because an unsupported terminal renders the escape payload as
+//! visible garbage instead of degrading to nothing the way colour does
 //! (`truth/tasks/2026-07/hyperlink-the-file-column-with-osc-8.typ`).
 
 use std::fmt;
@@ -64,16 +64,16 @@ pub struct HyperlinksArg {
     pub hyperlinks: Option<HyperlinkChoice>,
 }
 
-/// Resolve whether hyperlink output should be used for stdout.
+/// Resolve whether stdout gets hyperlink output.
 ///
 /// Rules (in priority order):
 /// 1. `always` → hyperlinks on.
 /// 2. `never` → hyperlinks off.
 /// 3. `auto` → on iff stdout is a TTY **and** `TERM` is not `dumb`.
 ///
-/// `stdout_is_tty` and `term_is_dumb` are both taken as plain booleans, rather
+/// `stdout_is_tty` and `term_is_dumb` both arrive as plain booleans, rather
 /// than this function reading `$TERM` itself the way `color_enabled` reads
-/// `NO_COLOR`, so the `auto` arm stays deterministic under test regardless of
+/// `NO_COLOR`. The `auto` arm then stays deterministic under test regardless of
 /// the test process's own ambient `$TERM`.
 #[must_use]
 pub fn hyperlink_enabled(choice: HyperlinkChoice, stdout_is_tty: bool, term_is_dumb: bool) -> bool {
@@ -91,7 +91,7 @@ pub fn term_is_dumb() -> bool {
 }
 
 /// Resolve the hyperlink decision for one project: its `choice` against the
-/// real stdout and `TERM`. The result rides in [`super::RenderCtx`], so each
+/// real stdout and `TERM`. The result rides in [`super::RenderCtx`], and each
 /// project carries its own.
 #[must_use]
 pub fn resolve(choice: HyperlinkChoice) -> bool {

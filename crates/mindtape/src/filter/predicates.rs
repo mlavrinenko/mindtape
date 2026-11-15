@@ -2,10 +2,10 @@
 //! count, commit-state existence and substring-search arms of the filter
 //! language's function dispatch
 //! (`has`/`miss`/`contains`/`stale`/`changed`/`exists`), split out of
-//! `filter/mod.rs` (file-size gate). Each function here is pure over `Task` (plus
-//! `Config` where a field needs one to resolve, e.g. a framework priority);
-//! `exists` alone reads the `Ctx`, for the commit state it carries. The
-//! dispatcher itself (`filter::function`) stays put and calls into these.
+//! `filter/mod.rs` (file-size gate). Each function here is pure over `Task`
+//! (plus `Config` where a field needs one to resolve, such as a framework
+//! priority). `exists` alone reads the `Ctx`, for the commit state it carries.
+//! The dispatcher itself (`filter::function`) stays put and calls into these.
 
 use std::collections::BTreeSet;
 
@@ -34,7 +34,7 @@ pub(crate) fn present(task: &Task, name: &str, config: &Config) -> Result<bool, 
 }
 
 /// `has(field)` / `has(field, value)`. One argument tests presence
-/// ([`present`]); a second tests membership ([`holds`]).
+/// ([`present`]), and a second tests membership ([`holds`]).
 pub(crate) fn has_call(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
@@ -56,7 +56,7 @@ pub(crate) fn has_call(
 
 /// Whether field `name` holds `value`: a list holds it as an element, a scalar
 /// equals it, a dict-valued field (`estimate`, an `x-<ns>` slot) has it as a
-/// key. A missing field holds nothing.
+/// key. A missing field doesn't hold it.
 fn holds(task: &Task, name: &str, value: &str, config: &Config) -> Result<bool, FilterError> {
     if fields::is_derived(name) {
         if fields::derived_type(config, name).is_none() {
@@ -91,7 +91,7 @@ fn holds(task: &Task, name: &str, value: &str, config: &Config) -> Result<bool, 
 
 /// `x-<ns>`: an extension slot's value through [`crate::model::fields::from_extra`],
 /// declared in `[tasks.fields]` or not. An unset slot is
-/// [`FieldValue::Missing`]; a dict has no value to compare, so reading one is
+/// [`FieldValue::Missing`]. A dict has no value to compare, so reading one is
 /// an error that points at `has()`.
 pub(crate) fn extra_value(task: &Task, name: &str) -> Result<FieldValue, FilterError> {
     let Some(value) = task.extras.get(name) else {
@@ -105,10 +105,10 @@ pub(crate) fn extra_value(task: &Task, name: &str) -> Result<FieldValue, FilterE
 }
 
 /// `estimate.<unit>`: one unit of the estimate dict, read as a number, for
-/// any unit name — mindtape knows none of them. `None` when `name` is not an
-/// estimate unit at all. An absent unit is [`FieldValue::Missing`], like any
-/// absent numeric field; a unit outside a declared `[tasks.estimate] units`
-/// is an unknown field, so a saved expression naming one fails at load.
+/// any unit name, since mindtape knows none of them. `None` when `name` is not
+/// an estimate unit at all. An absent unit is [`FieldValue::Missing`], like any
+/// absent numeric field. A unit outside a declared `[tasks.estimate] units` is
+/// an unknown field, so a saved expression that references one fails at load.
 pub(crate) fn estimate_unit(
     task: &Task,
     name: &str,
@@ -129,7 +129,7 @@ pub(crate) fn estimate_unit(
 
 /// `changed("<states>", "<glob>"…)`: how many distinct paths git reports
 /// changed in `states` that the globs admit. `dry` validates the arguments and
-/// counts zero without reading git — the config-load dry run.
+/// counts zero without reading git, for the config-load dry run.
 pub(crate) fn changed_count(
     children: &[Node<DefaultNumericTypes>],
     config: &Config,
@@ -164,7 +164,7 @@ pub(crate) fn changed_count(
 
 /// `touches("<path>")`: whether a commit that changed the repository-relative
 /// `path` names the task in its trailer ([`crate::commit::refs`]). The dry run
-/// checks the argument and matches nothing without reading git.
+/// checks the argument and returns false without reading git.
 pub(crate) fn touches(
     children: &[Node<DefaultNumericTypes>],
     ctx: &Ctx,
@@ -192,8 +192,8 @@ pub(crate) fn touches(
     Ok(touched.stems.contains(&crate::commit::task_stem(ctx.task)))
 }
 
-/// `exists`: whether the commit state being read holds the task's file at
-/// all. Only a task-scope commit rule's state wrappers give it a meaning; an
+/// `exists`: whether the commit state the caller reads holds the task's file at
+/// all. Only a task-scope commit rule's state wrappers give it a meaning. An
 /// ordinary filter reads loaded tasks, which exist by construction, so it
 /// refuses the predicate rather than answer a constant.
 pub(crate) fn exists(ctx: &Ctx) -> Result<bool, FilterError> {
@@ -231,21 +231,21 @@ pub(crate) fn fold_case(text: &str) -> String {
     text.to_lowercase()
 }
 
-/// Shipped default `contains()` haystack when no field is named, and no
-/// `[ls] contains-fields` is configured — the prose surface. Tags have
+/// Built-in default `contains()` haystack for a call with no field argument,
+/// absent a `[ls] contains-fields` key: the prose surface. Tags have
 /// `has_tag()` and every scalar field has a comparison operator, so neither
 /// belongs in an implicit text sweep. Deliberately narrow: a default applied
 /// uniformly across every project inherits the strictest constraint of
-/// anything that could land in it, so widening this for everyone is the
-/// wrong move — a project opts in via `[ls] contains-fields` instead (see
+/// anything that could land in it. Widening this for everyone is the wrong
+/// move. A project opts in via `[ls] contains-fields` instead (see
 /// [`default_contains_fields`]).
 const DEFAULT_CONTAINS_FIELDS: [&str; 3] = ["title", "id", fields::BODY_FIELD];
 
 /// The default `contains()` haystack: the project's `[ls] contains-fields`
 /// when set, else [`DEFAULT_CONTAINS_FIELDS`] unchanged. Config load already
 /// validated a configured list against [`crate::model::fields::is_contains_field`]
-/// (`crate::config::ls::deserialize_contains_fields`), so every name here is
-/// trusted.
+/// (`crate::config::ls::deserialize_contains_fields`), so every name here
+/// passes that check.
 fn default_contains_fields(config: &Config) -> Vec<String> {
     if config.ls.contains_fields.is_empty() {
         DEFAULT_CONTAINS_FIELDS
@@ -258,14 +258,14 @@ fn default_contains_fields(config: &Config) -> Vec<String> {
 }
 
 /// `contains(needle)` / `contains(needle, field, ...)`: case-insensitive
-/// substring, needle first. Zero or more bare field identifiers follow; none
-/// named searches [`DEFAULT_CONTAINS_FIELDS`].
+/// substring, needle first. Zero or more bare field identifiers follow. A call
+/// that names none searches [`DEFAULT_CONTAINS_FIELDS`].
 ///
-/// Names are resolved and validated in full (`collect` into a `Result<Vec<_>,
-/// _>`, short-circuiting only on the first invalid one) before any is matched
-/// against the needle — an `||` fold straight over resolved values would
-/// short-circuit on the first hit, letting a bogus name past an
-/// already-matching one through unvalidated.
+/// The code resolves and validates every name in full before it matches any
+/// name against the needle. It `collect`s into a `Result<Vec<_>, _>`,
+/// short-circuiting only on the first invalid one. An `||` fold straight over
+/// resolved values would short-circuit on the first hit, letting a bogus name
+/// past an already-matching one through unvalidated.
 pub(crate) fn contains_call(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,

@@ -1,6 +1,7 @@
 //! A [`typst_cleanup::Error`] as a [`Diag`]. A task file that git can't pin a
-//! tombstone to is the project's rule refusing the work, and every such file
-//! is named at once. A failed read, write or splice is the work failing.
+//! tombstone to is the project's rule refusing the work, and one message
+//! reports every such file at once. A failed read, write or splice is the work
+//! failing.
 
 use typst_cleanup::{Error, Ineligible, Reason};
 
@@ -21,7 +22,7 @@ impl From<Error> for Diag {
 }
 
 /// The refusal for task files that can't carry a tombstone: one task by its
-/// id, several as a count, each file a note saying why.
+/// id, many as a count, each file a note saying why.
 fn ineligible(found: &[Ineligible]) -> Diag {
     let head = match found {
         [only] => Diag::refused("cannot remove").value(&only.artifact.id),

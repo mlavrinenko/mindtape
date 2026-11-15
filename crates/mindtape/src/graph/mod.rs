@@ -1,14 +1,14 @@
 //! Transitive dependency ordering over the task graph: topological sort with
 //! cycle detection.
 //!
-//! Nodes are tasks keyed by [`Task::file`]; edges are the `depends-on` links
+//! Nodes are tasks keyed by [`Task::file`]. Edges are the `depends-on` links
 //! that resolve to a loaded task. This is the graph substrate that the one-hop
-//! readiness query ([`crate::graph::ready`]) and the transitive [`toposort`] both build
-//! on: both resolve edges through the shared [`DepIndex`], differing only in what
-//! they ask of it — readiness checks a single hop against the terminal set,
-//! toposort walks the whole graph. A `depends-on` target that names no loaded
-//! task (dangling, or escaping the root) is not an edge: it cannot join a cycle
-//! and does not constrain the order.
+//! readiness query ([`crate::graph::ready`]) and the transitive [`toposort`]
+//! both build on. Both resolve edges through the shared [`DepIndex`], and they
+//! differ only in what they ask of it. Readiness checks a single hop against the
+//! terminal set, and toposort walks the whole graph. A `depends-on` target
+//! outside the loaded set (dangling, or escaping the root) is not an edge. It
+//! cannot join a cycle and does not constrain the order.
 //!
 //! # Files
 //!
@@ -46,7 +46,8 @@ impl<'a> DepIndex<'a> {
     }
 
     /// The loaded task that `target` (a raw link written on `from`) resolves to.
-    /// `None` when the link escapes the project root or names no loaded task.
+    /// `None` when the link escapes the project root or points outside the
+    /// loaded set.
     pub(crate) fn resolve(&self, from: &Task, target: &str) -> Option<&'a Task> {
         resolve_link_path(&from.file, target)
             .and_then(|path| self.by_path.get(path.as_path()).copied())
@@ -54,7 +55,7 @@ impl<'a> DepIndex<'a> {
 }
 
 /// The loaded task, if any, that `from`'s `kind` edge resolves to (forward
-/// direction) — e.g. a `recurred-from` edge's predecessor.
+/// direction), such as a `recurred-from` edge's predecessor.
 #[must_use]
 pub fn resolve_edge<'a>(tasks: &'a [Task], from: &Task, kind: &str) -> Option<&'a Task> {
     let index = DepIndex::build(tasks);
@@ -62,10 +63,10 @@ pub fn resolve_edge<'a>(tasks: &'a [Task], from: &Task, kind: &str) -> Option<&'
         .find_map(|target| index.resolve(from, target))
 }
 
-/// The loaded task, if any, whose `kind` edge resolves to `target` — the
-/// reverse direction of [`resolve_edge`]. `mt recur`'s double-spawn guard uses
-/// this: a spawned successor's `recurred-from` edge names its predecessor, so
-/// the predecessor's successor is found by searching for the referrer.
+/// The loaded task, if any, whose `kind` edge resolves to `target`, the reverse
+/// direction of [`resolve_edge`]. `mt recur`'s double-spawn guard uses this. A
+/// spawned successor's `recurred-from` edge points at its predecessor. The guard
+/// then finds the predecessor's successor by searching for the referrer.
 #[must_use]
 pub fn find_referrer<'a>(tasks: &'a [Task], target: &Task, kind: &str) -> Option<&'a Task> {
     let index = DepIndex::build(tasks);
@@ -86,18 +87,18 @@ pub struct Edge<'a> {
     pub from: &'a Task,
     /// The task the link resolves to (edge head).
     pub to: &'a Task,
-    /// The edge kind, e.g. `depends-on`, `parent`, a custom kind.
+    /// The edge kind, such as `depends-on`, `parent`, or a custom kind.
     pub kind: &'a str,
     /// The edge's free-form note, if any.
     pub note: Option<&'a str>,
 }
 
 /// Every `links:` edge in `tasks` that resolves to another loaded task, in
-/// authored order per source. A target that names no in-set task (dangling,
-/// escaping the set, or filtered out) yields no edge — the same resolution
-/// [`toposort`] and [`crate::graph::ready`] use, so a graph view never re-implements
-/// link resolution. Pass a filtered slice to project the induced subgraph:
-/// edges to tasks outside it vanish.
+/// authored order per source. A target outside the set (dangling, escaping the
+/// set, or filtered out) is not an edge. That is the same resolution
+/// [`toposort`] and [`crate::graph::ready`] use. A graph view then never
+/// re-implements link resolution. Pass a filtered slice to project the induced
+/// subgraph: edges to tasks outside it vanish.
 #[must_use]
 pub fn edges<'a>(tasks: &'a [Task]) -> Vec<Edge<'a>> {
     let index = DepIndex::build(tasks);
@@ -117,9 +118,9 @@ pub fn edges<'a>(tasks: &'a [Task]) -> Vec<Edge<'a>> {
     out
 }
 
-/// A dependency cycle: the tasks on a `depends-on` loop, by id, in the order the
-/// walk entered them. The loop closes from the last member back to the first;
-/// [`Display`](fmt::Display) renders it as `a → b → c → a`.
+/// A dependency cycle, holding the tasks on a `depends-on` loop by id, in the
+/// order the walk entered them. The loop closes from the last member back to the
+/// first. [`Display`](fmt::Display) renders it as `a → b → c → a`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Cycle {
     /// Ids of the tasks forming the loop, in traversal order.
@@ -142,9 +143,10 @@ impl fmt::Display for Cycle {
 
 /// Topologically order `tasks` so each appears after every task it depends on.
 ///
-/// In-set `depends-on` links define the edges; a target that names no loaded
-/// task is ignored (see [`DepIndex::resolve`]). The order is deterministic:
-/// independent tasks keep their input order, which the loader sorts by id.
+/// In-set `depends-on` links define the edges, and the sort ignores a target
+/// outside the loaded set (see [`DepIndex::resolve`]). The order is
+/// deterministic: independent tasks keep their input order, which the loader
+/// sorts by id.
 ///
 /// # Errors
 /// Returns a [`Cycle`] when the dependency graph contains a loop.
@@ -152,9 +154,9 @@ pub fn toposort(tasks: &[Task]) -> Result<Vec<&Task>, Cycle> {
     toposort_kind(tasks, "depends-on")
 }
 
-/// Topologically order `tasks` over edges of one `kind` only (e.g. `parent`,
-/// or a custom kind flagged acyclic). Otherwise identical to [`toposort`],
-/// which is this specialised to `"depends-on"`.
+/// Topologically order `tasks` over edges of one `kind` only, such as `parent`
+/// or a custom kind flagged acyclic. Otherwise identical to [`toposort`], which
+/// is this specialized to `"depends-on"`.
 ///
 /// # Errors
 /// Returns a [`Cycle`] when that kind's edges contain a loop.
@@ -198,7 +200,7 @@ impl<'a> Walk<'a> {
     }
 
     /// Visit `task`, recursing into its resolved edges of `kind` first so it
-    /// lands in `order` after all of them. Errors with the loop when an edge
+    /// lands in `order` after them all. Errors with the loop when an edge
     /// target is already on the active path.
     fn visit(&mut self, task: &'a Task, index: &DepIndex<'a>, kind: &str) -> Result<(), Cycle> {
         self.mark.insert(task.file.as_path(), Mark::OnPath);

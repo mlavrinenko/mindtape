@@ -78,7 +78,7 @@
           ]
         },
         "required": {
-          "description": "Whether a value must be supplied when no default is present.",
+          "description": "Whether the caller must supply a value when the default is absent.",
           "type": "boolean"
         }
       },

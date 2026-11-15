@@ -88,8 +88,8 @@ fn quiet_suppresses_ok_summary_on_clean_run() {
 
 const QUIET_VIOLATION_CHILD: &str = "_MT_CHECK_QUIET_VIOLATION_CHILD";
 
-/// `--quiet` still reports violations and fails the command on a bad run —
-/// only the success summary is suppressed.
+/// `--quiet` still reports violations and fails the command on a bad run. It
+/// suppresses only the success summary.
 #[test]
 fn quiet_still_reports_violations_on_failing_run() {
     if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(QUIET_VIOLATION_CHILD) {
@@ -129,7 +129,7 @@ fn multiple_valid_tasks_reports_count() {
 const REPEATED_WARNING_CHILD: &str = "_MT_CHECK_REPEATED_WARNING_CHILD";
 
 /// Run `mt check` over one task with two Typst warnings, in a child process so
-/// its stderr can be read. `verbose` sets `-v` in the child.
+/// the test can read its stderr. `verbose` sets `-v` in the child.
 fn with_bold_warning(sentinel: &str, verbose: bool, check: impl FnOnce(&str)) {
     if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(sentinel) {
         check(&stderr);
@@ -143,8 +143,8 @@ fn with_bold_warning(sentinel: &str, verbose: bool, check: impl FnOnce(&str)) {
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
-/// A warning Typst repeats in one file is printed once, with its hint, its
-/// count and the file, not once per site.
+/// `mt check` prints a warning Typst repeats in one file once, with its hint,
+/// its count and the file, not once per site.
 #[test]
 fn repeated_typst_warnings_print_once_with_count_and_files() {
     with_bold_warning(REPEATED_WARNING_CHILD, false, |stderr| {
@@ -303,7 +303,7 @@ fn invalid_header_rule_regex_fails_with_config_error() {
 // that a violation surfaces the file, the line, and the comment text.
 
 /// `TASK` with a trailing line comment dropped after the `task.with(...)`-style
-/// `#metadata(...)` call — the whole file, not only the body.
+/// `#metadata(...)` call, the whole file, not only the body.
 const TASK_WITH_COMMENT: &str = "#metadata((
   marker: \"mindtape.task\",
   fields: (
@@ -341,9 +341,9 @@ fn warn_policy_does_not_fail_the_command() {
 
 const COMMENTS_CHILD: &str = "_MT_CHECK_COMMENTS_CHILD";
 
-/// `forbid` fails the command, and the printed violation names the file, the
-/// line, and the comment text — asserted from a child process, since the
-/// parent's test harness owns stdout.
+/// `forbid` fails the command, and the printed violation shows the file, the
+/// line, and the comment text. The test asserts that from a child process,
+/// since the parent's test harness owns stdout.
 #[test]
 fn forbid_policy_fails_and_reports_file_line_and_text() {
     if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(COMMENTS_CHILD) {

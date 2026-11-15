@@ -1,8 +1,8 @@
-//! The shipped `mindtape:tasks` pack's `flip-task-with-its-work` counts retiring
-//! another task as work (`truth/tasks/count-retiring-other-tasks-as-work-in-
-//! the-flip-task-with-its-work-rule.typ`): a close that deletes other task files
-//! passes, while a bare flip, or a flip beside edits to other tasks, is
-//! still refused.
+//! The `mindtape:tasks` pack's `flip-task-with-its-work` rule counts retiring
+//! another task as work
+//! (`truth/tasks/count-retiring-other-tasks-as-work-in-the-flip-task-with-its-work-rule.typ`).
+//! A close that deletes other task files passes. A bare flip, or a flip beside
+//! edits to other tasks, is still refused.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
@@ -13,7 +13,7 @@ use crate::support::{self, check_commit_msg, git, git_commit_all, project_with_t
 
 const MESSAGE: &str = "task: close the parser\n\nRefs: parser\n";
 
-/// Two `wip` tasks, `parser` and `other`, under the shipped pack.
+/// Two `wip` tasks, `parser` and `other`, under the `mindtape:tasks` pack.
 fn pack_repo() -> tempfile::TempDir {
     let dir = project_with_tasks(&[("parser.typ", "Write the parser"), ("other.typ", "Other")]);
     write_file(

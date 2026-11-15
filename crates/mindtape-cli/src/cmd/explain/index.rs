@@ -20,7 +20,7 @@ const SECTIONS: [RuleSection; 5] = [
     RuleSection::OnFlip,
 ];
 
-/// The width to wrap at when no terminal size is known.
+/// The width to wrap at when the terminal does not report a size.
 const FALLBACK_WIDTH: usize = 100;
 
 /// Everything the index lists, in the order it prints.
@@ -36,7 +36,7 @@ struct Index {
 /// Run `mt explain`.
 ///
 /// # Errors
-/// Returns an error if no project is found or its config fails to load.
+/// Returns an error if the project root does not resolve or its config fails to load.
 pub fn run(as_json: bool) -> Result<()> {
     let config = load_config(&util::resolve_root()?)?;
     let index = collect(&config);
@@ -109,7 +109,7 @@ fn bare_name(section: RuleSection, name: &str) -> String {
 }
 
 /// `items` with any entry called `default` moved to the front. The default
-/// view leads the list a reader reaches for first; every other order stands.
+/// view leads the list a reader reaches for first, and every other order stands.
 fn default_first<T>(items: Vec<T>, name: impl Fn(&T) -> &str) -> Vec<T> {
     let (mut first, rest): (Vec<T>, Vec<T>) =
         items.into_iter().partition(|item| name(item) == "default");

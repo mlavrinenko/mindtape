@@ -1,16 +1,16 @@
-//! `mt check`'s template pass: every template `mt add --list` lists is filed
-//! the way `mt add` files it — config-required slots spliced, the status
-//! stamped — with each slot's `example`, else its `default`, and with its
-//! `default`, else its example, when `[templates] check-defaults` asks for
-//! both. Each result is validated as a candidate at the path `mt add` would
-//! write it to. Every breach is reported at the template's file and line.
+//! `mt check`'s template pass files every template `mt add --list` lists the
+//! way `mt add` files it: config-required slots spliced, the status stamped.
+//! Each slot takes its `example`, else its `default`. Under
+//! `[templates] check-defaults` it also takes its `default`, else its example.
+//! The pass validates each result as a candidate at the path `mt add` would
+//! write it to. It reports every breach at the template's file and line.
 //!
-//! Each template is checked alone, against an empty backlog, at the stem
-//! `mt add` would mint from its example title: the backlog's state, and a task
-//! named like a template, cannot fail a template. A breach that reads the whole
-//! task set ([`mindtape::reads_set_breach`]) or where the file lives
+//! The pass checks each template alone, against an empty backlog, at the stem
+//! `mt add` would mint from its example title. The backlog's state cannot fail
+//! a template, and neither can a task named like one. A breach that reads the
+//! whole task set ([`mindtape::reads_set_breach`]) or where the file lives
 //! ([`mindtape::filter::path_dependent_fields`]) is one the template cannot
-//! fix, so it is dropped.
+//! fix. The pass drops it.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -41,12 +41,12 @@ struct Filed {
     /// The template as authored.
     authored: String,
     /// The task source filed from the template's examples, plus its defaults
-    /// under `[templates] check-defaults`; or its own breaches.
+    /// under `[templates] check-defaults`, or its own breaches.
     filled: Result<Vec<String>, Vec<Violation>>,
 }
 
 impl Filed {
-    /// Where a breach of this template is placed.
+    /// Where the pass places a breach of this template.
     fn home(&self) -> TemplateHome<'_> {
         self.file
             .as_deref()
@@ -55,18 +55,19 @@ impl Filed {
 }
 
 /// A template's load failure, with the one diagnostic a repeated prelude
-/// failure folds into: a key that groups the repeats, and the replacement.
+/// failure folds into. That pair holds a key that groups the repeats and the
+/// replacement diagnostic.
 type Failure = (Option<(String, Diag)>, Diag);
 
 /// One fill pass over a template's spliced source: its examples, or its
 /// defaults.
 type Fill = fn(&str) -> Result<String, mindtape::FillError>;
 
-/// What the template pass found: the breaches of every listed template, in
-/// template order, and the templates that did not load at all, each already a
-/// [`Diag`] placed as a task file's load error is.
+/// The result of the template pass: the breaches of every listed template, in
+/// template order, and the templates that did not load at all. Each of those is
+/// already a [`Diag`], placed as a task file's load error is.
 pub(crate) struct Found {
-    /// Breaches of templates that loaded or could not be filed.
+    /// Breaches of templates that loaded, or that the pass could not file.
     pub violations: Vec<Violation>,
     /// One failure per project template that did not evaluate.
     pub load_failures: Vec<Diag>,
@@ -78,8 +79,8 @@ pub(crate) struct Found {
 /// The breaches of every listed template, in template order.
 ///
 /// # Errors
-/// Returns an error when a listed template cannot be read, or the destination
-/// `mt add` would write to cannot be resolved.
+/// Returns an error on an unreadable listed template, or when the destination
+/// `mt add` would write to fails to resolve.
 pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<Found> {
     let dest = crate::cmd::add::dest_dir(None, project);
     let Ok(dest) = dest.strip_prefix(&project.root) else {
@@ -178,7 +179,8 @@ fn prelude_failure(template: &Filed, err: &LoadError, kind: Kind) -> Option<(Str
 }
 
 /// The stem `mt add` mints for `name` from its title slot's example, else its
-/// default; the template's own name when it has no such title.
+/// default. It falls back to the template's own name when it has no such
+/// title.
 fn candidate_stem(project: &Project, name: &str, authored: &str) -> Result<String> {
     let title = mindtape::discover_slots(authored)
         .into_iter()
@@ -194,7 +196,7 @@ fn candidate_stem(project: &Project, name: &str, authored: &str) -> Result<Strin
 /// Each template's breaches: its own, or each filed task's checked alone
 /// against no other task, less the breaches that read the whole task set. A
 /// template that did not evaluate is a load failure instead, tagged with the
-/// message when it names the missing prelude.
+/// message when it references the missing prelude.
 fn judge(
     project: &Project,
     templates: &[Filed],
@@ -214,7 +216,7 @@ fn judge(
 }
 
 /// One template's breaches, and its load failure when a filed variant did not
-/// evaluate. The same breach from both variants is reported once.
+/// evaluate. The pass reports the same breach from both variants once.
 fn judge_template(
     project: &Project,
     template: &Filed,
@@ -251,8 +253,9 @@ fn push_unique(found: &mut Vec<Violation>, breaches: Vec<Violation>) {
     }
 }
 
-/// How a template that did not evaluate counts: a failure, but a warning for a
-/// built-in template while `[templates] fallback-severity` is below `error`.
+/// The kind a template that did not evaluate counts as: a failure, but a
+/// warning for a built-in template while `[templates] fallback-severity` is
+/// below `error`.
 fn failure_kind(template: &Filed, fallback: FallbackSeverity) -> Kind {
     if template.file.is_none() && fallback != FallbackSeverity::Error {
         Kind::Warning
@@ -262,8 +265,8 @@ fn failure_kind(template: &Filed, fallback: FallbackSeverity) -> Kind {
 }
 
 /// The error for a template that did not evaluate, placed in the template's
-/// own file: at the filled source's line and column when the template holds
-/// that very line, else at its `task.with(…)` call.
+/// own file. It sits at the filled source's line and column when the template
+/// holds that same line, else at its `task.with(…)` call.
 fn load_failure(template: &Filed, checked: &str, err: &LoadError, kind: Kind) -> Diag {
     let diag = Diag::verbatim(kind, &err.message).typst_hints(err.hints.iter().cloned());
     let label = template_label(template);
@@ -284,7 +287,7 @@ fn load_failure(template: &Filed, checked: &str, err: &LoadError, kind: Kind) ->
     diag.at(Path::new(&label), line, err.column.filter(|_| same_line))
 }
 
-/// How a template that did not load is named: its file, or the built-in
+/// The label for a template that did not load: its file, or the built-in
 /// template's name.
 fn template_label(template: &Filed) -> String {
     template.file.as_ref().map_or_else(
@@ -339,7 +342,7 @@ fn reads_path(violation: &Violation) -> bool {
     })
 }
 
-/// A built-in template's breaches at `[templates] fallback-severity`; a
+/// A built-in template's breaches at `[templates] fallback-severity`, and a
 /// project template's as they are.
 fn at_severity(found: Vec<Violation>, builtin: bool, fallback: FallbackSeverity) -> Vec<Violation> {
     if !builtin || fallback == FallbackSeverity::Error {
@@ -357,7 +360,7 @@ fn at_severity(found: Vec<Violation>, builtin: bool, fallback: FallbackSeverity)
 /// The task sources `mt add` would write from `authored`: one with every slot
 /// holding its example, else its default, and, under `[templates]
 /// check-defaults`, one with every slot holding its default, else its example.
-/// Identical variants are filed once. A template that cannot be filed is its
+/// The pass files identical variants once. A template it cannot file is its
 /// own breaches instead.
 fn file_variants(
     project: &Project,

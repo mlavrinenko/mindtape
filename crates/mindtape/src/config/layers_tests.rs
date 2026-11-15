@@ -155,12 +155,12 @@ fn dir_layers_dedupes_via_canonicalized_symlinked_home() {
 
 // --- full assembly: identical to parse_config("") with nothing on disk ---
 
-/// Asserted through the injected seam, never through `load_config`: that entry
-/// point reads the real `dirs::config_dir()`, so the same assertion made
-/// against it passes or fails on whether the developer happens to keep a
-/// `~/.config/mindtape/defaults.toml` — which is a supported layer, so the
+/// Asserted through the injected seam, never through `load_config`. That entry
+/// point reads the real `dirs::config_dir()`. The same assertion made against
+/// it passes or fails on whether the developer happens to keep a
+/// `~/.config/mindtape/defaults.toml`. That file is a supported layer, so the
 /// failure would be the test's, not the loader's. A twin of this test did go
-/// through `load_config` and started failing the moment one was written.
+/// through `load_config` and started failing the moment one appeared.
 #[test]
 fn no_files_anywhere_matches_parse_config_empty() {
     let (_tmp, home, project) = home_and_project();
@@ -213,9 +213,9 @@ fn loaded(config: &str) -> crate::config::Config {
 
 // --- `[dicts]`: the root-relative half, which only the layered load can see ---
 
-/// A `[dicts.<name>] path` resolves against the project root, so the file is
-/// found through a real layered load and not through `parse_config`, which has
-/// no root to resolve against.
+/// A `[dicts.<name>] path` resolves against the project root. A real layered
+/// load finds the file, and `parse_config` does not, having no root to resolve
+/// against.
 #[test]
 fn a_dict_path_resolves_against_the_project_root() {
     let (_tmp, home, project) = project_with_config("[dicts.verbs]\npath = \"dicts/verbs.txt\"\n");
@@ -228,8 +228,8 @@ fn a_dict_path_resolves_against_the_project_root() {
     assert!(dicts.contains("verbs", "Add"));
 }
 
-/// An unreadable `path` fails the load itself — once, as a config error naming
-/// the dict, rather than once per task that reads it.
+/// An unreadable `path` fails the load itself, once, with a config error that
+/// specifies the dict, rather than once per task that reads it.
 #[test]
 fn an_unreadable_dict_path_fails_the_load() {
     let (_tmp, home, project) =
@@ -244,9 +244,9 @@ fn an_unreadable_dict_path_fails_the_load() {
 // --- `@<dict>` references in `[tasks.tags] allowed` / `[tasks.fields.<name>]
 // values` ---
 
-/// A `@<dict>` entry expands to that dictionary's entries — in the
-/// dictionary's own (alphabetical) order, not declaration order — so a
-/// downstream reader of `tasks.tags.allowed` never sees the sigil.
+/// A `@<dict>` entry expands to that dictionary's entries, in the dictionary's
+/// own (alphabetical) order rather than declaration order, so a downstream
+/// reader of `tasks.tags.allowed` never sees the sigil.
 #[test]
 fn a_dict_ref_in_tags_allowed_expands_to_the_dict_s_entries() {
     let config = loaded(
@@ -266,9 +266,9 @@ fn a_dict_ref_in_field_values_expands_to_the_dict_s_entries() {
     assert_eq!(config.tasks.fields["kind"].values, ["bug", "chore"]);
 }
 
-/// A list may mix literal entries and `@<dict>` references; the result is
-/// their union in declaration order, deduplicated (first occurrence wins) —
-/// the literal `"backend"` here is already contributed by `@areas`.
+/// A list may mix literal entries and `@<dict>` references. The result is their
+/// union in declaration order, deduplicated (first occurrence wins). The literal
+/// `"backend"` here is already contributed by `@areas`.
 #[test]
 fn a_mixed_list_unions_literals_and_dict_refs_in_order_deduped() {
     let config = loaded(
@@ -279,7 +279,7 @@ fn a_mixed_list_unions_literals_and_dict_refs_in_order_deduped() {
 }
 
 /// An unknown `@<dict>` reference fails the load, naming the offending list
-/// and offering a nearest-match suggestion — the same treatment an unknown
+/// and offering a nearest-match suggestion, the same treatment an unknown
 /// `include` target gets.
 #[test]
 fn an_unknown_dict_ref_fails_the_load_with_a_suggestion() {
@@ -299,9 +299,9 @@ fn an_unknown_dict_ref_fails_the_load_with_a_suggestion() {
     );
 }
 
-/// A literal entry that itself starts with `@` is never a plain string: the
-/// sigil always means "dictionary reference", so an unresolvable one fails
-/// the load exactly like a typo'd dict name — there is no escape.
+/// A literal entry that itself starts with `@` is never a plain string. The
+/// sigil always means "dictionary reference", and an unresolvable one fails the
+/// load exactly like a misspelled dict name. There is no escape.
 #[test]
 fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
     let (_tmp, home, project) = project_with_config("[tasks.tags]\nallowed = [\"@urgent\"]\n");
@@ -312,11 +312,11 @@ fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
 
 // --- `[[tasks.rules]] check`: the root a rule resolves against ---
 
-/// A `check` rule's Typst module is read from the project root the layered
-/// load was handed, never from the process's current directory: `check.typ`
-/// exists only inside the fixture project, so a `RulesRoot` left unstamped
-/// when `build_config` assembles the config turns the rule into a harvest
-/// error instead of a pass. Pins the full-sweep survivor
+/// A `check` rule's Typst module comes from the project root the layered load
+/// received, never from the process's current directory. `check.typ` exists
+/// only inside the fixture project. A `RulesRoot` left unstamped when
+/// `build_config` assembles the config turns the rule into a harvest error
+/// instead of a pass. Pins the full-sweep survivor
 /// `crates/mindtape/src/rules/mod.rs:103:9 replace RulesRoot::set with ()`.
 #[test]
 fn a_typst_check_rule_resolves_against_the_project_root() {
@@ -362,8 +362,8 @@ fn parse_failure(defaults: Option<&str>, project_config: &str) -> toml::de::Erro
     }
 }
 
-/// An unknown table in the project's own config keeps its span, so the error
-/// names the line and column instead of only the field.
+/// An unknown table in the project's own config keeps its span. The error then
+/// gives the line and column instead of only the field.
 #[test]
 fn an_unknown_table_in_the_project_config_keeps_its_span() {
     let error = parse_failure(None, "[tasks]\nroots = [\"tasks\"]\n[taks]\nx = 1\n");
@@ -372,7 +372,7 @@ fn an_unknown_table_in_the_project_config_keeps_its_span() {
 }
 
 /// An unknown table in an ancestor's `defaults.toml` keeps the span in that
-/// file, and the error names the file (see `layers_tests_source.rs`).
+/// file, and the error identifies the file (see `layers_tests_source.rs`).
 #[test]
 fn an_unknown_table_in_an_ancestor_defaults_keeps_its_span() {
     let error = parse_failure(Some("[taks]\nx = 1\n"), "[tasks]\nroots = [\"tasks\"]\n");
@@ -381,8 +381,8 @@ fn an_unknown_table_in_an_ancestor_defaults_keeps_its_span() {
 }
 
 /// When the project config fails alone on a different message than the merged
-/// document, its span would locate a different error, so the file that fails
-/// on the merged message is the one named.
+/// document, its span would locate a different error. The loader then reports
+/// the file that fails on the merged message.
 #[test]
 fn a_project_error_other_than_the_merged_one_is_not_borrowed() {
     let error = parse_failure(Some("[aaa]\nx = 1\n"), "\n\n[zzz]\nx = 1\n");
@@ -425,8 +425,8 @@ fn a_reserved_root_in_the_project_config_names_that_file() {
     assert_eq!(place.line, 2);
 }
 
-/// A reserved root an ancestor's `defaults.toml` declares is charged to that
-/// file, not to the project config beside it.
+/// The loader charges a reserved root that an ancestor's `defaults.toml`
+/// declares to that file, not to the project config beside it.
 #[test]
 fn a_reserved_root_in_an_ancestor_defaults_names_that_file() {
     let (_tmp, home, project) = home_and_project();
@@ -478,8 +478,8 @@ fn a_reserved_template_dir_in_the_project_config_names_that_file() {
     assert_eq!(place.line, 5);
 }
 
-/// `mt config show`'s raw merged table is assembled before the typed config,
-/// so a reserved root still appears in it as declared.
+/// The loader assembles `mt config show`'s raw merged table before the typed
+/// config, so a reserved root still appears in it as declared.
 #[test]
 fn the_raw_merged_table_keeps_a_reserved_root() {
     let (_tmp, home, project) = project_with_config("[tasks]\nroots = [\".mindtape/templates\"]\n");

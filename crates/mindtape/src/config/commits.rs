@@ -1,4 +1,4 @@
-//! `[commits]` and `[[commits.rules]]` — what `mt check --commit-msg` holds a
+//! `[commits]` and `[[commits.rules]]`: what `mt check --commit-msg` holds a
 //! commit to.
 //!
 //! ```toml
@@ -13,11 +13,12 @@
 //! message = "name the task this commit works on: `Refs: <stem>`"
 //! ```
 //!
-//! A rule is the `[[tasks.rules]]` shape (`name`, `when`, `assert`,
-//! `message`, `severity`) over a [`CommitRecord`] instead of a task, in the
-//! language [`crate::commit::expr`] reads. A `scope = "task"` rule runs once
-//! per task the commit changes or names, reading it as of `HEAD`, the index
-//! and the working tree ([`crate::commit::task_expr`]):
+//! A rule has the `[[tasks.rules]]` shape (`name`, `when`, `assert`,
+//! `message`, `severity`) over a [`CommitRecord`] instead of a task. Its
+//! expressions use the language [`crate::commit::expr`] reads. A
+//! `scope = "task"` rule runs once per task the commit changes or references,
+//! reading it as of `HEAD`, the index and the working tree
+//! ([`crate::commit::task_expr`]):
 //!
 //! ```toml
 //! [[commits.rules]]
@@ -28,9 +29,9 @@
 //! message = "start or close a task in a commit that carries its work"
 //! ```
 //!
-//! A `scope = "tip"` rule is the other end of a range: `mt check --commits`
-//! runs it once per task any commit of the range names, over that task as the
-//! range's newest commit holds it ([`crate::commit::tip`]). It is a plain
+//! A `scope = "tip"` rule is the other end of a range. `mt check --commits`
+//! runs it once per task any commit of the range references, over that task as
+//! the range's newest commit holds it ([`crate::commit::tip`]). It is a plain
 //! `[[tasks.rules]]` expression, since a tip has one task state and no commit
 //! fields:
 //!
@@ -43,13 +44,12 @@
 //! ```
 //!
 //! Rules merge by `name` across rule packs and layers exactly as
-//! `[[tasks.rules]]` does
-//! ([`crate::config::packs`]), so a project overrides a shipped rule by
-//! redeclaring its name or drops it with `disable`.
+//! `[[tasks.rules]]` does ([`crate::config::packs`]). A project overrides a
+//! built-in rule by redeclaring its name, or drops it with `disable`.
 //!
-//! Every expression is dry-run at config load ([`validate_commits`]), so a
-//! rule naming a task field is one config error rather than a hook that fails
-//! every commit.
+//! Every expression is dry-run at config load ([`validate_commits`]). A rule
+//! that references a task field is one config error rather than a hook that
+//! fails every commit.
 
 use serde::Deserialize;
 
@@ -64,27 +64,28 @@ use crate::problem::Problem;
 use crate::shell::ConfigCommand;
 use crate::validate::severity::Severity;
 
-/// How commits name the tasks they work on, or the work they track elsewhere,
-/// and the rules a commit is checked against.
+/// How commits reference the tasks they work on, or the work they track
+/// elsewhere, and the rules that check a commit.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct CommitsConfig {
-    /// The trailer key whose values name tasks by stem (`Refs: <stem>`) or
-    /// external work matching `external-refs`. Matched case-insensitively. A
-    /// value that names no task and matches no external pattern is refused.
+    /// The trailer key whose values reference tasks by stem (`Refs: <stem>`) or
+    /// external work matching `external-refs`. Matched case-insensitively. The
+    /// command refuses a value that matches neither a task nor an external
+    /// pattern.
     pub trailer: String,
-    /// Regexes for trailer values that name work outside the backlog, such as
-    /// a tracker issue (`^r#[0-9]+$`). A value that names a task is a task
-    /// ref; else one that matches a pattern is an external ref, kept opaque;
-    /// else it is refused. A value may hold several refs, split on commas or
-    /// whitespace; a ref that holds either goes in double quotes or escapes it
-    /// with a backslash.
+    /// Regexes for trailer values that reference work outside the backlog, such
+    /// as a tracker issue (`^r#[0-9]+$`). A value that references a task is a
+    /// task ref. Otherwise a value that matches a pattern is an external ref,
+    /// kept opaque. Otherwise the command refuses it. A value may hold more
+    /// than one ref, split on commas or whitespace. A ref that holds either
+    /// goes in double quotes or escapes it with a backslash.
     pub external_refs: Vec<String>,
     /// A command that checks each commit message. `mt check --commit-msg`
     /// and `mt check --commits` run it once per message, from the project
     /// root, with the message on stdin. A non-zero exit fails the check, and
-    /// each line the command prints is reported as one problem. Absent means
-    /// no external message check.
+    /// the check reports each line the command prints as one problem. Absent
+    /// means no external message check.
     pub run: Option<ConfigCommand>,
     /// Assertions every checked commit must satisfy.
     pub rules: Vec<CommitRuleSpec>,
@@ -102,7 +103,7 @@ impl Default for CommitsConfig {
 }
 
 impl CommitsConfig {
-    /// Whether any rule runs per task — so the commit's states need loading.
+    /// Whether any rule runs per task, which needs the commit's states loaded.
     #[must_use]
     pub fn has_task_rules(&self) -> bool {
         self.rules
@@ -111,7 +112,7 @@ impl CommitsConfig {
     }
 }
 
-/// What a commit rule is evaluated over.
+/// The input a commit rule reads.
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum CommitScope {
@@ -123,10 +124,10 @@ pub enum CommitScope {
     /// plus `named` and the task as of `head(...)`, `staged(...)` and
     /// `worktree(...)`.
     Task,
-    /// Once per task each checked commit of a range names, over the task as
-    /// the range's newest commit holds it, in the filter language of
-    /// `[[tasks.rules]]`. Only `mt check --commits` runs it; a task the tip
-    /// lacks is skipped.
+    /// Once per task each checked commit of a range references, over the task
+    /// as the range's newest commit holds it, in the filter language of
+    /// `[[tasks.rules]]`. Only `mt check --commits` runs it. The check skips a
+    /// task the tip lacks.
     Tip,
 }
 
@@ -139,7 +140,7 @@ pub struct CommitRuleSpec {
     /// unnamed rule reports by its position (`commits.rules[0]`).
     #[serde(default)]
     pub name: Option<String>,
-    /// What the rule is evaluated over. Default `commit`.
+    /// The input the rule reads. Default `commit`.
     #[serde(default)]
     pub scope: CommitScope,
     /// Commit expression that must hold for every commit the rule applies to.
@@ -151,8 +152,8 @@ pub struct CommitRuleSpec {
     #[serde(default)]
     #[schemars(extend("x-expression" = "commit"))]
     pub when: Option<String>,
-    /// What a breach tells the author, in place of the default advice naming
-    /// the `assert` expression.
+    /// What a breach tells the author, in place of the default advice that
+    /// quotes the `assert` expression.
     #[serde(default)]
     pub message: Option<String>,
     /// Whether a breach fails the check or only reports. Default `warn`.
@@ -171,8 +172,8 @@ impl CommitRuleSpec {
     }
 
     /// Whether the rule reads the working tree: `worktree(...)`, or
-    /// `changed(...)`, whose git states are the checkout's own. A past
-    /// commit has neither, so a range check skips the rule.
+    /// `changed(...)`, whose git states are the checkout's own. A past commit
+    /// has neither, and a range check skips the rule.
     #[must_use]
     pub fn reads_worktree(&self) -> bool {
         let rule = Rule::parse(self);
@@ -185,8 +186,8 @@ impl CommitRuleSpec {
 }
 
 impl CommitRuleSpec {
-    /// What a breach tells the author: the rule's `message`, else `must
-    /// satisfy` and the expression.
+    /// The text a breach reports to the author: the rule's `message`, else
+    /// `must satisfy` and the expression.
     pub(crate) fn advice(&self) -> String {
         self.message
             .clone()
@@ -229,14 +230,14 @@ pub struct CommitBreach {
     pub severity: Severity,
 }
 
-/// Evaluate every `[[commits.rules]]` entry over `commit`, in config order —
-/// a `scope = "task"` rule once per task in [`CommitRecord::tasks`], reading
-/// `states`. With no `states` the task rules are not run; with no working
-/// tree among them, a rule that [reads it](CommitRuleSpec::reads_worktree)
-/// is not run.
+/// Evaluate every `[[commits.rules]]` entry over `commit`, in config order. A
+/// `scope = "task"` rule runs once per task in [`CommitRecord::tasks`], reading
+/// `states`. With no `states` the task rules do not run. With no working tree
+/// among them, a rule that [reads it](CommitRuleSpec::reads_worktree) does not
+/// run.
 ///
-/// A `when` that fails to evaluate excludes the commit; an `assert` that
-/// fails to evaluate is a breach naming the failure — the same reading
+/// A `when` that fails to evaluate excludes the commit. An `assert` that fails
+/// to evaluate is a breach that reports the failure, the same reading
 /// `[[tasks.rules]]` takes. Load-time validation makes both unreachable for a
 /// loaded config.
 #[must_use]
@@ -315,8 +316,8 @@ impl Rule {
 }
 
 /// Config-load checks for `[commits]`: a non-empty trailer key, every rule's
-/// expressions dry-run, and no two rules sharing a name within one file (the
-/// pack merge has already collapsed cross-source ones).
+/// expressions dry-run, and no two rules sharing a name within one file. The
+/// pack merge has already collapsed cross-source ones.
 pub(crate) fn validate_commits(config: &Config) -> Vec<Problem> {
     let mut problems = Vec::new();
     if config.commits.trailer.trim().is_empty() {

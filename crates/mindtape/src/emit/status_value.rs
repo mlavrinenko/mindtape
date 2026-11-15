@@ -1,23 +1,23 @@
 //! Render a status field value as Typst source.
 //!
-//! A status set from the CLI (`add`'s initial stamp, `flip`'s transition) is
-//! written into `task.with(…)` as a call to a prelude constructor. A name the
-//! prelude ships a shortcut for renders as the ergonomic `name(y, m, d)`; any
-//! other name falls back to the generic `status("name", y, m, d)`. Centralising
-//! the rule here keeps `add` and `flip` from each carrying a copy (the jscpd
-//! copy-paste gate) and means the shortcut set lives in one place.
+//! The CLI writes a status it sets (`add`'s initial stamp, `flip`'s
+//! transition) into `task.with(…)` as a call to a prelude constructor. A name
+//! the prelude has a shortcut for renders as the ergonomic `name(y, m, d)`,
+//! and any other name falls back to the generic `status("name", y, m, d)`.
+//! Centralising the rule here keeps `add` and `flip` from each carrying a copy
+//! (the jscpd copy-paste gate) and means the shortcut set lives in one place.
 //!
 //! [`escape_markup`] is the project's single Typst-markup escaper. It started
 //! here for status notes, but every writer that splices caller text into a
-//! content block faces the same hazard (`mt add`'s `text` slots), so it is
-//! public and shared rather than copied — a second escaper would be a second
+//! content block faces the same hazard (`mt add`'s `text` slots). It is public
+//! and shared rather than copied, since a second escaper would be a second
 //! place for the hazard set to drift.
 
-/// Status names the prelude (`lib/prelude.typ`) ships as shortcut constructors.
-/// A legend value in this set renders as the ergonomic `name(y, m, d)`; any other
-/// name (a project's custom status) falls back to `status("name", y, m, d)`. Keep
-/// in sync with the `_mk(…)` bindings in the prelude; `shortcuts_match_prelude`
-/// guards the drift.
+/// Status names the prelude (`lib/prelude.typ`) offers as shortcut
+/// constructors. A legend value in this set renders as the ergonomic
+/// `name(y, m, d)`, and any other name (a project's custom status) falls back
+/// to `status("name", y, m, d)`. Keep this list in sync with the `_mk(…)`
+/// bindings in the prelude, and `shortcuts_match_prelude` guards the drift.
 pub const STATUS_SHORTCUTS: &[&str] = &[
     "draft",
     "proposed",
@@ -33,10 +33,10 @@ pub const STATUS_SHORTCUTS: &[&str] = &[
 ];
 
 /// Render `name` dated `ymd` as a Typst status call, with an optional trailing
-/// note. A shortcut name uses `name(y, m, d)` and carries the note as a trailing
-/// content block (`done(y, m, d)[note]`); a non-shortcut name uses the generic
-/// `status("name", y, m, d)` and carries the note as its `note:` named argument.
-/// A blank note is dropped.
+/// note. A shortcut name uses `name(y, m, d)` and carries the note as a
+/// trailing content block (`done(y, m, d)[note]`). A non-shortcut name uses the
+/// generic `status("name", y, m, d)` and carries the note as its `note:` named
+/// argument. The renderer drops a blank note.
 #[must_use]
 pub fn status_value(name: &str, ymd: (i32, u8, u8), note: Option<&str>) -> String {
     let (year, month, day) = ymd;
@@ -61,21 +61,21 @@ pub fn status_value(name: &str, ymd: (i32, u8, u8), note: Option<&str>) -> Strin
 /// `text` reads back literally. Backslash first, then the structural/markup
 /// leaders: the delimiters that open a block (`[`, `]`), the code/math/emphasis
 /// leaders (`#`, `$`, `*`, `_`, `` ` ``), and the two sigils that swallow the
-/// word after them (`@` reference, `<` label). A closing `>` needs no escape —
-/// it is only special after a `<` that is escaped — but it survives the
-/// round trip either way.
+/// word after them (`@` reference, `<` label). A closing `>` never needs an
+/// escape, since it is special only after a `<` that the escaper rewrote, but
+/// it survives the round trip either way.
 ///
-/// Every writer that splices caller text into markup must route through this:
-/// `status`/`flip` notes and `add`'s `text` slots today. Unescaped, ordinary
-/// prose either fails to load (`create-*star*` opens an unclosed strong) or,
-/// worse, loads with the markup silently applied — `<a>` and `@at` evaluate to
-/// a label and a reference and vanish from the value read back.
+/// Every writer that splices caller text into markup must route through this,
+/// including `status`/`flip` notes and `add`'s `text` slots. Unescaped,
+/// ordinary prose either fails to load (`create-*star*` opens an unclosed
+/// strong) or loads with the markup silently applied. A silently applied `<a>`
+/// or `@at` then evaluates to a label or a reference and vanishes from the
+/// value read back.
 ///
-/// `add`'s `raw`-kind slots ([`crate::template::SlotKind::Raw`]) are the
-/// one deliberate exception, not an oversight: escaping is a default for
-/// values of unknown trust, and a `raw` slot is the *template*, not this
-/// function, asserting its filler is trusted markup — see
-/// `cmd/add/mod.rs::markup_safe`.
+/// `add`'s `raw`-kind slots ([`crate::template::SlotKind::Raw`]) are the one
+/// deliberate exception, not an oversight. Escaping is a default for values of
+/// unknown trust, and a `raw` slot is the *template*, not this function,
+/// asserting its filler carries trusted markup. See `cmd/add/mod.rs::markup_safe`.
 #[must_use]
 pub fn escape_markup(text: &str) -> String {
     let mut out = String::with_capacity(text.len());

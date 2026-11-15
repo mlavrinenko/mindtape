@@ -1,11 +1,11 @@
 //! Non-slot writable fields for `mt add`: `--set due=…` on a template with no
-//! `due` slot inserts the field instead of being refused.
+//! `due` slot inserts the field rather than refusing it.
 //!
-//! A slot is filled by rewriting the `slot(…)` call it occupies. A field with
-//! no slot has no call to rewrite, and an append needs the list the template
-//! already holds — so the draft task is evaluated first (see
-//! [`super::draft`]), the ordered operations are applied to it through the
-//! library writer, and each touched field is then upserted into
+//! `mt add` fills a slot by rewriting the `slot(…)` call it occupies. A field
+//! with no slot has no call to rewrite, and an append needs the list the
+//! template already holds. So `mt add` evaluates the draft task first (see
+//! [`super::draft`]) and applies the ordered operations to it through the
+//! library writer. `mt add` then upserts each touched field into
 //! `task.with(…)` as its rendered literal.
 
 use mindtape::model::writable::{self, FieldOp, WritableField};
@@ -46,7 +46,7 @@ pub(super) fn names(fields: &[(&'static WritableField, Vec<FieldOp>)]) -> Vec<&'
 /// Write every touched field's current value into `source`.
 ///
 /// # Errors
-/// A source with no `task.with(…)`, or a rewrite that cannot be applied.
+/// A source with no `task.with(…)`, or a rewrite that fails.
 pub(super) fn upsert(
     source: &str,
     fields: &[&'static WritableField],

@@ -1,22 +1,23 @@
 //! End-to-end tests for `mt add --dedup` and its `[tasks.naming] dedup`
-//! config default: `fail` (today's hard error, still the default), `skip`
-//! (exit 0, write nothing, report the existing path), and `add-suffix`
-//! (write under a disambiguated stem). The `add-suffix` exhaustion path is
-//! covered as a fast fs-free unit test (`cmd/add/dedup_tests.rs`) rather than
-//! here: reaching `naming`'s 10,000-attempt ceiling with real files would
-//! make this suite slow for no extra coverage — `cmd/add/mod.rs::run()` calls the
-//! exact same `cmd::add::dedup::resolve` the unit test exercises.
+//! config default. The three modes are `fail` (today's hard error, still the
+//! default), `skip` (exit 0, report the existing path, leave the tree
+//! untouched), and `add-suffix` (write under a disambiguated stem). A fast
+//! fs-free unit test
+//! (`cmd/add/dedup_tests.rs`) covers the `add-suffix` exhaustion path instead
+//! of this suite. Reaching `naming`'s 10,000-attempt ceiling with real files
+//! would make this suite slow for no extra coverage. `cmd/add/mod.rs::run()`
+//! calls the exact same `cmd::add::dedup::resolve` the unit test exercises.
 //!
 //! The section below the bare-stem tests repeats the same three modes with a
-//! `[tasks.naming] stem` template configured (`title` minted, not `--name` —
-//! that is what routes through `output_stem`'s template branch). This is the
+//! `[tasks.naming] stem` template configured (`title` minted, not `--name`,
+//! which is what routes through `output_stem`'s template branch). This is the
 //! regression matrix for
-//! `make-dedup-modes-reachable-under-a-templated-stem`: before that fix,
+//! `make-dedup-modes-reachable-under-a-templated-stem`. Before that fix,
 //! `output_stem` disambiguated a templated stem itself, so every `--dedup`
 //! mode silently behaved as `add-suffix` under a template. Each templated
 //! test below is the direct counterpart of a bare-stem test above it, same
-//! assertions, only the fixture's `[tasks.naming] stem` differs — the matrix
-//! this bug needed and the existing suites (one per path) didn't have.
+//! assertions, only the fixture's `[tasks.naming] stem` differs. That is the
+//! matrix this bug needed and the existing suites (one per path) didn't have.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;
@@ -52,18 +53,18 @@ fn scaffold_with_existing_dup() -> tempfile::TempDir {
 }
 
 /// A project whose `[tasks.naming] dedup` default is `skip`, plus a
-/// pre-existing `dup.typ` — the shared fixture for the config-default tests
+/// pre-existing `dup.typ`, the shared fixture for the config-default tests
 /// below, which differ only in whether `--dedup` overrides it.
 fn scaffold_with_dedup_skip_default() -> tempfile::TempDir {
     scaffold_with_dup("[tasks]\nroots = [\"tasks\"]\n[tasks.naming]\ndedup = \"skip\"\n")
 }
 
-/// The templated-stem counterpart of [`scaffold_with_existing_dup`]: a
+/// The templated-stem counterpart of [`scaffold_with_existing_dup`]. It holds a
 /// `[tasks.naming] stem = "{slug}"` template (mints exactly the bare slug, so
 /// `dup.typ` collides identically) plus a pre-existing `dup.typ`. Every test
 /// built on this fixture files with a bare positional title (`Dup`), never
-/// `--name`, so the mint goes through `output_stem`'s template branch rather
-/// than the literal short-circuit.
+/// `--name`, which sends the mint through `output_stem`'s template branch
+/// rather than the literal short-circuit.
 fn scaffold_with_templated_stem_and_existing_dup() -> tempfile::TempDir {
     scaffold_with_dup("[tasks]\nroots = [\"tasks\"]\n[tasks.naming]\nstem = \"{slug}\"\n")
 }
@@ -108,7 +109,8 @@ fn dedup_fail_flag_is_explicit_too() {
 }
 
 /// Shared assertion for a `--dedup skip` run, bare or templated stem alike:
-/// the reported output names the existing file, and that file is untouched.
+/// the reported output references the existing file, and that file stays
+/// untouched.
 fn assert_skip_reported_and_left_dup_untouched(dir: &Path, stdout: &[u8]) {
     let stdout = String::from_utf8_lossy(stdout);
     assert!(
@@ -123,7 +125,7 @@ fn assert_skip_reported_and_left_dup_untouched(dir: &Path, stdout: &[u8]) {
 }
 
 /// Shared assertion for an `add-suffix` run, bare or templated stem alike:
-/// the original is untouched and the disambiguated `dup-2.typ` carries
+/// the original stays untouched and the disambiguated `dup-2.typ` carries
 /// `title`.
 fn assert_original_untouched_and_suffixed_title(dir: &Path, title: &str) {
     assert_eq!(
@@ -181,8 +183,8 @@ fn dedup_add_suffix_writes_under_a_disambiguated_stem() {
 }
 
 /// `add-suffix` is reachable with no `[tasks.naming] stem` template configured
-/// at all — today it only ever ran when a stem template was set; the bare
-/// slug case is exactly what this task makes newly reachable.
+/// at all. Today it only ever ran when a stem template existed. The bare slug
+/// case is exactly what this task makes newly reachable.
 #[test]
 fn dedup_add_suffix_works_without_a_naming_template() {
     let dir = support::scaffold();
@@ -248,7 +250,7 @@ fn dedup_fail_errors_on_collision_under_a_templated_stem() {
 }
 
 /// Counterpart of `dedup_skip_exits_zero_writes_nothing_and_reports_existing_path`:
-/// the exact scenario the task calls out — `contrib/ask-refactoring.sh`'s
+/// the exact scenario the task calls out. `contrib/ask-refactoring.sh`'s
 /// re-run guard depends on `--dedup skip` meaning skip even when the project
 /// templates `stem`.
 #[test]
@@ -281,10 +283,10 @@ fn dedup_add_suffix_writes_under_a_disambiguated_stem_with_a_templated_stem() {
     assert_original_untouched_and_suffixed_title(dir.path(), "Dup");
 }
 
-/// The config-default half of the fix: a project that configures
+/// The config-default half of the fix. A project that configures
 /// `[tasks.naming] stem` and never touches `dedup` must still see `add-suffix`
-/// with no `--dedup` flag at all — the behaviour a templated stem always had,
-/// sourced from `NamingConfig::effective_dedup` instead of a
+/// with no `--dedup` flag at all, the behaviour a templated stem always had.
+/// It comes from `NamingConfig::effective_dedup` instead of a
 /// pre-disambiguation special case in `output_stem`.
 #[test]
 fn templated_stem_dedup_defaults_to_add_suffix_without_the_flag() {

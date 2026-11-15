@@ -101,7 +101,7 @@
           "description": "A project whose config failed."
         }
       ],
-      "description": "One project's row: its cells, or why its config would not load."
+      "description": "One project's row, holding its cells or the reason its config would not\nload."
     },
     "BoardTopJson": {
       "description": "A `top` cell's task.",

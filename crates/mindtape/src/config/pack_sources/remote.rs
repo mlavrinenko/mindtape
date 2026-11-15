@@ -1,10 +1,10 @@
-//! Resolving a source's `ref` to the commit it names: a commit id is
-//! itself, and any other `ref` is looked up with `git ls-remote`, run through
-//! the same [`Git`] as a fetch.
+//! Resolving a source's `ref` to the commit it names: a commit id is itself,
+//! and the lookup for any other `ref` runs `git ls-remote` through the same
+//! [`Git`] as a fetch.
 //!
 //! A name matches the way `git fetch` reads it: as given, then under
-//! `refs/`, `refs/tags/` and `refs/heads/`, so a tag wins over a branch of
-//! the same name. An annotated tag names a tag object, so its peeled `^{}`
+//! `refs/`, `refs/tags/` and `refs/heads/`. A tag then wins over a branch of
+//! the same name. An annotated tag points at a tag object, so its peeled `^{}`
 //! line, the commit it points to, wins over the tag's own line.
 
 use std::ffi::OsStr;

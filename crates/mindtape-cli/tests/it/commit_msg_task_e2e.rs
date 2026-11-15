@@ -11,7 +11,7 @@ use crate::support;
 
 use support::{check_commit_msg, commit_repo, git, git_commit_all, run_text, scaffold_project};
 
-/// The task's worked example: a start or a close rides with the work it
+/// The task's worked example is a start or a close that rides with the work it
 /// claims, unless the commit is a decision's own.
 const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
      name = \"flip-task-with-its-work\"\n\
@@ -21,8 +21,8 @@ const FLIP_WITH_WORK: &str = "[[commits.rules]]\n\
      message = \"start or close a task in a commit that carries its work\"\n\
      severity = \"error\"\n";
 
-/// The shipped rule: a commit that carries work outside task files names the
-/// task it works on in the configured trailer.
+/// The preset includes this rule. A commit that carries work outside task files
+/// names the task it works on in the configured trailer.
 const NAME_TASK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
      [[commits.rules]]\n\
      name = \"name-task-in-refs-trailer\"\n\

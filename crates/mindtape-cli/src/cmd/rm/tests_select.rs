@@ -1,5 +1,5 @@
-//! Tests for `rm` target selection: how a `TARGET` argument list — task
-//! references and filter expressions — resolves to the eligible id set. The
+//! Tests for `rm` target selection: how a `TARGET` argument list of task
+//! references and filter expressions resolves to the eligible id set. The
 //! plan/apply, preflight and gitless clusters live in `cmd/rm/tests.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
@@ -17,7 +17,7 @@ fn targets(values: &[&str]) -> Vec<String> {
     values.iter().map(|v| (*v).to_owned()).collect()
 }
 
-/// An in-memory project — no disk needed for slug/filter selection logic.
+/// An in-memory project, with no disk needed for slug/filter selection logic.
 fn stub_project(config: Config, tasks: Vec<Task>) -> Project {
     Project {
         root: PathBuf::from("."),

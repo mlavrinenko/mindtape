@@ -31,7 +31,7 @@
     },
     "sort": {
       "default": [],
-      "description": "Sort chain applied when this view drives sort (bundle mode or\n`--sort @name`). Same spec grammar as `--sort`; empty means the default\norder.",
+      "description": "Sort chain applied when this view drives sort (bundle mode or\n`--sort @name`). Same spec grammar as `--sort`. Empty means the default\norder.",
       "items": {
         "type": "string"
       },

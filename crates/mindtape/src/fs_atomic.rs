@@ -1,20 +1,20 @@
 //! The one write primitive every authored file goes through
 //! (`truth/tasks/2026-09/write-every-authored-file-through-one-atomic-writer.typ`).
 //!
-//! `std::fs::write` truncates then writes: a process killed between the two
-//! (Ctrl-C, running out of memory, a full disk) leaves an empty or torn file, and a concurrent
-//! reader (tinymist, a hook's `mt ls`, an editor reload) can observe the gap.
-//! [`write_atomic`] instead writes a sibling temp file, fsyncs it, then
-//! renames it over the target — a killed writer leaves the old file whole,
-//! never a half-written one.
+//! `std::fs::write` truncates then writes. A process killed between the two
+//! (Ctrl-C, running out of memory, a full disk) leaves an empty or torn file.
+//! A concurrent reader (tinymist, a hook's `mt ls`, an editor reload) can
+//! observe the gap. [`write_atomic`] instead writes a sibling temp file,
+//! fsyncs it, then renames it over the target. A killed writer leaves the old
+//! file whole, never a half-written one.
 //!
 //! `std::fs::rename` replaces an existing destination on Windows the same as
-//! on Unix (`MoveFileExW` with `MOVEFILE_REPLACE_EXISTING`), so this needs no
-//! platform branch.
+//! on Unix (`MoveFileExW` with `MOVEFILE_REPLACE_EXISTING`), so this works
+//! without a platform branch.
 //!
 //! `clippy.toml`'s `disallowed-methods` bans `std::fs::write` and
-//! `std::fs::File::create` everywhere else in the tree; the single call below
-//! carries the only `#[allow]`, so a new raw write fails `just check` naming
+//! `std::fs::File::create` everywhere else in the tree. The single call below
+//! carries the only `#[allow]`, so a new raw write fails `just check` and names
 //! this function instead.
 
 use std::fs::{self, File};
@@ -29,8 +29,8 @@ use std::path::Path;
 /// and leaves `path` exactly as it was.
 ///
 /// # Errors
-/// Returns an error when the temp file cannot be created, written, fsynced,
-/// or renamed into place.
+/// Returns an error when the temp file fails to create, write, fsync or
+/// rename into place.
 pub fn write_atomic(path: &Path, bytes: &[u8]) -> io::Result<()> {
     let dir = match path.parent() {
         Some(dir) if !dir.as_os_str().is_empty() => dir,

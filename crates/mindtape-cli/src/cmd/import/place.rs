@@ -6,9 +6,9 @@
 //! record whose `file` is empty, absolute, climbs out with `..` or leaves every
 //! root lands in that destination too.
 //!
-//! A stem is taken when any loaded task, or any `.typ` file in a destination,
-//! already uses it, so `mt import` suffixes it (`-2`) instead of writing a
-//! second task with the same identity.
+//! A stem counts as taken when any loaded task, or any `.typ` file in a
+//! destination, already uses it. `mt import` then suffixes it (`-2`) instead of
+//! writing a second task with the same identity.
 
 use std::collections::HashSet;
 use std::path::{Component, Path, PathBuf};
@@ -29,8 +29,8 @@ pub(super) struct Placement<'a> {
 }
 
 impl<'a> Placement<'a> {
-    /// The placement for `args` in `project`: every loaded task's stem is
-    /// taken from the start.
+    /// Build the placement for `args` in `project`. Every loaded task's stem
+    /// counts as taken from the start.
     pub(super) fn new(project: &'a Project, args: &ImportArgs) -> Self {
         let fallback = dest_dir(args.dir.as_deref(), project);
         let taken = project
@@ -60,8 +60,8 @@ impl<'a> Placement<'a> {
         dest
     }
 
-    /// The stems claimed so far, for the collision check; a claimed stem is
-    /// added by the caller.
+    /// The stems claimed so far, for the collision check. The caller adds a
+    /// claimed stem.
     pub(super) fn taken(&mut self) -> &mut HashSet<String> {
         &mut self.taken
     }

@@ -21,7 +21,7 @@ const EXPRESSION_NAMES: [&str; 12] = [
     "fallback",
 ];
 
-/// Keys under an expression name that hold no expression: a content rule's
+/// Keys under an expression name that are not expressions: a content rule's
 /// `assert` is `"non-empty"` or a table of regexes and word counts.
 const NOT_EXPRESSIONS: [&str; 1] = ["tasks.body.content.rules.*.assert"];
 

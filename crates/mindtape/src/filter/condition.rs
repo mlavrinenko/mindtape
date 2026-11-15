@@ -2,41 +2,42 @@
 //! when` (`truth/tasks/2026-07/conditional-ls-rules.typ`).
 //!
 //! Same `evalexpr` parser and operator set as [`crate::filter`] (`==`, `!=`,
-//! `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parens, bare-or-call predicates) —
-//! walked, never evaluated by `evalexpr` itself — but a separate evaluation
-//! domain: ambient environment facts, never a task. A task field name (or any
-//! other bare identifier) is invalid here; the condition grammar has no
-//! fields, only calls.
+//! `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parens, bare-or-call predicates).
+//! The walk reads the tree and never lets `evalexpr` evaluate it. The
+//! evaluation domain is separate: ambient environment facts, never a task. A
+//! task field name (or any other bare identifier) is invalid here, because the
+//! condition grammar has no fields, only calls.
 //!
 //! Predicates / values:
 //! - `on_branch("glob")` -> bool. Glob-matches the current git branch (the
 //!   same [`globset`] matcher [`crate::loader::derive`] uses for `derive-tags`
-//!   globs); `false` when not a git repo / detached `HEAD`.
-//! - `tty()` -> bool. Whether stdout is a terminal, i.e. whether a human is
-//!   reading this output directly. Boolean like `on_branch`, so it is used
-//!   bare (`!tty()`) rather than in a comparison.
+//!   globs). `false` when not a git repo or on a detached `HEAD`.
+//! - `tty()` -> bool. Whether stdout is a terminal, that is, whether a human
+//!   reads this output directly. Boolean like `on_branch`, so it appears bare
+//!   (`!tty()`) rather than in a comparison.
 //! - `env("NAME")` -> string (`""` when unset).
 //! - `weekday()` -> int `1..7` (Mon..Sun), derived from [`ConditionEnv::today`].
 //! - `now()` -> [`ConditionEnv::today`] verbatim (an ISO date string).
 //! - `format()` -> string. The active `--format` value (`table`, `csv`,
-//!   `json`, `path`, `path0`), so a rule can scope itself to the presentation
-//!   surfaces without the distinction being hardcoded in Rust.
+//!   `json`, `path`, `path0`), so a rule can restrict its scope to the
+//!   presentation surfaces without hardcoding the distinction in Rust.
 //! - `nonempty()`, `contested()`, `named()`, `blocked()` -> bool. The four
-//!   listing facts a column's `[ls.columns.<name>] when` is decided from, read
-//!   off [`ConditionEnv::column`]; see [`ColumnFacts`] for what each means and
-//!   what they answer for a caller resolving no column.
+//!   listing facts that decide a column's `[ls.columns.<name>] when`, read off
+//!   [`ConditionEnv::column`]. See [`ColumnFacts`] for what each means and what
+//!   they answer for a caller resolving no column.
 //! - `true`, `false` -> bool constants, usable bare or composed (`!false`,
-//!   `true && !tty()`). Not valid on either side of a comparison — `env(...)`
+//!   `true && !tty()`). Not valid on either side of a comparison. `env(...)`
 //!   and friends only ever yield a string or number, so a bool there is a
 //!   mistake to reject rather than a case to define.
 //!
 //! A comparison accepts a value (`env(...)`, `now()`, `weekday()`,
-//! `format()`) or a literal on either side — more general than `filter/mod.rs`,
-//! which only ever compares a field (always the left side) against a literal.
+//! `format()`) or a literal on either side. That is more general than
+//! `filter/mod.rs`, which only ever compares a field (always the left side)
+//! against a literal.
 //!
 //! Purity: this module never reads the clock or the filesystem itself.
 //! [`ConditionEnv`] carries every fact it needs (mirrors
-//! [`crate::at`]'s injected-fs pattern); the CLI populates it from
+//! [`crate::at`]'s injected-fs pattern). The CLI populates it from
 //! `std::env`, [`crate::current_branch`], and [`crate::today_iso`], and the
 //! render layer supplies [`ColumnFacts`] per column.
 
@@ -49,7 +50,7 @@ use crate::filter::parse_error;
 use crate::model::numeric::format_num;
 
 /// A parsed, reusable condition expression. `None` is the always-matching
-/// condition (an absent or empty/whitespace-only `condition`, e.g. an
+/// condition (an absent or empty/whitespace-only `condition`, such as an
 /// `[[ls.rules]]` entry with no `condition` key).
 #[derive(Debug, Clone)]
 pub struct Condition {
@@ -65,9 +66,9 @@ pub enum ConditionError {
     /// An operator the condition language does not support.
     #[error("unsupported in condition: {0}")]
     Unsupported(String),
-    /// A bare identifier — the condition grammar has no fields, only calls,
-    /// so this is almost always a task field name carried over from filter
-    /// syntax by mistake.
+    /// A bare identifier. The condition grammar has no fields, only calls, so
+    /// this is almost always a task field name carried over from filter syntax
+    /// by mistake.
     #[error("a condition can't read the task field '{0}'")]
     TaskField(String),
     /// A function name outside `on_branch` / `tty` / `env` / `weekday` /
@@ -82,10 +83,10 @@ pub enum ConditionError {
 impl Condition {
     /// Parse a condition expression. An empty or whitespace-only expression
     /// is the always-matching condition. Structural problems that would only
-    /// otherwise surface at evaluation time — a task-field identifier, an
-    /// unknown predicate, a malformed `on_branch` glob — are caught here too,
-    /// by dry-running the parsed tree against [`ConditionEnv::probe`], so a
-    /// bad `[[ls.rules]]` condition is a load-time error.
+    /// otherwise surface at evaluation time (a task-field identifier, an
+    /// unknown predicate, a malformed `on_branch` glob) fail here too. The
+    /// parse dry-runs the tree against [`ConditionEnv::probe`], so a bad
+    /// `[[ls.rules]]` condition is a load-time error.
     ///
     /// # Errors
     /// Returns [`ConditionError`] on a syntax error, or on a structural
@@ -106,9 +107,9 @@ impl Condition {
     ///
     /// # Errors
     /// Returns [`ConditionError`] on a task-field identifier, an unknown
-    /// predicate, or a malformed `on_branch` glob — all of which
-    /// [`Condition::parse`] already rejects, so this only recurs for a
-    /// hand-built tree bypassing `parse`.
+    /// predicate, or a malformed `on_branch` glob. [`Condition::parse`] already
+    /// rejects every one of those, so this only recurs for a hand-built tree
+    /// bypassing `parse`.
     pub fn matches(&self, env: &ConditionEnv) -> Result<bool, ConditionError> {
         match &self.tree {
             None => Ok(true),
@@ -147,7 +148,7 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: &ConditionEnv) -> Result<boo
 }
 
 /// A function call in boolean position: `on_branch(...)`, `tty()` and the four
-/// [`ColumnFacts`] predicates are boolean; `env` / `weekday` / `now` /
+/// [`ColumnFacts`] predicates are boolean. `env` / `weekday` / `now` /
 /// `format` are value-producers and belong in a comparison.
 fn predicate(
     name: &str,
@@ -175,8 +176,8 @@ fn predicate(
 }
 
 /// Read one [`ColumnFacts`] field by predicate name. `name` is already known
-/// to be one of the four — [`predicate`]'s match arm is the only caller — so
-/// the fallback arm is unreachable in practice and reads `false`, which is
+/// to be one of the four, since [`predicate`]'s match arm is the only caller.
+/// The fallback arm is unreachable in practice and reads `false`, which is
 /// what an unknown fact means everywhere else in this domain.
 fn column_fact(name: &str, facts: ColumnFacts) -> bool {
     match name {
@@ -187,9 +188,10 @@ fn column_fact(name: &str, facts: ColumnFacts) -> bool {
     }
 }
 
-/// `on_branch("glob")`: glob-match `env.branch`. The glob is always compiled
-/// (even with no branch to match against), so a malformed pattern surfaces at
-/// [`Condition::parse`]'s dry-run rather than only when a branch exists.
+/// `on_branch("glob")`: glob-match `env.branch`. The code always compiles the
+/// glob, even with no branch to match against. A malformed pattern then
+/// surfaces at [`Condition::parse`]'s dry-run rather than only when a branch
+/// exists.
 fn on_branch(env: &ConditionEnv, pattern: &str) -> Result<bool, ConditionError> {
     let matcher = globset::Glob::new(pattern)
         .map_err(|err| {
@@ -218,9 +220,9 @@ fn comparison(
     Ok(compare_values(node.operator(), &left, &right))
 }
 
-/// A resolved comparison operand: numeric when the source was a number (a
-/// literal or `weekday()`), text otherwise (`env(...)`, `now()`, a quoted
-/// literal).
+/// A resolved comparison operand. It is numeric when the source was a number
+/// (a literal or `weekday()`), and text otherwise (`env(...)`, `now()`, a
+/// quoted literal).
 enum ConditionValue {
     Str(String),
     Num(f64),
@@ -251,8 +253,8 @@ fn compare_values(
 }
 
 /// Resolve one side of a comparison: a value-producing call (`env`, `now`,
-/// `weekday`, `format`) or a literal. The boolean predicates and a bare
-/// identifier are rejected here — the former are boolean-only, the latter is
+/// `weekday`, `format`) or a literal. The code rejects the boolean predicates
+/// and a bare identifier here. The former are boolean-only, and the latter is
 /// always a task-field mistake in this grammar.
 fn resolve_value(
     node: &Node<DefaultNumericTypes>,
@@ -342,10 +344,10 @@ fn single_literal(
 }
 
 /// A zero-argument call (`weekday()`, `now()`): `evalexpr` always wraps a
-/// function's argument list in one `RootNode` child, so a genuinely empty
-/// list is `[RootNode { 0 children }]`, not `[]`. Any real argument unwraps
-/// past that `RootNode` to a non-`RootNode` leaf, so checking the unwrapped
-/// operator (rather than a length) tells the two apart.
+/// function's argument list in one `RootNode` child, so an empty list is
+/// `[RootNode { 0 children }]`, not `[]`. Any real argument unwraps past that
+/// `RootNode` to a non-`RootNode` leaf, so checking the unwrapped operator
+/// (rather than a length) tells the two apart.
 fn no_args(children: &[Node<DefaultNumericTypes>], name: &str) -> Result<(), ConditionError> {
     match children {
         [arg] if matches!(unwrap_root(arg).operator(), Operator::RootNode) => Ok(()),

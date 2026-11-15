@@ -3,18 +3,18 @@
 //! A clone's `.mindtape/config.toml` can name commands that `mt` runs: a
 //! `[[tasks.waits]]` checker, which read commands run, an `[[on.flip]]` `run`
 //! action, which `mt flip` runs, and the `[go] editor` and `[add] editor`
-//! programs, which `mt go` and `mt add` spawn. None of them runs until the
+//! programs, which `mt go` and `mt add` spawn. `mt` runs none of them until the
 //! user reads them and runs `mt allow`, which records a digest of every such
-//! command ([`commands`]) for the repository. An editor the user's own
-//! `<config home>/mindtape/defaults.toml` sets is the user's, and needs no
-//! approval ([`UserCommands`]); [`runnable_editor`] decides. A changed
-//! command changes the digest, so it asks again. A caller that skips a command for want of approval records it
-//! with [`hold`] under its project root, and [`held_back`] lists them for the
-//! one warning per process.
+//! command ([`commands`]) for the repository. An editor that the user's own
+//! `<config home>/mindtape/defaults.toml` sets belongs to the user, and skips
+//! approval ([`UserCommands`]). [`runnable_editor`] decides. A changed command
+//! changes the digest, so it asks again. A caller that skips a command because
+//! the user has not approved it records the command with [`hold`] under its
+//! project root, and [`held_back`] lists them for the one warning per process.
 //!
 //! The record lives outside the clone, under
 //! `<data home>/mindtape/allowed/` ([`crate::data_home`]), so no file a repo
-//! ships can approve its own commands. It is keyed by the repository's
+//! carries can approve its own commands. The key is the repository's
 //! `git rev-parse --git-common-dir`, or the project root outside git, so every
 //! worktree of one repository shares one approval.
 //!
@@ -101,10 +101,10 @@ fn untrusted_editor(config: &Config, editor: Option<&str>) -> Option<String> {
 
 /// The editor command a caller may spawn: `editor`, a `[go] editor` or
 /// `[add] editor` of `config`, when the user's own layer set it or the user
-/// allowed the config's commands for `root`'s repository. Otherwise `None`,
-/// and the editor is held back for the warning that asks for `mt allow`, so
-/// the caller falls back to `$VISUAL`. A blank or absent editor is `None` and
-/// holds nothing.
+/// allowed the config's commands for `root`'s repository. Otherwise `None`.
+/// The code then holds the editor back for the warning that requests
+/// `mt allow`, and the caller falls back to `$VISUAL`. A blank or absent
+/// editor is `None`.
 #[must_use]
 pub fn runnable_editor(root: &Path, config: &Config, editor: Option<&str>) -> Option<String> {
     runnable_editor_in(crate::data_home().as_deref(), root, config, editor)
@@ -133,9 +133,9 @@ fn runnable_editor_in(
 /// by the root of the project whose config declares it.
 static HELD: Mutex<BTreeMap<PathBuf, BTreeSet<String>>> = Mutex::new(BTreeMap::new());
 
-/// Record `commands` of the project at `root` as held back: a caller found
-/// them not allowed and ran none of them. Each is kept as it shows, for the
-/// warning.
+/// Record `commands` of the project at `root` as held back. A caller found
+/// them not allowed and ran none of them. The record keeps each one as it
+/// shows, for the warning.
 pub fn hold(root: &Path, commands: &[ConfigCommand]) {
     let mut held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
     held.entry(root.to_path_buf())
@@ -144,8 +144,8 @@ pub fn hold(root: &Path, commands: &[ConfigCommand]) {
 }
 
 /// The commands this process would have run but held back, from every
-/// project, sorted once each: what the warning that asks for `mt allow` lists.
-/// Empty when nothing was held back.
+/// project, sorted once each. The warning that requests `mt allow` lists them.
+/// Empty when the process held back nothing.
 #[must_use]
 pub fn held_back() -> Vec<String> {
     let held = HELD.lock().unwrap_or_else(PoisonError::into_inner);
@@ -165,10 +165,10 @@ pub fn take_held(root: &Path) -> Vec<String> {
 }
 
 /// The digest an approval records for `commands`, through SHA-1, as
-/// lowercase hex. A line goes in NUL-terminated. An array goes in as it shows,
-/// NUL-terminated after a leading NUL, which no line starts with, since a line
-/// holding NUL can't run. So an array and a line that show alike digest apart,
-/// and turning one into the other asks again.
+/// lowercase hex. A line goes in with a trailing NUL. An array goes in as it
+/// shows, with a NUL after a leading NUL, which no line starts with, since a
+/// line holding NUL can't run. So an array and a line that show alike digest
+/// apart, and turning one into the other asks again.
 #[must_use]
 pub fn digest(commands: &[ConfigCommand]) -> String {
     let mut hasher = Sha1::new();
@@ -202,8 +202,8 @@ pub fn record_path(data_home: &Path, key: &Path) -> PathBuf {
 }
 
 /// Whether the user allowed `commands` for the repository holding `root`.
-/// An empty list needs no approval. With no data home there is nowhere to
-/// record one, so nothing is allowed.
+/// An empty list skips approval. With no data home there is nowhere to record
+/// one, and the answer is no.
 #[must_use]
 pub fn is_allowed(root: &Path, commands: &[ConfigCommand]) -> bool {
     allowed_in(crate::data_home().as_deref(), root, commands)
@@ -225,11 +225,11 @@ fn allowed_in(home: Option<&Path>, root: &Path, commands: &[ConfigCommand]) -> b
 /// Why [`record`] could not write the approval.
 #[derive(Debug, thiserror::Error)]
 pub enum AllowError {
-    /// `$MINDTAPE_DATA_HOME` is set but empty, or the platform has no data
+    /// `$MINDTAPE_DATA_HOME` holds an empty value, or the platform has no data
     /// directory.
     #[error("no data directory to record the approval in")]
     NoDataHome,
-    /// The record file could not be written.
+    /// The write to the record file failed.
     #[error("can't write {}: {source}", crate::display_path(path))]
     Write {
         /// The record file.
@@ -244,7 +244,7 @@ pub enum AllowError {
 ///
 /// # Errors
 /// [`AllowError::NoDataHome`] when no data directory applies, and
-/// [`AllowError::Write`] when the file cannot be written.
+/// [`AllowError::Write`] when the write to the file fails.
 pub fn record(root: &Path, commands: &[ConfigCommand]) -> Result<PathBuf, AllowError> {
     record_in(crate::data_home().as_deref(), root, commands)
 }

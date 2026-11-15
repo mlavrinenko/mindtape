@@ -1,12 +1,12 @@
-//! Unit tests for the post-write revalidation's positive branches: a reloaded
-//! problem the landed batch owns.
+//! Unit tests for the positive branches of the post-write revalidation. Each
+//! one reloads a problem the landed batch owns.
 //!
-//! The batch's happy paths live in `cmd/flip/tests.rs` and `cmd/link/tests.rs`;
-//! here are the two decisions `revalidate` can only make against a project
-//! built for each — a landed file that failed to reload, and a landed task
-//! that violates a fatal rule. Both are constructed directly because
-//! neither can be reached through `run_with`: the pre-write check refuses each
-//! before the file lands (`crate::pre_write`), leaving this net as the
+//! The batch's happy paths live in `cmd/flip/tests.rs` and `cmd/link/tests.rs`.
+//! This file holds the two decisions `revalidate` can only make against a
+//! project built for each. One is a landed file that failed to reload, and the
+//! other is a landed task that violates a fatal rule. The tests build both
+//! directly because `run_with` reaches neither. The pre-write check refuses
+//! each before the file lands (`crate::pre_write`), leaving this net as the
 //! backstop for a reload that disagrees with it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
@@ -32,7 +32,7 @@ const BLOCKED: &str = mindtape::typst_task!(
     "(\n  title: \"Blocked\",\n  status: blocked(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n"
 );
 
-/// A file that fails to evaluate, so the reload reports it as a load error.
+/// A file that fails to evaluate. The reload reports it as a load error.
 const BROKEN: &str = mindtape::typst_import!("#panic(\"broken\")\n");
 
 fn project(files: &[(&str, &str)], config: &str) -> (tempfile::TempDir, Project) {
@@ -40,7 +40,7 @@ fn project(files: &[(&str, &str)], config: &str) -> (tempfile::TempDir, Project)
 }
 
 /// A batch that landed `ids` at `files`. Built directly rather than through
-/// [`Landed::record`], which needs a loaded `Task` — a file that failed to
+/// [`Landed::record`], which needs a loaded `Task`: a file that failed to
 /// reload yields none.
 fn landed(ids: &[&str], files: &[&str]) -> Landed {
     Landed {
@@ -87,8 +87,8 @@ fn a_landed_task_with_a_fatal_violation_is_reported() {
     );
 }
 
-/// Whether the batch wrote nothing decides whether the reload is paid for at
-/// all: an empty batch is empty, and any recorded task makes it not.
+/// Whether the batch recorded anything decides whether the caller pays for the
+/// reload at all: an empty batch is empty, and any recorded task makes it not.
 #[test]
 fn a_batch_that_recorded_nothing_is_empty() {
     assert!(Landed::default().is_empty());

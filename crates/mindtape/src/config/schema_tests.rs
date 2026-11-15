@@ -41,11 +41,11 @@ pub(crate) fn assert_matches_golden(generated: &str, file: &str, test: &str) {
 /// Where two schema documents first disagree, as three lines: the line number
 /// and each side's text, each capped.
 ///
-/// `assert_eq!` on the two documents instead printed both in full — ~20 000
+/// `assert_eq!` on the two documents instead printed both in full, ~20 000
 /// characters of JSON to say "re-bless", on every run that touches a config
-/// struct, in a message whose actionable half is the sentence above it. The
-/// only thing the dumps added over a line number was *what* moved, and one
-/// differing line says that; the whole shape of the move is
+/// struct. That message's useful half is the sentence above it. The only thing
+/// the dumps added over a line number was *what* moved, and one differing line
+/// says that. The whole shape of the move is
 /// `git diff schema/config.schema.json` after blessing, which is the next step
 /// either way.
 fn first_difference(golden: &str, generated: &str) -> String {
@@ -73,9 +73,10 @@ fn first_difference(golden: &str, generated: &str) -> String {
 }
 
 /// Each hand-written `JsonSchema::schema_id` returns its unique dotted path.
-/// cargo-mutants would replace the string with `""` or `"xyzzy"`; the assertion
+/// cargo-mutants would replace the string with `""` or `"xyzzy"`. The assertion
 /// on the exact string kills all 4 variants (empty-Borrowed, empty-Owned,
-/// xyzzy-Borrowed, xyzzy-Owned) because every mutant returns a different value.
+/// xyzzy-Borrowed, xyzzy-Owned), because every mutant returns a different
+/// value.
 #[test]
 fn hand_written_schema_ids_are_correct() {
     assert_eq!(

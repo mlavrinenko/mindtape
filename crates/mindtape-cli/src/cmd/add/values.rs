@@ -17,7 +17,7 @@ pub use super::values_ops::{Collected, collect_values, reject_unknown_keys};
 
 type Result<T> = std::result::Result<T, Diag>;
 
-/// Built-in default task template, used when no `task.typ` is found under the
+/// Built-in default task template, used when no `task.typ` turns up under the
 /// configured template dirs.
 pub const BUILTIN_TASK: &str = include_str!("templates/task.typ");
 
@@ -61,8 +61,8 @@ pub fn resolve_template(config: &Config, root: &Path, name: &str) -> Result<Stri
     Err(unknown_template(config, root, name))
 }
 
-/// The refusal for a template no configured dir holds: the nearest template
-/// when one is close, else where to list them.
+/// The refusal for a missing template: the nearest template when one is close,
+/// else where to list them.
 fn unknown_template(config: &Config, root: &Path, name: &str) -> Diag {
     let names = list_templates(config, root);
     let known: Vec<&str> = names.iter().map(String::as_str).collect();
@@ -108,8 +108,8 @@ pub(super) fn read_source(source: &str) -> Result<String> {
 
 /// Parse one `-f/--values` source into a key -> (value or explicit unset)
 /// patch. Dispatch is per source: `.yaml`/`.yml` and `.json` extensions pick
-/// their parser outright; stdin (`-`) and any other extension sniff the
-/// content instead, since neither carries a filename extension to trust.
+/// their parser outright. Stdin (`-`) and any other extension sniff the content
+/// instead, since neither carries a filename extension to trust.
 pub(super) fn parse_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
     if source == "-" {
         return parse_sniffed_source(source, text);
@@ -121,12 +121,12 @@ pub(super) fn parse_source(source: &str, text: &str) -> Result<BTreeMap<String, 
     }
 }
 
-/// Sniff JSON vs. YAML from the content: a leading `{`/`[` is tried as JSON
-/// first (retrying YAML only if that fails — a YAML flow-mapping edge case);
-/// anything else goes straight to YAML. When both attempts fail, the JSON
-/// parse error is reported: the leading brace/bracket was a strong signal of
-/// intent, and re-reading the same malformed bytes as YAML tends to produce
-/// the more confusing of the two errors.
+/// Sniff JSON or YAML from the content. A leading `{`/`[` goes to JSON first,
+/// retrying YAML only if that fails (a YAML flow-mapping edge case). Anything
+/// else goes straight to YAML. When both attempts fail, the JSON parse error
+/// wins. The leading brace or bracket was a strong signal of intent, and
+/// re-reading the same malformed bytes as YAML produces the more confusing of
+/// the two errors.
 fn parse_sniffed_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
     if !looks_like_json(text) {
         return parse_yaml_source(source, text);
@@ -158,9 +158,9 @@ fn parse_yaml_source(source: &str, text: &str) -> Result<BTreeMap<String, Option
     yaml_values::parse_mapping(text, Some(source))
 }
 
-/// Extract a task title from raw stdin text: the first non-blank line, trimmed.
-/// A title is single-line, so trailing lines are ignored. Returns `None` when
-/// the input holds no non-blank line.
+/// Read a task title from raw stdin text: the first non-blank line, trimmed.
+/// A title is single-line, so trailing lines don't matter. Returns `None` when
+/// every line is blank.
 #[must_use]
 pub fn stdin_title(raw: &str) -> Option<String> {
     raw.lines()
@@ -177,11 +177,11 @@ pub fn env_var_name(slot: &str) -> String {
     format!("MINDTAPE_ADD_{}", slot.to_uppercase().replace('-', "_"))
 }
 
-/// Fill each slot left unset by `--set`/`-f` from its environment variable via
-/// `lookup`: the declared `env` name when the slot names one, else the implicit
-/// `MINDTAPE_ADD_*` variable. Values are strings (coerced to the slot kind by
-/// `fill`, like `--set`); blank values are skipped. Reading per discovered slot
-/// keeps the mapping unambiguous and ignores unknown env keys.
+/// Fill each slot left unset by `--set`/`-f` from its environment variable
+/// through `lookup`: the declared `env` name when the slot declares one, else
+/// the implicit `MINDTAPE_ADD_*` variable. Values are strings (coerced to the
+/// slot kind by `fill`, like `--set`). The layer skips a blank value and
+/// ignores unknown env keys, which keeps the mapping unambiguous.
 pub fn layer_env(
     values: &mut BTreeMap<String, RawValue>,
     specs: &[SlotSpec],
@@ -267,7 +267,7 @@ pub fn describe(specs: &[SlotSpec], format: DescribeFormat) -> Result<String> {
 }
 
 /// The slot description plus the project's `[[on.add]]` hooks, which `mt add`
-/// applies to the filed task after the slots are filled.
+/// applies to the filed task after the fill.
 pub fn describe_for(config: &Config, specs: &[SlotSpec], format: DescribeFormat) -> Result<String> {
     let hooks: Vec<&mindtape::config::add_hooks::AddHook> = config.on.add.iter().collect();
     describe_with(&hooks, specs, format)
@@ -429,7 +429,7 @@ pub struct SlotJson {
     pub name: String,
     /// Its value kind, such as `string` or `choice`.
     pub kind: String,
-    /// Whether a value must be supplied when no default is present.
+    /// Whether the caller must supply a value when the default is absent.
     pub required: bool,
     /// The default expression's source, or `null`.
     pub default: Option<String>,

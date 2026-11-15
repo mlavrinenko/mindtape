@@ -4,17 +4,18 @@
 //! A change sits in one or both of two states: `staged` (the index differs
 //! from `HEAD`) and `worktree` (the working tree differs from the index,
 //! untracked paths included). One `git status --porcelain -z
-//! --untracked-files=all` answers both — its `X` column is the staged side,
-//! its `Y` column the worktree side — so a command runs it at most once,
+//! --untracked-files=all` answers both. Its `X` column is the staged side,
+//! its `Y` column the worktree side. A command then runs it at most once,
 //! through the [`GitCache`] its [`crate::config::Config`] carries.
 //!
 //! Consumers: the filter language's `changed(<states>, <glob>…)`
 //! ([`crate::filter`]), and the commit states a `scope = "task"` commit rule
-//! reads ([`crate::commit::tasks`]). Paths are relative to the repository root, whichever directory git is run from.
+//! reads ([`crate::commit::tasks`]). Paths are relative to the repository
+//! root, whichever directory git runs from.
 //!
 //! Every git call passes `--no-optional-locks`: reading must not even refresh
-//! `.git/index`'s stat cache, because the commands that read are read commands
-//! under the project's read/write split.
+//! `.git/index`'s stat cache, because every command that reads is a read
+//! command under the project's read/write split.
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -39,7 +40,7 @@ pub struct StateSet {
 }
 
 impl StateSet {
-    /// Both states — every change git can see.
+    /// Both states, so every change git can see.
     pub const ALL: Self = Self {
         staged: true,
         worktree: true,
@@ -48,7 +49,7 @@ impl StateSet {
     /// Parse `staged`, `worktree`, or a `+`-join of them.
     ///
     /// # Errors
-    /// A message naming the unknown part and the known state names.
+    /// A message that reports the unknown part and the known state names.
     pub fn parse(spec: &str) -> Result<Self, String> {
         let mut set = Self {
             staged: false,
@@ -73,7 +74,7 @@ impl StateSet {
 /// One changed path and the states it changed in.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StatusEntry {
-    /// Repository-root-relative path; a rename's destination.
+    /// Repository-root-relative path, the destination of a rename.
     pub path: String,
     /// Changed in the index against `HEAD`.
     pub staged: bool,
@@ -99,8 +100,8 @@ impl GitStatus {
     /// Run `git status` under `root`.
     ///
     /// # Errors
-    /// The reason git gave — `not a git repository`, or that git could not
-    /// be run at all.
+    /// The reason git gave (`not a git repository`), or that git could not
+    /// start at all.
     pub fn read(root: &Path) -> Result<Self, String> {
         git(
             root,
@@ -109,8 +110,8 @@ impl GitStatus {
         .map(|out| Self::parse(&out))
     }
 
-    /// [`Self::read`] with every rename split into its two sides — the source
-    /// deleted, the destination added — for a caller that needs both paths
+    /// [`Self::read`] with every rename split into its two sides, the source
+    /// deleted and the destination added, for a caller that needs both paths
     /// rather than the path the tree holds.
     ///
     /// # Errors
@@ -129,10 +130,10 @@ impl GitStatus {
         .map(|out| Self::parse(&out))
     }
 
-    /// Parse `git status --porcelain -z` output. A rename or copy record is
-    /// followed by a record holding its source path, which is skipped: the
-    /// change counts against the path the tree holds. A record too short
-    /// to carry a path is dropped.
+    /// Parse `git status --porcelain -z` output. A rename or copy record
+    /// carries a following record that holds its source path, and the parse
+    /// skips that record: the change counts against the path the tree holds.
+    /// The parse drops a record too short to carry a path.
     #[must_use]
     pub fn parse(text: &str) -> Self {
         let mut entries = Vec::new();
@@ -170,7 +171,7 @@ impl GitStatus {
     }
 }
 
-/// Why a `@name` path set could not be resolved into a [`PathFilter`].
+/// Why the loader could not resolve a `@name` path set into a [`PathFilter`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PathSetError {
     /// No `[dicts.<name>]` set, and no built-in, has this name.
@@ -185,7 +186,7 @@ pub enum PathSetError {
 }
 
 /// Which paths count: include globs, and `!`-prefixed exclude globs. No
-/// include admits every path; an exclude wins over an include.
+/// include admits every path. An exclude wins over an include.
 #[derive(Debug, Clone)]
 pub struct PathFilter {
     include: Option<GlobSet>,
@@ -205,7 +206,7 @@ impl PathFilter {
     /// Compile `globs`, a leading `!` marking an exclude.
     ///
     /// # Errors
-    /// A message naming the first glob that fails to compile.
+    /// A message that reports the first glob that fails to compile.
     pub fn new(globs: &[String]) -> Result<Self, String> {
         let (excludes, includes): (Vec<&str>, Vec<&str>) = globs
             .iter()
@@ -221,9 +222,9 @@ impl PathFilter {
         })
     }
 
-    /// [`Self::new`] after each `@name` glob is replaced by the entries of the
-    /// `[dicts.<name>]` set it names, so a project writes its path set once and
-    /// every `changed()` and `count(files, …)` call reads it.
+    /// [`Self::new`] after replacing each `@name` glob with the entries of the
+    /// `[dicts.<name>]` set it names. A project then writes its path set once,
+    /// and every `changed()` and `count(files, …)` call reads it.
     ///
     /// # Errors
     /// [`PathSetError::Unknown`] for an unknown set, [`PathSetError::Invalid`]
@@ -266,9 +267,10 @@ impl PathFilter {
             && !self.exclude.as_ref().is_some_and(|set| set.is_match(path))
     }
 
-    /// How many of `paths` count, a rename once: a path in `renamed_from` is
-    /// the source side of a rename whose destination `paths` also lists, so it
-    /// is left out. `changed()` and `count(files, …)` both count through here.
+    /// How many of `paths` count, a rename once. A path in `renamed_from` is
+    /// the source side of a rename whose destination `paths` also lists, and
+    /// the count leaves it out. `changed()` and `count(files, …)` both count
+    /// through here.
     pub fn count<'a>(
         &self,
         paths: impl IntoIterator<Item = &'a str>,
@@ -342,8 +344,8 @@ impl GitCache {
     }
 
     /// The tasks the commits changing `path` name, `set` being the loaded
-    /// tasks when there are any — `touches()`'s answer, read from `git log`
-    /// at most once ([`crate::commit::refs`]).
+    /// tasks when there are any. This is `touches()`'s answer, read from
+    /// `git log` at most once ([`crate::commit::refs`]).
     ///
     /// # Errors
     /// Why git could not answer (see [`GitStatus::read`]).
@@ -356,8 +358,8 @@ impl GitCache {
         self.refs.touching(&self.root, path, config, set)
     }
 
-    /// Every stem a `touches()` answer met that no loaded task answers to,
-    /// even through a rename: the retired tasks, sorted.
+    /// Every stem a `touches()` answer met that matches no loaded task, even
+    /// through a rename: the retired tasks, sorted.
     #[must_use]
     pub(crate) fn retired_refs(&self) -> Vec<String> {
         self.refs.retired()

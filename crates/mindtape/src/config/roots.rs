@@ -3,7 +3,8 @@
 //! `[[tasks.roots]]` entries name where tasks live and, optionally, a display
 //! name and per-root derivation rule. `[tasks.derive-tags]` holds the
 //! project-wide policy (collectors, separator, slugify). The derivation
-//! algorithm itself lives in [`crate::loader::derive`]; this module is config shape only.
+//! algorithm itself lives in [`crate::loader::derive`]. This module is config
+//! shape only.
 //!
 //! [`validate_task_sources`] is the one check that refuses a working-tree
 //! config whose roots or template dirs can never hold a task source. It reads
@@ -33,7 +34,7 @@ const TEMPLATES_KEY: &str = "templates.dirs";
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum RootSpec {
-    /// Path shorthand, e.g. `"tasks"`.
+    /// Path shorthand, as in `"tasks"`.
     Short(String),
     /// Full form: `{ path, name, derive-tags }`.
     Full(RootConfig),
@@ -69,10 +70,11 @@ pub enum DeriveTags {
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct DeriveConfig {
-    /// Default derivation switch for roots that set no `derive-tags` of their own.
+    /// Default derivation switch for roots that don't set their own
+    /// `derive-tags`.
     pub enabled: bool,
-    /// Collectors to run. Both may run at once; their tags are merged
-    /// without duplicates.
+    /// Collectors to run. Both may run at once, and the merge combines their
+    /// tags without duplicates.
     pub collect: Vec<Collector>,
     /// Breadcrumb join separator.
     pub separator: String,
@@ -108,7 +110,7 @@ pub enum Collector {
 
 impl RootSpec {
     /// The root directory path, relative to the project root. A path outside
-    /// the project (`../shared/tasks`) loads in the working tree only; a
+    /// the project (`../shared/tasks`) loads in the working tree only. A
     /// commit state cannot list it.
     #[must_use]
     pub fn path(&self) -> &str {
@@ -118,9 +120,9 @@ impl RootSpec {
         }
     }
 
-    /// [`Self::path`] normalized for matching a project-relative path: `.`
-    /// components and interior `..` are resolved lexically, leading `./` and
-    /// trailing `/` are dropped, and `"."` means the project root.
+    /// [`Self::path`] normalized for matching a project-relative path. The
+    /// normalization resolves `.` components and interior `..` lexically, drops
+    /// a leading `./` and a trailing `/`, and reads `"."` as the project root.
     #[must_use]
     pub fn dir(&self) -> String {
         let mut parts: Vec<&str> = Vec::new();
@@ -166,13 +168,12 @@ impl RootSpec {
         }
     }
 
-    /// [`Self::path`] as a normalized [`PathBuf`]: `.` components are dropped
-    /// and interior `..` is resolved lexically, without touching the
+    /// [`Self::path`] as a normalized [`PathBuf`]. The normalization drops `.`
+    /// components and resolves interior `..` lexically, without touching the
     /// filesystem. An absolute path stays absolute.
     ///
-    /// This is the task-source policy's separate root form;
-    /// [`Self::dir`] keeps its string match-key semantics for commit and tag
-    /// derivation.
+    /// This is the task-source policy's separate root form. [`Self::dir`] keeps
+    /// its string match-key semantics for commit and tag derivation.
     #[must_use]
     pub fn normalized(&self) -> PathBuf {
         normalize_path(Path::new(self.path()))
@@ -211,8 +212,8 @@ fn last_segment(path: &str) -> String {
 ///
 /// A root inside `.mindtape` or `.git` can never hold a source, and a template
 /// dir at or above the project root or a task root would reserve every source
-/// under it. Paths are compared in the policy's normalized absolute forms, so
-/// `./tasks/../tasks` and `tasks` are one root.
+/// under it. The check compares paths in the policy's normalized absolute
+/// forms, so `./tasks/../tasks` and `tasks` are one root.
 ///
 /// # Errors
 /// Returns [`ConfigError::Invalid`] naming the offending key, path, reason and
@@ -236,7 +237,7 @@ pub(crate) fn validate_task_sources(config: &Config, root: &Path) -> Result<(), 
 }
 
 /// The `.mindtape` or `.git` component of `path`, in the case its message
-/// names it. `None` when the policy sees no reserved component.
+/// references it. `None` when the path lacks a reserved component.
 fn reserved_component(path: &Path) -> Option<&'static str> {
     if !has_reserved_component(path) {
         return None;

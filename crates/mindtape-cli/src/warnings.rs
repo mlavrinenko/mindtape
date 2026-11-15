@@ -22,7 +22,7 @@ pub(crate) fn warning_diag(warning: &LoadWarning) -> Diag {
     .typst_hints(warning.hints.iter().cloned())
 }
 
-/// `diag` placed at `file:line:col`, or at the bare file when no line is known.
+/// `diag` placed at `file:line:col`, or at the bare file when `line` is `None`.
 pub(crate) fn at_place(
     diag: Diag,
     file: &Path,
@@ -35,8 +35,8 @@ pub(crate) fn at_place(
     }
 }
 
-/// Fold warnings with the same Typst message into one line naming the count
-/// and the files, each distinct hint once; `verbose` keeps every site.
+/// Fold warnings with the same Typst message into one line that carries the
+/// count and the files, each distinct hint once. `verbose` keeps every site.
 pub(crate) fn fold_warnings(warnings: &[LoadWarning], verbose: bool) -> Vec<Diag> {
     if verbose {
         return warnings.iter().map(warning_diag).collect();

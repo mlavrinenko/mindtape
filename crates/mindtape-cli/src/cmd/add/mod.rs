@@ -1,14 +1,18 @@
-//! `mt add` — file a new task from a Typst slot template: fill its slots,
-//! validate, then write (or print under `--print`). A rejected add writes nothing.
+//! `mt add`: file a new task from a Typst slot template. It fills the slots,
+//! validates, then writes (or prints under `--print`). A rejected add doesn't
+//! write a file.
 //!
 //! # Files
 //!
-//! - `dedup.rs`, `target.rs`, `output.rs` — `--dedup`, destination and stem,
+//! - `dedup.rs`, `target.rs`, `output.rs`: `--dedup`, destination and stem,
 //!   `--format`/`--json`.
-//! - `values.rs`, `values_ops.rs`, `tokens.rs`, `field_values.rs`, `yaml_values.rs`, `templates/` — value sources, ordered `--set` operations, non-slot field writes, YAML.
-//! - `draft.rs`, `hooks.rs`, `pipeline.rs` — the partially filled task, `[[on.add]]` execution and the render order.
-//! - `interactive.rs`, `hint.rs`, `notes.rs`, `title.rs` — editor fill, refusal hint, fill note,
-//!   title from words or stdin.
+//! - `values.rs`, `values_ops.rs`, `tokens.rs`, `field_values.rs`,
+//!   `yaml_values.rs`, `templates/`: value sources, ordered `--set` operations,
+//!   non-slot field writes, YAML.
+//! - `draft.rs`, `hooks.rs`, `pipeline.rs`: the partially filled task,
+//!   `[[on.add]]` execution and the render order.
+//! - `interactive.rs`, `hint.rs`, `notes.rs`, `title.rs`: editor fill, refusal
+//!   hint, fill note, title from words or stdin.
 
 pub(crate) mod dedup;
 mod draft;
@@ -69,7 +73,7 @@ pub struct AddArgs {
 
     /// Read slot values from a JSON or YAML file, or `-` for stdin.
     ///
-    /// Repeat it to merge several files, and a later file wins on a shared
+    /// Repeat it to merge more than one file, and a later file wins on a shared
     /// key.
     #[arg(long = "values", short = 'f', value_name = "PATH")]
     pub values: Vec<String>,
@@ -84,15 +88,15 @@ pub struct AddArgs {
 
     /// Slots or core fields to set after `--`, written as for `--set`.
     ///
-    /// For example `mt add "Fix login" -- tags+=auth summary@notes.txt`. They
-    /// apply after `--set`.
+    /// One line looks like `mt add "Fix login" -- tags+=auth summary@notes.txt`.
+    /// They apply after `--set`.
     #[arg(last = true, value_name = "KEY=VALUE")]
     pub tokens: Vec<String>,
 
     /// The directory to write the task in.
     ///
-    /// A relative path resolves from the project root; an absolute one is
-    /// taken as-is. Without it, an `[[on.add]]` hook may choose the directory,
+    /// A relative path resolves from the project root, and an absolute one
+    /// stays as-is. Without it, an `[[on.add]]` hook may choose the directory,
     /// else mt writes to the first configured root.
     #[arg(long, value_name = "DIR")]
     pub dir: Option<String>,
@@ -230,8 +234,8 @@ fn print_describe(
 /// Run the `add` command.
 ///
 /// # Errors
-/// Returns an error if the template/values are invalid, a slot is unfilled, the
-/// target identity collides, or the file cannot be written.
+/// Returns an error if the template or values are invalid, a slot has no value,
+/// the target identity collides, or the file write fails.
 pub fn run(args: &AddArgs) -> Result<()> {
     refuse_legacy(args.into.as_ref(), args.to.as_ref())?;
     let project = util::open()?;
@@ -305,9 +309,9 @@ fn write_task(
     commit(args, project, &outcome, filled, rescue)
 }
 
-/// Print the preview — but only after the same pre-write check a write runs.
-/// A preview that exits 0 while the write it previews is refused is how the
-/// sweep shipped a retired estimate unit: the dry run green, `--write` dead.
+/// Print the preview, but only after the same pre-write check a write runs.
+/// A preview that exits 0 while the write it previews fails is how the sweep
+/// landed a retired estimate unit: the dry run green, `--write` dead.
 /// `--no-verify` opens both doors.
 fn print_preview(
     args: &AddArgs,
@@ -323,15 +327,16 @@ fn print_preview(
     Ok(())
 }
 
-/// Validate the rendered task, then write it — in that order, so a rejected add
-/// creates nothing and the failure is about the input rather than about a file
-/// to repair. The write is the last irreversible step: everything that can
-/// still say no has already said it.
+/// Validate the rendered task, then write it, in that order. A rejected add
+/// then doesn't create a file, and the failure is about the input rather than
+/// about a file to repair. The write is the last irreversible step: everything
+/// that can still say no has already said it.
 ///
 /// The pre-write check needs a project-relative path to evaluate the candidate
 /// at, which `mt add --dir /somewhere/else` does not have. That case alone
-/// falls back to the old order — write, then [`crate::task_edit::verify_written`] — and its error
-/// still carries [`kept`], because there the file really is on disk.
+/// falls back to the old order, write then
+/// [`crate::task_edit::verify_written`], and its error still carries [`kept`],
+/// because there the file really is on disk.
 fn commit(
     args: &AddArgs,
     project: &util::Project,
@@ -368,11 +373,11 @@ fn commit(
 /// rendered task in a scratch file and names it.
 ///
 /// The buffer is minutes of typing that the editor's own temp file does not
-/// holds, and refusing the write is exactly what makes it unrecoverable —
-/// which is why the file is not kept in the tasks root. Parking it
-/// outside every root keeps the recovery without the cost: no later `mt`
-/// command ever loads it. A `-f`/`--set` rejection parks nothing; the values
-/// are still in the shell history that produced them.
+/// hold, and refusing the write is exactly what makes it unrecoverable. So the
+/// file stays out of the tasks root. Parking it outside every root keeps the
+/// recovery without the cost: no later `mt` command ever loads it. A
+/// `-f`/`--set` rejection parks nothing, and the values are still in the shell
+/// history that produced them.
 fn pre_verify(project: &util::Project, file: &Path, source: &str, rescue: &Rescue) -> Result<bool> {
     let result = crate::task_edit::verify_candidate(project, file, source, &rescue.template);
     if result.is_err() && rescue.interactive {
@@ -382,7 +387,7 @@ fn pre_verify(project: &util::Project, file: &Path, source: &str, rescue: &Rescu
 }
 
 /// Write `source` to a kept scratch file, returning its path. `None` when the
-/// scratch file cannot be created — a failed rescue must not replace the
+/// scratch file creation fails, because a failed rescue must not replace the
 /// validation error that prompted it.
 fn park(source: &str) -> Option<std::path::PathBuf> {
     let mut file = tempfile::Builder::new()
@@ -396,25 +401,25 @@ fn park(source: &str) -> Option<std::path::PathBuf> {
 
 /// Escape every fill value that lands in Typst markup, leaving the rest alone.
 ///
-/// Only a `text` slot is escaped (see [`mindtape::SlotKind::Text`]); every
-/// other kind renders as a self-delimiting literal — a quoted string, a
-/// number, a `("a",)` list, an `on(y, m, d)` call — where the escaping
+/// The function escapes only a `text` slot (see [`mindtape::SlotKind::Text`]).
+/// Every other kind renders as a self-delimiting literal: a quoted string, a
+/// number, a `("a",)` list, an `on(y, m, d)` call. There the escaping
 /// backslashes would be data, not syntax, and would read back as themselves.
 ///
-/// `raw` ([`mindtape::SlotKind::Raw`]) also splices its value verbatim
-/// into markup, like `text`, but is deliberately left out of this escape
-/// pass. The choice belongs to the *template*, not the *caller*: a template
-/// is checked-in repo content, so `kind: "raw"` is the template author
-/// asserting that whatever fills this slot — `--set`, `-f`, the environment,
-/// none of which this function can tell apart — is trusted to be markup, not
-/// prose that merely contains markup characters. Escaping is applied here,
-/// downstream of every value source: `-f`/`--set`, the positional title, the
-/// `MINDTAPE_ADD_*` environment, and the `--edit` buffer all converge on this
-/// map, so the trust decision is enforced in exactly one place.
+/// `raw` ([`mindtape::SlotKind::Raw`]) also splices its value verbatim into
+/// markup, like `text`, but this escape pass deliberately leaves it out. The
+/// choice belongs to the *template*, not the *caller*. A template is repo
+/// content under version control, so `kind: "raw"` is the template author
+/// asserting trust in whatever fills this slot. `--set`, `-f` and the
+/// environment all count as markup, not as prose that merely contains markup
+/// characters. The escape runs here, downstream of every value source.
+/// `-f`/`--set`, the positional title, the `MINDTAPE_ADD_*` environment, and
+/// the `--edit` buffer all converge on this map. That gives the trust decision
+/// exactly one enforcement point.
 ///
-/// The escaped copy feeds `mindtape::fill` only; the caller keeps the authored
-/// values so
-/// the filename slug is minted from the text the user actually typed.
+/// The escaped copy feeds `mindtape::fill` only. The caller keeps the authored
+/// values, so `mt add` mints the filename slug from the text the user actually
+/// typed.
 fn markup_safe(
     values: &BTreeMap<String, RawValue>,
     specs: &[SlotSpec],
@@ -431,11 +436,12 @@ fn markup_safe(
 /// What a failed post-write verification says about the file already on disk.
 ///
 /// Only [`commit`]'s fallback arm reaches this: a destination outside the
-/// project root, where the candidate cannot be evaluated before the write and
-/// a rejected task is therefore a real file by the time the error surfaces. It
-/// is kept rather than removed — silently deleting a file to tidy up an error
-/// message is the worse trade — but "wrote X" followed by a bare error read as
-/// if `add` had cleaned up after itself. It never did, and the message says so.
+/// project root, where the candidate evaluation has to wait until after the
+/// write. A rejected task is then a real file by the time the error surfaces.
+/// The function keeps that file rather than removing it, because silently
+/// deleting a file to tidy up an error message is the worse trade. But "wrote
+/// X" followed by a bare error read as if `add` had cleaned up after itself. It
+/// never did, and the message says so.
 ///
 /// Under a root the order is the other way round ([`pre_verify`]) and no such
 /// file exists, so this note is never printed there.

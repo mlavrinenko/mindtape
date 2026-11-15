@@ -1,8 +1,8 @@
-//! Tests for the slot-template engine's fill half — value coercion against a
-//! slot's kind, per-kind rendering, defaults, the markup-splice pipeline —
-//! split out of `template/tests.rs` along the same discover/fill seam
-//! `template/mod.rs` documents for its two source files. The `FillError`
-//! display arms live in `tests_fill_errors.rs`.
+//! Tests for the slot-template engine's fill half: value coercion against a
+//! slot's kind, per-kind rendering, defaults, and the markup-splice pipeline.
+//! They live apart from `template/tests.rs`, along the same discover/fill seam
+//! `template/mod.rs` documents for its two source files. The `FillError` display
+//! arms live in `tests_fill_errors.rs`.
 //! Reaches the shared `wrap` helper from the sibling discovery module via
 //! `super::tests`.
 #![allow(clippy::unwrap_used)]
@@ -273,8 +273,9 @@ fn text_slot_default_lands_as_body_markup() {
     assert_eq!(out, "== Scope\n\n- TODO\n");
 }
 
-/// Round trip: a code span in, a code span out, no backslashes — the opt-out
-/// `text` slots deferred (`add-a-typst-slot-kind-for-pre-formatted-markup.typ`).
+/// Round trip: a code span in, a code span out, no backslashes. That is the
+/// opt-out `text` slots deferred
+/// (`add-a-typst-slot-kind-for-pre-formatted-markup.typ`).
 #[test]
 fn markup_raw_slot_splices_without_escaping() {
     let src = "== Example\n\n#slot(\"body\", kind: \"raw\")\n";

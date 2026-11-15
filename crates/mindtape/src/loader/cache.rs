@@ -1,45 +1,46 @@
 //! Persistent content-hash task cache
 //! (`truth/tasks/2026-07/persistent-content-hash-task-cache.typ`).
 //!
-//! Warm `mt ls` / `mt check` over a mostly-static backlog re-stat and re-hash
-//! each task file, then read its harvested marker straight from
-//! `<root>/.mindtape/cache/` instead of re-evaluating the file through Typst.
-//! Only files whose bytes changed since the last run miss the cache and pay for
-//! a fresh eval; this stacks with the cold-path batch harvester
-//! ([`typst_harvest::batch_harvest`]), which the loader runs over the
-//! misses alone.
+//! Warm `mt ls` / `mt check` re-stat and re-hash each task file, then read its
+//! harvested marker straight from `<root>/.mindtape/cache/` instead of
+//! re-evaluating the file through Typst. Only files whose bytes changed since
+//! the last run miss the cache and pay for a fresh eval. This stacks with the
+//! cold-path batch harvester ([`typst_harvest::batch_harvest`]), which the
+//! loader runs over the misses alone.
 //!
 //! # Key
 //!
-//! An entry is addressed by the file's content hash under a per-*build-key*
-//! directory. The build key folds everything that could change a harvest for
-//! the same bytes: the cache format version, the `mt` version, the whole config
-//! (its `[[typst.local-packages]]` overrides steer package resolution), and the
-//! prelude/`lib` contents. Any build-key change routes reads to a fresh (empty)
-//! directory, so the whole cache busts at once and the stale directories are
-//! pruned. An installed package directory is folded by path, not contents, so
-//! rewriting a version's files in place is not a cache miss; bump the version
-//! rather than edit one already published.
+//! The cache addresses an entry by the file's content hash under a
+//! per-*build-key* directory. The build key folds everything that could change
+//! a harvest for the same bytes: the cache format version, the `mt` version,
+//! the whole config, and the prelude/`lib` contents. The config's
+//! `[[typst.local-packages]]` overrides steer package resolution, so they fold
+//! in too. Any build-key change routes reads to a fresh (empty) directory,
+//! which busts the whole cache at once, and the loader prunes the stale
+//! directories. The key folds an installed package directory by path, not
+//! contents, so rewriting a version's files in place is not a cache miss. Bump
+//! the version rather than edit one already published.
 //!
 //! # Imports
 //!
-//! The file's bytes are not the whole input: a task that imports a module
-//! evaluates that module too. Each entry therefore records the content hash of
-//! every project-local file the eval read ([`typst_harvest::Harvest::dependencies`]).
-//! A read re-hashes them and treats any mismatch, or a file gone missing, as a
-//! miss. An unreadable dependency at write time leaves the entry unwritten.
+//! The file's bytes are not the whole input, since a task that imports a module
+//! evaluates that module too. Each entry records the content hash of every
+//! project-local file the eval read
+//! ([`typst_harvest::Harvest::dependencies`]). A read re-hashes them and treats
+//! any mismatch, or a file gone missing, as a miss. An unreadable dependency at
+//! write time leaves the entry unwritten.
 //!
 //! # Correctness
 //!
-//! A cache read never surfaces a wrong task: an unreadable, truncated,
+//! A cache read never surfaces a wrong task. An unreadable, truncated,
 //! wrong-format, or otherwise unparseable entry is a miss, and a miss always
-//! falls back to a live eval. Harvest *errors* are never cached — only a clean
-//! outcome (a task marker, or a confirmed absence of one) is stored — so a file
-//! that failed to evaluate is re-tried every run. The reconstructed marker is
-//! projected through the exact same `Task::from_marker` path as a cold harvest,
-//! so the warm and cold results cannot drift. The Typst warnings of a clean
-//! evaluation are stored beside the marker and replayed on every hit, so a
-//! warning shows on each run, not only the first.
+//! falls back to a live eval. A harvest *error* never reaches the cache, only a
+//! clean outcome (a task marker, or a confirmed absence of one). The loader then
+//! re-tries a file that failed to evaluate on every run. The reconstructed
+//! marker goes through the exact same `Task::from_marker` path as a cold
+//! harvest, so the warm and cold results cannot drift. The cache stores the
+//! Typst warnings of a clean evaluation beside the marker and replays them on
+//! every hit. A warning then shows on each run, not only the first.
 
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
@@ -52,15 +53,15 @@ use super::LoadWarning;
 use crate::config::Config;
 
 /// On-disk entry format. Bump when the entry shape or the marker reconstruction
-/// changes; folded into the build key, so a bump busts every entry.
+/// changes. The build key folds it in, and a bump busts every entry.
 const FORMAT_VERSION: u32 = 3;
 
 /// Set this env var to a non-empty value to bypass the cache entirely (always
 /// eval). For benchmarking the cold path and as an escape hatch.
 const DISABLE_ENV: &str = "MINDTAPE_NO_CACHE";
 
-/// A cache hit's payload: the file harvested to a task marker, or evaluated
-/// cleanly to no `mindtape.task` marker at all.
+/// A cache hit's payload. The file either harvested to a task marker or
+/// evaluated cleanly to no `mindtape.task` marker at all.
 pub(crate) struct Cached {
     /// The marker, or its confirmed absence.
     pub(crate) outcome: CachedOutcome,
@@ -70,10 +71,10 @@ pub(crate) struct Cached {
 
 /// What a cached evaluation yielded.
 pub(crate) enum CachedOutcome {
-    /// The reconstructed `mindtape.task` marker value; feed to
+    /// The reconstructed `mindtape.task` marker value. Feed it to
     /// `Task::from_marker`.
     Marker(HVal),
-    /// The file evaluated with no task marker — a hit that yields no task.
+    /// The file evaluated without a task marker, a hit with no task.
     NoMarker,
 }
 
@@ -82,7 +83,7 @@ pub(crate) struct TaskCache {
     /// The project root the entries' dependency paths are relative to.
     root: PathBuf,
     /// `<root>/.mindtape/cache/<build_key>`, or `None` when disabled or the
-    /// directory could not be created (the cache degrades to a no-op).
+    /// directory creation failed (the cache degrades to a no-op).
     dir: Option<PathBuf>,
 }
 
@@ -119,7 +120,7 @@ impl TaskCache {
     }
 
     /// The cached outcome for `content_hash`, or `None` on a miss (absent,
-    /// unreadable, or unparseable — any of which falls back to a live eval).
+    /// unreadable, or unparseable, any of which falls back to a live eval).
     pub(crate) fn get(&self, content_hash: &str) -> Option<Cached> {
         let path = self.entry_path(content_hash)?;
         let text = std::fs::read_to_string(path).ok()?;
@@ -146,10 +147,11 @@ impl TaskCache {
     }
 
     /// Record a clean harvest outcome for `content_hash`: `Some(marker)` for a
-    /// task, `None` for a file that produced no marker, with the `warnings` its
-    /// evaluation raised and the project-local `deps` (relative to the root) it
-    /// imported. Best-effort and atomic (write-temp-then-rename); a write
-    /// failure, or a dependency that cannot be read, leaves the entry a miss.
+    /// task, `None` for a file without a marker. The entry also holds the
+    /// `warnings` its evaluation raised and the project-local `deps` (relative
+    /// to the root) that it imported. The write is best-effort and atomic
+    /// (write-temp-then-rename). A write failure, or a dependency that the
+    /// loader cannot read, leaves the entry a miss.
     pub(crate) fn put(
         &self,
         content_hash: &str,
@@ -192,8 +194,8 @@ impl TaskCache {
     }
 }
 
-/// One on-disk cache entry: the format tag, the harvested marker as JSON
-/// (`null` when the file yielded no task marker), and the Typst warnings the
+/// One on-disk cache entry. It holds the format tag, the harvested marker as
+/// JSON (`null` when the file had no task marker), and the Typst warnings the
 /// evaluation raised.
 #[derive(Serialize, Deserialize)]
 struct Entry {
@@ -201,7 +203,7 @@ struct Entry {
     marker: Option<HVal>,
     #[serde(default)]
     warnings: Vec<LoadWarning>,
-    /// Imported project files and their hashes when the entry was written.
+    /// Imported project files and their hashes at the time of the write.
     #[serde(default)]
     deps: Vec<Dep>,
 }
@@ -215,15 +217,15 @@ struct Dep {
     hash: String,
 }
 
-/// Whether the cache is switched off via [`DISABLE_ENV`].
+/// Whether [`DISABLE_ENV`] switches the cache off.
 pub(crate) fn disabled() -> bool {
     std::env::var_os(DISABLE_ENV).is_some_and(|value| !value.is_empty())
 }
 
-/// The build key: a hex digest folding the cache format, the `mt` version, the
+/// The build key, a hex digest folding the cache format, the `mt` version, the
 /// whole config, `package_root` (the local-package directory), and every
-/// prelude/override directory's contents. Governs the cache directory, so any
-/// change busts the whole cache.
+/// prelude/override directory's contents. It governs the cache directory, and
+/// any change busts the whole cache.
 fn build_key(
     config: &Config,
     overrides: &[(String, PathBuf)],
@@ -254,9 +256,9 @@ fn build_key(
     hex(&hasher.finalize())
 }
 
-/// Fold every regular file under `dir` (sorted by relative path) into `hasher`,
-/// so the digest tracks the prelude's exact contents. A missing directory
-/// contributes nothing; a lib that later appears changes the digest.
+/// Fold every regular file under `dir` (sorted by relative path) into `hasher`.
+/// The digest then tracks the prelude's exact contents. A missing directory
+/// leaves the digest unchanged, and a lib that later appears changes it.
 fn hash_dir(hasher: &mut Sha1, dir: &Path) {
     let mut files = Vec::new();
     collect_files(dir, Path::new(""), &mut files);
@@ -291,8 +293,8 @@ pub(crate) fn collect_files(dir: &Path, rel: &Path, out: &mut Vec<(PathBuf, Path
 
 /// Remove sibling build-key directories under `cache_root`, keeping only
 /// `current`. Best-effort: a build-key change leaves at most the fresh
-/// directory behind. Only 40-hex-named directories are touched, so a stray file
-/// (e.g. the `.gitignore`) is never removed.
+/// directory behind. The prune touches only 40-hex-named directories, so a
+/// stray file such as the `.gitignore` survives.
 fn prune_stale(cache_root: &Path, current: &str) {
     let Ok(entries) = std::fs::read_dir(cache_root) else {
         return;
@@ -313,8 +315,8 @@ fn is_build_key(name: &str) -> bool {
 }
 
 /// Ensure `<cache_root>/.gitignore` ignores the whole cache, so no project ever
-/// tracks the scratch entries — cross-project, without an `mt init` edit or a
-/// root `.gitignore` line.
+/// tracks the scratch entries. That holds cross-project, without an `mt init`
+/// edit or a root `.gitignore` line.
 pub(crate) fn ensure_ignored(cache_root: &Path) {
     let ignore = cache_root.join(".gitignore");
     if !ignore.exists() {

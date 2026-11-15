@@ -5,7 +5,7 @@
 //! library: `ref: refs/heads/<name>` names a branch, a raw commit sha is a
 //! detached `HEAD`, and a `.git` *file* (`gitdir: <path>`, the worktree/
 //! submodule form) redirects to `<path>/HEAD`. Any I/O error, or a `HEAD` this
-//! module cannot parse, resolves to `None` — `on_branch` treats that the same
+//! module cannot parse, resolves to `None`. `on_branch` treats that the same
 //! as "not a git repo".
 //!
 //! # Files
@@ -17,7 +17,8 @@ pub mod state;
 use std::path::{Path, PathBuf};
 
 /// Resolve the current branch name from `root`'s `.git`. `None` when `root`
-/// is not a git working copy, `HEAD` is detached, or anything cannot be read.
+/// is not a git working copy, when `HEAD` holds a raw sha, or when an I/O
+/// error occurs.
 #[must_use]
 pub fn current_branch(root: &Path) -> Option<String> {
     let head_path = resolve_head_path(root)?;
@@ -48,8 +49,8 @@ fn resolve_head_path(root: &Path) -> Option<PathBuf> {
 }
 
 /// Parse a `HEAD` file's contents into a branch name. `ref: refs/heads/<name>`
-/// yields `Some(name)`; anything else (a raw sha — detached `HEAD` — or a
-/// malformed line) yields `None`.
+/// yields `Some(name)`. Anything else yields `None`: a raw sha (a detached
+/// `HEAD`) or a malformed line.
 fn parse_head(contents: &str) -> Option<String> {
     let line = contents.trim();
     let target = line.strip_prefix("ref:")?.trim();

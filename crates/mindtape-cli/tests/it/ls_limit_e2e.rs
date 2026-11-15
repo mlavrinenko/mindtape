@@ -5,11 +5,11 @@
 //! what a truncated listing says about the rows it hid.
 //!
 //! The signal is format-shaped on purpose. A table gets a `more not shown` line
-//! under its footer; `--json` gets an envelope key, since it is already a
-//! document rather than a record stream; and `csv` / `path` /
-//! `path0` get nothing at all — a prose line appended to those is corruption
-//! for the `csv` reader or `xargs -0` on the other end of the pipe, which is
-//! the exact failure `--limit` exists to avoid.
+//! under its footer. `--json` gets an envelope key, since it is already a
+//! document rather than a record stream. `csv`, `path` and `path0` get nothing
+//! at all. A prose line appended to those is corruption for the `csv` reader or
+//! `xargs -0` on the other end of the pipe, which is the exact failure `--limit`
+//! exists to avoid.
 #![allow(clippy::unwrap_used)]
 
 use crate::support;

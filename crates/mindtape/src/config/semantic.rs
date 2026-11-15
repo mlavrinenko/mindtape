@@ -92,7 +92,7 @@ impl Config {
 
 /// The first undeclared `derived.<name>` each saved task filter reads, one
 /// problem per expression. The dry runs cover `[[tasks.rules]]`, `required`
-/// and `[[on.flip]]`; these are the filters only parsed elsewhere.
+/// and `[[on.flip]]`. These are the filters only parsed elsewhere.
 fn unknown_derived_refs(config: &Config) -> Vec<Problem> {
     let mut problems = Vec::new();
     let mut check = |at: String, source: &str| {

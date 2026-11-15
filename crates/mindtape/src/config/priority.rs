@@ -27,7 +27,7 @@ pub struct PriorityConfig {
     /// Name of the framework that computes priority, a key of `frameworks`.
     /// Absent means priority is a raw number.
     pub framework: Option<String>,
-    /// Whether a raw integer is accepted while a framework is active.
+    /// Whether a raw integer passes while a framework is active.
     pub allow_manual: bool,
     /// Scoring frameworks by name: the built-in ones merged with any declared
     /// here.

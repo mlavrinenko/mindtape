@@ -1,14 +1,14 @@
 //! End-to-end tests for `mt add --format`, reusing `mt ls`'s `text`/`path`/
-//! `path0`/`json` vocabulary. Each format is checked against every dedup
-//! outcome (`wrote`, `skipped`, `suffixed`) so a script can tell them apart
-//! without parsing prose — the pairing `add-dedup-modes-to-mt-add.typ` and
-//! `give-mt-add-machine-readable-output.typ` both call out.
+//! `path0`/`json` vocabulary. The tests check each format against every dedup
+//! outcome (`wrote`, `skipped`, `suffixed`), so a script can tell them apart
+//! without parsing prose. The pairing `add-dedup-modes-to-mt-add.typ` and
+//! `give-mt-add-machine-readable-output.typ` both call it out.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
 use mindtape::test_support::write_file;
 
-/// `mt add`'s reported path is the exact `dest.join(...)` it wrote to — under
+/// `mt add`'s reported path is the exact `dest.join(...)` it wrote to. Under
 /// the default destination, that is `<project root>/tasks/<rel>` in full,
 /// mirroring today's `wrote <path>` prose (never shortened to a cwd-relative
 /// form the way `mt ls --format path` shows a task's `file`).
@@ -240,8 +240,8 @@ fn print_ignores_format_and_previews_source_instead() {
     assert!(!dir.path().join("tasks/preview.typ").exists());
 }
 
-/// The slug hash the text report names on its first line, so the task can be
-/// named at once.
+/// The slug hash the text report names on its first line, so a caller can use
+/// it at once.
 fn reported_hash(stdout: &str) -> String {
     let first = stdout.lines().next().unwrap_or_default();
     first
@@ -252,8 +252,8 @@ fn reported_hash(stdout: &str) -> String {
         .to_owned()
 }
 
-/// The text report names the hash that `mt eval` resolves, then ends on that
-/// very command.
+/// The text report prints the hash that `mt eval` resolves, then ends on that
+/// command.
 #[test]
 fn text_report_names_the_slug_hash_and_ends_on_the_command_that_reads_it() {
     let dir = support::scaffold();

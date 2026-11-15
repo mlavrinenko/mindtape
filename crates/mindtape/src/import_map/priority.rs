@@ -15,9 +15,9 @@ use crate::model::numeric::{InputValue, NumValue, NumericField, format_num};
 use super::report::ReportEntry;
 
 /// Reverse a canonical `priority` into its authored [`NumValue`] form,
-/// reporting strict-framework and scale violations. `score` is read-side only
-/// and ignored (see the module doc's "Priority parity" section in
-/// `model/canonical.rs`).
+/// reporting strict-framework and scale violations. The mapper ignores `score`,
+/// which only the read side uses (see the module doc's "Priority parity"
+/// section in `model/canonical.rs`).
 pub(crate) fn map_priority(
     canonical: Option<&CanonicalPriority>,
     config: &Config,
@@ -39,7 +39,7 @@ pub(crate) fn map_priority(
 }
 
 /// Reverse a canonical `difficulty` into its authored [`NumValue`] form
-/// (never a framework — the canonical schema never authors one, see
+/// (never a framework, since the canonical schema never authors one, see
 /// `model/canonical.rs::num_to_canonical`), reporting scale violations.
 pub(crate) fn map_difficulty(
     canonical: Option<&CanonicalNum>,

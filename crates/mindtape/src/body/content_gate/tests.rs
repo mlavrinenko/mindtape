@@ -1,4 +1,4 @@
-//! `[[tasks.body.content.rules]]` — rule compilation and section-content
+//! `[[tasks.body.content.rules]]`: rule compilation and section-content
 //! checking: path selection (exact + regex segments), section-span slicing
 //! through nested subsections, the six assertion shapes, `when` gating, the
 //! `message` override, and the word-count semantics.

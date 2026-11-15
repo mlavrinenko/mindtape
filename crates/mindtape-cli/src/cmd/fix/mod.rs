@@ -1,13 +1,13 @@
-//! `mt fix` — run the fixers that repair files an `mt` upgrade left behind.
+//! `mt fix` runs the fixers that repair files an `mt` upgrade left behind.
 //!
 //! Today there is one fixer. `prelude-import` rewrites an import of
 //! `@local/mindtape` at an older version this binary does not read, changing
 //! only the version bytes. `--check` reports an unsupported pin without writing
-//! and exits 1 while one remains; `--dry-run` prints every edit; `--list`
+//! and exits 1 while one remains. `--dry-run` prints every edit. `--list`
 //! names the fixers.
 //!
-//! The scan reads config with [`mindtape::load_config`] and never loads tasks:
-//! a file with an unsupported import is exactly the file a task load would
+//! The scan reads config with [`mindtape::load_config`] and never loads tasks.
+//! A file with an unsupported import is exactly the file a task load would
 //! fail on. The whole scan is a preflight, so a newer pin, a malformed spec,
 //! an unreadable file or a symlinked file with an edit aborts before any file
 //! changes. A successful write ends with `mt check`.
@@ -48,11 +48,11 @@ pub struct FixArgs {
     #[arg(long)]
     pub list: bool,
 
-    /// Print every edit and write nothing.
+    /// Print every edit and leave the tree untouched.
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Exit 1 while an unsupported prelude import remains, writing nothing.
+    /// Exit 1 while an unsupported prelude import remains, and leave the tree untouched.
     #[arg(long)]
     pub check: bool,
 
@@ -103,7 +103,7 @@ struct ScannedFile {
     imports: Vec<PreludeImport>,
 }
 
-/// The whole preflight: files read, and the files that could not be read.
+/// Every file the preflight read, and every file it could not read.
 struct Scan {
     files: Vec<ScannedFile>,
     errors: Vec<Diag>,
@@ -115,7 +115,7 @@ struct SeenVersion {
     pinned: bool,
 }
 
-/// A source ready to land, built before anything is written.
+/// A source ready to land, built before the run writes anything.
 struct PendingWrite {
     path: PathBuf,
     source: String,
@@ -131,9 +131,8 @@ struct Plan {
 /// Run `mt fix`.
 ///
 /// # Errors
-/// Returns an error when the project cannot be found or its config cannot be
-/// loaded, when a file refuses the scan, or when the post-write `mt check`
-/// finds a problem.
+/// Returns an error when the root lookup or the config load fails, when a file
+/// refuses the scan, or when the post-write `mt check` finds a problem.
 pub fn run(args: &FixArgs) -> Result<()> {
     if args.list {
         list();
@@ -153,7 +152,7 @@ pub fn run(args: &FixArgs) -> Result<()> {
     scan.fix(args.dry_run)
 }
 
-/// Whether `args` asks for `fixer`: every fixer when none is named.
+/// Whether `args` asks for `fixer`: every fixer when the command line names none.
 fn enabled(args: &FixArgs, fixer: Fixer) -> bool {
     args.fixer.is_none_or(|chosen| chosen == fixer)
 }
@@ -194,8 +193,8 @@ fn read_all(root: &Path, paths: &[PathBuf], pin: Option<&str>) -> Scan {
 }
 
 impl Scan {
-    /// `--check`: one diagnostic per unsupported version, plus every file that
-    /// could not be read or whose spec is malformed. Writes nothing.
+    /// `--check`: one diagnostic per unsupported version, plus every file the
+    /// scan could not read or whose spec does not parse. It leaves every file alone.
     fn check(&self) -> Result<()> {
         let mut diags = self.errors.clone();
         let mut kept = Vec::new();
@@ -345,8 +344,8 @@ fn malformed_diag(file: &Path, import: &PreludeImport) -> Diag {
         .hint(Hint::new("write the spec as @local/mindtape:<version>"))
 }
 
-/// A symlinked file with an edit: the target is outside this project's tree,
-/// so the fixer reports it and leaves the link alone.
+/// A symlinked file with an edit: the target is outside this project's tree.
+/// The fixer reports it and leaves the link alone.
 fn symlink_diag(file: &ScannedFile, import: &PreludeImport) -> Diag {
     let version = import.version.as_deref().unwrap_or("");
     Diag::refused("won't rewrite a symlinked file")
@@ -377,7 +376,7 @@ fn write_all(writes: &[PendingWrite]) -> Result<()> {
 }
 
 /// Emit every diagnostic but the last, and return the last as the command's
-/// failure so it is printed once, as the final line.
+/// failure so it prints once, as the final line.
 fn fail_after_emitting(mut diags: Vec<Diag>) -> Result<()> {
     match diags.pop() {
         None => Ok(()),

@@ -1,7 +1,7 @@
 //! `Field` implementations for the displayable task fields.
 //!
 //! Legend-backed discrete fields ([`Status`]) resolve through the status
-//! legend; numeric fields ([`Priority`], [`Difficulty`]) resolve through their
+//! legend. Numeric fields ([`Priority`], [`Difficulty`]) resolve through their
 //! [`NumericField`] classification. `kind` and `tags` adopt the legend pattern
 //! when they gain display columns.
 

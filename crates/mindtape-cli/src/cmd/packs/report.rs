@@ -1,7 +1,7 @@
 //! What `mt packs update` prints under a moved source: each pack and file
-//! the move changes, and every new command line in full, so the lock's diff
-//! is not the only record a reviewer gets. The report waits in a [`Report`]
-//! until the lock is written.
+//! the move changes, and every new command line in full. The lock's diff is
+//! then not the only record a reviewer gets. The report waits in a [`Report`]
+//! until the lock write lands.
 //!
 //! ```text
 //! acme v1: 3f2c1a9 → 8d01e44
@@ -20,7 +20,7 @@ use mindtape::config::pack_sources::{self, FetchError, LockedSource, TreeDiff};
 use crate::diag::{self, Diag};
 
 /// What `mt packs update` prints, and the warnings it emits, held until the
-/// lock is written.
+/// lock write lands.
 #[derive(Default)]
 pub(super) struct Report {
     out: String,

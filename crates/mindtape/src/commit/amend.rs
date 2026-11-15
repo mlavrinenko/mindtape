@@ -1,21 +1,22 @@
 //! Which commit a `commit-msg` hook's index becomes the child of, and whether
 //! it is a merge.
 //!
-//! A new commit follows `HEAD`. `git commit --amend` replaces `HEAD`, so the
-//! commit it makes follows `HEAD^` and the index is judged against that.
+//! A new commit follows `HEAD`. `git commit --amend` replaces `HEAD`. The
+//! commit it makes follows `HEAD^`, and the check judges the index against
+//! that.
 //!
-//! The hook cannot be told which one it is in. git exports no variable for
-//! it: `GIT_REFLOG_ACTION` is unset in a `commit-msg` hook, and
-//! `prepare-commit-msg` gets the same `commit HEAD` arguments for
-//! `--amend` as for `-C HEAD`, a plain new commit. The one reliable witness
-//! is the `git commit` process that runs the hook, which is an ancestor of
-//! this one and has `--amend` on its command line. [`amending`] walks up the
-//! process tree to the nearest `git commit` and looks for that flag. `--amend`
-//! has no short form, so the match is exact, and `git rebase` rewords through
-//! `git commit --amend`, so it is judged the same way. Where the process
-//! tree cannot be read (Windows, no `ps`) or the command was a git alias that
-//! hides its arguments, the answer is no and the commit is judged against
-//! `HEAD`, as before.
+//! The hook's environment does not distinguish the two cases.
+//! `GIT_REFLOG_ACTION` is unset in a
+//! `commit-msg` hook, and `prepare-commit-msg` gets the same `commit HEAD`
+//! arguments for `--amend` as for `-C HEAD`, a plain new commit. The one
+//! reliable witness is the `git commit` process that runs the hook, which is
+//! an ancestor of this one and has `--amend` on its command line. [`amending`]
+//! reads the parent chain to the nearest `git commit` and looks for that flag.
+//! `--amend` has no short form, so the match is exact. `git rebase` rewords
+//! through `git commit --amend`, and the check judges that the same way. Where
+//! the process tree is unavailable (Windows, no `ps`) or the command was a git
+//! alias that hides its arguments, the answer is no. The check then judges the
+//! commit against `HEAD`, as before.
 
 use std::path::Path;
 use std::process::Command;
@@ -25,9 +26,9 @@ use crate::commit::{CommitMsgError, git, git_optional};
 /// How far up the process tree to look for the `git commit` that runs the hook.
 const MAX_DEPTH: usize = 12;
 
-/// The revision the index is diffed against: `HEAD`, or while amending the
-/// parent of `HEAD`, or the empty tree when the commit it follows is a root or
-/// the repository has no commit yet.
+/// The revision the check diffs the index against: `HEAD`, the parent of
+/// `HEAD` while amending, or the empty tree. The check uses the empty tree
+/// when the commit it follows is a root or the repository has no commit yet.
 pub(crate) fn base_rev(root: &Path) -> Result<String, CommitMsgError> {
     if !amending() {
         return match git_optional(root, &["rev-parse", "--verify", "--quiet", "HEAD"])? {
@@ -42,20 +43,20 @@ pub(crate) fn base_rev(root: &Path) -> Result<String, CommitMsgError> {
     }
 }
 
-/// The empty tree's object id, the parent a root commit is read against.
+/// The empty tree's object id, the parent the check reads a root commit against.
 fn empty_tree(root: &Path) -> Result<String, CommitMsgError> {
     Ok(git(root, &["hash-object", "-t", "tree", "--stdin"])?
         .trim()
         .to_owned())
 }
 
-/// Whether the commit a `commit-msg` check is judging is a merge: a merge is
-/// in progress (`MERGE_HEAD`), or `git commit --amend` replaces a commit with
+/// Whether the commit a `commit-msg` check judges is a merge. A merge is in
+/// progress (`MERGE_HEAD`), or `git commit --amend` replaces a commit with
 /// more than one parent. An amend has no `MERGE_HEAD`, since the merge it
 /// replaces is already committed.
 ///
 /// # Errors
-/// [`CommitMsgError::NotGit`] when `root` is not inside a git working tree;
+/// [`CommitMsgError::NotGit`] when `root` is not inside a git working tree.
 /// [`CommitMsgError::Git`] / [`CommitMsgError::Spawn`] when git fails.
 pub fn writing_a_merge(root: &Path) -> Result<bool, CommitMsgError> {
     let merge_head = git_optional(root, &["rev-parse", "-q", "--verify", "MERGE_HEAD"]).map_err(
@@ -77,7 +78,7 @@ pub fn writing_a_merge(root: &Path) -> Result<bool, CommitMsgError> {
     }
 }
 
-/// Whether the `git commit` running this hook was given `--amend`.
+/// Whether the `git commit` running this hook carries `--amend`.
 pub(crate) fn amending() -> bool {
     let mut chain = Vec::new();
     let mut pid = std::process::id();

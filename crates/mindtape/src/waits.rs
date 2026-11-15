@@ -7,10 +7,10 @@
 //! run = "scripts/locked {id}"
 //! ```
 //!
-//! A task names what it waits on as `checker:id` entries, such as
+//! A task specifies what it waits on as `checker:id` entries, such as
 //! `waits-on: ("locked:redis@0.27.6",)`. The checker's `run` line, with `{id}`
 //! replaced, goes through [`crate::shell`] from the project root. Exit 0 means
-//! the wait is over, so the entry blocks nothing. Exit 1 means the task still
+//! the wait is over, and the entry stops blocking. Exit 1 means the task still
 //! waits. Any other exit, a signal, or a shell that cannot start means the
 //! answer is unknown, and an unknown answer blocks too. The first line the
 //! command prints is the answer's text, which the `why` column shows.
@@ -25,16 +25,17 @@
 //! one. An array `run` fills `{id}` into each item, where no shell reads it.
 //! The id rule holds there too, so an entry is valid under either form.
 //!
-//! No checker runs until the user allows the config's commands with `mt allow`
-//! ([`crate::allow`]). Until then every entry answers [`Answer::NotAllowed`],
+//! `mt` runs a checker only after the user allows the config's commands with
+//! `mt allow` ([`crate::allow`]). Until then every entry answers
+//! [`Answer::NotAllowed`],
 //! which blocks like an unknown answer, and [`crate::allow::held_back`] names
 //! the commands for the one warning the caller prints.
 //!
-//! A checker runs with [`NESTED_ENV`] set, and an `mt` that finds it set runs
-//! no checker: every entry answers [`Answer::Nested`]. So a checker that runs
-//! `mt` against its own project, which loads the project and asks its waits
-//! again, gets one answer instead of spawning itself without end. Nesting
-//! stops at one level by construction, whatever the checkers run.
+//! A checker runs with [`NESTED_ENV`] set, and an `mt` that finds it set skips
+//! every checker: each entry answers [`Answer::Nested`]. So a checker that runs
+//! `mt` against its own project, which loads the project and evaluates its
+//! waits again, gets one answer instead of spawning itself without end.
+//! Nesting stops at one level by construction, whatever the checkers run.
 
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
@@ -55,22 +56,22 @@ use crate::suggest::Unknown;
 pub struct Checker {
     /// The name a `waits-on` entry writes before its colon.
     pub name: String,
-    /// The command, with `{id}` standing for the entry's id: a line that runs
-    /// through `sh -c`, or `cmd /C` on Windows, or an array whose program runs
-    /// with no shell and whose every item gets `{id}` filled. It runs from the
-    /// project root. Exit 0 means the wait is over, 1 means it goes on,
-    /// anything else is unknown.
+    /// The command, with `{id}` standing for the entry's id. A line runs
+    /// through `sh -c`, or `cmd /C` on Windows. An array runs its program
+    /// directly, without a shell, and fills `{id}` into every item. It runs
+    /// from the project root. Exit 0 means the wait is over, 1 means it goes
+    /// on, anything else is unknown.
     pub run: ConfigCommand,
 }
 
 /// What a checker answered for one `waits-on` entry.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Answer {
-    /// Exit 0: the wait is over, and the entry blocks nothing.
+    /// Exit 0: the wait is over, and the entry stops blocking.
     Resolved,
     /// Exit 1: the task still waits, for the reason the line gives.
     Waiting(String),
-    /// Anything else: the checker could not tell, for the reason the line
+    /// Anything else: the checker failed to answer, for the reason the line
     /// gives. Blocks like [`Answer::Waiting`].
     Unknown(String),
     /// The checker did not run, since the user has not allowed the config's
@@ -82,7 +83,7 @@ pub enum Answer {
 }
 
 impl Answer {
-    /// The text `why` shows beside the entry; `None` for a resolved wait.
+    /// The text `why` shows beside the entry. `None` for a resolved wait.
     #[must_use]
     pub fn reason(&self) -> Option<String> {
         match self {
@@ -99,12 +100,12 @@ impl Answer {
 /// [`crate::Blocker`] each unanswered entry becomes.
 pub const FIELD: &str = "waits-on";
 
-/// The punctuation an id may hold beside ASCII letters and digits. None of it
-/// means anything to `sh` or `cmd` inside a word, and an id starts with a
-/// letter or digit, so it cannot open an option or a comment either.
+/// The punctuation an id may hold beside ASCII letters and digits. `sh` and
+/// `cmd` read it as part of the word, and an id starts with a letter or digit,
+/// so it cannot open an option or a comment either.
 pub const ID_PUNCT: &str = "._@/#:+-";
 
-/// The variable every checker runs with. An `mt` that finds it set runs no
+/// The variable every checker runs with. An `mt` that finds it set skips every
 /// checker of its own and answers [`Answer::Nested`] instead.
 pub const NESTED_ENV: &str = "MINDTAPE_WAITS_CHECKER";
 
@@ -120,7 +121,7 @@ enum Permit {
 }
 
 /// Every answer this process has had, keyed by project root and command line,
-/// so a checker that several tasks or several loads ask about runs once.
+/// so a checker that many tasks or many loads ask about runs once.
 static ANSWERS: Mutex<BTreeMap<(PathBuf, ConfigCommand), Answer>> = Mutex::new(BTreeMap::new());
 
 /// Stamp each open task's [`Task::answers`] with what its checkers say, running
@@ -131,8 +132,8 @@ pub fn annotate(tasks: &mut [Task], config: &Config, root: &Path) {
     annotate_with(tasks, config, root, || permit(config, root));
 }
 
-/// [`annotate`], with `permit` saying whether checkers may run. It is asked
-/// only when some open task waits on something.
+/// [`annotate`], with `permit` saying whether checkers may run. A caller runs
+/// it only when some open task waits on something.
 fn annotate_with(
     tasks: &mut [Task],
     config: &Config,

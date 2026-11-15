@@ -1,9 +1,9 @@
 //! The `$schema` envelope every object output carries.
 //!
 //! [`Envelope`] names the schema the object conforms to and flattens the
-//! payload beside it, so a consumer reads the output's own keys at the top
-//! level. `$schema` is written first, and the payload follows in declaration
-//! order.
+//! payload beside it. A consumer then reads the output's own keys at the top
+//! level. The serializer emits `$schema` first, and the payload follows in
+//! declaration order.
 
 use serde::Serialize;
 

@@ -9,13 +9,13 @@ use crate::diag::{Diag, Kind, Note, Result};
 use crate::pre_write::{Pending, Verdict};
 
 /// Print every entry's warnings and every rejected entry's problems, then fail
-/// with the last problem, or succeed when none was rejected. The refusal has
+/// with the last problem, or succeed when every entry passed. The refusal has
 /// no summary line of its own: the problems are the report.
 ///
-/// A warning prints as `warning:` and a problem as `error:`, so the prefix
+/// A warning prints as `warning:` and a problem as `error:`. The prefix then
 /// carries each line's outcome.
 ///
-/// Warnings print for accepted entries too — that is the whole of what a
+/// Warnings print for accepted entries too. That is the whole of what a
 /// `severity = "warn"` rule does at a write: say it, and let the file land.
 /// Printing them only on refusal would make the warn level invisible exactly
 /// when it is the only thing the rule has to say.
@@ -28,13 +28,13 @@ pub(super) fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> 
 }
 
 /// Print what `verdicts` say, one per entry named by `labels`, and return the
-/// refusal when any entry was rejected: the last problem, not yet printed, for
-/// the caller to fail with.
+/// refusal when any entry failed: the last problem, not yet printed, for the
+/// caller to fail with.
 ///
-/// A load failure that names the missing prelude carries the install hints,
-/// once per batch. A breach the write raises on another task is a `note:` on
-/// the refusal, once per batch however many entries raise it; when it is the
-/// only reason, the refusal says so.
+/// A load failure that identifies the missing prelude carries the install
+/// hints, once per batch. A breach the write raises on another task is a
+/// `note:` on the refusal, once per batch however many entries raise it. When
+/// it is the only reason, the refusal says so.
 pub(crate) fn settle(labels: &[String], verdicts: &[Verdict]) -> Option<Diag> {
     let mut lines = entry_lines(labels, verdicts);
     let notes = elsewhere_lines(verdicts, &mut lines);
@@ -50,7 +50,8 @@ pub(crate) fn settle(labels: &[String], verdicts: &[Verdict]) -> Option<Diag> {
 }
 
 /// Each entry's load failure and breaches as messages, in entry order. The
-/// first load failure that names the missing prelude carries the install hints.
+/// first load failure that identifies the missing prelude carries the install
+/// hints.
 fn entry_lines(labels: &[String], verdicts: &[Verdict]) -> Vec<Diag> {
     let mut lines: Vec<Diag> = Vec::new();
     let mut hinted = false;
@@ -69,8 +70,8 @@ fn entry_lines(labels: &[String], verdicts: &[Verdict]) -> Vec<Diag> {
 }
 
 /// The breaches the batch raises on other tasks, each once however many
-/// entries raise it: a fatal one as a note for the refusal, a warning as a
-/// message of its own in `lines`.
+/// entries raise it. A fatal one becomes a note for the refusal, and a warning
+/// becomes a message of its own in `lines`.
 fn elsewhere_lines(verdicts: &[Verdict], lines: &mut Vec<Diag>) -> Vec<Note> {
     let mut notes = Vec::new();
     let mut seen = BTreeSet::new();
@@ -88,8 +89,7 @@ fn elsewhere_lines(verdicts: &[Verdict], lines: &mut Vec<Diag>) -> Vec<Note> {
     notes
 }
 
-/// How a problem names the file it is about: the stem, which is the task's
-/// identity.
+/// The label of a problem is the file stem, which is the task's identity.
 pub(super) fn label(file: &Path) -> String {
     file.file_stem()
         .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())

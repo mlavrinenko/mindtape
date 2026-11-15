@@ -10,20 +10,20 @@ use crate::model::fields;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// What makes one saved filter expression unusable, if anything: a syntax
-/// error, or a structural problem a dry-run against `probe` surfaces — an
+/// What makes one saved filter expression unusable, if anything. A syntax
+/// error, or a structural problem a dry-run against `probe` surfaces: an
 /// unknown field, an unknown view, an unknown dictionary, an invalid regex.
 ///
 /// The load-time half of every config section that stores an expression
 /// (`required`, `[[tasks.limits]]`, `[[tasks.rules]]`). Each of those calls it
 /// once per expression from [`crate::config::Config::validate`] and prefixes
-/// the answer with its own dotted TOML path, so a malformed expression is one
-/// config error at load rather than a surprise per artifact — or, for a rule,
+/// the answer with its own dotted TOML path. A malformed expression is then one
+/// config error at load rather than a surprise per artifact, or, for a rule,
 /// one violation per artifact.
 ///
-/// The dry run never reads git: a `changed()` call has its states and globs
-/// checked and counts zero, so loading a config outside a repository is not
-/// an error and loading one inside it costs no `git status`.
+/// The dry run never reads git. A `changed()` call has its states and globs
+/// checked and counts zero, so loading a config outside a repository is not an
+/// error, and loading one inside it costs no `git status`.
 #[must_use]
 pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Option<Problem> {
     match Filter::parse(source) {
@@ -35,7 +35,7 @@ pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Optio
     }
 }
 
-/// `err` as a problem, carrying the dictionary names an unknown `in_dict`
+/// `err` as a problem, carrying the dictionary candidates an unknown `in_dict`
 /// could have meant.
 pub(crate) fn problem_of(err: &super::FilterError) -> Problem {
     let problem = Problem::new(err.to_string());
@@ -49,9 +49,9 @@ pub(crate) fn problem_of(err: &super::FilterError) -> Problem {
 
 /// The `x-` names `source` reads that `[tasks.fields]` does not declare, each
 /// as a warning with the nearest declared name. Empty while the config declares
-/// no `x-` field at all, and for an expression that does not parse: a misspelt
-/// name is a likely typo only beside declared ones, and reading an undeclared
-/// name stays legal.
+/// no `x-` field at all, and for an expression that does not parse. A
+/// misspelled name is a likely typo only beside declared ones, and reading an
+/// undeclared name stays legal.
 #[must_use]
 pub(crate) fn undeclared_extras(source: &str, config: &Config) -> Vec<Problem> {
     let declared: Vec<String> = config
@@ -78,8 +78,8 @@ pub(crate) fn undeclared_extras(source: &str, config: &Config) -> Vec<Problem> {
         .collect()
 }
 
-/// [`expr_problem`] for an expression evaluated over the loaded set — a
-/// `[[tasks.rules]]` entry, an `[[on.flip]]` hook — so `count(...)` passes the
+/// [`expr_problem`] for an expression evaluated over the loaded set (a
+/// `[[tasks.rules]]` entry, an `[[on.flip]]` hook), so `count(...)` passes the
 /// dry run: the probe is its own one-task set. The run is dry, so loading
 /// never reads git for `changed()` or `touches()`.
 #[must_use]
@@ -115,13 +115,13 @@ pub(crate) fn expr_problem_add(source: &str, probe: &Task, config: &Config) -> O
     }
 }
 
-/// The first `derived.<name>` a filter reads that no collector declares, as a
-/// load-time problem. Empty for an expression that does not parse, since
+/// The first `derived.<name>` a filter reads that the collectors don't declare,
+/// as a load-time problem. Empty for an expression that does not parse, since
 /// another check reports the syntax error.
 ///
 /// `has(derived.x, value)` and `len(derived.x)` read a field without
-/// comparing it, so the dry run alone would not reach every saved filter;
-/// this scan covers body rules, views, `[[ls.rules]]` and `[rm]` too.
+/// comparing it, so the dry run alone would not reach every saved filter. This
+/// scan covers body rules, views, `[[ls.rules]]` and `[rm]` too.
 #[must_use]
 pub(crate) fn unknown_derived(source: &str, config: &Config) -> Option<Problem> {
     let filter = Filter::parse(source).ok()?;

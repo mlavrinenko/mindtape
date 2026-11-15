@@ -1,15 +1,15 @@
 //! `@name` sugar and the `mt at` command.
 //!
-//! `at.toml` itself ([`mindtape::AtConfig`]) is pure; this module is the I/O and
+//! `at.toml` itself ([`mindtape::AtConfig`]) is pure. This module is the I/O and
 //! CLI edge: locate and read the app-scoped file, resolve a leading `@token`,
 //! and rewrite it before clap parses. A project becomes `-w <path>`, so
 //! `mt @sn ls` reuses the existing worktree-override plumbing and every command
-//! honours it uniformly. A set is held for the commands that call
+//! honours it uniformly. The rewrite holds a set for the commands that call
 //! `project_set::open_set`, and `util::open` refuses it.
 //!
-//! Only the first post-program argument is treated as sugar; `@name` anywhere
-//! else (the view sigil, `mt ls @view`) is left untouched, so the two `@` uses
-//! stay disjoint by position.
+//! Only the first post-program argument counts as sugar. `@name` anywhere else
+//! (the view sigil, `mt ls @view`) stays untouched, so the two `@` uses stay
+//! disjoint by position.
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -113,8 +113,8 @@ fn show_one(config: &AtConfig, path: Option<&Path>, name: &str, json: bool) -> R
     Ok(())
 }
 
-/// One line per member: the name padded to the longest, the path (`~/…` under
-/// `home`), and a `(fork)` mark.
+/// Render one line per member, with the name padded to the longest, the path
+/// (`~/…` under `home`), and a `(fork)` mark.
 fn member_lines(members: &[Member], home: Option<&Path>) -> Vec<String> {
     let width = members
         .iter()
@@ -239,7 +239,7 @@ fn print_json<T: Serialize>(value: &Envelope<T>) {
 /// `@name` gains the `board` command.
 ///
 /// # Errors
-/// Returns an error if the leading `@token` cannot be resolved.
+/// Returns an error if the leading `@token` does not resolve.
 pub fn desugar_argv(argv: Vec<OsString>) -> Result<Vec<OsString>> {
     let name = leading_token(&argv);
     let command = argv.get(2..).and_then(command_word);
@@ -350,7 +350,7 @@ fn resolve(
         })
 }
 
-/// The refusal of a name several directories answer to: each one with the
+/// The refusal of a name that more than one directory holds: each one with the
 /// suffix name that picks it, and a command line that does.
 fn clash(
     token: &str,
@@ -376,10 +376,10 @@ fn clash(
 
 /// A helpful "unknown name" error: a nearest-match hint, the known names and
 /// where `at.toml` lives, as notes. A leading `@token` is this sugar, rewritten
-/// before clap ever sees it — a bare `[views.<name>]` reference only ever
-/// appears in argument position (`mt ls @view`) — so the two error messages
-/// never fire for the same input and stay distinguishable by their leading
-/// word (`unknown name` vs. `unknown view`) alone.
+/// before clap ever sees it. A bare `[views.<name>]` reference only ever
+/// appears in argument position (`mt ls @view`). The two error messages never
+/// fire for the same input, and stay distinguishable by their leading word
+/// (`unknown name` vs. `unknown view`) alone.
 fn unknown_name(token: &str, config: &AtConfig, path: Option<&Path>) -> Diag {
     let names = config.names();
     let diag = Diag::usage("unknown name").value(format!("@{token}"));
@@ -409,8 +409,8 @@ fn no_at() -> Result<AtConfig> {
 }
 
 /// Load `at.toml`, returning it alongside the expected path (`None` only when
-/// the config dir cannot be resolved). A missing file is an empty config, not
-/// an error; only a malformed file fails.
+/// the config dir does not resolve). A missing file is an empty config, not an
+/// error. Only a malformed file fails.
 pub(crate) fn load_at() -> Result<(AtConfig, Option<PathBuf>)> {
     let Some(path) = at_path() else {
         return Ok((no_at()?, None));

@@ -44,8 +44,8 @@ fn a_destination_outside_every_root_is_not_refused() {
     assert!(check(&project, &outside.path().join("new.typ"), Mode::Add).is_ok());
 }
 
-/// The final component is never followed, so a destination that is itself a
-/// symlink is refused rather than answered for its target.
+/// The resolver never follows the final component. The guard then refuses a
+/// destination that is itself a symlink rather than answering for its target.
 #[cfg(unix)]
 #[test]
 fn a_destination_that_is_a_symlink_is_refused() {

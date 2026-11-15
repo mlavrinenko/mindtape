@@ -1,19 +1,19 @@
-//! Task references: the path, stem or stem hash typed to name one task, and the
+//! Task references: the path, stem or stem hash that references one task, and
 //! one resolver every reader of them calls.
 //!
-//! A reference reads the same wherever it is typed: a path, else an exact stem,
+//! A reference reads the same wherever it appears: a path, else an exact stem,
 //! else a [stem hash](crate::model::handle). Only its [`Base`] differs. A
 //! `<task>` on the command line reads a path from the working directory, and a
 //! `links:` target reads it from the linking file, as `mt check` reads the
-//! written edge. A stem several tasks share names the one in the base's folder,
-//! else none of them.
+//! written edge. A stem that more than one task shares resolves to the one in
+//! the base's folder, else none of them.
 
 use std::path::{Path, PathBuf};
 
 use crate::model::handle::{Resolution, StemHashes};
 use crate::model::{Task, relative_target, resolve_link_path};
 
-/// Where a reference is read from.
+/// The place a reference reads from.
 #[derive(Debug, Clone, Copy)]
 pub enum Base<'a> {
     /// A `<task>` typed on the command line: a path is an OS path from this
@@ -47,10 +47,10 @@ impl<'a> Base<'a> {
     }
 }
 
-/// How a reference named its task.
+/// How a reference specifies its task.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Via {
-    /// It is spelled as a path.
+    /// The reference spells a path.
     Path,
     /// It is the task's stem.
     Stem,
@@ -58,10 +58,10 @@ pub enum Via {
     Hash,
 }
 
-/// Why a task reference named no task.
+/// Why a task reference failed to find a task.
 #[derive(Debug, thiserror::Error)]
 pub enum RefError {
-    /// A reference spelled as a path could not be resolved.
+    /// A reference that spells a path did not resolve.
     #[error("resolve {}", crate::display_path(.path))]
     Path {
         /// The path, joined onto the working directory when relative.
@@ -70,10 +70,10 @@ pub enum RefError {
         #[source]
         source: std::io::Error,
     },
-    /// A path that no loaded task owns.
+    /// A path that no loaded task has as its file.
     #[error("no task at {}", crate::display_path(.0))]
     NoTaskAt(PathBuf),
-    /// A stem several tasks share, none of them in the base's folder.
+    /// A stem that more than one task shares, none in the base's folder.
     #[error("stem {reference:?} names {} tasks", .paths.len())]
     SharedStem {
         /// The typed reference.
@@ -81,7 +81,7 @@ pub enum RefError {
         /// The path from the base to each task, sorted.
         paths: Vec<PathBuf>,
     },
-    /// A stem hash several tasks share.
+    /// A stem hash that more than one task shares.
     #[error("stem hash {reference:?} names {} tasks", .candidates.len())]
     Ambiguous {
         /// The typed reference.
@@ -89,7 +89,7 @@ pub enum RefError {
         /// The stem hash and the stem of each task it names, sorted by stem.
         candidates: Vec<(String, String)>,
     },
-    /// The reference is empty, so it names nothing to look for.
+    /// The reference is empty, so there is nothing to look for.
     #[error("empty task reference")]
     Empty,
     /// Neither a stem nor a stem hash matches.
@@ -107,15 +107,15 @@ pub enum RefError {
 pub struct Resolved<'a> {
     /// The task.
     pub task: &'a Task,
-    /// Its file: canonical when the reference was a path from the working
-    /// directory, else under the root.
+    /// The task's file, canonical when the reference was a path from the
+    /// working directory, else under the root.
     pub path: PathBuf,
     /// How the reference named it.
     pub via: Via,
 }
 
-/// Whether `reference` is spelled as a path: absolute, holding a separator, or
-/// ending `.typ`. Anything else is a stem or a stem hash.
+/// Whether `reference` spells a path: absolute, holding a separator, or ending
+/// `.typ`. Anything else is a stem or a stem hash.
 #[must_use]
 pub fn is_path_ref(reference: &str) -> bool {
     Path::new(reference).is_absolute()
@@ -128,7 +128,8 @@ pub fn is_path_ref(reference: &str) -> bool {
 ///
 /// # Errors
 /// Returns a [`RefError`] when the reference is empty, a path does not resolve
-/// or owns no task, a stem or a hash names several tasks, or nothing matches.
+/// or matches no task, a stem or a hash names more than one task, or nothing
+/// matches.
 pub fn resolve_ref<'a>(
     tasks: &'a [Task],
     root: &Path,
@@ -154,7 +155,7 @@ pub fn resolve_ref<'a>(
     }
 }
 
-/// The tasks a reference is resolved against, and where it is read from.
+/// The tasks a reference resolves against, and the place it reads from.
 struct Lookup<'a, 'b> {
     tasks: &'a [Task],
     root: &'b Path,
@@ -206,9 +207,9 @@ impl<'a> Lookup<'a, '_> {
         Ok(self.resolved(task, Via::Path))
     }
 
-    /// The task whose stem is `stem`, `None` when no task has it. A stem
-    /// several tasks share names the one in the base's folder, else is refused
-    /// as `reference`.
+    /// The task whose stem is `stem`, `None` when no task has it. A stem that
+    /// more than one task shares resolves to the one in the base's folder, else
+    /// the resolver refuses it as `reference`.
     fn stem(&self, stem: &str, reference: &str) -> Result<Option<&'a Task>, RefError> {
         let mut found: Vec<&'a Task> = self.tasks.iter().filter(|task| task.id == stem).collect();
         if found.len() < 2 {

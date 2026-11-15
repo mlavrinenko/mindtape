@@ -1,11 +1,11 @@
 //! `mt board`: one row per project, one cell per `[board]` column.
 //!
 //! On a held set (`mt @home board`, or a bare `mt @home`) every member loads in
-//! parallel through [`open_set_warned`], each under its own config; otherwise
+//! parallel through [`open_set_warned`], each under its own config. Otherwise
 //! the board is the current project's one row. [`mindtape::Board`] computes the
-//! cells, hides and sorts the rows; this module prints them. A member whose
-//! config fails is a `⚠` row naming the error, and the command exits 1 after
-//! the others print. A failed cell is `?`, with a note under the table.
+//! cells, hides and sorts the rows, and this module prints them. A member whose
+//! config fails is a `⚠` row that references the error, and the command exits 1
+//! after the others print. A failed cell is `?`, with a note under the table.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -32,7 +32,8 @@ pub struct BoardArgs {
     pub json: bool,
 }
 
-/// One project's row: its cells, or why its config would not load.
+/// One project's row, holding its cells or the reason its config would not
+/// load.
 struct Row {
     name: String,
     root: PathBuf,
@@ -211,7 +212,8 @@ fn layout(line: &[String], widths: &[usize], right: &[bool]) -> String {
     texts.join("  ").trim_end().to_owned()
 }
 
-/// A row's texts: the name, then each cell, or `⚠ name` and the error.
+/// A row's texts, holding the name and then each cell, or `⚠ name` and the
+/// error.
 fn row_texts(row: &Row) -> Vec<String> {
     match &row.body {
         Err(message) => vec![format!("⚠ {}", row.name), message.clone()],
@@ -245,7 +247,8 @@ pub struct BoardPayload {
     pub projects: Vec<BoardRowJson>,
 }
 
-/// One project's row: its cells, or why its config would not load.
+/// One project's row, holding its cells or the reason its config would not
+/// load.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum BoardRowJson {

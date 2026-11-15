@@ -1,7 +1,7 @@
 //! A pack from a declared source: `acme:<pack>` resolves to `<pack>.toml` or
 //! `<pack>/pack.toml` in the cached tree the lock's `sha256` names, once the
-//! tree hashes to that value. The cached tree is untrusted, so none of its
-//! files resolve outside it.
+//! tree hashes to that value. The code treats the cached tree as untrusted, so
+//! none of its files resolve outside it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::{Path, PathBuf};

@@ -3,11 +3,11 @@
 //!
 //! Every read here is total. A value that does not match the Typst shape the
 //! field projects into becomes a [`ShapeError`] on the task instead of an
-//! absent value, and [`crate::validate()`] fails `check` on any of them
+//! absent value. [`crate::validate()`] then fails `check` on any of them
 //! regardless of project config. That covers the half of the authoring surface
 //! the prelude cannot police: everything that reaches the marker intact is the
-//! Rust layer's to validate, and reading it as "unset" is the one answer that
-//! tells the author nothing.
+//! Rust layer's to validate. Reading such a value as "unset" is the one answer
+//! that tells the author nothing.
 //!
 //! # Naming a position
 //!
@@ -24,12 +24,12 @@
 //!
 //! # What `none` means
 //!
-//! A `none` dict entry reads as an unset key, never a report: the prelude's
+//! A `none` dict entry reads as an unset key, never a report. The prelude's
 //! helpers pass their own defaults through, so `ice(impact: 8)` arrives with
 //! `confidence: none` and `ease: none` in `inputs`, and an omitted field is
-//! `none` by the same route. A `none` array element is reported like any other
-//! wrong-typed one — an array has no unset slot, so a `none` in it is a value
-//! the author wrote.
+//! `none` by the same route. The reader reports a `none` array element like any
+//! other wrong-typed one. An array has no unset slot, so a `none` in it is a
+//! value the author wrote.
 
 use std::collections::BTreeMap;
 
@@ -38,17 +38,17 @@ use typst_harvest::HVal;
 use crate::model::Status;
 use crate::model::numeric::{InputValue, NumValue};
 
-/// A core field — or an element inside one — whose marker value did not match
-/// its expected Typst shape (a string where `tags:` expects an array, a number
-/// where `tags[1]` expects a string). Detected during
-/// [`crate::model::Task::from_marker`], the only place that still sees the
-/// raw, un-degraded value, instead of silently coercing it away.
+/// A core field, or an element inside one, whose marker value did not match its
+/// expected Typst shape (a string where `tags:` expects an array, a number
+/// where `tags[1]` expects a string). [`crate::model::Task::from_marker`]
+/// detects it, the only place that still sees the raw, un-degraded value,
+/// instead of silently coercing it away.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ShapeError {
     /// Field path: the field name, plus the offending position inside it when
     /// the mismatch is an element (`tags[1]`, `estimate.days`).
     pub field: String,
-    /// Human-readable cause, naming the expected shape and what was found.
+    /// Human-readable cause, naming the expected shape and the value it found.
     pub message: String,
 }
 
@@ -57,9 +57,9 @@ const NUM_EXPECTED: &str = "a number, a label, or a framework value like `ice(..
 /// What the `status:` field accepts.
 const STATUS_EXPECTED: &str = "a status like `wip(2026, 6, 14)`";
 
-/// A present, non-`none` marker field. `none` reads as absent, keeping an
-/// omitted field and an explicitly-defaulted one indistinguishable — which is
-/// what the prelude's parameter defaults emit for every unset slot.
+/// A present, non-`none` marker field. `none` reads as absent, which keeps an
+/// omitted field and an explicitly-defaulted one indistinguishable. The
+/// prelude's parameter defaults emit that for every unset slot.
 pub(crate) fn field<'a>(fields: Option<&'a HVal>, key: &str) -> Option<&'a HVal> {
     fields
         .and_then(|dict| dict.get(key))
@@ -86,10 +86,10 @@ pub(crate) fn dict_str(
     as_string(dict.get(key), &format!("{path}.{key}"), errors)
 }
 
-/// A required string entry of a marker sub-dict. Absent and `none` are
-/// reported as `found none` rather than read as unset: the sub-dicts this
-/// serves are built by a prelude helper that always writes the key, so a
-/// missing one is a malformed marker, not an omitted option.
+/// A required string entry of a marker sub-dict. Absent and `none` report as
+/// `found none` rather than read as unset. A prelude helper builds the
+/// sub-dicts this serves and always writes the key, so a missing one is a
+/// malformed marker, not an omitted option.
 pub(crate) fn dict_str_required(
     dict: &BTreeMap<String, HVal>,
     path: &str,
@@ -105,8 +105,8 @@ pub(crate) fn dict_str_required(
 }
 
 /// `value` as a string, reporting against `path` when it is present holding
-/// another type. Absent or `none` yields `None` with no report — whether that
-/// is legal is the caller's question, not this one's.
+/// another type. Absent or `none` yields `None` with no report, and whether
+/// that is legal is the caller's question, not this one's.
 fn as_string(value: Option<&HVal>, path: &str, errors: &mut Vec<ShapeError>) -> Option<String> {
     let value = value.filter(|value| !value.is_null())?;
     let Some(text) = value.as_str() else {
@@ -117,9 +117,9 @@ fn as_string(value: Option<&HVal>, path: &str, errors: &mut Vec<ShapeError>) -> 
 }
 
 /// Project the `status:` field: the prelude's `(name, date, note)` dict. A
-/// value that is not a dict at all, or a dict carrying no `name`, is the whole
-/// status gone — reported against `status`; a wrong-typed part of an otherwise
-/// readable status is reported against that part.
+/// value that is not a dict at all, or a dict carrying no `name`, loses the
+/// whole status, which reports against `status`. A wrong-typed part of an
+/// otherwise readable status reports against that part.
 pub(crate) fn parse_status(value: Option<&HVal>, errors: &mut Vec<ShapeError>) -> Option<Status> {
     let value = value?;
     let Some(dict) = value.as_dict() else {
@@ -143,8 +143,8 @@ pub(crate) fn parse_status(value: Option<&HVal>, errors: &mut Vec<ShapeError>) -
 
 /// Project a marker field into a numeric-field value: a number becomes
 /// [`NumValue::Num`], a framework dict (`(framework: …, inputs: …)`) a
-/// [`NumValue::Framework`], a string a [`NumValue::Label`]. Anything else —
-/// including a dict that is not a framework value — is reported against
+/// [`NumValue::Framework`], a string a [`NumValue::Label`]. Anything else,
+/// including a dict that is not a framework value, reports against
 /// `field_name` rather than read as an unset priority.
 pub(crate) fn parse_num_value(
     value: Option<&HVal>,
@@ -173,9 +173,9 @@ pub(crate) fn parse_num_value(
 }
 
 /// Project the `inputs` dict of a framework value into typed input values.
-/// An input that is not a scalar is reported as `<field>.inputs.<key>`;
-/// whether a scalar is the right one for the framework (and whether a required
-/// one is missing) is [`crate::framework::validate`]'s question.
+/// An input that is not a scalar reports as `<field>.inputs.<key>`. Whether a
+/// scalar is the right one for the framework (and whether a required one is
+/// missing) is [`crate::framework::validate`]'s question.
 fn parse_inputs(
     value: Option<&HVal>,
     field_name: &str,
@@ -213,9 +213,9 @@ fn input_value(value: &HVal) -> Option<InputValue> {
     }
 }
 
-/// Project an array of strings (`tags`). A non-string entry is reported as
-/// `<field>[<index>]` rather than dropped, so a mistyped tag names its own
-/// position instead of reading as one tag fewer.
+/// Project an array of strings (`tags`). A non-string entry reports as
+/// `<field>[<index>]` rather than dropped. A mistyped tag then specifies its
+/// own position instead of reading as one tag fewer.
 pub(crate) fn parse_str_array(
     value: Option<&HVal>,
     field_name: &str,
@@ -252,9 +252,9 @@ pub(crate) fn shape_error(field_name: &str, expected: &str, value: &HVal) -> Sha
     }
 }
 
-/// Build a [`ShapeError`] with a hand-written cause, for the reports whose
-/// "found" half is not a Typst kind (a weekday name that is not one, a dict
-/// missing a key the shape requires).
+/// Build a [`ShapeError`] with a hand-written cause. These are the reports
+/// whose "found" half is not a Typst kind: a weekday name that is not one, or a
+/// dict missing a key the shape requires.
 pub(crate) fn shape_message(field_name: &str, message: &str) -> ShapeError {
     ShapeError {
         field: field_name.to_owned(),

@@ -266,8 +266,9 @@ fn load_at_non_notfound_error_propagates() {
     assert!(super::load_at().is_err(), "ENOTDIR should propagate");
 }
 
-/// A token with a `..` segment is refused, and the message names the `@token`
-/// the user typed and says the resolution failed, not that the name is unknown.
+/// The command refuses a token with a `..` segment. The message references the
+/// `@token` the user typed and says the resolution failed, not that the name is
+/// unknown.
 #[test]
 fn resolve_token_refuses_a_dot_dot_segment() {
     if run_child(&at_file(SN_CFG)).is_some() {

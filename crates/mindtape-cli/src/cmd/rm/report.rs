@@ -1,6 +1,7 @@
 //! The delete-style plan's report and confirm helpers (deletions, and the
-//! git-tombstone/unlink rewrites) — split out of `cmd/rm/mod.rs` to stay under the
-//! file-size gate, mirroring `cmd/rm/gitless/report.rs` for the retire plan.
+//! git-tombstone/unlink rewrites). They live here, split out of `cmd/rm/mod.rs`
+//! to stay under the file-size gate, mirroring `cmd/rm/gitless/report.rs` for
+//! the retire plan.
 
 use std::path::Path;
 
@@ -58,9 +59,9 @@ pub(super) fn report_plan(plan: &Plan) {
     }
 }
 
-/// Print what the plan just did, and remind the user to review and commit —
-/// the hint only when `root` sits inside a git repository; there is nothing
-/// to commit and no tool to name otherwise.
+/// Print what the plan just did, and remind the user to review and commit. The
+/// hint appears only when `root` sits inside a git repository. Otherwise the
+/// run has nothing to commit and no tool to name.
 pub(super) fn report_applied(plan: &Plan, root: &Path) {
     println!("deleted {}:", count(plan.deletions.len(), "task"));
     print_deletions(plan);

@@ -1,11 +1,11 @@
 //! The shared per-source entry point for body-rule gating.
 //!
 //! [`crate::body::gate`] checks heading structure and [`crate::body::content_gate`] checks
-//! section content; both take one task's source and a pre-compiled rule set.
+//! section content. Both take one task's source and a pre-compiled rule set.
 //! [`check_body_rules`] runs the two in the order `mt check` always has, so
 //! `mt check` and the candidate seam ([`crate::validate::candidate`]) call one function
 //! rather than each carrying its own copy of "run headers, then content." A
-//! rule added to either gate is picked up by both callers for free.
+//! rule added to either gate reaches both callers for free.
 //!
 //! # Files
 //!
@@ -61,8 +61,8 @@ pub(crate) fn body_violation(
     }
 }
 
-/// One source's compiled body rules — `[[tasks.body.headers.rules]]` and
-/// `[[tasks.body.content.rules]]` — compiled once per run (`mt check`) or once
+/// One source's compiled body rules, `[[tasks.body.headers.rules]]` and
+/// `[[tasks.body.content.rules]]`, compiled once per run (`mt check`) or once
 /// per write (the candidate seam) and handed to every [`check_body_rules`]
 /// call that follows.
 #[derive(Debug, Clone, Copy, Default)]

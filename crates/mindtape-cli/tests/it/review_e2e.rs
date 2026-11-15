@@ -1,6 +1,6 @@
 //! End-to-end tests for `mt review`'s decision branches: refusing a terminal
 //! task, the same-day idempotent no-op, and an unresolvable id. `cmd/review.rs`'s
-//! own inline unit tests only exercise `build_edit` (the Typst-edit half);
+//! own inline unit tests only exercise `build_edit` (the Typst-edit half).
 //! `date_pin_e2e.rs::mindtape_now_stamps_the_pinned_date_on_review` covers the
 //! happy-path stamp. None of those reach `run()`'s early-return branches,
 //! which need a real project on disk and a real `cwd`.
@@ -78,12 +78,12 @@ fn a_review_ends_on_the_command_that_reads_the_task() {
     );
 }
 
-/// A stamp that would leave the task invalid is refused before the write, and
-/// the file is byte-identical afterwards. Refusing is the whole answer to
-/// "should a rejected rewrite be restored": there is nothing to restore,
-/// because nothing was written. The `reviewed` field is required only of
-/// non-terminal tasks here, so the fixture's real violation is the tag — a
-/// pre-existing one the stamp does not create but does have to carry.
+/// The code refuses a stamp that would leave the task invalid, before the
+/// write, and the file stays byte-identical afterwards. Refusing settles the
+/// restore question: there is nothing to restore, because the run didn't write
+/// a file. Only non-terminal tasks need the `reviewed` field here, so the
+/// fixture's real violation is the tag. That tag predates the stamp, which does
+/// not create it but does have to carry it.
 #[test]
 fn a_rejected_stamp_leaves_the_file_untouched() {
     let dir = support::scaffold_project(&format!("{CONFIG}\n[tasks.tags]\nallowed = [\"ok\"]\n"));

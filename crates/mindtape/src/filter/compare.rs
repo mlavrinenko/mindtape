@@ -1,7 +1,7 @@
 //! The comparison arm of the filter walk, split out of `filter/mod.rs`
-//! (file-size gate): resolving each side — a field, a `changed()` or
-//! `count()` count, a literal or `now()` — and ordering the two under the
-//! missing-field rule.
+//! (file-size gate). It resolves each side (a field, a `changed()` or `count()`
+//! count, a literal or `now()`) and orders the two under the missing-field
+//! rule.
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
@@ -16,7 +16,7 @@ use crate::model::Task;
 use crate::model::fields::FieldValue;
 use crate::model::numeric::format_num;
 
-/// A comparison. The left side is a field or a `changed()`/`count()` count;
+/// A comparison. The left side is a field or a `changed()`/`count()` count, and
 /// the right side a literal, `now()`, another field, or a count.
 pub(crate) fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     let [lhs, rhs] = node.children() else {
@@ -39,7 +39,7 @@ pub(crate) fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<
 }
 
 /// Refuse `literal` when `lhs` reads the status and the legend does not
-/// declare it: such a comparison matches nothing, so a typo would pass for an
+/// declare it: such a comparison never matches, so a typo would pass for an
 /// empty answer. An empty legend accepts any status.
 fn check_status(
     lhs: &Node<DefaultNumericTypes>,
@@ -102,9 +102,9 @@ pub(crate) fn check_statuses(
         .try_for_each(|child| check_statuses(child, legend))
 }
 
-/// A comparison side that resolves on the task rather than being written out:
-/// a field, a `changed()` count, or a `count()` count. `None` for a literal or
-/// `now()`.
+/// A comparison side that resolves on the task rather than appearing in the
+/// source: a field, a `changed()` count, or a `count()` count. `None` for a
+/// literal or `now()`.
 fn operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<Option<FieldValue>, FilterError> {
     let node = unwrap_root(node);
     match node.operator() {
@@ -134,7 +134,7 @@ fn operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<Option<FieldVa
 }
 
 /// `count(<expr>)`: how many loaded tasks satisfy `<expr>`, each read as the
-/// task in context — see [`crate::filter::aggregate`].
+/// task in context. See [`crate::filter::aggregate`].
 fn count(children: &[Node<DefaultNumericTypes>], ctx: &Ctx) -> Result<f64, FilterError> {
     let [arg] = call_args(children)[..] else {
         return Err(FilterError::call(
@@ -152,7 +152,7 @@ fn count(children: &[Node<DefaultNumericTypes>], ctx: &Ctx) -> Result<f64, Filte
     Ok(total)
 }
 
-/// The left side of a comparison, which must be a field or a count — also
+/// The left side of a comparison, which must be a field or a count. It is also
 /// what a task-scope commit rule's `staged(<field>)` resolves to
 /// ([`crate::commit::task_expr`]).
 pub(crate) fn left_operand(
@@ -168,11 +168,11 @@ pub(crate) fn left_operand(
 }
 
 /// `role` is a virtual, comparison-only field resolved from the actors
-/// registry at read time: a task matches a role literal when its assignee is a
+/// registry at read time. A role literal matches a task when its assignee is a
 /// declared actor holding that role. Every other comparison resolves to
-/// [`FieldValue::Missing`], so the missing-field rule applies uniformly and
-/// `role == "reviewer"` / `role != "reviewer"` partition the whole set with no
-/// third case.
+/// [`FieldValue::Missing`], and the missing-field rule applies uniformly.
+/// `role == "reviewer"` / `role != "reviewer"` then partition the whole set
+/// with no third case.
 fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
     match task
         .assignee
@@ -189,13 +189,13 @@ fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
 /// Compare one resolved field value against a literal.
 ///
 /// Missing-field rule: a field the task does not carry is unequal to every
-/// literal and orders against none — `!=` holds, `==` / `<` / `>` / `<=` / `>=`
-/// are all false. So `kind != "umbrella"` matches a task with no `kind` at all,
-/// and the pair `kind == "umbrella"` / `kind != "umbrella"` partitions the whole
-/// set with no third case. A `[[tasks.rules]]` assertion that counts each half
-/// of such a pair with `count(...)` rests on that: each count covers every
+/// literal and orders against none. `!=` holds, and `==` / `<` / `>` / `<=` /
+/// `>=` are all false. So `kind != "umbrella"` matches a task with no `kind` at
+/// all, and the pair `kind == "umbrella"` / `kind != "umbrella"` partitions the
+/// whole set with no third case. A `[[tasks.rules]]` assertion that counts each
+/// half of such a pair with `count(...)` rests on that. Each count covers every
 /// task by construction, including the ones leaving the field unset. Pinned by
-/// `missing_field_is_unequal_to_every_literal` in `tests.rs` — do not relax it
+/// `missing_field_is_unequal_to_every_literal` in `tests.rs`, so do not relax it
 /// without revisiting that rule.
 ///
 /// A list follows the same rule: `x-machine == "alpha"` selects the tasks
@@ -219,8 +219,8 @@ pub(crate) fn compare(
 }
 
 /// Compare two resolved values. A missing or list side follows the
-/// missing-field rule of [`compare`]; two numbers compare numerically; otherwise the right side's
-/// text stands in as the literal.
+/// missing-field rule of [`compare`]. Two numbers compare numerically, and
+/// otherwise the right side's text stands in as the literal.
 pub(crate) fn compare_values(
     op: &Operator<DefaultNumericTypes>,
     left: &FieldValue,

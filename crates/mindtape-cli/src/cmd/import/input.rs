@@ -1,8 +1,8 @@
-//! Read and parse canonical task-JSON input: a file arg or stdin (`-`), as the
-//! `{ "tasks": [...] }` envelope `mt ls --json` prints, or as a bare array an
-//! older export or a hand-written file may hold. `applied` is ignored either
-//! way, and so is any other unknown top-level key, so an export from an older
-//! `mt` still imports.
+//! Read and parse canonical task-JSON input from a file arg or stdin (`-`).
+//! The input is the `{ "tasks": [...] }` envelope `mt ls --json` prints, or a
+//! bare array an older export or a hand-written file may hold. The parser
+//! ignores `applied` either way, and it ignores any other unknown top-level
+//! key. An export from an older `mt` still imports.
 
 use std::io::Read as _;
 
@@ -17,7 +17,7 @@ use crate::diag::{Diag, Hint, Kind};
 /// Read `source` to a string: `-` reads stdin, anything else is a file path.
 ///
 /// # Errors
-/// Returns an error if stdin or the file cannot be read.
+/// Returns an error if reading stdin or the file fails.
 pub(super) fn read_source(source: &str) -> Result<String> {
     if source == "-" {
         let mut buf = String::new();
@@ -34,9 +34,9 @@ fn place_of(source: &str) -> &Path {
     Path::new(if source == "-" { "stdin" } else { source })
 }
 
-/// Parse `raw`, which was read from `source`, into the canonical records it
-/// holds: the `{ "tasks": [...] }` envelope, or a bare JSON array from an
-/// older export or a hand-written file.
+/// Parse `raw`, the text read from `source`, into the canonical records it
+/// holds. The input is the `{ "tasks": [...] }` envelope, or a bare JSON array
+/// from an older export or a hand-written file.
 ///
 /// # Errors
 /// Returns an error if `raw` is not valid JSON, is neither an array nor an
@@ -67,8 +67,8 @@ pub(super) fn parse_records(source: &str, raw: &str) -> Result<Vec<CanonicalTask
         .collect()
 }
 
-/// Pull the record array out of either accepted top-level shape. An unknown
-/// top-level key is ignored.
+/// Pull the record array out of either accepted top-level shape. The parser
+/// ignores an unknown top-level key.
 fn extract_array(value: Value) -> Result<Vec<Value>, Diag> {
     match value {
         Value::Array(items) => Ok(items),
@@ -140,8 +140,8 @@ mod tests {
         }
     }
 
-    /// `extract_array` only asks `json_kind` about the kinds it rejects, so the
-    /// two it accepts, array and object, are pinned here directly.
+    /// `extract_array` only asks `json_kind` about the kinds it rejects. This
+    /// test pins the two it accepts, array and object, directly.
     #[test]
     fn json_kind_names_every_kind() {
         for (value, kind) in [

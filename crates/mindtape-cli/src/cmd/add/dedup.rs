@@ -1,11 +1,12 @@
 //! `mt add --dedup`: collision policy on a destination stem that already
 //! exists.
 //!
-//! [`resolve`] is fs-free — like [`mindtape::model::naming::disambiguate`] itself, it
-//! takes an injected `exists` predicate rather than touching disk, so the
-//! `add-suffix` exhaustion path (10,000 numeric-suffix attempts) is a fast
-//! unit test rather than a directory full of real files. `crate::cmd::add::run`
-//! supplies the real filesystem check; tests supply a fake.
+//! [`resolve`] is fs-free. Like [`mindtape::model::naming::disambiguate`]
+//! itself, it takes an injected `exists` predicate rather than touching disk.
+//! That keeps the `add-suffix` exhaustion path (10,000 numeric-suffix
+//! attempts) a fast unit test rather than a directory full of real files.
+//! `crate::cmd::add::run` supplies the real filesystem check. Tests supply a
+//! fake.
 
 use mindtape::{Config, model::naming};
 
@@ -19,7 +20,7 @@ use crate::diag::{Diag, Hint};
 pub enum DedupArg {
     /// Stop without writing anything.
     Fail,
-    /// Write nothing, print the existing task's path, and exit 0.
+    /// Don't write a file. Print the existing task's path and exit 0.
     Skip,
     /// Add `-2`, `-3` and so on to the name until it's free.
     AddSuffix,
@@ -35,11 +36,11 @@ impl From<DedupArg> for naming::DedupMode {
     }
 }
 
-/// The effective dedup mode for one `add` run: `--dedup` wins outright, else
-/// [`naming::NamingConfig::effective_dedup`] — which is the single place that
-/// picks a default between `[tasks.naming] dedup` and `stem`, so this
-/// function never re-derives it from whether the stem happened to be
-/// templated.
+/// The effective dedup mode for one `add` run. `--dedup` wins outright.
+/// Otherwise [`naming::NamingConfig::effective_dedup`] picks the default
+/// between `[tasks.naming] dedup` and `stem`, and it is the single place that
+/// does so. This function never re-derives the mode from whether a template
+/// produced the stem.
 #[must_use]
 pub fn effective_mode(flag: Option<DedupArg>, config: &Config) -> naming::DedupMode {
     flag.map_or_else(|| config.tasks.naming.effective_dedup(), Into::into)
@@ -50,7 +51,7 @@ pub fn effective_mode(flag: Option<DedupArg>, config: &Config) -> naming::DedupM
 pub enum Collision {
     /// `exists(stem)` was false: write at the requested stem.
     None,
-    /// `dedup: skip` found `stem` taken; the caller writes nothing.
+    /// `dedup: skip` found `stem` taken. The caller doesn't write a file.
     Skipped,
     /// `dedup: add-suffix` minted this free stem instead.
     Suffixed(String),
@@ -58,13 +59,13 @@ pub enum Collision {
 
 /// Resolve `stem` against `dedup` and `exists`. `label` is the requested
 /// stem's whole `<root>/<stem>.typ`-style display path, folded into the
-/// `Fail` error only — `exists` itself never touches disk here (real disk
-/// access is the caller's closure).
+/// `Fail` error only. `exists` itself never touches disk here, because real
+/// disk access is the caller's closure.
 ///
 /// # Errors
-/// `Fail` on a collision reports `label`; `AddSuffix` propagates
-/// `naming::disambiguate`'s exhaustion error once every numeric suffix up to
-/// `naming::MAX_DISAMBIGUATE_ATTEMPTS`-equivalent is reported taken.
+/// `Fail` on a collision reports `label`. `AddSuffix` propagates
+/// `naming::disambiguate`'s exhaustion error once the search reaches the
+/// `naming::MAX_DISAMBIGUATE_ATTEMPTS` equivalent.
 pub fn resolve(
     dedup: naming::DedupMode,
     stem: &str,

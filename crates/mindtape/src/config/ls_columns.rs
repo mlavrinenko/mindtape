@@ -1,11 +1,11 @@
-//! `[ls.columns.<name>]` — one `mt ls` column's display settings, and the
-//! validation of the column-name vocabulary they are keyed by.
+//! `[ls.columns.<name>]`: one `mt ls` column's display settings, and the
+//! validation of the column-name vocabulary that keys them.
 //!
 //! Split out of [`crate::config::ls`] so that file stays under the repo's Rust
-//! line cap; the `[ls]` block itself, the [`crate::config::ls::LS_COLUMNS`]
+//! line cap. The `[ls]` block itself, the [`crate::config::ls::LS_COLUMNS`]
 //! vocabulary and the `[[ls.rules]]` listing cascade all remain there.
 //!
-//! # Why a column carries one `when`
+//! # One `when` per column
 //!
 //! Whether a column renders is one question, so it takes one answer: a boolean
 //! expression in the condition language, evaluated against the rows it would
@@ -18,19 +18,18 @@
 //!
 //! The predicates are what make that expressible. `nonempty()`, `contested()`,
 //! `named()` and `blocked()` describe the listing, so the built-in policy each
-//! column from a Rust match is a line of the embedded floor:
-//! `#` and `title` are `true`, `status` / `priority` / `due` are `nonempty()`,
-//! `assignee` is `contested()`, `ready` is `blocked()`, and `file` is the
-//! expression above.
+//! column from a Rust match is a line of the embedded floor. `#` and `title`
+//! are `true`, `status` / `priority` / `due` are `nonempty()`, `assignee` is
+//! `contested()`, `ready` is `blocked()`, and `file` is the expression above.
 //!
-//! A scalar replaces wholesale across config layers, so a project overrides an
-//! inherited `when` by writing its own on one line — `when = 'false'` turns a
-//! floored column off — and there is no precedence to state, no ordering, and
-//! no opt-out convention: `||` does what a rule list's first-match-wins did.
+//! A scalar replaces wholesale across config layers. A project overrides an
+//! inherited `when` by writing its own on one line, and `when = 'false'` turns
+//! a floored column off. There is no precedence to state, no ordering, and no
+//! opt-out convention: `||` does what a rule list's first-match-wins did.
 //!
-//! An absent `when` renders the column never. Nothing falls back to Rust: the
-//! floor carries one per column, so the floor is the complete statement of what
-//! `mt ls` shows, and a column nobody described is a column nobody asked for.
+//! An absent `when` renders the column never. The floor carries one per column,
+//! which makes the floor the complete statement of what `mt ls` shows. A
+//! column nobody described is a column nobody asked for.
 
 use std::collections::BTreeSet;
 
@@ -57,13 +56,15 @@ pub struct ColumnConfig {
 }
 
 /// Validate `[ls.columns]` keys, their `when` expressions, and `[ls]`
-/// `columns-order` against [`LS_COLUMNS`]: unknown column names, duplicates
-/// within `columns-order`, and unparseable `when` expressions are reported.
+/// `columns-order` against [`LS_COLUMNS`]. The check reports unknown column
+/// names, duplicates within `columns-order`, and unparseable `when`
+/// expressions.
 ///
-/// A `when` is parsed here so a typo (`ttty()`, a task field name carried over
-/// from filter syntax) fails at config load naming the column, rather than
-/// silently never matching at render time — where a column that does not
-/// appear looks exactly like a column that was not meant to.
+/// The check parses a `when` here so a typo (`ttty()`, a task field name
+/// carried over from filter syntax) fails at config load and references the
+/// column. Otherwise it would silently never match at render time, where a
+/// column that does not appear looks exactly like a column that was not meant
+/// to.
 #[must_use]
 pub fn validate_ls_columns(ls: &LsConfig) -> Vec<Problem> {
     let mut problems = Vec::new();
@@ -91,11 +92,11 @@ pub fn validate_ls_columns(ls: &LsConfig) -> Vec<Problem> {
 /// Parse one column's `when`, reporting a failure under the column that owns
 /// it.
 ///
-/// A blank expression is rejected rather than parsed: [`Condition`] reads an
-/// empty expression as the always-matching one, so `when = ''` would render the
-/// column always while an absent `when` renders it never — two spellings of
-/// "nothing written here" with opposite answers. Writing the answer out
-/// (`true` / `false`) is what the key is for.
+/// The check rejects a blank expression rather than parsing it. [`Condition`]
+/// reads an empty expression as the always-matching one, so `when = ''` would
+/// render the column always while an absent `when` renders it never. Those are
+/// two spellings of "nothing written here" with opposite answers. Writing the
+/// answer out (`true` / `false`) is what the key is for.
 fn validate_column_when(name: &str, column: &ColumnConfig, problems: &mut Vec<Problem>) {
     let Some(expr) = &column.when else {
         return;

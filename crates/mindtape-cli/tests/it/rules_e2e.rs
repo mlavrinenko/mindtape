@@ -3,8 +3,8 @@
 //! a project-declared assertion in the filter language, evaluated inside the
 //! validation pass every command shares.
 //!
-//! The seam matters: a rule that fired only in `mt check` would be a
-//! convention nobody keeps, so `mt add` is asserted here too.
+//! A rule that fired only in `mt check` would be a convention nobody keeps.
+//! The tests assert `mt add` too.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;
@@ -15,7 +15,7 @@ use crate::support;
 use support::{mt, scaffold_project};
 
 /// The repo root, derived from this crate's manifest dir
-/// (`crates/mindtape-cli` -> `../..`), so a test finds its own
+/// (`crates/mindtape-cli` -> `../..`). A test finds its own
 /// `.mindtape/config.toml` whatever directory `cargo test` runs from.
 fn repo_root() -> PathBuf {
     mindtape::canonical(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap()
@@ -279,8 +279,8 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
     );
 }
 
-/// The mirror of the refusal: a warn rule says its piece and the flip still
-/// lands, and post-write revalidation keeps that warning a warning.
+/// A warn rule says its piece and the flip still lands, and post-write
+/// revalidation keeps that warning a warning.
 #[test]
 fn mt_flip_lets_a_warn_rule_through() {
     let dir = project(&imperative_rule("warn"), "Loader refactoring");
@@ -303,12 +303,12 @@ fn mt_flip_lets_a_warn_rule_through() {
     );
 }
 
-/// The mechanism above is proven on a synthetic project. This checks the
-/// adoption itself
-/// (truth/tasks/2026-09/enforce-an-imperative-verb-at-the-start-of-task-titles.typ):
-/// that `start-title-with-verb` reaches this repo's own backlog at `error`,
-/// loading the committed config rather than a scaffold, so a config edit that
-/// drops the rule or loosens its severity fails here too.
+/// The tests above prove the mechanism on a synthetic project. This one checks
+/// the adoption itself
+/// (truth/tasks/2026-09/enforce-an-imperative-verb-at-the-start-of-task-titles.typ).
+/// It checks that `start-title-with-verb` reaches this repo's own backlog at
+/// `error`, loading the committed config rather than a scaffold. A config edit
+/// that drops the rule or loosens its severity fails here too.
 fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec {
     config
         .tasks
@@ -320,12 +320,12 @@ fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec 
 
 /// This repo's own `.mindtape/config.toml`
 /// (`truth/tasks/2026-09/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) does
-/// not declare `start-title-with-verb` itself — it inherits it from the
-/// embedded `mindtape:tasks` pack via `extends`. `parse_config` cannot prove
-/// that (it never resolves `extends`/`disable`; see `crate::config::packs`),
-/// so this loads the full layered config against the real repo root instead,
-/// through the real, non-fixture `EMBEDDED_PACKS` registry — proving both
-/// that the rule still lands here and that the pack actually shipped.
+/// not declare `start-title-with-verb` itself. It inherits the rule from the
+/// embedded `mindtape:tasks` pack through `extends`. `parse_config` cannot
+/// prove that (it never resolves `extends`/`disable`, see
+/// `crate::config::packs`). This test loads the full layered config against the
+/// real repo root instead, through the real, non-fixture `EMBEDDED_PACKS`
+/// registry. That proves the rule still lands here and the pack carries it.
 #[test]
 fn this_repos_own_config_carries_the_rule_at_error() {
     let config = mindtape::load_config(&repo_root()).unwrap();
@@ -337,7 +337,7 @@ fn this_repos_own_config_carries_the_rule_at_error() {
 
 /// `check = { typst, function, field }`
 /// (`truth/tasks/2026-09/check-a-task-field-with-a-typst-function.typ`): a rule that
-/// names a Typst function instead of a filter expression, for a structure
+/// specifies a Typst function instead of a filter expression, for a structure
 /// (an `x-<ns>` extras dict) the filter language has no way to reach.
 ///
 /// A project whose config carries `rules` verbatim, a `check.typ` module

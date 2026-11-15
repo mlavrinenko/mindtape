@@ -3,17 +3,18 @@
 //!
 //! "Today" is the machine's local calendar date, not UTC (see
 //! `truth/tasks/2026-07/decide-whether-today-is-utc-or-local.typ`): a task filed at
-//! 01:00 on the 29th is stamped the 29th, whatever the offset. Only
-//! [`local_epoch_days`] knows about zones — everything downstream is a plain
+//! 01:00 on the 29th carries the 29th, whatever the offset. Only
+//! [`local_epoch_days`] knows about zones. Everything downstream is a plain
 //! `YYYY-MM-DD` civil date with no offset attached, and every comparison is
 //! date-to-date within that one calendar.
 //!
 //! "Today" is pinnable for reproducible output (see
-//! `truth/tasks/2026-07/pinnable-clock-for-reproducible-output.typ`):
+//! `truth/tasks/2026-07/pinnable-clock-for-reproducible-output.typ`).
 //! [`crate::init_pinned_today`] (re-exported at the crate root, backed by
 //! `crate::date_pin`) resolves `$MINDTAPE_NOW` once per process and caches the
-//! result; `today_epoch_days`, below, is the single point every helper here
-//! reads through — no other function in this module touches the clock directly.
+//! result. `today_epoch_days`, below, is the single point every helper here
+//! reads through, and no other function in this module touches the clock
+//! directly.
 //!
 //! # Files
 //!
@@ -55,14 +56,14 @@ fn today_epoch_days() -> u64 {
 }
 
 /// Days since the Unix epoch for the calendar date `at` falls on *in its own
-/// timezone* — the local date, not the UTC one, whenever `at` carries a local
+/// timezone*: the local date, not the UTC one, whenever `at` carries a local
 /// offset.
 ///
-/// Generic over the zone (rather than taking `DateTime<Local>`) so the
-/// offset-awareness can be asserted against fixed offsets in a unit test:
-/// mutating `$TZ` in-process is neither safe nor parallel-safe, and reading
-/// the real clock twice — once inside the conversion, once outside — races a
-/// midnight rollover between the two reads.
+/// Generic over the zone (rather than taking `DateTime<Local>`) so a unit test
+/// can assert the offset-awareness against fixed offsets. Mutating `$TZ`
+/// in-process is neither safe nor parallel-safe, and reading the real clock
+/// twice (once inside the conversion, once outside) races a midnight rollover
+/// between the two reads.
 fn local_epoch_days<Tz: chrono::TimeZone>(at: &chrono::DateTime<Tz>) -> u64 {
     let date = at.date_naive();
     let month = u8::try_from(date.month()).unwrap_or(1);
@@ -70,7 +71,7 @@ fn local_epoch_days<Tz: chrono::TimeZone>(at: &chrono::DateTime<Tz>) -> u64 {
     u64::try_from(days_from_civil(date.year(), month, day)).unwrap_or(0)
 }
 
-/// Parse a `YYYY-MM-DD` string into `(year, month, day)`; `None` if malformed.
+/// Parse a `YYYY-MM-DD` string into `(year, month, day)`. `None` if malformed.
 #[must_use]
 pub fn parse_ymd(date: &str) -> Option<(i32, u8, u8)> {
     let mut parts = date.split('-');
@@ -83,7 +84,7 @@ pub fn parse_ymd(date: &str) -> Option<(i32, u8, u8)> {
     Some((year, month, day))
 }
 
-/// One `{date:FMT}` token: what it is written as, what the docs say it
+/// One `{date:FMT}` token: the text that writes it, what the docs say it
 /// expands to, and how it expands a `(year, month, day)`.
 #[derive(Debug, Clone, Copy)]
 pub struct DateToken {
@@ -152,7 +153,7 @@ pub const DATE_TOKENS: [DateToken; 8] = [
 ///
 /// Tokens are the entries of [`DATE_TOKENS`], matched in table order.
 /// Unrecognised characters pass through literally. Returns the input string
-/// unchanged when it cannot be parsed as `YYYY-MM-DD`.
+/// unchanged when it does not parse as `YYYY-MM-DD`.
 #[must_use]
 pub fn format_iso(iso: &str, fmt: &str) -> String {
     let Some((year, month, day)) = parse_ymd(iso) else {
@@ -210,9 +211,10 @@ fn month_name_abbr(month: u8) -> &'static str {
 
 /// Convert days since Unix epoch (1970-01-01) to Gregorian `(year, month, day)`.
 ///
-/// Uses Howard Hinnant's civil calendar algorithm, minus its negative-`shifted`
-/// branch: `epoch_days` is unsigned, so `shifted` is at least `719_468` and the
-/// era division never needs the round-towards-negative-infinity correction.
+/// Uses the civil calendar algorithm by Howard Hinnant, minus its
+/// negative-`shifted` branch. `epoch_days` holds an unsigned value, so
+/// `shifted` is at least `719_468` and the era division never needs the
+/// round-towards-negative-infinity correction.
 /// <https://howardhinnant.github.io/date_algorithms.html>
 fn epoch_days_to_ymd(epoch_days: u64) -> (i32, u8, u8) {
     let shifted = i64::try_from(epoch_days).unwrap_or(0) + 719_468;
@@ -241,7 +243,7 @@ fn epoch_days_to_ymd(epoch_days: u64) -> (i32, u8, u8) {
 /// Convert Gregorian `(year, month, day)` to days since the Unix epoch
 /// (1970-01-01). The inverse of [`epoch_days_to_ymd`] (same Howard Hinnant
 /// civil calendar algorithm and source). Negative for a date before
-/// 1970-01-01; [`crate::date::pin`] clamps that to epoch 0 rather than
+/// 1970-01-01. [`crate::date::pin`] clamps that to epoch 0 rather than
 /// wrapping, since nothing in this domain predates it.
 pub(crate) fn days_from_civil(year: i32, month: u8, day: u8) -> i64 {
     let y = i64::from(year) - i64::from(month <= 2);

@@ -24,7 +24,8 @@ fn write_nested_preset(dir: &Path, name: &str, config: &str, templates: &[(&str,
 }
 
 /// Every built-in resolves, and its config parses and validates against the
-/// embedded floor — both renderings, since `--annotate` must not change meaning.
+/// embedded floor, in both renderings, since `--annotate` must not change
+/// meaning.
 #[test]
 fn every_builtin_parses_in_both_renderings() {
     for (name, _) in list_builtins() {
@@ -40,10 +41,10 @@ fn every_builtin_parses_in_both_renderings() {
     }
 }
 
-/// A built-in preset declares no command, so a fresh project runs nothing it
-/// must `mt allow` first, and the same config works under `sh` and `cmd`. A
-/// gate a preset ships is a filter condition. A user's own preset or config may
-/// declare any `run`: this holds Mindtape's presets alone to the rule.
+/// A built-in preset doesn't declare a command. A fresh project runs nothing it
+/// must `mt allow` first, and the same config works under `sh` and `cmd`. A gate
+/// a preset carries is a filter condition. A user's own preset or config may
+/// declare any `run`: this holds `Mindtape`'s presets alone to the rule.
 #[test]
 fn no_builtin_declares_a_command() {
     for (name, _) in list_builtins() {
@@ -92,8 +93,9 @@ fn default_preset_is_a_builtin() {
     );
 }
 
-/// No preset is named for a position in a hierarchy: a neutral-sounding name
-/// hides a subjective choice, so the vocabulary is checked, not just reviewed.
+/// A preset name never states a position in a hierarchy. A neutral-sounding name
+/// hides a subjective choice, and the test checks the vocabulary rather than
+/// leaving it to review.
 #[test]
 fn no_preset_is_named_for_its_position() {
     for (name, _) in list_builtins() {
@@ -104,7 +106,7 @@ fn no_preset_is_named_for_its_position() {
     }
 }
 
-/// A preset that constrains task bodies ships the template producing them.
+/// A preset that constrains task bodies carries the template that produces them.
 #[test]
 fn gated_preset_ships_a_template() {
     let preset = resolve("gated", None).unwrap();
@@ -140,7 +142,7 @@ fn unknown_preset_errors_and_says_where_to_list_them() {
     );
 }
 
-/// A near miss names the built-in it meant.
+/// A near miss reports the built-in it meant.
 #[test]
 fn a_misspelt_preset_names_the_nearest_builtin() {
     let err = crate::diag::plain(&resolve(&DEFAULT_PRESET.replace('o', "0"), None).unwrap_err());
@@ -251,10 +253,10 @@ fn strip_comments_is_idempotent() {
     assert_eq!(strip_comments(&once), once);
 }
 
-/// Listing keeps only real preset shapes — a flat `.toml` and a directory with
-/// a `config.toml` — and ignores a plain file and a bare directory. Reading the
+/// Listing keeps only real preset shapes, a flat `.toml` and a directory with a
+/// `config.toml`, and ignores a plain file and a bare directory. Reading the
 /// flat-file guard as `||` would admit any `.toml`-named entry, and reading the
-/// directory guard as `||` would admit a directory with no config.
+/// directory guard as `||` would admit a directory without a config.
 #[test]
 fn list_user_presets_keeps_only_preset_shapes() {
     let dir = tempdir_with_files(&[("flat.toml", "[tasks]\n")]);
@@ -293,7 +295,7 @@ fn split_overlay_extracts_base_and_promoted_overlay() {
     assert!(!overlay.contains("overlay"), "{overlay}");
 }
 
-/// An `[overlay]` that is not a table is rejected.
+/// The split rejects an `[overlay]` that is not a table.
 #[test]
 fn split_overlay_rejects_a_non_table_overlay() {
     assert!(split_overlay("overlay = 7\n").is_err());

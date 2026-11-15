@@ -1,12 +1,12 @@
 //! Which pack or layer set each key and each pack parameter, for `mt config
 //! show --origin`. The merge feeds [`Sources`], the carrier a load error and a
-//! load warning already ask for a file and line, with each source's leaf keys
-//! in precedence order ([`Sources::record_keys`]) and each pack's resolved
+//! load warning already ask for a file and line. It holds each source's leaf
+//! keys in precedence order ([`Sources::record_keys`]) and each pack's resolved
 //! parameters ([`Sources::record_params`]). [`Config`](crate::config::Config)
-//! keeps it, so a caller reads both without a second load.
+//! keeps it. A caller can then read both without a second load.
 //!
-//! A key is listed only when some pack set it. Its origin is the source that
-//! wins, so a key the extending layer replaced names the layer.
+//! A key appears only when some pack set it. Its origin is the source that
+//! wins, so a key the extending layer replaced references the layer.
 
 use crate::config::layers::LayerSource;
 use crate::config::locate::Sources;
@@ -46,7 +46,7 @@ pub(super) struct KeySlot {
 impl Sources {
     /// Note every leaf of `table`, a source's own table with its rule arrays
     /// and `[params]` already taken out. Call it for each source in merge
-    /// precedence, lowest first, so a later source wins.
+    /// precedence, lowest first. A later source then wins.
     pub(crate) fn record_keys(&mut self, origin: &RuleOrigin, table: &toml::Table) {
         let by_pack = matches!(origin, RuleOrigin::Pack(_));
         record_leaves(self, origin, by_pack, "", table);
@@ -86,7 +86,7 @@ impl Sources {
             })
     }
 
-    /// Every pack parameter, in the order the layers named their packs.
+    /// Every pack parameter, in the order the layers referenced their packs.
     pub(crate) fn param_origins(&self) -> &[ParamOrigin] {
         &self.params
     }

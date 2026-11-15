@@ -1,4 +1,4 @@
-//! A commit may name a task only once the committed tree holds it started or
+//! A commit may reference a task only once the committed tree holds it started or
 //! finished (`truth/tasks/2026-10/refuse-a-commit-whose-refs-task-is-not-started-and-an-integrate-that-leaves-one-wip.typ`).
 //! The rule is this repository's own `[[commits.rules]]` entry, written with
 //! the task-scope language and nothing added to it.
@@ -21,7 +21,7 @@ const REFS_TASK_STARTED: &str = "[[commits.rules]]\n\
      severity = \"error\"\n";
 
 /// Stage `tasks/parser.typ` with `status`, and one work file beside it when
-/// `with_work` is set.
+/// `with_work` holds.
 fn stage(dir: &Path, status: &str, with_work: bool) {
     write_file(
         dir,

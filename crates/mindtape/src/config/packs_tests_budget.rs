@@ -1,7 +1,7 @@
 //! The `mindtape:wip-caps` and `mindtape:budget` packs, loaded through the
-//! real registry: their rules with each parameter's default and with a `with`
-//! value, the Changes collector and path set `budget` ships, and the project's
-//! own keys that merge over them.
+//! real registry. The tests cover their rules with each parameter's default and
+//! with a `with` value, and the Changes collector and path set `budget`
+//! provides. They also cover the project's own keys that merge over them.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::config::Config;

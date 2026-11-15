@@ -1,6 +1,7 @@
-//! Naming the next occurrence of a recurring task: the `recurred-from` chain
-//! walk that numbers it, the stem minted for it, and the guard that keeps a
-//! stem from colliding with a file on disk or one in flight.
+//! Naming the next occurrence of a recurring task. This module holds the
+//! `recurred-from` chain walk that numbers it, and the stem minted for it. It
+//! also holds the guard that keeps a stem from colliding with a file on disk or
+//! one in flight.
 
 use std::collections::HashSet;
 use std::path::Path;
@@ -20,16 +21,16 @@ use crate::util::Project;
 const RECUR_FALLBACK_STEM_TEMPLATE: &str = "{slug}-{date}";
 
 /// Guard bound for walking a `recurred-from` chain (pathological/cyclic data
-/// only — a real spawn chain is nowhere near this deep).
+/// only, since a real spawn chain is nowhere near this deep).
 const MAX_CHAIN_DEPTH: u32 = 10_000;
 
-/// The loaded task (if any) whose `recurred-from` edge names `target` — the
+/// The loaded task (if any) whose `recurred-from` edge names `target`, the
 /// double-spawn guard.
 pub(super) fn successor_of<'a>(tasks: &'a [Task], target: &Task) -> Option<&'a Task> {
     mindtape::find_referrer(tasks, target, "recurred-from")
 }
 
-/// How many `recurred-from` hops precede `start` — the occurrence index the
+/// How many `recurred-from` hops precede `start`, the occurrence index the
 /// naming minter's `{n}` macro resolves for the *next* spawn.
 pub(super) fn occurrence_index(tasks: &[Task], start: &Task) -> u32 {
     let mut depth = 0_u32;
@@ -51,13 +52,13 @@ pub(super) fn occurrence_index(tasks: &[Task], start: &Task) -> u32 {
 /// claimed but not yet written.
 ///
 /// The two travel together because a `--advance` chain lives entirely in
-/// memory until `write_advance_chain` lands it, so disk alone answers "is this
-/// name taken?" with `no` for every entry of the batch — the same shape
-/// `mt import` solves with its `existing_stems` seed. Bundled into one
-/// argument rather than passed as a sixth: [`mint_stem`] is at clippy's
-/// 5-argument limit.
+/// memory until `write_advance_chain` lands it. Disk alone then answers "is
+/// this name taken?" with `no` for every entry of the batch, the same shape
+/// `mt import` solves with its `existing_stems` seed. The struct bundles both
+/// into one argument rather than taking a sixth, since [`mint_stem`] is at
+/// clippy's 5-argument limit.
 pub(super) struct StemDest<'a> {
-    /// The directory the occurrence file will be written into.
+    /// The directory the occurrence file will land in.
     pub(super) dir: &'a Path,
     /// Stems already claimed by this batch, none of them on disk yet.
     pub(super) claimed: &'a HashSet<String>,
@@ -65,7 +66,8 @@ pub(super) struct StemDest<'a> {
 
 /// Mint (and disambiguate against `dest`) the next occurrence's stem: the
 /// configured `[tasks.naming] stem` template, or [`RECUR_FALLBACK_STEM_TEMPLATE`]
-/// when unset — the occurrence's anchor date and index, never today's clock.
+/// when unset, using the occurrence's anchor date and index, never today's
+/// clock.
 pub(super) fn mint_stem(
     project: &Project,
     task: &Task,

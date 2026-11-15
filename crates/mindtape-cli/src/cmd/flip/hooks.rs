@@ -1,28 +1,28 @@
 //! `mt flip`'s `[[on.flip]]` action runner.
 //!
-//! `mt flip` is the only command that reaches this module — no read command
+//! `mt flip` is the only command that reaches this module. No read command
 //! does, by construction: nothing in `ls`, `check`, `show` or `export` can
 //! reach [`Hooks`], and `flip_hooks_e2e.rs` pins that with a hook whose command
 //! would leave a file behind.
 //!
 //! For one transition the runner walks the matching hooks' actions in
-//! declaration order. A `show` prints text and a `list` prints a table; both are
+//! declaration order. A `show` prints text and a `list` prints a table. Both are
 //! presentation, so both fall silent under `--quiet` or when stdout is not a
-//! terminal. A `run` executes a command; with `gate = true` a non-zero exit
-//! stops the walk and refuses the flip, so nothing is written for that task, and
-//! the command's output is printed whatever the presentation setting — it is the
-//! evidence the refusal rests on. `run` is optional on a gate: with none, the
-//! hook's `when` already matching is the whole verdict, so the gate refuses
+//! terminal. A `run` executes a command. With `gate = true` a non-zero exit
+//! stops the walk and refuses the flip, leaving that task's file unwritten. The
+//! command's output prints whatever the presentation setting: it is the
+//! evidence the refusal rests on. `run` is optional on a gate. With none, the
+//! hook's `when` already matching is the whole verdict, and the gate refuses
 //! unconditionally with no command to run and nothing to print but its
-//! `message`. `--force` waives a failing gate — run or run-less — and records
-//! the waiver in the status note ([`note_with_overrides`]), because an override
-//! nobody can see afterwards is not an override, it is a hole.
+//! `message`. `--force` waives a failing gate, run or run-less, and records the
+//! waiver in the status note ([`note_with_overrides`]). An override nobody can
+//! see afterwards is not an override, it is a hole.
 //!
 //! No `run` command runs until the user allows the config's commands with
 //! `mt allow` ([`mindtape::allow`]). Until then a gate refuses the flip as if
-//! it had failed, so `--force` waives it the same way, and a non-gating `run`
-//! is skipped with a line saying so. Either way the command joins the held-back
-//! list that `main` warns about once.
+//! it had failed, so `--force` waives it the same way. A non-gating `run` skips
+//! with a line saying so. Either way the command joins the held-back list that
+//! `main` warns about once.
 
 use std::cell::OnceCell;
 use std::io::Write;
@@ -40,7 +40,7 @@ use crate::render::RenderCtx;
 use crate::render::output::{OutputFormat, render};
 use crate::util::Project;
 
-/// Advice attached to a gate refusal the action declares no `message` for.
+/// Advice attached to a gate refusal when the action doesn't declare a `message`.
 const DEFAULT_ADVICE: &str = "fix it, or re-run with --force (the override is \
                               recorded in the status note)";
 
@@ -50,7 +50,7 @@ pub(crate) struct Transition<'a> {
     pub task: &'a Task,
     /// Absolute path of its file.
     pub path: &'a Path,
-    /// The status being stamped.
+    /// The status the flip stamps.
     pub target: &'a str,
     /// Whether `--force` waives a failing gate.
     pub force: bool,
@@ -61,14 +61,15 @@ pub(crate) struct Transition<'a> {
 pub(crate) struct HookOutcome {
     /// Gate commands that failed and `--force` waived, in run order.
     pub forced: Vec<String>,
-    /// Set when a gate failed and was not waived: why the flip is refused.
+    /// Set when a gate failed and `--force` did not waive it: the reason the flip
+    /// fails.
     pub refusal: Option<Diag>,
 }
 
 /// A gate that refused the flip: a `run` command that exited non-zero, or a
 /// run-less gate whose `when` matched.
 struct Gate {
-    /// The command line, for the status note — or, for a run-less gate with no
+    /// The command line, for the status note, or, for a run-less gate with no
     /// command to name, its `message` (falling back to [`DEFAULT_ADVICE`]).
     command: String,
     /// The refusal, for the caller's problem report.
@@ -79,8 +80,8 @@ struct Gate {
 /// argument-count lint.
 #[derive(Clone, Copy)]
 struct RunSpec<'a> {
-    /// The command, or `None` for a run-less gate — `kind()` only ever
-    /// pairs that with `gate: true`.
+    /// The command, or `None` for a run-less gate. `kind()` only ever pairs
+    /// that with `gate: true`.
     command: Option<&'a ConfigCommand>,
     gate: bool,
     message: Option<&'a str>,
@@ -90,9 +91,9 @@ struct RunSpec<'a> {
 pub(crate) struct Hooks<'a> {
     project: &'a Project,
     readiness: Readiness,
-    /// Whether `show` / `list` output is rendered at all.
+    /// Whether the runner renders `show` / `list` output at all.
     show: bool,
-    /// The environment a `list` table's column visibility resolves against —
+    /// The environment a `list` table's column visibility resolves against,
     /// built exactly as `mt ls` builds it, so a `[ls.columns.<name>] when`
     /// expression means the same thing in both surfaces.
     env: ConditionEnv,
@@ -106,11 +107,11 @@ pub(crate) struct Hooks<'a> {
 
 impl<'a> Hooks<'a> {
     /// Build the runner. `show` is `false` under `--quiet` or when stdout is not
-    /// a terminal; gates run either way.
+    /// a terminal. Gates run either way.
     ///
-    /// Readiness is computed once, over the whole loaded set, so a `when` may
-    /// use `ready` / `blocked` — and is skipped entirely when the project
-    /// declares no hooks, which is the common case.
+    /// The runner computes readiness once, over the whole loaded set, so a
+    /// `when` may use `ready` / `blocked`. It skips the computation entirely
+    /// when the project doesn't declare any hooks, which is the common case.
     pub(crate) fn new(project: &'a Project, show: bool) -> Self {
         let readiness = if project.config.on.flip.is_empty() {
             Readiness::empty()
@@ -144,8 +145,8 @@ impl<'a> Hooks<'a> {
     /// stopping at the first gate that fails without `--force`.
     ///
     /// # Errors
-    /// Returns an error when a `when` or `list` expression cannot be evaluated,
-    /// an action declares no single kind, a command cannot be spawned, or
+    /// Returns an error when a `when` or `list` expression fails to evaluate,
+    /// an action doesn't declare a single kind, a command fails to spawn, or
     /// writing to `out` fails.
     pub(crate) fn run(&self, at: &Transition<'_>, out: &mut dyn Write) -> Result<HookOutcome> {
         let mut outcome = HookOutcome::default();
@@ -245,9 +246,9 @@ impl<'a> Hooks<'a> {
         Ok(())
     }
 
-    /// Execute a `run` action and judge the result — or, with no command at
-    /// all, refuse outright: a run-less gate has nothing to run, so `when`
-    /// matching is the whole verdict.
+    /// Execute a `run` action and judge the result, or, with no command at all,
+    /// refuse outright: a run-less gate has nothing to run, so `when` matching
+    /// is the whole verdict.
     fn exec(
         &self,
         run: RunSpec<'_>,
@@ -299,9 +300,9 @@ impl<'a> Hooks<'a> {
     }
 }
 
-/// The verdict on a `run` the user has not allowed: say it was skipped, and
-/// refuse the flip when it is a gate, since a check that never ran proves
-/// nothing.
+/// The verdict on a `run` the user has not allowed. The runner says it skipped
+/// the command, and refuses the flip when it is a gate, since a check that never
+/// ran is no evidence at all.
 fn held_back(command: &str, gate: bool, out: &mut dyn Write) -> Result<Option<Gate>> {
     writeln!(out, "skipped: {command} (not allowed)")?;
     if !gate {
@@ -319,8 +320,8 @@ fn held_back(command: &str, gate: bool, out: &mut dyn Write) -> Result<Option<Ga
     }))
 }
 
-/// The sort chain a `list` spec inherits: a bare `@view` reference brings its
-/// view's sort, anything else takes the default order.
+/// The sort chain a `list` spec inherits. A bare `@view` reference brings its
+/// view's sort, and anything else takes the default order.
 fn view_sort(project: &Project, spec: &str) -> Vec<String> {
     spec.strip_prefix('@')
         .and_then(|name| project.config.views.get(name))
@@ -328,10 +329,10 @@ fn view_sort(project: &Project, spec: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// A run-less gate's verdict: refuse, unconditionally — `when` already
-/// matched, so there is no command to run and nothing else to check. The
-/// `message` (or the default advice, absent one) is both the refusal's
-/// explanation and the stand-in for a command in the status note.
+/// A run-less gate refuses unconditionally. `when` already matched, so there is
+/// no command to run and nothing else to check. The `message` (or the default
+/// advice, absent one) is both the refusal's explanation and the stand-in for a
+/// command in the status note.
 fn runless_gate(message: Option<&str>) -> Gate {
     let advice = message.unwrap_or(DEFAULT_ADVICE);
     Gate {
@@ -364,10 +365,10 @@ fn write_output(out: &mut dyn Write, command: &str, report: &CommandReport) -> R
 
 /// Fold every `--force`-waived gate into the status note.
 ///
-/// A waived gate that leaves no trace is indistinguishable afterwards from a
-/// gate that passed, which would make the whole mechanism advisory. The note is
-/// where a status already explains itself, so the waiver goes there — appended
-/// to whatever `-m` supplied, or standing alone when it supplied nothing.
+/// A waived gate that doesn't leave a trace is indistinguishable afterwards
+/// from a gate that passed, which would make the whole mechanism advisory. The
+/// note is where a status already explains itself. The waiver goes there,
+/// appended to whatever `-m` supplied, or on its own when it supplied nothing.
 pub(crate) fn note_with_overrides(note: Option<&str>, forced: &[String]) -> Option<String> {
     if forced.is_empty() {
         return note.map(str::to_owned);

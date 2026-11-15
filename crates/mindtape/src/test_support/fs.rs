@@ -14,9 +14,9 @@ pub const PRELUDE: &str = include_str!("../../../../lib/prelude.typ");
 /// config. Callers pass the real prelude, [`PRELUDE`].
 ///
 /// # Panics
-/// Panics if writing the package files under `dir` fails — a test-only helper,
-/// so an I/O failure against a fresh tempdir is a test-harness bug, not a case
-/// to recover from.
+/// Panics if writing the package files under `dir` fails. This is a test-only
+/// helper, so an I/O failure against a fresh tempdir is a test-harness bug, not
+/// a case to recover from.
 pub fn write_lib_package(dir: &Path, prelude: &str) {
     write_package(&dir.join("lib"), prelude);
 }
@@ -56,7 +56,7 @@ pub fn write_package_version(pkg: &Path, version: &str, prelude: &str) {
 /// A fresh tempdir, removed when the returned guard drops. The setup line
 /// nearly every test that touches the disk opens with.
 ///
-/// It sits under the canonical temp dir, so a test's paths match the ones
+/// It sits under the canonical temp dir, and a test's paths then match the ones
 /// `mt` resolves. On Windows `%TEMP%` can hold a short name such as
 /// `RUNNER~1`, which [`crate::canonical`] spells out in full.
 ///
@@ -87,7 +87,7 @@ pub fn tempdir_with_dirs(dirs: &[&str]) -> tempfile::TempDir {
 /// Write `contents` to `rel` under `root`, creating its parent directories.
 ///
 /// # Panics
-/// Panics if a directory or the file cannot be written, a test-harness bug.
+/// Panics if a directory or the file write fails, a test-harness bug.
 #[allow(clippy::unwrap_used)]
 pub fn write_file(root: impl AsRef<Path>, rel: impl AsRef<Path>, contents: impl AsRef<[u8]>) {
     let path = root.as_ref().join(rel);
@@ -127,15 +127,16 @@ pub fn tempdir_with_config(config: &str) -> tempfile::TempDir {
 
 /// A fresh tempdir with an (empty) `home/project` tree already created,
 /// `project` carrying an empty `.mindtape/` (no `config.toml`/`defaults.toml`
-/// of its own — every caller writes the layer text its scenario needs). Keep
-/// the returned `TempDir` alive for as long as the paths are used. Shared by
+/// of its own, because every caller writes the layer text its scenario needs).
+/// Keep the returned `TempDir` alive for as long as a caller uses the paths.
+/// Shared by
 /// `config/layers_tests.rs` and `config/packs_tests.rs`, which both build a
 /// `home`/ancestor/project chain to drive `discover_layers`/`load_config_layered`
 /// against.
 ///
 /// # Panics
-/// Panics if creating either directory fails — a test-harness bug against a
-/// fresh tempdir, not a case to recover from.
+/// Panics if creating either directory fails. That is a test-harness bug
+/// against a fresh tempdir, not a case to recover from.
 ///
 #[allow(clippy::unwrap_used)]
 #[must_use]
@@ -147,16 +148,17 @@ pub fn home_and_project() -> (tempfile::TempDir, PathBuf, PathBuf) {
     (tmp, home, project)
 }
 
-/// Write the barebones project scaffold under `dir`: a `.mindtape/config.toml`
-/// declaring a single `tasks` root, plus the empty root itself. The prologue
-/// every test that needs a real project on disk repeats, and deliberately
-/// nothing more — a scenario-specific config overwrites the file, and the lib
-/// override ([`write_lib_package`]) is a separate decision, since a test about
-/// package resolution wants a project without one.
+/// Write the barebones project scaffold under `dir`. It holds a
+/// `.mindtape/config.toml` declaring a single `tasks` root, plus the empty root
+/// itself. The prologue every test that needs a real project on disk repeats,
+/// and deliberately nothing more. A scenario-specific config overwrites the
+/// file, and the lib override ([`write_lib_package`]) is a separate decision,
+/// since a test about package resolution wants a project without one.
 ///
 /// # Panics
-/// Panics if writing under `dir` fails — a test-only helper, so an I/O failure
-/// against a fresh tempdir is a test-harness bug, not a case to recover from.
+/// Panics if writing under `dir` fails. This is a test-only helper, so an I/O
+/// failure against a fresh tempdir is a test-harness bug, not a case to recover
+/// from.
 #[allow(clippy::unwrap_used)]
 pub fn write_bare_project(dir: &Path) {
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
@@ -168,14 +170,14 @@ pub fn write_bare_project(dir: &Path) {
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
 }
 
-/// `git init --quiet` in `dir`, asserting success. Shared by every test that
-/// drives a real git working copy — `changed()` in the filter language
-/// reads one, and both the in-crate unit tests and the CLI's e2e tests need
-/// the exact same three-line setup to get one.
+/// `git init --quiet` in `dir`, asserting success. Every test that drives a
+/// real git working copy shares it. `changed()` in the filter language reads
+/// one, and both the in-crate unit tests and the CLI's e2e tests need the exact
+/// same three-line setup to get one.
 ///
 /// # Panics
-/// Panics if `git init` fails — a test-harness bug against a fresh tempdir,
-/// not a case to recover from.
+/// Panics if `git init` fails. That is a test-harness bug against a fresh
+/// tempdir, not a case to recover from.
 #[allow(clippy::unwrap_used)]
 pub fn git_init(dir: &Path) {
     assert!(
@@ -208,7 +210,7 @@ pub fn git_stdout(dir: &Path, args: &[&str]) -> String {
 /// A fresh [`tempdir`] holding an initialized, empty git repository.
 ///
 /// # Panics
-/// Panics if git cannot be initialized, a test-harness bug.
+/// Panics if git fails to initialize, a test-harness bug.
 #[allow(clippy::unwrap_used)]
 #[must_use]
 pub fn git_tempdir() -> tempfile::TempDir {
@@ -220,7 +222,8 @@ pub fn git_tempdir() -> tempfile::TempDir {
 /// A repository holding `files`, then each `(link, target)` symlink committed.
 ///
 /// # Panics
-/// Panics if a file, symlink or commit cannot be made, a test-harness bug.
+/// Panics if writing a file, creating a symlink or committing fails, a
+/// test-harness bug.
 #[cfg(unix)]
 #[allow(clippy::unwrap_used)]
 pub fn symlink_repo(files: &[(&str, &str)], links: &[(&str, &str)]) -> tempfile::TempDir {
@@ -240,7 +243,7 @@ pub fn symlink_repo(files: &[(&str, &str)], links: &[(&str, &str)]) -> tempfile:
 /// with `message` as a throwaway identity.
 ///
 /// # Panics
-/// Panics if a file cannot be written or git fails, a test-harness bug.
+/// Panics if a file write or a git call fails, a test-harness bug.
 pub fn commit_files(root: &Path, files: &[(&str, &str)], message: &str) {
     for (rel, contents) in files {
         write_file(root, rel, contents);
@@ -250,8 +253,8 @@ pub fn commit_files(root: &Path, files: &[(&str, &str)], message: &str) {
 }
 
 /// Run `git <args>` in `root` as a throwaway identity with signing off,
-/// asserting success — the committing half of [`git_init`] for tests that
-/// build a history.
+/// asserting success. This is the committing half of [`git_init`] for tests
+/// that build a history.
 ///
 /// # Panics
 /// Panics if git fails.

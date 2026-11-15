@@ -1,7 +1,8 @@
 //! Tests for the editor session: spawning the configured editor, tty/mode
 //! gating (`should_open`, `has_unfilled_required`), and `run`'s parse of the
 //! edited buffer. Scaffold rendering and parse-back live in
-//! `cmd/add/interactive_tests.rs`; shares its `specs()`/`TEMPLATE` fixture.
+//! `cmd/add/interactive_tests.rs`. This module shares its `specs()`/`TEMPLATE`
+//! fixture.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::tempdir;
@@ -70,11 +71,11 @@ fn editor_command_env_var_not_empty_used() {
 /// trailing argument, which the script reads as `$1` / `%~1`.
 ///
 /// One function with two `#[cfg]` bodies rather than two `#[cfg]`ed functions
-/// of the same name: coverage tooling keys a function by (file, name), so a
-/// same-named pair is one key with two entries, and `just crap::check` reported both
-/// as new *and* both as removed on every run — against a baseline holding them
-/// verbatim. A body-level `cfg` compiles to exactly the same thing on either
-/// platform and leaves one key.
+/// of the same name. Coverage tooling keys a function by (file, name), so a
+/// same-named pair is one key with two entries. `just crap::check` reported
+/// both as new *and* both as removed on every run, against a baseline holding
+/// them verbatim. A body-level `cfg` compiles to exactly the same thing on
+/// either platform and leaves one key.
 fn fake_editor(dir: &std::path::Path) -> String {
     #[cfg(not(windows))]
     {
@@ -118,9 +119,9 @@ fn an_editor_that_cannot_start_names_the_command() {
     );
 }
 
-/// A command that starts and exits non-zero, whatever the buffer path it is
-/// given. One function with two body-level `#[cfg]`s, for the reason
-/// [`fake_editor`] gives.
+/// A command that starts and exits non-zero, whatever buffer path it receives.
+/// One function with two body-level `#[cfg]`s, for the reason [`fake_editor`]
+/// gives.
 fn failing_editor() -> &'static str {
     #[cfg(not(windows))]
     {
@@ -236,7 +237,7 @@ fn run_parses_editor_output() {
     assert_eq!(edited.values["x"], RawValue::Str("ParsedTitle".to_owned()));
 }
 
-/// An editor command that overwrites the file it is handed with `line`.
+/// An editor command that overwrites the file it receives with `line`.
 #[cfg(unix)]
 fn editor_script(dir: &std::path::Path, line: &str) -> String {
     let script = dir.join("editor.sh");
@@ -244,8 +245,8 @@ fn editor_script(dir: &std::path::Path, line: &str) -> String {
     format!("sh {}", script.display())
 }
 
-/// An editor command that overwrites the file it is handed with `line`. Not
-/// `bash`: on Windows that can resolve to WSL's launcher in `System32`.
+/// An editor command that overwrites the file it receives with `line`. Not
+/// `bash`: on Windows that can resolve to the WSL launcher in `System32`.
 #[cfg(windows)]
 fn editor_script(dir: &std::path::Path, line: &str) -> String {
     let script = dir.join("editor.cmd");

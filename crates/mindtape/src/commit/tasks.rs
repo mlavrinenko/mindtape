@@ -1,21 +1,21 @@
 //! The project as a commit sees it: its config and tasks as of `HEAD`, the
-//! index and the working tree — the three states a `scope = "task"` commit
-//! rule reads through `head(...)`, `staged(...)` and `worktree(...)`.
+//! index and the working tree. Those are the three states a `scope = "task"`
+//! commit rule reads through `head(...)`, `staged(...)` and `worktree(...)`.
 //!
-//! A state loads every task file from its own git tree — the index for an
-//! empty revision — and evaluates it like a file that is not on disk
+//! A state loads every task file from its own git tree (the index for an empty
+//! revision) and evaluates it like a file that is not on disk
 //! ([`crate::validate::candidate`]). A file the state lacks is absent from it,
 //! so `exists` reads false there. The state's own `.mindtape/config.toml`
 //! layers over the XDG and ancestor-default config layers, and its package
-//! pins resolve against that tree's files, so an unchanged task file still
+//! pins resolve against that tree's files. An unchanged task file still
 //! resolves `@local` against that tree's `lib/`.
 //!
 //! [`StateLoader`] caches evaluations by resolved source identity (a regular
-//! file's blob, or a symlink's final target blob), package-tree fingerprint
-//! and the config facts a harvest reads. A range reuses one loader
+//! file's blob, or the final target blob of a symlink), package-tree
+//! fingerprint and the config facts a harvest reads. A range reuses one loader
 //! across commits, and a `commit-msg` hook seeds it from the loaded working
-//! tree, so only files whose bytes or package/config environment changed are
-//! evaluated again.
+//! tree. The loader then evaluates again only the files whose bytes or
+//! package/config environment changed.
 
 pub use crate::commit::state_loader::StateLoader;
 use crate::commit::{CommitMsgError, git, task_stem};
@@ -28,7 +28,7 @@ use std::path::Path;
 /// Where one state's versions come from.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct StateSource {
-    /// The revision `git cat-file` reads `<rev>:<path>` from; empty reads the
+    /// The revision `git cat-file` reads `<rev>:<path>` from. Empty reads the
     /// index (`:<path>`).
     pub rev: String,
     /// Always empty. Kept for API compatibility: a state reads its whole tree,
@@ -36,18 +36,18 @@ pub struct StateSource {
     pub differs: Vec<String>,
 }
 
-/// Which states a commit is checked against, and where each comes from.
+/// Which states the check reads a commit against, and where each comes from.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct StatePlan {
     /// The project root's path within the repository (`git rev-parse
-    /// --show-prefix`): empty at the top level, else `/`-terminated.
+    /// --show-prefix`): empty at the top level, else ending in `/`.
     pub root_prefix: String,
     /// The state before the commit.
     pub head: StateSource,
     /// The state the commit records.
     pub staged: StateSource,
-    /// Whether the loaded working tree is a state of its own — false for a
-    /// past commit, which has none.
+    /// Whether the loaded working tree is a state of its own. False for a past
+    /// commit, which has none.
     pub worktree: bool,
 }
 
@@ -77,19 +77,19 @@ impl StatePlan {
     }
 }
 
-/// One state of the project: its own config, its tasks, and the readiness
+/// One state of the project, with its own config, its tasks, and the readiness
 /// computed over them for `ready`, `blocked` and `count(...)`.
 #[derive(Debug, Clone, Default)]
 pub struct ProjectState {
-    /// The config this state's tasks were loaded and classified with. When the
-    /// state's own config failed to load, this is the working tree's config,
-    /// and [`Self::errors`] carries the failure.
+    /// The config the loader loaded and classified this state's tasks with.
+    /// When the state's own config failed to load, this is the working tree's
+    /// config, and [`Self::errors`] carries the failure.
     pub config: Config,
     /// Every task the state holds, in id order.
     pub tasks: Vec<Task>,
     /// Readiness over [`Self::tasks`].
     pub readiness: Readiness,
-    /// Task files of this state that failed to evaluate — absent from
+    /// Task files of this state that failed to evaluate, absent from
     /// [`Self::tasks`], as is a config that failed to load.
     pub errors: Vec<LoadError>,
 }
@@ -98,7 +98,7 @@ impl ProjectState {
     /// A state holding `tasks`, ranked and classified as a load would, with
     /// each open task's `waits-on` checkers asked from `root`. `config` is the
     /// state's own config, so readiness and query annotations read the same
-    /// status legend and rules as the harvest did, and the state keeps it for
+    /// status legend and rules as the harvest did. The state keeps it for
     /// callers that build the commit's record from it.
     pub(crate) fn new(
         mut tasks: Vec<Task>,
@@ -119,8 +119,8 @@ impl ProjectState {
         }
     }
 
-    /// A one-task state holding [`Task::default`], whose stem is empty — the
-    /// load-time dry run's.
+    /// A one-task state holding [`Task::default`], whose stem is empty. This is
+    /// the load-time dry run's state.
     pub(crate) fn probe(config: &Config) -> Self {
         Self::new(vec![Task::default()], config, Path::new(""), Vec::new())
     }
@@ -132,7 +132,7 @@ impl ProjectState {
     }
 }
 
-/// The states a commit is checked against, each with its own config and
+/// The states the check reads a commit against, each with its own config and
 /// tasks.
 #[derive(Debug, Clone, Default)]
 pub struct CommitStates {
@@ -158,7 +158,7 @@ impl CommitStates {
         &self.staged.config
     }
 
-    /// The working tree's config, when a working tree was loaded.
+    /// The working tree's config, when the load included a working tree.
     #[must_use]
     pub fn worktree_config(&self) -> Option<&Config> {
         self.worktree.as_ref().map(|state| &state.config)

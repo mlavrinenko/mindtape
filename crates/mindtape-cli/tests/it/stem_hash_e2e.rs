@@ -1,9 +1,9 @@
 //! End-to-end: the `SLUG#` column prints a stem hash, and every `<task>`
 //! argument accepts one.
 //!
-//! The hash comes from the filename stems of every task the project loads, so
-//! a filtered listing prints the same hash as the full one, and a flip or a new
-//! task leaves it alone unless the new stem shares its prefix.
+//! The hash comes from the filename stems of every task the project loads. A
+//! filtered listing then prints the same hash as the full one, and a flip or a
+//! new task leaves it alone unless the new stem shares its prefix.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::collections::BTreeMap;
@@ -144,7 +144,7 @@ const SPELLS_HAS: &str = "task-65480";
 const SPELLS_DONE: &str = "task-475620";
 
 /// `mt rm` reads a bare filter word as a filter even when a stem hash spells
-/// it, so the word never retires the task whose hash it happens to be.
+/// it. The word then never retires the task whose hash it happens to be.
 #[test]
 fn rm_reads_a_filter_word_before_a_stem_hash() {
     let dir = project(&[(SPELLS_HAS, &[]), (SPELLS_DONE, &[]), ("alpha", &[])]);
@@ -188,7 +188,7 @@ fn a_hash_never_spells_another_tasks_stem() {
 }
 
 /// A word the filter language reads on its own never prints as a hash, so
-/// `mt rm <hash>` cannot be read as that filter.
+/// `mt rm <hash>` cannot read as that filter.
 #[test]
 fn a_hash_never_spells_a_filter_word() {
     let dir = project(&[(SPELLS_HAS, &[]), ("alpha", &[])]);

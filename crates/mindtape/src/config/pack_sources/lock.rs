@@ -1,5 +1,5 @@
-//! `.mindtape/packs.lock`: for each pack source, the `git` and `ref` it was
-//! locked from, the `commit` that `ref` named then, and the `sha256` of the
+//! `.mindtape/packs.lock`: for each pack source, the `git` and `ref` the lock
+//! recorded, the `commit` that `ref` named then, and the `sha256` of the
 //! source's files at that commit. `mt packs update` writes it with
 //! [`write_lock`], and the project commits it.
 
@@ -22,12 +22,12 @@ pub fn lock_path(root: &Path) -> PathBuf {
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct LockedSource {
-    /// The repository the source was locked from.
+    /// The repository the lock recorded for the source.
     pub git: String,
-    /// The tag, branch or commit the source was locked from.
+    /// The tag, branch or commit the lock recorded for the source.
     #[serde(rename = "ref")]
     pub reference: String,
-    /// The commit `reference` named when the lock was written, in hex.
+    /// The commit `reference` named at write time, in hex.
     pub commit: String,
     /// The hash of the source's files at `commit`, in lowercase hex.
     pub sha256: String,
@@ -53,11 +53,11 @@ impl PackLock {
 /// The comment a written lock starts with.
 const HEADER: &str = "# Written by `mt packs update`. Commit it beside .mindtape/config.toml.\n\n";
 
-/// Write `lock` as the lock file under `root`, all at once, so a reader sees
+/// Write `lock` as the lock file under `root`, all at once. A reader then sees
 /// the old file or the new one and never a part of it.
 ///
 /// # Errors
-/// Returns the I/O error when the file can't be written.
+/// Returns the I/O error when the write fails.
 pub fn write_lock(root: &Path, lock: &PackLock) -> std::io::Result<()> {
     let body = toml::to_string(&lock.entries).map_err(std::io::Error::other)?;
     crate::write_atomic(&lock_path(root), format!("{HEADER}{body}").as_bytes())
@@ -68,7 +68,7 @@ pub fn write_lock(root: &Path, lock: &PackLock) -> std::io::Result<()> {
 /// # Errors
 /// Returns [`ConfigError::ParseIn`] naming the file when it is not a lock,
 /// [`ConfigError::Invalid`] for a `commit` or `sha256` that is not hex of the
-/// right length, and [`ConfigError::Io`] when it can't be read.
+/// right length, and [`ConfigError::Io`] when the command cannot read it.
 pub(crate) fn read_lock(root: &Path) -> Result<PackLock, ConfigError> {
     let text = match std::fs::read_to_string(lock_path(root)) {
         Ok(text) => text,

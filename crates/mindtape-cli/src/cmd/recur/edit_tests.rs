@@ -56,7 +56,7 @@ const SOURCE_ALREADY_SPAWNED: &str = mindtape::typst_task!(
 "#
 );
 
-/// The same, with a noted edge — the case a re-render would flatten.
+/// The same, with a noted edge, the case a re-render would flatten.
 const SOURCE_NOTED_LINKS: &str = mindtape::typst_task!(
     r#"(
   title: "Water plants",
@@ -68,7 +68,7 @@ const SOURCE_NOTED_LINKS: &str = mindtape::typst_task!(
 );
 
 /// The already-spawned links argument plus an edge helper call elsewhere in
-/// the document (a body `related`), i.e. outside the `links:` value range.
+/// the document (a body `related`), that is, outside the `links:` value range.
 const SOURCE_BODY_EDGE_CALL: &str = mindtape::typst_task!(
     r#"(
   title: "Water plants",
@@ -169,9 +169,9 @@ fn set_recurred_from_preserves_existing_edges() {
     assert!(result.contains(r#"depends-on("other.typ") + recurred-from("chore.typ")"#));
 }
 
-/// Spawning from an occurrence that is itself a spawn: its own
-/// `recurred-from` is replaced, not added to. `recurred-from` allows one edge
-/// per task, so appending wrote an occurrence `mt check` refuses — and that is
+/// Spawning from an occurrence that is itself a spawn replaces its own
+/// `recurred-from` rather than adding to it. `recurred-from` allows one edge
+/// per task, so appending wrote an occurrence `mt check` refuses, and that is
 /// every second hop of the ordinary recurrence loop, not a corner.
 #[test]
 fn set_recurred_from_replaces_the_predecessors_own_edge() {
@@ -189,7 +189,8 @@ fn set_recurred_from_replaces_the_predecessors_own_edge() {
 }
 
 /// A note's markup passes through verbatim rather than being re-rendered: the
-/// surviving calls are copied out of the source by span, not rebuilt.
+/// rewrite copies the surviving calls out of the source by span rather than
+/// rebuilding them.
 #[test]
 fn set_recurred_from_keeps_a_noted_edge_verbatim() {
     let edit = set_recurred_from(SOURCE_NOTED_LINKS, "chore-2026-06-08").unwrap();
@@ -201,7 +202,7 @@ fn set_recurred_from_keeps_a_noted_edge_verbatim() {
 }
 
 /// An edge helper call outside the `links:` value's byte range is not part of
-/// the argument, so it must not enter the replacement scan: including it makes
+/// the argument, so it must not enter the replacement scan. Including it makes
 /// the gap check fail, the rewrite bail, and the predecessor's own
 /// `recurred-from` survive as a duplicate.
 #[test]

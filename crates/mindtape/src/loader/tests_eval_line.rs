@@ -1,6 +1,6 @@
-//! Which line of a task file a load error names: the line of the first
+//! Which line of a task file a load error names. It is the line of the first
 //! diagnostic that lands in the task file, walking its trace when Typst raised
-//! it inside the prelude, so the reader never sees a prelude line.
+//! it inside the prelude. The reader then never sees a prelude line.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::tests::{lib_config, setup, write_pkg};
@@ -195,7 +195,7 @@ fn an_error_keeps_typsts_hints() {
     assert!(error.hints[0].contains("subtraction"), "{:?}", error.hints);
 }
 
-/// A warning on a file that loads is reported with its place.
+/// A warning on a file that loads keeps its place.
 #[test]
 fn a_warning_on_a_file_that_loads_is_kept() {
     let dir = setup();

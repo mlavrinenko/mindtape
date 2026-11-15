@@ -3,17 +3,18 @@
 //!
 //! A template is an ordinary task artifact whose authored values are `slot(...)`
 //! calls (see the prelude helper). This module finds each call on the parse plane
-//! (`typst_edit::find_calls` — no eval, no `World`), reads its literal arguments
-//! into a [`SlotSpec`], and [`fill()`]s the source: each slot is replaced by a
-//! rendered literal so the filed task holds plain values and never calls `slot`.
+//! (`typst_edit::find_calls`, with no eval and no `World`) and reads its literal
+//! arguments into a [`SlotSpec`]. [`fill()`] then rewrites the source: it
+//! replaces each slot with a rendered literal. The filed task holds plain values
+//! and never calls `slot`.
 //!
-//! Slot arguments must be literals; this engine never evaluates the template.
+//! Slot arguments must be literals. This engine never evaluates the template.
 //!
-//! Split along those same two verbs to stay under the line budget: this file
-//! is discovery only, turning `slot(...)` calls into [`SlotSpec`]s. Coercion,
-//! rendering, and the source rewrite itself — [`fill()`], [`FillError`],
-//! [`RawValue`] — live in `template/fill/mod.rs` and are re-exported here so the
-//! public API is unchanged.
+//! The split follows those same two verbs to stay under the line budget. This
+//! file holds discovery only, turning `slot(...)` calls into [`SlotSpec`]s.
+//! Coercion, rendering, and the source rewrite ([`fill()`], [`FillError`],
+//! [`RawValue`]) live in `template/fill/mod.rs`, and this file re-exports them
+//! to keep the public API the same.
 //!
 //! # Files
 //!
@@ -28,66 +29,67 @@ use std::ops::Range;
 
 use typst_edit::{Call, find_calls};
 
-/// Coercion, rendering, and the source rewrite; split out to keep this file
+/// Coercion, rendering, and the source rewrite, split out to keep this file
 /// under its line budget. See [`fill()`].
 mod fill;
 pub use fill::{FillError, LinkValue, RawValue, fill, fill_defaults, fill_examples, fill_partial};
 
-/// What kind of value a slot holds; drives how a filled value renders to Typst.
+/// The kind of value a slot holds. It decides how a filled value renders to
+/// Typst.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SlotKind {
-    /// A quoted string, e.g. `"hello"`.
+    /// A quoted string, such as `"hello"`.
     String,
-    /// An integer, e.g. `8`.
+    /// An integer, such as `8`.
     Int,
-    /// A float, e.g. `0.7`.
+    /// A float, such as `0.7`.
     Float,
-    /// A real-scale number, e.g. `2.5`. Renders identically to [`Self::Float`];
-    /// kept as its own variant so a numeric field's `ScaleKind` (spelled
-    /// `int`/`real` in config) round-trips faithfully through a synthetic
-    /// slot's kind, rather than reporting the generic `float` spelling.
+    /// A real-scale number, such as `2.5`. Renders identically to
+    /// [`Self::Float`]. It stays a separate variant so a numeric field's
+    /// `ScaleKind` (spelled `int`/`real` in config) round-trips faithfully
+    /// through a synthetic slot's kind, rather than reporting the generic
+    /// `float` spelling.
     Real,
     /// A boolean, `true` or `false`.
     Bool,
     /// A `YYYY-MM-DD` date, rendered as `on(Y, M, D)`.
     Date,
-    /// An array of strings, e.g. `("a", "b",)`.
+    /// An array of strings, such as `("a", "b",)`.
     List,
-    /// Raw markup spliced into the body; a markup `#slot(…)` drops its `#`.
+    /// Raw markup spliced into the body. A markup `#slot(…)` drops its `#`.
     /// Escaped on the way in by the CLI (`cmd/add/mod.rs::markup_safe`, via
     /// [`crate::emit::status_value::escape_markup`]) since a filled value may be
     /// caller-supplied and untrusted. Compare [`Self::Raw`].
     Text,
     /// Raw source spliced in verbatim, same as [`Self::Text`] but never
     /// escaped. Named for what it does rather than for the language it holds:
-    /// the value is pasted, not read, so nothing here builds a Typst value
-    /// and nothing type-checks one.
+    /// the engine pastes the value rather than reading it. This module only
+    /// splices text: it never builds a Typst value and never type-checks one.
     ///
-    /// The trust decision belongs to the template author, not the caller: a
-    /// template is checked-in repo content, a `--set`/`-f`/environment value
-    /// is not, so `kind: "raw"` is the template's own assertion that this
+    /// The template author owns the trust decision, not the caller. A template
+    /// is repo content under version control, while a `--set`/`-f`/environment
+    /// value is not. So `kind: "raw"` is the template's own assertion that this
     /// slot's filler is safe to splice.
     ///
-    /// What is checked is narrow, and the name is honest about it. A value
-    /// that fails to parse as Typst markup is rejected at [`fill()`] time,
-    /// naming the slot; that catches a markup-position slot, which is what
-    /// the kind is for. It cannot catch a slot spliced into an argument
-    /// position, where the value is an expression and parens are not markup —
-    /// see `template/fill/markup.rs`.
+    /// The check stays narrow, and the name says so. [`fill()`] rejects a value
+    /// that fails to parse as Typst markup, naming the slot. That catches a
+    /// markup-position slot, which is what the kind is for. It cannot catch a
+    /// slot spliced into an argument position, where the value is an expression
+    /// and parens are not markup. See `template/fill/markup.rs`.
     Raw,
     /// A string constrained to the slot's `choices`.
     Choice,
     /// A list of strings, each one of the slot's `choices`.
     MultiChoice,
     /// A list of typed edges, each a `task`, `kind` and optional `note`,
-    /// rendered as the dicts the DSL's `links:` helpers build.
+    /// rendered as the dicts the `links:` helpers of the DSL build.
     Links,
 }
 
 impl SlotKind {
     /// Every kind once, in the order a refusal and the docs list them. `parse`
-    /// reads the spelling of each from here, so a kind missing from this list
-    /// can't be declared.
+    /// reads the spelling of each from here, so this list is the full set of
+    /// kinds.
     pub const ALL: [Self; 12] = [
         Self::String,
         Self::Int,
@@ -133,12 +135,12 @@ impl SlotKind {
         Self::ALL.into_iter().find(|kind| kind.as_str() == text)
     }
 
-    /// Whether this kind splices its value straight into body markup —
-    /// dropping a `#slot(...)` call's leading `#` and unquoting a
-    /// string-literal default, rather than rendering as a self-delimiting
-    /// Typst literal (a quoted string, a number, a list). `text` and `raw`
-    /// both hold body content; they differ only in whether the value is
-    /// escaped first, a decision made upstream of this crate.
+    /// Whether this kind splices its value straight into body markup. Such a
+    /// kind drops a `#slot(...)` call's leading `#` and unquotes a
+    /// string-literal default, rather than rendering a self-delimiting Typst
+    /// literal (a quoted string, a number, a list). `text` and `raw` both hold
+    /// body content, and they differ only in whether the CLI escapes the value
+    /// first, a decision made upstream of this crate.
     fn splices_verbatim(self) -> bool {
         matches!(self, Self::Text | Self::Raw)
     }
@@ -148,11 +150,11 @@ impl SlotKind {
 /// replace when filling.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SlotSpec {
-    /// Slot name (first positional argument); the fill key.
+    /// Slot name (first positional argument), used as the fill key.
     pub name: String,
     /// Value kind.
     pub kind: SlotKind,
-    /// Whether a value must be supplied when no default is present.
+    /// Whether the caller must supply a value when no default is present.
     pub required: bool,
     /// Optional human prompt for interactive fill / `describe`.
     pub prompt: Option<String>,
@@ -165,25 +167,25 @@ pub struct SlotSpec {
     /// for `default: none` or an absent `default`.
     pub default: Option<String>,
     /// Unescaped content when `default` is a string literal, or a raw block's
-    /// text dedented as Typst dedents it — used so a `text` or `raw` slot's
-    /// default lands in the body as markup, not as a quoted string.
+    /// text dedented as Typst dedents it. It lets a `text` or `raw` slot's
+    /// default land in the body as markup, not as a quoted string.
     pub default_string: Option<String>,
-    /// The `example:` argument's raw source: a sample value for a caller to
-    /// read, never filed and never evaluated. `None` for `example: none` or an
-    /// absent `example`.
+    /// The raw source of the `example:` argument, a sample value for a caller
+    /// to read. It is never filed and never evaluated. `None` for
+    /// `example: none` or an absent `example`.
     pub example: Option<String>,
     /// [`Self::example`]'s content when it is a string literal or a raw block,
     /// read the way [`Self::default_string`] reads a default.
     pub example_string: Option<String>,
     /// Whether the call is markup (`#slot(…)`), so a `text` fill drops the `#`.
     pub markup: bool,
-    /// The `kind:` spelling when it names no known kind, e.g. a typo or a
-    /// renamed kind a template has not caught up with. `None` when the kind
-    /// parsed, or when the call declared none at all.
+    /// The `kind:` spelling when the template gives an unknown kind, such as a
+    /// typo or a renamed kind that the template has not caught up with. `None`
+    /// when the kind parsed, or when the call declared none.
     ///
-    /// Discovery cannot fail — it returns a `Vec`, and a template with one bad
-    /// slot still has to describe its good ones — so the bad spelling is
-    /// carried here and rejected by [`fill()`] instead. Defaulting it to
+    /// Discovery cannot fail: it returns a `Vec`, and a template with one bad
+    /// slot still has to describe its good ones. So this field carries the bad
+    /// spelling and [`fill()`] rejects it instead. Defaulting it to
     /// [`SlotKind::String`] silently, as this once did, turns a renamed kind
     /// into a quoted, escaped string with no diagnostic anywhere.
     pub unknown_kind: Option<String>,
@@ -267,10 +269,10 @@ fn arg_raw<'a>(source: &'a str, arg: &typst_edit::Arg) -> &'a str {
     source.get(arg.value_range.clone()).unwrap_or_default()
 }
 
-/// Pull the string literals out of an array source like `("a", "b")`. A
-/// literals-only scan: collects each `"…"` segment, honouring `\"` escapes.
-/// Public because a `+=` on a list slot appends to the slot's `default`, which
-/// discovery leaves as raw source.
+/// Pull the string literals out of an array source like `("a", "b")`. The scan
+/// reads literals only, collecting each `"…"` segment and honouring `\"`
+/// escapes. Public because a `+=` on a list slot appends to the slot's
+/// `default`, which discovery leaves as raw source.
 #[must_use]
 pub fn parse_string_array(source: &str) -> Vec<String> {
     let mut out = Vec::new();

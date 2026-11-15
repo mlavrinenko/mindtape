@@ -1,8 +1,8 @@
-//! `mt schema` — the JSON Schema of each machine output, printed or recorded.
+//! `mt schema` prints or records the JSON Schema of each machine output.
 //!
 //! Every schema comes from the same Rust types the output serializes, so the
 //! committed copies cannot drift from the binary. A schema's version changes
-//! only when a change could break an earlier consumer; a compatible addition
+//! only when a change could break an earlier consumer. A compatible addition
 //! updates the current file. The command works outside a project: it reads
 //! and writes only `schema/output/` under the current directory.
 
@@ -29,13 +29,13 @@ pub const CANONICAL_BASE: &str =
 /// Where `--write` records, relative to the current directory.
 const OUTPUT_DIR: &str = "schema/output";
 
-/// One machine output's identity: its name and shape version.
+/// The name and shape version of one machine output.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SchemaId {
     /// The output's identity, such as `ls`.
     pub name: &'static str,
     /// The shape version. Bump it only when a change could break an earlier
-    /// consumer; a compatible addition updates the current version's file.
+    /// consumer. A compatible addition updates the current version's file.
     pub version: u32,
 }
 
@@ -100,8 +100,8 @@ pub struct SchemaArgs {
 /// Run `mt schema`.
 ///
 /// # Errors
-/// Returns an error if the name is unknown, a schema cannot be written, or a
-/// recorded schema differs from the generated one.
+/// Returns an error if the name is unknown, `mt schema` cannot write a schema,
+/// or a recorded schema differs from the generated one.
 pub fn run(args: &SchemaArgs) -> Result<()> {
     if args.write {
         return write_all(Path::new("."));
@@ -129,8 +129,8 @@ fn print_index() {
 /// The registered schema `name` denotes.
 ///
 /// # Errors
-/// Returns an error naming the closest registered schema when `name` matches
-/// none.
+/// Returns an error that suggests the closest registered schema when `name`
+/// matches none.
 fn find(name: &str) -> Result<&'static Schema> {
     let known: Vec<&str> = SCHEMAS.iter().map(|schema| schema.id.name).collect();
     SCHEMAS
@@ -148,7 +148,7 @@ fn find(name: &str) -> Result<&'static Schema> {
 /// Write every registered schema under `root`, printing each path.
 ///
 /// # Errors
-/// Returns an error if a directory or file cannot be written.
+/// Returns an error when a directory or file write fails.
 fn write_all(root: &Path) -> Result<()> {
     for schema in SCHEMAS {
         let path = root.join(schema.id.relative_path());
@@ -160,7 +160,7 @@ fn write_all(root: &Path) -> Result<()> {
 /// Write one schema file, creating its directory, and print the path.
 ///
 /// # Errors
-/// Returns an error if the directory or file cannot be written.
+/// Returns an error when the directory or file write fails.
 fn write_one(path: &Path, body: &str) -> Result<()> {
     crate::util::write_creating_parent(path, body)?;
     println!("{}", mindtape::display_path(path));
@@ -171,8 +171,8 @@ fn write_one(path: &Path, body: &str) -> Result<()> {
 /// naming every missing or different file.
 ///
 /// # Errors
-/// Returns an error naming each stale file, or a recorded file that cannot be
-/// read.
+/// Returns an error that reports each stale file, or a recorded file that
+/// `mt schema` cannot read.
 fn check_all(root: &Path) -> Result<()> {
     let mut stale = Vec::new();
     for schema in SCHEMAS {

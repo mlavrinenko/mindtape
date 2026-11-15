@@ -4,8 +4,8 @@
 //! Two do today: `[views.<name>]`, whose filter may reference another view
 //! (`in_view("other")` / `@other`), and `[dicts.<name>]`, whose `include` names
 //! other dicts. Both refuse a cycle at config load and both name the cycle in
-//! the message, so the walk lives here once rather than as a copy per section —
-//! a second copy would be a duplicated block the copy-paste gate refuses, and a
+//! the message. The walk then lives here once rather than as a copy per section.
+//! A second copy would be a duplicated block the copy-paste gate refuses, and a
 //! fix applied to one of them only.
 
 use std::collections::BTreeMap;
@@ -17,8 +17,9 @@ const DONE: u8 = 2;
 
 /// Depth-first search for a cycle in a name-reference graph. Returns the names
 /// on the first cycle found (closing back to the first), or `None` if acyclic.
-/// Edges to a target absent from `refs` (an unknown reference, reported
-/// separately by each caller) are ignored — they cannot join a cycle.
+/// The search ignores edges to a target absent from `refs` (an unknown
+/// reference, reported separately by each caller), because they cannot join a
+/// cycle.
 pub(crate) fn find_cycle(refs: &BTreeMap<&str, Vec<String>>) -> Option<Vec<String>> {
     let mut state: BTreeMap<String, u8> = BTreeMap::new();
     for start in refs.keys() {

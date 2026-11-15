@@ -3,7 +3,7 @@
 //! plural-check` refuses a `(s)` in a string literal outside tests.
 
 /// `noun` as `n` of it reads: `task` for one, `tasks` for any other count. A
-/// noun ending in a consonant and `y` takes `ies`, as `entry` does; every other
+/// noun ending in a consonant and `y` takes `ies`, as `entry` does. Every other
 /// noun our messages count takes a plain `s`.
 #[must_use]
 pub fn plural<N: Copy + PartialEq + From<u8>>(n: N, noun: &str) -> String {

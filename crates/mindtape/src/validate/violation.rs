@@ -1,11 +1,11 @@
-//! What a check reports: one violation, and where in the source it points.
+//! A check reports one violation, and where in the source it points.
 //!
-//! Separate from [`mod@crate::validate`], which is the checks themselves. Every
-//! pass that can fail a task builds one of these — the core field checks, the
-//! body-shape gates ([`crate::body::gate`], [`crate::body::content_gate`]), the comment
-//! scan ([`crate::config::comments`]) and the config-declared rules
-//! ([`crate::rules`]) — and every consumer reads exactly these fields,
-//! so the report type outliving any one pass is the point.
+//! Separate from [`mod@crate::validate`], which holds the checks themselves.
+//! Every pass that can fail a task builds one of these: the core field checks,
+//! the body-shape gates ([`crate::body::gate`], [`crate::body::content_gate`]),
+//! the comment scan ([`crate::config::comments`]) and the config-declared rules
+//! ([`crate::rules`]). Every consumer reads exactly these fields, so the report
+//! type outliving any one pass is the point.
 //!
 //! Both types are re-exported from [`mod@crate::validate`], where callers have
 //! always found them.
@@ -29,7 +29,7 @@ pub enum Location {
         /// One-based line number.
         line: usize,
     },
-    /// A line of a built-in template's source. The template ships inside
+    /// A line of a built-in template's source. The template lives inside
     /// `mt`, so there is no file to open.
     Builtin {
         /// The template's name, as `mt add -t` takes it.
@@ -37,7 +37,7 @@ pub enum Location {
         /// One-based line number within the template's source.
         line: usize,
     },
-    /// A line of a built-in rule pack's source. The pack ships inside `mt`,
+    /// A line of a built-in rule pack's source. The pack lives inside `mt`,
     /// so there is no file to open.
     Pack {
         /// The pack's name, as `extends` takes it.
@@ -50,7 +50,7 @@ pub enum Location {
     Filled {
         /// One-based line number within the task as filled.
         line: usize,
-        /// The template the task was filled from, when one was.
+        /// The template the fill used, when it used one.
         template: Option<String>,
     },
 }
@@ -111,18 +111,18 @@ impl std::fmt::Display for Location {
 }
 
 /// What a [`Violation`] is, for the callers that act on one kind of breach. The
-/// check that raises it sets this where it builds the breach, so a caller never
-/// recovers it from the wording of [`Violation::message`].
+/// check that raises it sets this where it builds the breach. A caller then
+/// never recovers it from the wording of [`Violation::message`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ViolationKind {
-    /// A breach no caller treats apart from the rest.
+    /// A breach that every caller treats like the rest.
     #[default]
     Other,
     /// An edge whose target is not in the set of tasks checked, which only the
     /// set around the task can settle.
     UnresolvedLink,
     /// A `[[tasks.rules]]` rule skipped because git could not answer. The
-    /// fault is the config's, and it is reported once at the rule's entry.
+    /// fault is the config's, and the report lands once at the rule's entry.
     SkippedRule,
     /// A collector could not produce its field: an eval error, a panic or a
     /// value that does not match `returns`.
@@ -144,30 +144,30 @@ pub struct Violation {
     /// message is the check's own.
     pub detail: Option<String>,
     /// Where the violation points: the line of the offending field, heading
-    /// or comment, else the `task.with(…)` call itself; for a breach of the
+    /// or comment, else the `task.with(…)` call itself. For a breach of the
     /// config, its entry there.
     pub location: Location,
     /// How loudly this violation reports, and whether it fails the command.
     ///
-    /// Every check Mindtape makes on its own is [`Severity::Error`]: a
+    /// Every check `Mindtape` makes on its own is [`Severity::Error`]: a
     /// malformed artifact is not a matter of degree. A breach a project chose
-    /// the level of — a `[[tasks.rules]]` entry, a `[tasks.comments]` policy of
-    /// `warn`, a built-in template under `fallback-severity` — carries that
+    /// the level of (a `[[tasks.rules]]` entry, a `[tasks.comments]` policy of
+    /// `warn`, a built-in template under `fallback-severity`) carries that
     /// level. Every report prints it ([`Severity::label`]) and
     /// [`Violation::is_fatal`] answers from it.
     pub severity: Severity,
-    /// What sort of breach this is; [`ViolationKind::Other`] unless a caller
-    /// acts on the kind.
+    /// What sort of breach this is. It is [`ViolationKind::Other`] unless a
+    /// caller acts on the kind.
     pub kind: ViolationKind,
-    /// The task fields the check read to decide this breach: a rule's `when`
-    /// and `assert` names, a body rule's `when` names, the field a field check
-    /// is about. `None` when it may be about any field — a rule reaching
-    /// through a view, or a `check` handed the whole task. A caller that offers
-    /// a remedy (the `mt add` template hint) matches these names, never the
-    /// text of [`Violation::field`].
+    /// The task fields the check read to decide this breach. Those are a rule's
+    /// `when` and `assert` names, a body rule's `when` names, or the field a
+    /// field check is about. `None` when it may be about any field, as for a
+    /// rule reaching through a view, or a `check` handed the whole task. A
+    /// caller that offers a remedy (the `mt add` template hint) matches these
+    /// names, never the text of [`Violation::field`].
     pub reads: Option<BTreeSet<String>>,
-    /// What an unknown name in the message could have been: the nearest known
-    /// name and the names to choose from.
+    /// The nearest known name for an unknown name in the message, plus the
+    /// names to choose from.
     pub unknown: Option<crate::suggest::Unknown>,
     /// The `in_dict()` miss that made a rule's `assert` read false: the
     /// dictionary, the word it lacks and its nearest entries.
@@ -197,7 +197,7 @@ pub(crate) fn reads_of<'a>(
 }
 
 impl Violation {
-    /// Whether this violation fails the command it surfaced in — and, for a
+    /// Whether this violation fails the command it surfaced in, and, for a
     /// write command, refuses the write.
     ///
     /// Fatal exactly when the severity is [`Severity::Error`].

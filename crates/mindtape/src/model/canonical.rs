@@ -6,8 +6,8 @@
 //! # Field contract
 //!
 //! Every [`CanonicalTask`] field is either *authored* (round-trips through
-//! `mt import`; the importer reads it back onto a [`Task`]) or *computed*
-//! (read-only; present for convenience/inspection, ignored on import):
+//! `mt import`, and the importer reads it back onto a [`Task`]) or *computed*
+//! (read-only, present for convenience and inspection, and ignored on import):
 //!
 //! | Field           | Kind     | Notes                                             |
 //! |-----------------|----------|----------------------------------------------------|
@@ -19,15 +19,15 @@
 //! | `difficulty`    | authored | number, label string, or framework-name fallback    |
 //! | `kind`          | authored |                                                      |
 //! | `assignee`      | authored |                                                      |
-//! | `estimate`      | authored | opaque `unit -> quantity` map; a `count(...)` unit holds its resolved number |
-//! | `estimate_counts` | authored | `count(...)` units as `{count, queries, problem}`; import reads `count` and `queries` |
+//! | `estimate`      | authored | opaque `unit -> quantity` map, `count(...)` units resolved |
+//! | `estimate_counts` | authored | `count(...)` units as `{count, queries, problem}`, import reads `count`, `queries` |
 //! | `links`         | authored | `[{task, kind, note}]`                              |
 //! | `waits_on`      | authored | `checker:id` entries                                |
 //! | `tags`          | authored | authored tags only                                  |
-//! | `derived_tags`  | computed | folder-derived virtual tags; import reads `tags` only |
-//! | `why`           | computed | unfinished blocking targets `[{stem, status, kind}]`; empty unless blocked |
+//! | `derived_tags`  | computed | folder-derived virtual tags, and import reads `tags` only |
+//! | `why`           | computed | unfinished blocking targets `[{stem, status, kind}]`, empty unless blocked |
 //! | `children`      | computed | count of tasks whose `parent` edge names this one  |
-//! | `progress`      | computed | terminal children / children, `0..1`; null with no children |
+//! | `progress`      | computed | terminal children / children, `0..1`, null with no children |
 //! | `due`           | authored |                                                      |
 //! | `start`         | authored |                                                      |
 //! | `reviewed`      | authored |                                                      |
@@ -35,7 +35,7 @@
 //! | `recur`         | authored | `{rule, anchor, until, count, materialize}`, null when the task does not recur |
 //! | `extras`        | authored | opaque `x-<ns>` consumer extension slots             |
 //! | `derived`       | computed | `[[tasks.collectors]]` results, keyed by collector name |
-//! | `collector_problems` | computed | why a collector produced no field |
+//! | `collector_problems` | computed | why a collector failed to produce a field |
 //!
 //! ## Priority parity
 //!
@@ -45,14 +45,14 @@
 //! - A framework value (`NumValue::Framework { name, inputs }`) becomes an
 //!   object: `{"framework": "ice", "inputs": {"impact": 8, ...}, "score": 6}`.
 //!   `score` is the read-side computed extra (`config.tasks.priority.resolve`),
-//!   nullable when unresolvable (e.g. no project config in scope). The
-//!   importer reads `framework`/`inputs` and ignores `score`.
-//! - A scalar or label value stays a **bare number or string** (e.g.
-//!   `"priority": 8`), matching `mt ls --json`'s historical shape — not an
+//!   nullable when unresolvable, such as when the project config is out of
+//!   scope. The importer reads `framework`/`inputs` and ignores `score`.
+//! - A scalar or label value stays a **bare number or string** (such as
+//!   `"priority": 8`), matching `mt ls --json`'s historical shape, not an
 //!   `{"value": ...}` wrapper. This is the one place the schema is
-//!   shape-polymorphic; `difficulty` mirrors the non-framework arm (a
-//!   framework difficulty, structurally possible but never authored in
-//!   practice, falls back to its framework name as a label string).
+//!   shape-polymorphic. `difficulty` mirrors the non-framework arm: a framework
+//!   difficulty, structurally possible but never authored in practice, falls
+//!   back to its framework name as a label string.
 
 use std::collections::BTreeMap;
 
@@ -107,19 +107,19 @@ pub struct CanonicalTask {
     /// Authored tags, exactly as written in the file.
     #[serde(default)]
     pub tags: Vec<String>,
-    /// Folder-derived virtual tags (read-only; never authored).
+    /// Folder-derived virtual tags (read-only, never authored).
     #[serde(default)]
     pub derived_tags: Vec<String>,
-    /// What the task waits on: its unfinished direct blocking-kind targets
-    /// (read-only). Needs the whole task set, so [`Self::from_task`] leaves
-    /// it empty and a listing fills it from its [`crate::Readiness`].
+    /// The unfinished direct blocking-kind targets the task waits on
+    /// (read-only). Needs the whole task set, so [`Self::from_task`] leaves it
+    /// empty and a listing fills it from its [`crate::Readiness`].
     #[serde(default)]
     pub why: Vec<crate::graph::ready::Blocker>,
-    /// How many tasks name this one with a `parent` edge (read-only).
+    /// How many tasks reference this one with a `parent` edge (read-only).
     #[serde(default)]
     pub children: u32,
-    /// Terminal children over all children, `0..1` — the fraction the filter
-    /// language compares, where the table renders `3/5`; `null` with no
+    /// Terminal children over all children, `0..1`, the fraction the filter
+    /// language compares, where the table renders `3/5`. `null` with no
     /// children (read-only).
     #[serde(default)]
     pub progress: Option<f64>,
@@ -143,11 +143,11 @@ pub struct CanonicalTask {
     #[schemars(with = "serde_json::Value")]
     pub extras: BTreeMap<String, HVal>,
     /// Fields `[[tasks.collectors]]` computed, keyed by the collector's name.
-    /// Read-only: `mt import` ignores them and writes no collector.
+    /// Read-only: `mt import` ignores them and doesn't write a collector.
     #[serde(default)]
     #[schemars(with = "serde_json::Value")]
     pub derived: BTreeMap<String, HVal>,
-    /// Why a collector produced no field, one message per failure.
+    /// Why a collector failed to produce a field, one message per failure.
     #[serde(default)]
     pub collector_problems: Vec<String>,
 }
@@ -155,9 +155,9 @@ pub struct CanonicalTask {
 /// `status:` in the canonical schema.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct CanonicalStatus {
-    /// Lifecycle name, e.g. `proposed`, `wip`, `done`.
+    /// Lifecycle name, such as `proposed`, `wip`, `done`.
     pub name: String,
-    /// Date the status was set, `YYYY-MM-DD`.
+    /// Date the task entered the status, `YYYY-MM-DD`.
     pub date: Option<String>,
     /// Free-form note.
     pub note: Option<String>,
@@ -168,9 +168,9 @@ pub struct CanonicalStatus {
 pub struct CanonicalLink {
     /// Raw target path/stem, as authored.
     pub task: String,
-    /// Edge kind (e.g. `depends-on`, `related`).
+    /// Edge kind, such as `depends-on` or `related`.
     pub kind: String,
-    /// Free-form note; kind-dependent requirement.
+    /// Free-form note, with a kind-dependent requirement.
     pub note: Option<String>,
 }
 
@@ -203,8 +203,8 @@ pub enum CanonicalPriority {
         /// Named inputs, as authored.
         #[serde(default)]
         inputs: BTreeMap<String, Value>,
-        /// Read-side computed score (`config.tasks.priority.resolve`);
-        /// `null`/absent when unresolvable. Ignored on import.
+        /// Read-side computed score (`config.tasks.priority.resolve`), `null`
+        /// or absent when unresolvable. Ignored on import.
         #[serde(default)]
         score: Option<f64>,
     },
@@ -386,10 +386,10 @@ fn canonical_link(link: &Link) -> CanonicalLink {
     }
 }
 
-/// Project a numeric-field value into its plain canonical form: a framework
-/// value falls back to its name (framework priorities route through
-/// [`priority_to_canonical`] instead; this arm only fires for a structurally
-/// possible but never-authored framework difficulty).
+/// Project a numeric-field value into its plain canonical form. A framework
+/// value falls back to its name. Framework priorities route through
+/// [`priority_to_canonical`] instead, and this arm only fires for a
+/// structurally possible but never-authored framework difficulty.
 fn num_to_canonical(value: Option<&NumValue>) -> Option<CanonicalNum> {
     value.map(|value| match value {
         NumValue::Num(num) => CanonicalNum::Num(*num),
@@ -398,9 +398,10 @@ fn num_to_canonical(value: Option<&NumValue>) -> Option<CanonicalNum> {
     })
 }
 
-/// Project a priority value into its canonical form: a framework value
-/// becomes the authored `{framework, inputs, score}` object (`score` is the
-/// read-side extra, resolved via `config`); else the plain scalar/label form.
+/// Project a priority value into its canonical form. A framework value becomes
+/// the authored `{framework, inputs, score}` object, where `score` is the
+/// read-side extra that `config` resolves. Anything else takes the plain scalar
+/// or label form.
 fn priority_to_canonical(value: Option<&NumValue>, config: &Config) -> Option<CanonicalPriority> {
     let value = value?;
     Some(match value {

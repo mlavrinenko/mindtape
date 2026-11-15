@@ -86,7 +86,7 @@ fn loads_tasks_and_skips_non_tasks() {
 }
 
 /// A root of `.` covers the whole project, templates included. The template
-/// is not a task, and its `task.with` call is explained by one warning.
+/// is not a task, and one warning explains its `task.with` call.
 #[test]
 fn root_dot_skips_a_template_and_warns_once() {
     let dir = setup();
@@ -439,7 +439,7 @@ fn duplicate_ids_produce_uniqueness_violation() {
 }
 
 /// A task marker carrying `status` and a `depends-on` edge per entry in
-/// `deps` — the shape the graph-rank test needs the loader to actually read.
+/// `deps`, the shape the graph-rank test needs the loader to actually read.
 fn linked_body(status: &str, deps: &[&str]) -> String {
     let links: String = deps
         .iter()

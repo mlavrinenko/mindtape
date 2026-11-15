@@ -1,4 +1,4 @@
-//! `[tasks.body.content.rules]` — section-content gate parsing: the assertion
+//! `[tasks.body.content.rules]`, section-content gate parsing: the assertion
 //! shapes (string `"non-empty"` vs. the one-key tables `min-words`,
 //! `must-match`, `must-not-match`, `density`), path reuse, and the
 //! malformed-shape error message.

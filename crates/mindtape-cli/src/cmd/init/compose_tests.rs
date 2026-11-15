@@ -20,7 +20,7 @@ fn folds_fragments_in_order_and_reparses() {
     assert!(table.contains_key("tasks"));
 }
 
-/// Empty and whitespace-only fragments drop out; a comment-only fragment stays.
+/// Empty and whitespace-only fragments drop out. A comment-only fragment stays.
 #[test]
 fn skips_empty_and_keeps_comment_only_fragments() {
     let fragments = vec![
@@ -45,7 +45,7 @@ fn rejects_two_fragments_defining_the_same_table() {
     assert!(compose(&fragments).is_err());
 }
 
-/// Disjoint sub-tables of the same parent (`[tasks]`) do not collide — the fold
+/// Disjoint sub-tables of the same parent (`[tasks]`) do not collide. The fold
 /// only needs each fragment to avoid re-opening a table another already owns.
 #[test]
 fn disjoint_subtables_of_one_parent_compose() {
@@ -68,9 +68,9 @@ fn dig<'a>(value: &'a toml::Value, path: &str) -> Option<&'a toml::Value> {
     Some(cursor)
 }
 
-/// An `overlay` fragment merges last and beats every ordinary fragment: it
-/// overrides a scalar the base set and adds a section the axes never touched,
-/// and the flattened output carries no literal `[overlay]`.
+/// An `overlay` fragment merges last and beats every ordinary fragment. It
+/// overrides a scalar the base set and adds a section the axes never touched.
+/// The flattened output carries no literal `[overlay]`.
 #[test]
 fn overlay_lands_last_and_beats_the_base() {
     let fragments = vec![
@@ -89,8 +89,9 @@ fn overlay_lands_last_and_beats_the_base() {
     assert!(dig(&table, "tasks.links.kinds").is_some(), "{out}");
 }
 
-/// The overlay merges the base table key-by-key (a scalar it does not mention is
-/// kept) while replacing an array wholesale — the reference deep-merge.
+/// The overlay merges the base table key-by-key, keeping a scalar it does not
+/// mention, while replacing an array wholesale. This is the reference
+/// deep-merge.
 #[test]
 fn overlay_merges_tables_and_replaces_arrays() {
     let fragments = vec![
@@ -142,7 +143,7 @@ fn overlay_may_redeclare_an_array_the_base_owns() {
     );
 }
 
-/// A fragment that is only an overlay composes to just the overlay — the
+/// A fragment that is only an overlay composes to just the overlay, the
 /// preset-with-only-an-overlay case, where the base is empty.
 #[test]
 fn overlay_only_composes_to_the_overlay() {
@@ -165,7 +166,7 @@ fn overlay_only_composes_to_the_overlay() {
 }
 
 /// Two ordinary fragments that each declare the `status` legend hard-error, and
-/// the message names both fragments and the section — never last-wins.
+/// the message reports both fragments and the section, never last-wins.
 #[test]
 fn two_status_fragments_error_naming_both() {
     let fragments = vec![
@@ -187,8 +188,8 @@ fn two_status_fragments_error_naming_both() {
     );
 }
 
-/// The array-conflict rule reaches a nested array too: priority bands declared
-/// by two fragments collide and name the nested path.
+/// The array-conflict rule reaches a nested array too. Priority bands declared
+/// by two fragments collide and report the nested path.
 #[test]
 fn two_priority_bands_fragments_error() {
     let fragments = vec![
@@ -208,9 +209,9 @@ fn fragments_join_with_one_blank_line_and_no_leading_newline() {
     assert_eq!(out, "x = 1\n\ny = 2\n");
 }
 
-/// The array-conflict guard names *two different* fragments: the same fragment
-/// name appearing twice is not a collision, and its arrays append. Forcing the
-/// guard to `true` would reject a repeated fragment name.
+/// The array-conflict guard requires *two different* fragments. The same
+/// fragment name appearing twice is not a collision, and its arrays append.
+/// Forcing the guard to `true` would reject a repeated fragment name.
 #[test]
 fn the_same_fragment_name_may_repeat_an_array_section() {
     let out = compose(&[
@@ -227,7 +228,7 @@ fn the_same_fragment_name_may_repeat_an_array_section() {
     assert_eq!(status.len(), 2, "{out}");
 }
 
-/// Two fragments declaring different array sections compose cleanly — the rule
+/// Two fragments declaring different array sections compose cleanly. The rule
 /// fires on a shared array, not on arrays in general.
 #[test]
 fn different_array_sections_compose() {
@@ -251,7 +252,7 @@ fn different_array_sections_compose() {
 }
 
 /// Each fragment's `extends` folds into one array in fragment order, each entry
-/// once, at the top level: left in place, a later fragment's `extends` line
+/// once, at the top level. Left in place, a later fragment's `extends` line
 /// would land inside the table an earlier fragment opened.
 #[test]
 fn extends_entries_fold_into_one_top_level_array() {

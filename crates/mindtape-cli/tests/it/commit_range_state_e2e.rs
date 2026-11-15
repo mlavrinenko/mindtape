@@ -111,8 +111,8 @@ fn refused(dir: &Path, range: &str) -> String {
 }
 
 /// `[commits] run` runs once per message, on stdin, and its output is a hit
-/// led by the commit's id. A range therefore refuses a message the commit-msg
-/// hook never saw.
+/// led by the commit's id. A range then refuses a message the commit-msg hook
+/// never saw.
 #[cfg(unix)]
 #[test]
 fn a_range_fails_a_message_the_configured_command_refuses() {

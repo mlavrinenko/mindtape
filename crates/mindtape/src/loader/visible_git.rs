@@ -22,8 +22,8 @@ pub(super) struct RepoRef {
 }
 
 /// Ask Git for `dir`'s repository and prefix, or `None` when discovery must
-/// fall back. Only a missing Git or a non-worktree directory falls back; every
-/// other failure is returned.
+/// fall back. Only a missing Git or a non-worktree directory falls back, and
+/// every other failure comes back as an error.
 pub(super) fn repo_of(dir: &Path) -> Result<Option<RepoRef>, GitFailure> {
     let base = existing_dir(dir);
     let inside = match git_bytes(base, &["rev-parse", "--is-inside-work-tree"]) {
@@ -97,12 +97,12 @@ impl RepoListing {
 
 /// Whether Git ignores `path`, reading only exclude rules (`--no-index`) so a
 /// tracked file under an ignore rule still reports ignored. `path` may be
-/// absolute and may not exist. When `as_dir` is set, a path that is not a
-/// directory yet is probed with a trailing slash, so a `target/` rule matches
-/// a root that does not exist.
+/// absolute and may not exist. When `as_dir` holds, the probe adds a trailing
+/// slash to a path that is not a directory yet, so a `target/` rule matches a
+/// root that does not exist.
 ///
 /// The query runs from the path's nearest existing parent, with the path
-/// relative to it: Git rejects an absolute pathspec that traverses a symlink,
+/// relative to it. Git rejects an absolute pathspec that traverses a symlink,
 /// and a `/.` suffix defeats a negated directory rule (`!tasks/`).
 pub(super) fn ignored_at(path: &Path, as_dir: bool) -> Result<bool, GitFailure> {
     let (base, mut rel) = probe_path(path);
@@ -120,8 +120,8 @@ pub(super) fn ignored_at(path: &Path, as_dir: bool) -> Result<bool, GitFailure> 
     ignored_result(output.status.code(), &output.stderr)
 }
 
-/// Whether the index tracks `path`. A tracked file deleted from the work tree
-/// is tracked, so a write there lands on a path Git still lists.
+/// Whether the index tracks `path`. The index still tracks a file deleted from
+/// the work tree. A write there then lands on a path Git still lists.
 pub(super) fn tracked_at(path: &Path) -> Result<bool, GitFailure> {
     let (base, rel) = probe_path(path);
     let output = Command::new("git")

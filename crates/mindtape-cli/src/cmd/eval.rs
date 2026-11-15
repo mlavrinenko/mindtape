@@ -1,4 +1,4 @@
-//! `mt eval` — evaluate a single task file and print it.
+//! `mt eval` evaluates a single task file and prints it.
 
 use std::path::{Path, PathBuf};
 
@@ -30,7 +30,7 @@ pub struct EvalArgs {
 /// Run the `eval` command.
 ///
 /// # Errors
-/// Returns an error if the file cannot be evaluated or holds no task marker.
+/// Returns an error if the file does not evaluate or lacks a task marker.
 pub fn run(args: &EvalArgs) -> Result<()> {
     let (file, project) = locate(&args.task.task)?;
     let origin = project
@@ -63,11 +63,11 @@ fn evaluate_error(file: &Path, err: &typst_harvest::HarvestError) -> Diag {
     Diag::failed("can't evaluate").at_file(file).cause(err)
 }
 
-/// The file `reference` names, and the project that resolved it. Anything
+/// The file `reference` resolves to, and the project that resolved it. Anything
 /// spelled as a path stays a path, so a `.typ` under no project still
-/// evaluates; a stem or stem hash resolves against the enclosing project the
-/// way `flip`, `set` and `link` do, and that project is handed back so nothing
-/// loads it again.
+/// evaluates. A stem or stem hash resolves against the enclosing project the
+/// way `flip`, `set` and `link` do. The function hands that project back so
+/// nothing loads it again.
 ///
 /// # Errors
 /// Returns an error if a path does not exist, no project encloses the working
@@ -85,8 +85,8 @@ fn locate(reference: &str) -> Result<(PathBuf, Option<Project>)> {
     Ok((abs, Some(project)))
 }
 
-/// The project enclosing `file`, loaded, when one is found. A file under no
-/// `.mindtape/` project stays a bare path, evaluated against an empty set.
+/// The project enclosing `file`, loaded, when the walk finds one. A file under
+/// no `.mindtape/` project stays a bare path, evaluated against an empty set.
 fn enclosing_project(file: &Path) -> Result<Option<Project>> {
     let Some(parent) = mindtape::canonical(file)
         .ok()
@@ -110,8 +110,8 @@ fn enclosing_project(file: &Path) -> Result<Option<Project>> {
 
 /// The task `file` reads as: its loaded copy when the enclosing project
 /// already has it, else a fresh harvest with its body filled and its
-/// collectors run. Outside a project, a `when` that reads the whole set is
-/// refused, since there is no set to read.
+/// collectors run. Outside a project, the command refuses a `when` that reads
+/// the whole set, since there is no set to read.
 fn load_task(file: &Path, project: Option<&Project>) -> Result<Task> {
     if let Some(project) = project {
         let rel = mindtape::canonical(file)
@@ -177,8 +177,8 @@ fn harvest_task(file: &Path) -> Result<(Task, Config)> {
 
 /// Resolve `task`'s `count(...)` units against the project enclosing `file`:
 /// `project` when the reference resolved one, else the one above the file.
-/// Under no project, the default config names no unit, so each count records
-/// why it can't resolve.
+/// Under no project, the default config lacks a unit for any count. Each count
+/// then records why it can't resolve.
 fn resolve_counts(task: &mut Task, file: &Path, project: Option<&Project>) {
     if task.estimate_counts.is_empty() {
         return;
@@ -265,11 +265,11 @@ fn print_json(task: &Task, project: Option<&Project>) -> Result<()> {
 
 /// Print one harvested task as a one-row `ls` table.
 ///
-/// It renders against the embedded floor, not [`mindtape::Config::default`]:
-/// every column's `when` expression lives in `defaults.toml`, so a config that
+/// It renders against the embedded floor, not [`mindtape::Config::default`].
+/// Every column's `when` expression lives in `defaults.toml`, so a config that
 /// never went through `parse_config` describes no column at all and would print
 /// an empty table. There is no project here to layer over it. The environment
-/// stays default too — one file is not a listing, so nothing is asking
+/// stays default too. One file is not a listing, so nothing is asking
 /// `nonempty()` or `tty()` for a real answer.
 ///
 /// # Errors
@@ -298,8 +298,8 @@ fn print_table(task: &Task, hashes: &StemHashes, origin: Option<(PathBuf, bool)>
 
 /// The stem hashes of the project enclosing `file`, so the `slug#` cell is
 /// the one every listing prints. `resolved` is the project the reference
-/// already loaded; without one the enclosing project loads here. A file under
-/// no project, or one its project does not load, is hashed alone.
+/// already loaded. Without one the enclosing project loads here. A file under
+/// no project, or one its project does not load, gets its hash alone.
 fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes {
     let project = resolved.or_else(|| {
         let root = find_root(mindtape::canonical(file).ok()?.parent()?)?;
@@ -322,19 +322,19 @@ fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes
 
 /// Build the world one task file evaluates in.
 ///
-/// The world's own root stays the one `HarvestWorld::new` detects, since that
-/// is what the file's virtual path is relative to. Which `@local` packages
-/// resolve is a different question, and not one this command gets to answer:
-/// it asks [`mindtape::package_overrides`], the same function the batch loader
-/// asks, against the enclosing project, so `mt eval` and `mt ls` resolve one
-/// import to one package.
+/// The world's own root stays the one `HarvestWorld::new` detects, since the
+/// file's virtual path is relative to it. Which `@local` packages resolve is a
+/// different question, and not one this command gets to answer. It asks
+/// [`mindtape::package_overrides`], the same function the batch loader asks,
+/// against the enclosing project, so `mt eval` and `mt ls` resolve one import
+/// to one package.
 ///
 /// # Errors
-/// Returns an error if the file does not exist, the world cannot be built, or
+/// Returns an error if the file does not exist, the world does not build, or
 /// the project's config does not parse.
 /// Build the world one file evaluates in, plus the config whose package
-/// overrides it applied. A file under no project still reads the XDG and
-/// ancestor layers, so its collectors and their `when` are the config a
+/// overrides it applied. A file outside every project still reads the XDG and
+/// ancestor layers. Its collectors and their `when` then see the config a
 /// project would see.
 fn build_world_and_config(file: &Path) -> Result<(HarvestWorld, Config)> {
     if !file.is_file() {

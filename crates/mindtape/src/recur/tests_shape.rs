@@ -1,7 +1,7 @@
 //! The `recur` field's shape-error channel: what a value `every()`/`rrule()`
 //! passed through must tell the author when the Rust layer cannot read it.
-//! Split from `recur/tests.rs` (which pins the parse itself) for size; shares
-//! its fixtures.
+//! Split from `recur/tests.rs` (which pins the parse itself) for size. It
+//! shares its fixtures.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use chrono::Weekday;
@@ -10,8 +10,8 @@ use super::tests::{dict, every_val, parse, period_rule};
 use super::{HVal, Rule, parse_recur};
 
 /// The reports [`parse_recur`] pushes for `value`, discarding the recurrence
-/// itself — the shape-error tests below care about what the author is told,
-/// not what survived.
+/// itself. The shape-error tests below care about what the author learns, not
+/// what survived.
 fn reports(value: &HVal) -> Vec<crate::model::marker::ShapeError> {
     let mut errors = Vec::new();
     drop(parse_recur(Some(value), &mut errors));
@@ -51,9 +51,9 @@ fn parse_recur_missing_rule_kind_reports_it() {
     assert_eq!(parse(Some(&val)), None);
 }
 
-/// A `rule` present but `none` reads exactly like an absent one: the null is
-/// filtered before the shape check, and the author is told the field has no
-/// `rule`.
+/// A `rule` present but `none` reads exactly like an absent one. The parse
+/// filters the null before the shape check, and tells the author the field has
+/// no `rule`.
 #[test]
 fn parse_recur_null_rule_reports_the_field() {
     assert_one_report(
@@ -109,9 +109,9 @@ fn parse_recur_unknown_unit_reports_it() {
     assert_eq!(parse(Some(&val)), None);
 }
 
-/// `every(weeks: "two")` — the period length is the one part of a period rule
-/// an author passes in by hand, so its report names the argument they wrote
-/// (`recur.weeks`), not the marker's `rule.value`.
+/// `every(weeks: "two")` is the one part of a period rule an author passes in
+/// by hand. Its report gives the argument they wrote (`recur.weeks`), not the
+/// marker's `rule.value`.
 #[test]
 fn parse_recur_non_number_period_value_reports_the_authored_unit() {
     let mut rule = period_rule("weeks", 1, None);
@@ -127,7 +127,7 @@ fn parse_recur_non_number_period_value_reports_the_authored_unit() {
 }
 
 /// Parse a weekly period narrowed by `on`, returning the weekday set that
-/// survived alongside every report — the `on:` tests differ only in what they
+/// survived alongside every report. The `on:` tests differ only in what they
 /// hand it, and both care about the pair.
 fn weekdays_and_reports(on: HVal) -> (Vec<Weekday>, Vec<crate::model::marker::ShapeError>) {
     let val = every_val(period_rule("weeks", 1, Some(on)), vec![]);
@@ -150,8 +150,8 @@ fn parse_recur_non_array_on_reports_shape_error_not_silent_empty() {
 }
 
 /// A well-shaped `on:` array with unreadable entries: a string that is no
-/// weekday and a value that is no string. Each names its own index, and the
-/// entries that did read survive — narrowing a period to fewer days than the
+/// weekday and a value that is no string. Each report gives its own index, and
+/// the entries that did read survive. Narrowing a period to fewer days than the
 /// author wrote is exactly the silent change `mt recur` would then act on.
 #[test]
 fn parse_recur_reports_each_unreadable_on_entry_by_index() {

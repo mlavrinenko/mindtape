@@ -54,7 +54,7 @@
       "type": "object"
     },
     "NodeJson": {
-      "description": "One graph node: a task and its readiness.",
+      "description": "One graph node holds a task and its readiness.",
       "properties": {
         "id": {
           "description": "The task's stable id.",

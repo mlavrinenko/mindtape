@@ -1,4 +1,4 @@
-//! `mt explain rules` — list the rules the merged config applies, one line
+//! `mt explain rules` lists the rules the merged config applies, one line
 //! each.
 //!
 //! Read-only. Each line is the rule's severity, its name as
@@ -61,7 +61,7 @@ impl Moment {
 /// Run `mt explain rules`.
 ///
 /// # Errors
-/// Returns an error if no project is found or its config fails to load.
+/// Returns an error if the project root does not resolve or its config fails to load.
 pub fn run(args: &RulesArgs, as_json: bool) -> Result<()> {
     let config = load_config(&util::resolve_root()?)?;
     let rules: Vec<ActiveRule> = active_rules(&config)

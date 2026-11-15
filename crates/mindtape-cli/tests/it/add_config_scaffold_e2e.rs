@@ -1,8 +1,9 @@
 //! End-to-end tests for the config-derived values `add` splices into a task
-//! when the project config is not the barebones default: a required priority
-//! slot in its various shapes (raw int, real scale, strict framework), an
-//! initial status derived from a custom legend, a required estimate's bounded
-//! default, and the rule check `--print` shares with the write it previews.
+//! when the project config is not the barebones default. Those values are a
+//! required priority slot in each of its shapes (raw int, real scale, strict
+//! framework) and an initial status derived from a custom legend. They also
+//! include a required estimate's bounded default, and the rule check that
+//! `--print` shares with the write it previews.
 //!
 //! These live here (not as inline `#[path]` unit tests) because `cargo_bin`
 //! needs the compiled binary: Cargo builds it before running integration tests
@@ -12,7 +13,7 @@
 use crate::support;
 use mindtape::test_support::write_file;
 
-/// A config whose `[tasks.priority]` is required: the barebones template omits
+/// A config that requires `[tasks.priority]`: the barebones template omits
 /// priority, so `add` must splice it in.
 const PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n";
@@ -41,12 +42,12 @@ fn injects_config_required_priority_slot() {
         .failure();
 }
 
-/// A config whose `[tasks.priority]` is real-scaled and required: the
+/// A config whose `[tasks.priority]` is real-scaled and required. The
 /// barebones template omits priority, so `add` must splice in a `real`-kind
 /// slot, not the `int` it would wrongly emit for an int-scaled field.
 ///
 /// `bands = []` clears the embedded floor's int-contiguous bands (0-2/3-6/7-9),
-/// which are non-contiguous under real semantics; a real-scale project either
+/// which are non-contiguous under real semantics. A real-scale project either
 /// defines real bands or drops them.
 const REAL_PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.priority]\nkind = \"real\"\nmin = 0\nmax = 9\nrequired = true\nbands = []\n";
@@ -72,8 +73,8 @@ fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
 }
 
 /// A config whose priority is a required strict framework (`allow-manual =
-/// false`): a scalar priority is invalid by construction, so `add` must splice
-/// the framework call itself with one leaf slot per input — otherwise the
+/// false`). A scalar priority is invalid by construction, so `add` must splice
+/// the framework call itself with one leaf slot per input. Otherwise the
 /// fallback template could never file a valid task in this project.
 const STRICT_ICE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = \"!terminal\"\n\
@@ -130,9 +131,9 @@ fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
     assert!(!dir.path().join("tasks/no-ease.typ").exists());
 }
 
-/// A config whose legend has no `"proposed"` entry at all — the initial
-/// status `add` stamps must be derived from this legend, not a hardcoded
-/// literal that would fail `check`.
+/// A config whose legend has no `"proposed"` entry at all. `add` must derive
+/// the initial status it stamps from this legend, not from a hardcoded literal
+/// that would fail `check`.
 const CUSTOM_LEGEND_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [[tasks.status]]\nvalue = \"todo\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
@@ -149,8 +150,8 @@ fn derives_initial_status_from_a_custom_legend() {
     support::check_ok(dir.path());
 }
 
-/// A template's own `status:` names the status `add` files at: the name is
-/// kept, the date restamped, and `--status` still overrides it.
+/// A template's own `status:` names the status `add` files at. `add` keeps the
+/// name, stamps the date again, and `--status` still overrides it.
 #[test]
 fn files_at_the_status_the_template_names() {
     let dir = support::scaffold_project(CUSTOM_LEGEND_CONFIG);
@@ -177,9 +178,9 @@ fn files_at_the_status_the_template_names() {
     assert!(written.contains("status: todo("), "{written}");
 }
 
-/// The real `.mindtape/templates/task.typ` this repo ships, so a drift in its
+/// The real `.mindtape/templates/task.typ` this repo carries, so a drift in its
 /// shape fails this test rather than only surfacing at dogfood `mt check`
-/// time. It has no `estimate` slot: a required estimate is spliced in from
+/// time. It has no `estimate` slot: `add` splices a required estimate in from
 /// `[tasks.estimate] example`.
 const PRODUCTION_TEMPLATE: &str = include_str!("../../../../.mindtape/templates/task.typ");
 
@@ -198,8 +199,8 @@ const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      example = { src-files = 2 }\n\
      [[tasks.rules]]\nassert = \"estimate.src-files <= 5\"\nseverity = \"error\"\n";
 
-/// A required estimate the production template omits is spliced in, and the
-/// caller fills it with a dict inside the cap, so the task passes `check` the
+/// `add` splices in a required estimate the production template omits, and the
+/// caller fills it with a dict inside the cap. The task then passes `check` the
 /// moment it lands.
 #[test]
 fn add_splices_a_required_estimate_into_the_production_template() {
@@ -262,7 +263,7 @@ message = "keep it to one source file"
 severity = "error"
 "#;
 
-/// A template filling an estimate of two source files — one over
+/// A template filling an estimate of two source files, one over
 /// [`ESTIMATE_UNIT_CONFIG`]'s cap.
 const TWO_SOURCE_FILES_TEMPLATE: &str = mindtape::typst_task!(
     r#"(
@@ -275,10 +276,11 @@ const TWO_SOURCE_FILES_TEMPLATE: &str = mindtape::typst_task!(
 );
 
 /// `--print` promises the task a write would produce, so it must run the same
-/// pre-write check: a fill the config refuses fails the preview with the
-/// write's error, writes and prints nothing. A preview that exits 0 while the
-/// write it previews is refused is how the sweep shipped a retired estimate
-/// unit — the dry run green, `--write` dead on its first finding.
+/// pre-write check. A fill the config refuses fails the preview with the error
+/// the write would raise, before the preview writes or prints anything. A
+/// preview that exits 0 while the write it previews fails is how the sweep
+/// released a retired estimate unit. The dry run stayed green while `--write`
+/// died on its first finding.
 #[test]
 fn print_refuses_the_fill_a_write_would_refuse() {
     let dir =
@@ -346,7 +348,7 @@ fn print_refuses_the_fill_a_write_would_refuse() {
     );
 }
 
-/// A config whose `[tasks.assignee]` is required with a declared allowed list,
+/// A config that requires `[tasks.assignee]` with a declared allowed list,
 /// so the injected value must be a real actor. `$MINDTAPE_PRINCIPAL` fills it
 /// when the caller says nothing.
 const ASSIGNEE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
@@ -354,7 +356,7 @@ const ASSIGNEE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [[actors]]\nname = \"ada\"\nkind = \"human\"\n\
      [[actors]]\nname = \"lin\"\nkind = \"human\"\n";
 
-/// A config whose `[tasks.fields.kind]` is required with a default, so `add`
+/// A config that requires `[tasks.fields.kind]` with a default, so `add`
 /// splices a choice slot and fills it from the config when the caller says
 /// nothing.
 const KIND_DEFAULT_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
@@ -380,9 +382,9 @@ fn add_capture_stderr(
     (dir, String::from_utf8_lossy(&output.stderr).into_owned())
 }
 
-/// The env-filled assignee gets a note naming the value, the config path and
-/// the environment it came from — an agent that wanted a different actor can
-/// see the default happened and how to override it.
+/// The env-filled assignee gets a note that states the value, the config path
+/// and the environment it came from. The note lets a caller see that the
+/// default happened and how to override it.
 #[test]
 fn notes_the_env_filled_assignee() {
     let (dir, stderr) = add_capture_stderr(ASSIGNEE_REQUIRED_CONFIG, "noted", "ada", &[]);
@@ -414,7 +416,7 @@ fn notes_the_default_filled_kind() {
     assert!(written.contains("kind: \"feature\""), "{written}");
 }
 
-/// A required `x-<ns>` field is spliced like `kind`: a choice over its
+/// `add` splices a required `x-<ns>` field like `kind`: a choice over its
 /// `@dict`-expanded values, set from the caller or filled from its default.
 #[test]
 fn splices_a_required_extension_field() {

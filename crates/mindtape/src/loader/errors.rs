@@ -11,10 +11,11 @@ use crate::model::task_spans::{CallRegion, TaskCallSpans};
 pub struct LoadError {
     /// File that failed, relative to the project root when possible.
     pub file: PathBuf,
-    /// One-based line of `file` an eval error points at: the first point of a
-    /// diagnostic inside the file, its trace walked when Typst raised it in
-    /// the prelude, else the file's `task.with(…)` call. Never a prelude line.
-    /// `None` when the failure is not an eval error or has no place at all.
+    /// One-based line of `file` an eval error points at. It is the first point
+    /// of a diagnostic inside the file, its trace walked when Typst raised it
+    /// in the prelude, else the file's `task.with(…)` call. Never a prelude
+    /// line. `None` when the failure is not an eval error or has no place at
+    /// all.
     pub line: Option<usize>,
     /// One-based column on `line`. `None` when `line` is, or when the line is
     /// the fallback `task.with(…)` call, which has no point of its own.
@@ -31,11 +32,11 @@ pub struct LoadError {
     pub region: Box<CallRegion>,
 }
 
-/// A Typst warning raised while evaluating a task file, whether or not the
-/// file went on to load.
+/// A Typst warning raised while evaluating a task file, whether the file went
+/// on to load or not.
 #[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct LoadWarning {
-    /// File the warning was raised for, relative to the project root.
+    /// File the warning came from, relative to the project root.
     pub file: PathBuf,
     /// One-based line of `file` the warning points at, when it points into it.
     pub line: Option<usize>,
@@ -100,11 +101,11 @@ impl LoadError {
     ///
     /// The place is the first point of an eval diagnostic inside the file
     /// itself, its trace walked when Typst raised it in the prelude. Typst
-    /// leaves a show-everything rule out of that trace, so an error raised
-    /// elsewhere that reaches no line of the file falls back to the line of
-    /// the file's `task.with(…)` call, which applied the rule, and lies in
-    /// that call. The hints are the ones on the diagnostic that gave the
-    /// place, else on the first.
+    /// leaves a show-everything rule out of that trace. An error raised
+    /// elsewhere that reaches no line of the file then falls back to the line
+    /// of the file's `task.with(…)` call, which applied the rule. That line
+    /// lies in the call. The hints are the ones on the diagnostic that gave
+    /// the place, else on the first.
     #[must_use]
     pub(crate) fn harvest(file: PathBuf, err: &HarvestError, source: &str) -> Self {
         let message = err.to_string();
@@ -149,7 +150,7 @@ impl LoadError {
     }
 
     /// Where the failure is, as a reader opens it: `file:line:col`, or less
-    /// when no column or line is known.
+    /// when the error carries no column or line.
     #[must_use]
     pub fn place(&self) -> String {
         place_of(&self.file, self.line, self.column)

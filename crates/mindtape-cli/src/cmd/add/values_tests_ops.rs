@@ -89,7 +89,7 @@ fn reject_unknown_keys_with_no_slots_omits_the_suggestion() {
 }
 
 /// The pre-release `key[]=value` append spelling carries no diagnostic of its
-/// own any more: `collect_values` accepts the bracketed text as an ordinary
+/// own any more. `collect_values` accepts the bracketed text as an ordinary
 /// key, and it fails downstream exactly as any other unknown key does.
 #[test]
 fn bracket_append_spelling_is_an_unknown_key_like_any_other() {
@@ -101,8 +101,8 @@ fn bracket_append_spelling_is_an_unknown_key_like_any_other() {
     assert!(err.contains("tags[]"), "{err}");
 }
 
-/// Several unknown keys come out as one error: the first is the value, the
-/// rest are notes, so none is lost to the first re-run.
+/// Every unknown key comes out as one error: the first is the value, the rest
+/// are notes, so none disappears on the first re-run.
 #[test]
 fn reject_unknown_keys_names_every_unknown_key() {
     let specs = discover_slots(BUILTIN_TASK);

@@ -66,8 +66,8 @@ fn the_word_is_quoted_and_the_command_pastes() {
     );
 }
 
-/// The two-hint limit holds: an unknown name's hints come first, and the
-/// miss adds only what room is left.
+/// The two-hint limit holds. An unknown name's hints come first, and the miss
+/// adds only what room remains.
 #[test]
 fn the_miss_takes_only_the_hint_room_left() {
     let mut violation = breach(&["note"]);

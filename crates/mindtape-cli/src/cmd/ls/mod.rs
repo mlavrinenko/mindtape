@@ -1,11 +1,11 @@
-//! `mt ls` — query tasks under the configured roots.
+//! `mt ls`: query tasks under the configured roots.
 //!
 //! # Files
 //!
-//! - `rules.rs` — `[[ls.rules]]` cascade resolution for a bare `mt ls`.
-//! - `rules_applied.rs` — `Applied`, which source won each facet.
-//! - `set.rs` — `mt @set ls`, one listing over every project of a set.
-//! - `interactive/` — the `--interactive` terminal picker.
+//! - `rules.rs`: `[[ls.rules]]` cascade resolution for a bare `mt ls`.
+//! - `rules_applied.rs`: `Applied`, which source won each facet.
+//! - `set.rs`: `mt @set ls`, one listing over every project of a set.
+//! - `interactive/`: the `--interactive` terminal picker.
 
 pub(crate) mod interactive;
 pub(crate) mod rules;
@@ -45,8 +45,8 @@ pub struct LsArgs {
 /// Output-shaping flags shared verbatim between `ls` and `find`
 /// (`crate::cmd::find`, sugar over `contains()`): everything but the filter
 /// itself. Flattened into both so a flag can never exist on one and not the
-/// other — the drift `crate::model::fields` was created to end after `filter/mod.rs` and
-/// `sort.rs` disagreed about which fields exist (see
+/// other. `crate::model::fields` exists to end that drift, after `filter/mod.rs`
+/// and `sort.rs` disagreed about which fields exist (see
 /// `truth/tasks/2026-08/mt-find-as-sugar-over-contains.typ`).
 #[derive(Debug, Clone, clap::Args)]
 pub struct LsFlags {
@@ -66,8 +66,8 @@ pub struct LsFlags {
 
     /// Skip the first N rows after sorting.
     ///
-    /// For page two of `-n 20`, use `--skip 20`. When the table is cut off,
-    /// its footer shows the `--skip` for the next page.
+    /// For page two of `-n 20`, use `--skip 20`. When `--limit` cuts the table
+    /// off, its footer shows the `--skip` for the next page.
     #[arg(long)]
     pub skip: Option<usize>,
 
@@ -96,7 +96,7 @@ pub struct LsFlags {
 /// Run the `ls` command.
 ///
 /// # Errors
-/// Returns an error if the project cannot be opened or the filter/sort is invalid.
+/// Returns an error if the project fails to open or the filter/sort is invalid.
 pub fn run(args: &LsArgs) -> Result<()> {
     if let Some(held) = crate::project_set::held_set() {
         return set::run(args, held);
@@ -127,10 +127,10 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
 
 /// Print a rendered listing: a body owns its final terminator or never does.
 ///
-/// A body that ends in `\n` (`csv`, whose writer ends every record) or in NUL
-/// (`path0`, whose every path carries its own, so a newline would land inside
-/// the final `xargs -0` argument) prints as is. Any other body gets one
-/// newline. An empty body prints nothing, so an empty `path` listing counts 0
+/// A body that ends in `\n` prints as is, as does one that ends in NUL. `csv`
+/// ends every record with `\n`. Every `path0` path carries its own NUL, since a
+/// newline would land inside the final `xargs -0` argument. Any other body gets
+/// one newline. An empty body stays empty, so an empty `path` listing counts 0
 /// in `wc -l` and a `while read` loop never runs.
 fn print_body(body: &str) {
     if body.is_empty() {
@@ -161,12 +161,12 @@ fn format_name(args: &LsArgs) -> String {
         .map_or_else(String::new, |value| value.get_name().to_owned())
 }
 
-/// The dim lines under a rendered table: where the listing came from, how
-/// many of the project's tasks it shows and how many task files failed to
-/// load, then, when `--limit` hid rows, how
-/// many more matched and the command that fetches the next page. Table only:
-/// every other format is a record stream a reader parses, so a trailing prose
-/// line there is corruption, not information.
+/// The dim lines under a rendered table. They say where the listing came from,
+/// how many of the project's tasks it shows, and how many task files failed to
+/// load. When `--limit` hid rows, they also say how many more matched and give
+/// the command that fetches the next page. Table only: every other format is a
+/// record stream a reader parses, so a trailing prose line there is corruption,
+/// not information.
 fn print_footer(args: &LsArgs, listing: &Listing) {
     let painter = Painter::new(is_color_active());
     let dim = Style::new().effects(Effects::DIMMED);
@@ -192,14 +192,15 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
     }
 }
 
-/// The command that fetches the next page after a truncated listing: this
-/// run's own filter and flags, after the `selector` (`@name` or `-w <path>`) that
-/// chose its project if any, `--skip` set to `next_skip` — this page's
-/// `--skip` advanced past what it showed, never restated from an existing
-/// `--skip` on the command line, which `next_skip` already accounts for.
-/// Built from the parsed [`LsArgs`] rather than raw `argv`, so it is exact
-/// regardless of shell aliasing, flag order, or how `@name`/`-w` selected the
-/// worktree, and correct whether or not this run itself carried `--skip`.
+/// The command that fetches the next page after a truncated listing. It holds
+/// this run's own filter and flags, after the `selector` that chose its project
+/// if any (`@name` or `-w <path>`), with `--skip` set to `next_skip`. That value
+/// is this page's `--skip` advanced past what it showed, never restated from an
+/// existing `--skip` on the command line, which `next_skip` already accounts
+/// for. The command comes from the parsed [`LsArgs`] rather than raw `argv`, so
+/// it is exact regardless of shell aliasing, flag order, or how `@name`/`-w`
+/// selected the worktree. It stays correct whether this run itself carried
+/// `--skip`.
 fn next_command_hint(args: &LsArgs, selector: Option<&str>, next_skip: usize) -> String {
     let mut parts = vec!["mt".to_owned()];
     parts.extend(selector.map(str::to_owned));
@@ -231,13 +232,13 @@ fn next_command_hint(args: &LsArgs, selector: Option<&str>, next_skip: usize) ->
     parts.join(" ")
 }
 
-/// The resolved listing one `mt ls` run prints: the selected tasks, the
-/// readiness and attribution they were selected under, the config the render
-/// reads (view columns folded in), the environment a column's conditional
-/// visibility evaluates against, the stem hashes of every loaded task,
-/// what `--limit` cut (`None` when the listing is complete), how many tasks
-/// the project holds before any filter, and how many task files failed to
-/// load.
+/// The resolved listing one `mt ls` run prints. It holds the selected tasks and
+/// the readiness and attribution the selection ran under. It also holds the
+/// config the render reads (view columns folded in) and the environment a
+/// column's conditional visibility evaluates against. The stem hashes of every
+/// loaded task come along too, with what `--limit` cut (`None` when the listing
+/// is complete). The last two fields count the tasks the project holds before
+/// any filter and the task files that failed to load.
 pub(crate) struct Listing {
     pub tasks: Vec<Task>,
     pub readiness: Readiness,
@@ -269,21 +270,21 @@ impl Listing {
     }
 }
 
-/// Resolve the effective bundle ([`crate::cmd::ls::rules::resolve`]), apply it, select and
-/// sort the tasks, and truncate. Consumes `project.outcome.tasks`. Readiness
-/// is computed over the full set — before the filter narrows it — so a
-/// terminal dependency hidden by the effective filter still counts as
-/// satisfied; it is shared by the filter, the sort, and the rendered column.
+/// Resolve the effective bundle ([`crate::cmd::ls::rules::resolve`]), apply it,
+/// select and sort the tasks, and truncate. Consumes `project.outcome.tasks`.
+/// The code computes readiness over the full set, before the filter narrows it,
+/// so a terminal dependency hidden by the effective filter still counts as
+/// satisfied. The filter, the sort, and the rendered column all share it.
 ///
-/// `--skip` drops rows next, then `--limit` cuts what remains — both after
-/// the sort, so together they compose with `--sort` and a view's own sort
-/// chain rather than racing them. The match count is taken before either
+/// `--skip` drops rows next, and then `--limit` cuts what remains. Both run
+/// after the sort, so together they compose with `--sort` and a view's own sort
+/// chain rather than racing them. The code takes the match count before either
 /// applies, which is what makes the reported `total` the number a bigger
-/// `--limit` (or a `--skip` of `0`) would show; `shown` and `next_skip` are
-/// read off what actually printed, so paging past the end reports no
-/// truncation rather than a next page with nothing on it. Both the one-shot
-/// render and the interactive loop build on this, so their lists match
-/// exactly. The stem hashes cover every loaded task, not only the rows kept.
+/// `--limit` (or a `--skip` of `0`) would show. `shown` and `next_skip` come
+/// off what actually printed, so paging past the end reports a complete listing
+/// rather than a next page with nothing on it. Both the one-shot render and the
+/// interactive loop build on this. Their lists match exactly. The stem hashes
+/// cover every loaded task, not only the rows kept.
 ///
 /// # Errors
 /// Returns an error if the resolved filter or sort spec is invalid.
@@ -341,8 +342,8 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
     })
 }
 
-/// Apply `specs` (empty means the built-in default order); shared by the
-/// `ls` render path and the flip hooks' listings.
+/// Apply `specs` (empty means the built-in default order). The `ls` render path
+/// and the flip hooks' listings both use it.
 pub(crate) fn sort_tasks(
     tasks: &mut [Task],
     specs: &[String],
@@ -361,8 +362,8 @@ pub(crate) fn sort_tasks(
     sort_by_specs(tasks, specs, config, readiness).map_err(|msg| Diag::verbatim(Kind::Usage, msg))
 }
 
-/// `spec` (`field`, `field:asc` or `field:desc`) as a usage error naming the
-/// part that is wrong, with the nearest field for a misspelt one.
+/// `spec` (`field`, `field:asc` or `field:desc`) as a usage error that reports
+/// the part that is wrong, with the nearest field for a misspelled one.
 fn check_sort_spec(spec: &str, config: &Config) -> std::result::Result<(), Diag> {
     let (field, direction) = spec
         .split_once(':')

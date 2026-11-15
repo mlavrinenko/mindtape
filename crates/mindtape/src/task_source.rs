@@ -1,4 +1,4 @@
-//! The one policy naming which project paths hold task sources.
+//! The one policy that specifies which project paths hold task sources.
 //!
 //! A task source is a regular `.typ` file under a configured
 //! `[[tasks.roots]]` entry, outside any path component named `.mindtape` or
@@ -6,8 +6,8 @@
 //! loader, and the commit, write-guard and `mt fix` layers after it, ask
 //! [`TaskSource`] instead of re-deriving that rule.
 //!
-//! Matching is lexical: a path is normalized by resolving `.` and `..`
-//! without touching the filesystem, then compared as project-relative and
+//! Matching is lexical: the code normalizes a path by resolving `.` and `..`
+//! without touching the filesystem, then compares the project-relative and
 //! absolute forms. A symlink is never a source, even when it points at a
 //! regular `.typ` file.
 
@@ -41,7 +41,7 @@ pub enum TaskPathKind {
 /// absolute forms, and the kind of entry at the absolute form.
 ///
 /// Both forms are lexical. A relative input resolves against the project root,
-/// never the working directory; `..` below the root stays in the relative
+/// never the working directory. A `..` below the root stays in the relative
 /// form. A path on another filesystem root (a Windows drive, say) has no
 /// relative form and keeps its absolute one.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -54,10 +54,10 @@ pub struct TaskPath {
 impl TaskPath {
     /// Classify `path` against `project_root`.
     ///
-    /// `path` may be project-relative or absolute. `.` is dropped and `..` is
-    /// resolved without touching the filesystem. The kind is read from the
-    /// absolute form: a regular file, a symlink, or anything else (absent, a
-    /// directory) is [`TaskPathKind::Missing`].
+    /// `path` may be project-relative or absolute. The code drops `.` and
+    /// resolves `..` without touching the filesystem. It reads the kind from
+    /// the absolute form: a regular file, a symlink, or anything else (absent,
+    /// a directory) is [`TaskPathKind::Missing`].
     #[must_use]
     pub fn new(project_root: &Path, path: &Path) -> Self {
         let root = absolute(project_root);
@@ -99,8 +99,8 @@ impl TaskPath {
 
 /// The task-source policy of one project, derived from its [`Config`].
 ///
-/// The configured roots and template directories are held in separate,
-/// normalized absolute forms; [`crate::config::RootSpec::dir`] keeps its
+/// The policy holds the configured roots and template directories in separate,
+/// normalized absolute forms. [`crate::config::RootSpec::dir`] keeps its
 /// string match-key semantics for commit and tag derivation.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TaskSource {
@@ -115,8 +115,9 @@ pub struct TaskSource {
 impl TaskSource {
     /// Build the policy for the project at `root` from `config`.
     ///
-    /// No path is read here: only the config's roots and template dirs are
-    /// normalized. [`Self::is_source`] then reads the one path it classifies.
+    /// This constructor reads only the config. It normalizes the config's roots
+    /// and template dirs. [`Self::is_source`] then reads the one path it
+    /// classifies.
     #[must_use]
     pub fn new(root: &Path, config: &Config) -> Self {
         let root = absolute(root);
@@ -165,12 +166,12 @@ impl TaskSource {
         path.kind == TaskPathKind::Regular && self.would_be_source(path)
     }
 
-    /// Whether a task filed at `path` would be a source, ignoring the kind of
-    /// entry there: a `.typ` file under a configured root, outside every
-    /// reserved component and template dir.
+    /// Whether a task filed at `path` would be a source, whatever the kind of
+    /// entry there. A source is a `.typ` file under a configured root, outside
+    /// every reserved component and template dir.
     ///
-    /// This is the lexical half of [`Self::is_source`], and the question a
-    /// destination probe asks about a file that does not exist yet.
+    /// This is the lexical half of [`Self::is_source`], and the check a
+    /// destination probe runs on a file that does not exist yet.
     #[must_use]
     pub fn would_be_source(&self, path: &TaskPath) -> bool {
         is_typ(&path.abs)
@@ -180,11 +181,11 @@ impl TaskSource {
     }
 
     /// Whether `path` is a regular `.typ` file that would sit under a
-    /// configured root, but is excluded by a reserved `.mindtape`/`.git`
-    /// component or by a configured template dir.
+    /// configured root, but a reserved `.mindtape`/`.git` component or a
+    /// configured template dir excludes it.
     ///
     /// The loader uses this to explain a task call it deliberately does not
-    /// load; a file outside the roots is not reserved, it is simply elsewhere.
+    /// load. A file outside the roots is not reserved, it is simply elsewhere.
     #[must_use]
     pub fn is_reserved(&self, path: &TaskPath) -> bool {
         path.kind == TaskPathKind::Regular
@@ -193,9 +194,10 @@ impl TaskSource {
             && (has_reserved_component(&path.rel) || self.under_template(path))
     }
 
-    /// The one warning a reserved `.typ` file earns when `source` holds a
-    /// `task.with(…)` call: a task call at a path the loader does not load.
-    /// `None` when `path` is not reserved or has no such call.
+    /// The warning a reserved `.typ` file earns when `source` holds a
+    /// `task.with(…)` call. The warning reports a task call at a path the
+    /// loader does not load. `None` when `path` is not reserved or has no such
+    /// call.
     #[must_use]
     pub fn reserved_warning(&self, path: &TaskPath, source: &str) -> Option<LoadWarning> {
         if !self.is_reserved(path) {
@@ -211,8 +213,8 @@ impl TaskSource {
         })
     }
 
-    /// [`Self::reserved_warning`] read from the file at `path`. `None` when it
-    /// is not reserved, cannot be read, or holds no task call.
+    /// [`Self::reserved_warning`] read from the file at `path`. `None` when the
+    /// path is not reserved, the read fails, or the file has no task call.
     pub(crate) fn reserved_warning_for_file(&self, path: &TaskPath) -> Option<LoadWarning> {
         if !self.is_reserved(path) {
             return None;
@@ -253,9 +255,9 @@ impl TaskSource {
 
     /// Whether a directory walk should descend into `dir`.
     ///
-    /// A reserved directory is skipped, except one on the way to a configured
-    /// template dir or inside one: those files are read only to warn about a
-    /// task call, never to load a task.
+    /// The walk skips a reserved directory, except one on the way to a
+    /// configured template dir or inside one. It reads those files only to warn
+    /// about a task call, never to load a task.
     pub(crate) fn descends_into(&self, dir: &Path) -> bool {
         let abs = self.absolute(dir);
         let template_side = (self.templates.iter())

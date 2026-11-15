@@ -48,9 +48,9 @@ fn quote_plain_term_is_unchanged_inside_the_literal() {
     assert_eq!(quote("login"), "\"login\"");
 }
 
-/// The desugared expression must be the exact same string `contains()`
-/// accepts directly — proves `find` adds no semantics of its own, only
-/// syntax sugar over the filter language.
+/// The desugared expression must be the exact same string `contains()` accepts
+/// directly. That proves `find` doesn't add semantics of its own, only syntax
+/// sugar over the filter language.
 #[test]
 fn desugared_expression_parses_and_matches_via_contains() {
     let mut login_task = bare_task("a");

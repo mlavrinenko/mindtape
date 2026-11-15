@@ -1,7 +1,7 @@
-//! `[[tasks.status]]` — the status legend: an ordered, displayable vocabulary.
+//! `[[tasks.status]]`, the status legend: an ordered, displayable vocabulary.
 //!
-//! Split out of `config/mod.rs` to keep that file under the size gate; re-exported
-//! at `crate::config::{Legend, LegendEntry}`.
+//! Split out of `config/mod.rs` to keep that file under the size gate.
+//! `crate::config` re-exports `Legend` and `LegendEntry`.
 
 use std::collections::{HashSet, VecDeque};
 
@@ -11,11 +11,11 @@ use crate::link::NoteRule;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// The status legend: the legal status values, in lifecycle order.
+/// The status legend, which lists the legal status values in lifecycle order.
 ///
 /// Each entry gives a value its glyph, color, label and `terminal` flag. An
 /// empty legend (`status = []`) accepts any status. Omitting
-/// `[[tasks.status]]` takes the shipped six-status legend.
+/// `[[tasks.status]]` takes the default six-status legend.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(transparent)]
 pub struct Legend {
@@ -33,33 +33,33 @@ pub struct LegendEntry {
     pub glyph: Option<String>,
     /// Optional color: a named ANSI color or `#RRGGBB`.
     pub color: Option<String>,
-    /// Optional display label; falls back to `value`.
+    /// Optional display label, which falls back to `value`.
     pub label: Option<String>,
     /// Whether this status ends a task. The `terminal` filter matches tasks in
     /// it, and `mt` does not check their tags or estimate units.
     pub terminal: bool,
     /// Statuses a task may move to from this one. While no entry sets `to`,
-    /// any move is allowed. Once any entry sets it, `mt flip` refuses a move
-    /// the legend does not list, and an entry with no `to` allows only a
+    /// `mt flip` allows any move. Once any entry sets it, `mt flip` refuses a
+    /// move the legend does not list, and an entry with no `to` allows only a
     /// same-status re-stamp. A terminal status reopens by listing the status
     /// to reopen into.
     pub to: Vec<String>,
     /// Whether a move into this status needs a note: `required` or
     /// `optional` (the default). With `required`, `mt flip` refuses the move
     /// without `-m`, and `mt check` flags a task here with no note.
-    /// `forbidden` is accepted but not enforced for a status.
+    /// `mt` accepts `forbidden` but does not enforce it for a status.
     pub note: NoteRule,
-    /// Whether a task must be unblocked to enter this status. `mt flip`
-    /// refuses the move while a direct blocking target is unfinished, and
-    /// `--force` overrides. On a terminal status, every child must be
-    /// finished too. `mt check` warns about a blocked task already here. Off
-    /// by default. Set it where work starts or finishes, and leave it off
+    /// Whether entering this status requires an unblocked task. `mt flip`
+    /// refuses the move while a direct blocking target remains open, and
+    /// `--force` overrides. On a terminal status, every child must finish
+    /// too. `mt check` warns about a blocked task already here. Off by
+    /// default. Set it where work starts or finishes, and leave it off
     /// statuses that blocked work must still reach, such as `cancelled`.
     pub unblocked: bool,
 }
 
 impl LegendEntry {
-    /// Whether this entry's [`NoteRule`] is `Required` — the only variant
+    /// Whether this entry's [`NoteRule`] is `Required`, the only variant
     /// enforced for a status (unlike a link kind, a status never rejects a
     /// present note, so `Forbidden` is not checked here).
     #[must_use]
@@ -100,9 +100,9 @@ impl Legend {
     }
 
     /// Whether entering `value` requires every child finished: its entry is
-    /// both `unblocked` and `terminal`. The one knob covers both refusals —
-    /// a status that needs the task's dependencies done and that ends the task
-    /// also needs its children done — while an `unblocked` status work merely
+    /// both `unblocked` and `terminal`. The one knob covers both refusals. A
+    /// status that needs the task's dependencies done and that ends the task
+    /// also needs its children done. An `unblocked` status that work merely
     /// starts in (`wip`) leaves a parent free to start over open children.
     #[must_use]
     pub fn requires_finished_children(&self, value: &str) -> bool {
@@ -123,7 +123,7 @@ impl Legend {
     /// The natural starting status for a freshly filed task: the first entry
     /// in lifecycle order with `terminal == false`. `None` when every entry is
     /// terminal (unusual) or the legend is empty (a project that cleared it
-    /// with `status = []`) — callers must not invent a value in that case.
+    /// with `status = []`). Callers must not invent a value in that case.
     #[must_use]
     pub fn initial(&self) -> Option<&LegendEntry> {
         self.entries.iter().find(|entry| !entry.terminal)
@@ -131,15 +131,16 @@ impl Legend {
 
     /// Whether the transition graph is active: at least one entry declares a
     /// `to` list. False means unconstrained (any-to-any), exactly as before the
-    /// feature existed — so an absent graph never gates a flip.
+    /// feature existed. An absent graph never gates a flip.
     #[must_use]
     pub fn transitions_declared(&self) -> bool {
         self.entries.iter().any(|entry| !entry.to.is_empty())
     }
 
-    /// Whether `from → to` is a legal edge. Only meaningful when
-    /// [`transitions_declared`](Self::transitions_declared); a same-status
-    /// re-stamp (`from == to`) is always legal and handled by the caller.
+    /// Whether `from → to` is a legal edge. The answer matters only when
+    /// [`transitions_declared`](Self::transitions_declared) holds. A
+    /// same-status re-stamp (`from == to`) is always legal and handled by the
+    /// caller.
     #[must_use]
     pub fn can_transition(&self, from: &str, to: &str) -> bool {
         self.entry(from)
@@ -179,8 +180,8 @@ impl Legend {
     }
 
     /// Well-formedness problems in the declared graph: any `to` endpoint that is
-    /// not itself a legend value. One message per bad edge; empty when the graph
-    /// is sound (or absent).
+    /// not itself a legend value. One message per bad edge, and empty when the
+    /// graph is sound (or absent).
     #[must_use]
     pub fn transition_problems(&self) -> Vec<Problem> {
         let mut problems = Vec::new();

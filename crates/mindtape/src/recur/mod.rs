@@ -3,15 +3,15 @@
 //!
 //! Like the priority frameworks, the prelude only shapes a
 //! `(rule, anchor, until, count, materialize)` dict via `every()`/`rrule()`,
-//! with no date math. This module owns the marker parse and [`check_policy`];
-//! the next-date arithmetic lives in [`crate::recur::dates`]. Only `mt recur`
-//! acts on a [`Recur`]; see `truth/tasks/2026-07/recurring-tasks.typ`.
+//! with no date math. This module owns the marker parse and [`check_policy`],
+//! and the next-date arithmetic lives in [`crate::recur::dates`]. Only
+//! `mt recur` acts on a [`Recur`]. See `truth/tasks/2026-07/recurring-tasks.typ`.
 //!
 //! `rrule(...)` shares the dict shape (a [`Rule::Rrule`] variant carrying the
-//! raw rule string), gated by `[tasks.recur] rrule`; see
-//! `truth/tasks/2026-07/rrule-escape-hatch.typ`. `check_policy` grammar-checks the raw
-//! string at parse time and rejects `anchor: "completion"` on it, since it is
-//! date-anchored only.
+//! raw rule string), gated by `[tasks.recur] rrule`. See
+//! `truth/tasks/2026-07/rrule-escape-hatch.typ`. `check_policy` grammar-checks
+//! the raw string at parse time and rejects `anchor: "completion"` on it, since
+//! it is date-anchored only.
 //!
 //! # Files
 //!
@@ -32,28 +32,29 @@ use typst_harvest::HVal;
 pub use canonical::{CanonicalRecur, CanonicalRule};
 pub use policy::check_policy;
 
-/// A task's recurrence: the rule plus the policy riding along with it.
+/// A task's recurrence holds the rule plus the policy riding along with it.
 ///
-/// Every policy field is `None` when the task omits it — [`crate::recur::dates`]
+/// Every policy field is `None` when the task omits it. [`crate::recur::dates`]
 /// resolves the effective value from `[tasks.recur]` rather than the prelude
 /// baking a default in Typst.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Recur {
     /// The period or rrule rule.
     pub rule: Rule,
-    /// `"completion"` or `"due"`; `None` = the project's `default-anchor`.
+    /// `"completion"` or `"due"`. `None` = the project's `default-anchor`.
     pub anchor: Option<String>,
-    /// Series end date (`YYYY-MM-DD`); `None` = unbounded.
+    /// Series end date (`YYYY-MM-DD`). `None` = unbounded.
     pub until: Option<String>,
-    /// Remaining occurrence budget; decremented on every `mt recur` advance
-    /// (spawn's carried-forward instance, or mutate's rewritten counter).
+    /// Remaining occurrence budget, decremented on every `mt recur` advance
+    /// (spawn's carried-forward instance, or the counter that `mutate`
+    /// rewrites).
     /// `None` = unbounded.
     pub count: Option<u32>,
-    /// `"spawn"` or `"mutate"`; `None` = the project's `materialize` default.
+    /// `"spawn"` or `"mutate"`. `None` = the project's `materialize` default.
     pub materialize: Option<String>,
 }
 
-/// The recurrence rule: a chrono-arithmetic period (optionally narrowed to a
+/// The recurrence rule is a chrono-arithmetic period (optionally narrowed to a
 /// weekday set) or the `rrule(...)` escape hatch.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Rule {
@@ -63,17 +64,17 @@ pub enum Rule {
         unit: PeriodUnit,
         /// The unit multiple (`weeks: 2` = every 2 weeks).
         value: u32,
-        /// Non-empty when `on:` narrowed the period to specific weekdays; the
+        /// Non-empty when `on:` narrowed the period to specific weekdays. The
         /// next date is then the nearest matching weekday rather than a fixed
         /// `value`-unit jump. See [`crate::recur::dates::advance_once`].
         weekdays: Vec<chrono::Weekday>,
-        /// `start:` — a date whose Monday-to-Sunday week is an on-week of a
-        /// multi-week weekday series; every `value`-th week after it is too.
+        /// `start:` holds a date whose Monday-to-Sunday week is an on-week of a
+        /// multi-week weekday series, and every `value`-th week after it is too.
         /// `None` = the global series epoch
         /// ([`crate::recur::dates`]'s `SERIES_EPOCH`).
         start: Option<chrono::NaiveDate>,
     },
-    /// `rrule("FREQ=MONTHLY;BYDAY=1MO")` — parsed and gated, not yet expanded.
+    /// `rrule("FREQ=MONTHLY;BYDAY=1MO")`, parsed and gated, not yet expanded.
     Rrule {
         /// The raw rule string, verbatim.
         raw: String,
@@ -119,12 +120,12 @@ impl PeriodUnit {
     }
 }
 
-/// Whether recurring tasks are enabled, and the values a `recur` field may
-/// take.
+/// Whether the config enables recurring tasks, and the values a `recur` field
+/// may take.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RecurConfig {
-    /// Whether the recurrence feature is enabled. `false` rejects any
+    /// Whether the config enables the recurrence feature. `false` rejects any
     /// authored `recur` field outright, at both `mt check` and `mt recur`.
     pub enabled: bool,
     /// Allowed period units. Empty = any.
@@ -169,14 +170,14 @@ const WEEKDAY_EXPECTED: &str = "a weekday name (mon, tue, wed, thu, fri, sat, su
 /// Parse the `recur` marker field into a [`Recur`], or `None` when absent.
 ///
 /// An authored `recur` only ever comes from `every()`/`rrule()`, which shape
-/// the dict correctly — so anything this cannot read is a value the author
-/// passed through one of those helpers (`every(weeks: "two")`, an `on:` entry
-/// that is not a weekday) or a hand-edited dict. Either way it is reported
-/// into `errors` as a [`crate::model::marker::ShapeError`] rather than read as no
-/// recurrence at all. Reports name the authored position — `recur.on[1]`,
-/// `recur.weeks` — since that is what the author can count to in their own
-/// source; only a shape no helper can produce is named by its marker path
-/// (`recur.rule`).
+/// the dict correctly. Anything this cannot read is a value the author passed
+/// through one of those helpers (`every(weeks: "two")`, an `on:` entry that is
+/// not a weekday) or a hand-edited dict. Either way the parse reports it into
+/// `errors` as a [`crate::model::marker::ShapeError`] rather than reading it as
+/// no recurrence at all. A report gives the authored position, `recur.on[1]` or
+/// `recur.weeks`, since the author can count to that in their own source. The
+/// marker path (`recur.rule`) applies only to a shape that no helper can
+/// produce.
 #[must_use]
 pub fn parse_recur(
     value: Option<&HVal>,
@@ -275,7 +276,7 @@ fn parse_start(
     date
 }
 
-/// A period's length, reported against the argument that carried it —
+/// A period's length, reported against the argument that carried it:
 /// `every(weeks: "two")` reports `recur.weeks`, not the marker's `rule.value`.
 fn period_value(
     dict: &std::collections::BTreeMap<String, HVal>,
@@ -317,10 +318,11 @@ fn parse_count(
     Some(num)
 }
 
-/// Parse `on:`'s weekday set. Absent/`none` is a plain unnarrowed period; a
+/// Parse `on:`'s weekday set. Absent or `none` is a plain unnarrowed period. A
 /// present value that isn't an array, and every entry that isn't a weekday
-/// name, report a [`crate::model::marker::ShapeError`] naming their position rather
-/// than silently narrowing the period to fewer days than the author wrote.
+/// name, report a [`crate::model::marker::ShapeError`] that references their
+/// position. The parse never silently narrows the period to fewer days than the
+/// author wrote.
 fn parse_weekdays(
     value: Option<&HVal>,
     errors: &mut Vec<crate::model::marker::ShapeError>,
@@ -383,8 +385,8 @@ fn parse_weekday(name: &str) -> Option<chrono::Weekday> {
     }
 }
 
-/// The inverse of [`parse_weekday`] — `crate::emit`'s `on:` rendering shares
-/// this rather than keeping its own copy of the name table.
+/// The inverse of [`parse_weekday`], which `crate::emit`'s `on:` rendering
+/// shares rather than keeping its own copy of the name table.
 pub(crate) fn weekday_name(day: chrono::Weekday) -> &'static str {
     use chrono::Weekday::{Fri, Mon, Sat, Sun, Thu, Tue, Wed};
     match day {

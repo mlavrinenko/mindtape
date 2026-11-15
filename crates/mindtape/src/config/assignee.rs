@@ -1,31 +1,31 @@
-//! `[tasks.assignee]` — the assignee field's optional constraints.
+//! `[tasks.assignee]`: the assignee field's optional constraints.
 //!
 //! An assignee is the actor currently working a task. It is orthogonal to
 //! status: a task keeps the same assignee through proposed/accepted/wip/done,
 //! and a blocked task is still assigned to whoever unblocks and finishes it. It
-//! is not ownership — the worker is mutable and can ping-pong between actors,
-//! and saying who works it carries no statement about who else may help.
+//! is not ownership. The worker is mutable and can ping-pong between actors, and
+//! saying who works it carries no statement about who else may help.
 //!
-//! The field is plain free text by default; `allowed` constrains it to a
+//! The field is plain free text by default. `allowed` constrains it to a
 //! project's declared actors, and `required` (a boolean or a filter expression,
 //! like every other core field's `required`) forces a task to name one. There
-//! is no `default`: an assignee is a runtime value, so a template that wants
+//! is no `default`: an assignee is a runtime value, and a template that needs
 //! one fills it through a slot (`env: "MINDTAPE_PRINCIPAL"`).
 
 use serde::Deserialize;
 
 use crate::config::Requirement;
 
-/// Who may be named as assignee, and whether a task must name one.
+/// Who may hold the assignee role, and whether a task must carry one.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct AssigneeConfig {
     /// Allowed assignees (the project's actors). Empty = accept any value.
     pub allowed: Vec<String>,
-    /// Whether an assignee must be set.
+    /// Whether a task must carry an assignee.
     #[schemars(extend("x-expression" = "filter"))]
     pub required: Requirement,
-    /// A filter naming the tasks held to `allowed`; every other task keeps
+    /// A filter that selects the tasks held to `allowed`. Every other task keeps
     /// whatever it carries. Absent holds every task.
     #[schemars(extend("x-expression" = "filter"))]
     pub values_when: Option<String>,

@@ -3,9 +3,9 @@
 //! A hook may flip another task, and that task's own hooks run as usual. A
 //! hook that flips the task and status it runs for would start the same hook
 //! again, without end, so `mt` refuses the nested flip and names the loop.
-//! Every flip here runs under a timeout, so a regression fails the suite
-//! instead of hanging it. The hooks run the `mt` under test as an array, so
-//! the battery holds on the Windows job too.
+//! Every flip here runs under a timeout. A regression then fails the suite
+//! instead of hanging it. The hooks run the `mt` under test as an array. The
+//! battery then holds on the Windows job too.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
@@ -60,8 +60,8 @@ fn is_done(dir: &Path, stem: &str) -> bool {
         .contains("done(")
 }
 
-/// The nested `mt flip done alpha` is refused in one hop, which fails the
-/// outer gate, so the flip ends with a refusal and writes nothing.
+/// `mt` refuses the nested `mt flip done alpha` in one hop, which fails the
+/// outer gate. The flip then ends with a refusal and doesn't write anything.
 #[test]
 fn a_hook_that_flips_its_own_task_is_refused_in_one_hop() {
     let dir = project(&["alpha"], &closes("alpha", "alpha"));
@@ -89,8 +89,8 @@ fn a_hook_that_flips_another_task_runs_that_tasks_gate() {
     }
 }
 
-/// Two hooks that close each other loop through two tasks; the second visit
-/// to `alpha` is refused.
+/// Two hooks that close each other loop through two tasks. The second visit
+/// to `alpha` draws a refusal.
 #[test]
 fn hooks_that_flip_each_other_are_refused() {
     let hooks = closes("alpha", "beta") + &closes("beta", "alpha");

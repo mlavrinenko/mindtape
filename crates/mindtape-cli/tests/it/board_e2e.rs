@@ -18,7 +18,7 @@ struct Fixture {
     alpha: TempDir,
     /// Two tasks.
     beta: TempDir,
-    /// No task, so the shipped `hide` hides it.
+    /// No task, so the built-in `hide` hides it.
     empty: TempDir,
     /// A config that does not parse.
     broken: TempDir,
@@ -37,7 +37,7 @@ fn toml_path(dir: &Path) -> String {
     dir.display().to_string().replace('\\', "/")
 }
 
-/// `@all` holds alpha, beta and empty; `@bad` adds the broken one; `@alpha`
+/// `@all` holds alpha, beta and empty, `@bad` adds the broken one, and `@alpha`
 /// is alpha alone. `extra` goes at the end of `at.toml`.
 fn setup(extra: &str) -> Fixture {
     let alpha = support::project_with_tasks(&[("one.typ", "One")]);

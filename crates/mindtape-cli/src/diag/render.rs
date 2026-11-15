@@ -1,4 +1,5 @@
-//! The renderer: a [`Diag`] to its lines, and the one writer to stderr.
+//! The renderer, which turns a [`Diag`] into its lines, and the one writer to
+//! stderr.
 
 use std::io::{IsTerminal, Write};
 use std::process::ExitCode;
@@ -21,7 +22,7 @@ pub(crate) fn shell_word(word: &str) -> String {
 }
 
 /// [`shell_word`], `windows` saying whether `\` is safe bare: cmd and
-/// `PowerShell` read it literally, so a Windows path needs no quotes.
+/// `PowerShell` read it literally, and a Windows path goes without quotes.
 pub(crate) fn shell_word_on(word: &str, windows: bool) -> String {
     let safe =
         |c: char| c.is_ascii_alphanumeric() || "-_./:@%+=,".contains(c) || (windows && c == '\\');
@@ -33,8 +34,8 @@ pub(crate) fn shell_word_on(word: &str, windows: bool) -> String {
 }
 
 /// The message line without its prefix: the place, the rule, the text with
-/// its value and context, then the reason, joined with `: `. A trailing period
-/// on the reason is dropped.
+/// its value and context, then the reason, joined with `: `. The code drops a
+/// trailing period on the reason.
 pub(super) fn message(diag: &Diag) -> String {
     let shown = |path: &std::path::Path| mindtape::display_path(path);
     let mut parts: Vec<String> = diag.0.place.iter().map(|place| place.text(shown)).collect();
@@ -44,8 +45,8 @@ pub(super) fn message(diag: &Diag) -> String {
     parts.join(": ")
 }
 
-/// What the problem says, without its place or rule: the text with its value
-/// and context, then the reason. A trailing period on the reason is dropped.
+/// The problem's text, without its place or rule: the text with its value and
+/// context, then the reason. The code drops a trailing period on the reason.
 pub(super) fn text(diag: &Diag) -> String {
     let mut parts = vec![head(diag)];
     if let Some(reason) = &diag.0.reason {
@@ -143,15 +144,15 @@ fn style(label: &str) -> Style {
     bold.fg_color(Some(Color::Ansi(color)))
 }
 
-/// Write `diag` to stderr. A failed write is dropped: there's nowhere left to
-/// report it.
+/// Write `diag` to stderr. The code drops a failed write, because there is
+/// nowhere left to report it.
 pub(crate) fn emit(diag: &Diag) {
     let text = render(diag, color::is_stderr_color_active());
     let _ = std::io::stderr().lock().write_all(text.as_bytes());
 }
 
-/// Write one `note:` line to stderr, for context that stands alone because
-/// nothing failed or the failure is reported elsewhere.
+/// Write one `note:` line to stderr, for context that appears on its own
+/// because nothing failed or the code reports the failure elsewhere.
 pub(crate) fn emit_note(note: &Note) {
     let painter = Painter::new(color::is_stderr_color_active());
     let mut out = String::new();
@@ -160,7 +161,7 @@ pub(crate) fn emit_note(note: &Note) {
 }
 
 /// Write `text` to stderr as it is: a report that is not a message, such as
-/// the per-record lines of `mt import`. A failed write is dropped.
+/// the per-record lines of `mt import`. The code drops a failed write.
 pub(crate) fn emit_text(text: &str) {
     let _ = std::io::stderr().lock().write_all(text.as_bytes());
 }

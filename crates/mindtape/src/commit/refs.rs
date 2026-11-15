@@ -1,5 +1,5 @@
 //! Which tasks shaped a file: the `[commits] trailer` values of every commit
-//! that changed it, read from `git log` — the index behind the filter
+//! that changed it, read from `git log`. This is the index behind the filter
 //! language's `touches("<path>")`.
 //!
 //! One `git log -M --name-status` over the whole history of `HEAD` yields,
@@ -8,19 +8,20 @@
 //! `mt check --commit-msg` uses ([`crate::commit`]), so a path-form value
 //! (`Refs: truth/tasks/<stem>.typ`) and a stem-form one (`Refs: <stem>`)
 //! resolve to the same task. A value that only matches a
-//! `[commits] external-refs` pattern names no task and is skipped. A rename
-//! indexes both of its sides.
+//! `[commits] external-refs` pattern references no task, and the index skips
+//! it. A rename indexes both of its sides.
 //!
-//! A stem names the task by its name when the trailer was written; `mt mv`
-//! has renamed some since. Every `.typ` rename is recorded, and the ones
+//! A stem references the task by the name the trailer gave it, and `mt mv`
+//! has renamed some since. The index records every `.typ` rename, and the ones
 //! under the task roots resolve a stem to the task it identifies
-//! ([`RefsCache::touching`]). A token no loaded task answers to, even through
-//! a rename, and matching no external pattern belongs to a retired task: it
-//! matches nothing, and is kept so `mt ls --json` can list it.
+//! ([`RefsCache::touching`]). A token that matches no loaded task, even
+//! through a rename, and matches no external pattern belongs to a retired
+//! task. It never matches, and the index keeps it so `mt ls --json` can list
+//! it.
 //!
-//! The index depends only on `HEAD` and the trailer key, so it is cached in
-//! `<root>/.mindtape/cache/commit-refs.json` keyed by both, rebuilt whenever
-//! either moves. Nothing reads git until a filter calls `touches()`.
+//! The index depends only on `HEAD` and the trailer key. The cache stores it
+//! in `<root>/.mindtape/cache/commit-refs.json` keyed by both, and rebuilds it
+//! whenever either moves. Git runs only when a filter calls `touches()`.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::Path;
@@ -50,11 +51,12 @@ const RECORD: char = '\x1e';
 /// Ends each commit's message in the log format.
 const MESSAGE_END: char = '\x1f';
 
-/// What the history says, before any stem is resolved against the tasks.
+/// What the history says, before any stem resolves against the tasks.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CommitRefs {
-    /// Every path a commit naming a ref changed, repository-relative, mapped
-    /// to the refs those commits' trailers name — oldest first, each once.
+    /// Every path a commit that references a ref changed, repository-relative,
+    /// mapped to the refs those commits' trailers name. Oldest first, each
+    /// once.
     pub touched: BTreeMap<String, Vec<String>>,
     /// Every `.typ` rename, `(from, to)`, oldest first.
     pub renames: Vec<(String, String)>,
@@ -103,7 +105,7 @@ pub fn parse_log(text: &str, key: &str) -> CommitRefs {
 pub(crate) struct Touched {
     /// The stems of the tasks that match.
     pub(crate) stems: HashSet<String>,
-    /// The named stems no loaded task answers to, even through a rename.
+    /// The named stems that match no loaded task, even through a rename.
     pub(crate) retired: Vec<String>,
 }
 
@@ -127,7 +129,7 @@ struct Read {
 
 /// The commit-refs index of one project root, read the first time a filter
 /// asks, plus every answer given and every retired stem met. Carried on
-/// [`crate::git::state::GitCache`]; clones share all three.
+/// [`crate::git::state::GitCache`], and clones share all three.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct RefsCache {
     read: Arc<OnceLock<Result<Read, String>>>,
@@ -138,11 +140,11 @@ pub(crate) struct RefsCache {
 impl RefsCache {
     /// The tasks the commits changing `path` name. With a loaded `set` a
     /// stem resolves to the first name along its renames that a task bears,
-    /// and a stem that reaches none is retired; with none a stem resolves to
-    /// the last name along its renames.
+    /// and the answer retires a stem that reaches none. With none a stem
+    /// resolves to the last name along its renames.
     ///
     /// # Errors
-    /// Why git could not answer — outside a repository, most often.
+    /// Why git could not answer, outside a repository most often.
     pub(crate) fn touching(
         &self,
         root: &Path,
@@ -177,11 +179,11 @@ fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
-/// The key one answer is cached under: `path` and a digest of every task in
-/// `set`. The states a commit is checked against hold different sets, so one
-/// state's answer must never satisfy another's question. No set and an empty
-/// one differ too: without a set a stem resolves to the last name along its
-/// renames, with an empty one every stem is retired.
+/// The key the cache stores one answer under: `path` and a digest of every
+/// task in `set`. The states the check reads a commit against hold different
+/// sets, so one state's answer must never satisfy another's question. No set
+/// and an empty one differ too. Without a set a stem resolves to the last name
+/// along its renames, and with an empty one the answer retires every stem.
 fn answer_key(path: &str, set: Option<&[Task]>) -> String {
     let Some(tasks) = set else {
         return format!("no-set\0{path}");
@@ -254,8 +256,8 @@ fn resolve(read: &Read, root: &Path, path: &str, config: &Config, set: Option<&[
     touched
 }
 
-/// The task `token` names, when it is a bare stem or a path under a task
-/// root; an external path or URL names none.
+/// The task `token` references, when it is a bare stem or a path under a task
+/// root. An external path or URL references none.
 fn task_name(
     token: &str,
     root_prefix: &str,
@@ -273,7 +275,7 @@ fn task_name(
 }
 
 /// The name `stem` carries: the first along its renames a task in
-/// `current` bears, `None` when none does; with no `current`, the last.
+/// `current` bears, `None` when none does. With no `current`, the last.
 fn current_name(
     stem: &str,
     renamed: &HashMap<String, String>,
@@ -334,7 +336,7 @@ fn read(root: &Path, trailer: &str) -> Result<Read, String> {
     Ok(Read { refs, root_prefix })
 }
 
-/// Where `root`'s index is cached; `None` when the cache is disabled or
+/// Where the cache stores `root`'s index, or `None` when caching is off or
 /// there is no root to put it under.
 fn cache_path(root: &Path) -> Option<std::path::PathBuf> {
     (!crate::loader::cache::disabled() && !root.as_os_str().is_empty())
@@ -342,7 +344,7 @@ fn cache_path(root: &Path) -> Option<std::path::PathBuf> {
 }
 
 /// The cached index, when the entry at `path` holds this `head` and
-/// `trailer`; any unreadable or mismatched entry is a miss.
+/// `trailer`. Any unreadable or mismatched entry is a miss.
 fn cached(path: &Path, head: &str, trailer: &str) -> Option<CommitRefs> {
     let entry: Entry<CommitRefs> =
         serde_json::from_str(&std::fs::read_to_string(path).ok()?).ok()?;

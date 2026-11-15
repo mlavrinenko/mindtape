@@ -22,7 +22,7 @@
           "description": "The Typst function a `check` rule calls."
         },
         "message": {
-          "description": "What a breach prints, when that text is fixed: the rule's `message`,\nelse for an `assert` rule the engine's `must satisfy` advice. `None`\nwhen each breach words its own: a `check` rule prints what its\nfunction returns, a body rule with no `message` prints its gate's text\nfor the heading at fault, and a flip gate with none leaves the advice\nto `mt flip`.",
+          "description": "The fixed text a breach prints: the rule's `message`, else for an\n`assert` rule the engine's `must satisfy` advice. `None` when each\nbreach words its own. A `check` rule prints what its function returns,\nand a body rule with no `message` prints its gate's text for the heading\nat fault. A flip gate with none leaves the advice to `mt flip`.",
           "type": [
             "string",
             "null"
@@ -130,7 +130,7 @@
       "oneOf": [
         {
           "const": "warn",
-          "description": "Print the breach; the command still succeeds. The default.",
+          "description": "Print the breach, and the command still succeeds. The default.",
           "type": "string"
         },
         {

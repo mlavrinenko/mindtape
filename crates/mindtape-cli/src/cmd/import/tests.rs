@@ -15,8 +15,8 @@ use crate::util::Project;
 
 use mindtape::test_support::PRELUDE;
 
-/// `ice` as the priority framework (scalar priorities stay allowed — the
-/// default) and an explicit `wip`/`done` legend, so the fixture can mix
+/// `ice` as the priority framework (scalar priorities stay allowed, the
+/// default) and an explicit `wip`/`done` legend. The fixture can then mix
 /// framework and scalar priorities and exercise `--map`/`--status` against a
 /// legend with no `proposed` entry.
 const CONFIG_TEXT: &str = "[tasks.priority]\nframework = \"ice\"\n\
@@ -25,7 +25,7 @@ const CONFIG_TEXT: &str = "[tasks.priority]\nframework = \"ice\"\n\
 
 /// A project rooted at `dir` with the in-tree `lib/` override, a real
 /// `.mindtape/config.toml` (`land`/`preview` reload it from disk), and an
-/// empty `tasks/` root — the import destination.
+/// empty `tasks/` root as the import destination.
 pub(super) fn setup_dest() -> (tempfile::TempDir, Project) {
     crate::test_util::make_project_with_lib(PRELUDE, &[], CONFIG_TEXT)
 }
@@ -67,9 +67,9 @@ fn task_files(dir: &std::path::Path) -> Vec<std::fs::DirEntry> {
         .collect()
 }
 
-/// A few tasks with framework priority, cross-links, tags, extras, and a
-/// body — titles are chosen so their slug equals the id/filename exactly, so
-/// re-importing mints the same stem and inbound `links:` targets resolve.
+/// A few tasks with framework priority, cross-links, tags, extras, and a body.
+/// Each title slugs to exactly its id and filename, so re-importing mints the
+/// same stem and inbound `links:` targets resolve.
 fn fixture_tasks() -> Vec<Task> {
     let mut alpha = titled("task-alpha", "Task Alpha", "wip");
     alpha.priority = Some(ice_priority(8.0, 0.75, 4.0));

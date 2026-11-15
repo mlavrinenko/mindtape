@@ -1,6 +1,7 @@
-//! The shipped `mindtape:flow` pack: its transition graph refuses a move the
-//! legend does not list, and its `review-stale-task-before-starting` gate refuses to start a task
-//! nobody has reviewed in a month until `mt review` stamps it.
+//! End-to-end tests for the `mindtape:flow` pack. Its transition graph refuses a
+//! move the legend does not list. Its `review-stale-task-before-starting` gate
+//! refuses to start a task nobody has reviewed in a month until `mt review`
+//! stamps it.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;

@@ -15,14 +15,15 @@ impl AtConfig {
     /// An entry whose `include` is one literal path is a project, and so is a
     /// directory found by its name or a longer path suffix, such as
     /// `oss/blog`. Any other entry is a set. `home` expands a leading `~`.
-    /// Returns `Ok(None)` when nothing answers to `token`.
+    /// Returns `Ok(None)` when no entry or directory matches `token`.
     ///
     /// # Errors
     /// [`AtError::InvalidName`] when `token` is not path segments joined by
     /// `/`,
     /// [`AtError::Clash`] when two directories answer to it,
     /// [`AtError::Cycle`] on an `@name` cycle, [`AtError::Unknown`] on an
-    /// `@name` include that names nothing, or [`AtError::Glob`] on a bad glob.
+    /// `@name` include that references nothing, or [`AtError::Glob`] on a bad
+    /// glob.
     pub fn resolve(
         &self,
         token: &str,
@@ -57,7 +58,7 @@ struct Resolver<'a> {
 
 impl Resolver<'_> {
     /// The member paths of the entry `name`, in include order. `stack` holds
-    /// the entries being expanded, to refuse a cycle.
+    /// the entries the expansion is visiting, to refuse a cycle.
     fn expand(&self, name: &str, stack: &mut Vec<String>) -> Result<Vec<PathBuf>, AtError> {
         if let Some(start) = stack.iter().position(|seen| seen == name) {
             let mut chain = stack.split_off(start);
@@ -88,7 +89,7 @@ impl Resolver<'_> {
     }
 
     /// The paths one `include` or `exclude` item names. `forks` filters a
-    /// glob's matches; `None` keeps them all.
+    /// glob's matches. `None` keeps them all.
     fn pattern(
         &self,
         pattern: &str,
@@ -156,8 +157,8 @@ fn is_literal(pattern: &str) -> bool {
     !pattern.starts_with('@') && !is_glob(pattern)
 }
 
-/// Name each member by its directory, or by its shortest path suffix that no
-/// other member shares.
+/// Give each member a name from its directory, or from its shortest path
+/// suffix that no other member shares.
 fn name_members(paths: Vec<PathBuf>, fs: &dyn AtFs) -> Vec<Member> {
     let segments: Vec<Vec<String>> = paths.iter().map(|path| segments_of(path)).collect();
     paths
@@ -193,7 +194,7 @@ fn segments_of(path: &Path) -> Vec<String> {
         .collect()
 }
 
-/// The last `len` items of `segments`, or all of them when it holds fewer.
+/// The last `len` items of `segments`, or every item when it holds fewer.
 fn suffix(segments: &[String], len: usize) -> &[String] {
     segments
         .get(segments.len().saturating_sub(len)..)

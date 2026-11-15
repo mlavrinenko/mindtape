@@ -1,7 +1,7 @@
-//! The runs the merge-driver tests share: a driver on three files as git
-//! calls it, git's own text merge of the same three, and two branches merged
-//! in a throwaway repo that registers the drivers with the real
-//! `just install-hooks`.
+//! The runs the merge-driver tests share. One puts a driver on three files as
+//! git calls it, and one takes git's own text merge of the same three. A third
+//! merges two branches in a throwaway repo. That repo registers the drivers with
+//! the real `just install-hooks`.
 
 use super::{checkout, shell};
 use mindtape::test_support::tempdir;
@@ -54,12 +54,12 @@ pub fn text_merge_conflicts(three: [&str; 3]) -> bool {
     !out.status.success()
 }
 
-/// In a throwaway repo that carries the checkout's `.gitattributes` and
-/// `driver`, a script under the checkout when the driver is one, commit the
-/// base side as `file` on `main`, then theirs on
-/// a `side` branch and ours on `main`. With `rebase`, `side` is replayed onto
-/// `main`, else `main` merges `side`; ours is `main` either way. Returns
-/// `file` after a merge that must succeed.
+/// Set up a throwaway repo that carries the checkout's `.gitattributes` and
+/// `driver`, plus a script under the checkout when the driver is one. Commit the
+/// base side as `file` on `main`, then theirs on a `side` branch and ours on
+/// `main`. With `rebase`, git replays `side` onto `main`, else `main` merges
+/// `side`. Ours is `main` either way. Returns `file` after a merge that must
+/// succeed.
 pub fn merge_branches(driver: Option<&str>, file: &str, three: [&str; 3], rebase: bool) -> String {
     let dir = sides(three);
     let script = r#"set -e

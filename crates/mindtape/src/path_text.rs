@@ -16,7 +16,7 @@ use std::sync::OnceLock;
 static SEPARATOR: OnceLock<char> = OnceLock::new();
 
 /// Show every path in `separator` for the rest of the process. Call it once,
-/// from `main`, before anything prints; a later call changes nothing.
+/// from `main`, before anything prints. A later call has no effect.
 pub fn init_path_separator(separator: char) {
     let _ = SEPARATOR.set(separator);
 }

@@ -1,21 +1,21 @@
-//! `mt graph` — emit the task dependency graph as DOT or Mermaid.
+//! `mt graph` emits the task dependency graph as DOT or Mermaid.
 //!
 //! A read-only projection of the same typed source `mt ls` and `mt check`
-//! read: the filter scopes which tasks become nodes, [`mindtape::edges`]
+//! read. The filter scopes which tasks become nodes, [`mindtape::edges`]
 //! resolves their `links:` into the induced edge set (no re-implemented link
-//! resolution), and [`crate::cmd::graph::render`] serialises it. Readiness styles
-//! nodes ready/blocked/terminal.
+//! resolution), and [`crate::cmd::graph::render`] serialises it. Readiness
+//! styles nodes ready/blocked/terminal.
 //!
-//! Edges of a kind that points outside the backlog (`[[tasks.links.kinds]]
-//! validate` other than `local-task-path`) are split off before rendering: they
-//! never join the traversed task graph, even when a target string happens to
-//! spell a loaded task's stem. They render as their own leaf nodes instead —
-//! see [`crate::cmd::graph::render::ExternalTarget`].
+//! The command splits off edges of a kind that points outside the backlog
+//! (`[[tasks.links.kinds]] validate` other than `local-task-path`) before
+//! rendering. They never join the traversed task graph, even when a target
+//! string happens to spell a loaded task's stem. They render as their own leaf
+//! nodes instead. See [`crate::cmd::graph::render::ExternalTarget`].
 //!
 //! # Files
 //!
-//! - `render.rs` — DOT and Mermaid rendering.
-//! - `json.rs` — the nodes and edges as JSON.
+//! - `render.rs`: DOT and Mermaid rendering.
+//! - `json.rs`: the nodes and edges as JSON.
 
 mod json;
 pub(crate) mod render;
@@ -52,7 +52,7 @@ pub struct GraphArgs {
 /// Run the `graph` command.
 ///
 /// # Errors
-/// Returns an error if the project cannot be opened or the filter is invalid.
+/// Returns an error if the project does not open or the filter is invalid.
 pub fn run(args: &GraphArgs) -> Result<()> {
     run_with(args, util::open_warned()?)
 }
@@ -64,11 +64,11 @@ pub(crate) fn run_with(args: &GraphArgs, project: util::Project) -> Result<()> {
 
 /// Scope, style, and serialise the graph into its output string.
 ///
-/// Readiness is computed over the *full* loaded set before the filter narrows
-/// it, so a terminal dependency hidden by the filter still counts as satisfied
-/// (a leaf under `!terminal` reads ready, not blocked). The filter then selects
-/// the node set, `--no-terminal` optionally prunes settled tasks, and
-/// [`edges`] induces the edges among whatever nodes remain.
+/// The command computes readiness over the *full* loaded set before the filter
+/// narrows it. A terminal dependency hidden by the filter still counts as
+/// satisfied (a leaf under `!terminal` reads ready, not blocked). The filter
+/// then selects the node set, `--no-terminal` optionally prunes settled tasks,
+/// and [`edges`] induces the edges among whatever nodes remain.
 ///
 /// # Errors
 /// Returns an error if the filter expression is invalid.
@@ -101,8 +101,9 @@ fn build(args: &GraphArgs, project: util::Project) -> Result<String> {
 }
 
 /// Every `links:` edge in `tasks` whose kind points outside the backlog, in
-/// authored order per task. These are never resolved against the task set — the
-/// target is carried through verbatim for the renderer to show as a leaf.
+/// authored order per task. The command never resolves these against the task
+/// set, and carries the target through verbatim for the renderer to show as a
+/// leaf.
 fn external_targets<'a>(tasks: &'a [Task], config: &Config) -> Vec<ExternalTarget<'a>> {
     let mut out = Vec::new();
     for task in tasks {

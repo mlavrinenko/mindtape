@@ -1,5 +1,5 @@
-//! `mt check --commit-msg <file>` — hold the commit being written to
-//! `[commits]`: its task trailers name live tasks by stem, and it passes every
+//! `mt check --commit-msg <file>` holds a commit message to `[commits]`: its
+//! task trailers name live tasks by stem, and it passes every
 //! `[[commits.rules]]` entry.
 
 use std::collections::BTreeSet;
@@ -20,11 +20,11 @@ pub(crate) fn git_failed(what: &'static str, err: &CommitMsgError) -> Diag {
 }
 
 /// The project as of `HEAD`, the index and the working tree, and whether the
-/// commit rules may run over them. The staged state is loaded even when no
-/// `scope = "task"` rule will read it, because the commit's record is built
-/// from the config and tasks that state carries. A task file a state holds but
-/// cannot evaluate is reported, and reads as absent there; a state whose
-/// config cannot load keeps its error and uses the working config.
+/// commit rules may run over them. `task_states` loads the staged state even
+/// when no `scope = "task"` rule will read it, because the commit's record
+/// takes its config and tasks from that state. A task file a state holds but
+/// cannot evaluate reads as absent there, and `warn_state_errors` reports it. A
+/// state whose config cannot load keeps its error and uses the working config.
 fn task_states(project: &util::Project) -> Result<(CommitStates, bool)> {
     let plan = StatePlan::index(&project.root)
         .map_err(|err| git_failed("can't read the git index", &err))?;
@@ -133,8 +133,8 @@ pub(crate) fn in_commit(diag: Diag, commit: Option<(&str, &str)>) -> Diag {
     }
 }
 
-/// A breach as a message: the rule leads, then the task and the advice.
-/// `place` leads the whole of it: the message file, or a commit's id.
+/// The message a breach produces leads with the rule, then the task and the
+/// advice. `place` leads the whole of it: the message file, or a commit's id.
 pub(crate) fn breach_diag(breach: &CommitBreach, place: &Path) -> Diag {
     let kind = if breach.severity.is_error() {
         Kind::Refused
@@ -159,14 +159,14 @@ pub(crate) fn failing(breaches: &[CommitBreach]) -> usize {
         .count()
 }
 
-/// Check the message in `file` and the index it will be committed with. A
-/// merge is skipped unless `check_merges` asks for it: it joins commits that
-/// were checked on their own.
+/// Check the message in `file` and the index the commit will carry. The check
+/// skips a merge unless `check_merges` asks for it, because a merge joins
+/// commits that passed on their own.
 ///
 /// # Errors
-/// Fails when the file cannot be read, the project is not in a git
-/// repository, a trailer value names no task and matches no external pattern,
-/// or an error-severity rule breaks.
+/// Fails on an unreadable file, a project outside a git repository, a trailer
+/// value that references no task and matches no external pattern, or an
+/// error-severity rule that breaks.
 pub(crate) fn run(
     project: &util::Project,
     file: &Path,

@@ -8,7 +8,8 @@
 //! - `embedded.rs`, `embedded_tests.rs`: the prelude packages this crate
 //!   embeds, one immutable copy per supported version under `preludes/`.
 //! - `errors.rs`: the per-file failures and Typst warnings a load reports.
-//! - `many.rs`, `many_tests.rs`: several projects loaded at once, each on its own thread.
+//! - `many.rs`, `many_tests.rs`: many projects loaded at once, each on its own
+//!   thread.
 //! - `packages.rs`, `pins.rs`: `@local` resolution and the version-aware provider.
 //! - `visible.rs`, `visible_git.rs`, `visible_project.rs`, `visible_tests.rs`:
 //!   Git's working-tree view, the fallback walk and the destination probe.
@@ -70,7 +71,7 @@ use cache::{Cached, CachedOutcome, TaskCache};
 pub struct LoadOutcome {
     /// Tasks successfully harvested, sorted by id.
     pub tasks: Vec<Task>,
-    /// Files that could not be evaluated or harvested.
+    /// Files whose evaluation or harvest failed.
     pub errors: Vec<LoadError>,
     /// Typst warnings raised while evaluating files this run, in file order.
     /// A file served from the cache replays the ones stored with it.
@@ -86,10 +87,10 @@ pub fn find_root(start: &Path) -> Option<PathBuf> {
 /// [`find_root`] with the walk optionally bounded: `stop`, when given, is the
 /// last directory examined.
 ///
-/// Unbounded is what `mt` wants — a project marker may sit any distance above
-/// the working directory. It is not what a test wants: "no marker anywhere
-/// above this tempdir" is then a fact about the machine running the suite, and
-/// a developer who keeps a `~/.mindtape` project with `$TMPDIR` under `$HOME`
+/// Unbounded is what `mt` wants, since a project marker may sit any distance
+/// above the working directory. A test needs the bound: "no marker anywhere
+/// above this tempdir" is then a fact about the machine running the suite. A
+/// developer who keeps a `~/.mindtape` project with `$TMPDIR` under `$HOME`
 /// fails an assertion the fixture looks like it controls.
 fn find_root_bounded(start: &Path, stop: Option<&Path>) -> Option<PathBuf> {
     let mut dir = start.to_path_buf();
@@ -110,8 +111,8 @@ fn find_root_bounded(start: &Path, stop: Option<&Path>) -> Option<PathBuf> {
     }
 }
 
-/// One task file to harvest: its path, project-relative path, the tags its
-/// folder location derives, and its nesting depth under the root.
+/// One task file to harvest. It holds the path, the project-relative path, the
+/// tags its folder location derives, and its nesting depth under the root.
 struct LoadItem {
     file: PathBuf,
     rel: PathBuf,
@@ -119,10 +120,10 @@ struct LoadItem {
     depth: u8,
 }
 
-/// A cache miss to harvest: the item, the source already read for hashing (so a
-/// hit and a miss both build the body without a second read), and the content
-/// hash to key its fresh entry under. `hash` is `None` for an unreadable file —
-/// the harvest surfaces the error and nothing is cached.
+/// A cache miss to harvest. It holds the item, the source already read for
+/// hashing, and the content hash to key its fresh entry under. A hit and a
+/// miss both build the body from that source, without a second read. `hash` is
+/// `None` for an unreadable file, and the harvest surfaces the error without a cache entry.
 struct Miss<'a> {
     item: &'a LoadItem,
     source: String,
@@ -133,15 +134,15 @@ struct Miss<'a> {
 ///
 /// Discovery uses Git's working-tree listing for each root: tracked files,
 /// and untracked files Git does not ignore. A root outside a work tree, or a
-/// machine without `git`, falls back to the policy walk; any other Git failure
-/// is reported in [`LoadOutcome::errors`] against that root. An ignored root
+/// machine without `git`, falls back to the policy walk. Any other Git failure
+/// lands in [`LoadOutcome::errors`] against that root. An ignored root
 /// contributes its tracked files and one warning.
 ///
 /// The warm path stats and content-hashes each file and serves unchanged files
 /// straight from the on-disk [`TaskCache`], skipping Typst evaluation entirely.
 /// Only the cache misses (new or edited files) are live-evaluated, in parallel
-/// ([`batch_harvest`]) over one shared [`SourceSnapshot`] — so a common `@local`
-/// prelude is parsed once and evaluation fans out across cores.
+/// ([`batch_harvest`]) over one shared [`SourceSnapshot`]. A common `@local`
+/// prelude then parses once, and evaluation fans out across cores.
 #[must_use]
 pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     let visible = VisibleFiles::new(root, config);
@@ -172,17 +173,17 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
 /// `config`, through the same content-hash cache [`load_project`] uses, with
 /// its waits and collectors annotated as [`load_project`] does. The fields
 /// which need the whole set (`topo`, `blocks`, `children`, `progress`) stay
-/// empty: no other task is loaded to derive them from.
+/// empty, since no other task loads to derive them from.
 ///
 /// `Ok(None)` is a file with no `task.with` call, which [`load_project`] skips
 /// silently. A load failure is the [`LoadError`] [`load_project`] would list.
 ///
 /// # Errors
 ///
-/// The file's load failure; a path that is not a `.typ` file inside a
-/// configured task root (a file there would carry no folder tags and so differ
-/// from its [`load_project`] task); or a source Git does not expose in the
-/// working tree, such as an untracked ignored file.
+/// The file's load failure. Also a path that is not a `.typ` file inside a
+/// configured task root, or a source Git does not expose in the working tree.
+/// An untracked ignored file is one such source. A file outside a task root
+/// would carry no folder tags, and so differ from its [`load_project`] task.
 pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task>, LoadError> {
     let source = TaskSource::new(root, config);
     let task_path = source.task_path(path);
@@ -213,9 +214,9 @@ fn harvest_items(items: &[LoadItem], root: &Path, config: &Config) -> LoadOutcom
     outcome
 }
 
-/// Serve every cache hit into `outcome` and return the misses to harvest. Each
-/// file is read once here: its bytes key the cache, and its source builds the
-/// task body on a hit (no second read).
+/// Serve every cache hit into `outcome` and return the misses to harvest. The
+/// loader reads each file once here: its bytes key the cache, and its source
+/// builds the task body on a hit (no second read).
 fn split_hits<'a>(
     items: &'a [LoadItem],
     cache: &TaskCache,
@@ -255,8 +256,8 @@ fn replay(item: &LoadItem, source: Option<&str>, hit: Cached, outcome: &mut Load
 }
 
 /// Harvest the cache misses in parallel over one shared snapshot, record each
-/// into `outcome`, and cache every clean outcome. Harvest errors are recorded
-/// but never cached — the file is re-tried next run.
+/// into `outcome`, and cache every clean outcome. The loader records a harvest
+/// error but never caches it, and re-tries the file next run.
 fn harvest_misses(
     misses: &[Miss],
     root: &Path,
@@ -278,10 +279,10 @@ fn harvest_misses(
     }
 }
 
-/// Build a [`Task`] from a harvested marker and the file's source: identity from
-/// the stem (an explicit `id:` still wins), folder-derived tags injected, and
-/// the prose body sliced from the source. The one path both a cache hit and a
-/// fresh harvest funnel through, so they cannot diverge.
+/// Build a [`Task`] from a harvested marker and the file's source. Identity
+/// comes from the stem (an explicit `id:` still wins), the folder-derived tags
+/// come from the item, and the builder slices the prose body from the source.
+/// Both a cache hit and a fresh harvest funnel through this path, so they agree.
 fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
     let id = file_stem(&item.file);
     let mut task = Task::from_marker(id, item.rel.clone(), marker);
@@ -293,9 +294,9 @@ fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
 }
 
 /// Build a [`Task`] for a file at project-relative `rel` from an already
-/// harvested `marker` and the source it came from — the [`assemble_task`] path
-/// for a file that [`collect_items`] never walked, because it is not on disk
-/// yet ([`crate::validate::candidate`]).
+/// harvested `marker` and the source it came from. This is the [`assemble_task`]
+/// path for a file that [`collect_items`] never walked, because it is not on
+/// disk yet ([`crate::validate::candidate`]).
 pub(crate) fn task_at(
     root: &Path,
     config: &Config,
@@ -306,11 +307,11 @@ pub(crate) fn task_at(
     assemble_task(&item_at(root, config, rel), marker, source)
 }
 
-/// The [`LoadItem`] a file at project-relative `rel` would be walked as: the
-/// folder-derived tags and nesting depth of the first configured root that
-/// contains it. A path under no root derives neither — the same tags and depth
-/// a file written outside the roots would carry once it landed there, which is
-/// nothing.
+/// The [`LoadItem`] that [`collect_items`] would walk a file at
+/// project-relative `rel` as: the folder-derived tags and nesting depth of the
+/// first configured root that contains it. A path outside every root derives
+/// neither, the same tags and depth a file written outside the roots would carry
+/// once it landed there, which is nothing.
 fn item_at(root: &Path, config: &Config, rel: &Path) -> LoadItem {
     let (folder_tags, depth) = derivation(config, rel);
     LoadItem {
@@ -322,8 +323,8 @@ fn item_at(root: &Path, config: &Config, rel: &Path) -> LoadItem {
 }
 
 /// The folder-derived tags and nesting depth [`item_at`] would give a file at
-/// project-relative `rel`: the first configured root that contains it, with
-/// the root path normalized, or neither when no root does.
+/// project-relative `rel`. They come from the first configured root that
+/// contains it, with the root path normalized, or neither when no root does.
 pub(crate) fn derivation(config: &Config, rel: &Path) -> (Vec<String>, u8) {
     config
         .tasks
@@ -413,8 +414,8 @@ fn refused(path: &TaskPath, refusal: NotVisible) -> LoadError {
 
 /// Fold one harvested miss into `outcome` and update the cache. A clean harvest
 /// caches its outcome (a `mindtape.task` marker, or its confirmed absence) and,
-/// when a marker is present, assembles the [`Task`]; a build or eval failure
-/// becomes a [`LoadError`] and is never cached.
+/// when a marker is present, assembles the [`Task`]. A build or eval failure
+/// becomes a [`LoadError`], and the cache never holds it.
 fn record_miss(
     miss: &Miss,
     result: Result<Harvest, HarvestError>,

@@ -17,8 +17,8 @@ fn env(branch: Option<&str>, today: &str) -> ConditionEnv {
     }
 }
 
-/// An environment carrying only these listing facts — everything ambient left
-/// at its default, since the four column predicates read nothing else.
+/// An environment carrying only these listing facts, with everything ambient
+/// left at its default, since the four column predicates read nothing else.
 fn column_env(column: ColumnFacts) -> ConditionEnv {
     ConditionEnv {
         column,
@@ -285,7 +285,7 @@ const ALL_FACTS: ColumnFacts = ColumnFacts {
     blocked: true,
 };
 
-/// Whether `expr` holds for a column with only `field` set — the assertion
+/// Whether `expr` holds for a column with only `field` set, the assertion
 /// that each predicate reads its own fact and not a neighbour's.
 fn holds_for_only(expr: &str, field: fn(&mut ColumnFacts)) -> bool {
     let mut facts = ColumnFacts::default();
@@ -349,9 +349,9 @@ fn listing_predicates_are_not_comparison_operands() {
     assert_invalid(r#""x" == blocked()"#);
 }
 
-/// The whole point of dry-running against [`ConditionEnv::probe`]: a typo has
-/// to fail at config load, because a predicate that silently never matches is
-/// indistinguishable from a column nobody meant to show.
+/// Dry-running against [`ConditionEnv::probe`] makes a typo fail at config
+/// load. A predicate that silently never matches is indistinguishable from a
+/// column nobody meant to show.
 #[test]
 fn a_misspelled_listing_predicate_is_a_load_time_error() {
     assert_parse_err!("nonemtpy()", ConditionError::UnknownPredicate(name) if name == "nonemtpy");

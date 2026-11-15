@@ -15,7 +15,7 @@ fn names_the_call_and_each_argument_line() {
 }
 
 /// The `links` value, the call's closing `)`, the body, the import line, and a
-/// line past the end; then a source with no call.
+/// line past the end. Then a source with no call.
 #[test]
 fn a_point_falls_in_an_argument_in_the_call_or_outside_it() {
     let spans = TaskCallSpans::parse(SRC);
@@ -36,7 +36,7 @@ fn a_point_falls_in_an_argument_in_the_call_or_outside_it() {
     assert_eq!(none, CallRegion::Outside);
 }
 
-/// Typst counts a column in characters, so the two-byte letters in the title
+/// Typst counts a column in characters. The two-byte letters in the title then
 /// move the byte offset of `tags` but not its column, 40.
 #[test]
 fn a_column_counts_characters_not_bytes() {

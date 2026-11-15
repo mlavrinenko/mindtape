@@ -147,7 +147,7 @@ fn edge_val(task: &str, kind: &str) -> HVal {
     ])
 }
 
-/// Build a task, at `t.typ`, from a bare `links:` array — the shared
+/// Build a task, at `t.typ`, from a bare `links:` array, the shared
 /// marker-wrapping boilerplate every `links` parsing test needs.
 fn task_with_links(links: Vec<HVal>) -> Task {
     let fields = dict(vec![("links", HVal::Array(links))]);
@@ -292,7 +292,7 @@ fn all_tags_includes_authored_then_derived_no_duplicates() {
     assert_eq!(task.all_tags(), vec!["backend", "db", "auth"]);
 }
 
-/// A `Task` loaded from a marker whose `priority` field is `priority` — the
+/// A `Task` loaded from a marker whose `priority` field is `priority`, the
 /// shared setup for the framework-priority `from_marker` tests below.
 fn task_with_priority(priority: HVal) -> Task {
     let fields = dict(vec![("priority", priority)]);
@@ -346,8 +346,8 @@ fn from_marker_reads_framework_priority_with_text_input() {
 /// Guards `file_key`'s separator normalisation: it must rejoin path
 /// components with `/`, not defer to `Path::display` (which prints the
 /// OS-native separator, `\` on Windows). Building `file` from per-component
-/// `join` calls — rather than a literal `/`-joined string — exercises the
-/// same code path `Path::components` would walk on either platform.
+/// `join` calls, rather than a literal `/`-joined string, exercises the same
+/// code path `Path::components` would walk on either platform.
 #[test]
 fn file_key_joins_components_with_forward_slash() {
     let mut task = bare_task("nested");
@@ -355,8 +355,8 @@ fn file_key_joins_components_with_forward_slash() {
     assert_eq!(task.file_key(), "tasks/sub/nested.typ");
 }
 
-/// A retargeted link is written with `/` between components, never the
-/// OS-native separator.
+/// A retargeted link writes `/` between components, never the OS-native
+/// separator.
 #[test]
 fn slash_path_joins_a_relative_target_with_forward_slashes() {
     let rel = crate::relative_target(

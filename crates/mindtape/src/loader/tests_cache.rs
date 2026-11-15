@@ -1,5 +1,5 @@
-//! Persistent content-hash cache: a load's `.mindtape/cache/` entries are
-//! served verbatim when a file/config/prelude hash is unchanged, and bypassed
+//! Persistent content-hash cache: a load serves its `.mindtape/cache/` entries
+//! verbatim while a file/config/prelude hash stays unchanged, and bypasses them
 //! (fresh eval) the moment any of those hashes moves. Shares
 //! `loader/tests.rs`'s fixtures (`setup`, `write`, `write_pkg`, `TASK_BODY`,
 //! `PRELUDE_STUB`).

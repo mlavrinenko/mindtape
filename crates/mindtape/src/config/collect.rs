@@ -1,9 +1,10 @@
 //! `[[tasks.collectors]]`: derived task fields, read as `derived.<name>`.
 //!
-//! A collector names its field, an optional `when`, a `query` and a `returns`
-//! type expression. The collection itself lives in [`crate::collect`]; this
-//! module is config shape and load-time checks. Collectors merge by name across
-//! layers and packs exactly as the rule arrays do ([`crate::config::packs`]).
+//! A collector specifies its field, an optional `when`, a `query` and a
+//! `returns` type expression. The collection itself lives in
+//! [`crate::collect`]. This module is config shape and load-time checks.
+//! Collectors merge by name across layers and packs exactly as the rule arrays
+//! do ([`crate::config::packs`]).
 
 use std::path::PathBuf;
 
@@ -14,9 +15,10 @@ use crate::body::headers::HeaderPathSegment;
 use crate::config::Config;
 pub use crate::config::collect_type::{CollectorAtom, CollectorType};
 use crate::config::pack_registry::RuleOriginEntry;
+use crate::error_text::last_line;
 use crate::problem::Problem;
 
-/// Where each merged collector was declared, recorded at load.
+/// Where each merged collector came from, recorded at load.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct CollectorOrigins(pub(crate) Vec<RuleOriginEntry>);
 
@@ -30,9 +32,9 @@ impl PartialEq for CollectorOrigins {
 #[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CollectorSpec {
-    /// The derived field's name: the collector is read as `derived.<name>`.
+    /// The derived field's name, read as `derived.<name>`.
     pub name: String,
-    /// Filter gating the collector; a task it excludes carries no field.
+    /// Filter gating the collector. A task it excludes carries no field.
     #[serde(default)]
     #[schemars(extend("x-expression" = "filter"))]
     pub when: Option<String>,
@@ -82,9 +84,10 @@ pub enum CollectorQuery {
 const QUERY_KEYS: [&str; 3] = ["section", "typst", "ast_grep"];
 
 /// Dispatch on the query's own key and let its struct read the table, rather
-/// than derive an untagged enum: serde's untagged error erases the field, while
+/// than derive an untagged enum. An untagged serde error erases the field, while
 /// the struct keeps its `deny_unknown_fields` and missing-field messages. The
-/// table is buffered first because TOML key order is not the declared order.
+/// loader buffers the table first because TOML key order is not the declared
+/// order.
 impl<'de> Deserialize<'de> for CollectorQuery {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -107,8 +110,8 @@ impl<'de> Deserialize<'de> for CollectorQuery {
     }
 }
 
-/// One variant's struct read from the buffered table, its error naming the
-/// field at fault.
+/// One variant's struct read from the buffered table, with its error specifying
+/// the field at fault.
 fn parse_query<T, E>(
     table: toml::Table,
     variant: fn(T) -> CollectorQuery,
@@ -122,9 +125,10 @@ where
         .map_err(|err| delegated(&err))
 }
 
-/// A delegated struct's error, carrying the field it names. Unknown, missing
-/// and duplicate field messages already name it; a type mismatch says only
-/// what type it found, so the buffered table's key path is kept for those.
+/// The error from a delegated struct, carrying the field it names. Unknown,
+/// missing and duplicate field messages already name it. A type mismatch says
+/// only what type it found, and the code keeps the buffered table's key path
+/// for those.
 fn delegated<E: serde::de::Error>(err: &toml::de::Error) -> E {
     let named = ["unknown field `", "missing field `", "duplicate field `"]
         .iter()
@@ -189,12 +193,12 @@ pub struct TypstQuery {
     pub field: Option<String>,
 }
 
-/// A regex query: the first capture group (or the whole match) of every match
-/// in every selected section's content.
+/// A regex query takes the first capture group (or the whole match) of every
+/// match in every selected section's content.
 #[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RegexQuery {
-    /// The body section to read: a heading path, or one heading name.
+    /// The body section to read, as a heading path or one heading name.
     pub section: SectionSpec,
     /// The regex to run over each selected section's content.
     pub pattern: String,
@@ -204,8 +208,8 @@ pub struct RegexQuery {
     pub group: Option<usize>,
 }
 
-/// A body section selector: one heading name, or a path through the heading
-/// tree.
+/// A body section selector, either one heading name or a path through the
+/// heading tree.
 #[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum SectionSpec {
@@ -404,16 +408,6 @@ fn valid_name(name: &str) -> bool {
 }
 
 /// The last line of a `regex` error, without its `error: ` label.
-fn last_line(text: &str) -> String {
-    let line = text
-        .lines()
-        .rev()
-        .find(|line| !line.trim().is_empty())
-        .unwrap_or(text)
-        .trim();
-    line.strip_prefix("error: ").unwrap_or(line).to_owned()
-}
-
 #[cfg(test)]
 #[path = "collect_tests.rs"]
 mod tests;

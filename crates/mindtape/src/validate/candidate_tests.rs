@@ -15,7 +15,7 @@ use crate::model::Task;
 use crate::parse_config;
 use crate::validate::{Violation, validate};
 
-/// The embedded floor config — `Config::default()` carries an empty status
+/// The embedded floor config. `Config::default()` carries an empty status
 /// legend, under which no status name is out of bounds and half these tests
 /// would assert nothing.
 fn floor() -> Config {
@@ -23,8 +23,8 @@ fn floor() -> Config {
 }
 
 /// A task marker source with the given status name, written the way the loader
-/// tests do — a bare `#metadata(...)`, so no `@local/mindtape` package has to
-/// be installed for these to run.
+/// tests do: a bare `#metadata(...)`, so these run without installing a
+/// `@local/mindtape` package.
 pub(crate) fn marker(status: &str) -> String {
     format!(
         "#metadata((
@@ -45,8 +45,8 @@ pub(crate) fn setup() -> tempfile::TempDir {
     dir
 }
 
-/// The whole point: a candidate is evaluated and validated with nothing on
-/// disk at its destination, and evaluating it puts nothing there either.
+/// The check evaluates and validates a candidate with nothing on disk at its
+/// destination, and evaluating it puts nothing there either.
 #[test]
 fn checks_a_candidate_without_creating_its_file() {
     let dir = setup();
@@ -72,8 +72,8 @@ fn checks_a_candidate_without_creating_its_file() {
     );
 }
 
-/// A status outside the legend is caught before the write, and the violation
-/// names the candidate instead of leaving a broken file behind.
+/// The check catches a status outside the legend before the write, and the
+/// violation reports on the candidate instead of leaving a broken file behind.
 #[test]
 fn reports_a_violation_against_the_unwritten_candidate() {
     let dir = setup();
@@ -99,9 +99,9 @@ fn reports_a_violation_against_the_unwritten_candidate() {
 }
 
 /// [`check_candidate`] against `existing`, for a `"wip"` candidate at
-/// `tasks/build.typ` under the floor config — the call
+/// `tasks/build.typ` under the floor config. Both
 /// [`filters_out_violations_of_the_existing_tasks`] and
-/// [`replaces_an_existing_task_at_the_same_path`] both make, against
+/// [`replaces_an_existing_task_at_the_same_path`] make this call, against
 /// different `existing` sets.
 fn check_wip_candidate_for_build(dir: &Path, config: &Config, existing: &[Task]) -> Vec<Violation> {
     let source = marker("wip");
@@ -118,8 +118,8 @@ fn check_wip_candidate_for_build(dir: &Path, config: &Config, existing: &[Task])
     .unwrap()
 }
 
-/// Violations on the tasks already on disk are the project's problem, not this
-/// write's: only the candidate's own are returned.
+/// Violations on the tasks already on disk belong to the project, not to this
+/// write. The check returns only the candidate's own.
 #[test]
 fn filters_out_violations_of_the_existing_tasks() {
     let dir = setup();
@@ -133,9 +133,9 @@ fn filters_out_violations_of_the_existing_tasks() {
     assert!(violations.is_empty(), "{violations:?}");
 }
 
-/// The candidate is evaluated *at its destination*, so the folder-derived tags
-/// and nesting depth are the ones the written file would carry — not the ones
-/// of wherever a staging copy might have sat.
+/// The check evaluates the candidate *at its destination*, so the folder-derived
+/// tags and nesting depth are the ones the written file would carry. They are
+/// not the ones of wherever a staging copy might have sat.
 #[test]
 fn derives_tags_and_depth_from_the_destination_path() {
     let dir = setup();
@@ -171,8 +171,8 @@ collect = ["segments"]
     assert_eq!(task.depth, 2);
 }
 
-/// A source that evaluates but emits no task marker is a source failure, and
-/// says so — there is no file to blame it on.
+/// A source that evaluates but carries no task marker is a source failure, and
+/// says so: there is no file to blame it on.
 #[test]
 fn errors_when_the_source_harvests_no_marker() {
     let dir = setup();
@@ -190,8 +190,8 @@ fn errors_when_the_source_harvests_no_marker() {
     assert!(err.message.contains("no task marker"), "{}", err.message);
 }
 
-/// A source Typst cannot evaluate is reported as a load error rather than
-/// panicking or being mistaken for a clean parse.
+/// The check reports a source Typst cannot evaluate as a load error rather than
+/// panicking or mistaking it for a clean parse.
 #[test]
 fn errors_when_the_source_fails_to_evaluate() {
     let dir = setup();
@@ -234,8 +234,8 @@ fn errors_when_the_destination_leaves_the_root() {
     );
 }
 
-/// A task marker with `depends-on` edges — the batch fixture, since an edge is
-/// the cheapest rule that cannot be answered for one candidate alone.
+/// A task marker with `depends-on` edges, the batch fixture, since an edge is
+/// the cheapest rule that one candidate alone cannot answer.
 fn linked(deps: &[&str]) -> String {
     let links: String = deps
         .iter()
@@ -281,9 +281,9 @@ fn resolves_an_edge_between_two_candidates_in_one_batch() {
     assert!(checked.violations.is_empty(), "{:?}", checked.violations);
 }
 
-/// The same candidate checked alone cannot see its peer — the negative half of
-/// the pair above, so "checked together" is pinned as load-bearing rather than
-/// merely true.
+/// The same candidate checked alone cannot see its peer. This is the negative
+/// half of the pair above, which pins "checked together" as necessary rather
+/// than merely true.
 #[test]
 fn an_edge_to_a_batch_peer_fails_when_checked_alone() {
     let dir = setup();
@@ -329,8 +329,8 @@ fn a_candidate_that_fails_to_evaluate_does_not_sink_the_batch() {
     assert!(checked.violations.is_empty(), "{:?}", checked.violations);
 }
 
-/// A candidate overwriting a task already at its path is checked as a rewrite:
-/// the old copy drops out, so the two never collide on the shared id.
+/// The check treats a candidate overwriting a task already at its path as a
+/// rewrite: the old copy drops out, so the two never collide on the shared id.
 #[test]
 fn replaces_an_existing_task_at_the_same_path() {
     let dir = setup();
@@ -343,8 +343,8 @@ fn replaces_an_existing_task_at_the_same_path() {
     assert!(violations.is_empty(), "{violations:?}");
 }
 
-/// One candidate at `tasks/b.typ`, checked against the project as loaded — the
-/// shared invocation the two cycle tests below differ only in their source
+/// One candidate at `tasks/b.typ`, checked against the project as loaded. The
+/// two cycle tests below share this invocation and differ only in their source
 /// body, so it lives here rather than copied into both.
 fn candidate_at_b(root: &Path, config: &Config, existing: &[Task], source: &str) -> Vec<Violation> {
     check_candidate(
@@ -360,10 +360,10 @@ fn candidate_at_b(root: &Path, config: &Config, existing: &[Task], source: &str)
     .unwrap()
 }
 
-/// A batch edge that closes a cycle with a task already on disk is returned as
-/// the candidate's `elsewhere` breach, on the task it is reported on. The cycle
-/// is reported on the existing member, which the batch never writes, so
-/// dropping it as "not the candidate's" would let the write land a graph
+/// The check returns a batch edge that closes a cycle with a task already on
+/// disk as the candidate's `elsewhere` breach, on the task it reports on. The
+/// cycle reports on the existing member, which the batch never writes.
+/// Dropping it as "not the candidate's" would let the write land a graph
 /// `mt check` rejects on a neighbour. Its message is `mt check`'s own.
 #[test]
 fn a_batch_edge_that_closes_a_cycle_comes_back_as_elsewhere() {
@@ -402,7 +402,7 @@ fn a_batch_edge_that_closes_a_cycle_comes_back_as_elsewhere() {
     assert_eq!(violations.len(), 1, "{violations:?}");
 }
 
-/// The mirror case, where the cycle is attributed to the candidate itself: the
+/// The mirror case, where the cycle belongs to the candidate itself. The
 /// candidate's direct list already carries it, so the elsewhere pass must not
 /// re-add it as a second, unreworded copy.
 #[test]
@@ -426,8 +426,8 @@ fn a_cycle_on_the_candidate_is_not_reported_twice() {
 }
 
 /// A violation the project already carried before the batch is not the batch's
-/// doing: an identical triple is dropped field by field, so a pre-existing
-/// cycle does not re-report itself on every unrelated write.
+/// doing. The check drops an identical triple field by field, so a pre-existing
+/// cycle does not come back on every unrelated write.
 #[test]
 fn an_already_present_cycle_is_not_attributed_to_the_batch() {
     let dir = setup();

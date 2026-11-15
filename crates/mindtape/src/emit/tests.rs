@@ -1,10 +1,9 @@
-//! Round-trip property tests for [`super::emit_task`]: for a representative
+//! Round-trip property tests for [`super::emit_task`]. For a representative
 //! spread of `Task` values, emit then re-harvest through the real prelude
-//! yields an equal task (modulo the loader-derived `file`/`derived_tags`/
-//! `topo`/`blocks`, and `links`
-//! order-normalized — grouping by kind/note can reorder same-kind edges),
-//! and the emitted source passes [`crate::validate::validate`] clean for
-//! that task's id.
+//! yields an equal task, modulo the loader-derived `file`/`derived_tags`/
+//! `topo`/`blocks` and the order-normalized `links`. Grouping by kind/note can
+//! reorder same-kind edges. The emitted source also passes
+//! [`crate::validate::validate`] clean for that task's id.
 #![allow(clippy::unwrap_used)]
 
 use crate::test_support::tempdir;
@@ -37,8 +36,8 @@ const LINKS_CONFIG: &str = "[tasks.priority]\nframework = \"ice\"\n\
      [[tasks.links.kinds]]\nname = \"blocks\"\nnote = \"optional\"\n";
 
 /// A minimal, self-valid stub task written at a link target's path so
-/// resolution succeeds; its own violations (if any) are irrelevant — tests
-/// only assert the fixture-under-test's violations are empty.
+/// resolution succeeds. Its own violations (if any) are irrelevant, since the
+/// tests only assert the fixture-under-test's violations are empty.
 const STUB: &str = crate::typst_task!("(\n  title: \"Stub\",\n  status: wip(2026, 1, 1),\n)\n");
 
 /// Write the in-tree `lib/` package override, `config_text` to
@@ -358,10 +357,10 @@ fn emits_deterministic_field_order() {
     assert_eq!(first, second);
 }
 
-/// A `count(...)` unit writes back as the count: a plain regex or ast-grep
-/// pattern as a raw block, one holding a backtick or a line break as an
+/// A `count(...)` unit writes back as the count. A plain regex or ast-grep
+/// pattern writes as a raw block, one holding a backtick or a line break as an
 /// escaped string, and a glob's quote escaped. What resolves is the loader's
-/// business, so only the authored half is compared.
+/// business. The test compares only the authored half.
 #[test]
 fn round_trips_a_count_estimate() {
     use crate::estimate_queries::CountEstimate;

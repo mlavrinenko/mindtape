@@ -15,8 +15,8 @@ fn edit_failure_displays_rewrite_message() {
     assert_eq!(err.to_string(), "rewrite failed: boom");
 }
 
-/// The text a user reads for every `FillError`: each names the slot and, where
-/// one exists, the way out.
+/// The text a user reads for every `FillError`: each one reports the slot and,
+/// where one exists, the way out.
 #[test]
 fn every_error_displays_its_slot_and_remedy() {
     let type_err = |want| FillError::Type {
@@ -63,7 +63,7 @@ fn every_error_displays_its_slot_and_remedy() {
 }
 
 /// The migration path off the retired `typst` spelling. Before `unknown_kind`
-/// existed this filled as a `string` — the value quoted and escaped, a wrong
+/// existed this filled as a `string`, with the value quoted and escaped, a wrong
 /// task written with exit 0 and no diagnostic anywhere.
 #[test]
 fn retired_typst_kind_fails_naming_the_slot_and_the_valid_kinds() {
@@ -80,8 +80,8 @@ fn retired_typst_kind_fails_naming_the_slot_and_the_valid_kinds() {
     assert!(msg.contains("raw"), "{msg}");
 }
 
-/// An unknown kind is rejected even when no value is supplied for the slot:
-/// the default path must not sneak a mis-declared slot past the check.
+/// `fill` rejects an unknown kind even when the caller supplies no value for the
+/// slot: the default path must not sneak a mis-declared slot past the check.
 #[test]
 fn unknown_kind_fails_even_when_the_slot_is_unfilled() {
     let err =
@@ -89,8 +89,8 @@ fn unknown_kind_fails_even_when_the_slot_is_unfilled() {
     assert!(matches!(&err, FillError::UnknownKind { .. }), "{err:?}");
 }
 
-/// The refusal lists every kind the parser accepts, read off the registry, so
-/// a kind added to `SlotKind` can't be left out of what a template author reads.
+/// The refusal lists every kind the parser accepts, read off the registry, so a
+/// kind added to `SlotKind` can't go missing from what a template author reads.
 #[test]
 fn unknown_kind_message_names_every_registered_kind() {
     let err = fill_wrapped(r#"body: slot("body", kind: "multi-choice")"#, &[]).unwrap_err();

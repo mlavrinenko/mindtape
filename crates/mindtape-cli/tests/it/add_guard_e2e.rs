@@ -1,5 +1,5 @@
-//! End-to-end tests for the `add` destination guard: a refused destination
-//! creates nothing, and only an outside-root destination warns.
+//! End-to-end tests for the `add` destination guard. A refused destination
+//! doesn't create anything, and only an outside-root destination warns.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
@@ -86,7 +86,7 @@ fn a_reserved_destination_is_refused_and_creates_nothing() {
     assert!(stderr.contains("reserved"), "{stderr}");
 }
 
-/// `link/..` is `target` on disk, which is ignored, while its lexical form is
+/// `link/..` is `target` on disk, which Git ignores, while its lexical form is
 /// the project root. Resolving the symlink before the policy asks makes the
 /// escape visible and refused.
 #[cfg(unix)]

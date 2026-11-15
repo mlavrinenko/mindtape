@@ -18,15 +18,15 @@ when = 'has_tag("swept")'
 actions = [{ dir = "tasks/swept" }]
 "#;
 
-/// A pinned add that must land, so a failure names its stderr.
+/// A pinned add that must land, with the stderr as the assertion message.
 fn filed(dir: &Path, args: &[&str]) {
     let (_, stderr, ok) = add_pinned(dir, "2026-11-13", args);
     assert!(ok, "{stderr}");
 }
 
 /// A filed task follows the pinned month, and a task carrying `swept` goes to
-/// the one inbox folder instead. The tag is read on the draft, so
-/// `--set tags+=swept` is all a sweep passes; it names no path.
+/// the one inbox folder instead. The hook reads the tag on the draft. A sweep
+/// passes only `--set tags+=swept` and specifies no path.
 #[test]
 fn the_month_hook_and_the_swept_hook_choose_their_own_folders() {
     let dir = project(POLICY);

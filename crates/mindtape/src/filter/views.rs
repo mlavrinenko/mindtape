@@ -6,15 +6,16 @@
 //! - [`desugar_view_refs`] rewrites `@name` to `in_view("name")` at parse time,
 //!   skipping any `@` inside a string literal, so [`crate::filter::Filter`] and
 //!   evalexpr only ever see the `in_view(...)` form.
-//! - [`collect_view_refs`] walks a parsed tree gathering the view names its
-//!   `in_view(...)` calls reference, for load-time resolution and cycle checks.
+//! - [`collect_view_refs`] walks a parsed tree and collects the view names that
+//!   its `in_view(...)` calls reference, for load-time resolution and cycle
+//!   checks.
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
 use crate::filter::expr::extract_literal;
 
 /// Rewrite `@name` to `in_view("name")`, leaving `@` inside string literals
-/// untouched. `name` is `[A-Za-z0-9_-]+`; a bare `@` (not followed by a name
+/// untouched. `name` is `[A-Za-z0-9_-]+`. A bare `@` (not followed by a name
 /// character) passes through verbatim.
 #[must_use]
 pub(crate) fn desugar_view_refs(expr: &str) -> String {

@@ -7,10 +7,11 @@ use globset::Glob;
 
 use super::AtError;
 
-/// The few filesystem reads resolution needs, injected so tests touch no disk.
+/// The few filesystem reads resolution needs, injected so tests don't touch the
+/// disk.
 pub trait AtFs {
     /// The names of the directories directly under `dir`, symlinks to one
-    /// included; empty when it can't be read.
+    /// included. The list is empty when the read fails.
     fn subdirs(&self, dir: &Path) -> Vec<String>;
     /// Whether `path` is a directory.
     fn is_dir(&self, path: &Path) -> bool;
@@ -51,7 +52,7 @@ impl AtFs for DiskFs {
     }
 }
 
-/// Expand a leading `~` in `path` against `home`; other paths pass through.
+/// Expand a leading `~` in `path` against `home`. Other paths pass through.
 pub(super) fn expand_tilde(path: &str, home: Option<&Path>) -> PathBuf {
     let path = Path::new(path);
     match (home, path.strip_prefix("~")) {
@@ -60,7 +61,8 @@ pub(super) fn expand_tilde(path: &str, home: Option<&Path>) -> PathBuf {
     }
 }
 
-/// Whether a pattern holds a glob character, so it names a set, not a path.
+/// Whether a pattern holds a glob character, so it references a set, not a
+/// path.
 pub(super) fn is_glob(pattern: &str) -> bool {
     pattern.contains(['*', '?', '[', '{'])
 }
@@ -103,7 +105,7 @@ pub(super) fn is_project(dir: &Path, fs: &dyn AtFs) -> bool {
 }
 
 /// Whether `dir` is a linked git worktree: its `.git` file points at a gitdir
-/// that holds `commondir`, which a submodule's gitdir lacks.
+/// that holds `commondir`, which the gitdir of a submodule lacks.
 pub(super) fn is_fork(dir: &Path, fs: &dyn AtFs) -> bool {
     let Some(text) = fs.read_file(&dir.join(".git")) else {
         return false;

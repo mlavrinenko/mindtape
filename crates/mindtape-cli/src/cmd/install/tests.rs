@@ -136,8 +136,9 @@ fn xdg_schema_path_ends_with_config_schema_json() {
     assert!(path.ends_with("config.schema.json"));
 }
 
-/// Regression: the seeded floor text parses and validates on its own — the
-/// same guarantee `cmd/init/tests.rs` asserts for the slim/full project scaffolds.
+/// Regression: the seeded floor text parses and validates on its own, the
+/// same guarantee `cmd/init/tests.rs` asserts for the slim/full project
+/// scaffolds.
 #[test]
 fn seeded_defaults_parses_and_validates() {
     let config = mindtape::parse_config(mindtape::embedded_defaults()).unwrap();
@@ -157,7 +158,7 @@ fn completions_dir_ends_with_the_completions_folder() {
     assert!(path.to_string_lossy().contains("mindtape"), "{path:?}");
 }
 
-/// `write_completions` actually writes every hook `HOOKS` declares — a no-op
+/// `write_completions` actually writes every hook `HOOKS` declares. A no-op
 /// leaves a shell that installed completions pointing at nothing.
 #[test]
 fn write_completions_writes_a_hook_per_shell() {
@@ -235,7 +236,8 @@ fn run_with_no_completions_writes_no_hooks() {
 }
 
 /// `$SHELL` picks the hook the hint shows, by its last path segment on either
-/// separator and without `.exe`, so a Windows path reads the same on any host.
+/// separator and without `.exe`. A Windows path then reads the same on any
+/// host.
 /// A shell with no hook of its own, or no `$SHELL` at all, gets bash's line.
 #[test]
 fn shell_from_env_names_the_hook_for_shell() {
@@ -289,7 +291,7 @@ fn completion_hint_shows_the_source_line_for_the_shell() {
     }
 }
 
-/// A path with a space or a backslash, as on Windows, is quoted so the line
+/// The hint quotes a path with a space or a backslash, as on Windows. The line
 /// still pastes as one argument.
 #[test]
 fn completion_hint_quotes_a_path_that_needs_it() {

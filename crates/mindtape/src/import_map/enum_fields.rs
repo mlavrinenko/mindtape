@@ -4,10 +4,10 @@ use crate::config::Config;
 
 use super::report::{MapOptions, ReportEntry};
 
-/// Report when `kind` is set but the project declares a `kind` enum and the
-/// value falls outside it. Never rewrites or drops `kind` — the mapped
-/// [`crate::model::Task`] keeps whatever was authored; `mt check` re-flags it
-/// too if the record still fails after import.
+/// Report when `kind` carries a value but the project declares a `kind` enum
+/// and the value falls outside it. Never rewrites or drops `kind`: the mapped
+/// [`crate::model::Task`] keeps whatever the record authored. `mt check`
+/// re-flags it too if the record still fails after import.
 pub(crate) fn check_kind(kind: Option<&str>, config: &Config, out: &mut Vec<ReportEntry>) {
     let Some(field) = config.tasks.fields.get("kind") else {
         return;
@@ -23,9 +23,9 @@ pub(crate) fn check_kind(kind: Option<&str>, config: &Config, out: &mut Vec<Repo
     }
 }
 
-/// Filter `tags` against `[tasks.tags] allowed`: an unlisted tag is kept and
-/// reported as a violation by default, or dropped and reported when
-/// [`MapOptions::drop_unmapped_tags`] is set. An empty allow-list leaves every
+/// Filter `tags` against `[tasks.tags] allowed`. By default the mapper keeps an
+/// unlisted tag and reports it as a violation, or drops and reports it when
+/// [`MapOptions::drop_unmapped_tags`] holds. An empty allow-list leaves every
 /// tag untouched (unconstrained, matching `validate/mod.rs::check_tags`).
 pub(crate) fn map_tags(
     tags: Vec<String>,

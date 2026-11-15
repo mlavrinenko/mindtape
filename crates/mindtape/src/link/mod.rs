@@ -4,9 +4,9 @@
 //! `(task: "stem.typ", kind: "…", note: none)` by a prelude helper
 //! (`depends-on`, `parent`, `recurred-from`, `supersedes`, `duplicates`,
 //! `related`, or the generic `edge(kind, ..targets)`). [`Link`] is the parsed
-//! Rust projection of one edge; [`parse_links`] projects the whole marker
-//! field. Six kinds ship built-in and immutable ([`BUILTIN_KINDS`]); a project
-//! or consumer (e.g. speconaut) layers extra kinds on top through
+//! Rust projection of one edge, and [`parse_links`] projects the whole marker
+//! field. Six kinds come built-in and immutable ([`BUILTIN_KINDS`]). A project
+//! or consumer (such as speconaut) layers extra kinds on top through
 //! `[[tasks.links.kinds]]` ([`LinksConfig`]). [`resolve_kind`] and the
 //! `*_kinds` helpers are the single place that merges the two, so validation,
 //! readiness, and the dependency graph never hand-roll the lookup.
@@ -23,42 +23,43 @@ use typst_harvest::HVal;
 
 pub use crate::config::links_validate::TargetValidator;
 
-/// One typed relation edge: a target task, its kind, and an optional note.
+/// One typed relation edge, holding a target task, its kind, and an optional
+/// note.
 ///
-/// Produced by [`parse_links`] from the `links:` marker field; a bare string
+/// [`parse_links`] produces it from the `links:` marker field. A bare string
 /// entry (no helper used) parses to an empty `kind`, which never matches a
-/// built-in or configured kind, so validation rejects it as unknown-kind
+/// built-in or configured kind. Validation then rejects it as unknown-kind
 /// rather than silently dropping it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Link {
-    /// Raw target path/stem, as written by the authoring helper (e.g.
+    /// Raw target path/stem, as written by the authoring helper (such as
     /// `"other.typ"`). Resolved against a loaded task at validation time.
     pub task: String,
     /// Edge kind, matched against [`BUILTIN_KINDS`] then a project's
     /// `[[tasks.links.kinds]]`. Empty when the marker held a bare string.
     pub kind: String,
-    /// Free-form note; required, optional, or forbidden depending on the
+    /// Free-form note, required, optional, or forbidden depending on the
     /// kind's [`NoteRule`].
     pub note: Option<String>,
 }
 
 /// Parse the `links:` marker field into edges. History-pointer targets
-/// (SWHID tombstones minted by `cleanup` in place of a retired task) are
-/// excluded — they name no loaded task, so they are not a task↔task edge; see
+/// (SWHID tombstones minted by `cleanup` in place of a retired task) drop out:
+/// they don't reference a loaded task, so they are not a task↔task edge. See
 /// [`crate::model::is_history_pointer`]. A present-but-not-an-array value (a
 /// bare string, say) reports a [`crate::model::marker::ShapeError`] into `errors`
 /// rather than silently coercing to no edges.
 ///
-/// A nested entry is flattened rather than dropped: each prelude helper returns
-/// an array, so `links: (depends-on("a.typ"), depends-on("b.typ"))` — the array
-/// spelling of the `+` concatenation — arrives as an array of arrays. The
-/// prelude normalizes that at the source, but the prelude ships as a versioned
-/// Typst package installed per machine (`mt install`), so a project still
-/// resolving an older copy emits the nested shape to a current binary; this
-/// keeps its edges rather than losing half a dependency graph to a version
-/// skew. Anything that is neither an edge nor a nest — a number, a date —
-/// reports a [`ShapeError`](crate::model::marker::ShapeError) naming its position,
-/// closing the last silent drop on this field.
+/// The parser flattens a nested entry rather than dropping it. Each prelude
+/// helper returns an array, so `links: (depends-on("a.typ"), depends-on("b.typ"))`,
+/// the array spelling of the `+` concatenation, arrives as an array of arrays.
+/// The prelude normalizes that at the source, but the prelude comes as a
+/// versioned Typst package installed per machine (`mt install`). A project still
+/// resolving an older copy emits the nested shape to a current binary. This
+/// keeps its edges rather than losing half a dependency graph to a version skew.
+/// Anything that is neither an edge nor a nest (a number, a date) reports a
+/// [`ShapeError`](crate::model::marker::ShapeError) naming its position, closing
+/// the last silent drop on this field.
 #[must_use]
 pub fn parse_links(
     value: Option<&HVal>,
@@ -80,7 +81,7 @@ pub fn parse_links(
 
 /// Append every edge in `items` to `out`, descending into a nested array and
 /// reporting anything else. `path` is the entry's index trail from the `links:`
-/// field down (`[0]`, `[1][0]`), so a report names the offending position in a
+/// field down (`[0]`, `[1][0]`). A report then gives the offending position in a
 /// shape the author can count to in their own source.
 fn collect_links(
     items: &[HVal],
@@ -111,8 +112,8 @@ fn index_path(path: &[usize]) -> String {
 }
 
 /// Parse one `links:` entry: the helper-shaped dict (`task`, `kind`, `note`),
-/// or a bare string (kept with an empty `kind` so validation can flag it — see
-/// [`Link::kind`]). `None` only for a history pointer; a wrong-shaped entry
+/// or a bare string (kept with an empty `kind` so validation can flag it, see
+/// [`Link::kind`]). `None` only for a history pointer. A wrong-shaped entry
 /// never reaches here (see [`collect_links`]).
 fn parse_one(item: &HVal) -> Option<Link> {
     let (task, kind, note) = if let Some(dict) = item.as_dict() {
@@ -138,12 +139,12 @@ fn parse_one(item: &HVal) -> Option<Link> {
     Some(Link { task, kind, note })
 }
 
-/// A resolved per-kind rule: cardinality cap, note requirement, and whether
-/// the kind gates readiness / must stay acyclic. Built by merging
+/// A resolved per-kind rule, holding the cardinality cap, the note requirement,
+/// and whether the kind gates readiness or must stay acyclic. Built by merging
 /// [`BUILTIN_KINDS`] with a project's custom `[[tasks.links.kinds]]`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct KindRule {
-    /// Cardinality cap (max edges of this kind per task); `None` = unbounded.
+    /// Cardinality cap (max edges of this kind per task). `None` = unbounded.
     pub max: Option<u32>,
     /// Note requirement.
     pub note: NoteRule,
@@ -153,7 +154,7 @@ pub struct KindRule {
     pub acyclic: bool,
 }
 
-/// The six built-in edge kinds, immutable and baked into code: a project's
+/// The six built-in edge kinds, immutable and baked into code. A project's
 /// config can only add kinds, never override or remove one of these (see
 /// [`resolve_kind`], which always checks this table first).
 const BUILTIN_KINDS: &[(&str, KindRule)] = &[
@@ -225,10 +226,10 @@ pub fn is_builtin_kind(name: &str) -> bool {
     BUILTIN_KINDS.iter().any(|(builtin, _)| *builtin == name)
 }
 
-/// Resolve `name`'s effective rule: a built-in first (immutable — never
-/// shadowed by a same-named config entry), else a project's custom
-/// `[[tasks.links.kinds]]`. `None` when `name` is neither — the unknown-kind
-/// case validation rejects.
+/// Resolve `name`'s effective rule: a built-in first (immutable, never shadowed
+/// by a same-named config entry), else a project's custom
+/// `[[tasks.links.kinds]]`. `None` when `name` is neither, the unknown-kind case
+/// validation rejects.
 #[must_use]
 pub fn resolve_kind(name: &str, config: &LinksConfig) -> Option<KindRule> {
     if let Some((_, rule)) = BUILTIN_KINDS.iter().find(|(builtin, _)| *builtin == name) {
@@ -249,9 +250,10 @@ pub fn resolve_kind(name: &str, config: &LinksConfig) -> Option<KindRule> {
 /// Every kind name this project accepts: the six built-ins first, then its
 /// `[[tasks.links.kinds]]` additions, each name at most once.
 ///
-/// [`resolve_kind`] answers one name at a time, which is all validation needs;
-/// a *writer* rejecting a kind before it writes needs the enumeration instead —
-/// to list what is configured, and to feed [`crate::suggest`] a candidate set.
+/// [`resolve_kind`] answers one name at a time, which is all validation needs.
+/// A *writer* rejecting a kind before it writes needs the enumeration instead,
+/// to list what the config declares and to feed [`crate::suggest`] a candidate
+/// set.
 /// Unlike [`kinds_matching`], this keeps a non-task kind: `mt link` can write
 /// an `edge("discharged-by", …)` as legitimately as a `depends-on`.
 #[must_use]
@@ -265,9 +267,9 @@ pub fn kind_names(config: &LinksConfig) -> Vec<&str> {
     names
 }
 
-/// Whether `name`'s targets are local task files — the axis
+/// Whether `name`'s targets are local task files, the axis
 /// `[[tasks.links.kinds]] validate` sets. Built-ins always are (their validator
-/// is fixed at `local-task-path`), and an unknown kind is treated as one so it
+/// stays at `local-task-path`), and the code treats an unknown kind as one so it
 /// still reports as unresolved-and-unknown rather than silently skipping
 /// resolution. Anything else names an artifact outside the backlog, so it takes
 /// no part in stem resolution, cardinality, cycle detection, or readiness.
@@ -308,15 +310,16 @@ fn kinds_matching(config: &LinksConfig, pick: impl Fn(&KindRule) -> bool) -> Vec
     kinds
 }
 
-/// Kind names (built-in ∪ config) that gate readiness. Only `depends-on` ships
-/// flagged this way; a custom kind can opt in via `blocking = true`.
+/// Kind names (built-in ∪ config) that gate readiness. Only `depends-on` comes
+/// flagged this way, and a custom kind can opt in via `blocking = true`.
 #[must_use]
 pub fn blocking_kinds(config: &LinksConfig) -> Vec<&str> {
     kinds_matching(config, |rule| rule.blocking)
 }
 
 /// Kind names (built-in ∪ config) that must stay acyclic. `depends-on` and
-/// `parent` ship flagged this way; a custom kind can opt in via `acyclic = true`.
+/// `parent` come flagged this way, and a custom kind can opt in via
+/// `acyclic = true`.
 #[must_use]
 pub fn acyclic_kinds(config: &LinksConfig) -> Vec<&str> {
     kinds_matching(config, |rule| rule.acyclic)
@@ -326,8 +329,8 @@ pub fn acyclic_kinds(config: &LinksConfig) -> Vec<&str> {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LinksConfig {
-    /// Custom link kinds, added to the built-in ones. A built-in kind cannot
-    /// be redefined.
+    /// Custom link kinds, added to the built-in ones. A built-in kind stays
+    /// fixed.
     pub kinds: Vec<LinkKind>,
 }
 
@@ -342,15 +345,16 @@ pub struct LinkKind {
     /// Note requirement for edges of this kind.
     pub note: NoteRule,
     /// Whether an unfinished target keeps the task from being ready. Applies
-    /// only when `validate` is `local-task-path`, because only a task can be
+    /// only when `validate` is `local-task-path`, because only a task can stay
     /// unfinished.
     pub blocking: bool,
     /// Whether edges of this kind must not form a cycle. Applies only when
     /// `validate` is `local-task-path`, because only edges between tasks can
     /// form one.
     pub acyclic: bool,
-    /// What this kind's targets are. The default, `local-task-path`, is a
-    /// path from the linking task's file to another task's file. Any other value makes the targets something outside the
+    /// The kind of thing this kind's targets are. The default,
+    /// `local-task-path`, is a path from the linking task's file to another
+    /// task's file. Any other value makes the targets something outside the
     /// backlog, such as a commit, a pull request or a build.
     pub validate: TargetValidator,
     /// Regex a target must match when `validate = "regex"`. That validator
@@ -377,12 +381,12 @@ impl Default for LinkKind {
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum NoteRule {
-    /// A non-empty note is required, as on the built-in `related` kind.
+    /// A non-empty note is mandatory, as on the built-in `related` kind.
     Required,
-    /// A note is allowed but not required (the default).
+    /// A note may appear but need not (the default).
     #[default]
     Optional,
-    /// A note is rejected.
+    /// The kind rejects a note.
     Forbidden,
 }
 

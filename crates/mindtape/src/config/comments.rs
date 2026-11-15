@@ -1,15 +1,14 @@
-//! `[tasks.comments]` — policy over review comments left in a task's Typst
+//! `[tasks.comments]`: policy over review comments left in a task's Typst
 //! source.
 //!
-//! The workflow this guards: an agent files a task, a human leaves `// no, use
-//! X instead` inline, the agent is meant to reframe the task and remove the
-//! note. Without a gate the comment silently becomes part of the artifact — it
-//! survives into git and the next reader cannot tell a live objection from a
-//! settled one.
+//! An agent files a task, a human leaves `// no, use X instead` inline, and the
+//! agent must reframe the task and remove the note. Without a gate the comment
+//! silently becomes part of the artifact. It survives into git, and the next
+//! reader cannot tell a live objection from a settled one.
 //!
 //! Detection runs on the parse plane ([`typst_cst::parse_comments`]), so a
-//! `//` inside a string literal or a raw block is never reported — see that
-//! crate's own tests, which pin both. [`check_comments`] scans a task's whole
+//! `//` inside a string literal or a raw block never counts as a comment. See
+//! that crate's own tests, which pin both. [`check_comments`] scans a task's whole
 //! source file, not only the body: an annotation dropped inside
 //! `task.with(...)` is the same problem.
 
@@ -29,7 +28,7 @@ use crate::validate::{Location, Violation};
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CommentsConfig {
-    /// Whether a comment is unconstrained, reported, or fails `mt check`.
+    /// Whether a comment stays unconstrained, gets reported, or fails `mt check`.
     pub policy: CommentsPolicy,
     /// Regex that permits a deliberate comment form even under `warn` or
     /// `forbid`. It matches the comment's stripped, trimmed inner text.
@@ -40,12 +39,12 @@ pub struct CommentsConfig {
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum CommentsPolicy {
-    /// Comments are unconstrained. The default.
+    /// Comments stay unconstrained. The default.
     #[default]
     Allow,
-    /// A comment is reported but `mt check` still succeeds.
+    /// `mt check` reports a comment but still succeeds.
     Warn,
-    /// A comment is reported and fails `mt check`.
+    /// `mt check` reports a comment and fails.
     Forbid,
 }
 
@@ -68,7 +67,7 @@ impl CommentsPolicy {
     }
 }
 
-/// A task's source file could not be read while scanning for comments.
+/// The scan could not read a task's source file while looking for comments.
 #[derive(Debug, Error)]
 #[error("read {path}: {source}")]
 pub struct CommentsError {
@@ -83,11 +82,11 @@ pub struct CommentsError {
 ///
 /// `policy = "allow"` (the default) skips scanning entirely. `"warn"` and
 /// `"forbid"` both report every comment whose text does not match
-/// `allow-pattern` — [`CommentsPolicy::blocks`] is what tells the caller
-/// whether to treat the returned violations as failing `mt check`.
+/// `allow-pattern`. [`CommentsPolicy::blocks`] is what tells the caller whether
+/// to treat the returned violations as failing `mt check`.
 ///
 /// # Errors
-/// Returns [`CommentsError`] if a task's source file cannot be read.
+/// Returns [`CommentsError`] if the scan cannot read a task's source file.
 pub fn check_comments(
     tasks: &[Task],
     config: &Config,

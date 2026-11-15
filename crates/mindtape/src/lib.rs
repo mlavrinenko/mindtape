@@ -1,12 +1,12 @@
-//! Mindtape domain library: a per-file, daemon-free task tracker over Typst.
+//! `Mindtape` domain library: a per-file, daemon-free task tracker over Typst.
 //!
-//! Tasks are one-per-file Typst artifacts (`#show: task.with(...)`). Mindtape
+//! Tasks are one-per-file Typst artifacts (`#show: task.with(...)`). `Mindtape`
 //! discovers them under the configured roots, live-evaluates each via
 //! [`typst_harvest`], projects the harvested marker into a [`Task`], and offers
 //! a filter-expression query language and config-driven validation.
 //!
-//! The CLI is a thin wrapper over this crate; other tools (e.g. speconaut) can
-//! depend on it directly.
+//! The CLI is a thin wrapper over this crate. Other tools (such as speconaut)
+//! can depend on it directly.
 
 // `disallowed-methods` in `clippy.toml` bans `std::fs::write`/`File::create`
 // outside `fs_atomic::write_atomic`; unit tests (this crate's own `cfg(test)`
@@ -22,6 +22,7 @@ pub mod commit;
 pub mod config;
 mod date;
 pub mod emit;
+pub mod error_text;
 pub mod estimate_queries;
 pub mod filter;
 pub mod format;
@@ -157,10 +158,11 @@ pub use validate::candidate::{
 pub use validate::severity::Severity;
 pub use validate::{Location, Violation, ViolationKind, validate};
 
-/// Retain the tasks matching `filter`; `None` keeps them all. `config` resolves
-/// framework-scored priorities for numeric comparisons; `readiness` answers the
-/// `ready` / `blocked` predicates and must be computed over the full set before
-/// any narrowing (pass [`Readiness::empty`] when no set context applies).
+/// Retain the tasks matching `filter`. `None` keeps them all. `config` resolves
+/// framework-scored priorities for numeric comparisons. `readiness` answers the
+/// `ready` / `blocked` predicates, and the caller must compute it over the full
+/// set before any narrowing (pass [`Readiness::empty`] when no set context
+/// applies).
 ///
 /// # Errors
 /// Returns [`FilterError`] if the filter references an unknown field.

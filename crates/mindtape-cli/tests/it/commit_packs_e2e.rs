@@ -1,6 +1,6 @@
-//! The shipped `mindtape:tweaks` and `mindtape:commits` packs judge a commit
-//! as this repository's hand-written rules did: a product change needs a
-//! changelog entry, a named task must be started, and a tweak touches one
+//! The built-in `mindtape:tweaks` and `mindtape:commits` packs judge a commit
+//! the way this repository's hand-written rules did. A product change needs a
+//! changelog entry, a commit must start a named task, and a tweak touches one
 //! source file.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -10,7 +10,7 @@ use mindtape::test_support::write_file;
 
 use crate::support::{check_commit_msg, commit_msg_refusal, commit_repo, git};
 
-/// The pack's own product set is every path, so a test narrows it the way a
+/// The pack's own product set is every path. A test narrows it the way a
 /// project does.
 const COMMITS: &str =
     "extends = [\"mindtape:commits\"]\n\n[dicts.product]\nvalues = [\"src/**\"]\n";

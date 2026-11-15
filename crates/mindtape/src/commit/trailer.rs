@@ -3,7 +3,7 @@
 //!
 //! Commas and whitespace separate refs. A double-quoted stretch keeps either
 //! separator, and a backslash outside quotes escapes a quote, backslash,
-//! comma or whitespace. A bare value is a stem as written; a path's file stem
+//! comma or whitespace. A bare value is a stem as written. A path's file stem
 //! names the task. `[commits] external-refs` patterns keep a value opaque.
 
 use regex::Regex;
@@ -74,7 +74,7 @@ pub(crate) fn split_refs(value: &str) -> Vec<String> {
 
 /// Compile the project's `[commits] external-refs` patterns. Load-time
 /// validation refuses a bad one, so an uncompilable pattern left in a config
-/// that skipped validation matches nothing.
+/// that skipped validation never matches.
 pub(crate) fn external_matchers(patterns: &[String]) -> Vec<Regex> {
     patterns
         .iter()

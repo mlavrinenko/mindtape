@@ -48,8 +48,8 @@ pub fn make_project_with_lib(
 /// [`make_project_in`], but first writes an in-tree `@local/mindtape` package
 /// override (`prelude`) and a `.mindtape/config.toml` from `config_text`, then
 /// parses `config_text` to load `files`. Shared by command tests (`flip`,
-/// `recur`, ...) that need a real Typst package resolvable on disk, e.g. to
-/// exercise commands that revalidate by reloading config from disk.
+/// `recur`, ...) that need a real Typst package resolvable on disk, as when a
+/// test exercises a command that revalidates by reloading config from disk.
 pub fn make_project_with_lib_in(
     dir: &Path,
     prelude: &str,
@@ -78,8 +78,8 @@ fn with_lib_entry(config_text: &str) -> String {
     format!("{config_text}{}", mindtape::test_support::LIB_ENTRY)
 }
 
-/// `text` with each of `paths` in it, written with `/`, in the separator `mt`
-/// shows people: an expected message that names them.
+/// `text` with each of `paths` in it, written with `/`, in the separator that
+/// `mt` shows people. An expected message references them.
 pub fn native_in(text: &str, paths: &[&str]) -> String {
     paths.iter().fold(text.to_owned(), |text, path| {
         text.replace(path, &mindtape::display_path(path))

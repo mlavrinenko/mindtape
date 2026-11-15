@@ -1,4 +1,4 @@
-//! A config error names the file it comes from: the layer, the ancestor
+//! A config error references the file it comes from: the layer, the ancestor
 //! `defaults.toml` or the pack that holds the offending key.
 
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
@@ -136,8 +136,8 @@ fn a_project_rules_bad_expression_is_placed_after_a_pack_rule() {
     assert!(message.starts_with("tasks.rules[1].assert: "), "{message}");
 }
 
-/// A project reached through a symlink still names its pack relative to the
-/// root. The pack's path is canonical, so the root has to be too: Windows
+/// A project reached through a symlink still references its pack relative to
+/// the root. The pack's path is canonical, so the root has to be too: Windows
 /// has the same split between a short `RUNNER~1` name and the long one.
 #[cfg(unix)]
 #[test]

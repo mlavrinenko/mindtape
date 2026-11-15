@@ -1,5 +1,5 @@
-//! `mt @name` and `mt at`, end to end: a project is `-w <path>`, a set is held
-//! and refused by a command that runs on one project.
+//! `mt @name` and `mt at`, end to end: a project is `-w <path>`, and a command
+//! that runs on one project holds a set and refuses it.
 #![allow(
     clippy::unwrap_used,
     clippy::disallowed_methods,
@@ -128,9 +128,9 @@ fn a_set_name_is_refused_by_a_command_that_never_opens_a_project() {
     }
 }
 
-/// The registry's set mark, read back from `mt _cli --json`, is the whole
-/// rule: a marked read command runs on `@both`, and every other read command
-/// refuses it with the one-project refusal before it runs.
+/// The registry's set mark, read back from `mt _cli --json`, is the whole rule.
+/// A marked read command runs on `@both`, and every other read command refuses
+/// it with the one-project refusal before it runs.
 #[test]
 fn a_set_runs_exactly_the_commands_the_registry_marks() {
     let (_alpha, _beta, cfg) = setup();

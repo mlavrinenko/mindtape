@@ -1,21 +1,21 @@
-//! Validate a rendered task *before* it is written
+//! Validate a rendered task *before* a writer writes it
 //! (`truth/tasks/2026-09/mt-add-writes-an-invalid-task-before-it-validates-one.typ`).
 //!
 //! [`load_project`](crate::load_project) answers "what do the files on disk
-//! say"; this module answers "what would they say if this one more file
+//! say". This module answers "what would they say if this one more file
 //! landed here", without landing it. A writer (`mt add`) renders into a
 //! buffer, asks [`check_candidate`], and only then commits the buffer to its
-//! path — so a rejected write leaves nothing behind to repair.
+//! path. A rejected write leaves the project as it was.
 //!
-//! [`check_candidates`] is the same question asked of several buffers at once,
-//! for the writers whose unit of work is a batch (`mt import`, `mt link`,
+//! [`check_candidates`] asks the same question of many buffers at once, for
+//! the writers whose unit of work is a batch (`mt import`, `mt link`,
 //! `mt recur --advance`). It is not a convenience wrapper over a loop: the
 //! rules that span tasks have no answer for one member of a batch taken alone.
 //!
-//! The candidate is evaluated exactly where it would live: its
+//! The check evaluates the candidate exactly where it would live.
 //! [`Candidate::rel`] is the file id Typst resolves relative imports against,
-//! and the folder-derived tags and nesting depth are read off that same path.
-//! What makes this possible without a file is
+//! and the loader reads the folder-derived tags and nesting depth off that
+//! same path. What makes this possible without a file is
 //! [`World::with_main_source`](typst_world::World::with_main_source), which
 //! holds the main source in memory and reads every import from disk.
 
@@ -32,13 +32,13 @@ use crate::loader::{LoadError, StatePackages};
 use crate::model::Task;
 use crate::validate::Violation;
 
-/// A task source that does not exist on disk, and the project-relative path it
-/// would be written to.
+/// A task source that does not exist on disk, and the project-relative path a
+/// writer would give it.
 #[derive(Debug, Clone, Copy)]
 pub struct Candidate<'a> {
     /// Destination path, relative to the project root.
     pub rel: &'a Path,
-    /// The rendered task source, exactly as it would be written.
+    /// The rendered task source, exactly as the writer would write it.
     pub source: &'a str,
 }
 
@@ -51,25 +51,26 @@ pub struct Checked {
     /// already standing beside the rest of the project.
     pub violations: Vec<Violation>,
     /// The breaches the batch opens or closes on a task it never writes, a
-    /// link cycle or a rule reading the whole set. They name the other task,
-    /// are the same for every candidate of the batch, and refuse the write as
-    /// a candidate's own do, so a caller prints them once per batch.
+    /// link cycle or a rule reading the whole set. They name the other task
+    /// and are the same for every candidate of the batch. They refuse the
+    /// write as a candidate's own do. A caller prints them once per batch.
     pub elsewhere: Vec<Violation>,
 }
 
-/// Validate `candidate` against `existing` as if it had already been written to
+/// Validate `candidate` against `existing` as if a writer had already put it at
 /// [`Candidate::rel`], returning the violations that name the candidate itself,
 /// then those the write raises on another task ([`Checked::elsewhere`]).
 ///
-/// `existing` is the project's already-loaded tasks — no second load happens
-/// here — with any task already at `rel` replaced, so a rewrite is checked as a
-/// rewrite rather than as a duplicate id.
+/// `existing` holds the project's already-loaded tasks, so no second load
+/// happens here. The check replaces any task already at `rel`, which makes a
+/// rewrite count as a rewrite rather than as a duplicate id.
 ///
-/// `body_rules` are `mt check`'s own header ([`crate::body::gate`]) and content
-/// ([`crate::body::content_gate`]) rules, compiled once by the caller and run over
-/// `candidate.source` directly — the candidate's own text, not a loaded
-/// file's — beside [`crate::validate::validate`], so a body-rule breach
-/// `mt check` would report is refused here too, before anything is written.
+/// `body_rules` holds `mt check`'s own header ([`crate::body::gate`]) and
+/// content ([`crate::body::content_gate`]) rules. The caller compiles them once
+/// and this function runs them over `candidate.source` directly, the
+/// candidate's own text rather than a loaded file's, beside
+/// [`crate::validate::validate`]. This function also refuses a body-rule breach
+/// that `mt check` would report, before anything reaches disk.
 ///
 /// # Errors
 /// Returns a [`LoadError`] when the source fails to evaluate or harvests no
@@ -103,27 +104,29 @@ pub fn check_candidate(
     )
 }
 
-/// Validate a whole batch of candidates as if every one of them had been
-/// written, answering one entry per candidate in input order.
+/// Validate a whole batch of candidates as if a writer had written every one of
+/// them, answering one entry per candidate in input order.
 ///
-/// A batch is checked together rather than one at a time because the rules that
-/// span tasks cannot answer for one candidate without the others: id
+/// The check runs over a batch together rather than one at a time. The rules
+/// that span tasks cannot answer for one candidate without the others: id
 /// uniqueness, edge resolution and cardinality, cycles, and the dependency
 /// ranks a `required` filter reads. `mt link --apply` merging an adjacency map
 /// and `mt recur --advance` chaining occurrences that name their predecessor
 /// are both batches whose members only make sense as a set.
 ///
-/// Failure stays per entry, though. A candidate that does not evaluate is
-/// reported as its own `Err` and simply never joins the set, so one
-/// unparseable entry does not cost the rest their verdict.
+/// Failure stays per entry, though. A candidate that does not evaluate gets
+/// its own `Err` and simply never joins the set. One unparseable entry does
+/// not cost the rest their verdict.
 ///
-/// Every task already sitting at one of the candidates' paths is replaced, so a
-/// batch of rewrites is checked as rewrites rather than as duplicate ids.
+/// The check replaces every task already sitting at one of the candidates'
+/// paths. A batch of rewrites then counts as rewrites rather than as duplicate
+/// ids.
 ///
-/// `body_rules` are `mt check`'s own header and content rules
-/// ([`crate::body`]), compiled once by the caller for the whole batch and
-/// run over each candidate's own `source` — never over an existing task's, so
-/// a body-rule breach already on disk cannot leak onto an unrelated candidate.
+/// `body_rules` holds `mt check`'s own header and content rules
+/// ([`crate::body`]). The caller compiles them once for the whole batch, and
+/// this function runs them over each candidate's own `source`, never over an
+/// existing task's. A body-rule breach already on disk cannot leak onto an
+/// unrelated candidate.
 #[must_use]
 pub fn check_candidates(
     root: &Path,
@@ -196,9 +199,9 @@ pub fn check_candidates(
 }
 
 /// Whether `violation` is a breach only the set around a task can cause or
-/// cure: a link cycle on an acyclic kind, or a rule whose expression reads the
-/// whole set (`count(...)`, `ready`, `topo`), or an edge to a task that is not
-/// in the set. A task checked apart from its
+/// cure. Such a breach is a link cycle on an acyclic kind, or a rule whose
+/// expression reads the whole set (`count(...)`, `ready`, `topo`). It is also
+/// an edge to a task that is not in the set. A task checked apart from its
 /// backlog drops these, as the task cannot fix them. It also drops a rule
 /// skipped for lack of git, a breach of the config reported once at its entry.
 #[must_use]
@@ -210,19 +213,19 @@ pub fn reads_set_breach(config: &Config, violation: &Violation) -> bool {
 }
 
 /// The violations the batch opens or closes elsewhere that `validate` names on
-/// a task outside it: a link cycle, or a `[[tasks.rules]]` breach whose
-/// `assert` reads the whole set (`count(...)`, or the `links:` graph through
-/// `ready`/`blocked`/`blocks`/`topo`).
+/// a task outside it. Such a violation is a link cycle, or a `[[tasks.rules]]`
+/// breach whose `assert` reads the whole set (`count(...)`, or the `links:`
+/// graph through `ready`/`blocked`/`blocks`/`topo`).
 ///
-/// Both share the same shape — a fact about a task outside the batch that only
-/// changed because a candidate did — so both go to every candidate's
+/// Both share the same shape: a fact about a task outside the batch that only
+/// changed because a candidate did. Both go to every candidate's
 /// [`Checked::elsewhere`], worded as `mt check` words them and naming the task
-/// they are on. A cycle is reported on its first member, which need not be a
-/// task the batch writes, so filtering by candidate id alone drops it and the
-/// write lands a graph `mt check` then rejects on a neighbour; a WIP-cap rule
-/// the batch pushes over its cap similarly reports on the task(s) already
-/// occupying it, which the batch never touched. Either kind the project
-/// already carried before the batch is not the batch's doing and never counts.
+/// they are on. A cycle reports on its first member, which need not be a task
+/// the batch writes. Filtering by candidate id alone drops it, and the write
+/// then lands a graph `mt check` rejects on a neighbour. A WIP-cap rule the
+/// batch pushes over its cap reports on the task(s) already occupying it, which
+/// the batch never touched. Either kind the project already carried before the
+/// batch is not the batch's doing and never counts.
 fn elsewhere_violations(
     existing: &[Task],
     config: &Config,
@@ -259,12 +262,12 @@ fn elsewhere_violations(
 }
 
 /// Evaluate `candidate`'s source at its destination path and build the [`Task`]
-/// it would load as — identity from the stem, folder-derived tags and depth
-/// from the path, body from the source.
+/// it would load as: identity from the stem, folder-derived tags and depth from
+/// the path, body from the source.
 ///
 /// # Errors
-/// Returns a [`LoadError`] when the world cannot be built, evaluation fails, or
-/// no `mindtape.task` marker is emitted.
+/// Returns a [`LoadError`] when the world fails to build, evaluation fails, or
+/// the source carries no `mindtape.task` marker.
 pub fn harvest_candidate(
     root: &Path,
     config: &Config,
@@ -278,8 +281,8 @@ pub fn harvest_candidate(
 }
 
 /// [`harvest_candidate`], reading a source with no task marker as no task
-/// rather than an error — how the loader reads a `.typ` beside the tasks that
-/// is not one. What a commit state's version of a file loads as
+/// rather than an error, the way the loader reads a `.typ` beside the tasks
+/// that is not one. What a commit state's version of a file loads as
 /// ([`crate::commit::tasks`]).
 pub(crate) fn harvest_source(
     root: &Path,
@@ -289,8 +292,8 @@ pub(crate) fn harvest_source(
     harvest_source_with(root, config, candidate, None)
 }
 
-/// [`harvest_source`] with a commit state's own package files tried first, so
-/// a past tree's imports resolve against that tree's `lib/`.
+/// [`harvest_source`] with a commit state's own package files tried first. A
+/// past tree's imports then resolve against that tree's `lib/`.
 pub(crate) fn harvest_source_with(
     root: &Path,
     config: &Config,

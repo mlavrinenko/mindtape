@@ -1,17 +1,17 @@
 //! The partially filled task `mt add` runs its `[[on.add]]` hooks over.
 //!
 //! A hook's `when` reads a whole task, but `mt add` has only a template and the
-//! values the caller supplied. So the add-owned status and id are stamped, the
-//! explicit slot values are filled, and the result is evaluated in memory at
-//! `<first root>/__draft__.typ` — never written. Every slot the caller left
-//! unfilled keeps its `slot(...)` call, which evaluates to its `default`, so the
-//! draft loads without a fully filled task.
+//! values the caller supplied. So `mt add` stamps the add-owned status and id,
+//! fills the explicit slot values, and evaluates the result in memory at
+//! `<first root>/__draft__.typ`. It never writes that file. Every slot the
+//! caller left unfilled keeps its `slot(...)` call, which evaluates to its
+//! `default`. The draft then loads without a fully filled task.
 //!
 //! The path still feeds Typst's relative imports and the `depth`/`topo` a load
-//! computes from the folder. Only the folder-derived tags are cleared after the
-//! harvest: a hook asks about the task it is about to file, not the synthetic
-//! draft path. `depth` and `topo` stay, and an add `when` that reads a field the
-//! draft does not carry is refused at config load.
+//! computes from the folder. `mt add` clears only the folder-derived tags after
+//! the harvest, because a hook's `when` reads the task it is about to file, not
+//! the synthetic draft path. `depth` and `topo` stay, and config load refuses an
+//! add `when` that reads a field the draft does not carry.
 
 use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
@@ -24,12 +24,12 @@ use crate::util::Project;
 
 use super::inject_header;
 
-/// A draft task and the source it was evaluated from.
+/// A draft task and the source that produced it.
 pub(super) struct Draft {
     /// The task the draft evaluates as, with derived tags cleared.
     pub(super) task: Task,
-    /// The header-injected template with every slot still in place, so the
-    /// final fill sees a `slot(...)` call for each value a hook may have
+    /// The header-injected template with every slot still in place. The final
+    /// fill then sees a `slot(...)` call for each value a hook may have
     /// changed.
     pub(super) source: String,
 }
@@ -39,7 +39,7 @@ pub(super) struct Draft {
 ///
 /// # Errors
 /// A first root with no project-relative path, a source that does not evaluate,
-/// a value the template refuses, or a header edit that cannot be applied.
+/// a value the template refuses, or a header edit that fails.
 pub(super) fn build(
     project: &Project,
     source: &str,

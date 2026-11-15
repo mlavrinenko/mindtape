@@ -1,14 +1,13 @@
 //! What moving a source from one tree to another changes, compared as parsed
 //! TOML, not text, so a reordered or reformatted pack reads as unchanged.
 //!
-//! Each pack at the top of a tree is diffed key by key. A table recurses,
-//! and an array of tables is diffed element by element, each keyed by its
-//! `name`, or by its position when it has none, so a rule or an `on.flip`
-//! entry reads as one change. Any other value is one leaf. Every command a
-//! new or changed entry carries, each `run` and `editor` line that
-//! `mt allow` must approve, is listed in full. Every other file of the tree,
-//! such as a template, a check module or a dictionary, is diffed by its
-//! bytes.
+//! The diff walks each pack at the top of a tree key by key. A table recurses,
+//! and an array of tables diffs element by element, each keyed by its `name`,
+//! or by its position when it has none. That keeps a rule or an `on.flip` entry
+//! reading as one change. Any other value is one leaf. The diff lists every
+//! command a new or changed entry carries in full, each `run` and `editor` line
+//! that `mt allow` must approve. Every other file of the tree, such as a
+//! template, a check module or a dictionary, diffs by its bytes.
 
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -31,7 +30,7 @@ pub enum Change {
     Added,
     /// It holds another value.
     Changed,
-    /// It is gone.
+    /// The value is absent from the new tree.
     Removed,
 }
 
@@ -82,10 +81,10 @@ pub struct TreeDiff {
     pub files: Vec<(Change, String)>,
 }
 
-/// Why a tree could not be diffed.
+/// Why the diff of a tree failed.
 #[derive(Debug, Error)]
 pub enum DiffError {
-    /// A file of the tree could not be listed or read.
+    /// The command could not list or read a file of the tree.
     #[error("can't read the tree: {0}")]
     Read(FetchError),
     /// A pack file is not TOML.
@@ -93,7 +92,7 @@ pub enum DiffError {
     Parse {
         /// The pack's name in the tree.
         pack: String,
-        /// The parser's error.
+        /// The error the parser raised.
         error: toml::de::Error,
     },
 }
@@ -101,7 +100,8 @@ pub enum DiffError {
 /// What changes from the tree at `old`, or an empty tree, to the one at `new`.
 ///
 /// # Errors
-/// Returns [`DiffError`] when a tree can't be read or a pack is not TOML.
+/// Returns [`DiffError`] when the command cannot read a tree or a pack is not
+/// TOML.
 pub fn diff_trees(old: Option<&Path>, new: &Path) -> Result<TreeDiff, DiffError> {
     let old = old.map(Tree::read).transpose()?.unwrap_or_default();
     let new = Tree::read(new)?;

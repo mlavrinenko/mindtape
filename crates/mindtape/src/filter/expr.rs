@@ -1,9 +1,9 @@
 //! Shared `evalexpr` syntax-tree helpers, used purely as a parser by both
 //! [`crate::filter`] (task-field comparisons) and [`crate::filter::condition`]
 //! (environment-predicate comparisons). `evalexpr` never evaluates these
-//! trees itself — both callers walk the parsed [`Node`] by hand.
+//! trees itself: both callers walk the parsed [`Node`] by hand.
 //!
-//! Error messages are returned as plain `String`s here; each caller wraps
+//! These helpers return error messages as plain `String`s. Each caller wraps
 //! them into its own error type (`FilterError`, `ConditionError`) so the two
 //! languages keep independent error surfaces while sharing the walk logic.
 
@@ -11,8 +11,8 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, Value};
 
 /// The stand-in a kebab-case name's `-` travels through `evalexpr` as.
 /// `evalexpr` lexes `-` as minus, so [`crate::filter`] rewrites a `-` inside a
-/// name to this private-use character before parsing, and every place that
-/// reads a name back out of the tree restores it with [`restore_name`].
+/// name to this private-use character before parsing. Every place that reads a
+/// name back out of the tree restores it with [`restore_name`].
 pub(crate) const NAME_HYPHEN: char = '\u{E000}';
 
 /// A name as written: [`NAME_HYPHEN`] back to `-`.
@@ -21,14 +21,14 @@ pub(crate) fn restore_name(name: &str) -> String {
     name.replace(NAME_HYPHEN, "-")
 }
 
-/// The pre-lex pass that keeps a kebab-case name one token: a `-` between two
-/// name characters, inside a name that began with a letter or `_`, becomes
-/// [`NAME_HYPHEN`], which `evalexpr` lexes as a name character. Typst's
-/// identifier rule, so a filter spells a name the way the task file does.
+/// The pre-lex pass keeps a kebab-case name one token. A `-` between two name
+/// characters, inside a name that began with a letter or `_`, becomes
+/// [`NAME_HYPHEN`], which `evalexpr` lexes as a name character. That is Typst's
+/// identifier rule. A filter then spells a name the way the task file does.
 ///
 /// A `-` anywhere else stays an operator: a leading one (`> -1`), one after a
-/// number (`1e-5`), one beside a space (`a - b`). String literals are copied
-/// verbatim, escapes included.
+/// number (`1e-5`), one beside a space (`a - b`). The pass copies string
+/// literals verbatim, escapes included.
 #[must_use]
 pub(crate) fn join_kebab_names(expr: &str) -> String {
     let mut out = String::with_capacity(expr.len());
@@ -77,7 +77,7 @@ pub(crate) fn unwrap_root(node: &Node<DefaultNumericTypes>) -> &Node<DefaultNume
     node
 }
 
-/// Extract a bare identifier (a field or predicate name in comparison
+/// Read a bare identifier (a field or predicate name in comparison
 /// position).
 ///
 /// # Errors
@@ -89,7 +89,7 @@ pub(crate) fn extract_identifier(node: &Node<DefaultNumericTypes>) -> Result<Str
     }
 }
 
-/// A node as the user wrote it, for an error that names what it found: a
+/// A node as the user wrote it, for an error that reports what it found: a
 /// literal with its quotes, a call as `name(...)`, an operator by its symbol.
 /// Never a Rust type.
 pub(crate) fn describe(node: &Node<DefaultNumericTypes>) -> String {
@@ -115,7 +115,7 @@ pub(crate) fn describe(node: &Node<DefaultNumericTypes>) -> String {
 // jscpd:ignore-start
 // A table of `(variant, spelling)` pairs: any two such tables share a shape
 // and nothing else, so there is no logic to extract.
-/// The symbol each operator is written with.
+/// The symbol each operator uses.
 static SYMBOLS: [(Operator<DefaultNumericTypes>, &str); 27] = [
     (Operator::Add, "+"),
     (Operator::Sub, "-"),
@@ -147,15 +147,15 @@ static SYMBOLS: [(Operator<DefaultNumericTypes>, &str); 27] = [
 ];
 // jscpd:ignore-end
 
-/// The symbol an operator is written with, or `None` for a node that is not
-/// one (a value, a name, a call, the root) or one this table leaves out.
+/// The symbol an operator uses, or `None` for a node that is not one (a value,
+/// a name, a call, the root) or one this table leaves out.
 pub(crate) fn operator_symbol(op: &Operator<DefaultNumericTypes>) -> Option<&'static str> {
     SYMBOLS
         .iter()
         .find_map(|(known, symbol)| (known == op).then_some(*symbol))
 }
 
-/// Extract a literal value (string / int / float / bool, or a negated
+/// Read a literal value (string / int / float / bool, or a negated
 /// numeric literal) as its string form.
 ///
 /// # Errors
@@ -197,7 +197,7 @@ pub(crate) fn call_args(children: &[Node<DefaultNumericTypes>]) -> Vec<&Node<Def
 }
 
 /// The arguments of a call that takes exactly two, in order. `None` when the
-/// call has any other count, so the caller gives its own arity error naming
+/// call has any other count. The caller then gives its own arity error naming
 /// the call.
 pub(crate) fn two_args(
     children: &[Node<DefaultNumericTypes>],
@@ -208,11 +208,11 @@ pub(crate) fn two_args(
     }
 }
 
-/// The boolean connectives every expression walker shares — a root wrapper,
-/// `&&`, `||` and `!` — evaluating each child through `eval`. Both sides of a
-/// binary connective are evaluated, never short-circuited, so a load-time dry
-/// run reaches every call. `None` for any other node, which the caller
-/// evaluates itself.
+/// The boolean connectives every expression walker shares (a root wrapper,
+/// `&&`, `||` and `!`), evaluating each child through `eval`. The walk
+/// evaluates both sides of a binary connective and never short-circuits, so a
+/// load-time dry run reaches every call. `None` for any other node, which the
+/// caller evaluates itself.
 pub(crate) fn connective<E>(
     node: &Node<DefaultNumericTypes>,
     eval: &dyn Fn(&Node<DefaultNumericTypes>) -> Result<bool, E>,
@@ -261,8 +261,8 @@ pub(crate) fn compare_ordering(
 }
 
 /// Resolve a comparison-side node that may be `now()` (today's ISO date) or a
-/// literal. Any other function name is rejected at this position — this is
-/// the filter language's narrower "field == `literal-or-now()`" grammar; the
+/// literal. The code rejects any other function name at this position. This is
+/// the filter language's narrower "field == `literal-or-now()`" grammar. The
 /// condition language resolves its comparison sides differently (either side
 /// may be a value-producing call), so it does not use this helper.
 ///

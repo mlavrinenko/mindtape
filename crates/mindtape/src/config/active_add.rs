@@ -2,7 +2,7 @@
 //! layer or pack that supplied it, for `mt explain add`.
 //!
 //! The typed [`Config::on`](crate::config::Config::on) already holds what the
-//! merge left after same-name replacement and `disable`; the rule-origin
+//! merge left after same-name replacement and `disable`. The rule-origin
 //! records carry the source in the same order. Zipping them is enough, so the
 //! listing cannot show a hook that does not run or hide one that does.
 
@@ -24,10 +24,10 @@ pub struct ActiveAddHook<'a> {
 
 /// Every `[[on.add]]` hook in merged order, paired with its origin.
 ///
-/// `origins` is the rule-origin record a layered load returns; a config built
+/// `origins` is the rule-origin record a layered load returns. A config built
 /// by [`crate::config::parse_config`] alone carries none, and then every hook
-/// is attributed to the built-in layer. A config with no hooks returns an
-/// empty list.
+/// belongs to the built-in layer. A config with no hooks returns an empty
+/// list.
 #[must_use]
 pub fn active_add<'a>(
     config: &'a Config,

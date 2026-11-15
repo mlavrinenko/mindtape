@@ -1,23 +1,23 @@
-//! Where `mt` keeps its per-user state: the global config directory (the XDG
-//! `defaults.toml` layer, the JSON Schema, presets, `at.toml`), the local data
-//! directory (the `allowed/` records), the cache directory (the fetched pack
-//! sources) and the package root the `@local/mindtape` Typst package is
-//! installed under.
+//! Where `mt` keeps its per-user state. The global config directory holds the
+//! XDG `defaults.toml` layer, the JSON Schema, presets and `at.toml`. The local
+//! data directory holds the `allowed/` records, the cache directory holds the
+//! fetched pack sources, and the package root holds the installed
+//! `@local/mindtape` Typst package.
 //!
 //! The two app directories resolve through [`dirs`] by default, but `dirs`
 //! reads the environment only on Unix. On Windows it goes through the
 //! `SHGetKnownFolderPath` known-folder API, which no environment variable
-//! overrides, so a test that points `XDG_CONFIG_HOME` at a tempdir isolates
-//! nothing there and a test that asserts a write landed under an injected
+//! overrides. A test that points `XDG_CONFIG_HOME` at a tempdir then isolates
+//! nothing there, and a test that asserts a write landed under an injected
 //! `XDG_DATA_HOME` fails outright.
 //!
-//! Hence one env seam that works on every platform: `$MINDTAPE_CONFIG_HOME`,
+//! One env seam works on every platform: `$MINDTAPE_CONFIG_HOME`,
 //! `$MINDTAPE_DATA_HOME` and `$MINDTAPE_CACHE_HOME` replace the resolved
-//! directory wholesale. Set (and
-//! non-empty) wins over `dirs`; set-but-empty means "this app directory does
-//! not exist", which drops the global config layer rather than falling back to
-//! the machine's own: an explicit disable, never a silent fall-through.
-//! Unset resolves as before.
+//! directory wholesale. A set, non-empty value wins over `dirs`. A
+//! set-but-empty value means "this app directory does not exist", which drops
+//! the global config layer rather than falling back to the machine's own. That
+//! is an explicit disable, never a silent fall-through. An unset value resolves
+//! as before.
 //!
 //! The package root is not an app directory of `mt`'s own. Unset, it is the
 //! one Typst and tinymist read `@local` packages from, which typst-world
@@ -64,10 +64,10 @@ pub fn cache_home() -> Option<PathBuf> {
 
 /// The directory holding `local/<name>/<version>/`, which `mt install` writes
 /// the `@local/mindtape` package under and every unoverridden `@local` import
-/// resolves from: `$MINDTAPE_DATA_HOME/typst/packages` when that is set, else
-/// [`typst_world::platform_package_root`], the directory Typst and tinymist
-/// read (`$TYPST_PACKAGE_PATH`, else `dirs::data_dir()` joined with
-/// `typst/packages`).
+/// resolves from: `$MINDTAPE_DATA_HOME/typst/packages` when that variable
+/// carries a value, else [`typst_world::platform_package_root`], the directory
+/// Typst and tinymist read (`$TYPST_PACKAGE_PATH`, else `dirs::data_dir()`
+/// joined with `typst/packages`).
 ///
 /// `None` resolves no global package at all, for a write and a read alike:
 /// `$MINDTAPE_DATA_HOME` set but empty, or no Typst package directory.
@@ -91,9 +91,9 @@ fn package_root_from(
     }
 }
 
-/// The shared override rule: a non-empty env value wins, an empty one means
-/// "none", an absent one falls through to `fallback`. Pure in its env input so
-/// both cases are testable without mutating the process environment.
+/// The shared override rule. A non-empty env value wins, an empty one means
+/// "none", and an absent one falls through to `fallback`. Pure in its env input
+/// so both cases are testable without mutating the process environment.
 fn resolve(value: Option<OsString>, fallback: fn() -> Option<PathBuf>) -> Option<PathBuf> {
     match value {
         Some(value) if value.is_empty() => None,

@@ -1,8 +1,9 @@
-//! End-to-end tests for the decisions `mt` only makes on a real terminal:
-//! flexing the title column to the terminal width, honouring `NO_COLOR`, and
-//! refusing an interactive `add` when either standard stream is piped.
+//! End-to-end tests for the decisions `mt` only makes on a real terminal.
+//! Three of them: flexing the title column to the terminal width, honouring
+//! `NO_COLOR`, and refusing an interactive `add` when either standard stream
+//! is a pipe.
 //!
-//! All three are invisible to in-process tests — piped stdout is not a TTY, so
+//! All three are invisible to in-process tests. Piped stdout is not a TTY, so
 //! `terminal_size()` returns `None` and `color_enabled` short-circuits before
 //! it ever reads the environment. Running the binary under `script` (a
 //! pseudo-terminal, util-linux) makes them observable, which pins
@@ -10,12 +11,12 @@
 //! check against mutants that would otherwise survive.
 //!
 //! Unix only. The harness is util-linux `script` driving a pty, plus `stty` and
-//! `/dev/null`; Windows' `ConPTY` has no drop-in command-line equivalent, so
+//! `/dev/null`. Windows' `ConPTY` has no drop-in command-line equivalent, so
 //! there is nothing here to port rather than rewrite. The behaviours under test
 //! are platform-independent (a width from `terminal_size`, an environment
 //! variable, an `IsTerminal` check), so verifying them on Linux and macOS
-//! covers the logic — what stays unverified on Windows is the pty plumbing
-//! underneath, which is `crossterm`'s.
+//! covers the logic. The pty plumbing underneath stays unverified on Windows,
+//! and that is `crossterm`'s.
 #![cfg(unix)]
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -30,7 +31,7 @@ const LONG_TITLE: &str =
     "A deliberately very long task title that will not fit in a narrow terminal";
 
 /// Run `mt <args>` inside `dir` under a pseudo-terminal `cols` columns wide.
-/// `NO_COLOR` is always removed first, so an inherited value cannot skew a run;
+/// `NO_COLOR` is always removed first, so an inherited value cannot skew a run.
 /// `env` layers variables back on top.
 fn mt_on_pty(dir: &Path, args: &str, cols: usize, env: &[(&str, &str)]) -> Output {
     let mt = PathBuf::from(env!("CARGO_BIN_EXE_mt"));
@@ -118,7 +119,7 @@ fn hyperlinks_auto_needs_a_tty_and_a_non_dumb_term() {
     );
 }
 
-/// Run `mt <args>` inside `dir` with stdout on an ordinary pipe — the shape
+/// Run `mt <args>` inside `dir` with stdout on an ordinary pipe, the shape
 /// every captured run has, and the one term of the `file` column's floor
 /// expression a pty cannot produce.
 fn piped_output(dir: &Path, args: &[&str]) -> String {
@@ -133,14 +134,14 @@ fn piped_output(dir: &Path, args: &[&str]) -> String {
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
-/// The embedded floor's `[ls.columns.file] when`: the `file` column stays
+/// The embedded floor's `[ls.columns.file] when`. The `file` column stays
 /// opt-in on a terminal, where the `slug#` stem hash is the address a reader
-/// wants, and turns itself on in captured output, where a quoted hash can turn
+/// wants. It becomes visible in captured output, where a quoted hash can turn
 /// ambiguous and the path is the stable thing to quote.
 ///
 /// Only reachable end to end: an in-process test resolves the expression
 /// against an injected environment, which cannot tell whether the real
-/// `IsTerminal` check is wired to it at all.
+/// `IsTerminal` check feeds it at all.
 #[test]
 fn the_file_column_turns_itself_on_when_stdout_is_captured() {
     let dir = support::project_with_task(LONG_TITLE);
@@ -157,10 +158,10 @@ fn the_file_column_turns_itself_on_when_stdout_is_captured() {
     );
 }
 
-/// The `named()` term of the same expression, on the side a pty is needed for:
-/// asking for the column is what turns it on where the captured-table terms are
-/// both false. It is the opt-in the docs hand a reader on a terminal, and it
-/// reaches the real `IsTerminal` check the same way its sibling above does.
+/// The `named()` term of the same expression, on the side that needs a pty.
+/// Asking for the column is what turns it on where the captured-table terms
+/// are both false. It is the opt-in the docs offer a reader on a terminal, and
+/// it reaches the real `IsTerminal` check the same way its sibling above does.
 #[test]
 fn naming_the_file_column_shows_it_on_a_terminal() {
     let dir = support::project_with_task(LONG_TITLE);
@@ -172,10 +173,10 @@ fn naming_the_file_column_shows_it_on_a_terminal() {
     );
 }
 
-/// CSV resolves the same column set as the table, so the floor's expression
-/// scopes itself with `format() == "table"`. A script parsing `mt ls --format
-/// csv` must not silently gain a column — and it already carries the stable
-/// `id`, so it would gain nothing by it either.
+/// CSV resolves the same column set as the table, and the floor's expression
+/// carries `format() == "table"`. A script parsing `mt ls --format csv` must
+/// not silently gain a column. It already carries the stable `id`, so it would
+/// gain nothing by it either.
 #[test]
 fn the_file_column_rule_leaves_captured_csv_alone() {
     let dir = support::project_with_task(LONG_TITLE);
@@ -193,7 +194,7 @@ fn the_file_column_rule_leaves_captured_csv_alone() {
 }
 
 /// `add` opens the editor only when stdin *and* stdout are terminals.
-/// Redirecting only stdin from `/dev/null` leaves stdout on the pty — the one
+/// Redirecting only stdin from `/dev/null` leaves stdout on the pty, the one
 /// shape that tells `stdin && stdout` apart from `||`, whose reading would
 /// spawn an editor on a stream nobody can type into.
 #[test]
@@ -216,8 +217,9 @@ fn interactive_add_refuses_when_only_stdout_is_a_tty() {
 }
 
 /// Install a stand-in editor `name` under `dir` that discards the scaffold and
-/// writes `body` in its place, then returns its path. The heredoc delimiter is
-/// quoted so the shell expands nothing — `$x$` must reach the buffer intact.
+/// writes `body` in its place, then returns its path. The code quotes the
+/// heredoc delimiter so the shell expands nothing, and `$x$` must reach the
+/// buffer intact.
 fn fake_editor(dir: &Path, name: &str, body: &str) -> String {
     let path = dir.join(name);
     std::fs::write(
@@ -234,8 +236,8 @@ fn fake_editor(dir: &Path, name: &str, body: &str) -> String {
 }
 
 /// `--edit` is the second way caller text reaches Typst markup: the values come
-/// back from a saved YAML buffer, not from `--set`. Escaping is applied to the
-/// merged fill map, downstream of both, and this pins that — an escaper wired
+/// back from a saved YAML buffer, not from `--set`. The escaper runs over the
+/// merged fill map, downstream of both, and this pins that. An escaper wired
 /// into the `--set` parser alone would pass every other test and lose here.
 ///
 /// Needs a pty because `add` only opens an editor when both streams are
@@ -272,8 +274,9 @@ fn interactive_add_escapes_markup_from_the_saved_buffer() {
     assert_eq!(support::at(&task, "/links/0/note").as_str(), Some(hazards));
 }
 
-/// `[add] editor` of a clone is held like `[go] editor`: until `mt allow`,
-/// `--edit` opens `$VISUAL` instead, and the held command is named.
+/// The code holds `[add] editor` of a clone like `[go] editor`: until
+/// `mt allow`, `--edit` opens `$VISUAL` instead, and the output reports the
+/// held command.
 #[test]
 fn interactive_add_holds_a_project_editor_until_mt_allow() {
     let dir = support::project_with_slot_template();

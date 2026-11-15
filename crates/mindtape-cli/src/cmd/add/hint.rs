@@ -1,11 +1,12 @@
-//! The `mt add` refusal hint: when the chosen template left a field to a slot
-//! and another template writes that same field as the literal the caller's
-//! values filled in, and a breach that refused the write is about that field,
-//! name that template. A sibling module because `cmd/add/mod.rs` sits at the linecop
-//! cap.
+//! The `mt add` refusal hint. The chosen template may leave a field to a slot
+//! while another template writes that same field as the literal the caller's
+//! values filled in. When a breach that refused the write is about that field,
+//! the hint names that template. A sibling module because `cmd/add/mod.rs` sits
+//! at the linecop cap.
 //!
-//! Nothing here names a field, kind or template: the pins are read off the
-//! templates' own `task.with(…)` arguments, so it holds for any project.
+//! The module stays generic over field, kind and template. It reads the pins
+//! off the templates' own `task.with(…)` arguments, so it holds for any
+//! project.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -17,12 +18,12 @@ use crate::diag::{Command, Diag, Hint, Note};
 use crate::task_edit::task_with;
 
 /// A field the chosen template left to a slot and the caller passed: its name,
-/// the source text it was filled with, and that value unquoted.
+/// the source text the fill produced, and that value unquoted.
 type Slotted = (String, String, String);
 
-/// What a rejected task is reported and kept with: the template it was filled
-/// from, which names it in a refusal, whether the values came from the
-/// `--edit` buffer, and where a rejected task was parked.
+/// The context a rejected task keeps. It holds the template the fill used,
+/// which the refusal cites, whether the values came from the `--edit` buffer,
+/// and where the rescue parked a rejected task.
 pub(super) struct Rescue {
     pub template: String,
     pub interactive: bool,
@@ -39,8 +40,9 @@ impl Rescue {
     }
 }
 
-/// What the refusal of a filled task is judged against: the chosen template,
-/// its source before and after the fill, and the slot names the caller passed.
+/// The context that judges the refusal of a filled task: the chosen template,
+/// its source before and after the fill, and the names of the slots the caller
+/// passed.
 pub(super) struct RefusalContext<'a> {
     pub config: &'a Config,
     pub root: &'a Path,
@@ -52,10 +54,10 @@ pub(super) struct RefusalContext<'a> {
 }
 
 impl RefusalContext<'_> {
-    /// `err` as a [`Diag`] with what the caller can act on: a note naming where
-    /// the rejected `--edit` buffer was `parked`, and, when the refusal is
-    /// about a field another template files as the value the caller passed, a
-    /// hint to use that template.
+    /// `err` as a [`Diag`] the caller can act on. It carries a note that gives
+    /// the path where the rejected `--edit` buffer was `parked`. When the
+    /// refusal is about a field another template files as the value the caller
+    /// passed, it also carries a hint to use that template.
     pub(super) fn decorate(&self, err: Diag, parked: Option<PathBuf>) -> Diag {
         // A refusal carries the fields its breaches read, for the template hint.
         let refused = err.reads().cloned();
@@ -101,7 +103,7 @@ impl RefusalContext<'_> {
 }
 
 /// The fields the refusal is about that `chosen` leaves to a slot the caller
-/// passed — the slot may be named differently from its field
+/// passed. The slot may carry a different name from its field
 /// (`kind: slot("type")`).
 fn slotted_fields(
     (chosen, filled): (&str, &str),

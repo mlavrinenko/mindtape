@@ -1,7 +1,7 @@
-//! `mt check --commits <range>` — hold every commit of a range to
-//! `[commits]`, as `mt check --commit-msg` holds the one being written: a hook
-//! skipped with `--no-verify` still fails where the range is checked. The
-//! `[commits] run` command runs over each message too, so an external check
+//! `mt check --commits <range>` holds every commit of a range to `[commits]`,
+//! as `mt check --commit-msg` holds the commit under construction. A hook
+//! skipped with `--no-verify` still fails where the range checks the commit.
+//! The `[commits] run` command runs over each message too, so an external check
 //! does not depend on a hook either. Then the `scope = "tip"` rules hold the
 //! tasks the range names to the state its newest commit leaves them in.
 
@@ -21,20 +21,21 @@ use crate::cmd::install::hint::skipped_prelude_commit_diag;
 use crate::diag::{Diag, Kind, Note};
 use crate::util;
 
-/// Check every commit `range` names, oldest first. A merge is skipped unless
-/// `check_merges` asks for it: it joins commits checked on their own, and its
-/// first-parent diff repeats them. The newest commit still supplies the tip
-/// state, merge or not.
+/// Check every commit `range` names, oldest first. The check skips a merge
+/// unless `check_merges` asks for it, because a merge joins commits checked on
+/// their own and its first-parent diff repeats them. The newest commit still
+/// supplies the tip state, merge or not.
 ///
-/// A rule reading the working tree is skipped, and said so once: a past
-/// commit has none. A `scope = "tip"` rule runs after the commits, once per
-/// task the range names, over the tasks as the newest commit holds them.
+/// The check skips a rule that reads the working tree, and says so once,
+/// because a past commit has none. A `scope = "tip"` rule runs after the
+/// commits, once per task the range names, over the tasks as the newest commit
+/// holds them.
 ///
 /// # Errors
-/// Fails when git cannot read the range, when the `[commits] run` command
-/// cannot start, or when any commit carries a trailer naming no task and
-/// matching no external pattern, breaks an error-severity rule, or fails the
-/// message command.
+/// Fails when git cannot read the range, or when the `[commits] run` command
+/// cannot start. It also fails when a commit carries a trailer that references
+/// no task and matches no external pattern, breaks an error-severity rule, or
+/// fails the message command.
 pub(crate) fn run(
     project: &util::Project,
     range: &str,
@@ -61,7 +62,7 @@ pub(crate) fn run(
     Ok(())
 }
 
-/// Say once that every rule reading the working tree is skipped in a range.
+/// Say once that a range skips every rule that reads the working tree.
 fn skip_worktree_rules(config: &mindtape::Config) {
     for (index, spec) in config.commits.rules.iter().enumerate() {
         if spec.reads_worktree() {
@@ -93,8 +94,8 @@ struct RangeFound {
     merges: usize,
     /// Commits skipped for an unsupported prelude.
     prelude_skips: usize,
-    /// Whether the newest commit's tree was skipped, so the tip rules did not
-    /// run.
+    /// Whether the check skipped the newest commit's tree, which stops the tip
+    /// rules from running.
     tip_skipped: bool,
 }
 
@@ -156,7 +157,7 @@ fn check_commits(
     Ok(found)
 }
 
-/// The `ok:` line, with each way a commit was left out.
+/// The `ok:` line, with each way the check left a commit out.
 fn summary(found: &RangeFound, total: usize) -> String {
     let checked = total - found.merges - found.prelude_skips;
     let mut reasons = Vec::new();
@@ -190,11 +191,11 @@ struct Checked {
     /// The stems its trailer names.
     refs: Vec<String>,
     /// The project as the commit holds it, when its own tree loaded. A skipped
-    /// commit still offers this when only its parent tree was unsupported, so
-    /// a supported newest tree supplies the tip state.
+    /// commit still offers this when only its parent tree carried an
+    /// unsupported prelude, so a supported newest tree supplies the tip state.
     tip: Option<ProjectState>,
-    /// A compared state holds a prelude this `mt` cannot read, so the commit
-    /// was skipped instead of reported.
+    /// A compared state holds a prelude this `mt` cannot read. The check skips
+    /// the commit instead of reporting it.
     skipped: bool,
 }
 
@@ -215,8 +216,8 @@ fn read_past(
     Ok((past, states))
 }
 
-/// The project as `commit` holds it, for the tip rules, or `None` when its
-/// prelude is unsupported and the tip rules must be skipped with it.
+/// The project as `commit` holds it, for the tip rules, or `None` when `mt`
+/// cannot read its prelude, which also skips the tip rules.
 fn tip_state(
     project: &util::Project,
     range: &CommitRange,
@@ -330,8 +331,8 @@ fn warn_skipped(commit: &RangeCommit, message: &str, versions: &[(&str, &Path, b
 }
 
 /// Print what one commit of the range breaks: its task files that did not
-/// evaluate, its trailer problems and its rule breaches, each led by the
-/// commit's id and followed by its subject.
+/// evaluate, its trailer problems and its rule breaches. Each line leads with
+/// the commit's id and ends with its subject.
 fn report_commit(
     commit: &RangeCommit,
     subject: &str,

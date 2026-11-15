@@ -7,9 +7,9 @@
 /// Separator characters used for machine-readable text output.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Separators {
-    /// Character between fields on one line (e.g. `\t` for TSV).
+    /// Character between fields on one line (such as `\t` for TSV).
     pub field: char,
-    /// Character between records (e.g. `\n`).
+    /// Character between records (such as `\n`).
     pub record: char,
 }
 
@@ -19,14 +19,14 @@ pub const TSV: Separators = Separators {
     record: '\n',
 };
 
-/// Comma-separated-value separators (field sep only; records still end in `\n`).
+/// Comma-separated-value separators (field sep only, records still end in `\n`).
 pub const CSV: Separators = Separators {
     field: ',',
     record: '\n',
 };
 
-/// Returns `true` if output is going to a machine consumer (stdout is not a
-/// TTY) and structured separators are therefore preferred over decorative ones.
+/// Returns `true` when output goes to a machine consumer (stdout is not a TTY)
+/// and structured separators fit better than decorative ones.
 #[must_use]
 pub fn is_machine_output(stdout_is_tty: bool) -> bool {
     !stdout_is_tty

@@ -1,7 +1,7 @@
 //! Unit tests for `cmd/set.rs`'s decision table: which field is writable, what
-//! literal a value renders to, and what is refused before a file is read.
-//! The write itself — and the property that a refusal leaves the file
-//! byte-identical — is `tests/it/set_e2e.rs`'s.
+//! literal a value renders to, and what the command refuses before it reads a
+//! file. The write itself, and the property that a refusal leaves the file
+//! byte-identical, belongs to `tests/it/set_e2e.rs`.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::model::writable::{self as writer, FieldOp};
@@ -26,8 +26,9 @@ fn a_text_field_renders_a_quoted_literal() {
     );
 }
 
-/// A quote in the value is escaped, not left to close the literal early —
-/// the one mistake that would write a file the compiler cannot parse.
+/// The writer escapes a quote in the value rather than leaving it to close the
+/// literal early, the one mistake that would write a file the compiler cannot
+/// parse.
 #[test]
 fn a_text_value_is_escaped() {
     assert_eq!(
@@ -114,8 +115,8 @@ fn an_unknown_field_is_refused_with_a_suggestion_and_where_to_list_the_fields() 
     );
 }
 
-/// Every field with a writer of its own names that writer, so none of them
-/// can be reported as a near-miss of a field that is writable here.
+/// Every field with a writer of its own references that writer, so none of them
+/// can read as a near-miss of a field that is writable here.
 #[test]
 fn a_field_written_elsewhere_names_its_own_command() {
     for (field, verb) in [
@@ -158,7 +159,7 @@ fn a_token_with_no_operator_is_refused() {
 }
 
 /// A refusal or a no-op quotes the value back exactly as the caller typed it,
-/// for both operators — not a rendered literal and not a placeholder.
+/// for both operators, not a rendered literal and not a placeholder.
 #[test]
 fn an_assignment_quotes_back_the_value_as_typed() {
     assert_eq!(

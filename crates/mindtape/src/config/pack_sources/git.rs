@@ -1,13 +1,14 @@
-//! Running git for a fetch, apart from the caller's own git state: every
+//! Running git for a fetch, apart from the caller's own git state. Every
 //! command drops the environment variables that point git at another
 //! repository or config, and pins the settings that would change what it
 //! fetches or how.
 //!
 //! Every command also runs in the cache root with `GIT_CEILING_DIRECTORIES`
-//! set to its parent, so a command that takes no `--git-dir`, such as `ls-remote`,
-//! never finds a repository around the directory `mt` runs in, nor reads
-//! that repository's config, such as a `core.sshCommand` or a
-//! `url.<base>.insteadOf` that would send a lookup and a fetch to two places.
+//! set to its parent. A command that takes no `--git-dir`, such as
+//! `ls-remote`, then never finds a repository around the directory `mt` runs
+//! in, nor reads that repository's config. Such a config could hold a
+//! `core.sshCommand` or a `url.<base>.insteadOf` that would send a lookup and a
+//! fetch to two places.
 //! The cache root is `mt`'s own, so no clone can put a repository there.
 
 use std::ffi::OsStr;

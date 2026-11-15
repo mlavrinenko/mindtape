@@ -1,11 +1,11 @@
 //! Slot fill: coerce caller-supplied values against a discovered
-//! [`super::SlotSpec`] and rewrite the source, replacing each `slot(...)`
-//! call with a rendered literal (or its default) so the filled task holds
-//! plain values and never calls `slot`.
+//! [`super::SlotSpec`] and rewrite the source. Each `slot(...)` call becomes a
+//! rendered literal (or its default). The filled task then holds plain values
+//! and never calls `slot`.
 //!
 //! Split from `template/mod.rs` along the module's own two verbs (see its doc
-//! comment): that file turns template source into [`super::SlotSpec`]s
-//! ("discover"), this one turns `SlotSpec`s plus caller values into
+//! comment). That file turns template source into [`super::SlotSpec`]s
+//! ("discover"), and this one turns `SlotSpec`s plus caller values into
 //! rewritten source ("fill"). [`fill()`] is the sole entry point the parent
 //! module re-exports.
 
@@ -19,7 +19,7 @@ use crate::date::parse_ymd;
 
 use super::{SlotKind, SlotSpec, discover_slots};
 
-/// Fill-time validation for `raw`-kind slots; split out to keep this file
+/// Fill-time validation for `raw`-kind slots, split out to keep this file
 /// under its line budget. See [`markup::render_raw`].
 mod markup;
 
@@ -41,7 +41,7 @@ pub struct LinkValue {
 /// any JSON dependency.
 #[derive(Debug, Clone, PartialEq)]
 pub enum RawValue {
-    /// A string (also the `--set k=v` shape; coerced per kind).
+    /// A string (also the `--set k=v` shape, coerced per kind).
     Str(String),
     /// An integer.
     Int(i64),
@@ -70,12 +70,12 @@ impl RawValue {
     }
 }
 
-/// Why a [`fill`] was rejected.
+/// Why [`fill`] rejected a value.
 #[derive(Debug, Clone, PartialEq)]
 pub enum FillError {
     /// Required slots with no value and no default, by name.
     Missing(Vec<String>),
-    /// A value could not be coerced to the slot's kind.
+    /// A value does not coerce to the slot's kind.
     Type {
         /// Slot name.
         slot: String,
@@ -100,7 +100,7 @@ pub enum FillError {
         /// The rejected value.
         value: String,
     },
-    /// A slot declared a `kind:` that names no known kind.
+    /// A slot declared a `kind:` that the code doesn't recognize.
     UnknownKind {
         /// Slot name.
         slot: String,
@@ -111,7 +111,7 @@ pub enum FillError {
     BadMarkup {
         /// Slot name.
         slot: String,
-        /// The parser's own message for the first error.
+        /// The message the parser gives for the first error.
         message: String,
     },
     /// The rewrite changeset was invalid (overlap / bounds).
@@ -175,8 +175,8 @@ impl fmt::Display for FillError {
 
 impl std::error::Error for FillError {}
 
-/// The replacement for an unfilled slot: a `text`/`raw` slot's string or
-/// raw-block default becomes unquoted body markup; every other default
+/// The replacement for an unfilled slot. A `text`/`raw` slot's string or
+/// raw-block default becomes unquoted body markup, and every other default
 /// splices verbatim.
 fn default_replacement(spec: &SlotSpec) -> Option<String> {
     literal_replacement(spec, spec.default.as_ref(), spec.default_string.as_ref())
@@ -201,7 +201,7 @@ fn literal_replacement(
 
 /// Fill every slot in `source` with its `default`, else its `example`: the
 /// task `mt add` files when the caller takes every default. A slot with no
-/// default is one `mt add` has to ask for, so its example fills it and the
+/// default is one `mt add` has to ask for. Its example then fills it and the
 /// task is complete.
 ///
 /// # Errors
@@ -246,9 +246,8 @@ fn fill_slots(
     apply(source, edits).map_err(|err| FillError::Edit(err.to_string()))
 }
 
-/// A slot whose declared kind names nothing would otherwise be filled as a
-/// `string`, which is a wrong task written silently rather than a template
-/// error reported.
+/// A slot whose declared kind names nothing would otherwise fill as a `string`.
+/// That writes a wrong task silently rather than reporting a template error.
 fn reject_unknown_kind(specs: &[SlotSpec]) -> Result<(), FillError> {
     match specs.iter().find(|spec| spec.unknown_kind.is_some()) {
         Some(spec) => Err(FillError::UnknownKind {
@@ -260,12 +259,12 @@ fn reject_unknown_kind(specs: &[SlotSpec]) -> Result<(), FillError> {
 }
 
 /// Fill every slot in `source` from `values`, returning the rewritten task
-/// source. An unfilled slot falls back to its default; a required slot with
+/// source. An unfilled slot falls back to its default. A required slot with
 /// neither value nor default is an error.
 ///
 /// # Errors
 /// Returns [`FillError`] when a value mismatches its slot kind, a required slot
-/// is unfilled, or the resulting changeset is invalid.
+/// stays unfilled, or the resulting changeset is invalid.
 pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String, FillError> {
     let specs = discover_slots(source);
     // Before any value is coerced.
@@ -293,8 +292,8 @@ pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String,
 }
 
 /// Fill only the slots present in `values`, leaving every other `slot(...)`
-/// call in place. A draft task built from the result still evaluates — an
-/// unfilled slot returns its `default` at eval time — so `mt add` can run its
+/// call in place. A draft task built from the result still evaluates, since an
+/// unfilled slot returns its `default` at eval time. `mt add` can then run its
 /// hooks over a task that is not fully filled yet, then [`fill`] the rest.
 ///
 /// # Errors
@@ -316,7 +315,8 @@ pub fn fill_partial(
 }
 
 /// The byte range to replace for a slot. A markup `text`/`raw` slot extends
-/// over the leading `#` so the spliced body markup stands alone.
+/// over the leading `#`, so the spliced body markup replaces the whole
+/// `#slot(...)` call.
 fn edit_range(spec: &SlotSpec, source: &str) -> Range<usize> {
     if spec.markup
         && spec.kind.splices_verbatim()

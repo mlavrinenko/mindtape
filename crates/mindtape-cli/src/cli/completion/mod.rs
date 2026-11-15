@@ -1,22 +1,23 @@
 //! Shell completions answered by the binary that owns the values.
 //!
 //! `mt install` writes a few lines of shell that call `mt` back
-//! (`clap_complete`'s `CompleteEnv`), so the static half of a completion is
-//! clap's own parser and the dynamic half is the live project config. Nothing
-//! is generated into a repository, so nothing can drift from one: a committed
-//! script could state `--format json|csv` correctly forever and still be wrong
-//! about every stem, status, view and template — the half that matters.
+//! (`clap_complete`'s `CompleteEnv`). The static half of a completion is clap's
+//! own parser, and the live project config answers the other half. The install
+//! never writes a script into a repository, so a script cannot drift from the
+//! binary. A committed script could state `--format json|csv` correctly forever
+//! and still be wrong about every stem, status, view and template, the half
+//! that matters.
 //!
-//! ## Where an argument's values come from
+//! ## Argument value sources
 //!
 //! [`SOURCES`] is the one place that answers it, and it answers for every
-//! value-taking argument `mt` declares. [`Source::None`] is an answer too,
-//! carrying the reason no project value fits. Two readers share the table:
-//! [`decorate`] hangs each entry's completer on the clap tree, and
-//! [`crate::cli::tree_json`] reflects it back out so `just docs::facts` can
-//! set-difference the arguments clap declares against the ones named here. A
-//! new completable argument therefore fails a gate until it says where its
-//! values come from.
+//! value-taking argument `mt` declares. [`Source::None`] is an answer too, and
+//! it carries the reason a project value does not fit. Two readers share the
+//! table. [`decorate`] hangs each entry's completer on the clap tree, and
+//! [`crate::cli::tree_json`] reflects it back out. `just docs::facts` then
+//! set-differences the arguments clap declares against the ones named here. A
+//! new completable argument fails a gate until it says where its values come
+//! from.
 //!
 //! An argument whose values are a `ValueEnum` is deliberately absent, because
 //! clap already completes a `possible_values` list from the parser itself. The
@@ -25,22 +26,22 @@
 //!
 //! ## Failing quietly
 //!
-//! Every source resolves the project itself and yields no candidates when that
-//! fails. A tab press lands on a command line the user is still typing, so a
-//! diagnostic there reads as a broken shell rather than a broken project;
+//! Every source resolves the project itself and yields an empty list when that
+//! fails. A tab press lands on a command line the user is still typing. A
+//! diagnostic there reads as a broken shell rather than a broken project, so
 //! `mt check` keeps the reporting and this module keeps silent.
 //!
 //! ## Status shortcut verbs
 //!
-//! `mt done <task>` reaches an ordinary run as a clap `external_subcommand`;
-//! a completion run sees each legend verb as a real subcommand instead, see
+//! `mt done <task>` reaches an ordinary run as a clap `external_subcommand`. A
+//! completion run sees each legend verb as a real subcommand instead, see
 //! `cli/completion/verbs.rs`.
 //!
 //! # Files
 //!
-//! - `sources.rs` — the value sources a completion can draw on, and their lookups.
-//! - `verbs.rs` — the status shortcut verbs a completion run sees.
-//! - `cmd/ls/interactive/tests.rs`, `sources_tests.rs` — the table's coverage tests.
+//! - `sources.rs`: the value sources a completion can draw on, and their lookups.
+//! - `verbs.rs`: the status shortcut verbs a completion run sees.
+//! - `cmd/ls/interactive/tests.rs`, `sources_tests.rs`: the table's coverage tests.
 //!
 //! Refs: `truth/tasks/2026-09/emit-shell-completions-from-the-binary-that-answers-them.typ`
 
@@ -60,7 +61,7 @@ use crate::util;
 /// Where one argument's values come from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Source {
-    /// Task stems — the project's own identities, helped by each title.
+    /// Task stems: the project's own identities, helped by each title.
     Stems,
     /// The configured status legend (`[[tasks.status]]`).
     Statuses,
@@ -73,7 +74,7 @@ pub enum Source {
     /// Template stems under `[templates] dirs`, plus the built-in `task`.
     Templates,
     /// The preset registry `mt preset ls` prints: the built-ins, then the
-    /// user presets. Install-level, so it needs no project.
+    /// user presets. It is install-level, so it works without a project.
     Presets,
     /// Edge kinds: the six built-ins plus `[[tasks.links.kinds]]`.
     LinkKinds,
@@ -87,9 +88,9 @@ pub enum Source {
     /// tags once the token names `tags`.
     Assignment,
     /// `mt add`'s `--set` / `--` tokens: this project's tags once the token
-    /// names `tags`. The keys are the chosen template's slots, which no
-    /// completer can know — `-t` may sit anywhere on the line, including after
-    /// the token being completed.
+    /// names `tags`. The keys are the chosen template's slots, which a completer
+    /// cannot know, since `-t` may sit anywhere on the line, including after the
+    /// token under completion.
     TagToken,
     /// A filesystem path, completed through clap's own [`ValueHint`].
     FilePath,
@@ -100,7 +101,7 @@ pub enum Source {
 }
 
 /// Every value-taking argument `mt` declares, keyed by `(command path, arg
-/// id)` — the same flattened path [`crate::cli::tree_json`] builds, empty for a
+/// id)`, the same flattened path [`crate::cli::tree_json`] builds, empty for a
 /// global.
 ///
 /// Ordered as `mt --help` lists the commands, so a reader comparing the two
@@ -261,8 +262,8 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         Source::None("the new preset's name, which no existing value predicts"),
     ),
 ];
-/// The source declared for `(path, id)`, or `None` when the table does not
-/// name the argument at all — the state `just docs::facts` fails on.
+/// The source declared for `(path, id)`, or `None` when the table omits the
+/// argument entirely, the state `just docs::facts` fails on.
 #[must_use]
 pub fn lookup(path: &str, id: &str) -> Option<Source> {
     SOURCES
@@ -297,7 +298,7 @@ impl Source {
         }
     }
 
-    /// The source's name as `mt _cli --json` reports it; `None` for
+    /// The source's name as `mt _cli --json` reports it. `None` for
     /// [`Source::None`], which reports its reason instead.
     #[must_use]
     pub fn label(self) -> Option<&'static str> {
@@ -325,8 +326,8 @@ impl Source {
 
 /// Answer a completion request and exit, or return and let `main` carry on.
 ///
-/// Called first in `main`: `CompleteEnv` owns stdout for the duration of a
-/// request, so anything printed ahead of it would arrive as a candidate.
+/// Called first in `main`: `CompleteEnv` owns stdout during a request, so
+/// anything printed ahead of it would arrive as a candidate.
 pub fn complete() {
     if !requested() {
         return;
@@ -346,7 +347,7 @@ pub fn complete() {
 /// can tell a completion run from an ordinary one before claiming anything.
 const COMPLETE_VAR: &str = "COMPLETE";
 
-/// Whether this process was spawned to answer a completion.
+/// Whether `main` spawned this process to answer a completion.
 fn requested() -> bool {
     std::env::var_os(COMPLETE_VAR).is_some_and(|name| !name.is_empty() && name != "0")
 }

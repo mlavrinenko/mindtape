@@ -156,7 +156,7 @@ fn a_project_lacking_the_view_fails_and_the_rest_still_list() {
     );
 }
 
-/// The table lists the rest and counts only them; the JSON keeps an object
+/// The table lists the rest and counts only them. The JSON keeps an object
 /// for the broken member, holding its error.
 #[test]
 fn a_broken_member_exits_1_after_the_rest_print() {

@@ -49,7 +49,7 @@ fn read_with_a_rename() -> Read {
     }
 }
 
-/// A cache whose history is already read, so the answer path runs no git.
+/// A cache whose history is already read. The answer path never calls git.
 fn seeded_cache(read: Read) -> RefsCache {
     RefsCache {
         read: Arc::new(OnceLock::from(Ok(read))),

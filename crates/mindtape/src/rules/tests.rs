@@ -9,7 +9,7 @@ use crate::test_support::tempdir;
 use crate::validate::Violation;
 use crate::validate::severity::Severity;
 
-/// A task with a title, a status, and a marker line — the three things a rule
+/// A task with a title, a status, and a marker line, the three things a rule
 /// and its report read.
 fn task(id: &str, title: &str, status: &str) -> Task {
     let mut built = bare_task(id);
@@ -34,7 +34,7 @@ fn breaches(tasks: &[Task], config: &Config) -> Vec<Violation> {
     out
 }
 
-/// The one breach `check_all` must raise, or a panic naming what it got.
+/// The one breach `check_all` must raise, or a panic that reports what it got.
 fn sole_breach(tasks: &[Task], config: &Config) -> Violation {
     let found = breaches(tasks, config);
     assert_eq!(found.len(), 1, "expected exactly one breach: {found:?}");
@@ -84,8 +84,8 @@ fn a_warn_breach_is_not_fatal() {
     assert!(!breach.is_fatal(), "warn prints, it does not fail");
 }
 
-/// Every check Mindtape makes on its own is fatal and labelled `error`: severity
-/// is the one thing only a config-declared rule gets to choose.
+/// Every check `Mindtape` makes on its own is fatal and labelled `error`.
+/// Severity is the one thing only a config-declared rule gets to choose.
 #[test]
 fn a_built_in_violation_carries_no_severity() {
     let breach = crate::validate::violation(&task("a", "T", "wip"), "tags", "nope".to_owned());
@@ -120,8 +120,8 @@ fn an_unnamed_rule_is_labelled_by_its_index() {
     assert_eq!(labels, ["rules[0]", "rules[1]"]);
 }
 
-/// `label` is the reporting contract, so it is pinned directly too: a mutant
-/// swapping the two arms would still produce two distinct labels above.
+/// `label` is the reporting contract, and the test pins it directly too. A
+/// mutant swapping the two arms would still produce two distinct labels above.
 #[test]
 fn label_prefers_the_name_over_the_index() {
     let named = RuleSpec {
@@ -140,14 +140,14 @@ fn label_prefers_the_name_over_the_index() {
     assert_eq!(anonymous.label(7), "rules[7]");
 }
 
-/// Two entries in `[[tasks.rules]]` sharing a `name` — within one file — is a
-/// config error naming both, the same treatment
+/// Two entries in `[[tasks.rules]]` sharing a `name`, within one file, is a
+/// config error that reports both, the same treatment
 /// `crate::body::headers::validate_header_rules` /
 /// `crate::body::content::validate_content_rules` already give their own
 /// arrays. Cross-FILE replacement by name (a nearer layer or an extended
-/// pack overriding a farther one's same-named rule) stays legal — that
-/// merge already collapses to one entry before `validate` ever sees this
-/// array, so this check only ever sees the same-file case it is for; see
+/// pack overriding a farther one's same-named rule) stays legal. That merge
+/// already collapses to one entry before `validate` ever sees this array, so
+/// this check only ever sees the same-file case it is for. See
 /// `crate::config::packs` for the merge and its own coverage of the
 /// cross-file case.
 #[test]
@@ -161,8 +161,8 @@ fn rejects_duplicate_rule_names_within_one_array() {
     );
 }
 
-/// An absent `name` never collides — only two rules that both opted into a
-/// name can clash, matching `duplicate_rule_names`'s own reading.
+/// An absent `name` never collides. Only two rules that both opted into a name
+/// can clash, matching `duplicate_rule_names`'s own reading.
 #[test]
 fn two_unnamed_rules_never_collide() {
     let toml = "[[tasks.rules]]\nassert = 'kind == \"bug\"'\n\n\
@@ -195,7 +195,7 @@ fn rules_run_task_by_task_in_config_order() {
 }
 
 /// `ready` / `blocked` need readiness over the whole set, so a rule can assert
-/// something about what is startable — not only about a field.
+/// something about what is startable, not only about a field.
 #[test]
 fn a_rule_can_read_readiness() {
     let toml = "[[tasks.rules]]\nname = \"no-blocked-wip\"\nassert = '!blocked'\n";
@@ -251,8 +251,8 @@ fn a_rule_with_both_assert_and_check_is_one_load_problem() {
     assert!(first.contains("not both"), "{first}");
 }
 
-/// Neither `assert` nor `check` is the other half: a rule that constrains
-/// nothing is refused rather than silently dropped.
+/// Neither `assert` nor `check` is the other half: the load refuses a rule
+/// that constrains nothing rather than silently dropping it.
 #[test]
 fn a_rule_with_neither_assert_nor_check_is_one_load_problem() {
     let toml = "[[tasks.rules]]\nname = \"empty\"\n";
@@ -263,8 +263,8 @@ fn a_rule_with_neither_assert_nor_check_is_one_load_problem() {
     assert!(first.contains("is required"), "{first}");
 }
 
-/// A rule whose assert cannot be parsed constrains nothing at evaluation time
-/// — `Config::validate` already refused the config, so reaching here means a
+/// A rule whose assert fails to parse constrains nothing at evaluation time.
+/// `Config::validate` already refused the config, so reaching here means a
 /// hand-built one, and a broken rule may not invent breaches.
 #[test]
 fn an_unparsable_rule_raises_no_breach() {
@@ -272,7 +272,7 @@ fn an_unparsable_rule_raises_no_breach() {
     assert!(breaches(&[task("a", "T", "wip")], &config(toml)).is_empty());
 }
 
-/// A `when` that cannot be parsed drops the rule rather than leaving an
+/// A `when` that fails to parse drops the rule rather than leaving an
 /// assertion running ungated over the whole backlog.
 #[test]
 fn an_unparsable_when_drops_the_whole_rule() {
@@ -329,7 +329,7 @@ severity = \"error\"
     );
 }
 
-/// The same holds when `changed()` sits in the rule's `when`.
+/// A `changed()` in the rule's `when` skips the rule too.
 #[test]
 fn a_when_reading_changed_outside_git_skips_the_rule_too() {
     let dir = tempdir();
@@ -346,7 +346,7 @@ assert = 'has(title)'
     assert!(skip.message.starts_with("skipped: "), "{}", skip.message);
 }
 
-/// `labels` names a rule by its `name` when it has one, else by its position —
+/// `labels` names a rule by its `name` when it has one, else by its position,
 /// the same fallback [`RuleSpec::label`] uses, since
 /// [`crate::validate::candidate::elsewhere_violations`] matches a violation's `field`
 /// against exactly these strings.

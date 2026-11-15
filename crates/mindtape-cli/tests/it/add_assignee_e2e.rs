@@ -1,5 +1,5 @@
 //! End-to-end tests for the env-backed `assignee` slot `add` splices in when
-//! `[tasks.assignee] required` is set: `--describe` surfaces it, `--set` fills
+//! `[tasks.assignee] required` holds. `--describe` surfaces it, `--set` fills
 //! it, `$MINDTAPE_PRINCIPAL` fills it silently, and an unset or out-of-list
 //! principal fails loudly instead of writing an empty or wrong worker.
 #![allow(
@@ -12,10 +12,10 @@ use std::path::Path;
 
 use crate::support;
 
-/// A config whose `[tasks.assignee]` is required with an allowed list: the
+/// A config that requires `[tasks.assignee]` with an allowed list. The
 /// barebones template omits assignee, so `add` must splice in a choice slot
-/// backed by `$MINDTAPE_PRINCIPAL`. The allowed names are declared actors, as
-/// the actors registry requires.
+/// backed by `$MINDTAPE_PRINCIPAL`. The allowed names come from declared
+/// actors, as the actors registry requires.
 const ASSIGNEE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.assignee]\nallowed = [\"ada\", \"lin\"]\nrequired = true\n\
      [[actors]]\nname = \"ada\"\nkind = \"human\"\n\
@@ -64,7 +64,7 @@ fn injects_config_required_assignee_slot() {
         .failure();
 }
 
-/// The required assignee splice is env-backed: a harness that sets
+/// The required assignee splice reads the environment. A harness that sets
 /// `$MINDTAPE_PRINCIPAL` files silently, with no `--set` and no prompt.
 #[test]
 fn principal_env_fills_required_assignee_silently() {
@@ -98,7 +98,7 @@ fn unset_principal_with_required_assignee_is_a_hard_error() {
 }
 
 /// `$MINDTAPE_PRINCIPAL` naming an actor outside the allowed list is a hard
-/// error at fill time — the choice slot validates, so a wrong identity never
+/// error at fill time: the choice slot validates, so a wrong identity never
 /// lands on a task.
 #[test]
 fn principal_outside_allowed_is_a_hard_error() {

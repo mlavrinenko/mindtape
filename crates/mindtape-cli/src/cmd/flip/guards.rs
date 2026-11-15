@@ -1,14 +1,14 @@
 //! The guards one `flip` clears before its write, split out of `cmd/flip/mod.rs`
 //! (file-size gate): the declared transition graph, `unblocked` blockers,
 //! unfinished children, and the target's note requirement. Each returns
-//! `Err(Diag)` naming what refused the move; every caller shares the
+//! `Err(Diag)` naming what refused the move, and every caller shares the
 //! `--force` escape hatch.
 
 use mindtape::config::Legend;
 
 use crate::diag::{Diag, Hint, Note};
 
-/// `a (proposed), b (wip)`: the tasks a guard names; one with no known status
+/// `a (proposed), b (wip)`: the tasks a guard names. One with no known status
 /// reads `unknown`.
 fn targets(blockers: &[mindtape::Blocker]) -> String {
     let list: Vec<String> = blockers
@@ -19,13 +19,13 @@ fn targets(blockers: &[mindtape::Blocker]) -> String {
 }
 
 /// Guard one flip against the declared transition graph. `Ok(())` when the move
-/// is legal or unconstrained; `Err(Diag)` names the illegal edge and the
+/// is legal or unconstrained. `Err(Diag)` names the illegal edge and the
 /// allowed next states.
 ///
 /// Semantics (all opt-in behind [`Legend::transitions_declared`]):
-/// - no graph declared → unconstrained, always `Ok`;
-/// - unset current status → exempt, the graph governs status-to-status only;
-/// - same-status re-stamp (`from == to`) → always allowed;
+/// - no graph declared → unconstrained, always `Ok`.
+/// - unset current status → exempt, the graph governs status-to-status only.
+/// - same-status re-stamp (`from == to`) → always allowed.
 /// - otherwise the edge must be in the current status's `to` list.
 pub(super) fn check_transition(
     legend: &Legend,
@@ -80,7 +80,7 @@ pub(super) fn check_unblocked(
 
 /// Guard one flip against a status that requires finished children (both
 /// `unblocked` and `terminal`): refused while any task naming `task` as its
-/// `parent` is unfinished within `world`, naming each one. Shares the
+/// `parent` remains unfinished within `world`, naming each one. Shares the
 /// transition guard's `--force` escape hatch.
 pub(super) fn check_children(
     world: &[mindtape::Task],
@@ -104,11 +104,11 @@ pub(super) fn check_children(
 }
 
 /// Guard one flip against the target status's note requirement (`note =
-/// "required"` on its `[[tasks.status]]` entry — see
+/// "required"` on its `[[tasks.status]]` entry, see
 /// `mindtape::config::LegendEntry::note_required`, the same `NoteRule`
 /// primitive typed `links:` edges use). `Ok(())` when the target carries no
-/// requirement, or a non-blank note was supplied; `Err(message)` names the
-/// status and points at the flag that supplies one.
+/// requirement, or the caller supplies a non-blank note. `Err(message)` names
+/// the status and points at the flag that supplies one.
 pub(super) fn check_note_required(
     legend: &Legend,
     to: &str,

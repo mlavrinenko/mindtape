@@ -1,9 +1,9 @@
-//! Resolving one `extends` entry to a validated pack table: a path against
-//! the extending layer's directory, to a file or to a directory pack
-//! ([`resolve_dir_pack`]), any other entry as `<source>:<pack>` against the
-//! embedded registry or, through [`crate::config::pack_cache`], a declared
-//! source's cached tree, and the shape check that refuses the keys a pack may
-//! not declare. [`crate::config::packs`] folds what this returns.
+//! Resolving one `extends` entry to a validated pack table. A path resolves
+//! against the extending layer's directory, to a file or to a directory pack
+//! ([`resolve_dir_pack`]). Any other entry resolves as `<source>:<pack>`
+//! against the embedded registry or, through [`crate::config::pack_cache`], a
+//! declared source's cached tree. The shape check then refuses the keys a pack
+//! may not declare. [`crate::config::packs`] folds what this returns.
 
 use std::path::{Path, PathBuf};
 
@@ -24,14 +24,14 @@ pub(super) struct PackScope<'a> {
     /// Whether the layer is the project's own, the one layer that may use a
     /// declared source.
     pub(super) project: bool,
-    /// The directory the declared sources are cached in, or `None` when no
-    /// source is installed.
+    /// The directory that caches the declared sources, or `None` when the
+    /// project hasn't installed a source.
     pub(super) cache: Option<&'a Path>,
     /// The cached trees this config load has already hashed.
     pub(super) verified: &'a VerifiedTrees,
 }
 
-/// One resolved pack: its provenance and validated table.
+/// Hold one resolved pack: its provenance and validated table.
 pub(super) struct ResolvedPack {
     pub(super) origin: PackOrigin,
     pub(super) table: toml::Table,
@@ -88,7 +88,7 @@ pub(super) fn resolve_pack(
 }
 
 /// `path` absolute and free of `..` and symlinks, so two entries naming one
-/// file name one pack, or `path` itself when it can't be resolved, such as a
+/// file name one pack, or `path` itself when the resolution fails, such as a
 /// missing file.
 fn canonical(path: &Path) -> PathBuf {
     crate::canonical(path).unwrap_or_else(|_| path.to_path_buf())
@@ -99,7 +99,7 @@ fn canonical(path: &Path) -> PathBuf {
 /// `templates/`. A pack cached from a remote source resolves the same way.
 ///
 /// # Errors
-/// Returns [`ConfigError`] when `dir` holds no readable `pack.toml`, it
+/// Returns [`ConfigError`] when `dir` doesn't hold a readable `pack.toml`, it
 /// doesn't parse, or it declares a key a pack may not.
 pub(super) fn resolve_dir_pack(dir: &Path) -> Result<ResolvedPack, ConfigError> {
     let (table, text) = read_pack_file(&dir.join(PACK_FILE), None)?;
@@ -166,7 +166,8 @@ fn embedded_text<'r>(entry: &str, scope: &PackScope<'r>) -> Result<&'r str, Conf
 }
 
 /// Why `source`, not [`EMBEDDED_SOURCE`], resolves no pack here: the project
-/// declares no such source, or this layer isn't the project's, the only one
+/// doesn't declare such a source, or this layer isn't the project's, the only
+/// one
 /// that may use one.
 fn source_error(source: &str, scope: &PackScope<'_>) -> ConfigError {
     let quoted = crate::config::quote(source);
@@ -209,9 +210,9 @@ fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {
 
 /// The keys a pack may not declare, as TOML paths. `extends` and `disable`
 /// would make a second level of packs, and `pack-sources` a second place to
-/// declare a source; `project.code` is the project's own
-/// name; `tasks.roots`, `templates.dirs` and `[typst]` name the project's
-/// own tree. Every other key deep-merges like any config layer's.
+/// declare a source. `project.code` is the project's own name, and
+/// `tasks.roots`, `templates.dirs` and `[typst]` name the project's own tree.
+/// Every other key deep-merges like any config layer's.
 const PACK_DENIED_KEYS: [&[&str]; 7] = [
     &["extends"],
     &["disable"],

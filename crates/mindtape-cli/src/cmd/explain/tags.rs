@@ -1,10 +1,10 @@
-//! `mt explain tags` — list the allowed tags and the rules that read them.
+//! `mt explain tags` lists the allowed tags and the rules that read them.
 //!
-//! Read-only. Each allowed tag is followed by every rule whose `when` or
-//! `assert` reads it through `has_tag("<tag>")` or `has(tags, "<tag>")`, and by
-//! that rule's message. A tag no rule reads prints as an area label, so the
-//! listing covers the whole vocabulary. `--for` keeps the rules the command at
-//! one moment enforces.
+//! Read-only. The listing prints each allowed tag, then every rule whose
+//! `when` or `assert` reads it through `has_tag("<tag>")` or `has(tags, "<tag>")`,
+//! then that rule's message. A tag that only groups tasks prints as an area
+//! label. The listing covers the whole vocabulary. `--for` keeps the rules the
+//! command at one moment enforces.
 
 use mindtape::{ActiveRule, Config, Filter, active_rules, load_config};
 
@@ -41,7 +41,7 @@ pub(crate) struct TagRule {
 /// Run `mt explain tags`.
 ///
 /// # Errors
-/// Returns an error if no project is found or its config fails to load.
+/// Returns an error if the project root does not resolve or its config fails to load.
 pub fn run(args: &TagsArgs, as_json: bool) -> Result<()> {
     let config = load_config(&util::resolve_root()?)?;
     let entries = entries(&config, args.moment);
@@ -81,7 +81,7 @@ fn entries(config: &Config, moment: Option<Moment>) -> Vec<TagEntry> {
 }
 
 /// Whether a rule's `when` or `assert` reads `tag` through `has_tag(...)` or
-/// `has(tags, ...)`, however either is spelled or spaced.
+/// `has(tags, ...)`, whatever the spelling or spacing.
 fn reads(rule: &ActiveRule, tag: &str) -> bool {
     [&rule.when, &rule.assertion]
         .into_iter()
@@ -99,7 +99,7 @@ fn tag_rule(rule: &ActiveRule) -> TagRule {
 }
 
 /// `<tag>  <rule>` with the message under the rule, or `<tag>  area label`
-/// when no rule reads it. An empty filtered list says no tag is read.
+/// when no rule reads it. An empty filtered list means that no rule reads a tag.
 fn render(entries: &[TagEntry], moment: Option<Moment>) -> String {
     let width = widest(entries.iter().map(|entry| entry.tag.as_str()));
     let mut out = String::new();

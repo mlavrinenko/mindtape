@@ -10,8 +10,8 @@ use crate::test_support::{bare_task, dep_edge, link_edge, noted_edge};
 
 /// Status legend and priority/estimate/tags scale shared by every test in this
 /// file. Field-specific validation (id format, enum fields, priority
-/// frameworks, numeric scales) lives in `validate/tests_fields.rs`; this file
-/// covers status reachability, the typed `links:` edges, and id uniqueness —
+/// frameworks, numeric scales) lives in `validate/tests_fields.rs`. This file
+/// covers status reachability, the typed `links:` edges, and id uniqueness, the
 /// concerns that span more than one task or sit outside a single field.
 pub(super) fn config() -> crate::config::Config {
     parse_config(
@@ -141,8 +141,8 @@ fn unconstrained_legend_skips_reachability() {
     assert!(validate(&tasks, &config()).is_empty());
 }
 
-/// `blocked` declares `note = "required"`; `cancelled` declares `note =
-/// "forbidden"`; `wip`/`done` are left at the `Optional` default.
+/// `blocked` declares `note = "required"`, and `cancelled` declares `note =
+/// "forbidden"`. `wip` and `done` keep the `Optional` default.
 fn note_required_config() -> crate::config::Config {
     parse_config(
         r#"
@@ -190,7 +190,7 @@ fn required_note_status_accepts_a_filled_note() {
 }
 
 /// A status left at the default `Optional` note rule never flags a note
-/// violation, whether or not a note is present.
+/// violation, whether a note is present or not.
 #[test]
 fn optional_note_rule_is_unchanged() {
     let mut noted = task("a", "wip");
@@ -200,7 +200,7 @@ fn optional_note_rule_is_unchanged() {
     assert!(violations.iter().all(|v| v.field != "status"));
 }
 
-/// A terminal status left at the default note rule is likewise unaffected.
+/// A terminal status left at the default note rule takes no flag either.
 #[test]
 fn terminal_status_without_note_requirement_is_unchanged() {
     let tasks = vec![task("a", "done")];
@@ -208,7 +208,7 @@ fn terminal_status_without_note_requirement_is_unchanged() {
 }
 
 /// `note = "forbidden"` is not enforced for a status (unlike a link kind):
-/// a task landing there validates clean whether or not it carries a note.
+/// a task landing there validates clean whether it carries a note or not.
 #[test]
 fn forbidden_note_rule_is_unchanged_for_a_status() {
     let mut noted = task("a", "cancelled");

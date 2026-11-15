@@ -2,17 +2,17 @@
 //! slug rule, re-exported for `mindtape_cli::cmd::add::values::slug` to call so
 //! `mt import` and `mt add` mint identical stems from an identical title.
 //! The CLI owns collision handling ([`crate::model::naming::disambiguate`] against
-//! the real destination directory); this only computes the deterministic
+//! the real destination directory). This module only computes the deterministic
 //! candidate.
 
 use crate::config::Config;
 use crate::model::naming::{MintContext, NamingError, mint_stem};
 
-/// Slugify `title` into a filename-stem-safe token: lowercase Unicode
-/// alphanumerics (Cyrillic, wide scripts, accented Latin all kept) survive, apostrophes
-/// (`'` and `’`) are dropped rather than treated as separators, other runs
-/// collapse to a single `-`, and the result is trimmed of leading/trailing
-/// dashes.
+/// Slugify `title` into a filename-stem-safe token. Lowercase Unicode
+/// alphanumerics survive (Cyrillic, wide scripts, accented Latin all kept).
+/// The function drops apostrophes (`'` and `’`) rather than treating them as
+/// separators, collapses other runs to a single `-`, and trims leading and
+/// trailing dashes from the result.
 #[must_use]
 pub fn slug_from_title(title: &str) -> String {
     let mut out = String::new();
@@ -36,13 +36,13 @@ pub fn slug_from_title(title: &str) -> String {
 
 /// The deterministic candidate stem for `title` under `config`'s
 /// `[tasks.naming]` template, given a reference `date` (the CLI passes
-/// today's date — the pure expander never reads a clock). Returns the bare
-/// slug unchanged when no `stem` template is configured. Never disambiguates
-/// against an existing file; that is the CLI's job (see the module doc).
+/// today's date, and the pure expander never reads a clock). Returns the bare
+/// slug unchanged when the config leaves `stem` unset. Never disambiguates
+/// against an existing file. That is the CLI's job (see the module doc).
 ///
 /// # Errors
 /// Returns [`NamingError`] when the configured `[tasks.naming] stem` template
-/// is malformed.
+/// is invalid.
 pub fn stem_for_title(
     title: &str,
     config: &Config,

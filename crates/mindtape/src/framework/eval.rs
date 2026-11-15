@@ -1,12 +1,12 @@
 //! Framework formula evaluation: scalar scoring, category predicates, and
 //! interval analysis of a score over its declared input bounds.
 //!
-//! `evalexpr` is reused as both parser and evaluator here (unlike the filter
+//! This module reuses `evalexpr` as both parser and evaluator (unlike the filter
 //! language, which only walks the parsed tree). The score formula and category
-//! `when` predicates are evaluated against a context built from a task's typed
-//! inputs. [`score_interval`] instead walks the parsed tree with interval
-//! arithmetic so config load can prove a framework's achievable range fits the
-//! priority scale — rejecting (never clamping) any framework that overflows.
+//! `when` predicates run against a context built from a task's typed inputs.
+//! [`score_interval`] instead walks the parsed tree with interval arithmetic, so
+//! config load can prove a framework's achievable range fits the priority scale,
+//! rejecting (never clamping) any framework that overflows.
 
 use std::collections::BTreeMap;
 
@@ -100,8 +100,8 @@ pub fn score_interval(formula: &str, inputs: &BTreeMap<String, Input>) -> Result
 }
 
 /// The numeric interval of each input that can feed a scalar formula: numbers
-/// span their `[min, max]`, booleans span `[0, 1]`; enums are omitted (they only
-/// appear in categorical predicates, never in arithmetic).
+/// span their `[min, max]`, booleans span `[0, 1]`. The map omits enums, which
+/// only appear in categorical predicates, never in arithmetic.
 fn input_intervals(inputs: &BTreeMap<String, Input>) -> BTreeMap<String, Interval> {
     let mut vars = BTreeMap::new();
     for (name, input) in inputs {

@@ -1,20 +1,20 @@
 //! `count(<expr>)`: how many loaded tasks match `<expr>`.
 //!
 //! The argument ranges over the whole loaded set, never a listing's narrowed
-//! rows — the rule `ready` follows, and for the same reason: the set is fixed
-//! before any filter runs, by [`crate::graph::ready::Readiness::compute`], which
-//! carries a [`LoadedSet`] alongside its dependency classification.
+//! rows. The rule `ready` follows the same path, for the same reason.
+//! [`crate::graph::ready::Readiness::compute`] fixes the set before any filter
+//! runs, and carries a [`LoadedSet`] alongside its dependency classification.
 //!
-//! Inside `count` every field reads the task being counted, so the result
-//! never depends on the task the outer expression is evaluating. That is what
-//! makes it cacheable: each distinct argument is evaluated over the set once
-//! per command and the number reused, so a rule asserting `count(...)` on
-//! every task stays linear in the set rather than quadratic.
+//! Inside `count` every field reads the task under count, and the result never
+//! depends on the task the outer expression evaluates. That is what makes it
+//! cacheable. The code evaluates each distinct argument over the set once per
+//! command and reuses the number. A rule asserting `count(...)` on every task
+//! then stays linear in the set rather than quadratic.
 //!
-//! Where no set exists ([`crate::graph::ready::Readiness::empty`]: `required`, a
-//! gate, a single-file eval) `count` is an error rather than zero — zero is a
-//! real answer, and reading it where the set was never loaded would pass a cap
-//! it never measured.
+//! Where no set exists ([`crate::graph::ready::Readiness::empty`]: `required`,
+//! a gate, a single-file eval) `count` is an error rather than zero. Zero is a
+//! real answer, and reading it where the set never loaded would pass a cap it
+//! never measured.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -30,8 +30,8 @@ use crate::model::Task;
 /// clone of the owning [`crate::graph::ready::Readiness`] never recomputes.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct LoadedSet {
-    /// `None` when there is no set context at all, as distinct from a set
-    /// that is loaded and empty.
+    /// `None` when there is no set context at all, as distinct from an empty
+    /// loaded set.
     tasks: Option<Arc<[Task]>>,
     counts: Arc<Mutex<HashMap<String, usize>>>,
     passes: Arc<AtomicUsize>,
@@ -46,12 +46,12 @@ impl LoadedSet {
         }
     }
 
-    /// The loaded tasks; `None` with no set context.
+    /// The loaded tasks. `None` with no set context.
     pub(crate) fn tasks(&self) -> Option<&[Task]> {
         self.tasks.as_deref()
     }
 
-    /// How many passes over the set have been made — one per distinct
+    /// How many passes the code has made over the set, one per distinct
     /// argument, however many tasks asked.
     #[cfg(test)]
     pub(crate) fn passes(&self) -> usize {
@@ -60,14 +60,14 @@ impl LoadedSet {
 
     /// How many tasks satisfy `arg`, `matches` evaluating it against one.
     ///
-    /// On the first request for an argument the set is walked once and the
-    /// answer cached. `probe` is evaluated too when the set is empty, so an
+    /// On the first request for an argument the code walks the set once and
+    /// caches the answer. It evaluates `probe` too when the set is empty, so an
     /// unknown field inside the argument still surfaces at a load-time dry run
-    /// that has nothing to count. No lock is held while evaluating: an
+    /// that has nothing to count. The evaluator runs without a lock, since an
     /// argument may itself hold a `count`.
     ///
     /// # Errors
-    /// [`FilterError::Invalid`] with no loaded set; otherwise whatever
+    /// [`FilterError::Invalid`] with no loaded set, and otherwise whatever
     /// evaluating the argument raises.
     pub(crate) fn count(
         &self,

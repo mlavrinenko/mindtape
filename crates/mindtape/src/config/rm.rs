@@ -1,8 +1,8 @@
 //! `[rm]` / `[retire]` config: task removal and retirement policy.
 //!
-//! `rm` deletes a task file outright; `retire` (its gitless fallback strategy)
+//! `rm` deletes a task file outright. `retire` (its gitless fallback strategy)
 //! keeps the file and flips its status terminal instead. [`RmStrategy`] picks
-//! how inbound references to a removed task are handled — git-pinned SWHID
+//! how the code handles inbound references to a removed task: git-pinned SWHID
 //! tombstone, in-place retire, edge unlinking, or an outright refusal.
 
 use serde::Deserialize;
@@ -11,7 +11,8 @@ use serde::Deserialize;
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum RmStrategy {
-    /// Mint a git-pinned SWHID tombstone and rewrite inbound edges onto it (the default in a git repo).
+    /// Mint a git-pinned SWHID tombstone and rewrite inbound edges onto it (the
+    /// default in a git repo).
     #[default]
     GitTombstone,
     /// Keep the task file and flip it to a terminal status. This is a tombstone
@@ -32,7 +33,8 @@ pub struct RmConfig {
     /// An explicit ref or filter argument on the command line overrides it.
     #[schemars(extend("x-expression" = "filter"))]
     pub default_filter: Option<String>,
-    /// How inbound references to a removed task are handled; defaults to `"git-tombstone"` in a git repository, `"reject"` without one.
+    /// How the code handles inbound references to a removed task. Defaults to
+    /// `"git-tombstone"` in a git repository, `"reject"` without one.
     pub strategy: Option<RmStrategy>,
 }
 
@@ -41,7 +43,8 @@ pub struct RmConfig {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RetireConfig {
-    /// The terminal status the retired task flips to; defaults to the legend's first terminal status (an error if the legend declares none).
+    /// The terminal status the retired task flips to. Defaults to the legend's
+    /// first terminal status (an error if the legend declares none).
     pub status: Option<String>,
     /// Move the retired task file into a sibling folder of this name, such as
     /// `.archive`. Omitted keeps the file where it is.

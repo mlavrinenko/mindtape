@@ -1,7 +1,7 @@
 //! `mt check` files every template `mt add --list` lists with each slot's
 //! `example`, else its `default`, and reports every breach of the result at
-//! the template's file and line. A slot with neither cannot be filled, so it
-//! is a template error naming the slot.
+//! the template's file and line. A slot with neither leaves nothing to fill.
+//! The check then reports a template error with the slot name.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
@@ -74,9 +74,9 @@ fn a_stale_default_fails() {
     );
 }
 
-/// Under `[templates] check-defaults`, both values are filed, so the example's
-/// `bug` fails even with a good default beside it, and the default's `bug`
-/// fails even with a good example.
+/// Under `[templates] check-defaults`, the check files both values. The
+/// example's `bug` then fails even with a good default beside it, and the
+/// default's `bug` fails even with a good example.
 #[test]
 fn both_the_example_and_the_default_are_filed() {
     let config = format!("{CONFIG}[templates]\ncheck-defaults = true\n");
@@ -123,7 +123,7 @@ fn a_slot_with_neither_example_nor_default_names_the_slot() {
 }
 
 /// A `text` slot's example that shows a code span files as backslashes once
-/// `mt add` escapes it, so the check names the slot at its line.
+/// `mt add` escapes it. The check then reports the slot at its line.
 #[test]
 fn a_text_slot_example_with_markup_names_the_slot() {
     let body = "\n#slot(\"why\", kind: \"text\", example: \"the `retire` verb\")\n";
@@ -237,8 +237,7 @@ fn a_template_load_failure_keeps_typsts_hints() {
     support::assert_check_fails(dir.path(), "unknown variable: some-name-here\nhint: ");
 }
 
-/// A body slot's raw-block example is checked by the body rules like a
-/// literal body.
+/// The body rules check a body slot's raw-block example like a literal body.
 #[test]
 fn a_body_rule_reads_the_body_s_example() {
     let rule = "[[tasks.body.headers.rules]]\nname = \"only-problem\"\n\
@@ -267,7 +266,7 @@ fn rule(name: &str, assert: &str) -> String {
 }
 
 /// `config` checked against `template` fails on `reported` and stays silent on
-/// `dropped`: a rule the template cannot fix is left out of the report.
+/// `dropped`: the report leaves out a rule the template cannot fix.
 fn assert_reports(reported: &str, dropped: &str, config: &str, template: &str) {
     let dir = scaffold_with(config, template);
     let (ok, text) = check(dir.path());
@@ -350,8 +349,8 @@ fn add_task(dir: &std::path::Path, stem: &str, title: &str) {
     std::fs::write(file, source).unwrap();
 }
 
-/// A cap the backlog holds is not the template's to break: each template is
-/// checked alone, against no tasks, and a breach that reads the whole set is
+/// A cap the backlog holds is not the template's to break. The check reads each
+/// template alone, against no tasks, and a breach that reads the whole set is
 /// not one the template can fix.
 #[test]
 fn a_backlog_at_its_count_cap_does_not_fail_a_template() {
@@ -370,8 +369,8 @@ fn a_backlog_at_its_count_cap_does_not_fail_a_template() {
     assert!(ok, "{text}");
 }
 
-/// A cap a template alone would break reads the set, so it is dropped too: the
-/// template cannot fix it.
+/// A cap a template alone would break reads the set. The pass drops it too,
+/// since the template cannot fix it.
 #[test]
 fn a_count_cap_of_zero_is_not_a_template_breach() {
     let dir = scaffold_with(
@@ -382,7 +381,7 @@ fn a_count_cap_of_zero_is_not_a_template_breach() {
     assert!(ok, "{text}");
 }
 
-/// A rule that reads no set still counts on the template alone.
+/// A rule that doesn't read a set still counts on the template alone.
 #[test]
 fn a_rule_that_reads_no_set_still_counts_beside_a_set_rule() {
     let config = format!(
@@ -398,9 +397,9 @@ fn a_rule_that_reads_no_set_still_counts_beside_a_set_rule() {
 }
 
 /// A rule about where a task lives reads `path`, which a template's filled
-/// example has no real value for: the example is not a task file, so the
-/// template pass drops the rule. A rule about the template's own shape still
-/// reports, so a stale template cannot hide behind the drop.
+/// example cannot supply. The example is not a task file. The template pass
+/// drops the rule. A rule about the template's own shape still reports, so a
+/// stale template cannot hide behind the drop.
 #[test]
 fn a_path_rule_is_dropped_but_a_shape_rule_still_reports() {
     let rules = "\
@@ -423,8 +422,8 @@ severity = \"error\"
     );
 }
 
-/// A path rule reached through a view is still a path rule: the view's own
-/// names are part of what the rule reads, so the template pass drops it too.
+/// A path rule reached through a view is still a path rule. The view's own names
+/// are part of what the rule reads, and the template pass drops it too.
 #[test]
 fn a_path_rule_reached_through_a_view_is_dropped() {
     let rules = "[views.all]\nfilter = 'kind == \"fix\"'\n\
@@ -438,8 +437,8 @@ fn a_path_rule_reached_through_a_view_is_dropped() {
     assert!(ok, "{text}");
 }
 
-/// The candidate is named from the example title, where `mt add` would write
-/// it, so a task named like the template collides with nothing.
+/// The check takes the candidate name from the example title, where `mt add`
+/// would write it, so a task named like the template collides with nothing.
 #[test]
 fn a_task_named_like_a_template_collides_with_nothing() {
     let dir = scaffold(&template("\"fix\""));
@@ -449,8 +448,8 @@ fn a_task_named_like_a_template_collides_with_nothing() {
     assert!(ok, "{text}");
 }
 
-/// A template may link to a task of the backlog; checked alone it has no
-/// backlog to resolve the target in, which is not the template's breach.
+/// A template may link to a task of the backlog. Checked alone it has no backlog
+/// to resolve the target in, which is not the template's breach.
 #[test]
 fn a_link_to_a_backlog_task_is_not_a_template_breach() {
     let linked = template("\"fix\"").replace(

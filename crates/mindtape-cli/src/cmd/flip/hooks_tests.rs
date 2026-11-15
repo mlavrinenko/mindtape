@@ -11,7 +11,8 @@ use super::{HookOutcome, Hooks, Transition, view_sort};
 use crate::diag::plain;
 use crate::util::Project;
 
-/// A task file in the `#metadata` form, so a fixture needs no Typst package.
+/// A task file in the `#metadata` form, which lets a fixture skip the Typst
+/// package.
 fn task_src(title: &str, status: &str) -> String {
     format!(
         "#metadata((\n  marker: \"mindtape.task\",\n  fields: (\n    \
@@ -21,7 +22,7 @@ fn task_src(title: &str, status: &str) -> String {
     )
 }
 
-/// Two tasks — `alpha` (wip) and `beta` (proposed) — under `config_text`.
+/// Two tasks, `alpha` (wip) and `beta` (proposed), under `config_text`.
 fn project(dir: &Path, config_text: &str) -> Project {
     let config = parse_config(config_text).unwrap();
     let alpha = task_src("Alpha", "wip");
@@ -29,8 +30,8 @@ fn project(dir: &Path, config_text: &str) -> Project {
     crate::test_util::make_project_in(dir, &[("alpha.typ", &alpha), ("beta.typ", &beta)], config)
 }
 
-/// How a test runs the hooks: whether `show`/`list` print, whether `--force`
-/// is on, and whether the user allowed the config's commands.
+/// The mode a test runs the hooks in. It records whether `show`/`list` print,
+/// whether `--force` is on, and whether the user allowed the config's commands.
 #[derive(Clone, Copy)]
 pub(super) struct Mode {
     pub(super) show: bool,
@@ -112,7 +113,7 @@ fn show_prints_its_text() {
     assert!(outcome.refusal.is_none());
 }
 
-/// Presentation is suppressed under `--quiet` or a piped stdout.
+/// `--quiet` or a piped stdout suppresses presentation.
 #[test]
 fn show_is_silent_when_suppressed() {
     let dir = tempdir();
@@ -120,8 +121,8 @@ fn show_is_silent_when_suppressed() {
     assert_eq!(out, "");
 }
 
-/// `when` scopes actions to the transitions that match it — here, a different
-/// target status fires nothing at all.
+/// `when` scopes actions to the transitions that match it. Here, a different
+/// target status doesn't fire at all.
 #[test]
 fn a_non_matching_transition_runs_nothing() {
     let dir = tempdir();
@@ -206,8 +207,8 @@ fn a_failing_gate_refuses_and_surfaces_the_output() {
     );
 }
 
-/// The evidence a refusal rests on is printed even with presentation off —
-/// otherwise a scripted flip fails with no reason on screen.
+/// The evidence a refusal rests on prints even with presentation off. Without
+/// it, a scripted flip fails with no reason on screen.
 #[test]
 fn a_failing_gate_prints_its_output_even_when_suppressed() {
     let dir = tempdir();
@@ -274,10 +275,10 @@ const FILE_EXISTS: &str = "test -f \"$MINDTAPE_TASK_FILE\"";
 /// Passes when the task file exists. `cmd` reads `%VAR%`, not `$VAR`.
 #[cfg(windows)]
 const FILE_EXISTS: &str = "if exist %MINDTAPE_TASK_FILE% (exit 0) else (exit 1)";
-/// Prints `<stem>/<status>` and fails, so the output shows.
+/// Prints `<stem>/<status>` and fails, so that the output shows.
 #[cfg(not(windows))]
 const ECHO_STEM_STATUS: &str = "echo \"$MINDTAPE_TASK_STEM/$MINDTAPE_TASK_STATUS\" && exit 1";
-/// Prints `<stem>/<status>` and fails, so the output shows.
+/// Prints `<stem>/<status>` and fails, so that the output shows.
 #[cfg(windows)]
 const ECHO_STEM_STATUS: &str = "echo %MINDTAPE_TASK_STEM%/%MINDTAPE_TASK_STATUS%&& exit 1";
 
@@ -343,7 +344,7 @@ fn a_runless_gate_without_a_message_uses_the_default_advice() {
 }
 
 /// `--force` waives a run-less gate exactly as it waives a failing `run` one,
-/// and records something legible in the note — the message stands in for the
+/// and records something legible in the note: the message stands in for the
 /// command there is none of.
 #[test]
 fn force_waives_a_runless_gate_and_records_its_message() {
@@ -366,7 +367,7 @@ fn no_hooks_means_no_output_and_no_refusal() {
 }
 
 /// An action that resolves to no single kind is a hard error, not a silent
-/// skip. Config load rejects it too; this pins the runner's own guard.
+/// skip. Config load rejects it too, and this pins the runner's own guard.
 #[test]
 fn an_unresolvable_action_errors() {
     let config = parse_config("[[on.flip]]\nwhen = ''\nactions = [{ title = \"x\" }]\n").unwrap();

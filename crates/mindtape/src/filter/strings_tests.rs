@@ -5,7 +5,7 @@ use crate::filter::{DictMiss, Filter, FilterError};
 use crate::model::Task;
 use crate::parse_config;
 
-/// A task with a two-word title and no assignee — the missing-field arm every
+/// A task with a two-word title and no assignee, the missing-field arm every
 /// one of these functions has to answer.
 fn titled(title: &str) -> Task {
     Task {
@@ -61,9 +61,10 @@ fn word_trims_surrounding_punctuation() {
     ));
 }
 
-/// The rule the task artifact spells out: `word()` does not read Typst markup,
-/// so a title opening with a code span yields the bare token inside the ticks —
-/// not a verb, so a verb rule fires and the author exempts it with `matches()`.
+/// The rule the task artifact spells out: `word()` does not read Typst markup.
+/// A title opening with a code span then yields the bare token inside the
+/// ticks, which is not a verb. A verb rule then fires, and the author exempts
+/// it with `matches()`.
 #[test]
 fn a_backticked_first_word_yields_the_span_not_a_verb() {
     let cfg = Config::default();
@@ -153,7 +154,7 @@ fn in_dict_reads_the_first_word_of_the_title() {
 }
 
 /// `fold` (the default) matches a capitalised title word against a lowercase
-/// entry; `exact` over the same entry does not.
+/// entry, and `exact` over the same entry does not.
 #[test]
 fn a_fold_dict_matches_a_capitalised_word_and_an_exact_one_does_not() {
     let cfg = cased_config();
@@ -351,7 +352,7 @@ fn a_boolean_call_in_string_position_errors() {
 }
 
 /// An operator or a negated field where a string belongs is an error, not a
-/// value: `title + id` is named in the message, and `-title` is no literal.
+/// value: the message reports `title + id`, and `-title` is no literal.
 #[test]
 fn an_operator_in_string_position_errors() {
     let cfg = Config::default();
@@ -442,8 +443,8 @@ fn and_or_and_parentheses_reach_the_call() {
 }
 
 /// A call under `!`, inside `count(...)` or behind a view made the
-/// expression no falser by missing, so it explains nothing. Neither does a
-/// call to another function of the same shape, such as
+/// expression no falser by missing, so it doesn't explain the miss. Neither
+/// does a call to another function of the same shape, such as
 /// `contains("verbs", title)`.
 #[test]
 fn a_negated_nested_or_other_call_explains_nothing() {

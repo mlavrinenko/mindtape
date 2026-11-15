@@ -22,3 +22,13 @@ fn placeholders_are_stand_ins() {
 fn a_line_that_is_not_mt_is_refused() {
     assert!(check("cargo build", &[]).is_err());
 }
+
+#[test]
+fn a_refusal_keeps_only_its_first_line() {
+    let err = Cli::command()
+        .try_get_matches_from(["mt", "ls", "--limit", "abc"])
+        .expect_err("a non-numeric --limit is refused");
+    let line = first_line(&err);
+    assert!(!line.starts_with("error: "), "{line}");
+    assert!(!line.contains('\n'), "{line}");
+}

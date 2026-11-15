@@ -17,7 +17,7 @@ fn compile(text: &str, root: &Path) -> Result<Dicts, Problem> {
     compile_dicts(&config.dicts, root)
 }
 
-/// Compile against a root no dict reads (every source is inline).
+/// Compile against a root that every dict ignores (every source is inline).
 fn compile_inline(text: &str) -> Result<Dicts, Problem> {
     compile(text, Path::new("/nonexistent-root"))
 }
@@ -37,7 +37,7 @@ fn inline_values_are_the_whole_set() {
     assert_eq!(entries(&dicts, "verbs"), ["add", "wire"]);
 }
 
-/// `values`, `path` and `include` all feed one set — the union, de-duplicated.
+/// `values`, `path` and `include` all feed one set: the union, de-duplicated.
 #[test]
 fn values_path_and_include_union_into_one_set() {
     let dir = tempdir_with_dirs(&["dicts"]);
@@ -52,8 +52,8 @@ fn values_path_and_include_union_into_one_set() {
     assert_eq!(entries(&dicts, "verbs"), ["add", "fix", "ship", "wire"]);
 }
 
-/// A `#` comment and a blank line are skipped; the header the built-in data
-/// files carry is exactly this shape.
+/// The parser skips a `#` comment and a blank line. The header the built-in
+/// data files carry is exactly this shape.
 #[test]
 fn a_path_skips_comments_and_blank_lines() {
     let dir = tempdir_with_files(&[("words.txt", "# header\n#\n\n  add  \n\nfix\n")]);
@@ -93,8 +93,8 @@ fn exact_compares_bytes() {
     assert!(!dict.contains("Add"), "exact refuses a capitalised lookup");
 }
 
-/// A `fold` dict folds an entry declared with capitals, too — the policy is the
-/// dict's, not the lookup's.
+/// A `fold` dict folds an entry declared with capitals, too. The policy belongs
+/// to the dict, not to the lookup.
 #[test]
 fn fold_normalizes_the_entries_as_well_as_the_lookup() {
     let dicts = compile_inline("[dicts.verbs]\nvalues = [\"Add\"]\n").unwrap();
@@ -119,8 +119,8 @@ fn nearest_ranks_the_word_under_the_dict_s_case() {
     assert!(labels.nearest("AUTH", 3).is_empty());
 }
 
-/// `include` unions the target's raw entries in; the including dict's own
-/// `case` decides how they are compared.
+/// `include` unions the target's raw entries in. The `case` of the including
+/// dict sets how the code compares them.
 #[test]
 fn an_included_dict_is_read_under_the_includer_s_case() {
     let dicts = compile_inline(
@@ -224,7 +224,8 @@ fn a_dict_with_no_source_is_refused() {
     assert!(err.contains("include"), "{err}");
 }
 
-/// Distinct from "no source": the dict names a source, and the source is empty.
+/// Distinct from "no source": the dict references a source, and the source is
+/// empty.
 #[test]
 fn a_dict_that_resolves_empty_is_refused() {
     let dir = tempdir_with_files(&[("words.txt", "# only a comment\n")]);
@@ -233,7 +234,8 @@ fn a_dict_that_resolves_empty_is_refused() {
     assert!(err.contains("no entries"), "{err}");
 }
 
-/// Every problem is reported at once, so one config error covers the section.
+/// The code reports every problem at once, so one config error covers the
+/// section.
 #[test]
 fn every_problem_in_the_section_is_reported_together() {
     let err = compile_inline(
@@ -268,7 +270,7 @@ fn the_cache_defaults_to_the_builtins_alone() {
     );
 }
 
-/// `parse_config` has no root, so it compiles the section rootless: an inline
+/// `parse_config` has no root, so it compiles the section rootless. An inline
 /// dict resolves, and a broken section leaves the built-ins alone rather than
 /// failing a function documented to check shape only.
 #[test]
@@ -281,9 +283,9 @@ fn parse_config_hydrates_the_cache_without_a_root() {
     assert!(broken.compiled_dicts().contains("mindtape-verbs", "add"));
 }
 
-/// The cache is derived from the `[dicts]` section and the project root, and
-/// `Config` carries no root at all — so two configs with identical declared
-/// settings stay equal however each one's dictionaries were compiled. Pins the
+/// The cache derives from the `[dicts]` section and the project root, and
+/// `Config` carries no root at all. Two configs with identical declared
+/// settings stay equal however each one's dictionaries compiled. Pins the
 /// hand-written `PartialEq` on [`DictCache`].
 #[test]
 fn the_cache_is_not_part_of_config_equality() {

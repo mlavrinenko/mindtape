@@ -1,9 +1,9 @@
 //! Unit tests for the pure edge rendering and `links:` reconciliation.
 //!
-//! Targets arrive here already settled (`cmd::link::plan::settle_targets` decides
-//! whether a kind's target carries `.typ`), so every spec below is written the
-//! way the planner hands it over — except where a test is about the dedupe
-//! itself, which compares filename stems and so must see both spellings.
+//! Targets arrive here already settled: `cmd::link::plan::settle_targets`
+//! decides whether a kind's target carries `.typ`. Every spec below spells the
+//! target the way `settle_targets` returns it, except where a test is about the
+//! dedupe itself, which compares filename stems and so must see both spellings.
 
 use mindtape::link::Link;
 
@@ -30,8 +30,8 @@ const WITH_LINKS: &str = mindtape::typst_task!(
 "#
 );
 
-/// A file whose only edge is a SWHID tombstone — what `mt rm` leaves behind
-/// when the task it pointed at was retired.
+/// A file whose only edge is a SWHID tombstone, what `mt rm` leaves behind
+/// when `mt rm` retired the task it pointed at.
 const WITH_TOMBSTONE: &str = mindtape::typst_task!(
     r#"(
   title: "Do thing",
@@ -56,8 +56,8 @@ fn link(kind: &str, target: &str, note: Option<&str>) -> Link {
     }
 }
 
-/// Apply the computed edit and hand back the rewritten source; `None` when the
-/// reconciliation decided there was nothing to write.
+/// Apply the computed edit and hand back the rewritten source. `None` means
+/// the reconciliation found nothing to write.
 fn applied(source: &str, existing: &[Link], desired: &[EdgeSpec], mode: Mode) -> Option<String> {
     let edit = links_edit(source, existing, desired, mode).expect("edit must build")?;
     Some(typst_edit::apply(source, vec![edit.edit]).expect("splice must apply"))

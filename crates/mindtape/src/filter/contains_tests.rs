@@ -1,5 +1,5 @@
 //! `contains()`'s unified needle-first grammar: the default haystack
-//! (`title`, `id`, `body`), explicit fields (one or several), and the body
+//! (`title`, `id`, `body`), explicit fields (one or more), and the body
 //! haystack's marker-free guarantee. Lives in its own module so
 //! `tests.rs` stays under the linecop line cap.
 #![allow(clippy::unwrap_used)]

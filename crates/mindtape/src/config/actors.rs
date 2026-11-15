@@ -1,11 +1,11 @@
-//! `[[actors]]` and `[[roles]]` — the project's actor registry.
+//! `[[actors]]` and `[[roles]]`: the project's actor registry.
 //!
 //! An actor is anyone who works tasks: a person or a language model, with an
-//! optional set of declared roles. The registry is identity-only — a role
-//! carries no tooling, prompt, or instruction payload; any tooling a role
+//! optional set of declared roles. The registry holds identity only. A role
+//! carries no tooling, prompt, or instruction payload. Any tooling a role
 //! should enable lives in the reader's harness config, keyed by role name by
 //! convention. The assignee field references a declared actor by name (when
-//! `[tasks.assignee]` `allowed` is set), and filters resolve an assignee's
+//! `[tasks.assignee]` sets `allowed`), and filters resolve an assignee's
 //! roles from here at read time (`role == "reviewer"`), never from the task
 //! marker itself.
 
@@ -21,17 +21,17 @@ use crate::suggest::Unknown;
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct Actor {
-    /// Unique actor name; the value an `assignee:` field (or a
+    /// Unique actor name, the value an `assignee:` field (or a
     /// `[tasks.assignee] allowed` entry) references.
     pub name: String,
-    /// What the actor is.
+    /// The kind of worker this actor is.
     pub kind: ActorKind,
     /// Roles the actor holds, each naming a declared `[[roles]]` entry.
     #[serde(default)]
     pub roles: Vec<String>,
 }
 
-/// What an actor is.
+/// The kind of worker an actor is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum ActorKind {
@@ -62,10 +62,10 @@ pub fn roles_of<'a>(name: &str, config: &'a Config) -> Option<&'a [String]> {
 }
 
 /// Cross-checks for the actors/roles registry, folded into
-/// [`Config::validate`]: role names non-empty and unique, actor names
-/// non-empty and unique, every actor role referencing a declared `[[roles]]`
-/// entry, and every `[tasks.assignee] allowed` value naming a declared actor.
-/// The `kind` closed set is enforced at parse time by the enum itself.
+/// [`Config::validate`]. Role names must be non-empty and unique, and so must
+/// actor names. Every actor role must reference a declared `[[roles]]` entry,
+/// and every `[tasks.assignee] allowed` value must reference a declared actor.
+/// The enum itself enforces the `kind` closed set at parse time.
 pub(crate) fn validate_actors(config: &Config) -> Vec<Problem> {
     let mut problems = Vec::new();
     let mut role_names: HashSet<&str> = HashSet::new();

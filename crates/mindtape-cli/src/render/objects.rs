@@ -2,8 +2,8 @@
 //! `mt @name check`, `mt graph`, `mt preset ls`, `mt explain` and the two
 //! explain listings.
 //!
-//! Each payload is flattened beside `$schema` by [`crate::render::envelope`],
-//! so its keys stay at the top level. One schema comes from each type, so the
+//! [`crate::render::envelope`] flattens each payload beside `$schema`, which
+//! keeps its keys at the top level. One schema comes from each type, so the
 //! recorded copy cannot drift from the bytes the binary prints.
 
 use std::collections::BTreeMap;
@@ -51,7 +51,7 @@ pub struct GraphPayload {
     pub external: Vec<ExternalJson>,
 }
 
-/// One graph node: a task and its readiness.
+/// One graph node holds a task and its readiness.
 #[derive(Debug, Clone, Serialize, schemars::JsonSchema)]
 pub struct NodeJson {
     /// The task's stable id.
@@ -102,7 +102,7 @@ pub struct PresetJson {
     pub name: String,
     /// `built-in` or `user`.
     pub origin: String,
-    /// The built-in's description; `null` for a user preset.
+    /// The built-in's description, or `null` for a user preset.
     pub description: Option<String>,
     /// Whether `mt init` picks this preset with no `-p`.
     pub default: bool,

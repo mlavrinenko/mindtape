@@ -76,7 +76,7 @@ fn describe_json_lists_builtin_slots() {
     assert_eq!(names, vec!["title"]);
 }
 
-/// An optional slot with no default is labeled "optional", not "required" —
+/// An optional slot with no default reads "optional", not "required", which
 /// distinguishes the `&&` operator from `||`.
 #[test]
 fn describe_text_marks_optional_correctly() {
@@ -160,8 +160,8 @@ fn resolve_unknown_template_errors() {
     assert!(resolve_template(&Config::default(), dir.path(), "bug").is_err());
 }
 
-/// A template no dir holds is a usage error quoting the name, with where to
-/// list the templates, or the nearest one when a name is close.
+/// A missing template is a usage error quoting the name, with where to list the
+/// templates, or the nearest one when a name is close.
 #[test]
 fn an_unknown_template_hints_where_to_list_them() {
     let dir = tempdir();

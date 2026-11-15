@@ -1,8 +1,8 @@
 //! `just install-hooks` leaves `.git/config` holding the merge drivers that a
-//! checked-out `.gitattributes` names and the recipe registers: it adds the
-//! missing ones, drops a driver it once registered that no worktree names any
-//! more, and keeps one added by hand. Each test runs the real recipe in a
-//! throwaway repo.
+//! checked-out `.gitattributes` names and the recipe registers. It adds the
+//! missing ones, drops a driver it registered earlier once the worktrees stop
+//! referencing it, and keeps one added by hand. Each test runs the real recipe
+//! in a throwaway repo.
 //!
 //! Unix only: the recipe is a bash script, and the Windows job has no dev
 //! shell.

@@ -2,24 +2,25 @@
 //! `in_dict()` and `old("field")` in string position.
 //!
 //! Every other function in [`crate::filter`] takes a bare identifier or a
-//! literal and answers a boolean, so the walk needed one return type. These
-//! functions are the seam where an argument may itself be a computed string —
-//! `in_dict("verbs", word(title, 1))` — which is what [`string_value`] adds: a
-//! second resolution, over the same [`Node`]s, that yields text instead of a
+//! literal and returns a boolean, so the walk needed one return type. These
+//! functions are the seam where an argument may itself be a computed string:
+//! `in_dict("verbs", word(title, 1))`. That is what [`string_value`] adds, a
+//! second resolution over the same [`Node`]s that yields text instead of a
 //! verdict.
 //!
-//! Nothing goes missing quietly. A value that is simply not there — a field the
-//! task does not carry, a word past the end of the title — resolves to `None`
-//! and reads as a non-match, as it does under `==`, so `!matches(...)` holds.
-//! Everything else is a named [`FilterError`]: an unknown dictionary, an
-//! invalid regex, a numeric field where a string is required, a wrong argument
-//! count. They surface where the expression is evaluated, exactly as an unknown
-//! field name does — and config load dry-runs every saved expression against a
-//! probe task, so a view, a limit or a `required` rule reports its own bad
-//! filter by name at load rather than quietly matching nothing.
+//! A missing value never passes silently. A value that is simply not there
+//! resolves to `None`, and every caller reads that as a non-match, as it does
+//! under `==`, so `!matches(...)` holds. That covers a field the task does not
+//! carry and a word past the end of the title. Everything else is a named
+//! [`FilterError`]: an unknown dictionary, an invalid regex, a numeric field
+//! where the language needs a string, a wrong argument count. They surface
+//! where the expression runs, exactly as an unknown field name does. Config
+//! load dry-runs every saved expression against a probe task. A view, a limit
+//! or a `required` rule then reports its own bad filter by name at load
+//! instead of quietly never firing.
 //!
 //! When a rule's `assert` reads false, [`dict_miss`] walks the expression again
-//! for the `in_dict()` call that missed, so the refusal can name the
+//! for the `in_dict()` call that missed, so the refusal can report the
 //! dictionary, the word and the entries nearest it ([`DictMiss`]).
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
@@ -34,16 +35,16 @@ use crate::filter::{FilterError, field_value};
 use crate::model::Task;
 use crate::model::fields::FieldValue;
 
-/// Resolve a node standing where a string is expected: a literal, a field
-/// identifier, or a call that gives text (`word(...)`, `old("field")`).
+/// Resolve a node standing where the language expects a string: a literal, a
+/// field identifier, or a call that gives text (`word(...)`, `old("field")`).
 ///
-/// `Ok(None)` is "there is no such value" — a field the task does not carry, a
-/// word index past the end — which every caller reads as a non-match.
+/// `Ok(None)` is "there is no such value": a field the task does not carry, a
+/// word index past the end. Every caller reads it as a non-match.
 ///
 /// # Errors
 /// [`FilterError::UnknownField`] for a name the registry does not know, and
 /// [`FilterError::Invalid`] for a numeric field, a boolean-valued call, or an
-/// operator that produces no string at all.
+/// operator that doesn't produce a string at all.
 pub(crate) fn string_value(
     node: &Node<DefaultNumericTypes>,
     task: &Task,
@@ -73,12 +74,12 @@ pub(crate) fn string_value(
 }
 
 /// A field read in string position. A numeric field is an error rather than a
-/// formatted number: `word(priority, 1)` is a rule that cannot mean anything,
-/// and reading it as `"8"` would make it silently almost-work. An `x-<ns>`
-/// list holds no single string and reads as no value, as it equals nothing
-/// under `==`: one slot may hold a string on one task and a list on the next.
-/// The text-only fields `body`, `note` and `tags` read as `contains()` reads
-/// them ([`text_only_value`]).
+/// formatted number: `word(priority, 1)` cannot mean anything, and reading it
+/// as `"8"` would make it silently almost-work. An `x-<ns>` list reads as a
+/// missing value, because one slot may hold a string on one task and a list on
+/// the next. A list never equals a string under `==`. The text-only fields
+/// `body`, `note` and `tags` read as `contains()` reads them
+/// ([`text_only_value`]).
 fn string_field(task: &Task, name: &str, config: &Config) -> Result<Option<String>, FilterError> {
     if let Some(text) = text_only_value(task, name) {
         return Ok(Some(text));
@@ -93,7 +94,7 @@ fn string_field(task: &Task, name: &str, config: &Config) -> Result<Option<Strin
 }
 
 /// The calls that yield a string: `word()`, and `old()` in string position.
-/// Every other function in the language answers a boolean, so naming one here
+/// Every other function in the language returns a boolean, so naming one here
 /// is a type error rather than an unknown name.
 fn string_call(
     name: &str,
@@ -114,8 +115,9 @@ fn string_call(
     }
 }
 
-/// `old("field")` where a string is expected: the pre-hook value when it is
-/// text. A number is refused, as it is for a field read in string position.
+/// `old("field")` where the language expects a string: the pre-hook value when
+/// it holds text. A number fails, as it does for a field read in string
+/// position.
 fn old_string(
     children: &[Node<DefaultNumericTypes>],
     old: Option<&Task>,
@@ -135,9 +137,10 @@ fn old_string(
 /// action ran, as a comparable string.
 ///
 /// # Errors
-/// A wrong argument count, a non-literal field name, an unknown field, a field
-/// the draft cannot answer (`id`, `path`, a `derived.<name>` record), or no
-/// pre-hook draft (an `old()` outside an add hook's `when`).
+/// A wrong argument count, a non-literal field name, or an unknown field. A
+/// field the draft cannot answer (`id`, `path`, a `derived.<name>` record)
+/// fails too, as does a missing pre-hook draft (an `old()` outside an add
+/// hook's `when`).
 pub(crate) fn old_value(
     children: &[Node<DefaultNumericTypes>],
     old: Option<&Task>,
@@ -175,7 +178,7 @@ pub(crate) fn old_value(
     }
 }
 
-/// `word(field, n)` — the n-th whitespace-separated token of a string value,
+/// `word(field, n)`: the n-th whitespace-separated token of a string value,
 /// counting from 1, trimmed of every non-alphanumeric character at either end
 /// (`"Fix:"` is the word `Fix`).
 ///
@@ -197,9 +200,9 @@ fn word_call(
     Ok(nth_word(&text, position))
 }
 
-/// The n-th word of `text`, or `None` past the end — or when the token carries
-/// no alphanumeric character at all, which trims to nothing and reads the same
-/// as no word there.
+/// The n-th word of `text`, or `None` past the end. A token with no
+/// alphanumeric character trims to an empty string and reads the same as a
+/// missing word.
 fn nth_word(text: &str, position: usize) -> Option<String> {
     let word = text
         .split_whitespace()
@@ -221,14 +224,14 @@ fn word_index(node: &Node<DefaultNumericTypes>) -> Result<usize, FilterError> {
     }
 }
 
-/// `matches(field, "regex")` — the escape hatch a closed vocabulary needs. The
+/// `matches(field, "regex")`: the escape hatch a closed vocabulary needs. The
 /// pattern is a Rust `regex`, unanchored, and must be a literal: it is part of
 /// the rule, not part of the data.
 ///
 /// # Errors
 /// [`FilterError::Invalid`] on a wrong argument count, a non-literal pattern,
-/// or a pattern `regex` refuses; whatever [`string_value`] raises for the first
-/// argument.
+/// or a pattern `regex` refuses, and whatever [`string_value`] raises for the
+/// first argument.
 pub(crate) fn matches_call(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
@@ -253,14 +256,15 @@ pub(crate) fn matches_call(
 /// The two arguments of `in_dict("name", <string expr>)`: the dictionary's
 /// name, the compiled dictionary, and the word, `None` when there is none.
 ///
-/// The name is validated here, where it is written, rather than at lookup:
+/// The check runs where the rule writes the name, not at lookup.
 /// [`crate::config::Dicts::contains`] reads an unknown name as a miss, which
 /// would turn a typo into a rule that silently never fires.
 ///
 /// # Errors
-/// [`FilterError::UnknownDict`] for a name no compiled dictionary carries, and
-/// [`FilterError::Invalid`] on a wrong argument count or a non-literal name;
-/// whatever [`string_value`] raises for the second argument.
+/// [`FilterError::UnknownDict`] for a name the compiled dictionaries don't
+/// carry, and [`FilterError::Invalid`] on a wrong argument count or a
+/// non-literal name. [`string_value`] raises its own error for the second
+/// argument.
 fn in_dict_lookup<'c>(
     children: &[Node<DefaultNumericTypes>],
     task: &Task,
@@ -316,9 +320,9 @@ pub struct DictMiss {
 /// Why `node` read false for `task`: the first `in_dict()` call, reached
 /// through `&&`, `||` and parentheses alone, whose dictionary lacks its word.
 ///
-/// A call under `!` explains nothing, because its miss made the expression
-/// truer. Neither does one inside `@view` or `count(...)`. A call that fails
-/// to evaluate, or reads no word, is no miss either.
+/// A call under `!` doesn't explain the miss, because its own miss made the
+/// expression truer. Neither does one inside `@view` or `count(...)`. A call
+/// that fails to evaluate, or that reads a missing word, is no miss either.
 pub(crate) fn dict_miss(
     node: &Node<DefaultNumericTypes>,
     task: &Task,
@@ -343,7 +347,7 @@ pub(crate) fn dict_miss(
 }
 
 /// `word(...)` reached boolean position. Named rather than left to the unknown
-/// function arm, because the name is known — it is in the wrong place.
+/// function arm, because the registry knows the name: it is in the wrong place.
 pub(crate) fn word_is_not_boolean() -> FilterError {
     FilterError::call(
         "word() gives text, not a condition",
@@ -356,8 +360,8 @@ fn arity(name: &str, example: &'static str) -> FilterError {
 }
 
 /// The two arguments of a two-argument call, or the call's arity error. Every
-/// two-argument predicate reads its arguments through here, so the count and
-/// the error are stated once.
+/// two-argument predicate reads its arguments through here. This function
+/// states the count and the error once.
 pub(crate) fn call_pair<'n>(
     children: &'n [Node<DefaultNumericTypes>],
     name: &str,

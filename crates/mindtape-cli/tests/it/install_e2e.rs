@@ -2,10 +2,10 @@
 //! binary, exercising real app-directory resolution
 //! (`mindtape::config_home()` / `mindtape::data_home()`).
 //!
-//! Staged through `$MINDTAPE_CONFIG_HOME`/`$MINDTAPE_DATA_HOME` rather than the
-//! XDG pair: `dirs` reads the environment on Unix only, so an XDG-injected
-//! directory is not where a Windows `mt install` writes and every assertion
-//! below would be about a path nothing touched.
+//! The tests stage through `$MINDTAPE_CONFIG_HOME`/`$MINDTAPE_DATA_HOME` rather
+//! than the XDG pair. `dirs` reads the environment on Unix only, so an
+//! XDG-injected directory is not where a Windows `mt install` writes. Every
+//! assertion below would then be about a path nothing touched.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
@@ -134,7 +134,7 @@ fn skipping_every_config_part_needs_no_config_home() {
 }
 
 /// `mt install` writes every prelude this binary supports, each with its own
-/// manifest and source, so an old pin needs no download.
+/// manifest and source, so an old pin doesn't need a download.
 #[test]
 fn install_writes_every_supported_prelude() {
     let home = tempdir();
@@ -158,7 +158,7 @@ fn install_writes_every_supported_prelude() {
 }
 
 /// A bare `mt install` refreshes an existing generated schema, including the
-/// output schemas, so a compatible change reaches the installed copy without
+/// output schemas. A compatible change then reaches the installed copy without
 /// `--force`.
 #[test]
 fn schema_refreshes_without_force() {
@@ -205,8 +205,8 @@ fn existing_defaults_overwritten_with_force() {
     );
 }
 
-/// The seeded `defaults.toml` parses and validates through `parse_config` —
-/// it is the floor text verbatim, which always merges cleanly with itself.
+/// The seeded `defaults.toml` parses and validates through `parse_config`. It
+/// is the floor text verbatim, which always merges cleanly with itself.
 #[test]
 fn seeded_defaults_parses_through_parse_config() {
     let home = tempdir();
@@ -217,10 +217,10 @@ fn seeded_defaults_parses_through_parse_config() {
     config.validate().unwrap();
 }
 
-/// `install-lib` is gone, not merely renamed: it is neither a recognised
-/// subcommand nor a legend shortcut verb, so it falls through to the same
-/// "unknown command" error any other typo does, naming nothing in
-/// particular to replace it with.
+/// `install-lib` is an unknown command, not a renamed one. It is neither a
+/// recognised subcommand nor a legend shortcut verb. It falls through to the
+/// same "unknown command" error any other typo does, naming nothing to replace
+/// it with.
 #[test]
 fn install_lib_is_an_unknown_command() {
     let home = tempdir();
@@ -232,13 +232,13 @@ fn install_lib_is_an_unknown_command() {
     );
 }
 
-/// Every skip flag `InstallArgs` declares is named in `install`'s own long
+/// Every skip flag `InstallArgs` declares appears in `install`'s own long
 /// help, which is the text `mt _cli --json` carries into the docs site's CLI
-/// reference. `--no-schema` shipped without ever reaching that sentence, so
-/// the site rendered "performs both by default" directly above the
-/// hand-written note listing all three — the derived reference contradicting
+/// reference. `--no-schema` landed without ever reaching that sentence. The
+/// site then rendered "performs both by default" directly above the
+/// hand-written note listing all three, and the derived reference contradicted
 /// itself on one page. Deriving the reference from clap moved the drift into
-/// the doc comment, where nothing was watching; this is the thing watching.
+/// the doc comment, where nothing was watching. This test watches it.
 #[test]
 fn install_long_help_names_every_skip_flag() {
     let home = tempdir();
@@ -281,8 +281,8 @@ fn project_on_an_unsupported_prelude() -> tempfile::TempDir {
 const UNSUPPORTED_TASK: &str =
     "#import \"@local/mindtape:0.1.0\": *\n#show: task.with(title: \"Only task\")\n";
 
-/// `mt ls` in `project`, with the data home pointed at `data` (verbatim, so an
-/// empty value stays empty) and the global config layer out of reach.
+/// `mt ls` in `project`, with the data home pointed at `data` (verbatim, which
+/// keeps an empty value empty) and the global config layer out of reach.
 fn ls_with_data_home(project: &Path, data: &std::ffi::OsStr) -> assert_cmd::assert::Assert {
     assert_cmd::Command::cargo_bin("mt")
         .unwrap()
@@ -303,16 +303,16 @@ fn ls_output(project: &Path, data: &std::ffi::OsStr) -> (String, String) {
     )
 }
 
-/// The install and the read must name the same directory. `$MINDTAPE_DATA_HOME`
-/// moved where `mt install` writes the `@local/mindtape` package long before it
-/// moved where the loader reads it — resolution went through `typst-world`,
-/// which looked the directory up through `dirs` and had never heard of the
-/// variable. Pointed at a tempdir, `mt install` filled that tempdir while every
-/// task file kept importing the machine's own package.
+/// The install and the read must resolve the same directory.
+/// `$MINDTAPE_DATA_HOME` moved where `mt install` writes the `@local/mindtape`
+/// package long before it moved where the loader reads it. Resolution went
+/// through `typst-world`, which looked the directory up through `dirs` and had
+/// never heard of the variable. Pointed at a tempdir, `mt install` filled that
+/// tempdir while every task file kept importing the machine's own package.
 ///
-/// The pair is what makes this a test rather than a coincidence: a data home
-/// that has the package loads the task, and a second one that does not still
-/// loads it from the copy in the binary.
+/// The pair makes this a test rather than a coincidence. A data home that has
+/// the package loads the task, and a second one that does not still loads it
+/// from the copy in the binary.
 #[test]
 fn ls_resolves_the_prelude_from_the_configured_data_home() {
     let home = tempdir();
@@ -335,8 +335,8 @@ fn ls_resolves_the_prelude_from_the_configured_data_home() {
     );
 }
 
-/// An unsupported prelude is refused before any package directory is
-/// searched: a working `0.1.0` copy under the data home cannot serve it.
+/// `mt ls` refuses an unsupported prelude before it searches any package
+/// directory: a working `0.1.0` copy under the data home cannot serve it.
 #[test]
 fn ls_refuses_an_unsupported_prelude_whatever_the_data_home_holds() {
     let data = tempdir();
@@ -365,7 +365,7 @@ fn an_uninstalled_data_home_reads_the_embedded_prelude() {
 }
 
 /// Set but empty is `app_dirs`'s "no such directory", and a read honours it the
-/// same way a write does: no global package resolves at all, so the task
+/// same way a write does. No global package resolves at all, and the task
 /// reads the copy in the binary.
 #[test]
 fn an_empty_data_home_reads_the_embedded_prelude() {

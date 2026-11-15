@@ -4,14 +4,14 @@
 //! it lists: tracked regular files plus untracked files its ignore rules do not
 //! hide. That answer keeps a tracked task under an ignore pattern visible while
 //! an untracked ignored file stays out, and it keeps `mt ls` in step with the
-//! commit states. Git's paths are bytes, so they are decoded exactly as the
-//! query engine decodes them.
+//! commit states. Git's paths are bytes, and the loader decodes them exactly
+//! as the query engine decodes them.
 //!
 //! A root outside a work tree, or a machine without `git`, falls back to a
 //! filesystem walk that honors the task-source policy's skips and never
 //! follows a directory symlink. Any other Git failure is a [`LoadError`]
 //! naming the root. A root Git ignores is still listed, but only its tracked
-//! files can be seen, and one warning per root says so.
+//! files stay visible, and one warning per root says so.
 //!
 //! # Files
 //!
@@ -32,7 +32,7 @@ use super::visible_git::{RepoListing, existing_dir, ignored_at, repo_of, tracked
 pub use super::visible_project::{project_is_worktree, visible_typ_files};
 use super::{LoadError, LoadWarning};
 
-/// Why a prospective task path would not be loaded from the working tree.
+/// Why the working tree would not load a prospective task path.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NotVisible {
     /// The path lies outside every configured `[[tasks.roots]]` entry.
@@ -42,13 +42,13 @@ pub enum NotVisible {
     /// The path lies under a reserved `.mindtape`/`.git` component or a
     /// configured `[templates] dirs` entry.
     Reserved,
-    /// The path is a symbolic link; a task source is never a symlink.
+    /// The path is a symbolic link, and a task source is never a symlink.
     Symlink,
     /// A directory, or another non-file entry, already sits at the path.
     NotAFile,
     /// Git ignores the path and does not track it.
     Ignored,
-    /// Git could not answer for the path's root. The message names the root
+    /// Git could not answer for the path's root. The message specifies the root
     /// and Git's reason.
     Git(String),
 }
@@ -73,7 +73,7 @@ impl std::error::Error for NotVisible {}
 ///
 /// The candidates are absolute paths to regular `.typ` files that are either
 /// task sources or reserved files whose `task.with` call the loader warns
-/// about. Each root is listed exactly once, never once per file.
+/// about. The view lists each root exactly once, never once per file.
 pub(crate) struct VisibleFiles {
     source: TaskSource,
     roots: Vec<RootView>,
@@ -94,20 +94,20 @@ pub(crate) struct RootView {
     error: Option<LoadError>,
 }
 
-/// How one root's files were found.
+/// How discovery found one root's files.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum RootMode {
     /// Git listed the root.
     Git,
     /// Git is unavailable or the root is outside a work tree.
     Walk,
-    /// Git failed; the root has no files and contributes an error.
+    /// Git failed, so the root has no files and contributes an error.
     Failed,
 }
 
 impl VisibleFiles {
-    /// Read every configured root once. Git failures are recorded on their
-    /// root; a root that falls back is walked with the task-source policy.
+    /// Read every configured root once. The view records a Git failure on its
+    /// root, and walks a root that falls back with the task-source policy.
     pub(crate) fn new(root: &Path, config: &Config) -> Self {
         let source = TaskSource::new(root, config);
         let mut repos = BTreeMap::new();
@@ -117,7 +117,7 @@ impl VisibleFiles {
         Self { source, roots }
     }
 
-    /// The policy this view was built for.
+    /// The policy this view holds.
     pub(crate) fn source(&self) -> &TaskSource {
         &self.source
     }
@@ -141,10 +141,10 @@ impl VisibleFiles {
             .collect()
     }
 
-    /// Whether a file at `path` would be loaded from the working tree.
+    /// Whether the working tree would load a file at `path`.
     ///
     /// The policy half (root, `.typ`, reserved and template rules) is the
-    /// caller's; this answers the working-tree half for an existing source.
+    /// caller's, and this answers the working-tree half for an existing source.
     pub(crate) fn admits(&self, path: &TaskPath) -> Result<(), NotVisible> {
         let Some(view) = (self.roots.iter()).find(|view| path.abs().starts_with(&view.dir)) else {
             return Err(NotVisible::OutsideRoots);
@@ -228,7 +228,7 @@ impl RootView {
         }
     }
 
-    /// Whether a file at `path` would be loaded from this root.
+    /// Whether this root would load a file at `path`.
     fn admits(&self, path: &TaskPath) -> Result<(), NotVisible> {
         if let Some(error) = &self.error {
             return Err(NotVisible::Git(error.message.clone()));
@@ -304,9 +304,9 @@ fn root_error(root_rel: &Path, failure: &GitFailure) -> LoadError {
     }
 }
 
-/// Whether the repository ignores the root itself. A root at the
-/// repository's top level can never be ignored, and its parent is outside the
-/// work tree, so the probe starts below it only when it can.
+/// Whether the repository ignores the root itself. A root at the repository's
+/// top level never counts as ignored, and its parent is outside the work tree.
+/// The probe then starts below it only when it can.
 fn ignored_root(dir: &Path, repo_top: &Path) -> Result<bool, GitFailure> {
     let parent = dir.parent().unwrap_or(dir);
     if !existing_dir(parent).starts_with(repo_top) {
@@ -315,7 +315,7 @@ fn ignored_root(dir: &Path, repo_top: &Path) -> Result<bool, GitFailure> {
     ignored_at(dir, true)
 }
 
-/// A message naming a root and Git's reason.
+/// A message that specifies a root and Git's reason.
 fn reason(root_rel: &Path, failure: &GitFailure) -> String {
     format!(
         "can't list the task root `{}` with git: {}",
@@ -370,12 +370,12 @@ fn destination(source: &TaskSource, path: &TaskPath) -> Result<(), NotVisible> {
 
 /// Every task source under one configured root, absolute and sorted.
 ///
-/// A tracked regular `.typ` file is included even when Git ignores it; an
-/// untracked ignored file is not. A tracked file deleted from the working tree
-/// is not (it is not a regular file). A root outside a work tree, or a machine
-/// without `git`, walks the filesystem with the policy's skips and does not
-/// follow directory symlinks. An ignored root contributes only its tracked
-/// files; the loader emits its one warning.
+/// The listing includes a tracked regular `.typ` file even when Git ignores it,
+/// and leaves out an untracked ignored file. It also leaves out a tracked file
+/// deleted from the working tree (it is not a regular file). A root outside a
+/// work tree, or a machine without `git`, walks the filesystem with the
+/// policy's skips and does not follow directory symlinks. An ignored root
+/// contributes only its tracked files, and the loader emits its one warning.
 ///
 /// # Errors
 /// A Git failure other than a missing `git` or a non-worktree root, naming the
@@ -399,7 +399,7 @@ pub fn root_task_sources(
 ///
 /// Includes a tracked file even under an ignore rule, in any root (including
 /// an ignored root), and excludes an untracked ignored file, a symlink, and a
-/// tracked-deleted file. A missing root contributes nothing.
+/// tracked-deleted file. A missing root leaves the list unchanged.
 ///
 /// # Errors
 /// The first root's Git failure other than a missing `git` or a non-worktree

@@ -2,17 +2,17 @@
 //! (`truth/tasks/2026-07/conditional-ls-rules.typ`).
 //!
 //! [`resolve`] is the single source `cmd/ls/mod.rs` (one-shot and `--interactive`)
-//! calls. The cascade
-//! runs bottom-up, per facet: the first `[[ls.rules]]` entry whose `condition`
-//! holds (or is absent) composes its `import-views` left-to-right (per-facet
-//! last-wins) then applies its own manual overrides, else the project's default
-//! view, else match-all; then an explicit CLI filter argument overrides the
-//! filter facet (a bare `@view` overrides every facet the view sets); then
+//! calls. The cascade runs bottom-up, per facet. The first `[[ls.rules]]` entry
+//! whose `condition` holds (or is absent) composes its `import-views`
+//! left-to-right (per-facet last-wins) and then applies its own manual
+//! overrides. Failing that, the project's default view applies, and failing
+//! that, match-all. An explicit CLI filter argument then overrides the filter
+//! facet, and a bare `@view` overrides every facet the view sets. Finally
 //! `--sort` / `--columns` have the final word on theirs.
 //!
 //! Every layer is per facet, so narrowing a listing keeps the presentation the
-//! layer beneath chose — filter answers "which tasks", sort and columns answer
-//! "how do I read them"
+//! layer beneath chose. Filter answers "which tasks", and sort and columns
+//! answer "how do I read them"
 //! (`truth/tasks/2026-09/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
 //! [`resolve_bare`] is the cascade without the CLI-argument layers.
 
@@ -28,10 +28,10 @@ use crate::cmd::ls::LsArgs;
 use crate::diag::{Diag, Hint, Kind};
 use crate::util;
 
-/// A fully composed listing bundle: the three `mt ls` facets as plain owned
-/// values. `filter` is always meaningful (`""` is the match-all filter, same
-/// convention as [`mindtape::Filter::parse`]); an empty `sort` / `columns`
-/// means "no override — keep the built-in default".
+/// The three `mt ls` facets as plain owned values, fully composed. `filter`
+/// always carries a value (`""` is the match-all filter, same convention as
+/// [`mindtape::Filter::parse`]). An empty `sort` / `columns` means "no
+/// override, keep the built-in default".
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Bundle {
     pub filter: String,
@@ -39,26 +39,25 @@ pub struct Bundle {
     pub columns: Vec<String>,
 }
 
-/// Build the environment [`mindtape::Condition`]s evaluate against: the
-/// current git branch (from `project.root`'s `.git`), today's date, a full
+/// Build the environment [`mindtape::Condition`]s evaluate against. It holds
+/// the current git branch (from `project.root`'s `.git`), today's date, a full
 /// snapshot of the process environment, whether stdout is a terminal, and the
 /// active output format.
 ///
-/// This is the one place the CLI reads those ambient facts —
-/// [`mindtape::filter::condition`] is pure by design and takes them injected. The same
-/// environment drives both `[[ls.rules]]` and the per-column
-/// `[ls.columns.<name>] when`, so a condition means the same thing wherever it
-/// is written.
+/// This is the one place the CLI reads those ambient facts.
+/// [`mindtape::filter::condition`] is pure by design and takes them injected.
+/// Both `[[ls.rules]]` and the per-column `[ls.columns.<name>] when` read this
+/// same environment. A condition means the same thing in either place.
 ///
-/// `format` is the active output format's name; `""` compares unequal to every
+/// `format` is the active output format's name. `""` compares unequal to every
 /// real format name.
 ///
 /// The listing facts ([`mindtape::ColumnFacts`]) stay at their all-false
-/// default here and are filled in per column by
-/// [`crate::render::columns::resolve_order`], the only place that knows them.
-/// That is also what keeps `named()` from closing a loop: an `[[ls.rules]]`
-/// condition — which may itself supply the `columns` override `named()` later
-/// reads — sees the default, never a live answer.
+/// default here, and [`crate::render::columns::resolve_order`] fills them in
+/// per column, the only place that knows them. That is also what keeps
+/// `named()` from closing a loop: an `[[ls.rules]]` condition (which may itself
+/// supply the `columns` override `named()` later reads) sees the default, never
+/// a live answer.
 pub(crate) fn build_env(project: &util::Project, format: &str) -> ConditionEnv {
     ConditionEnv {
         branch: mindtape::current_branch(&project.root),
@@ -71,14 +70,14 @@ pub(crate) fn build_env(project: &util::Project, format: &str) -> ConditionEnv {
 }
 
 /// Resolve the bare-`mt ls` cascade only: the first matching `[[ls.rules]]`
-/// entry, else the project's default view, else match-all. No CLI-argument
-/// layer — this is what [`resolve`] falls back to when the caller passed no
-/// filter.
+/// entry, else the project's default view, else match-all. It carries no
+/// CLI-argument layer, and [`resolve`] falls back to it when the caller passed
+/// no filter.
 ///
 /// # Errors
 /// Returns an error if a rule's condition or a referenced view fails to
-/// resolve (both already validated at config load, so this only recurs for a
-/// hand-built, unvalidated config).
+/// resolve. Config load already validates both, so this only recurs for a
+/// hand-built, unvalidated config.
 pub fn resolve_bare(project: &util::Project, env: &ConditionEnv) -> Result<(Bundle, Applied)> {
     if let Some(hit) = match_rule(project, env)? {
         return Ok(hit);
@@ -109,7 +108,7 @@ pub fn resolve(
 
 /// Layer the explicit CLI filter argument over what the cascade resolved. A
 /// bare `@name` is the caller naming a view, so it overrides every facet that
-/// view sets; anything else (including the empty, match-all filter) narrows the
+/// view sets. Anything else (including the empty, match-all filter) narrows the
 /// rows and nothing more, leaving the sort and columns beneath it standing.
 fn apply_explicit_filter(
     config: &Config,
@@ -133,8 +132,8 @@ fn apply_explicit_filter(
     Ok((bundle_of(&applied), applied))
 }
 
-/// The effective bundle an [`Applied`] describes — its three `_value` facets,
-/// which are the resolved values themselves, not just attribution.
+/// The effective bundle an [`Applied`] describes: its three `_value` facets,
+/// which hold the resolved values themselves, not just attribution.
 fn bundle_of(applied: &Applied) -> Bundle {
     Bundle {
         filter: applied.filter_value.clone(),
@@ -144,7 +143,7 @@ fn bundle_of(applied: &Applied) -> Bundle {
 }
 
 /// A filter argument that is exactly one `@name` token (bundle mode), yielding
-/// the bare name; `None` for a compound expression.
+/// the bare name. `None` for a compound expression.
 fn bare_view_ref(filter: &str) -> Option<&str> {
     let name = filter.trim().strip_prefix('@')?;
     let ok = !name.is_empty()
@@ -154,9 +153,9 @@ fn bare_view_ref(filter: &str) -> Option<&str> {
     ok.then_some(name)
 }
 
-/// A named view's bundle, attributed to it wholesale: the filter facet always
-/// (an empty filter is still a meaningful match-all declaration), sort and
-/// columns only when the view actually sets them.
+/// A named view's bundle, attributed to it wholesale. The filter facet always
+/// arrives (an empty filter still declares match-all), and sort and columns
+/// arrive only when the view actually sets them.
 fn view_bundle(name: &str, view: &ViewSpec) -> (Bundle, Applied) {
     let bundle = Bundle {
         filter: view.filter.clone(),
@@ -193,7 +192,7 @@ fn default_view_bundle(config: &Config) -> (Bundle, Applied) {
     view_bundle(name, view)
 }
 
-/// Evaluate `[[ls.rules]]` top to bottom; the first entry whose condition
+/// Evaluate `[[ls.rules]]` top to bottom. The first entry whose condition
 /// holds (or is absent) wins.
 fn match_rule(project: &util::Project, env: &ConditionEnv) -> Result<Option<(Bundle, Applied)>> {
     let config = &project.config;
@@ -217,10 +216,10 @@ fn condition_holds(rule: &LsRule, env: &ConditionEnv) -> Result<bool> {
         .map_err(|err| Diag::from(err).context("in ls.rules condition", expr))
 }
 
-/// A rule's display identity: its `name`, else its `condition` text, else
-/// [`UNNAMED_RULE`]. Never empty — the label is a source name in its own right
-/// (a rule's own overrides are attributed to it), and an empty one would
-/// render as `applied:  (filter)`.
+/// A rule's display identity is its `name`, else its `condition` text, else
+/// [`UNNAMED_RULE`]. It is never empty, because the label is a source name in
+/// its own right: the CLI attributes a rule's own overrides to it. An empty one
+/// would render as `applied:  (filter)`.
 fn rule_label(rule: &LsRule) -> String {
     rule.name
         .clone()
@@ -228,18 +227,18 @@ fn rule_label(rule: &LsRule) -> String {
         .unwrap_or_else(|| UNNAMED_RULE.to_owned())
 }
 
-/// The label for an unnamed, unconditional catch-all rule — the one rule shape
-/// with neither a `name` nor a `condition` to be known by.
+/// The label for an unnamed, unconditional catch-all rule, the one rule shape
+/// that carries neither a `name` nor a `condition`.
 const UNNAMED_RULE: &str = "rule";
 
 /// Compose a matched rule's effective bundle: `import-views` left-to-right
 /// (per-facet last-wins), then the rule's own manual overrides (highest
 /// precedence within the rule). The default view is not a base layer beneath a
-/// matched rule — only what the rule itself imports or overrides applies.
+/// matched rule. Only what the rule itself imports or overrides applies.
 ///
-/// A rule's own overrides are attributed to the rule, not to `manual`: an
-/// explicit CLI argument can win one facet while the rule keeps another,
-/// and one shared label would report the two as one source.
+/// The CLI attributes a rule's own overrides to the rule, not to `manual`. An
+/// explicit CLI argument can win one facet while the rule keeps another, and
+/// one shared label would report the two as one source.
 fn compose_rule(config: &Config, rule: &LsRule) -> Result<(Bundle, Applied)> {
     let label = rule_label(rule);
     let mut applied = Applied {
@@ -270,10 +269,10 @@ fn compose_rule(config: &Config, rule: &LsRule) -> Result<(Bundle, Applied)> {
 }
 
 /// Fold one `import-views` entry into the accumulating `applied`, for each
-/// facet it selects. Filter always overwrites (even an empty filter is a
-/// meaningful match-all declaration); sort/columns only overwrite when the
-/// view actually sets them, so a later entry that omits a facet cannot erase
-/// an earlier one's contribution.
+/// facet it selects. Filter always overwrites, since even an empty filter
+/// declares match-all. Sort and columns overwrite only when the view actually
+/// sets them, so a later entry that omits a facet cannot erase an earlier
+/// one's contribution.
 fn apply_import_entry(applied: &mut Applied, facets: &[Facet], view_name: &str, view: &ViewSpec) {
     for facet in facets {
         match facet {
@@ -294,10 +293,10 @@ fn apply_import_entry(applied: &mut Applied, facets: &[Facet], view_name: &str, 
     }
 }
 
-/// Splice each `@view` entry in `specs` with `field(view)`; a literal entry
-/// passes through unchanged. Shared by a rule's manual `sort` / `columns`
-/// override (here) and the CLI `--sort` flag ([`apply_cli_overrides`]) — same
-/// splice semantics, different source field.
+/// Splice each `@view` entry in `specs` with `field(view)`. A literal entry
+/// passes through unchanged. A rule's manual `sort` / `columns` override (here)
+/// and the CLI `--sort` flag ([`apply_cli_overrides`]) share it, with the same
+/// splice semantics from a different source field.
 fn splice_view_refs(
     specs: &[String],
     config: &Config,

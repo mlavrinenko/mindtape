@@ -20,7 +20,7 @@ pub(super) fn canonical(title: &str) -> CanonicalTask {
 }
 
 /// Legend `proposed`/`done`, a `backend`-only tag allow-list, a `kind` enum
-/// of `bug`/`feature`, and a `Summary`-requiring body-header rule — the
+/// of `bug`/`feature`, and a `Summary`-requiring body-header rule. This is the
 /// shared fixture for every test that does not need a priority framework.
 pub(super) fn config() -> Config {
     parse_config(

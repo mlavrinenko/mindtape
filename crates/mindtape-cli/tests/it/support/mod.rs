@@ -1,10 +1,10 @@
 //! Shared scaffolding for CLI end-to-end tests (`tests/it/*_e2e.rs`).
 //!
-//! A module of the one `it` test binary, which declares it in `main.rs`; the
-//! e2e modules reach it with `use crate::support;`. A helper that no module
-//! calls is dead code, hence the module-wide allow. The project fixtures live in
+//! A module of the one `it` test binary, which declares it in `main.rs`. The
+//! e2e modules reach it with `use crate::support;`. An unused helper is dead
+//! code, and the module-wide allow covers it. The project fixtures live in
 //! `fixtures.rs`, the merge-driver runs in `merge_driver.rs`, and the scrubbed
-//! process builder in `shell.rs`; the `mt` spawns and read-backs stay here.
+//! process builder in `shell.rs`. The `mt` spawns and read-backs stay here.
 //! Only Unix e2e modules use `merge_driver.rs` and `shell.rs`, so both build on
 //! Unix alone.
 #![allow(
@@ -43,7 +43,7 @@ const NO_GLOBAL_CONFIG: &str = "no-global-config";
 const DATA_HOME: &str = "data-home";
 
 /// Where [`isolated_env`] points the cache directory: a path under the test's
-/// own project directory, so a test fills the pack cache it reads.
+/// own project directory. A test then fills the pack cache it reads.
 pub const CACHE_HOME: &str = "cache-home";
 
 /// The reason `mt` gives for a missing file on this platform: the OS's words.
@@ -54,12 +54,12 @@ pub const NOT_FOUND: &str = "no such file or directory";
 pub const NOT_FOUND: &str = "the system cannot find the file specified";
 
 /// Environment variables that steer `mt` and must not reach a spawned binary
-/// from the developer's shell: `MINDTAPE_NOW` repins the clock every dated
-/// write reads, `MINDTAPE_WORKTREE` retargets the project root, and `VISUAL`
-/// would hand an accidental editor the developer's real one. `DIRENV_DIFF` and
-/// `DIRENV_WATCHES` are direnv's record of what it loaded: inherited, they make
-/// a `direnv exec` inside a scratch repo rewind `PATH` to the shell's pre-load
-/// value, so a script resolves the host's `mt` instead of the one under test.
+/// from the developer's shell. `MINDTAPE_NOW` repins the clock every dated write
+/// reads, `MINDTAPE_WORKTREE` retargets the project root, and `VISUAL` would
+/// hand an accidental editor the developer's real one. `DIRENV_DIFF` and
+/// `DIRENV_WATCHES` record what direnv loaded. Inherited, they make a
+/// `direnv exec` inside a scratch repo rewind `PATH` to the shell's pre-load
+/// value. A script then resolves the host's `mt` instead of the one under test.
 const CLEARED_VARS: [&str; 5] = [
     "MINDTAPE_NOW",
     "MINDTAPE_WORKTREE",
@@ -69,28 +69,28 @@ const CLEARED_VARS: [&str; 5] = [
 ];
 
 /// The editor every isolated spawn resolves instead of the developer's: a
-/// command that cannot exist, so an `add` a test did not mean to make
-/// interactive fails on the spawn rather than opening a real editor. Tests
-/// that exercise the editor set their own `EDITOR` after [`isolate`].
+/// command that cannot exist. An `add` a test did not mean to make interactive
+/// then fails on the spawn rather than opening a real editor. Tests that
+/// exercise the editor set their own `EDITOR` after [`isolate`].
 const STUB_EDITOR: &str = "mt-no-such-editor";
 
 /// The environment a spawned `mt` needs for a test to be about the code rather
 /// than about the machine running it.
 ///
-/// `mt` layers a global `defaults.toml` under every project config —
+/// `mt` layers a global `defaults.toml` under every project config, at
 /// `dirs::config_dir()/mindtape/defaults.toml`, a supported and documented
 /// layer (`crates/mindtape/src/config/layers.rs`). A spawned binary reads
 /// whatever the developer happens to keep there, so without this every e2e
-/// test is a function of their personal `mt` setup: two lines of `[ls]
+/// test is a function of their personal `mt` setup. Two lines of `[ls]
 /// hyperlinks` in `~/.config/mindtape/defaults.toml` are enough to fail
 /// `hyperlinks_e2e` on a tree with no Rust change in it.
 ///
 /// So point that lookup at an empty path. `MINDTAPE_CONFIG_HOME` is the one
-/// knob that does it on every platform (`mindtape::config_home`): `dirs` reads
-/// the environment only on Unix — `XDG_CONFIG_HOME` on Linux, `HOME` on macOS
-/// (which reads `~/Library/Application Support` and ignores XDG) — and goes
-/// through a known-folder API on Windows that no variable overrides. The XDG
-/// pair stays set anyway, since `HOME` also caps the ancestor
+/// knob that does it on every platform (`mindtape::config_home`). `dirs` reads
+/// the environment only on Unix: `XDG_CONFIG_HOME` on Linux, `HOME` on macOS
+/// (which reads `~/Library/Application Support` and ignores XDG). On Windows it
+/// goes through a known-folder API that no variable overrides. The XDG pair
+/// stays set anyway, since `HOME` also caps the ancestor
 /// `.mindtape/defaults.toml` walk at `dir`, so a stray one above the tempdir
 /// cannot leak in either.
 ///
@@ -178,8 +178,8 @@ pub fn assert_stderr(dir: &Path, args: &[&str], code: i32, expected: &str) {
 }
 
 /// `mt`, ready to run in `dir` with the developer's global config out of reach
-/// ([`isolated_env`]). The spawn every e2e test goes through; a bare
-/// `cargo_bin("mt")` is the un-isolated one and only `install_e2e` (which
+/// ([`isolated_env`]). Every e2e test spawns through it. A bare
+/// `cargo_bin("mt")` is the un-isolated one, and only `install_e2e` (which
 /// injects its own XDG directories) has cause to write it.
 pub fn mt(dir: &Path) -> assert_cmd::Command {
     let mut command = std::process::Command::new(env!("CARGO_BIN_EXE_mt"));
@@ -188,16 +188,17 @@ pub fn mt(dir: &Path) -> assert_cmd::Command {
     assert_cmd::Command::from_std(command)
 }
 
-/// [`mt`]'s isolation for a caller that builds its own command — the pty tests
+/// [`mt`]'s isolation for a caller that builds its own command: the pty tests
 /// spawn `mt` through `script(1)`, which passes its environment down.
 ///
-/// The editor pair is scrubbed here, not defaulted: a sweep mutant that
+/// This scrubs the editor pair rather than defaulting it. A sweep mutant that
 /// wrongly answers "open the editor" (`cmd::add::interactive::should_open -> true`
 /// and friends) otherwise spawns whatever `$VISUAL`/`$EDITOR` the developer's
 /// session carries. That happened: `cargo-mutants` ran the add e2e tests with
-/// a `--wait` GUI editor in `VISUAL`, one window per test until the 60 s timeout. In a
-/// tree whose suite must be about the code, the developer's editor can never
-/// be the fallback; [`STUB_EDITOR`] makes the mistake a fast spawn error.
+/// a `--wait` GUI editor in `VISUAL`, one window per test until the 60 s
+/// timeout. In a tree whose suite must be about the code, the developer's editor
+/// can never be the fallback. [`STUB_EDITOR`] makes the mistake a fast spawn
+/// error.
 pub fn isolate<'a>(
     command: &'a mut std::process::Command,
     dir: &Path,
@@ -215,11 +216,11 @@ pub fn isolate<'a>(
 /// Every character that opens Typst syntax, in one line of otherwise ordinary
 /// prose: emphasis (`*`, `_`), math (`$`), code (`#`), content-block delimiters
 /// (`[`, `]`), a label (`<a>`) and a reference (`@at`). Text carrying these must
-/// survive a write unchanged — unescaped, `create-*star*` fails to load and
+/// survive a write unchanged: unescaped, `create-*star*` fails to load and
 /// `<a>`/`@at` silently evaluate away.
 pub const MARKUP_HAZARDS: &str = "create-*star* _u_ $x$ #h [b] <a> >g @at";
 
-/// `value["$schema"]` must name the `name` output.
+/// `value["$schema"]` must point at the `name` output.
 pub fn assert_schema(value: &serde_json::Value, name: &str) {
     let schema = value["$schema"].as_str().unwrap_or_default();
     assert!(
@@ -234,7 +235,7 @@ pub fn without_schema(mut value: serde_json::Value) -> serde_json::Value {
     value
 }
 
-/// `mt <args>` in `dir`, parsed as JSON; the run must succeed.
+/// `mt <args>` in `dir`, parsed as JSON. The run must succeed.
 fn json_output(dir: &Path, args: &[&str]) -> serde_json::Value {
     let output = mt(dir)
         .args(args)
@@ -261,11 +262,10 @@ pub fn task_json(dir: &Path, id: &str) -> serde_json::Value {
         .clone()
 }
 
-/// The lone task's status note read back through the harvest, via an
-/// explicit match-all filter (`mt ls "" --json`) since the default view hides
-/// a task that has already reached a terminal status. Reading it back is the
-/// only way to tell a note that survived the write from markup Typst quietly
-/// interpreted away.
+/// The lone task's status note read back through the harvest, via an explicit
+/// match-all filter (`mt ls "" --json`). The default view hides a task that has
+/// already reached a terminal status. Reading it back is the only way to tell a
+/// note that survived the write from markup Typst quietly interpreted away.
 pub fn status_note(dir: &Path) -> String {
     let output = mt(dir)
         .args(["ls", "", "--json"])
@@ -317,8 +317,9 @@ pub fn json(dir: &Path, args: &[&str]) -> serde_json::Value {
     serde_json::from_str(&stdout(dir, args)).unwrap()
 }
 
-/// Run `mt` in `dir`, assert it succeeds, and return its stdout — [`run_ok`]
-/// for the tests that assert on what was printed rather than only that it was.
+/// Run `mt` in `dir`, assert it succeeds, and return its stdout. This is
+/// [`run_ok`] for the tests that assert on what the run printed rather than only
+/// that it succeeded.
 pub fn stdout(dir: &Path, args: &[&str]) -> String {
     let out = mt(dir).args(args).output().unwrap();
     assert!(out.status.success(), "mt {args:?} failed: {out:?}");
@@ -417,7 +418,8 @@ pub fn native(path: &str) -> String {
 }
 
 /// `text` with each of `paths` in it, written with `/`, in the separator `mt`
-/// shows people on this platform: an expected message that names them.
+/// shows people on this platform. The result is an expected message that names
+/// them.
 pub fn native_in(text: &str, paths: &[&str]) -> String {
     paths.iter().fold(text.to_owned(), |text, path| {
         text.replace(path, &native(path))
@@ -437,7 +439,7 @@ pub fn assert_unsupported_prelude(stderr: &str, version: &str) {
     );
 }
 
-/// A prelude stub whose task title is `Installed`, so a listing tells the
+/// A prelude stub whose task title is `Installed`. A listing then tells the
 /// installed copy from the one embedded in the binary.
 pub const INSTALLED_PRELUDE: &str = "#let task(body, ..meta) = \
     [#metadata((marker: \"mindtape.task\", fields: (title: \"Installed\"), extras: (:))) <mindtape>]\n";

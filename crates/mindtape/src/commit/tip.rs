@@ -4,10 +4,11 @@
 //!
 //! A tip rule is a `[[tasks.rules]]` expression, not a commit expression: at
 //! the tip there is one task state and no single commit, so `status`,
-//! `ready` and `count(...)` read as they do in `mt ls`. A task the tip does
-//! not hold (the range deleted or retired it) has no state to be wrong in,
-//! so it is skipped. A rule that [reads the working tree](crate::CommitRuleSpec::reads_worktree)
-//! is skipped too, since a past tip has none.
+//! `ready` and `count(...)` read as they do in `mt ls`. The check skips a task
+//! the tip does not hold (the range deleted or retired it), because that task
+//! has no state to be wrong in. The check also skips a rule that
+//! [reads the working tree](crate::CommitRuleSpec::reads_worktree), since a
+//! past tip has none.
 
 use std::collections::BTreeSet;
 
@@ -19,8 +20,8 @@ use crate::filter::Filter;
 /// Evaluate every `scope = "tip"` rule once per distinct stem in `stems`,
 /// reading each task from `tip`, in rule order and then stem order.
 ///
-/// A `when` that fails to evaluate excludes the task; an `assert` that
-/// fails to evaluate is a breach naming the failure, as in
+/// A `when` that fails to evaluate excludes the task. An `assert` that
+/// fails to evaluate produces a breach that reports the failure, as in
 /// [`check_commit`](crate::check_commit).
 #[must_use]
 pub fn check_tip<'a>(

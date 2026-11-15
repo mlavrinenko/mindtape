@@ -1,8 +1,8 @@
 //! Where a task file's `task.with(…)` call and its arguments sit, read once.
 //!
-//! Every place that points a breach at a line, slices the prose body after
-//! the call, or asks which argument a load error falls in reads this one
-//! parse: the loader, [`crate::Task::field_location`] and the template check.
+//! The loader, [`crate::Task::field_location`] and the template check all read
+//! this one parse. Each of them points a breach at a line, slices the prose
+//! body after the call, or asks which argument a load error falls in.
 //! Parse-plane only (no eval): [`typst_edit::find_method_calls`] locates the
 //! call.
 
@@ -16,9 +16,9 @@ const TASK: &str = "task";
 
 /// The position of one source's `task.with(…)` call.
 ///
-/// The default is a source with no such call — a task authored as a bare
-/// `#metadata((…))`, or built without a source — which has no line to point at
-/// and no body to slice.
+/// A source with no such call, such as a task authored as a bare
+/// `#metadata((…))` or one built without a source, yields the default spans.
+/// Such a source has no line to point at and no body to slice.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct TaskCallSpans {
     /// One-based line the call opens on.
@@ -138,8 +138,8 @@ impl TaskCallSpans {
         }
     }
 
-    /// The prose after the call in `source`, trimmed; empty when there is no
-    /// call. Trimming drops the blank line the emitter re-adds between the
+    /// The prose after the call in `source`, trimmed, and empty when there is
+    /// no call. Trimming drops the blank line the emitter re-adds between the
     /// call and the body, keeping the round-trip stable.
     #[must_use]
     pub fn body(&self, source: &str) -> String {
@@ -152,8 +152,9 @@ impl TaskCallSpans {
 
     /// Where a breach that `checked` (a rendering of `authored`) places at
     /// `checked_line` of `field` sits in `authored`, which these are the spans
-    /// of: the line of the argument itself, else the authored line reading as
-    /// the checked one, else the call. `None` when `authored` has no call.
+    /// of. The answer is the line of the argument itself, else the authored
+    /// line reading as the checked one, else the call. `None` when `authored`
+    /// has no call.
     #[must_use]
     pub fn relocate(
         &self,

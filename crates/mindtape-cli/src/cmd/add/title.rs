@@ -13,10 +13,10 @@ use crate::diag::{Diag, Result};
 /// Split the positional `TITLE` words into the words that name the task and
 /// their `+tag` sugar, when the template declares a `tags` slot.
 ///
-/// A `+word` token (the Taskwarrior/todo.txt tag sigil) becomes a tag instead —
+/// A `+word` token (the Taskwarrior/todo.txt tag sigil) becomes a tag instead.
 /// `mt add fix login +backend` sets `title: "fix login"` and appends
-/// `"backend"` to `tags`. Without a `tags` slot the words are left untouched,
-/// so a `+`-prefixed word never silently vanishes.
+/// `"backend"` to `tags`. Without a `tags` slot the words stay untouched, so a
+/// `+`-prefixed word never silently vanishes.
 pub(super) fn split_positional(args: &AddArgs, specs: &[SlotSpec]) -> (Vec<String>, Vec<String>) {
     if specs.iter().any(|spec| spec.name == "tags") {
         split_tag_sugar(&args.title)
@@ -26,10 +26,10 @@ pub(super) fn split_positional(args: &AddArgs, specs: &[SlotSpec]) -> (Vec<Strin
 }
 
 /// Seed a template's title slot from the positional `title_words`, joined with
-/// spaces. A higher-precedence value for that slot (`-f`/`--set`) wins; blank
-/// input sets nothing. Returns the slot it filled, so the caller can count it
-/// as explicit input. An aliased slot also keeps the core `title` value the
-/// filename stem is minted from.
+/// spaces. A higher-precedence value for that slot (`-f`/`--set`) wins, and
+/// blank input sets nothing. Returns the slot it filled, so the caller can
+/// count it as explicit input. An aliased slot also keeps the core `title`
+/// value that the filename stem comes from.
 #[cfg(test)]
 pub(super) fn fill_title_from_args(
     values: &mut BTreeMap<String, RawValue>,
@@ -55,7 +55,7 @@ pub(super) fn fill_title_from_args_in(
 }
 
 /// Split `+tag` words out of the positional title, in order. A bare `+` (no
-/// tag text) is kept as a title word rather than treated as an empty tag.
+/// tag text) stays a title word rather than becoming an empty tag.
 fn split_tag_sugar(words: &[String]) -> (Vec<String>, Vec<String>) {
     let mut title_words = Vec::new();
     let mut tags = Vec::new();
@@ -68,10 +68,10 @@ fn split_tag_sugar(words: &[String]) -> (Vec<String>, Vec<String>) {
     (title_words, tags)
 }
 
-/// Read a piped title from stdin into the template's title slot. Gated to the
-/// non-interactive pipe case: a TTY (no pipe) would block, and `-f -` already
-/// claims stdin as JSON. A higher-precedence value for that slot
-/// (`--set`/`-f`/env) wins.
+/// Read a piped title from stdin into the template's title slot. The function
+/// runs only in the non-interactive pipe case, because a TTY (no pipe) would
+/// block and `-f -` already claims stdin as JSON. A higher-precedence value for
+/// that slot (`--set`/`-f`/env) wins.
 #[cfg(test)]
 pub(super) fn fill_title_from_stdin(
     values: &mut BTreeMap<String, RawValue>,
@@ -103,7 +103,7 @@ pub(super) fn fill_title_from_stdin_in(
 }
 
 /// Put `title` in `slot`, plus the core `title` key a stem mint reads when the
-/// slot is aliased.
+/// slot carries an alias.
 fn insert_title(values: &mut BTreeMap<String, RawValue>, slot: &str, title: String) {
     let value = RawValue::Str(title);
     if slot != "title" {

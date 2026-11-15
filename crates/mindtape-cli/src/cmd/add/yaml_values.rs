@@ -1,15 +1,15 @@
 //! Shared YAML mapping -> [`RawValue`] conversion for `mt add`'s interactive
 //! editor buffer (`cmd/add/interactive.rs`) and its `-f/--values` YAML sources
-//! (`cmd/add/values.rs`). `mindtape` stays format-blind; this glue is CLI-only.
+//! (`cmd/add/values.rs`). `mindtape` stays format-blind. This glue is CLI-only.
 //!
 //! A null leaf value converts to `None`, but its key still lands in the
-//! returned map (mapped to `None`) rather than being omitted — a caller
-//! merging several sources needs to tell "this source explicitly unset the
-//! key" from "this source never mentioned the key" apart. Each caller decides
-//! what "blank" means for its own path: `cmd::add::values::collect_values` treats a
-//! `None` entry as an explicit unset when merging sources, while
-//! `cmd::add::interactive::parse_buffer` simply drops it (and empty strings, which
-//! this module keeps as real values — see its own filtering).
+//! returned map (mapped to `None`) rather than disappearing. A caller merging
+//! more than one source needs to tell "this source explicitly unset the key"
+//! from "this source never mentioned the key" apart. Each caller decides what
+//! "blank" means for its own path. `cmd::add::values::collect_values` treats a
+//! `None` entry as an explicit unset when merging sources.
+//! `cmd::add::interactive::parse_buffer` simply drops it, and drops empty
+//! strings too, which this module keeps as real values (see its own filtering).
 
 use std::collections::BTreeMap;
 
@@ -21,14 +21,14 @@ use crate::diag::{Diag, Hint};
 /// each value to a [`RawValue`] (a `null` value keeps its key, mapped to
 /// `None`). A `null` root is an empty mapping (nothing to fill).
 ///
-/// `source` names where the text came from, a `-f` source, and is quoted in
-/// the error. The editor buffer passes `None`, because the user just typed it.
+/// `source` gives where the text came from, a `-f` source, and the error quotes
+/// it. The editor buffer passes `None`, because the user just typed it.
 ///
 /// # Errors
-/// Returns a [`Diag`] when `text` fails to parse as YAML (a malformed
-/// document, or more than one), the root is not a mapping, a key is
-/// non-string, or a value has an unsupported shape (nested mapping,
-/// non-string list item).
+/// Returns a [`Diag`] when `text` fails to parse as YAML (a malformed document,
+/// or more than one), or when the root is not a mapping. Also when a key is
+/// non-string, or a value has an unsupported shape (nested mapping, non-string
+/// list item).
 pub fn parse_mapping(
     text: &str,
     source: Option<&str>,
@@ -76,7 +76,7 @@ fn yaml_to_raw(name: &str, value: &serde_yaml_ng::Value) -> Result<Option<RawVal
 }
 
 /// A YAML sequence is a string list, or, when every item is a mapping, a list
-/// of typed edges. A mixed sequence is neither, and the refusal names the slot.
+/// of typed edges. A mixed sequence is neither, and the refusal cites the slot.
 fn sequence(name: &str, items: &[serde_yaml_ng::Value]) -> Result<RawValue, Diag> {
     let mappings = items
         .iter()

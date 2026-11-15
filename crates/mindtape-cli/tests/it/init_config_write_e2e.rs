@@ -1,12 +1,13 @@
 //! End-to-end tests for what `init` actually writes to disk: the default and
-//! `--no-input` shapes, quiet rendering vs `--annotate`, a custom preset
-//! file's `[overlay]` composition, the `#:schema` directive flags, `--force`
-//! overwrite semantics, and an unknown preset name failing without writing.
+//! `--no-input` shapes, quiet rendering vs `--annotate`, and a custom preset
+//! file's `[overlay]` composition. They also cover the `#:schema` directive
+//! flags and `--force` overwrite semantics. An unknown preset name fails
+//! without writing.
 //!
-//! Whether the resulting project is actually usable — the full `add`/`ls`/
+//! Whether the resulting project is actually usable lives in `init_e2e.rs`, a
+//! separate binary along that subject seam. That file runs the full `add`/`ls`/
 //! `check`/status-walk battery over every built-in preset and composed answer
-//! set, plus the `gated` preset's runtime review gate — lives in
-//! `init_e2e.rs`, a separate binary along that subject seam.
+//! set, plus the `gated` preset's runtime review gate.
 //!
 //! These live here (not as inline `#[path]` unit tests) because `cargo_bin`
 //! needs the compiled binary: Cargo builds it before running integration tests
@@ -18,7 +19,7 @@ use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
 
 /// A batch-composed config records its axis answers as a comment block, and the
-/// `spec` headers answer ships the template that produces its sections.
+/// `spec` headers answer writes the template that produces its sections.
 #[test]
 fn composed_config_records_answers_and_ships_templates() {
     let dir = tempdir();
@@ -41,8 +42,8 @@ fn composed_config_records_answers_and_ships_templates() {
     assert!(dir.path().join(".mindtape/templates/task.typ").exists());
 }
 
-/// `--no-input` with no axis flags falls through to the default preset — the
-/// same shape a bare non-terminal `mt init` writes — with no wizard answer block
+/// `--no-input` with no axis flags falls through to the default preset, the
+/// same shape a bare non-terminal `mt init` writes, with no wizard answer block
 /// and no prompt.
 #[test]
 fn no_input_without_flags_writes_the_default_preset() {
@@ -77,8 +78,8 @@ fn init_default_preset_supports_add_ls_check() {
     support::add_then_ls_and_check(dir.path(), "wire-init", &[]);
 }
 
-/// The default rendering is quiet: apart from the schema directive, which is
-/// prepended after stripping, no comment lines survive.
+/// The default rendering is quiet: apart from the schema directive, which the
+/// renderer prepends after stripping, no comment lines survive.
 #[test]
 fn default_rendering_carries_no_commentary() {
     let dir = support::init_preset("flow");
@@ -108,9 +109,9 @@ fn annotate_keeps_commentary_and_still_works() {
     support::add_then_ls_and_check(dir.path(), "wire-annotated", &[]);
 }
 
-/// A todo-done-shaped base plus a top-level `[overlay]` the axes cannot express — a
-/// named view. The overlay merges last, so the flattened config carries `[views]`
-/// and no literal `[overlay]`.
+/// A todo-done-shaped base plus a top-level `[overlay]` the axes cannot
+/// express, a named view. The overlay merges last. The flattened config then
+/// carries `[views]` and no literal `[overlay]`.
 const OVERLAY_PRESET: &str = "\
 [tasks]
 roots = [\"tasks\"]
@@ -134,7 +135,7 @@ filter = \"!terminal\"
 ";
 
 /// A preset whose entire body sits under `[overlay]`: the base is empty, so the
-/// composition is exactly the overlay — the preset-with-only-an-overlay case.
+/// composition is exactly the overlay, the preset-with-only-an-overlay case.
 const OVERLAY_ONLY_PRESET: &str = "\
 [overlay.tasks]
 roots = [\"tasks\"]
@@ -160,9 +161,9 @@ fn init_from_preset_file(body: &str) -> tempfile::TempDir {
     dir
 }
 
-/// A preset carrying a top-level `[overlay]` composes: the overlay merges last
-/// over the base, the written config is flattened (no literal `[overlay]`) and
-/// carries the overlay's own section, and it supports the add / ls / check cycle.
+/// A preset carrying a top-level `[overlay]` composes. The overlay merges last
+/// over the base, and the written config flattens (no literal `[overlay]`) and
+/// carries the overlay's own section. It supports the add / ls / check cycle.
 #[test]
 fn preset_overlay_composes_a_flattened_valid_config() {
     let dir = init_from_preset_file(OVERLAY_PRESET);
@@ -237,8 +238,8 @@ fn init_no_schema_omits_directive() {
 }
 
 /// Without `--force` `init` refuses an existing config with exit 1 and leaves
-/// it as it was; with it, `init` overwrites. A refused write installs no
-/// templates either, since a half-applied preset would leave a project whose
+/// it as it was. With it, `init` overwrites. A refused write skips the
+/// templates too, since a half-applied preset would leave a project whose
 /// config and templates disagree.
 #[test]
 fn force_interplay_unchanged() {

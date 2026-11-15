@@ -1,6 +1,6 @@
 //! `body:` guarantee: synthesize a minimal `== Summary` when a record's body
 //! is empty and the project's body-header rules would otherwise fail every
-//! import outright — the policy home for "every imported file passes
+//! import outright. This is the policy home for "every imported file passes
 //! `mt check`" (`emit/mod.rs` stays pure and never synthesizes on its own).
 
 use crate::config::{Config, HeaderAction, HeaderPathSegment};
@@ -9,12 +9,12 @@ use crate::model::canonical::CanonicalTask;
 use super::report::ReportEntry;
 
 /// The record's body, trimmed, or a synthesized `== Summary` from the title
-/// when empty and the project requires one. Detection is best-effort: it
-/// looks for a `require`/`unique` header rule whose single-segment path names
-/// (or, for a regex segment, textually mentions) "summary" — precise enough
-/// for the common single-rule case this project itself declares
-/// (`.mindtape/config.toml`'s `path = ["Summary"], action = "unique"`)
-/// without pulling in a regex engine just to decide whether to synthesize.
+/// when empty and the project requires one. Detection is best-effort. It looks
+/// for a `require`/`unique` header rule whose single-segment path references
+/// (or, for a regex segment, textually mentions) "summary". That is precise
+/// enough for the common single-rule case this project itself declares
+/// (`.mindtape/config.toml`'s `path = ["Summary"], action = "unique"`) without
+/// pulling in a regex engine just to decide whether to synthesize.
 pub(crate) fn map_body(
     canonical: &CanonicalTask,
     config: &Config,
@@ -105,8 +105,8 @@ mod tests {
     }
 
     /// Runs `map_body` over a fresh "Fix Login" task under the given header
-    /// `rules`, returning its result body and the report entries it pushed —
-    /// the shared setup for the scenarios below.
+    /// `rules`, returning its result body and the report entries it pushed.
+    /// This is the shared setup for the scenarios below.
     fn run_map_body(rules: Vec<HeaderRuleConfig>) -> (String, Vec<ReportEntry>) {
         let config = config_with_rules(rules);
         let task = CanonicalTask {

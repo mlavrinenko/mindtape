@@ -1,23 +1,24 @@
-//! `mt install` — set up the user environment: the `@local/mindtape` Typst
-//! package, the XDG global `defaults.toml` app-config layer, the JSON Schemas
-//! for `.mindtape/config.toml`, `at.toml` and every machine output, and the
-//! shell completion hooks.
+//! `mt install` sets up the user environment. It writes the `@local/mindtape`
+//! Typst package, the XDG global `defaults.toml` app-config layer, the JSON
+//! Schemas for `.mindtape/config.toml`, `at.toml` and every machine output, and
+//! the shell completion hooks.
 //!
-//! Distinct from `mt init`, which scaffolds a PROJECT's `.mindtape/config.toml`.
-//! By default performs all four installs; `--no-lib`/`--no-defaults`/
-//! `--no-schema`/`--no-completions` skip any of them.
+//! Distinct from `mt init`, which scaffolds a project's
+//! `.mindtape/config.toml`. By default it performs all four installs.
+//! `--no-lib`/`--no-defaults`/`--no-schema`/`--no-completions` skip any of them.
 //!
-//! The completion hook is the odd one out in what it contains: the other three
-//! files carry content, this one carries a call. Each is the couple of lines
-//! that ask `mt` itself for the completion on every tab press
-//! ([`crate::cli::completion`]), never a generated completion script — a script
+//! The completion hook is the odd one out in what it contains. The other three
+//! files carry content, and this one carries a call. Each is the couple of
+//! lines that ask `mt` itself for the completion on every tab press
+//! ([`crate::cli::completion`]), never a generated completion script. A script
 //! written here would be a copy of the parser and of this project's config,
 //! stale from the next flag and wrong in every other project. It also means an
-//! `mt` upgrade needs no re-install: the hook is re-evaluated at shell start.
+//! `mt` upgrade works without a re-install, since the shell re-evaluates the
+//! hook at start.
 //!
 //! # Files
 //!
-//! - `hint.rs` — remedies for load failures whose diagnostic names none.
+//! - `hint.rs`: remedies for load failures whose diagnostic gives none.
 
 pub(crate) mod hint;
 
@@ -48,9 +49,9 @@ pub struct InstallArgs {
 
     /// Overwrite files that already exist.
     ///
-    /// Those are your `defaults.toml` and the completion hooks. The JSON
-    /// Schemas are generated from this binary and refreshed on every install.
-    /// The package is written on every install, unless its directory is a
+    /// Those are your `defaults.toml` and the completion hooks. This binary
+    /// generates the JSON Schemas and refreshes them on every install. It
+    /// writes the package on every install too, unless its directory is a
     /// symlink: `--force` replaces the link with this binary's copy.
 
     #[arg(long)]
@@ -86,13 +87,13 @@ pub fn run(args: &InstallArgs) -> Result<()> {
     Ok(())
 }
 
-/// Write the global `defaults.toml` and the JSON Schemas, unless both are
-/// skipped. The config home is resolved only when one of them is wanted, so a
-/// run that skips every config-home part works where it cannot be found.
+/// Write the global `defaults.toml` and the JSON Schemas, unless the caller
+/// skips both. The function resolves the config home only when it wants one of
+/// them. A run that skips every config-home part then works where the home does
+/// not exist.
 ///
 /// # Errors
-/// Returns an error if the directory cannot be resolved or a file cannot be
-/// written.
+/// Returns an error when the directory does not resolve or a file write fails.
 fn write_config(args: &InstallArgs) -> Result<()> {
     if args.no_defaults && args.no_schema {
         return Ok(());
@@ -109,14 +110,14 @@ fn write_config(args: &InstallArgs) -> Result<()> {
 
 /// The couple of lines each shell needs to ask `mt` for its own completions.
 ///
-/// Keyed by the name `clap_complete`'s `CompleteEnv` answers to, because that
-/// is the name the hook has to pass back in `$COMPLETE`; the test beside this
-/// module asserts the keys are exactly `Shells::builtins()`, so a shell the
-/// library learns arrives here by failing rather than by being noticed.
+/// Keyed by the name `clap_complete`'s `CompleteEnv` uses, because the hook has
+/// to pass that name back in `$COMPLETE`. The test beside this module asserts
+/// the keys are exactly `Shells::builtins()`. A shell the library learns
+/// arrives here by failing rather than by going unnoticed.
 ///
-/// Each guards on `mt` being on `$PATH`: these files are sourced from a
-/// startup file, and a shell that errors at launch because a binary moved is a
-/// worse failure than no completions.
+/// Each guards on `mt` being on `$PATH`. A startup file sources these files,
+/// and a shell that errors at launch because a binary moved is a worse failure
+/// than no completions.
 const HOOKS: &[(&str, &str)] = &[
     (
         "bash",
@@ -193,8 +194,8 @@ pub(crate) fn quote_path(path: &Path) -> String {
     if bare { text } else { format!("'{text}'") }
 }
 
-/// `<config home>/mindtape/completions` — one hook file per shell, named after
-/// the shell so a startup file can name its own without a lookup table.
+/// `<config home>/mindtape/completions`: one hook file per shell, keyed by the
+/// shell name so a startup file can pick its own without a lookup table.
 fn completions_dir() -> Result<PathBuf> {
     Ok(xdg_defaults_dir()?.join("completions"))
 }
@@ -208,9 +209,9 @@ pub(crate) fn write_completions(dir: &Path, force: bool) -> Result<()> {
     Ok(())
 }
 
-/// `<config home>/mindtape` — the directory holding the XDG global
+/// `<config home>/mindtape`: the directory holding the XDG global
 /// `defaults.toml`. Mirrors `mindtape::config::layers::discover_layers`'s XDG
-/// layer resolution (`mindtape` crate) — one `mindtape::config_home()`, so
+/// layer resolution (`mindtape` crate), one `mindtape::config_home()`, so
 /// `$MINDTAPE_CONFIG_HOME` moves what `install` writes and what the loader
 /// reads together.
 fn xdg_defaults_dir() -> Result<PathBuf> {
@@ -236,15 +237,15 @@ fn write_seed(dir: &Path, name: &str, content: &str, force: bool) -> Result<()> 
 }
 
 /// Write `dir/name` unconditionally, creating its parent directories, and
-/// announce it. Unlike [`write_seed`], this leaves no existing file alone:
-/// the caller's content is generated from this binary and never hand-edited.
+/// announce it. Unlike [`write_seed`], this overwrites an existing file. The
+/// caller's content comes from this binary and no one hand-edits it.
 fn write_generated(dir: &Path, name: &str, content: &str) -> Result<()> {
     let path = dir.join(name);
     write_announced(path.parent().unwrap_or(dir), &path, content)
 }
 
 /// Write the XDG global `defaults.toml` in `dir`, seeded from the embedded
-/// config floor (`mindtape::embedded_defaults()`) — the same commented text
+/// config floor (`mindtape::embedded_defaults()`), the same commented text
 /// `mt config show --defaults` prints, so there is no third copy. Leaves an
 /// existing file alone unless `force`.
 pub(crate) fn write_defaults(dir: &Path, force: bool) -> Result<()> {
@@ -252,11 +253,11 @@ pub(crate) fn write_defaults(dir: &Path, force: bool) -> Result<()> {
 }
 
 /// The path `mt install` writes the JSON Schema to (`<XDG config>/mindtape/
-/// config.schema.json`) — the target `mt init`'s default `#:schema` directive
+/// config.schema.json`), the target `mt init`'s default `#:schema` directive
 /// points at.
 ///
 /// # Errors
-/// Returns an error if the XDG config directory cannot be determined.
+/// Returns an error when the XDG config directory does not resolve.
 pub(crate) fn xdg_schema_path() -> Result<PathBuf> {
     Ok(xdg_defaults_dir()?.join(SCHEMA_FILE_NAME))
 }
@@ -272,9 +273,9 @@ pub(crate) fn xdg_schema_path() -> Result<PathBuf> {
 /// `schema/output/<name>/<version>.schema.json`, the same bytes
 /// [`crate::cmd::schema::SCHEMAS`] prints.
 ///
-/// Every file is generated from this binary and no one edits it by hand, so
-/// each install refreshes it: a schema that changed compatibly in the new
-/// binary must replace the installed copy without `--force`.
+/// This binary generates every file and no one edits it by hand. Each install
+/// refreshes it: a schema that changed compatibly in the new binary must
+/// replace the installed copy without `--force`.
 pub(crate) fn write_schema(dir: &Path) -> Result<()> {
     for (name, body) in [
         (SCHEMA_FILE_NAME, mindtape::config_schema_json()),

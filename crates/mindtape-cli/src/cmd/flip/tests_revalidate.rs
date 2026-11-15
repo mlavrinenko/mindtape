@@ -1,16 +1,17 @@
 //! What a flip refuses, and what it tolerates.
 //!
-//! Two halves with one seam. A rewrite that would leave the flipped task
-//! invalid is caught as a *candidate*, before the write, so these tests
-//! assert the file is byte-identical afterwards, which the old
+//! Two halves with one seam. The pre-write check catches a rewrite that would
+//! leave the flipped task invalid as a *candidate*, before the write. These
+//! tests then assert the file is byte-identical afterwards, which the old
 //! write-then-reload order could not offer. What still runs after the batch is
-//! the cross-task net: a problem a landed flip caused on some other task, which
-//! no per-candidate check can see. The tolerance tests pin that net's scope —
-//! pre-existing breakage on untouched files and tasks is not the batch's doing.
+//! the cross-task net. It catches a problem a landed flip caused on some other
+//! task that no per-candidate check can see. The tolerance tests pin that net's
+//! scope: pre-existing breakage on untouched files and tasks is not the batch's
+//! doing.
 //!
-//! Split out of `cmd/flip/tests.rs` along the same seam the `cmd/flip/tests_output.rs`
-//! sibling draws for the stderr half of these reports. Shared fixtures come
-//! from `super::tests`.
+//! Split out of `cmd/flip/tests.rs` along the same seam the
+//! `cmd/flip/tests_output.rs` sibling draws for the stderr half of these
+//! reports. Shared fixtures come from `super::tests`.
 #![allow(clippy::unwrap_used)]
 
 use super::run_with;
@@ -25,9 +26,9 @@ const BROKEN_FILE: &str = mindtape::typst_task!(
     "(\n  title: \"Broken\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody [\n"
 );
 
-/// A flip into a status the declared graph cannot reach is refused before the
-/// write, and the file is left exactly as it was. With one target, the
-/// returned error is that target's refusal, with no batch summary; the
+/// `mt flip` refuses a flip into a status the declared graph cannot reach
+/// before the write, and leaves the file exactly as it was. With one target,
+/// the returned error is that target's refusal, with no batch summary. The
 /// violation text goes to stderr, so `cmd/flip/tests_output.rs` asserts that
 /// half.
 #[test]
@@ -47,10 +48,10 @@ fn refuses_a_flip_into_an_unreachable_status() {
     );
 }
 
-/// A flip whose rewrite breaks the file (the status value renders into a Typst
-/// syntax error) is caught as a candidate, so the broken source never reaches
-/// disk. The returned error is the target's refusal; the message itself goes
-/// to stderr (see `cmd/flip/tests_output.rs`).
+/// The pre-write check catches a flip whose rewrite breaks the file (the status
+/// value renders into a Typst syntax error) as a candidate. The broken source
+/// never reaches disk. The returned error is the target's refusal. The message
+/// itself goes to stderr (see `cmd/flip/tests_output.rs`).
 #[test]
 fn refuses_a_rewrite_that_would_not_load() {
     let (dir, project) = setup(&[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
@@ -69,8 +70,8 @@ fn refuses_a_rewrite_that_would_not_load() {
 }
 
 /// A pre-existing broken file elsewhere in the project is not the flip's
-/// doing, so `revalidate` must not report its load error: only errors on the
-/// touched file are appended to the problem list, and the batch stays Ok.
+/// doing, so `revalidate` must not report its load error. `revalidate` appends
+/// only errors on the touched file to the problem list, and the batch stays Ok.
 #[test]
 fn revalidate_ignores_load_errors_on_untouched_files() {
     let (dir, project) = setup(
@@ -82,7 +83,7 @@ fn revalidate_ignores_load_errors_on_untouched_files() {
 }
 
 /// A task whose authored status is unreachable under the declared graph is a
-/// pre-existing condition: when that task is not part of the batch, its
+/// pre-existing condition. When that task is not part of the batch, its
 /// revalidation violation must not fail the flip of an unrelated task.
 #[test]
 fn revalidate_ignores_violations_on_untouched_tasks() {

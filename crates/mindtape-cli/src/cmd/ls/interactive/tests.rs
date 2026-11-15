@@ -261,8 +261,8 @@ fn ls_args(format: OutputFormat) -> LsArgs {
 
 // guard / run
 
-/// The format check runs before the TTY check, so a non-table format is
-/// refused even on a real terminal.
+/// The format check runs before the TTY check. `guard` refuses a non-table
+/// format even on a real terminal.
 #[test]
 fn guard_rejects_non_table() {
     assert!(guard_with(&ls_args(OutputFormat::Json), true).is_err());
@@ -362,8 +362,8 @@ fn paths_returns_absolute_task_paths() {
 
 const CHILD: &str = "_MT_LS_INTERACTIVE_CHILD";
 
-/// A task in the harvested-metadata form, so the fixture needs no prelude
-/// package on disk and no Typst import resolution.
+/// A task in the harvested-metadata form. The fixture then skips the prelude
+/// package on disk and the Typst import resolution.
 const TASK_METADATA: &str = r#"#metadata((
   marker: "mindtape.task",
   fields: (
@@ -375,13 +375,13 @@ const TASK_METADATA: &str = r#"#metadata((
 ))
 "#;
 
-/// `refresh` rediscovers the project from the current working directory, so it
-/// can only be exercised against a fixture by changing the cwd — which is
-/// process-global. It therefore runs in a child: the previous version of this
-/// test resolved the root from wherever the suite happened to be running,
-/// Typst-evaluated Mindtape's own `truth/tasks/` backlog, and asserted only
-/// that the result was non-empty. That passed for the wrong reason (any
-/// backlog anywhere) and broke the moment the suite ran from another directory.
+/// `refresh` rediscovers the project from the current working directory, so a
+/// fixture can only exercise it by changing the cwd, which is process-global.
+/// The test runs in a child. The previous version resolved the root from
+/// wherever the suite happened to be running, Typst-evaluated `Mindtape`'s own
+/// `truth/tasks/` backlog, and asserted only that the result was non-empty.
+/// That passed for the wrong reason (any backlog anywhere) and broke the moment
+/// the suite ran from another directory.
 #[test]
 fn refresh_loads_tasks_from_project() {
     if mindtape::test_support::rerun_isolated(CHILD).is_some() {

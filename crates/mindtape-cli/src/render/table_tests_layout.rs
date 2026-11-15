@@ -2,7 +2,7 @@
 
 //! Layout-side `table` tests: highlight masking, flex width distribution,
 //! grid rendering and unpadded-cell truncation. Split out of `table_tests.rs`
-//! to keep both files under the size gate; sibling of `table_tests.rs`
+//! to keep both files under the size gate. Sibling of `table_tests.rs`
 //! (render/due-cell) and `table_tests_ready.rs` (`ready_cell` floor).
 
 use anstyle::{Effects, Style};
@@ -17,13 +17,13 @@ use super::{
     Column, apply_flex, apply_highlight, flex_columns, glyph_mode_for, render_grid, render_unpadded,
 };
 
-/// Every layout test renders with hyperlinks off; only the width-accounting
+/// Every layout test renders with hyperlinks off, and only the width-accounting
 /// test below turns the linker on.
 fn no_links() -> Linker {
     Linker::new(false)
 }
 
-/// The `flex_columns`/`apply_flex` fixture shared by four tests below: a
+/// The `flex_columns`/`apply_flex` fixture shared by four tests below holds a
 /// narrow non-flex `slug#` column and a wide flex `title` column, neither linked.
 fn slug_and_title_columns() -> Vec<Column> {
     vec![
@@ -310,7 +310,7 @@ fn glyph_mode_is_emoji_on_a_tty_and_none_when_piped() {
 /// Env marker gating the inner side of the `glyph_mode` test below.
 const GLYPH_MODE_INNER: &str = "_MT_GLYPH_MODE_INNER";
 
-/// `glyph_mode` reads stdout, so it is exercised in a child whose stdout is a
+/// `glyph_mode` reads stdout. The test runs it in a child whose stdout is a
 /// pipe: the wired predicate must return `None`, not the derived `Default`
 /// (`Ascii`). A constant `Default::default()` would emit ASCII glyphs into
 /// every piped listing.

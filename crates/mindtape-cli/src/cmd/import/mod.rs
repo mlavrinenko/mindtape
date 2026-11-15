@@ -1,25 +1,26 @@
-//! `mt import` — read canonical task-JSON (a file arg or stdin `-`) and write
-//! native `.typ` tasks: map each record onto this project's config policy
-//! (`mindtape::map_canonical`), emit it (`mindtape::emit_task`), land the
-//! whole batch, validate it as a set, and report. "`mt add` without a
-//! template, from a full record" — reuses `mt add`'s destination resolution
-//! (`--dir`) and dedupe.
+//! `mt import` reads canonical task-JSON (a file arg or stdin `-`) and writes
+//! native `.typ` tasks. It maps each record onto this project's config policy
+//! (`mindtape::map_canonical`), emits it (`mindtape::emit_task`), lands the
+//! whole batch, validates it as a set, and reports. It is "`mt add` without a
+//! template, from a full record", and it reuses `mt add`'s destination
+//! resolution (`--dir`) and dedupe.
 //!
-//! One bad record does not refuse the batch: the rest still land, and the
-//! per-record report says which did, and the run exits 1 once it has printed it
-//! if any was skipped. What it does not do is land the bad
-//! one first — the whole batch is validated before a byte is written, so a
-//! rejected record is never created. That discipline lives in [`mod@write`]; input
-//! parsing lives in [`input`].
+//! One bad record does not refuse the batch. The rest still land, and the
+//! per-record report says which did. The run exits 1 once it has printed the
+//! report, if it skipped any record. It never lands the bad one first: it
+//! validates the whole batch before it writes a byte, so it never creates a
+//! rejected record. That discipline lives in [`mod@write`], and input parsing
+//! lives in [`input`].
 //!
 //! No `--from`/`--via` source selector: sources are jq adapters, upstream of
 //! the pipe (`truth/tasks/2026-07/import-tasks-from-other-trackers.typ`).
 //!
 //! # Files
 //!
-//! - `input.rs` — reads and parses the canonical task-JSON input.
-//! - `place.rs` — where each record lands and which stems are taken.
-//! - `write.rs` — lands or previews the emitted batch.
+//! - `input.rs` reads and parses the canonical task-JSON input.
+//! - `place.rs` decides where each record lands and which stems the batch
+//!   already claims.
+//! - `write.rs` lands or previews the emitted batch.
 
 mod input;
 mod place;
@@ -50,9 +51,9 @@ pub struct ImportArgs {
 
     /// The directory to write every task in.
     ///
-    /// A relative path resolves from the project root; an absolute one is
-    /// taken as-is. Without it, each task goes where its `file` field says, or
-    /// to the first root.
+    /// A relative path resolves from the project root, and `mt import` takes
+    /// an absolute one as-is. Without it, each task goes where its `file` field
+    /// says, or to the first root.
     #[arg(long, value_name = "DIR")]
     pub dir: Option<String>,
 
@@ -64,7 +65,7 @@ pub struct ImportArgs {
     #[arg(long = "to", hide = true, value_name = "SUBDIR")]
     pub to: Option<String>,
 
-    /// Show what would be imported without writing anything.
+    /// Show what `mt import` would write, without writing anything.
     #[arg(long)]
     pub dry_run: bool,
 
@@ -90,8 +91,8 @@ pub struct ImportArgs {
 /// Run `mt import`.
 ///
 /// # Errors
-/// Returns an error if the project cannot be opened, the input cannot be read,
-/// or `--map` is malformed.
+/// Returns an error if the project fails to open, the input fails to read, or
+/// `--map` holds a bad entry.
 pub fn run(args: &ImportArgs) -> Result<()> {
     crate::cmd::add::refuse_legacy(args.into.as_ref(), args.to.as_ref())?;
     run_with(&util::open()?, args)
@@ -104,9 +105,9 @@ fn run_with(project: &Project, args: &ImportArgs) -> Result<()> {
     fail_on_skips(&outcomes, args.dry_run)
 }
 
-/// The closing verdict: an error naming the skip count when any record was
-/// skipped, so a script can tell a partial import from a whole one. The
-/// records that passed are already written by then.
+/// Return an error that carries the skip count when any record failed. A
+/// script can then tell a partial import from a whole one. By then the passing
+/// records are already on disk.
 fn fail_on_skips(outcomes: &[TaskOutcome], dry_run: bool) -> Result<()> {
     let skipped = outcomes.iter().filter(|outcome| !outcome.filed).count();
     if skipped == 0 {
@@ -123,13 +124,14 @@ fn fail_on_skips(outcomes: &[TaskOutcome], dry_run: bool) -> Result<()> {
     ))
 }
 
-/// The core pipeline: parse `raw` canonical JSON, map/stem/emit each record,
-/// then land (or, under `--dry-run`, preview) the batch. Split out from
-/// [`run_with`] so tests can drive it without stdin/file plumbing.
+/// Run the core pipeline: parse `raw` canonical JSON, map/stem/emit each
+/// record, then land (or, under `--dry-run`, preview) the batch. [`run_with`]
+/// calls this after it reads the input, so tests can drive the pipeline
+/// without stdin/file plumbing.
 ///
 /// # Errors
-/// Returns an error if `raw` cannot be parsed, a `--map` entry is malformed,
-/// or the destination cannot be created/written.
+/// Returns an error if `raw` fails to parse, a `--map` entry holds a bad value,
+/// or `mt import` cannot create or write the destination.
 fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec<TaskOutcome>> {
     let config = &project.config;
     let records = input::parse_records(&args.input, raw)?;
@@ -196,8 +198,8 @@ fn map_options(args: &ImportArgs) -> Result<MapOptions> {
     })
 }
 
-/// A human label for reporting: the authored `id`, else the title, else a
-/// positional fallback (`idx` is 0-based).
+/// Build the human label for a report line: the authored `id`, else the title,
+/// else a positional fallback (`idx` is 0-based).
 fn record_label(record: &CanonicalTask, idx: usize) -> String {
     if !record.id.is_empty() {
         record.id.clone()
@@ -209,8 +211,8 @@ fn record_label(record: &CanonicalTask, idx: usize) -> String {
 }
 
 /// Stamp `status` (dated today) onto a record missing one, when `--status`
-/// supplies a default. Applied before [`map_canonical`], so the value flows
-/// through the same `--map`/legend checks as an authored status; without
+/// supplies a default. This runs before [`map_canonical`]. The value then flows
+/// through the same `--map`/legend checks as an authored status. Without
 /// `--status`, `map_canonical` applies its own default (the legend's initial
 /// value).
 fn default_status(record: &mut CanonicalTask, status: Option<&str>) {
@@ -225,18 +227,20 @@ fn default_status(record: &mut CanonicalTask, status: Option<&str>) {
     });
 }
 
-/// The destination stem for a record: its `id` when that is a usable file stem
-/// (an export carries it, and links between records name it), else the
-/// deterministic candidate from `title` ([`mindtape::stem_for_title`], what a
-/// jq adapter's id-less record gets). Either is disambiguated against
-/// `existing` (every loaded task's stem, the destination files and every stem
-/// already claimed within this batch). `existing` gains the chosen stem so later records in the
-/// same batch never collide with it — the collision policy is a `-2`, `-3`, ...
-/// suffix, [`mindtape::model::naming::disambiguate`]'s existing behaviour.
+/// Pick the destination stem for a record. The stem is the record's `id` when
+/// that is a usable file stem: an export carries it, and links between records
+/// reference it. Otherwise the stem is the deterministic candidate from `title`
+/// ([`mindtape::stem_for_title`], what a jq adapter's id-less record gets).
+/// Either candidate goes through disambiguation against `existing` (every
+/// loaded task's stem, the destination files and every stem already claimed
+/// within this batch). `existing` gains the chosen stem. Later records in the
+/// same batch then never collide with it. The collision policy is a `-2`,
+/// `-3`, ... suffix, the existing behaviour of
+/// [`mindtape::model::naming::disambiguate`].
 ///
 /// # Errors
 /// Returns an error when there is no usable `id` and `title` slugifies to
-/// nothing, the configured `[tasks.naming] stem` template is malformed, or
+/// nothing, the configured `[tasks.naming] stem` template holds a bad value, or
 /// disambiguation exhausts its numeric-suffix ceiling.
 fn stem_for(
     id: &str,
@@ -264,11 +268,11 @@ fn usable_stem(id: &str) -> bool {
     !id.is_empty() && !id.contains(['/', '\\', '.'])
 }
 
-/// Print "N filed, M skipped" plus, per record, its label, outcome, mapping
-/// report entries (mapped/defaulted/dropped/violated), carried `x-<ns>`
-/// extras, and any load/validate problem — to stderr, mirroring `mt add`'s
-/// warnings-to-stderr convention. Under `--dry-run` the wording is `would
-/// file` and the report ends with `dry run: nothing written`, as `mt mv` does.
+/// Print "N filed, M skipped" to stderr, plus a line per record with its label,
+/// outcome, mapping report entries (mapped/defaulted/dropped/violated), carried
+/// `x-<ns>` extras, and any load/validate problem. This mirrors `mt add`'s
+/// warnings-to-stderr convention. Under `--dry-run` the wording is `would file`
+/// and the report ends with `dry run: nothing written`, as `mt mv` does.
 fn report(outcomes: &[TaskOutcome], dry_run: bool) {
     crate::diag::emit_text(&render_report(outcomes, dry_run));
 }

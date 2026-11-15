@@ -104,11 +104,11 @@ fn render_groups(groups: &[Group], format: OutputFormat) -> Result<String> {
     render_set(&parts, format)
 }
 
-/// The dim lines under a set's table: where the rows came from, how many of
-/// the listed projects' tasks they are and how many of their task files
-/// failed to load, then, when `-n` hid rows in any
-/// project, how many and the command for the next page. Nothing when no
-/// project listed, since each one's error says why.
+/// The dim lines under a set's table. They say where the rows came from, how
+/// many of the listed projects' tasks they are, and how many of their task files
+/// failed to load. When `-n` hid rows in any project, they also say how many and
+/// give the command for the next page. The line is absent when no project
+/// listed, since each one's error says why.
 fn print_footer(args: &LsArgs, held: &HeldSet, groups: &[Group]) {
     let painter = Painter::new(is_color_active());
     let dim = Style::new().effects(Effects::DIMMED);
@@ -153,7 +153,7 @@ fn footer(listings: &[&Listing]) -> String {
 
 /// `37 more not shown · next page: mt @home ls -n 5 --skip 5`, when `-n` cut
 /// any project. Every project skipped and showed the same counts, so the
-/// next page is one `--skip` for all of them.
+/// next page is one `--skip` for them all.
 fn next_page(args: &LsArgs, held: &HeldSet, listings: &[&Listing]) -> Option<String> {
     let cuts: Vec<_> = listings
         .iter()

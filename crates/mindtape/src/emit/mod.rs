@@ -1,11 +1,12 @@
-//! Serialize a [`Task`] back to `#show: task.with(...)` Typst source — the
-//! one new primitive `mt import` needs (`truth/tasks/2026-07/task-to-typ-emitter.typ`).
-//! Pure: no I/O, no config policy — the caller has already mapped values onto
-//! the project's config before calling in. Field order is fixed (see
-//! [`emit_task`]), so two calls on an unchanged `Task` agree byte-for-byte.
+//! Serialize a [`Task`] back to `#show: task.with(...)` Typst source, the one
+//! new primitive `mt import` needs
+//! (`truth/tasks/2026-07/task-to-typ-emitter.typ`). Pure: no I/O, no config
+//! policy, and the caller has already mapped values onto the project's config
+//! before calling in. Field order stays fixed (see [`emit_task`]), so two calls
+//! on an unchanged `Task` agree byte-for-byte.
 //!
 //! `recur` emits `every(...)` for a period rule and `rrule(...)` for the
-//! escape hatch, mirroring the prelude's two constructors — see
+//! escape hatch, mirroring the prelude's two constructors. See
 //! `truth/tasks/2026-09/carry-recur-through-the-canonical-task-json-round-trip.typ`.
 //!
 //! Split into two helper submodules to stay under the file-size gate:
@@ -34,10 +35,10 @@ use crate::query::Query;
 use crate::recur::{Recur, Rule};
 use format::{hval_to_typ, typ_array, typ_str};
 
-/// Serialize `task` to a full task-file source: the `@local/mindtape`
-/// import, `#show: task.with(...)` with every set field, and the prose body
-/// appended verbatim after the marker (nothing appended when the body is
-/// empty — the emitter never synthesizes a `Summary`).
+/// Serialize `task` to a full task-file source: the `@local/mindtape` import,
+/// `#show: task.with(...)` with every set field, and the prose body appended
+/// verbatim after the marker. An empty body appends nothing, and the emitter
+/// never synthesizes a `Summary`.
 #[must_use]
 pub fn emit_task(task: &Task) -> String {
     let fields = emit_fields(task);
@@ -111,10 +112,10 @@ fn emit_fields(task: &Task) -> Vec<String> {
     fields
 }
 
-/// `status: name(y, m, d)` / `name(y, m, d)[note]`, or `None` when the date
-/// is missing or unparseable — a status with no date has nothing to render
-/// (guaranteeing one is the caller's job, per the module's pure-serializer
-/// contract).
+/// `status: name(y, m, d)` / `name(y, m, d)[note]`, or `None` when the date is
+/// missing or unparseable. A status with no date has nothing to render, and
+/// guaranteeing one is the caller's job, per the module's pure-serializer
+/// contract.
 fn emit_status(status: &Status) -> Option<String> {
     let ymd = parse_ymd(status.date.as_deref()?)?;
     Some(status_value(&status.name, ymd, status.note.as_deref()))
@@ -139,7 +140,7 @@ fn emit_num_field(name: &str, value: &NumValue) -> String {
     }
 }
 
-/// Priority frameworks the prelude ships a named helper for; any other name
+/// Priority frameworks the prelude has a named helper for. Any other name
 /// falls back to the generic `framework("name", ...)` escape hatch.
 const NAMED_FRAMEWORKS: &[&str] = &["ice", "rice", "wsjf", "eisenhower", "moscow"];
 
@@ -176,7 +177,7 @@ fn emit_input(value: &InputValue) -> String {
 }
 
 /// `estimate: (unit: n, ...)`, or `None` when the task has no estimate. A
-/// `count(...)` unit is written as the count, not its resolved number.
+/// `count(...)` unit writes back as the count, not its resolved number.
 fn emit_estimate(task: &Task) -> Option<String> {
     let mut parts: BTreeMap<&str, String> = task
         .estimate

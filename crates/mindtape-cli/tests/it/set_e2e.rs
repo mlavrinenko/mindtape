@@ -1,19 +1,20 @@
-//! End-to-end battery for `mt set` — writing one core field of an existing
+//! End-to-end battery for `mt set`, which writes one core field of an existing
 //! task from the CLI.
 //!
-//! Lives here (not an inline `#[path]` unit test) so every arm goes through the
-//! real prelude, a real project on disk and the compiled binary: what a field
-//! write is *for* is the file it leaves behind, and the two properties worth
-//! pinning — the written literal re-evaluates, and a refused write leaves the
-//! file byte-identical — are only observable end to end.
+//! The battery lives here, not in an inline `#[path]` unit test. Every arm then
+//! goes through the real prelude, a real project on disk and the compiled
+//! binary. A field write is for the file it leaves behind. The two properties
+//! worth pinning are that the written literal re-evaluates and that a refused
+//! write leaves the file byte-identical. Only an end-to-end run observes either
+//! one.
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;
 
 use crate::support;
 
-/// A bounded priority scale (so an out-of-range value is refused by the
-/// project rather than by `set` itself) and an allow-list of tags.
+/// A bounded priority scale, which makes the project refuse an out-of-range
+/// value rather than `set` itself, and an allow-list of tags.
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
 [tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\n\n\
 [[tasks.status]]\nvalue = \"wip\"\n\n\
@@ -54,8 +55,8 @@ fn set_err(dir: &Path, token: &str) -> String {
 }
 
 /// One arm per literal shape `set` renders: a quoted string, a bare number, an
-/// `on(...)` date. All three land in the same file, so the run also proves
-/// repeated writes compose rather than clobbering each other.
+/// `on(...)` date. All three land in the same file. The run then also proves
+/// that repeated writes compose rather than clobbering each other.
 #[test]
 fn writes_a_scalar_field_of_each_shape() {
     let dir = scaffold();
@@ -87,7 +88,7 @@ fn a_set_write_ends_on_the_command_that_reads_the_task() {
     assert!(evaluated.contains("Wire OAuth"), "{evaluated}");
 }
 
-/// A field already present is replaced, not doubled.
+/// A write to a field already present replaces it rather than doubling it.
 #[test]
 fn replaces_an_existing_value() {
     let dir = scaffold();
@@ -100,8 +101,8 @@ fn replaces_an_existing_value() {
     assert!(!written.contains("\"Wire OAuth\","), "{written}");
 }
 
-/// `+=` appends to a list field, keeping what is already there; a second run of
-/// the same append writes nothing at all.
+/// `+=` appends to a list field and keeps what is already there. A second run
+/// of the same append leaves the file unchanged.
 #[test]
 fn appends_to_a_list_field_and_is_idempotent() {
     let dir = scaffold();
@@ -126,8 +127,8 @@ fn plain_assignment_replaces_a_list_field() {
     assert!(!written.contains("backend"), "{written}");
 }
 
-/// The property the whole `pre_write` detour buys: a value the project refuses
-/// leaves the file exactly as it was, so there is nothing to repair.
+/// A value the project refuses leaves the file exactly as it was, which is what
+/// the whole `pre_write` detour buys. The file doesn't need repair.
 #[test]
 fn a_refused_value_leaves_the_file_byte_identical() {
     let dir = scaffold();
@@ -138,8 +139,8 @@ fn a_refused_value_leaves_the_file_byte_identical() {
     assert_eq!(read(dir.path()), before, "a refused write must not land");
 }
 
-/// An unknown field is refused by name, with a suggestion and the writable
-/// fields listed — the way an unknown `--set` key already is.
+/// `mt set` refuses an unknown field by name, with a suggestion and the
+/// writable fields listed, the way it already refuses an unknown `--set` key.
 #[test]
 fn an_unknown_field_is_refused_by_name() {
     let dir = scaffold();
@@ -168,8 +169,8 @@ fn a_field_with_its_own_command_names_that_command() {
     assert!(stderr.contains("mt link"), "{stderr}");
 }
 
-/// A value of the wrong shape for the field is refused before anything is
-/// evaluated, naming the field and what it takes.
+/// `mt set` refuses a value of the wrong shape for the field before it
+/// evaluates anything, naming the field and what it takes.
 #[test]
 fn a_wrong_shaped_value_is_refused_naming_the_field() {
     let dir = scaffold();
@@ -186,7 +187,7 @@ fn a_wrong_shaped_value_is_refused_naming_the_field() {
 }
 
 /// Markup-hazardous text survives the round trip: the value is a Typst string
-/// literal, so nothing in it is evaluated on the way back in.
+/// literal, and Typst evaluates nothing in it on the way back in.
 #[test]
 fn a_hazardous_string_value_survives_the_round_trip() {
     let dir = scaffold();
@@ -219,9 +220,9 @@ fn a_refused_set_reports_the_file_and_line_of_the_breach() {
     );
 }
 
-/// A refused write that inserts a field has no line of its own on disk, so the
-/// breach opens at the `task.with(…)` call that is there, not at a line of the
-/// unwritten candidate.
+/// A refused write that inserts a field has no line of its own on disk. The
+/// breach then opens at the `task.with(…)` call that is there, not at a line
+/// of the unwritten candidate.
 #[test]
 fn a_refused_insert_points_at_the_call_on_disk() {
     let dir = scaffold();
@@ -253,9 +254,10 @@ fn a_refused_replace_points_at_the_field_on_disk() {
     assert!(stderr.contains(&expected), "{stderr}\n{padded}");
 }
 
-/// A task whose show rule is aliased has no literal `task.with(...)` call for
-/// the field write to land in. `mt set` refuses it by name, the file's own
-/// path in the message, and leaves the task byte-identical.
+/// A task whose show rule calls an alias of `task` has no literal
+/// `task.with(...)` call for the field write to land in. `mt set` refuses it by
+/// name, the file's own path in the message, and leaves the task
+/// byte-identical.
 #[test]
 fn a_task_with_an_aliased_call_is_refused_and_left_untouched() {
     let dir = scaffold();

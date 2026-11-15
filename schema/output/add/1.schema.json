@@ -8,7 +8,7 @@
       "type": "string"
     },
     "outcome": {
-      "description": "What the run did: `wrote`, `skipped` or `suffixed`.",
+      "description": "One of `wrote`, `skipped` or `suffixed`, naming what the run did.",
       "type": "string"
     },
     "path": {

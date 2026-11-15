@@ -1,5 +1,5 @@
 //! Tests for the pre-write checks: unknown kind, note rules, target
-//! resolution — the three refusals that keep an invalid edge off disk.
+//! resolution: the three refusals that keep an invalid edge off disk.
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;
@@ -38,7 +38,7 @@ fn setup(config_text: &str) -> (tempfile::TempDir, Project) {
 }
 
 /// Re-evaluate an existing project directory without rewriting its task files
-/// — what a second `mt link` invocation sees. [`setup`] would restore the
+/// (what a second `mt link` invocation sees). [`setup`] would restore the
 /// fixtures over the rewrite under test.
 fn reload(dir: &Path, config_text: &str) -> Project {
     crate::test_util::reload_with_lib(dir, config_text)
@@ -55,8 +55,8 @@ fn entry(stem: &str, kind: &str, target: &str, note: Option<&str>) -> Entry {
     }
 }
 
-/// The single problem a one-entry plan reported, or a panic naming what it did
-/// instead.
+/// The single problem a one-entry plan reported, or a panic that reports what it
+/// did instead.
 fn only_problem(plan: &super::Plan) -> String {
     assert_eq!(
         plan.problems.len(),
@@ -86,8 +86,8 @@ fn a_valid_edge_stages_a_rewrite() {
     );
 }
 
-/// Nothing is written by planning: a staged rewrite lives in memory until the
-/// command decides to land it, which is what makes `--dry-run` exact.
+/// Planning keeps every rewrite in memory. A staged rewrite lands only when the
+/// command writes it, which is what makes `--dry-run` exact.
 #[test]
 fn planning_writes_nothing() {
     let (dir, project) = setup(BASE_CONFIG);
@@ -238,8 +238,8 @@ fn one_bad_entry_does_not_stop_the_rest() {
     assert_eq!(plan.staged.first().map(|s| s.stem.as_str()), Some("beta"));
 }
 
-/// Every refusal for one entry is collected, so a caller fixes them in one
-/// pass rather than one re-run per problem.
+/// The plan collects every refusal for one entry. A caller then fixes them in
+/// one pass rather than one re-run per problem.
 #[test]
 fn every_refusal_for_one_entry_is_reported_at_once() {
     let (_dir, project) = setup(BASE_CONFIG);
@@ -312,8 +312,8 @@ fn a_forbidden_edge_without_a_note_is_accepted() {
     assert!(note_problem(&spec, NoteRule::Forbidden).is_none());
 }
 
-/// Plan `alpha depends-on gamma` in a [`setup`] project whose top-level
-/// `alpha` is replaced by `files` (paths under `tasks/`), so the link crosses
+/// Plan `alpha depends-on gamma` in a [`setup`] project that replaces the
+/// top-level `alpha` with `files` (paths under `tasks/`). The link then crosses
 /// whatever folders they name.
 fn plan_nested(files: &[(&str, &str)]) -> super::Plan {
     plan_nested_to(files, |_| "gamma".to_owned())
@@ -347,7 +347,7 @@ fn assert_writes(plan: &super::Plan, literal: &str) {
 }
 
 /// `--help` promises a target "by stem": a stem in another folder resolves to
-/// the one task carrying it, written relative to the linking task so the file
+/// the one task carrying it, written relative to the linking task. The file then
 /// reads the same to `mt check` and to Typst.
 #[test]
 fn a_bare_stem_in_another_folder_is_written_relative_to_the_linker() {
@@ -355,7 +355,7 @@ fn a_bare_stem_in_another_folder_is_written_relative_to_the_linker() {
     assert_writes(&plan, "../cli/gamma.typ");
 }
 
-/// A sibling carrying the stem wins over one elsewhere, so a same-folder link
+/// A sibling carrying the stem wins over one elsewhere. A same-folder link then
 /// keeps its short literal.
 #[test]
 fn a_sibling_stem_beats_one_in_another_folder() {
@@ -367,8 +367,8 @@ fn a_sibling_stem_beats_one_in_another_folder() {
     assert_writes(&plan, "gamma.typ");
 }
 
-/// Two folders sharing a stem, neither of them the linker's: refused naming
-/// every candidate, never guessed.
+/// Two folders share a stem, and neither is the linking task's. The plan refuses
+/// and reports every candidate, never guessing.
 #[test]
 fn a_stem_two_folders_share_is_refused_naming_both() {
     let plan = plan_nested(&[

@@ -91,8 +91,9 @@ fn a_symlinked_typ_file_is_not_a_task_source() {
     assert_eq!(err.file, Path::new("tasks/link.typ"));
 }
 
-/// `load_one` and `load_project` agree about Git visibility: an untracked file
-/// Git ignores is refused, while a tracked file under an ignore pattern loads.
+/// `load_one` and `load_project` agree about Git visibility: both refuse an
+/// untracked file Git ignores, while a tracked file under an ignore pattern
+/// loads.
 #[test]
 fn load_one_refuses_an_untracked_ignored_file() {
     let dir = git_repo();

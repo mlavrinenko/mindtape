@@ -2,10 +2,10 @@
 //!
 //! Wraps the `rrule` crate (RFC 5545 recurrence rules): [`validate_rule`]
 //! grammar-checks a raw rule string at `mt check`/`mt recur` parse time (see
-//! [`crate::recur::check_policy`]); [`next_after`] expands it for
+//! [`crate::recur::check_policy`]), and [`next_after`] expands it for
 //! [`crate::recur::dates::advance_once`]. `DTSTART` is always the reference date
-//! the caller passes in (the task's `due`, or a catch-up cursor mid-loop) —
-//! see `truth/tasks/2026-07/rrule-escape-hatch.typ`'s "`DTSTART` is seeded from the
+//! the caller passes in (the task's `due`, or a catch-up cursor mid-loop). See
+//! `truth/tasks/2026-07/rrule-escape-hatch.typ`'s "Seed `DTSTART` from the
 //! task's `due`" decision. This module never reads the clock.
 
 use chrono::{DateTime, Duration, NaiveDate, TimeZone};
@@ -14,12 +14,12 @@ use rrule::{RRule, RRuleSet, Tz, Unvalidated};
 use crate::recur::dates::RecurError;
 
 /// Grammar/semantic-check `raw` as an RFC 5545 `RRULE` value, independent of
-/// any task's `due` (`DTSTART` is an arbitrary fixed date — validity never
+/// any task's `due` (`DTSTART` is an arbitrary fixed date, and validity never
 /// depends on which date seeds it).
 ///
 /// # Errors
-/// A message that quotes the offending rule, e.g. `invalid rrule "FREQ=NOPE":
-/// RRule parsing error: ...`.
+/// A message that quotes the offending rule, such as
+/// `invalid rrule "FREQ=NOPE": RRule parsing error: ...`.
 pub(crate) fn validate_rule(raw: &str) -> Result<(), String> {
     // Any fixed date works: BYDAY/BYMONTHDAY/BYSETPOS grammar validity does
     // not depend on it, only the *expansion* (see `next_after`) does.
@@ -30,11 +30,11 @@ pub(crate) fn validate_rule(raw: &str) -> Result<(), String> {
 }
 
 /// The rule's first occurrence strictly after `due` (`RRuleSet::after`-style:
-/// `DTSTART` is seeded from `due`, and an occurrence landing exactly on `due`
-/// itself does not count — the caller always wants forward progress).
+/// `DTSTART` comes from `due`, and an occurrence landing exactly on `due`
+/// itself does not count, because the caller always wants forward progress).
 ///
-/// Bounded by the `rrule` crate's own iteration cap (`RRuleSet::all`'s
-/// `limited` mode): a pathological rule that matches nothing surfaces a clear
+/// The `rrule` crate's own iteration cap bounds it (`RRuleSet::all`'s
+/// `limited` mode). A pathological rule that never matches surfaces a clear
 /// error here rather than hanging.
 ///
 /// # Errors
@@ -65,10 +65,10 @@ fn build_set(raw: &str, dt_start: DateTime<Tz>) -> Result<RRuleSet, rrule::RRule
     raw.parse::<RRule<Unvalidated>>()?.build(dt_start)
 }
 
-/// `date` at midnight UTC. The timezone is arbitrary — every date this module
-/// produces or consumes is calendar-only (see [`crate::recur::dates`]'s own
-/// no-clock-reads discipline); UTC just avoids daylight-saving ambiguity in the `rrule`
-/// crate's `chrono-tz`-backed clock arithmetic.
+/// `date` at midnight UTC. The timezone is arbitrary, because every date this
+/// module produces or consumes is calendar-only (see [`crate::recur::dates`]'s
+/// own no-clock-reads discipline). UTC just avoids daylight-saving ambiguity in
+/// the `rrule` crate's `chrono-tz`-backed clock arithmetic.
 fn midnight_utc(date: NaiveDate) -> DateTime<Tz> {
     Tz::UTC.from_utc_datetime(&date.and_hms_opt(0, 0, 0).expect("midnight is always valid"))
 }

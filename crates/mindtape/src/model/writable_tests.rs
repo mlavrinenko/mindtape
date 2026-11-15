@@ -254,7 +254,7 @@ fn the_table_has_no_duplicate_names() {
     assert_eq!(seen.len(), WRITABLE.len());
 }
 
-/// Every shape a scalar field can be handed, and the two a scalar refuses.
+/// Every shape a scalar field accepts, and the two a scalar refuses.
 #[test]
 fn scalar_text_renders_each_value_and_refuses_arrays() {
     let title = field("title");
@@ -314,8 +314,8 @@ fn a_field_the_writer_does_not_know_is_a_shape_error() {
     assert!(super::date_field(&UNKNOWN, &task).is_none());
 }
 
-/// A `+=` on a scalar is refused by name; a framework number renders as its
-/// label in both the raw and the Typst form.
+/// `append_to_task` refuses a `+=` on a scalar by name. A framework number
+/// renders as its label in both the raw and the Typst form.
 #[test]
 fn appending_to_a_scalar_and_framework_numbers_are_named() {
     let mut task = bare_task("subject");

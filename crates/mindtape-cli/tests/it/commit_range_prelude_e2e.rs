@@ -1,5 +1,5 @@
 //! `mt check --commits` across a prelude version this binary does not
-//! support: the tree is skipped with one warning, its refs never resolve
+//! support. The check skips the tree with one warning, its refs never resolve
 //! against an empty task list, and a skipped tip state skips the tip rules.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -105,9 +105,9 @@ fn a_range_checks_a_supported_commit_after_an_unsupported_parent() {
     );
 }
 
-/// A migration commit whose parent tree is unsupported is skipped instead of
-/// checked against a fabricated empty parent, so a `head(...)` rule does not
-/// false-fail.
+/// The check skips a migration commit whose parent tree carries an unsupported
+/// prelude instead of checking it against a fabricated empty parent, so a
+/// `head(...)` rule does not false-fail.
 #[test]
 fn a_migration_commit_after_an_unsupported_parent_is_skipped() {
     let dir = migration_repo(PARENT_LOADS);
@@ -121,7 +121,7 @@ fn a_migration_commit_after_an_unsupported_parent_is_skipped() {
 }
 
 /// The `commit-msg` hook loads the same parent and index pair, so it skips the
-/// task rules too when either state's prelude is unsupported.
+/// task rules too when either state's prelude carries an unsupported version.
 #[test]
 fn a_migration_commit_message_after_an_unsupported_parent_skips_task_rules() {
     let dir = migration_repo(PARENT_LOADS);
@@ -194,7 +194,7 @@ fn a_range_skips_a_state_whose_own_pin_is_unsupported() {
 }
 
 /// A skipped migration commit still supplies the tip state when its own tree
-/// loaded, so a tip rule reads the newest supported tasks, not an empty set.
+/// loaded. A tip rule then reads the newest supported tasks, not an empty set.
 #[test]
 fn a_supported_newest_stage_supplies_the_tip_state_after_an_unsupported_parent() {
     let dir = commit_repo(FINISH_AT_THE_TIP);

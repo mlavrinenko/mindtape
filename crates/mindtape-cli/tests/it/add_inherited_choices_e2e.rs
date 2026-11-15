@@ -1,6 +1,6 @@
 //! End-to-end tests for a template's own slot that is the whole value of a
-//! `task.with` field with config `values`: it is a choice over those values,
-//! in `mt add`, `--describe` and `mt check`'s template pass alike.
+//! `task.with` field with config `values`. The slot is a choice over those
+//! values, in `mt add`, `--describe` and `mt check`'s template pass alike.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;

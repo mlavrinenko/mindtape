@@ -1,26 +1,26 @@
-//! `mt ls` attribution: [`Applied`] — which source won each facet of a
-//! resolved listing — and the dim footer it renders as under the table:
+//! `mt ls` attribution: [`Applied`], which source won each facet of a resolved
+//! listing, and the dim footer it renders as under the table:
 //! `default view · 3 of 12 tasks`, with `· 1 broken` when a file failed to load.
 //!
 //! Attribution is per facet because selection and presentation come from
-//! different places: an explicit filter argument answers "which tasks" while a
+//! different places. An explicit filter argument answers "which tasks", while a
 //! matching `[[ls.rules]]` entry goes on answering "how do I read this branch's
-//! listing", so one listing routinely owes its facets to two sources at once
+//! listing". One listing then routinely owes its facets to two sources at once
 //! (`truth/tasks/2026-09/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
-//! The `mt ls --json` envelope carries every facet's source; the footer names
+//! The `mt ls --json` envelope carries every facet's source. The footer reports
 //! only the rows' source and a rule that set the sort.
-//! [`crate::cmd::ls::rules`] does the resolving; this file records and renders the
-//! outcome.
+//! [`crate::cmd::ls::rules`] does the resolving, and this file records and
+//! renders the outcome.
 
 use crate::diag::{Command, hint_line};
 
-/// The source label meaning "nothing applied here — the built-in default".
+/// The source label meaning "nothing applied here, the built-in default".
 pub const MATCH_ALL: &str = "match-all";
 /// The source label for an explicit CLI argument: the filter positional,
-/// `--sort` or `--columns`. A rule's own `filter`/`sort`/`columns` override is
-/// attributed to the rule instead, so a listing whose filter came from the
-/// command line and whose sort came from a rule override cannot report both as
-/// one source.
+/// `--sort` or `--columns`. The code attributes a rule's own
+/// `filter`/`sort`/`columns` override to the rule instead. A listing whose filter
+/// came from the command line and whose sort came from a rule override then
+/// cannot report both as one source.
 pub const MANUAL: &str = "manual";
 
 /// Source attribution for [`crate::cmd::ls::rules::Bundle`], driving the human
@@ -28,12 +28,11 @@ pub const MANUAL: &str = "manual";
 /// name, a rule's label, [`MANUAL`], or [`MATCH_ALL`].
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Applied {
-    /// The `[[ls.rules]]` entry that matched, by label; `None` when none did.
-    /// Set whether or not the rule went on to contribute a facet — a rule that
-    /// matched and was then overridden everywhere is still what the listing
-    /// answered to, and [`Applied::rule_superseded`] is how the JSON envelope
-    /// says so rather than leaving it indistinguishable from a rule that never
-    /// matched.
+    /// The `[[ls.rules]]` entry that matched, by label. `None` when none did.
+    /// Set whether the rule went on to contribute a facet. A rule that matched
+    /// and then lost every facet is still what the listing answered to.
+    /// [`Applied::rule_superseded`] is how the JSON envelope says so, rather than
+    /// leaving it indistinguishable from a rule that never matched.
     pub rule: Option<String>,
     /// The matched rule contributed at least one facet and none of them
     /// survived the layers stacked on top ([`Applied::note_supersession`]).
@@ -56,9 +55,10 @@ impl Applied {
         }
     }
 
-    /// The three facet sources: filter, sort, columns. Taken as a snapshot before
-    /// the explicit-filter and flag layers run, so [`Applied::note_supersession`]
-    /// can tell what the matched rule still owns afterwards.
+    /// The three facet sources, filter, sort and columns. The code takes this
+    /// snapshot before the explicit-filter and flag layers run, so
+    /// [`Applied::note_supersession`] can tell what the matched rule still owns
+    /// afterwards.
     pub(crate) fn sources(&self) -> [String; 3] {
         [
             self.filter_from.clone(),
@@ -69,9 +69,9 @@ impl Applied {
 
     /// Record whether the matched rule's contribution survived: `before` is
     /// [`Applied::sources`] as the rule left them, `self` carries the final
-    /// ones. Superseded means the rule supplied at least one facet and every
-    /// one of them has since been overwritten — a rule that supplied nothing in
-    /// the first place is not superseded, it is simply empty.
+    /// ones. Superseded means the rule supplied at least one facet and every one
+    /// of them has since been overwritten. A rule that supplied nothing in the
+    /// first place is not superseded, it is simply empty.
     pub(crate) fn note_supersession(&mut self, before: &[String; 3]) {
         if self.rule.is_none() {
             return;
@@ -86,13 +86,13 @@ impl Applied {
     }
 }
 
-/// The line under a table: where the listing's rows came from, a rule that
-/// set the sort, the rows shown of the project's tasks, then the task files
-/// that failed to load, joined with ` · `:
-/// `inbox view · release sort · 3 of 12 tasks · 1 broken`. It doesn't say
-/// which facet came from where, or that the command line overrode a rule;
-/// the `mt ls --json` envelope carries both. A listing nothing shaped gets
-/// the counts alone.
+/// The line under a table. It holds where the listing's rows came from and a
+/// rule that set the sort. It also holds the rows shown of the project's tasks,
+/// then the task files that failed to load. The parts join with ` · `:
+/// `inbox view · release sort · 3 of 12 tasks · 1 broken`. It doesn't say which
+/// facet came from where, or that the command line overrode a rule. The
+/// `mt ls --json` envelope carries both. A listing nothing shaped gets the
+/// counts alone.
 #[must_use]
 pub fn footer(applied: &Applied, shown: usize, total: usize, broken: usize) -> String {
     let mut parts = footer_sources(applied);
@@ -101,17 +101,17 @@ pub fn footer(applied: &Applied, shown: usize, total: usize, broken: usize) -> S
     parts.join(" · ")
 }
 
-/// [`footer`]'s last part, `1 broken`, counting the task files that failed
-/// to load; none when every file loaded.
+/// [`footer`]'s last part, `1 broken`, counting the task files that failed to
+/// load. It is absent when every file loaded.
 #[must_use]
 pub fn broken_part(broken: usize) -> Option<String> {
     (broken > 0).then(|| format!("{broken} broken"))
 }
 
 /// The line under a listing that selected nothing: how to widen the filter to
-/// every task, or where a saved view is listed. `None` when a row showed, and
-/// when the project holds no task to widen to. The commands carry this run's
-/// `@name` or `-w`, so the line pastes where it printed.
+/// every task, or where a saved view appears. `None` when a row showed, and when
+/// the project has no task to widen to. The commands carry this run's `@name` or
+/// `-w`, and the line pastes where it printed.
 #[must_use]
 pub fn empty_hint(shown: usize, total: usize) -> Option<String> {
     if shown > 0 || total == 0 {

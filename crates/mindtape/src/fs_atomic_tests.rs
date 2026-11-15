@@ -17,7 +17,7 @@ fn writes_new_bytes_and_overwrites_existing_ones() {
     assert_eq!(std::fs::read(&path).unwrap(), b"second, longer than first");
 }
 
-/// A killed `mt flip` must leave the old file whole — no `.tmp` sibling ever
+/// A killed `mt flip` must leave the old file whole. A `.tmp` sibling never
 /// survives a successful write for the next `mt ls` to trip over.
 #[test]
 fn no_temp_file_survives_a_successful_write() {
@@ -33,7 +33,7 @@ fn no_temp_file_survives_a_successful_write() {
     assert_eq!(entries, vec![std::ffi::OsString::from("task.typ")]);
 }
 
-/// The other half of the same guarantee: a write that never reaches the
+/// The other half of the same guarantee. A write that never reaches the
 /// rename (temp file creation itself fails) must leave the target's existing
 /// bytes untouched, never a truncated or empty file.
 #[test]
@@ -56,10 +56,11 @@ fn a_failed_write_leaves_the_target_unchanged() {
     assert_eq!(std::fs::read(&path).unwrap(), b"original");
 }
 
-/// The temp file is a sibling of the target, never a child of the process cwd:
-/// the rename must stay within one directory, so a cwd that cannot accept a new
+/// The temp file is a sibling of the target, never a child of the process cwd.
+/// The rename must stay within one directory, so a cwd that cannot accept a new
 /// file must not stop a write to an absolute target. nextest runs one test per
-/// process, so moving the cwd here is contained; it is restored either way.
+/// process, so moving the cwd here stays contained. The test restores it either
+/// way.
 #[test]
 #[cfg(unix)]
 fn the_temp_file_is_a_sibling_of_the_target_not_of_the_cwd() {
@@ -83,10 +84,10 @@ fn the_temp_file_is_a_sibling_of_the_target_not_of_the_cwd() {
     assert_eq!(std::fs::read(&path).unwrap(), b"content");
 }
 
-/// The cleanup arm: a failure *after* the temp file exists must remove it. An
+/// The cleanup arm. A failure *after* the temp file exists must remove it. An
 /// existing non-empty directory at the target makes the final rename fail
-/// (a file cannot replace a directory) once the temp file is written and
-/// fsynced, so this reaches `write_atomic`'s `remove_file(&tmp)`.
+/// (a file cannot replace a directory) once the code has written and fsynced
+/// the temp file. That failure reaches `write_atomic`'s `remove_file(&tmp)`.
 #[test]
 #[cfg(unix)]
 fn a_failed_rename_removes_the_temp_file_and_leaves_the_target_untouched() {

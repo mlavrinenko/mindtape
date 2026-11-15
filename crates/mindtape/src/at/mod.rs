@@ -1,27 +1,28 @@
 //! `at.toml`: the app-scoped file that names projects and sets of projects,
 //! which the CLI's leading `@name` selects (`mt @home ls`).
 //!
-//! It picks *which* projects `mt` loads, so it is parsed on its own from the
-//! app config dir and never merged into a project [`crate::config::Config`].
-//! Each `[at.<name>]` entry holds `include`, `exclude`, `forks` and a
-//! `board` override. An entry whose `include` is one literal path is a
-//! project; any other entry is a set. `[board]` holds the board's columns.
+//! It picks *which* projects `mt` loads. The loader parses it on its own from
+//! the app config dir, and never merges it into a project
+//! [`crate::config::Config`]. Each `[at.<name>]` entry holds `include`,
+//! `exclude`, `forks` and a `board` override. An entry whose `include` is one
+//! literal path is a project, and any other entry is a set. `[board]` holds the
+//! board's columns.
 //!
-//! - `mod.rs` — the entry types, parsing and errors.
-//! - `board.rs` — `[board]`: its layers, one project's row, hiding and sorting
-//!   rows.
-//! - `board.toml` — the shipped board, which names no status.
-//! - `board_tests.rs` — the board's unit tests.
-//! - `resolve.rs` — `@x` to a project or a set: `@name` expansion, `exclude`,
-//!   `forks`, the path-suffix fallback and member naming.
-//! - `schema.rs` — the JSON Schema for `at.toml`, derived from the entry and
-//!   board types, with the values [`Forks`] takes spelled out.
-//! - `schema_tests.rs` — the schema's unit tests, held to
+//! - `mod.rs` holds the entry types, parsing and errors.
+//! - `board.rs` holds `[board]`: its layers, one project's row, hiding and
+//!   sorting rows.
+//! - `board.toml` is the built-in board, and it doesn't reference a status.
+//! - `board_tests.rs` holds the board's unit tests.
+//! - `resolve.rs` maps `@x` to a project or a set: `@name` expansion,
+//!   `exclude`, `forks`, the path-suffix fallback and member naming.
+//! - `schema.rs` holds the JSON Schema for `at.toml`, derived from the entry
+//!   and board types, with the values [`Forks`] takes spelled out.
+//! - `schema_tests.rs` holds the schema's unit tests, held to
 //!   `schema/at.schema.json`.
-//! - `scan.rs` — the injected filesystem ([`AtFs`], [`DiskFs`]), `~` expansion,
-//!   one-level glob expansion and the project and fork tests.
-//! - `tests.rs` — the unit tests, over an in-memory filesystem.
-//! - `scan_tests.rs` — the [`DiskFs`] tests, over a temporary tree.
+//! - `scan.rs` holds the injected filesystem ([`AtFs`], [`DiskFs`]), `~`
+//!   expansion, one-level glob expansion and the project and fork tests.
+//! - `tests.rs` holds the unit tests, over an in-memory filesystem.
+//! - `scan_tests.rs` holds the [`DiskFs`] tests, over a temporary tree.
 
 mod board;
 mod resolve;
@@ -42,7 +43,7 @@ pub use schema::schema_json;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AtConfig {
     entries: BTreeMap<String, AtEntry>,
-    /// `[board]` over the shipped board.
+    /// `[board]` over the built-in board.
     board: Board,
     /// Each entry's `board` over [`Self::board`], by entry name.
     boards: BTreeMap<String, Board>,
@@ -127,7 +128,7 @@ struct RawFile {
     /// The projects and sets, by the name `@name` selects.
     #[serde(default)]
     at: BTreeMap<String, AtEntry>,
-    /// The board every entry shows, over the shipped board key by key.
+    /// The board every entry shows, over the built-in board key by key.
     board: Option<BoardSpec>,
 }
 
@@ -137,7 +138,7 @@ pub enum AtError {
     /// The file was not valid TOML or had an unknown key.
     #[error("{0}")]
     Parse(#[from] toml::de::Error),
-    /// An entry is malformed.
+    /// An entry contains a malformed value.
     #[error("[at.{name}]: {message}")]
     Entry {
         /// The entry's name.
@@ -151,16 +152,17 @@ pub enum AtError {
     InvalidName {
         /// The offending name, without its `@`.
         name: String,
-        /// Why it was refused.
+        /// Why the parser refused it.
         reason: &'static str,
     },
-    /// An `@name` in an `include` or `exclude` names no entry and no directory.
+    /// An `@name` in an `include` or `exclude` doesn't reference an entry or a
+    /// directory.
     #[error("unknown name @{name}")]
     Unknown {
         /// The name, without its `@`.
         name: String,
     },
-    /// Several directories answer to one name.
+    /// More than one directory matches one name.
     #[error("@{name} matches {} directories", candidates.len())]
     Clash {
         /// The name, without its `@`.
@@ -169,13 +171,13 @@ pub enum AtError {
         /// shortest path suffix that tells it from the others.
         candidates: Vec<Member>,
     },
-    /// `@name` includes reach back to an entry being expanded.
+    /// `@name` includes reach back to an entry the expansion is visiting.
     #[error("@name cycle: {}", chain.join(" -> "))]
     Cycle {
         /// The entry names from the first to the repeated one.
         chain: Vec<String>,
     },
-    /// A board layer is malformed.
+    /// A board layer contains a malformed value.
     #[error("[{scope}]: {message}")]
     Board {
         /// `board`, or `at.<name>.board`.

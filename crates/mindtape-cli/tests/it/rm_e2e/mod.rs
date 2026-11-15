@@ -1,11 +1,12 @@
 //! End-to-end test for `mt rm` retargeting `links:` edges onto SWHID tombstones.
 //!
 //! Lives here (not an inline `#[path]` unit test) so it exercises the real
-//! prelude edge helpers (`depends-on`, `related`, `edge`), a real git repo (the
-//! tombstone pins the retired file's last-touch commit), and the compiled `mt`
-//! binary end-to-end — then proves `mt check` stays green once the survivor's
-//! inbound edges point at the tombstone. Mirrors `recur_e2e.rs`. The retire
-//! strategy's half of the suite lives in `retire.rs`, pulled in below.
+//! prelude edge helpers (`depends-on`, `related`, `edge`), a real git repo, and
+//! the compiled `mt` binary end-to-end. The repo matters because the tombstone
+//! pins the retired file's last-touch commit. The suite then proves `mt check`
+//! stays green once the survivor's inbound edges point at the tombstone. Mirrors
+//! `recur_e2e.rs`. The retire strategy's half lives in `retire.rs`, pulled in
+//! below.
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;
@@ -26,7 +27,7 @@ const UNLINK_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds
 
 const BATCH_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n\n[rm]\ndefault-filter = \"status == \\\"wip\\\"\"\n";
 
-/// The retired task: terminal, so `mt rm` sweeps it without a target override.
+/// A terminal task, so `mt rm` sweeps it without a target override.
 const GONE: &str = mindtape::typst_task!(
     "(\n  \
 title: \"Gone\",\n  \
@@ -43,8 +44,8 @@ status: wip(2026, 6, 1),\n\
 )\n\n== Summary\n\nBody.\n"
 );
 
-/// The survivor: three inbound edges to `gone`, one per kind the fix must
-/// retarget — plain `depends-on`, the note-bearing `related` escape hatch, and a
+/// The survivor holds three inbound edges to `gone`, one per kind the fix must
+/// retarget: plain `depends-on`, the note-bearing `related` escape hatch, and a
 /// custom kind via `edge(...)`. None uses `link(...)`.
 const LIVE: &str = mindtape::typst_task!(
     "(\n  \
@@ -54,8 +55,8 @@ links: depends-on(\"gone.typ\") + related(\"gone.typ\")[why] + edge(\"blocks\", 
 )\n\n== Summary\n\nBody.\n"
 );
 
-/// A survivor that never references `gone` — the unreferenced-removal case,
-/// where deletion needs no tombstone and no git.
+/// A survivor that never references `gone`: the unreferenced-removal case,
+/// where deletion doesn't need a tombstone or git.
 const UNRELATED: &str = mindtape::typst_task!(
     "(\n  \
 title: \"Unrelated\",\n  \
@@ -95,8 +96,8 @@ links: depends-on(\"gone-b.typ\"),\n\
 )\n\n== Summary\n\nBody.\n"
 );
 
-/// Scaffold the project files — config, in-tree lib, and the given task
-/// sources — without initializing git.
+/// Scaffold the project files (config, in-tree lib, and the given task sources)
+/// without initializing git.
 fn scaffold_files(files: &[(&str, &str)]) -> tempfile::TempDir {
     scaffold_config(CONFIG, files)
 }

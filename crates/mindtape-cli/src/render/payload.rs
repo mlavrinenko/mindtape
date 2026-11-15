@@ -1,5 +1,5 @@
 //! The document `mt ls --json` prints inside its `$schema` envelope: the task
-//! records plus how the listing was shaped, cut and matched.
+//! records plus how the listing shaped, cut and matched them.
 
 use mindtape::{CanonicalTask, Config, Readiness, Task};
 use serde::Serialize;
@@ -16,8 +16,8 @@ use crate::render::output::Truncation;
 pub struct JsonContext<'a> {
     pub applied: &'a Applied,
     pub truncated: Option<Truncation>,
-    /// Every stem a `touches()` call met that no task answers to, even
-    /// through a rename ([`mindtape::config::Config::retired_refs`]).
+    /// Every stem a `touches()` call met with no matching task, even through a
+    /// rename ([`mindtape::config::Config::retired_refs`]).
     pub retired: &'a [String],
 }
 
@@ -31,7 +31,7 @@ pub struct LsPayload {
     pub applied: AppliedJson,
     /// What `--limit` cut, or `null` for a complete listing.
     pub truncated: Option<TruncatedJson>,
-    /// The stems a `touches()` call met that no task answers to.
+    /// The stems a `touches()` call met with no matching task.
     pub retired: Vec<String>,
 }
 

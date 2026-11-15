@@ -1,6 +1,6 @@
 //! Tests for `Applied`'s footer, supersession, and `bare_view_ref`'s `@name`
 //! parsing. Cascade resolution (`resolve`/`resolve_bare`) lives in
-//! `cmd/ls/rules_tests.rs`; shares its `args`/`project`/`project_with_config`
+//! `cmd/ls/rules_tests.rs`. Shares its `args`/`project`/`project_with_config`
 //! fixtures.
 #![allow(clippy::unwrap_used)]
 

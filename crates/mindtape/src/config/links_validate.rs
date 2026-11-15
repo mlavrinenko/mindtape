@@ -1,22 +1,22 @@
 //! Per-kind link-target validators: the `[[tasks.links.kinds]] validate` axis.
 //!
-//! Every edge kind sits on one axis — what shape its targets take. The default,
+//! Every edge kind sits on one axis, the shape its targets take. The default,
 //! `local-task-path`, makes a target a path from the linking task's file to
-//! another task's file, resolved against the loaded task set. Any other validator
-//! declares the kind's targets to be *outside* the backlog (a commit, a pull
-//! request, a build), which is what lets a task record the artifact that
+//! another task's file, resolved against the loaded task set. Any other
+//! validator declares the kind's targets to be *outside* the backlog (a commit,
+//! a pull request, a build). That is what lets a task record the artifact which
 //! discharges it.
 //!
 //! Two levels of checking live here, sharing one dispatch ([`accepts`]):
 //!
-//! - Config level — [`validate_link_kinds`] rejects a `validate = "regex"` kind
+//! - Config level: [`validate_link_kinds`] rejects a `validate = "regex"` kind
 //!   with no sibling `regex = "…"` pattern (or an uncompilable one) at load, so
 //!   a pattern-less regex kind is never silently permissive.
-//! - Target level — [`Validators`] compiles each kind's pattern once per
+//! - Target level: [`Validators`] compiles each kind's pattern once per
 //!   validation pass and reports a malformed target, naming the kind, the
 //!   validator, and the offending value.
 //!
-//! Graph semantics follow from the same field rather than a second flag: see
+//! Graph semantics follow from the same field rather than a second flag. See
 //! [`TargetValidator::targets_tasks`], which
 //! [`crate::link::kind_targets_tasks`] and the `*_kinds` helpers read to keep
 //! non-task kinds out of stem resolution, cardinality, cycle detection, and
@@ -56,14 +56,14 @@ pub enum TargetValidator {
 impl TargetValidator {
     /// Whether this kind's targets name local task files. `true` only for
     /// [`Self::LocalTaskPath`]: every other validator describes something
-    /// outside the backlog, so its edges are excluded from stem resolution,
-    /// cardinality, cycle detection, and readiness.
+    /// outside the backlog, so stem resolution, cardinality, cycle detection,
+    /// and readiness skip its edges.
     #[must_use]
     pub fn targets_tasks(self) -> bool {
         matches!(self, Self::LocalTaskPath)
     }
 
-    /// The validator's config spelling, as it appears in a diagnostic.
+    /// The config spelling of the validator, as it appears in a diagnostic.
     #[must_use]
     pub fn name(self) -> &'static str {
         match self {
@@ -101,7 +101,7 @@ fn kind_problem(kind: &LinkKind) -> Option<String> {
             format!(
                 "{label}.regex: invalid pattern: {}: {}",
                 super::quote(pattern),
-                regex_reason(&err)
+                crate::error_text::last_line(&err.to_string())
             )
         }),
         (other, Some(_)) => Some(format!(
@@ -112,24 +112,16 @@ fn kind_problem(kind: &LinkKind) -> Option<String> {
     }
 }
 
-/// The last line of a regex error, which holds the reason; the lines above it
-/// draw the pattern.
-fn regex_reason(err: &regex::Error) -> String {
-    let text = err.to_string();
-    let last = text.lines().last().unwrap_or_default();
-    last.strip_prefix("error: ").unwrap_or(last).to_owned()
-}
-
-/// One kind's compiled validator: the validator itself plus its pattern, when
-/// it has one. A pattern that failed to compile stays `None` — [`accepts`] then
-/// rejects every target rather than waving them through.
+/// One kind's compiled validator, holding the validator itself plus its
+/// pattern when it has one. A pattern that failed to compile stays `None`, and
+/// [`accepts`] then rejects every target rather than waving them through.
 struct Compiled {
     validator: TargetValidator,
     pattern: Option<Regex>,
 }
 
 /// Per-kind target validators for one project, compiled once per validation
-/// pass. Holds only the kinds that do *not* target tasks: a `local-task-path`
+/// pass. Holds only the kinds that do *not* target tasks. A `local-task-path`
 /// kind's real check is resolution against the loaded task set, which the
 /// caller runs instead.
 pub(crate) struct Validators<'a> {
@@ -177,7 +169,7 @@ impl<'a> Validators<'a> {
 
 /// The single dispatch every bundled validator goes through: does `value` have
 /// the shape `validator` demands? `pattern` carries the compiled sibling
-/// pattern for [`TargetValidator::Regex`] and is unused otherwise.
+/// pattern for [`TargetValidator::Regex`], and every other validator ignores it.
 fn accepts(validator: TargetValidator, value: &str, pattern: Option<&Regex>) -> bool {
     match validator {
         // Resolution against the loaded task set is this validator's real
@@ -193,7 +185,7 @@ fn accepts(validator: TargetValidator, value: &str, pattern: Option<&Regex>) -> 
 
 /// Whether `value` has RFC 3986 absolute-URI shape: a scheme, a `:`, and a
 /// non-empty remainder built only from URI-legal characters. Deliberately
-/// syntactic — it neither resolves the target nor validates percent-triplets.
+/// syntactic: it neither resolves the target nor validates percent-triplets.
 fn is_uri(value: &str) -> bool {
     let Some((scheme, rest)) = value.split_once(':') else {
         return false;

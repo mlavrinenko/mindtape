@@ -11,17 +11,18 @@ use crate::model::fields::{self as fields, FieldValue};
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
-/// Whether `name` is accepted by `--sort` and `[ls] default-sort`: every
-/// [`crate::model::fields::FIELDS`] entry, every `x-<ns>` extension slot (a scalar
-/// value orders like a core field; a list or a dict orders as missing), plus
-/// `ready` (a computed rank, not a `Task` field — see [`ready_rank`]).
-/// Derived rather than listed, so a field
-/// or property wired into the registry is sortable by construction and no
-/// second list has to remember it — the drift that left `assignee` and
-/// `reviewed` silently unsortable before the registry existed.
+/// Whether `--sort` and `[ls] default-sort` accept `name`: every
+/// [`crate::model::fields::FIELDS`] entry, every `x-<ns>` extension slot, plus
+/// `ready` (a computed rank, not a `Task` field, see [`ready_rank`]). A scalar
+/// value orders like a core field. A list or a dict orders as missing.
+///
+/// The registry derives the list rather than storing it, so a field or property
+/// wired into the registry is sortable by construction. No second list has to
+/// remember it, which is the drift that left `assignee` and `reviewed` silently
+/// unsortable before the registry existed.
 ///
 /// Two of them read the dependency graph rather than the task's own
-/// properties: `topo` (dependency level — ascending is a topological order)
+/// properties: `topo` (dependency level, ascending is a topological order)
 /// and `blocks` (how many tasks it transitively unblocks). Both are levels,
 /// not linear positions, so they tie and a following spec breaks the tie:
 /// `--sort topo --sort priority:desc` is graph order with priority inside a
@@ -46,14 +47,14 @@ pub fn is_sort_field_with(name: &str, collectors: &[CollectorSpec]) -> bool {
 ///
 /// # Errors
 /// Returns a message string if [`is_sort_field`] rejects the field, or if a
-/// `:` suffix is anything but `asc`/`desc`. A misspelled direction is
-/// refused, not read as ascending.
+/// `:` suffix is anything but `asc`/`desc`. The function refuses a misspelled
+/// direction rather than reading it as ascending.
 pub fn validate_sort_spec(spec: &str) -> Result<(), Problem> {
     validate_sort_spec_with(spec, &[])
 }
 
-/// [`validate_sort_spec`] over a project's collectors too. A derived list or
-/// record is refused with its type, since only a scalar orders.
+/// [`validate_sort_spec`] over a project's collectors too. The function
+/// refuses a derived list or record with its type, since only a scalar orders.
 ///
 /// # Errors
 /// As [`validate_sort_spec`].
@@ -86,7 +87,7 @@ pub fn validate_sort_spec_with(spec: &str, collectors: &[CollectorSpec]) -> Resu
 }
 
 /// The core field names `--sort` accepts besides the `x-<ns>` slots: every
-/// registry field, then `ready`. What a did-you-mean for a misspelt field
+/// registry field, then `ready`. What a did-you-mean for a misspelled field
 /// searches.
 #[must_use]
 pub fn sort_fields() -> Vec<&'static str> {
@@ -126,11 +127,11 @@ pub fn difficulty_value(task: &Task, config: &Config) -> Option<f64> {
         .and_then(|value| config.tasks.difficulty.resolve(value))
 }
 
-/// Sort `tasks` by `specs` using a stable least-significant-first multi-key sort.
-/// Each spec is `"field"`, `"field:asc"`, or `"field:desc"`.
+/// Sort `tasks` by `specs` with a stable multi-key sort that applies the last
+/// spec first. Each spec is `"field"`, `"field:asc"`, or `"field:desc"`.
 ///
 /// # Errors
-/// Returns a message string if any spec names an unknown field.
+/// Returns a message string if any spec references an unknown field.
 pub fn sort_by_specs(
     tasks: &mut [Task],
     specs: &[String],
@@ -149,7 +150,7 @@ pub fn sort_by_specs(
 }
 
 /// Split a validated spec into its field and direction. Every caller runs
-/// [`validate_sort_spec`] first, so a suffix here is `asc` or `desc`; the
+/// [`validate_sort_spec`] first, so a suffix here is `asc` or `desc`. The
 /// wildcard arm only keeps the function total.
 fn parse_spec(spec: &str) -> (&str, bool) {
     match spec.split_once(':') {
@@ -159,13 +160,14 @@ fn parse_spec(spec: &str) -> (&str, bool) {
     }
 }
 
-/// Compare two tasks on `field` ascending; callers reverse for descending specs.
+/// Compare two tasks on `field` ascending. Callers reverse the result for a
+/// descending spec.
 ///
-/// `status`/`ready`/`priority`/`difficulty` need config- or readiness-aware
-/// ordering that a raw field value can't express (legend position, readiness
-/// band, a resolved numeric scale point) so they stay special-cased; every
-/// other field — including any added to [`crate::model::fields::FIELDS`] later —
-/// falls through to the shared registry.
+/// `status`, `ready`, `priority` and `difficulty` need config- or
+/// readiness-aware ordering that a raw field value can't express: legend
+/// position, readiness band, a resolved numeric scale point. They stay
+/// special-cased. Every other field falls through to the shared registry,
+/// including any field added to [`crate::model::fields::FIELDS`] later.
 fn compare_field(
     left: &Task,
     right: &Task,
@@ -188,10 +190,11 @@ fn compare_field(
     }
 }
 
-/// A field's value via the shared [`crate::model::fields`] registry, or an `x-<ns>`
-/// slot's through [`crate::model::fields::extra`]; `Missing` when `field` is neither —
-/// unreachable via `--sort`, since `sort_by_specs` validates every spec first
-/// and the one other sort name, `ready`, is intercepted in [`compare_field`].
+/// A field's value from the shared [`crate::model::fields`] registry, or an
+/// `x-<ns>` slot's value from [`crate::model::fields::extra`]. Returns `Missing`
+/// when `field` is neither. `--sort` never reaches that case, because
+/// `sort_by_specs` validates every spec first and [`compare_field`] intercepts
+/// the one other sort name, `ready`.
 fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {
     if fields::is_derived(field) {
         return fields::derived(task, field, config).unwrap_or(FieldValue::Missing);
@@ -203,15 +206,16 @@ fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {
 }
 
 /// Compare two resolved field values for `--sort`, ascending: numbers
-/// numerically, strings lexicographically (ISO-correct for dates), a missing
-/// value after every present one — the same missing-last convention
-/// [`cmp_num_asc`] and [`cmp_opt_asc`] already use, so every field orders
-/// missing values the same way (`sort_by_specs` reverses the whole comparison
-/// for `:desc`, so there a missing value sorts first — same as `priority`/
-/// `difficulty`, whose `cmp_num_asc` arms follow the identical rule). The two
-/// values passed in are resolved from the same field name, so a core field's
-/// are the same variant when both are present; an `x-<ns>` slot may hold a
-/// number on one task and text or a list on another, and those tie.
+/// numerically, strings lexicographically (ISO-correct for dates), and a
+/// missing value after every present one. That is the missing-last convention
+/// [`cmp_num_asc`] and [`cmp_opt_asc`] already use, and every field orders
+/// missing values the same way. `sort_by_specs` reverses the whole comparison
+/// for `:desc`. There a missing value sorts first, the same as `priority` and
+/// `difficulty`, whose `cmp_num_asc` arms follow the identical rule.
+///
+/// Both values come from the same field name, and a core field's values hold
+/// the same variant when both are present. An `x-<ns>` slot may hold a number
+/// on one task and text or a list on another, and those tie.
 fn cmp_field_value(left: &FieldValue, right: &FieldValue) -> Ordering {
     match (left, right) {
         (FieldValue::Missing, FieldValue::Missing) => Ordering::Equal,
@@ -242,13 +246,13 @@ pub fn default_order(tasks: &mut [Task], config: &Config) {
 
 /// Sort `tasks` into the default order.
 ///
-/// When `config.query.default_sort` is set, that chain (validated at load) is
-/// used via the shared [`sort_by_specs`] comparator. Otherwise the shipped
-/// built-in chain applies: ready work first (ready → blocked → settled), then
-/// priority descending, status lifecycle, due ascending, id as stable tiebreak.
+/// When `config.query.default_sort` holds a chain, [`sort_by_specs`] applies it
+/// (validated at load). Otherwise the built-in chain applies: ready work first
+/// (ready → blocked → settled), then priority descending, status lifecycle, due
+/// ascending, id as stable tiebreak.
 ///
-/// `readiness` must be computed over the full loaded set (see
-/// [`Readiness::compute`]); pass [`Readiness::empty`] when no set context applies.
+/// Compute `readiness` over the full loaded set (see [`Readiness::compute`]).
+/// Pass [`Readiness::empty`] when no set context applies.
 pub fn default_order_with(tasks: &mut [Task], config: &Config, readiness: &Readiness) {
     if !config.ls.default_sort.is_empty() {
         // Validated at config load — errors here are unreachable.
@@ -268,7 +272,7 @@ fn compare_default(left: &Task, right: &Task, config: &Config, readiness: &Readi
 }
 
 /// Sort rank for a task's readiness: ready (0) before blocked (1) before settled
-/// (2), so actionable work floats to the top of the default view.
+/// (2). The default view puts work you can start at the top.
 #[must_use]
 pub fn ready_rank(task: &Task, readiness: &Readiness) -> u8 {
     match readiness.state(task) {
@@ -278,8 +282,8 @@ pub fn ready_rank(task: &Task, readiness: &Readiness) -> u8 {
     }
 }
 
-/// Position of a task's status in the configured lifecycle; unknown or missing
-/// status sorts last.
+/// Position of a task's status in the configured lifecycle. An unknown or
+/// missing status sorts last.
 #[must_use]
 pub fn status_index(task: &Task, config: &Config) -> usize {
     match &task.status {
@@ -310,7 +314,7 @@ fn due_asc(left: &Task, right: &Task) -> Ordering {
     cmp_opt_asc(left.due.as_deref(), right.due.as_deref())
 }
 
-/// Compare numbers descending (higher first); a missing value sorts last.
+/// Compare numbers descending (higher first). A missing value sorts last.
 fn cmp_num_desc(left: Option<f64>, right: Option<f64>) -> Ordering {
     match (left, right) {
         (Some(high), Some(low)) => low.partial_cmp(&high).unwrap_or(Ordering::Equal),
@@ -320,7 +324,8 @@ fn cmp_num_desc(left: Option<f64>, right: Option<f64>) -> Ordering {
     }
 }
 
-/// Compare options ascending with present values first; a missing value last.
+/// Compare options ascending with present values first. A missing value sorts
+/// last.
 fn cmp_opt_asc<T: Ord>(left: Option<T>, right: Option<T>) -> Ordering {
     match (left, right) {
         (Some(early), Some(late)) => early.cmp(&late),

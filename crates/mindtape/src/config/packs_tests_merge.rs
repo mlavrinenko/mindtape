@@ -1,7 +1,7 @@
-//! Every key a pack declares but its rules: deep-merged into a sub-layer
-//! just below the layer that extends it, with two packs of one layer
-//! refused when they set one value differently. The shared `layer` fixture
-//! stays in the parent test module and is reached through `super::tests`.
+//! Every key a pack declares but its rules is deep-merged into a sub-layer
+//! just below the layer that extends it. `mt` refuses two packs of one layer
+//! when they set one value differently. The shared `layer` fixture lives in
+//! the parent test module, and `super::tests` provides it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::PathBuf;

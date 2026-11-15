@@ -1,16 +1,16 @@
-//! `required` — whether a core field must be set, expressed as a filter.
+//! `required`: whether a core field must carry a value, expressed as a filter.
 //!
 //! `[tasks.priority] required` (and its `difficulty`, `estimate` and
 //! `[tasks.fields.<name>]` siblings) takes `true`, `false`, or a filter
-//! expression naming exactly the tasks that must carry the field. The shipped
-//! idiom is `required = "!terminal"` — required until the task reaches a
-//! terminal status. Anything the filter language can say is sayable here,
-//! e.g. `required = "kind == \"bug\""`.
+//! expression that selects exactly the tasks which must carry the field. The
+//! idiom the repo uses is `required = "!terminal"`, required until the task
+//! reaches a terminal status. Anything the filter language can say is sayable
+//! here, such as `required = "kind == \"bug\""`.
 //!
-//! Expressions are checked once, at config load: [`validate_requirements`]
-//! (called from [`crate::config::Config::validate`]) parses each one and
-//! dry-runs it against a probe task, so a malformed rule surfaces as a single
-//! config error rather than one violation per artifact. A validation pass then
+//! Config load checks each expression once: [`validate_requirements`] (called
+//! from [`crate::config::Config::validate`]) parses each one and dry-runs it
+//! against a probe task. A malformed rule then surfaces as a single config
+//! error rather than one violation per artifact. A validation pass then
 //! compiles the whole set once ([`RequiredRules::compile`]) and asks it task by
 //! task.
 
@@ -21,7 +21,7 @@ use crate::filter::Filter;
 use crate::model::{Status, Task};
 use crate::problem::Problem;
 
-/// Whether a field is required: `false`, `true`, or a filter expression.
+/// Whether a field must carry a value: `false`, `true`, or a filter expression.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub enum Requirement {
     /// Never required.
@@ -34,10 +34,10 @@ pub enum Requirement {
 }
 
 impl Requirement {
-    /// Whether the field can be required at all — `false` only for
+    /// Whether the field can require a value at all, `false` only for
     /// [`Requirement::No`]. An expression counts as possible here because the
-    /// answer needs a task, and callers that have none (`mt add` scaffolding a
-    /// task that does not exist yet) must surface the field rather than drop it.
+    /// answer needs a task. Callers that have none (`mt add` scaffolding a task
+    /// that does not exist yet) must surface the field rather than drop it.
     #[must_use]
     pub fn may_apply(&self) -> bool {
         !matches!(self, Self::No)
@@ -45,10 +45,10 @@ impl Requirement {
 }
 
 impl Requirement {
-    /// [`may_apply`](Self::may_apply) for a task about to be filed at
+    /// [`may_apply`](Self::may_apply) for a task about to reach the disk at
     /// `status`. An expression that reads nothing but `status` and `terminal`
-    /// is settled by the status alone, so it is evaluated; any other one still
-    /// needs fields the task does not have yet, and may apply.
+    /// settles on the status alone, and the code evaluates it. Any other one
+    /// still needs fields the task does not have yet, and may apply.
     #[must_use]
     pub fn may_apply_at(&self, status: &str, config: &Config) -> bool {
         let Self::Expr(source) = self else {
@@ -111,18 +111,19 @@ impl<'de> Deserialize<'de> for Requirement {
 pub enum RequirementRule {
     /// A constant answer, from `required = true` / `required = false`.
     Fixed(bool),
-    /// The parsed filter expression: required exactly for the tasks it matches.
+    /// The parsed filter expression, which requires the field exactly for the
+    /// tasks it matches.
     Expr(Box<Filter>),
 }
 
 impl RequirementRule {
     /// Compile one requirement.
     ///
-    /// A malformed expression compiles to `Fixed(false)`: [`validate_requirements`]
-    /// rejects those at config load, so this only covers a hand-built config that
-    /// never went through `load_config`, and a rule that cannot be evaluated
-    /// constrains nothing — the same reading `[[tasks.body.headers.rules]] when`
-    /// gives a filter it cannot evaluate.
+    /// A malformed expression compiles to `Fixed(false)`.
+    /// [`validate_requirements`] rejects those at config load, so this only
+    /// covers a hand-built config that never went through `load_config`. A rule
+    /// that fails to evaluate constrains nothing, the same reading
+    /// `[[tasks.body.headers.rules]] when` gives a filter it cannot evaluate.
     #[must_use]
     pub fn compile(requirement: &Requirement) -> Self {
         match requirement {
@@ -133,8 +134,9 @@ impl RequirementRule {
         }
     }
 
-    /// Whether the field is required for `task`. An expression that fails to
-    /// evaluate reads as "not required", for the reason [`Self::compile`] gives.
+    /// Whether the field must carry a value for `task`. An expression that
+    /// fails to evaluate reads as "not required", for the reason
+    /// [`Self::compile`] gives.
     #[must_use]
     pub fn applies(&self, task: &Task, config: &Config) -> bool {
         match self {
@@ -186,9 +188,10 @@ impl RequiredRules {
 /// Load-time check of every `required` expression in `config`: one message per
 /// unusable rule, prefixed by the rule's dotted TOML path.
 ///
-/// Each expression is parsed and dry-run against a probe task, so an unknown
-/// field, unknown view or unsupported operator is caught here — where it is one
-/// config error — instead of at evaluation time, where it would repeat per task.
+/// The check parses each expression and dry-runs it against a probe task. An
+/// unknown field, unknown view or unsupported operator then fails here, where it
+/// is one config error, instead of at evaluation time, where it would repeat per
+/// task.
 pub(crate) fn validate_requirements(config: &Config) -> Vec<Problem> {
     let probe = Task::default();
     requirements(config)

@@ -1,6 +1,6 @@
-//! The status-verb surface of `mt flip`: the unknown-status and unknown-command
-//! errors with their nearest-match suggestion, the warning for a status that
-//! shadows a built-in subcommand, and the `--list` printout.
+//! The status-verb surface of `mt flip`. The module holds the unknown-status
+//! and unknown-command errors with their nearest-match suggestion, the warning
+//! for a status that shadows a built-in subcommand, and the `--list` printout.
 
 use std::collections::HashSet;
 
@@ -10,7 +10,7 @@ use mindtape::config::Legend;
 use crate::diag::{Command, Diag, Hint};
 
 /// Configured legend values as `&str`, for a nearest-match suggestion shared
-/// by the unknown-status and shortcut-verb-miss sites — both reject against
+/// by the unknown-status and shortcut-verb-miss sites: both reject against
 /// this same set
 /// (`truth/tasks/2026-09/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
 pub(super) fn legend_values(legend: &Legend) -> Vec<&str> {

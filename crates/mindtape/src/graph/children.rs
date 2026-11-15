@@ -1,14 +1,15 @@
-//! A task's children: the tasks whose `parent` edge names it.
+//! A task's children are the tasks whose `parent` edge points at it.
 //!
 //! One definition of the edge feeds three readers, so they never disagree about
-//! who a parent's children are: the derived `children`/`progress` fields
-//! ([`crate::graph::dep_rank::annotate`]), the `mt flip` refusal to close a parent over
-//! unfinished children, and the `mt check` warning about one already closed.
-//! "Unfinished" is non-terminal, the same line [`crate::graph::ready`] draws for a
-//! blocker: a cancelled child is finished, since nothing is left to wait for.
+//! who a parent's children are. The readers are the derived `children`/`progress`
+//! fields ([`crate::graph::dep_rank::annotate`]), the `mt flip` refusal to close
+//! a parent over unfinished children, and the `mt check` warning about one
+//! already closed. "Unfinished" is non-terminal, the same line
+//! [`crate::graph::ready`] draws for a blocker. A cancelled child counts as
+//! finished, since nothing remains to wait for.
 //!
-//! A `parent` target naming no loaded task is not an edge, and a child listing
-//! the same parent twice counts once.
+//! A `parent` target outside the loaded set is not an edge, and a child
+//! listing the same parent twice counts once.
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -56,7 +57,7 @@ pub(crate) fn unfinished(children: &[&Task], terminal: &[String]) -> Vec<Blocker
         .collect()
 }
 
-/// `parent`'s non-terminal children within `tasks` — what a flip closing it
+/// `parent`'s non-terminal children within `tasks`, what a flip closing it
 /// would leave behind.
 #[must_use]
 pub fn unfinished_children(tasks: &[Task], parent: &Task, config: &Config) -> Vec<Blocker> {
@@ -66,8 +67,8 @@ pub fn unfinished_children(tasks: &[Task], parent: &Task, config: &Config) -> Ve
         .map_or_else(Vec::new, |children| unfinished(children, &terminal))
 }
 
-/// Why entering `status` is refused while `children` are unfinished:
-/// `` `done` requires finished children; unfinished: a (wip) `` — shared by the
+/// The reason a move into `status` fails while `children` stay unfinished:
+/// `` `done` requires finished children; unfinished: a (wip) ``, shared by the
 /// `mt flip` refusal and the `mt check` warning.
 #[must_use]
 pub fn children_violation(status: &str, children: &[Blocker]) -> String {
@@ -78,7 +79,7 @@ pub fn children_violation(status: &str, children: &[Blocker]) -> String {
 }
 
 /// Warn about a parent sitting in a status that requires finished children
-/// ([`crate::config::Legend::requires_finished_children`]) while one is
+/// ([`crate::config::Legend::requires_finished_children`]) while one stays
 /// unfinished. A warning, like the blocked one beside it: `mt flip --force`
 /// lands exactly this state on purpose, and reopening a child puts its closed
 /// parent here without either file changing.

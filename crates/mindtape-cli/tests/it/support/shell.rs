@@ -1,8 +1,8 @@
 //! The one door for spawning a script or a shell from an e2e test.
 //!
 //! The host's `BASH_ENV` hook (`/etc/bash_env`) runs when bash starts, before
-//! any script line: it re-derives `PATH` from the `.envrc` above the working
-//! directory, and a throwaway directory has none, so the dev shell's tools
+//! any script line. It re-derives `PATH` from the `.envrc` above the working
+//! directory, and a throwaway directory has none. The dev shell's tools then
 //! vanish. Setting `BASH_ENV=` inside the script is too late. [`shell`] strips
 //! it from the environment instead, and puts the developer's git config out of
 //! reach. The guard test below refuses a direct `Command::new("bash")`.
@@ -12,7 +12,7 @@ use std::process::Command;
 
 use super::CLEARED_VARS;
 
-/// The checkout this test binary was built from.
+/// The checkout this test binary builds from.
 pub fn checkout() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }

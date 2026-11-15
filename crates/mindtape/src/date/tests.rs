@@ -7,8 +7,8 @@ use super::{
     today_epoch_days, today_iso, today_ymd,
 };
 
-/// 2026-07-28T22:00:00Z, the instant the deciding task was filed at: still
-/// the 28th in UTC, already the 29th three hours east.
+/// 2026-07-28T22:00:00Z, the instant the deciding task records: still the 28th
+/// in UTC, already the 29th three hours east.
 fn late_july_evening_utc() -> chrono::DateTime<chrono::Utc> {
     chrono::Utc
         .with_ymd_and_hms(2026, 7, 28, 22, 0, 0)
@@ -16,10 +16,10 @@ fn late_july_evening_utc() -> chrono::DateTime<chrono::Utc> {
         .expect("22:00 UTC on 2026-07-28 is unambiguous")
 }
 
-/// The offset decides the calendar date, not the underlying instant: one
-/// moment, read three hours east and five hours west, is two different
-/// days. This is the assertion that pins "local, not UTC" — under the old
-/// UTC conversion both sides would answer the 28th.
+/// The offset picks the calendar date, not the underlying instant: one moment,
+/// read three hours east and five hours west, is two different days. This is
+/// the assertion that pins "local, not UTC". Under the old UTC conversion both
+/// sides would answer the 28th.
 #[test]
 fn local_epoch_days_reads_the_offsets_own_calendar_date() {
     let instant = late_july_evening_utc();
@@ -45,12 +45,12 @@ fn local_epoch_days_at_utc_is_the_utc_date() {
     );
 }
 
-/// The clock fallback: no `MINDTAPE_NOW` pin is set in this process (the
-/// pin is exercised out-of-process — see `date/pin_tests.rs` and
-/// `crates/mindtape-cli/tests/it/date_pin_e2e.rs`), so `today_epoch_days`
-/// must report the system clock. Bracketing it between two samples taken
-/// around the call is rollover-safe: if midnight falls inside the window,
-/// the answer is still one of the two ends.
+/// The clock fallback. This process has no `MINDTAPE_NOW` pin (the pin runs
+/// out-of-process, see `date/pin_tests.rs` and
+/// `crates/mindtape-cli/tests/it/date_pin_e2e.rs`), so `today_epoch_days` must
+/// report the system clock. Bracketing it between two samples taken around the
+/// call is rollover-safe: if midnight falls inside the window, the answer is
+/// still one of the two ends.
 #[test]
 fn today_epoch_days_falls_back_to_the_system_clock() {
     let before = local_epoch_days(&chrono::Local::now());

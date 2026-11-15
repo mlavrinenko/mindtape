@@ -39,7 +39,7 @@ fn accepts(on_add: &str, template: Option<&str>) {
     }
 }
 
-/// Assert the config is refused with an error containing `needle`.
+/// Assert that validation refuses the config with an error containing `needle`.
 fn refuses(on_add: &str, template: Option<&str>, needle: &str) {
     match validate(on_add, template) {
         Ok(()) => panic!("expected a config error containing {needle:?}"),
@@ -142,9 +142,9 @@ fn malformed_template_tests_are_refused() {
     }
 }
 
-/// The draft the `when` reads has no identity or place yet: the add files the
+/// The draft the `when` reads has no identity or place yet. The add files the
 /// task after every hook ran, so those fields would answer for a synthetic
-/// draft rather than the task being added.
+/// draft rather than the task the add creates.
 #[test]
 fn add_unsafe_fields_are_refused_in_a_when() {
     for (when, field) in [

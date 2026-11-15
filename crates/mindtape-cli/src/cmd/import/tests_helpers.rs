@@ -3,14 +3,13 @@
 //!
 //! Per-record problem attribution belongs to `mindtape::check_candidates`,
 //! tested in `candidate_tests.rs` and `pre_write_tests.rs`, because the batch
-//! is checked as candidates before anything is written. The `problems_for`
-//! helper that read a post-write reload is gone, and so is the temp project
-//! mirror
-//! `--dry-run` needed: a candidate is validated without a file, so there is
-//! nothing left to mirror.
+//! goes through the candidate check before anything reaches disk. A candidate
+//! validates without a file, so nothing needs the temp project mirror that
+//! `--dry-run` required, and nothing needs the `problems_for` helper that read
+//! a post-write reload.
 //!
 //! The command-level round-trip, input shapes and failure behaviour live in
-//! `cmd/import/tests.rs`; everything here calls one helper directly.
+//! `cmd/import/tests.rs`. Everything here calls one helper directly.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::{tempdir, tempdir_with_files};

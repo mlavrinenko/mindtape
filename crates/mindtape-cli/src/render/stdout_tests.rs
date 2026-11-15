@@ -1,10 +1,10 @@
 //! Unit tests for the stdout writer's error classification.
 //!
-//! The behaviour that matters end to end — a pipeline whose reader exits does
-//! not panic `mt` — is `tests/it/broken_pipe_e2e.rs`: it takes a real closed pipe,
-//! which no in-process test can stage. What is pinned here is the one decision
-//! that test cannot distinguish from luck, namely *which* write errors are
-//! swallowed and which stay as loud as libstd left them.
+//! The behaviour that matters end to end is that a pipeline whose reader exits
+//! does not panic `mt`. `tests/it/broken_pipe_e2e.rs` covers it, because that
+//! test takes a real closed pipe, which no in-process test can stage. These
+//! tests pin what the end-to-end test leaves to luck: *which* write errors the
+//! writer swallows, and which stay as loud as libstd left them.
 
 use std::io::{Error, ErrorKind};
 use std::sync::atomic::Ordering;

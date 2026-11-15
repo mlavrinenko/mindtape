@@ -9,7 +9,7 @@ use super::{
     is_builtin_kind, kind_names, kind_targets_tasks, parse_links, resolve_kind,
 };
 
-/// A custom kind carrying only its name — every other field at its default
+/// A custom kind carrying only its name: every other field at its default
 /// (unbounded, optional note, non-blocking, acyclic off, `local-task-path`).
 fn custom(name: &str) -> LinkKind {
     LinkKind {
@@ -40,8 +40,8 @@ fn edge(task: &str, kind: &str, note: Option<&str>) -> HVal {
     ])
 }
 
-/// [`parse_links`] without caring about shape errors — most tests here feed
-/// it a well-shaped array; shape-error tests call `parse_links` directly.
+/// [`parse_links`] without caring about shape errors. Most tests here feed it
+/// a well-shaped array, and shape-error tests call `parse_links` directly.
 fn parse(value: Option<&HVal>) -> Vec<super::Link> {
     parse_links(value, &mut Vec::new())
 }

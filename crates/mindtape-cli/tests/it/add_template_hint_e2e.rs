@@ -1,6 +1,6 @@
-//! A refused `mt add` points at the template that pins what the caller passed:
-//! the default template left `kind` to a spliced slot, another template writes
-//! `kind: "dev"` literally, and the rule the task breaks is why the first
+//! A refused `mt add` points at the template that pins what the caller passed.
+//! The default template left `kind` to a spliced slot, and another template
+//! writes `kind: "dev"` literally. The rule the task breaks is why the first
 //! cannot file it.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -52,7 +52,7 @@ fn no_hint_when_no_template_pins_the_value() {
 }
 
 /// A breach of a rule that reads only `title` is not fixed by a template that
-/// pins `kind`, so the refusal names no template.
+/// pins `kind`. The refusal then points at no template.
 #[test]
 fn no_hint_when_the_breach_names_another_field() {
     let dir = scaffold();
@@ -72,8 +72,8 @@ fn no_hint_when_the_breach_names_another_field() {
     assert!(!stderr.contains("hint:"), "{stderr}");
 }
 
-/// A body header rule is about the names its `when` reads, not about `body`:
-/// the rule below breaches because the filed kind is `dev`, so the `dev`
+/// A body header rule is about the names its `when` reads, not about `body`.
+/// The rule below breaches because the filed kind is `dev`, so the `dev`
 /// template that writes the Rollback section is the fix.
 #[test]
 fn a_body_header_rule_is_about_the_field_its_when_reads() {
@@ -101,8 +101,8 @@ fn a_body_header_rule_is_about_the_field_its_when_reads() {
     );
 }
 
-/// The caller passes the slot's name, not the field's: `kind: slot("type")`
-/// is filled by `--set type=dev`, and the hint still names the field.
+/// The caller passes the slot's name, not the field's: `--set type=dev` fills
+/// `kind: slot("type")`, and the hint still points at the field.
 #[test]
 fn a_field_filled_by_a_differently_named_slot_still_hints() {
     let dir = scaffold();

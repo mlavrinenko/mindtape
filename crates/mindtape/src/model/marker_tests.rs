@@ -1,8 +1,8 @@
-//! The marker projection's shape-error channel: a field, or an element inside
-//! one, that does not match the shape it projects into must be reported, never
-//! read as unset. Every test here goes through [`Task::from_marker`] rather
-//! than the private helpers, because what is being pinned is what an author
-//! gets back — the field path they can count to in their own source.
+//! The marker projection's shape-error channel. A field, or an element inside
+//! one, that does not match the shape it projects into must report, never read
+//! as unset. Every test here goes through [`Task::from_marker`] rather than the
+//! private helpers, because these tests pin what an author gets back. That is
+//! the field path they can count to in their own source.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::collections::BTreeMap;
@@ -36,9 +36,9 @@ fn task_with(field_name: &str, value: HVal) -> Task {
 }
 
 /// Build a task from a marker whose only field is `field_name: value`, and
-/// assert it reports exactly one [`crate::model::marker::ShapeError`] naming `path`
-/// and `expected_message` — shared setup for the wrong-shape tests below, each
-/// of which also checks what its field degraded to.
+/// assert it reports exactly one [`crate::model::marker::ShapeError`] naming
+/// `path` and `expected_message`. This is the shared setup for the wrong-shape
+/// tests below, each of which also checks what its field degraded to.
 fn assert_reports_shape_error(
     field_name: &str,
     value: HVal,
@@ -57,10 +57,10 @@ fn assert_reports_shape_error(
     task
 }
 
-/// `tags: ("backend")` — a Typst tuple missing its trailing comma, so a plain
-/// string rather than a one-element array — must not silently look like no
-/// tags authored at all: `from_marker` still coerces `tags` to empty (the
-/// field is typed `Vec<String>`), but names the mismatch in
+/// `tags: ("backend")` is a Typst tuple missing its trailing comma, so a plain
+/// string rather than a one-element array. It must not silently look like no
+/// tags authored at all. `from_marker` still coerces `tags` to empty, because
+/// the field has type `Vec<String>`, but it specifies the mismatch in
 /// `shape_errors` instead of leaving it unpoliced.
 #[test]
 fn reports_tags_wrong_shape_instead_of_silent_empty() {
@@ -73,8 +73,8 @@ fn reports_tags_wrong_shape_instead_of_silent_empty() {
     assert!(task.tags.is_empty());
 }
 
-/// `estimate: "2 days"` — a bare string rather than the `(unit: quantity)`
-/// dict — must likewise be reported, not silently coerced to an empty map.
+/// `estimate: "2 days"` is a bare string rather than the `(unit: quantity)`
+/// dict, so it must report too, not silently coerce to an empty map.
 #[test]
 fn reports_estimate_wrong_shape_instead_of_silent_empty() {
     let task = assert_reports_shape_error(
@@ -86,8 +86,8 @@ fn reports_estimate_wrong_shape_instead_of_silent_empty() {
     assert!(task.estimate.is_empty());
 }
 
-/// `links: "a.typ"` — a bare string rather than an array of edges — must
-/// likewise be reported, not silently coerced to no edges.
+/// `links: "a.typ"` is a bare string rather than an array of edges, so it must
+/// report too, not silently coerce to no edges.
 #[test]
 fn reports_links_wrong_shape_instead_of_silent_empty() {
     let task = assert_reports_shape_error(
@@ -100,7 +100,7 @@ fn reports_links_wrong_shape_instead_of_silent_empty() {
 }
 
 /// A well-shaped `tags:` array with one wrong-typed entry keeps every entry it
-/// can read and names the position of the one it cannot — the case a
+/// can read and specifies the position of the one it cannot. This is the case a
 /// field-level check passes clean, since the field itself is the right shape.
 #[test]
 fn reports_a_wrong_typed_tag_by_its_index() {
@@ -122,8 +122,8 @@ fn reports_a_none_tag_rather_than_reading_it_as_unset() {
     assert_reports_shape_error("tags", value, "tags[1]", "expected a string, found none");
 }
 
-/// `estimate: (days: "two")` — a well-shaped unit dict whose quantity is not a
-/// number. The other units survive; the offending one is named by its unit
+/// `estimate: (days: "two")` is a well-shaped unit dict whose quantity is not a
+/// number. The other units survive, and the offending one reports by its unit
 /// label, which is the only handle it has.
 #[test]
 fn reports_a_wrong_typed_estimate_quantity_by_its_unit() {
@@ -138,9 +138,9 @@ fn reports_a_wrong_typed_estimate_quantity_by_its_unit() {
     assert!(!task.estimate.contains_key("days"));
 }
 
-/// A `priority:` that is neither a number, a label, nor a framework dict —
-/// `(8, 9)` is the shape a hurried author writes for a two-input framework —
-/// must not read as an unprioritised task.
+/// A `priority:` that is neither a number, a label, nor a framework dict must
+/// not read as a task without a priority. `(8, 9)` is the shape a hurried
+/// author writes for a two-input framework.
 #[test]
 fn reports_a_priority_that_is_no_numeric_value_at_all() {
     let value = HVal::Array(vec![HVal::Int(8), HVal::Int(9)]);
@@ -153,8 +153,8 @@ fn reports_a_priority_that_is_no_numeric_value_at_all() {
     assert!(task.priority.is_none());
 }
 
-/// A dict is only a numeric value when it carries a `framework` name; one that
-/// does not is reported against the field, since nothing in it is readable.
+/// A dict is only a numeric value when it carries a `framework` name. One that
+/// does not reports against the field, since nothing in it is readable.
 #[test]
 fn reports_a_dict_priority_carrying_no_framework_name() {
     let value = dict(vec![("impact", HVal::Int(8))]);
@@ -166,9 +166,9 @@ fn reports_a_dict_priority_carrying_no_framework_name() {
     );
 }
 
-/// A framework's `inputs` is a dict of scalars. A non-scalar input is named by
-/// its own key — `priority.inputs.ease` — and the framework survives with the
-/// inputs that did read, which is what leaves `check` free to report the
+/// A framework's `inputs` is a dict of scalars. A non-scalar input reports by
+/// its own key, `priority.inputs.ease`, and the framework survives with the
+/// inputs that did read. That is what leaves `check` free to report the
 /// framework's own rules on top.
 #[test]
 fn reports_a_non_scalar_framework_input_by_its_key() {
@@ -195,9 +195,9 @@ fn reports_a_non_scalar_framework_input_by_its_key() {
     assert_eq!(inputs.keys().collect::<Vec<_>>(), vec!["impact"]);
 }
 
-/// `ice(impact: 8)` arrives with `confidence: none` and `ease: none` — the
-/// prelude passes its own parameter defaults through. A `none` dict entry is
-/// an unset key, so it must stay silent here; whether the framework requires
+/// `ice(impact: 8)` arrives with `confidence: none` and `ease: none`, because
+/// the prelude passes its own parameter defaults through. A `none` dict entry
+/// is an unset key, so it must stay silent here. Whether the framework requires
 /// it is `framework_validate`'s question, not a shape one.
 #[test]
 fn an_omitted_framework_input_is_not_a_shape_error() {
@@ -218,9 +218,9 @@ fn an_omitted_framework_input_is_not_a_shape_error() {
 }
 
 /// A `status:` that is not the prelude's `(name, date, note)` dict at all.
-/// `status: "wip"` is the spelling that skips the constructor, and it
-/// reads as no status — leaving `check` with nothing to say but "missing
-/// required status", about a field the author had written.
+/// `status: "wip"` is the spelling that skips the constructor, and it reads as
+/// no status, leaving `check` with nothing to say but "missing required
+/// status", about a field the author had written.
 #[test]
 fn reports_a_status_that_is_not_a_status_dict() {
     let task = assert_reports_shape_error(
@@ -232,8 +232,8 @@ fn reports_a_status_that_is_not_a_status_dict() {
     assert!(task.status.is_none());
 }
 
-/// A dict with no `name` is no status either — same report, since the name is
-/// the one part nothing downstream can do without.
+/// A dict with no `name` is no status either, with the same report, since the
+/// name is the one part nothing downstream can do without.
 #[test]
 fn reports_a_status_dict_carrying_no_name() {
     let value = dict(vec![("date", text("2026-01-01"))]);
@@ -246,8 +246,8 @@ fn reports_a_status_dict_carrying_no_name() {
 }
 
 /// A readable status whose `date`/`note` is wrong-typed keeps the status and
-/// names the part — the split that lets `check` report the real mistake
-/// instead of "missing required status".
+/// specifies the part. That split lets `check` report the real mistake instead
+/// of "missing required status".
 #[test]
 fn reports_a_wrong_typed_status_part_and_keeps_the_status() {
     let value = dict(vec![("name", text("wip")), ("date", HVal::Int(42))]);
@@ -263,8 +263,8 @@ fn reports_a_wrong_typed_status_part_and_keeps_the_status() {
 }
 
 /// Every scalar string slot reports the same way, and the class `field_str`
-/// carries the rule for all of them. `id` is in the list because a wrong-typed
-/// falls back to the file stem, which looks exactly like no `id:` authored.
+/// carries the rule for each of them. `id` is in the list because a wrong-typed
+/// `id` falls back to the file stem, which looks exactly like no `id:` authored.
 #[test]
 fn reports_every_wrong_typed_scalar_string_slot() {
     for field_name in [
@@ -280,8 +280,8 @@ fn reports_every_wrong_typed_scalar_string_slot() {
 }
 
 /// A date slot authored with the `on(2026, 6, 18)` helper arrives as a Typst
-/// `datetime`, which the harvester renders as a `YYYY-MM-DD` string — so the
-/// string check must accept it rather than reporting every dated task.
+/// `datetime`, which the harvester renders as a `YYYY-MM-DD` string. The string
+/// check must then accept it rather than reporting every dated task.
 #[test]
 fn a_datetime_date_slot_is_not_a_shape_error() {
     let task = task_with("due", HVal::Date("2026-06-18".to_owned()));
@@ -290,10 +290,10 @@ fn a_datetime_date_slot_is_not_a_shape_error() {
     assert_eq!(task.due.as_deref(), Some("2026-06-18"));
 }
 
-/// `shape_error` names the Typst kind of the offending value in its message,
-/// via `hval_kind` — one arm per `HVal` variant. `Null` reaches it only from
-/// an array element (the `field` helper filters a `none` field out), so it is
-/// exercised directly here.
+/// `shape_error` specifies the Typst kind of the offending value in its
+/// message, through `hval_kind`, with one arm per `HVal` variant. `Null`
+/// reaches it only from an array element (the `field` helper filters a `none`
+/// field out), so this test exercises it directly.
 #[test]
 fn shape_error_names_every_hval_kind() {
     let cases = vec![

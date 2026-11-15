@@ -1,5 +1,5 @@
 //! The real, in-tree prelude (not `loader/tests.rs`'s `PRELUDE_STUB`) driven
-//! end to end: what a task file authors against `@local/mindtape` must arrive
+//! end to end. What a task file authors against `@local/mindtape` must arrive
 //! as a [`crate::model::Task`], through the actual Typst eval and harvester
 //! rather than hand-built `HVal` fixtures. Shares `loader/tests.rs`'s
 //! fixtures (`setup`, `write`, `write_pkg`).
@@ -36,7 +36,7 @@ fn prelude_world(dir: &std::path::Path) -> HarvestWorld {
 
 /// Load one task authored with a single `task.with` field and return the first
 /// load-error message. Used by the assertion tests, which all expect the file
-/// to fail eval and produce no task at all.
+/// to fail eval and end with no task at all.
 pub(super) fn prelude_eval_error(field: &str) -> String {
     let source = format!(
         "#import \"@local/mindtape:0.4.0\": *\n\
@@ -53,10 +53,10 @@ pub(super) fn prelude_eval_error(field: &str) -> String {
 }
 
 /// Load one task carrying `links` as its whole `links:` field value, assert it
-/// loaded clean and shape-error-free, and return it. The spellings below are
-/// meant to be interchangeable, so what separates them has to be the source
-/// text and nothing else — one loader and one set of assertions is what makes
-/// that claim, rather than three tests that merely happen to agree.
+/// loaded clean and shape-error-free, and return it. The spellings below should
+/// be interchangeable, so what separates them has to be the source text and
+/// nothing else. One loader and one set of assertions makes that claim, rather
+/// than three tests that merely happen to agree.
 fn task_with_links(links: &str) -> Task {
     let source = format!(
         "#import \"@local/mindtape:0.4.0\": *\n\
@@ -85,8 +85,8 @@ fn assert_canonical_edges(task: &Task) {
     assert_eq!(related[0].note.as_deref(), Some("why"));
 }
 
-/// The `links:` DSL — variadic helpers, the trailing-note idiom, and combining
-/// several kinds with `+`.
+/// The `links:` DSL: variadic helpers, the trailing-note idiom, and combining
+/// many kinds with `+`.
 #[test]
 fn real_prelude_parses_typed_links_end_to_end() {
     let task = task_with_links("depends-on(\"a.typ\", \"b.typ\") + related(\"c.typ\")[why]");
@@ -95,7 +95,7 @@ fn real_prelude_parses_typed_links_end_to_end() {
 
 /// The array spelling of the same thing. Every helper returns an array, so
 /// writing `links:` as the tuple every other multi-valued field takes nests one
-/// level, and reaches the model as zero edges, validating clean while the
+/// level. It then reaches the model as zero edges, validating clean while the
 /// dependency graph sat empty. A task that loads with no links here is the
 /// regression.
 #[test]
@@ -104,8 +104,8 @@ fn real_prelude_reads_array_form_links_as_the_same_edges_as_concatenation() {
     assert_canonical_edges(&task);
 }
 
-/// The partial-loss shape: one helper concatenated with a tuple holding another.
-/// This kept exactly one of the two edges, which is worse than losing both —
+/// The partial-loss shape, one helper concatenated with a tuple holding another.
+/// This kept exactly one of the two edges, which is worse than losing both:
 /// `mt ls blocked` still lists the task, just against half its blockers.
 #[test]
 fn real_prelude_reads_links_mixing_concatenation_and_the_array_form() {
@@ -116,9 +116,9 @@ fn real_prelude_reads_links_mixing_concatenation_and_the_array_form() {
 }
 
 /// Flattening must not swallow the field-level shape error the prelude
-/// deliberately leaves to the Rust layer: a non-array `links:` passes through
-/// untouched, so it still reports against the expected shape rather than failing
-/// eval on a method a string does not have.
+/// deliberately leaves to the Rust layer. A non-array `links:` passes through
+/// untouched, so it still reports against the expected shape rather than
+/// failing eval on a method a string does not have.
 #[test]
 fn real_prelude_leaves_a_non_array_links_to_the_rust_shape_error() {
     let (_dir, outcome) =
@@ -135,11 +135,11 @@ fn real_prelude_leaves_a_non_array_links_to_the_rust_shape_error() {
     );
 }
 
-/// Every core field is a declared named parameter of `task` — that is the point
-/// of the explicit signature — so each must still reach the marker under its own
+/// Every core field is a declared named parameter of `task`, which is the point
+/// of the explicit signature, so each must still reach the marker under its own
 /// name. A parameter the signature declares but the marker's `fields` dict
 /// forgets would silently drop that field for every task in every project, with
-/// nothing failing; this authors all thirteen at once and reads them back.
+/// nothing failing. This test authors all thirteen at once and reads them back.
 #[test]
 fn real_prelude_carries_every_core_field_to_the_marker() {
     let (_dir, outcome) = load_real_prelude(crate::typst_task!(
@@ -190,10 +190,10 @@ fn real_prelude_carries_every_core_field_to_the_marker() {
     assert_eq!(task.id, "explicit");
 }
 
-/// The extension discipline, enforced over `..meta` alone: an `x-<ns>` slot is
-/// collected, and a misspelled core field — which the named parameters do not
-/// absorb, since none is named `titel` — fails the file with Typst's own
-/// refusal of an argument the callee does not declare.
+/// The extension discipline, enforced over `..meta` alone. The prelude collects
+/// an `x-<ns>` slot, and a misspelled core field fails the file with Typst's
+/// own refusal of an argument the callee does not declare. The named parameters
+/// do not absorb that field, since none carries the name `titel`.
 #[test]
 fn real_prelude_collects_extensions_and_rejects_unknown_slots() {
     let (_dir, ok) = load_real_prelude(crate::typst_task!(
@@ -230,9 +230,9 @@ fn real_prelude_places_the_unknown_slot_error_on_the_name_in_the_task_file() {
     assert!(column.starts_with("titel"), "{at}");
 }
 
-/// Every call the sink took before it refused through Typst still loads: no
-/// extension slot, several, one whose name Typst parses as `x-` alone, and one
-/// a dictionary spread names with a space, which no parameter can spell.
+/// Every call the sink took before it refused through Typst still loads. The
+/// cases are no extension slot, many, one whose name Typst parses as `x-`
+/// alone, and one a dictionary spread names with a space. No parameter can spell that last one.
 #[test]
 fn real_prelude_still_takes_every_extension_slot_it_took() {
     let cases: [(&str, &[&str]); 4] = [
@@ -252,8 +252,9 @@ fn real_prelude_still_takes_every_extension_slot_it_took() {
     }
 }
 
-/// The refusals around the extension sink keep their text: a misspelled field
-/// beside a slot no parameter can spell, and a positional argument.
+/// The refusals around the extension sink keep their text. They cover a
+/// misspelled field beside a slot no parameter can spell, and a positional
+/// argument.
 #[test]
 fn real_prelude_still_refuses_what_the_sink_refused() {
     let cases = [
@@ -289,9 +290,9 @@ fn real_prelude_rejects_a_link_target_in_an_edge_helper() {
 }
 
 /// Every other argument shape the helpers would otherwise drop on the floor.
-/// Each is an authoring mistake whose value never reaches the marker, so the
-/// Rust layer has nothing to validate — the prelude is the only layer that can
-/// still see it. The error names the offending helper in each case.
+/// Each is an authoring mistake whose value never reaches the marker. The Rust
+/// layer then has nothing to validate, since the prelude is the only layer that
+/// can still see it. The error specifies the offending helper in each case.
 #[test]
 fn real_prelude_rejects_argument_shapes_that_would_be_dropped() {
     let cases = [
@@ -345,16 +346,16 @@ fn real_prelude_rejects_argument_shapes_that_would_be_dropped() {
     }
 }
 
-/// The other half of the same seam: a wrong-typed value inside a well-shaped
-/// field must survive eval and arrive at the Rust layer as a shape error
-/// naming its position.
+/// The other half of the same seam. A wrong-typed value inside a well-shaped
+/// field must survive eval and arrive at the Rust layer as a shape error that
+/// specifies its position.
 ///
-/// Each of these must reach the shape check rather than fail eval by accident
-/// — the card render reached for a method the value did not have (`raw(tag)`,
-/// `status.at("name")`, `on.join(", ")`). That produced a message naming
+/// Each of these must reach the shape check rather than fail eval by accident.
+/// The card render reached for a method the value did not have (`raw(tag)`,
+/// `status.at("name")`, `on.join(", ")`). That produced a message specifying
 /// neither the field nor the task, and would vanish the moment the render
 /// stopped making that call. The render owes nobody validation, so it is
-/// total, and this is where the check lives.
+/// total, and the check lives here.
 #[test]
 fn real_prelude_carries_a_wrong_typed_element_to_the_rust_shape_error() {
     let cases = [
@@ -459,7 +460,7 @@ fn real_prelude_refuses_a_grep_with_more_than_one_glob() {
 }
 
 /// The prelude's goal verdicts: `verdicts` fills every neutral slot and keeps
-/// the explicit verdicts, so a task spells a whole group once.
+/// the explicit verdicts. A task then spells a whole group once.
 #[test]
 fn real_prelude_verdicts_fills_neutral_slots_and_keeps_an_explicit_verdict() {
     let (_dir, outcome) = load_real_prelude(crate::typst_task!(
@@ -485,7 +486,7 @@ fn real_prelude_verdicts_fills_neutral_slots_and_keeps_an_explicit_verdict() {
 }
 
 /// Naming one goal as both an explicit verdict and a neutral slot is an
-/// authoring mistake, not a precedence question: the merge would silently keep
+/// authoring mistake, not a precedence question. The merge would silently keep
 /// the verdict, so the helper asserts and names the goal instead.
 #[test]
 fn real_prelude_verdicts_refuses_a_goal_listed_both_ways() {

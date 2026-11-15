@@ -48,7 +48,8 @@ fn ids(outcome: &super::LoadOutcome) -> Vec<&str> {
 }
 
 /// Git lists tracked files and untracked files it does not ignore. A tracked
-/// file under an ignore rule stays a task; an untracked ignored one does not.
+/// file under an ignore rule stays a task, and an untracked ignored one does
+/// not.
 #[test]
 fn git_lists_tracked_and_untracked_sources_but_not_untracked_ignored_ones() {
     let dir = git_repo();
@@ -66,9 +67,9 @@ fn git_lists_tracked_and_untracked_sources_but_not_untracked_ignored_ones() {
     assert_eq!(ids(&outcome), ["new", "tracked", "visible"]);
 }
 
-/// A tracked file deleted from the working tree is not a task: the listing is
-/// filtered by the policy's regular-file kind, so the missing file cannot be
-/// harvested. Commit states still list it; that path is untouched.
+/// A tracked file deleted from the working tree is not a task. The policy's
+/// regular-file kind filters the listing, so the missing file cannot reach the
+/// harvest. Commit states still list it, and that path stays untouched.
 #[test]
 fn git_does_not_load_a_tracked_file_deleted_from_the_working_tree() {
     let dir = git_repo();
@@ -133,7 +134,7 @@ fn git_discovery_keeps_the_reserved_template_warning() {
     );
 }
 
-/// Git prints paths from the repository root; a project nested in a larger
+/// Git prints paths from the repository root. A project nested in a larger
 /// repository must strip its own prefix before making them project-relative.
 #[test]
 fn a_project_nested_in_a_larger_repository_keeps_project_relative_paths() {
@@ -152,7 +153,7 @@ fn a_project_nested_in_a_larger_repository_keeps_project_relative_paths() {
 }
 
 /// Only a non-worktree root or a missing `git` falls back. A Git failure that
-/// is neither is a load error naming the root, not a silent empty scan.
+/// is neither is a load error that specifies the root, not a silent empty scan.
 #[test]
 fn another_git_failure_is_a_load_error_naming_the_root() {
     let dir = setup();
@@ -186,7 +187,7 @@ fn a_non_git_project_walks_without_following_directory_symlinks() {
     assert_eq!(ids(&outcome), ["a"]);
 }
 
-/// `git ls-files -z` paths are bytes; a non-UTF-8 name must survive decoding
+/// `git ls-files -z` paths are bytes. A non-UTF-8 name must survive decoding
 /// instead of being silently dropped or mangled. Typst refuses to evaluate such
 /// a path, so the error is where the loader's preserved path shows up.
 #[cfg(unix)]

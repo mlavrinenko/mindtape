@@ -90,7 +90,7 @@ fn hit_with(expr: &str, task: &Task, cfg: &Config) -> bool {
     Filter::parse(expr).unwrap().matches(task, cfg).unwrap()
 }
 
-/// [`Filter::parse`] then [`Filter::matches`] under `config` — the helper the
+/// [`Filter::parse`] then [`Filter::matches`] under `config`, the helper the
 /// view tests and `contains_tests` share.
 fn hit_views(expr: &str, task: &Task, config: &Config) -> bool {
     Filter::parse(expr).unwrap().matches(task, config).unwrap()
@@ -355,10 +355,10 @@ fn now_in_comparison() {
 
 // --- Boundary regression tests ---
 
-/// The missing-field comparison rule `compare` implements and `[[tasks.limits]]`
-/// rests on: an absent field is unequal to every literal and orders against
-/// none. `kind != "umbrella"` must therefore count a task carrying no `kind`,
-/// so a `kind == "x"` / `kind != "x"` limit pair covers the whole set.
+/// `compare` implements the missing-field comparison rule, and
+/// `[[tasks.limits]]` rests on it: an absent field is unequal to every literal
+/// and orders against none. `kind != "umbrella"` must count a task carrying no
+/// `kind`, so a `kind == "x"` / `kind != "x"` limit pair covers the whole set.
 #[test]
 fn missing_field_is_unequal_to_every_literal() {
     let mut task = sample();

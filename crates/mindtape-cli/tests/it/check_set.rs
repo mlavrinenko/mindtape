@@ -146,8 +146,8 @@ fn a_task_rule_breach_fails_its_project_though_the_config_loads() {
     assert_eq!(json["projects"][1]["ok"], false);
 }
 
-/// A member's hint names its `mt` command with the member's `@name`, so the
-/// line runs as printed from where the set was checked.
+/// A member's hint carries its `mt` command with the member's `@name`, and the
+/// line runs as printed from where the set ran its check.
 #[test]
 fn a_members_hint_runs_its_command_in_that_member() {
     let (_alpha, beta, cfg) = setup();

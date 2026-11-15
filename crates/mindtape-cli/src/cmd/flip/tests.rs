@@ -1,6 +1,6 @@
 //! Tests for the `flip` command: status rewriting, shortcut parsing, batch.
 //! The post-flip revalidation cluster lives in the `cmd/flip/tests_revalidate.rs`
-//! sibling; `cmd/flip/tests_output.rs` reads this module's fixtures for its
+//! sibling. `cmd/flip/tests_output.rs` reads this module's fixtures for its
 //! child-process tests.
 #![allow(clippy::unwrap_used)]
 
@@ -30,38 +30,38 @@ pub(super) const GAMMA: &str = mindtape::typst_task!(
 pub(super) const STATELESS: &str =
     mindtape::typst_task!("(\n  title: \"Stateless\",\n)\n\n== Summary\n\nBody.\n");
 
-/// A legend declaring `blocked` (not part of the embedded floor's status
-/// legend), so it must be written to disk, not just held in memory: `run_with`
-/// revalidates by reloading config from `.mindtape/config.toml` after a flip.
+/// A legend declaring `blocked`, which the embedded floor's status legend
+/// leaves out. The fixture must write it to disk, not just hold it in memory:
+/// `run_with` revalidates by reloading config from `.mindtape/config.toml`
+/// after a flip.
 pub(super) const LEGEND_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"blocked\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
-/// A legend with a transition graph where `blocked` is declared but
-/// unreachable from the initial state (`wip` → `done` only), so flipping a task
-/// to it must be caught by `run_with`'s post-flip revalidation.
+/// A legend with a transition graph that declares `blocked` but leaves it
+/// unreachable from the initial state (`wip` → `done` only). Flipping a task to
+/// it must trip `run_with`'s post-flip revalidation.
 pub(super) const REACHABLE_CONFIG: &str = "\
 [[tasks.status]]\nvalue = \"wip\"\nto = [\"done\"]\n\
 [[tasks.status]]\nvalue = \"done\"\nterminal = true\n\
 [[tasks.status]]\nvalue = \"blocked\"\n";
 
-/// A legend whose `broken"done` value carries a double quote: flipping to it
-/// renders the generic `status("broken"done", …)` — a Typst syntax error — so
-/// the rewrite lands on disk as a file that fails to reload, and the
-/// post-flip `revalidate` must report that load error against the touched
-/// file.
+/// A legend whose `broken"done` value carries a double quote. Flipping to it
+/// renders the generic `status("broken"done", …)`, a Typst syntax error. The
+/// rewrite then lands on disk as a file that fails to reload, and the post-flip
+/// `revalidate` must report that load error against the touched file.
 pub(super) const BROKEN_RELOAD_CONFIG: &str = "\
 [[tasks.status]]\nvalue = \"wip\"\n\
 [[tasks.status]]\nvalue = \"broken\\\"done\"\n\
 [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
-/// Project rooted at `dir` with an in-tree `lib/` mindtape package override (so
-/// `@local/mindtape` resolves without a global install), a real
-/// `.mindtape/config.toml` holding `config_text`, and `files` under `tasks/`.
-/// The config is written to disk (not just parsed in memory) because
-/// `run_with`'s post-flip revalidation reloads it from `.mindtape/config.toml`;
-/// without a matching file, that reload would see the embedded floor's legend
-/// instead of `config_text`'s.
+/// Project rooted at `dir` with an in-tree `lib/` mindtape package override, so
+/// `@local/mindtape` resolves without a global install. It also holds a real
+/// `.mindtape/config.toml` with `config_text`, and `files` under `tasks/`. The
+/// fixture writes the config to disk rather than only parsing it in memory,
+/// because `run_with`'s post-flip revalidation reloads it from
+/// `.mindtape/config.toml`. Without a matching file, that reload would see the
+/// embedded floor's legend instead of `config_text`'s.
 pub(super) fn setup(files: &[(&str, &str)], config_text: &str) -> (tempfile::TempDir, Project) {
     crate::test_util::make_project_with_lib(PRELUDE, files, config_text)
 }
@@ -79,7 +79,7 @@ pub(super) fn flip_args(status: &str, tasks: &[&str]) -> FlipArgs {
 }
 
 /// A legend with a transition graph: wip → {blocked, done}, blocked → wip, and
-/// terminal done reopening to wip. `initial` is wip; every value is reachable.
+/// terminal done reopening to wip. `initial` is wip, and every value is reachable.
 const TRANSITION_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\nto = [\"blocked\", \"done\"]\n\
      [[tasks.status]]\nvalue = \"blocked\"\nto = [\"wip\"]\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\nto = [\"wip\"]\n";
@@ -97,8 +97,8 @@ fn flips_status_by_slug() {
     assert!(read(dir.path(), "alpha.typ").contains("status: done("));
 }
 
-/// A task body carrying deep leading indentation (the `mt add`/surgical-edit
-/// drift) is canonicalized on flip when `[format]` is enabled (the default).
+/// A flip canonicalizes a task body carrying deep leading indentation (the
+/// `mt add`/surgical-edit drift) when `[format]` is on (the default).
 #[test]
 fn flip_formats_body_drift_by_default() {
     let drift = format!(
@@ -122,7 +122,7 @@ fn flip_formats_body_drift_by_default() {
 }
 
 /// With `[format] enabled = false` the flip is a raw byte splice: the status
-/// changes but the body's drift is left exactly as authored.
+/// changes but the body's drift stays exactly as authored.
 #[test]
 fn flip_preserves_drift_when_format_disabled() {
     let indent = " ".repeat(40);

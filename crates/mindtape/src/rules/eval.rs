@@ -1,12 +1,13 @@
 //! The engine behind `[[tasks.rules]]`: compile each declared entry into a
 //! `CompiledRule` and ask it about every task, collecting the breaches.
 //!
-//! Split out of `rules/mod.rs` to stay under the line budget: that file
-//! owns the declared shape — [`RuleSpec`], [`CheckSpec`], [`RulesRoot`] — and
-//! the load-time checks over it; this one owns what a valid declaration does
-//! at validation time. Both shapes of rule meet here: an `assert` compiles to
-//! a [`crate::filter::Filter`] and a `check` to a [`crate::rules::typst::CompiledCheck`], and [`check_all`] builds
-//! neither when the project declares no rules.
+//! Split out of `rules/mod.rs` to stay under the line budget. That file owns
+//! the declared shape ([`RuleSpec`], [`CheckSpec`], [`RulesRoot`]) and the
+//! load-time checks over it. This one owns what a valid declaration does at
+//! validation time. Both shapes of rule meet here: an `assert` compiles to a
+//! [`crate::filter::Filter`] and a `check` to a
+//! [`crate::rules::typst::CompiledCheck`], and [`check_all`] builds neither
+//! when the project has no rules.
 
 use std::collections::BTreeSet;
 
@@ -20,17 +21,17 @@ use crate::validate::severity::Severity;
 
 use super::RuleSpec;
 
-/// The compiled form of a rule's own assertion, once its shape is known.
+/// The compiled form of a rule's own assertion, once the shape is clear.
 enum RuleKind {
     /// `assert`: the parsed filter, plus the breach message to report on a
     /// `false` evaluation.
     Assert { filter: Filter, advice: String },
-    /// `check`: the Typst function to call, reused across every task this
-    /// rule is asked about.
+    /// `check`: the Typst function to call, reused across every task the rule
+    /// covers.
     Check(CompiledCheck),
 }
 
-/// The names a rule reads: its `when` and `assert`, following a view either
+/// The names a rule reads are its `when` and `assert`, following a view either
 /// names, or the `field` its `check` receives. A `check` handed the whole task
 /// may be about any field, so it has no name set at all.
 pub(super) fn rule_reads(
@@ -61,17 +62,17 @@ struct CompiledRule {
 }
 
 impl CompiledRule {
-    /// Compile one rule, or `None` when it cannot be evaluated at all: a
-    /// `when` or `assert` expression that fails to parse, or a rule naming
-    /// both/neither of `assert`/`check`.
+    /// Compile one rule, or `None` when the rule cannot run at all. That covers
+    /// a `when` or `assert` expression that fails to parse, and a rule that
+    /// declares both or neither of `assert`/`check`.
     ///
-    /// A broken half drops the whole rule rather than half of it: an
+    /// A broken half drops the whole rule rather than half of it. An
     /// unparseable `when` left in place would silently widen the rule to every
     /// task, and an unparseable `assert` would fail every task the `when`
-    /// admits. [`super::validate_rules`] rejects both at config load, so a `None` here
-    /// only covers a hand-built config that never went through `load_config` —
-    /// and a rule that cannot be evaluated constrains nothing, the same reading
-    /// `required` and `[[tasks.body.headers.rules]] when` already take.
+    /// admits. [`super::validate_rules`] rejects both at config load, so a
+    /// `None` here only covers a hand-built config that never went through
+    /// `load_config`. A rule that cannot run constrains nothing, the same
+    /// reading `required` and `[[tasks.body.headers.rules]] when` already take.
     fn compile(spec: &RuleSpec, index: usize, config: &Config) -> Option<Self> {
         let when = spec.when.as_deref().map(Filter::parse).transpose().ok()?;
         let kind = match (&spec.assertion, &spec.check) {
@@ -105,19 +106,20 @@ impl CompiledRule {
     /// `assert`, zero or more for `check` (one per string its function
     /// returns).
     ///
-    /// An `assert` that fails to evaluate reports as a breach naming the
-    /// failure rather than passing quietly: the load-time dry run should have
-    /// caught it, so reaching here means the rule is broken in a way only this
-    /// task reveals, and a silently skipped assertion is the one outcome a
-    /// project reading its own `mt check` output cannot detect. A `when` that
-    /// fails to evaluate excludes the task instead — a gate that cannot say
-    /// whether the rule applies has not said that it does.
+    /// An `assert` that fails to evaluate reports as a breach carrying the
+    /// failure rather than passing quietly. The load-time dry run should have
+    /// caught it, so reaching here means the rule broke in a way only this task
+    /// reveals. A silently skipped assertion is the one outcome a project
+    /// reading its own `mt check` output cannot detect. A `when` that fails to
+    /// evaluate excludes the task instead: a gate that cannot say whether the
+    /// rule applies has not said that it does.
     ///
     /// Either one reading `changed()` where git cannot answer is neither: it is
     /// `Err`, and [`check_all`] skips the rule (see [`Self::skipped`]).
     ///
     /// An `assert` that reads false carries the `in_dict()` miss behind it,
-    /// if any ([`Filter::dict_miss`]), so the report can name the dictionary.
+    /// if any ([`Filter::dict_miss`]), so the report can point at the
+    /// dictionary.
     fn breaches(
         &self,
         task: &Task,
@@ -158,7 +160,7 @@ impl CompiledRule {
     }
 
     /// The one report of a rule skipped because git could not answer its
-    /// `changed()`: always a warning, whatever the rule's own severity — a
+    /// `changed()`. It is always a warning, whatever the rule's own severity. A
     /// rule that cannot see the change set has not found a breach.
     ///
     /// Placed at the rule's own entry, in whichever config layer or pack
@@ -180,8 +182,8 @@ impl CompiledRule {
     }
 
     /// One breach as a [`Violation`]: the rule's label as the field, its
-    /// severity carried through, and the task's marker line as the location so
-    /// the report is openable where the `task.with(…)` call sits.
+    /// severity carried through, and the task's marker line as the location.
+    /// The report then opens where the `task.with(…)` call sits.
     fn violation(&self, task: &Task, message: String) -> Violation {
         Violation {
             task_id: task.id.clone(),
@@ -199,15 +201,15 @@ impl CompiledRule {
 }
 
 /// Evaluate every `[[tasks.rules]]` entry over `tasks`, appending one violation
-/// per breach — task by task, rules in config order. A rule whose `changed()`
+/// per breach, task by task, rules in config order. A rule whose `changed()`
 /// git cannot answer reports once as skipped and is not asked again.
 ///
-/// Readiness for the `ready` / `blocked` predicates is computed over the whole
-/// set passed in, so a rule can assert something about what is startable as
-/// readily as about a field. It is computed only when there is a rule to spend
-/// it on: a project declaring none pays nothing — the same reading that keeps
-/// a `check` rule from building so much as a [`CompiledCheck`] (never mind
-/// evaluating Typst) when `config.tasks.rules` is empty.
+/// `check_all` computes readiness for the `ready` / `blocked` predicates over
+/// the whole set passed in. A rule can then assert something about what is
+/// startable as readily as about a field. It computes readiness only when there
+/// is a rule to spend it on. A project with no rules skips that work. The same
+/// reading keeps a `check` rule from building so much as a [`CompiledCheck`]
+/// (never mind evaluating Typst) when `config.tasks.rules` is empty.
 pub(crate) fn check_all(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
     let rules: Vec<CompiledRule> = config
         .tasks

@@ -1,13 +1,14 @@
 //! Stem hashes: the short code an agent types to address a task.
 //!
 //! A stem's code is FNV-1a 64 of its UTF-8 bytes, run through the splitmix64
-//! finaliser, in lowercase Crockford base32, thirteen digits, most significant first, the first twelve
-//! digits five bits each from the top. Its stem hash is the
-//! shortest prefix of that code no other stem's code shares, at least
-//! [`MIN_LEN`] digits. A new stem therefore lengthens only the hashes that
-//! share a prefix with it: an older short hash turns ambiguous, and never
-//! resolves to another task. A hash never equals a stem or a reserved word: it lengthens past one. Stems with equal codes stay ambiguous at every
-//! length. Folders do not enter the code.
+//! finalizer, in lowercase Crockford base32. The code is thirteen digits,
+//! highest first, and the first twelve take five bits each from the top. Its
+//! stem hash is the shortest prefix of that code that no other stem's code
+//! shares, at least [`MIN_LEN`] digits. A new stem then lengthens only the
+//! hashes that share a prefix with it. An older short hash turns ambiguous,
+//! and never resolves to another task. A hash never equals a stem or a
+//! reserved word, because it lengthens past one. Stems with equal codes stay
+//! ambiguous at every length. Folders do not enter the code.
 
 /// The fewest digits a stem hash has, and the fewest an input may have.
 pub const MIN_LEN: usize = 3;
@@ -20,9 +21,9 @@ const CODE_LEN: usize = 13;
 pub enum Resolution {
     /// Exactly one stem matches.
     Found(String),
-    /// Several stems match; their stems, sorted.
+    /// More than one stem matches, with the stems sorted.
     Ambiguous(Vec<String>),
-    /// No stem matches, or the input is too short or not a code.
+    /// The input is too short, is not a code, or matches no stem.
     NoMatch,
 }
 
@@ -119,7 +120,7 @@ impl StemHashes {
     /// Whether the digits typed so far, `typed`, begin the code of `stem`. They
     /// read as [`resolve`](Self::resolve) reads them, whatever their count, so
     /// a caller narrowing a list as keys arrive agrees with it. A stem not in
-    /// the set, or a character outside the alphabet, matches nothing.
+    /// the set, or a character outside the alphabet, yields `false`.
     #[must_use]
     pub fn matches(&self, stem: &str, typed: &str) -> bool {
         let typed = normalise_digits(typed);
@@ -159,7 +160,7 @@ fn fnv1a_64(bytes: &[u8]) -> u64 {
     })
 }
 
-/// The splitmix64 finaliser: spreads every input bit through all output bits,
+/// The splitmix64 finalizer: spreads every input bit through all output bits,
 /// so stems that differ only at the end do not share leading digits.
 fn mix(value: u64) -> u64 {
     let step = (value ^ (value >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
@@ -167,9 +168,9 @@ fn mix(value: u64) -> u64 {
     step ^ (step >> 31)
 }
 
-/// `value` as thirteen Crockford base32 digits, most significant first. The
-/// first twelve take five bits each from the top and the last takes the
-/// remaining four, so every leading digit carries a full five bits.
+/// `value` as thirteen Crockford base32 digits, highest first. The first
+/// twelve take five bits each from the top and the last takes the remaining
+/// four. Every leading digit then carries a full five bits.
 fn encode(value: u64) -> String {
     let aligned = u128::from(value) << 1;
     (0..CODE_LEN)

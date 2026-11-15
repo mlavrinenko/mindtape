@@ -1,4 +1,4 @@
-//! `mt explain` — the project's policy listings behind one command.
+//! `mt explain` prints the project's policy listings behind one command.
 //!
 //! Bare prints an index of every listing: the rules grouped by section, the
 //! derived fields, and the tags, views and dictionaries the project declares.
@@ -41,8 +41,8 @@ pub enum Listing {
     Rules(rules::RulesArgs),
     /// List the tags your project allows and the rules that read them.
     ///
-    /// A tag no rule reads is an area label. `--for` keeps the rules one step
-    /// enforces, as `mt explain rules --for` does.
+    /// An area label is a tag that only groups tasks. `--for` keeps the rules
+    /// one step enforces, as `mt explain rules --for` does.
     Tags(tags::TagsArgs),
     /// List your saved views, or show one.
     Views(views::ViewsArgs),

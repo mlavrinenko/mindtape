@@ -1,6 +1,6 @@
-//! Load several projects at once: each root's config and tasks on a scoped
-//! thread of its own, so a set of projects loads in about the time of its
-//! slowest member rather than the sum of them all.
+//! Load many projects at once: each root's config and tasks on a scoped thread
+//! of its own. A set of projects then loads in about the time of its slowest
+//! member rather than the sum of them all.
 
 use std::path::{Path, PathBuf};
 
@@ -18,7 +18,7 @@ pub struct Loaded {
 
 /// Load every project in `roots` in parallel, one scoped thread each, and
 /// return them in the order given. A config that fails to load is that
-/// member's error; the others load regardless.
+/// member's error, and the others load regardless.
 ///
 /// A thread that panics resumes its panic here, as a single load would.
 #[must_use]

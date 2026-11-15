@@ -1,24 +1,23 @@
 //! Graph-derived per-task ranks: where a task sits in the dependency graph
-//! ([`Task::topo`]) and how much work waits behind it ([`Task::blocks`]) —
-//! plus how far its children have got ([`Task::children`],
-//! [`Task::children_done`]), counted over `parent` edges by [`crate::graph::children`].
+//! ([`Task::topo`]) and how much work waits behind it ([`Task::blocks`]). The
+//! same pass counts how far a task's children have got ([`Task::children`],
+//! [`Task::children_done`]), over `parent` edges, by [`crate::graph::children`].
 //!
 //! `links:` already carries the true working order of a backlog, but a scoring
-//! framework ranks a task on its own properties alone — so the decision five
-//! other tasks depend on scores low for being expensive and sorts last. These
-//! two ranks are the graph read back out as numbers, so `--sort topo` and
-//! `--sort blocks:desc` (and the filters `topo == 0`, `blocks > 3`) can order a
-//! list the way it can actually be worked.
+//! framework ranks a task on its own properties alone. The decision five other
+//! tasks depend on then scores low for being expensive and sorts last. These two
+//! ranks are the graph read back out as numbers. `--sort topo` and
+//! `--sort blocks:desc` (and the filters `topo == 0`, `blocks > 3`) can then
+//! order a list the way the work actually goes.
 //!
 //! # The two ranks
 //!
-//! `topo` is **position**: 0 for a task with no in-set blocking dependency,
-//! else one more than the deepest task it depends on. A dependency's level is
-//! strictly below its dependents', so ascending `topo` is a valid topological
-//! order — and, being a level rather than a linear index, it leaves independent
-//! tasks *tied*, which is what lets `--sort topo --sort priority:desc` mean
-//! "graph order, priority within a layer". A linear position would admit no
-//! tiebreak at all.
+//! `topo` is **position**: 0 for a task with no in-set blocking dependency, else
+//! one more than the deepest task it depends on. A dependency's level is strictly
+//! below its dependents', so ascending `topo` is a valid topological order. Being
+//! a level rather than a linear index, it leaves independent tasks *tied*, which
+//! is what lets `--sort topo --sort priority:desc` mean "graph order, priority
+//! within a layer". A linear position could not carry a tiebreak at all.
 //!
 //! `blocks` is **leverage**: how many non-terminal tasks transitively wait on
 //! this one. It is the rank that actually reorders a backlog, since it measures
@@ -26,38 +25,39 @@
 //!
 //! # Edges
 //!
-//! Both read the *blocking* kinds ([`blocking_kinds`]) — `depends-on` plus any
-//! custom kind a project flags `blocking = true` — resolved through the shared
-//! [`DepIndex`], the same edge set [`crate::graph::ready`] classifies one hop of. So
-//! `ready`, `blocked`, `topo` and `blocks` never disagree about what an edge
-//! means. A target naming no loaded task is not an edge; nor is a self-edge,
-//! which constrains no order.
+//! Both read the *blocking* kinds ([`blocking_kinds`]), `depends-on` plus any
+//! custom kind a project flags `blocking = true`, resolved through the shared
+//! [`DepIndex`]. That is the same edge set [`crate::graph::ready`] classifies one
+//! hop of, so `ready`, `blocked`, `topo` and `blocks` never disagree about what
+//! an edge means. A target outside the loaded set is not an edge, and neither is
+//! a self-edge, which constrains no order.
 //!
 //! # Status
 //!
 //! `topo` is status-blind: it is a fact about the graph, and a done dependency
-//! still sits before its dependent in it. `blocks` is not — it counts only
-//! non-terminal dependents and walks only *through* them, because a done task
-//! is waiting on nothing and passes nothing on. A terminal task therefore
-//! blocks 0. That makes the number shrink as work closes, which is the point:
-//! leverage is a live measure of what is still waiting, not a historical one.
+//! still sits before its dependent in it. `blocks` is not, since it counts only
+//! non-terminal dependents and walks only *through* them. A done task waits on
+//! nothing and passes nothing on. A terminal task then blocks 0. That makes the
+//! number shrink as work closes, which is the point: leverage is a live measure
+//! of what is still waiting, not a historical one.
 //!
 //! # Cycles
 //!
 //! `mt check` rejects a `depends-on` cycle, but a sort must survive a tree that
-//! has not been checked yet, so neither rank can hang or panic on one. `blocks`
-//! is a reachability walk with a visited set, so a loop terminates by
-//! construction. `topo` is computed by Kahn's algorithm: a task on a cycle
-//! never reaches zero unresolved dependencies, so it keeps whatever level the
-//! resolved part of its history gave it. Both stay deterministic — every walk
-//! is seeded in the loader's id order.
+//! `mt check` has not seen yet, so neither rank can hang or panic on one. `blocks`
+//! is a reachability walk with a visited set, and a loop ends by construction.
+//! `topo` comes from Kahn's algorithm: a task on a cycle never reaches zero
+//! unresolved dependencies, so it keeps whatever level the resolved part of its
+//! history gave it. Both stay deterministic, since every walk starts from the
+//! loader's id order.
 //!
-//! Neither walk is written as an unbounded `while let … pop_front()`. Each
-//! runs a `for` over the node count, which is the exact maximum a correct pass
-//! can pop, so the no-hang promise above is structural rather than argued from
-//! the visited check being right. That is also what a mutation sweep found:
-//! two mutants of these loops reached an unbounded state and timed out instead
-//! of failing a test.
+//! Each walk uses a bounded `for` rather than an unbounded
+//! `while let … pop_front()`. The `for` runs over the node count, which is the
+//! exact maximum a correct pass can pop. The
+//! no-hang promise above is then structural rather than argued from the visited
+//! check being right. That is also what a mutation sweep found: two mutants of
+//! these loops reached an unbounded state and timed out instead of failing a
+//! test.
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::Path;
@@ -70,10 +70,11 @@ use crate::model::Task;
 /// Compute [`Task::topo`] and [`Task::blocks`] over `tasks` and write them back
 /// onto each task.
 ///
-/// Call once over the *full* loaded set, the way [`crate::graph::ready::Readiness`] is
-/// computed: both ranks are facts about the whole graph, so deriving them from
-/// a narrowed set would count a dependency a view happens to hide as absent.
-/// The loader is the single caller for exactly that reason.
+/// Call once over the *full* loaded set, the way
+/// [`crate::graph::ready::Readiness`] builds. Both ranks are facts about the
+/// whole graph, so deriving them from a narrowed set would count a dependency a
+/// view happens to hide as absent. The loader is the single caller for exactly
+/// that reason.
 pub(crate) fn annotate(tasks: &mut [Task], config: &Config) {
     let computed = ranks(tasks, config);
     let counts = child_counts(tasks, config);
@@ -117,9 +118,9 @@ struct Rank {
     blocks: u32,
 }
 
-/// Both ranks for every task, parallel to `tasks` — positional rather than
-/// keyed, so [`annotate`]'s write-back needs no second lookup and cannot
-/// mismatch a task to another's rank.
+/// Both ranks for every task, parallel to `tasks`. The result is positional
+/// rather than keyed, so [`annotate`]'s write-back skips a second lookup and
+/// cannot mismatch a task to another's rank.
 fn ranks(tasks: &[Task], config: &Config) -> Vec<Rank> {
     let graph = Graph::build(tasks, config);
     let level = graph.levels();
@@ -140,8 +141,8 @@ fn ranks(tasks: &[Task], config: &Config) -> Vec<Rank> {
 /// tasks are terminal. Keyed by [`Task::file`], the stable per-task identity
 /// [`crate::graph::ready`] keys on too.
 struct Graph<'a> {
-    /// Task files in the set's own order (the loader sorts by id), so every
-    /// walk below is seeded deterministically.
+    /// Task files in the set's own order (the loader sorts by id). Every walk
+    /// below then starts from a deterministic seed.
     order: Vec<&'a Path>,
     /// A task → the in-set tasks it depends on. One entry per distinct pair,
     /// so the count is the number of dependencies to resolve.
@@ -178,10 +179,10 @@ impl<'a> Graph<'a> {
         graph
     }
 
-    /// Record that `from` depends on `to`, both directions at once. A self-edge
-    /// is dropped (it orders nothing) and a pair already recorded is not
-    /// doubled, so `blocked_by`'s length is a true count of what must resolve
-    /// before a task — which is what [`Self::levels`] counts down.
+    /// Record that `from` depends on `to`, both directions at once. The walk
+    /// drops a self-edge, which orders nothing, and does not double a pair it
+    /// already recorded. `blocked_by`'s length is then a true count of what must
+    /// resolve before a task, which is what [`Self::levels`] counts down.
     fn add_edge(&mut self, from: &'a Path, to: &'a Path) {
         if from == to {
             return;
@@ -195,10 +196,10 @@ impl<'a> Graph<'a> {
     }
 
     /// Every task's dependency level, by Kahn's algorithm over the resolved
-    /// edges: a task enters the queue once all of its dependencies have left
-    /// it, carrying one more than the deepest of them. A task on (or fed only
-    /// by) a cycle never enters, and keeps the level its resolved dependencies
-    /// gave it — see the module doc.
+    /// edges. A task enters the queue once all its dependencies have left it,
+    /// carrying one more than the deepest of them. A task on (or fed only by) a
+    /// cycle never enters, and keeps the level its resolved dependencies gave
+    /// it. See the module doc.
     fn levels(&self) -> HashMap<&'a Path, u32> {
         let mut level: HashMap<&'a Path, u32> = self.order.iter().map(|&file| (file, 0)).collect();
         let mut unresolved: HashMap<&'a Path, usize> = self

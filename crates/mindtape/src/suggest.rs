@@ -4,25 +4,26 @@
 //! [`nearest`] finds the closest known name by edit distance above a
 //! similarity floor, and [`nearest_few`] the closest few, for a word a
 //! dictionary lacks. [`Unknown`] holds the nearest name with the names to
-//! choose from, so an error carries what the name could have been as data and
+//! choose from. An error carries what the name could have been as data, and
 //! the CLI words it as `hint:` lines.
 
 use strsim::normalized_damerau_levenshtein;
 
 /// Below this normalized Damerau-Levenshtein similarity, in which a swap of
-/// two letters is one edit (0.0 identical strings share nothing,
-/// 1.0 identical), a candidate is not close enough to name — the far-miss
-/// case falls back to the enumeration alone rather than pointing at an
-/// unrelated name. 0.5 clears a single-character typo or transposition on a
-/// short name (`"fpo"` vs `"foo"` scores 0.67) while excluding names that
-/// merely share a substring (`"backlog"` vs `"blocked"` scores 0.43).
+/// two letters is one edit, a candidate is not close enough to name. The
+/// scale runs from 0.0 for strings that share nothing to 1.0 for identical
+/// ones. The far-miss case falls back to the enumeration alone rather than
+/// pointing at an unrelated name. 0.5 clears a single-character typo or
+/// transposition on a short name (`"fpo"` vs `"foo"` scores 0.67) while
+/// excluding names that merely share a substring (`"backlog"` vs `"blocked"`
+/// scores 0.43).
 const SIMILARITY_FLOOR: f64 = 0.5;
 
 /// Find the nearest match to `name` among `known`, if any clears
-/// [`SIMILARITY_FLOOR`]. Ties resolve to the first-listed candidate: `known`
-/// is scanned in order and a later, merely-equal score never displaces the
-/// running best (replacement requires a strictly higher score), so the
-/// result never varies between runs for the same candidate order.
+/// [`SIMILARITY_FLOOR`]. Ties resolve to the first-listed candidate. The scan
+/// walks `known` in order, and a later, merely-equal score never displaces the
+/// running best (replacement requires a strictly higher score). The result
+/// never varies between runs for the same candidate order.
 #[must_use]
 pub fn nearest<'a>(name: &str, known: &[&'a str]) -> Option<&'a str> {
     let mut best: Option<(&str, f64)> = None;
@@ -40,7 +41,7 @@ pub fn nearest<'a>(name: &str, known: &[&'a str]) -> Option<&'a str> {
 }
 
 /// Up to `limit` of `known` that clear [`SIMILARITY_FLOOR`] against `name`,
-/// nearest first. Equal scores keep the order of `known`, so the answer never
+/// nearest first. Equal scores keep the order of `known`. The answer never
 /// varies between runs for the same candidate order.
 #[must_use]
 pub fn nearest_few<'a>(
@@ -69,9 +70,9 @@ pub fn nearest_owned(name: &str, known: &[&str]) -> Option<String> {
     nearest(name, known).map(str::to_owned)
 }
 
-/// What an unknown name could have been: the nearest known name, when one
-/// clears [`SIMILARITY_FLOOR`], and the names to choose from. A library error
-/// carries it as data; the CLI words it as `hint:` lines.
+/// The nearest known name, when one clears [`SIMILARITY_FLOOR`], and the names
+/// to choose from. A library error carries it as data. The CLI words it as
+/// `hint:` lines.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Unknown {
     /// The known name closest to the unknown one.
@@ -81,8 +82,8 @@ pub struct Unknown {
 }
 
 impl Unknown {
-    /// The nearest of `known` to `name`, and all of `known` as the names to
-    /// choose from.
+    /// The nearest of `known` to `name`, and every name in `known` to choose
+    /// from.
     #[must_use]
     pub fn among<'a>(name: &str, known: impl IntoIterator<Item = &'a str>) -> Self {
         let names: Vec<&str> = known.into_iter().collect();

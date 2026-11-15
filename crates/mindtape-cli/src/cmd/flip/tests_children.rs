@@ -1,5 +1,5 @@
 //! A status that is both `unblocked` and `terminal` needs finished children:
-//! `mt flip` refuses to enter it while a child is unfinished, `--force`
+//! `mt flip` refuses to enter it while a child remains unfinished, `--force`
 //! overrides.
 #![allow(clippy::unwrap_used)]
 

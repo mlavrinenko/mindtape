@@ -1,5 +1,5 @@
-//! Unit tests for the non-slot field split; the write itself is
-//! `tests/it/add_fields_e2e.rs`'s.
+//! Unit tests for the non-slot field split. The write itself belongs to
+//! `tests/it/add_fields_e2e.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::{FieldOp, RawValue, discover_slots};

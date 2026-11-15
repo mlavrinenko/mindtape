@@ -6,7 +6,7 @@ use crate::config::{Config, parse_config};
 use crate::test_support::{commit_files, git_as_tester as git, git_tempdir, write_file};
 use std::path::Path;
 
-/// A raw task marker needing no prelude package, titled `title`.
+/// A raw task marker that doesn't use the prelude package, titled `title`.
 fn marker(title: &str) -> String {
     format!("#metadata((marker: \"mindtape.task\", fields: (title: \"{title}\"), extras: (:)))\n")
 }

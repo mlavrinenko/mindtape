@@ -1,13 +1,12 @@
-//! End-to-end tests for `--hyperlinks`: the OSC 8 sequence reaches the
-//! table's `slug#` and `file` columns when forced on, but never a default
-//! (opted-out) run, CSV, or JSON — and the config/flag precedence resolves as
-//! documented.
+//! End-to-end tests for `--hyperlinks`. The OSC 8 sequence reaches the table's
+//! `slug#` and `file` columns when forced on, but never a default (opted-out)
+//! run, CSV, or JSON. The config/flag precedence resolves as documented.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
 use mindtape::test_support::write_file;
 
-/// Every OSC 8 *open* target in `line` — the payload between `ESC ] 8 ; ;`
+/// Every OSC 8 *open* target in `line`: the payload between `ESC ] 8 ; ;`
 /// and the following `ESC \` that is non-empty (an empty payload is a close
 /// marker, `\x1b]8;;\x1b\\`, not an open one).
 fn hyperlink_targets(line: &str) -> Vec<&str> {
@@ -194,7 +193,7 @@ fn custom_hyperlink_target_template_is_honoured() {
     );
 }
 
-/// The help names the column the table prints, `slug#`, not a bare `#`.
+/// The help text shows the column the table prints, `slug#`, not a bare `#`.
 #[test]
 fn the_help_names_the_slug_and_file_columns() {
     let dir = support::project_with_task("Rewrite auth");
@@ -207,7 +206,7 @@ fn the_help_names_the_slug_and_file_columns() {
     }
 }
 
-/// A command that prints no task table has no use for the flag, so it doesn't
+/// A command that has no task table has no use for the flag, so it doesn't
 /// offer it and refuses it.
 #[test]
 fn commands_without_a_task_table_do_not_offer_the_flag() {

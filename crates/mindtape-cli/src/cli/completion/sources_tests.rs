@@ -6,7 +6,7 @@ use std::ffi::OsStr;
 use super::{assignment, help, pack_sources_in, presets_in, tag_token, tag_values};
 
 /// `mt init --preset` offers every built-in `mt preset ls` prints, each
-/// helped by its description, then the user presets — a shadowing one once.
+/// helped by its description, then the user presets, a shadowing one once.
 #[test]
 fn presets_offer_the_builtins_and_the_user_presets() {
     let dir = tempdir_with_files(&[("mine.toml", ""), ("flow.toml", "")]);
@@ -35,8 +35,8 @@ fn presets_without_a_user_directory_are_the_builtins() {
     assert_eq!(presets_in(None).len(), builtins);
 }
 
-/// A blank help line is dropped; a real one is kept. An empty help renders as
-/// a dangling separator in zsh and fish, so this is a real branch, not a
+/// The code drops a blank help line and keeps a real one. An empty help renders
+/// as a dangling separator in zsh and fish, so this is a real branch, not a
 /// detail.
 #[test]
 fn help_is_dropped_for_blank_text() {
@@ -46,7 +46,7 @@ fn help_is_dropped_for_blank_text() {
 }
 
 /// `mt set`'s bare `<field>` token completes the writable fields it prefixes,
-/// each turned into a whole `field=` token — never a bare field name that the
+/// each turned into a whole `field=` token, never a bare field name that the
 /// command would then reject.
 #[test]
 fn assignment_lists_the_writable_fields_it_prefixes() {
@@ -62,16 +62,16 @@ fn assignment_lists_the_writable_fields_it_prefixes() {
     );
 }
 
-/// A token that already carries an operator — and names no tag key — yields
-/// nothing: there is no partial field name left to complete.
+/// A token that already carries an operator, and whose key is not a tag key,
+/// returns an empty list: there is no partial field name left to complete.
 #[test]
 fn assignment_declines_a_token_with_an_operator() {
     assert!(assignment(OsStr::new("priority=3")).is_empty());
     assert!(assignment(OsStr::new("@today")).is_empty());
 }
 
-/// A token naming some other key is not a tag token, and the key alone (no
-/// operator) is not one either.
+/// A token whose key is something else is not a tag token, and the key alone
+/// (no operator) is not one either.
 #[test]
 fn tag_values_declines_a_non_tag_key() {
     assert!(tag_values("priority=3").is_none());

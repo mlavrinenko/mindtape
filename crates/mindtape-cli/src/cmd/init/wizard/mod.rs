@@ -1,20 +1,20 @@
 //! The `mt init` questionnaire over the configuration axes.
 //!
 //! Someone who does not yet know which named preset they want answers a short
-//! walk of questions instead. Each axis is one question and one TOML fragment;
-//! the answers compose (via [`crate::cmd::init::compose`]) into one flattened
+//! walk of questions instead. Each axis is one question and one TOML fragment.
+//! The answers compose (via [`crate::cmd::init::compose`]) into one flattened
 //! `.mindtape/config.toml`. A preset is just a saved answer set over the same
-//! axes — one model, two entry points.
+//! axes: one model, two entry points.
 //!
 //! The walk only runs on an interactive terminal with no `--preset` and no
-//! `--no-input`; a per-axis flag pre-answers (and so suppresses) its question,
+//! `--no-input`. A per-axis flag pre-answers its question and suppresses it,
 //! and a non-terminal run with any flag composes without prompting at all. See
 //! [`resolve`] for the gating and [`crate::cmd::init::run`] for the wiring.
 //!
 //! # Files
 //!
-//! - `axes.rs` — one enum per axis, its choices and their TOML fragments.
-//! - `cmd/ls/interactive/tests.rs` — unit tests.
+//! - `axes.rs`: one enum per axis, its choices and their TOML fragments.
+//! - `cmd/ls/interactive/tests.rs`: unit tests.
 
 use std::io::{BufRead, Write};
 
@@ -22,7 +22,8 @@ use crate::diag::Result;
 
 use crate::diag::{Diag, Kind, Note};
 
-/// One configuration axis: a menu of choices, each carrying its config fragment.
+/// A configuration axis holds a menu of choices, each carrying its config
+/// fragment.
 ///
 /// Implemented once per axis by the `axis!` macro, which also derives the
 /// `clap::ValueEnum` that backs the axis's `mt init` flag.
@@ -37,7 +38,7 @@ trait Axis: Copy + Sized + PartialEq + 'static {
     fn blurb(self) -> &'static str;
     /// The TOML fragment this choice contributes (may be comment-only).
     fn fragment(self) -> &'static str;
-    /// The choice used when the question is skipped.
+    /// The choice the walk takes when it skips the question.
     fn default_value() -> Self;
     /// Resolve a slug back to its choice.
     fn from_slug(slug: &str) -> Option<Self> {
@@ -123,11 +124,12 @@ pub struct Outcome {
 
 /// Resolve one answer per axis.
 ///
-/// A flag pre-answers its axis and is never prompted. The three core axes
-/// (workflow, priority, organization) are asked first; the four extras hide
-/// behind one "accept defaults for the rest?" gate so the walk is never a wall
-/// of seven prompts. `interactive` is false for a non-terminal or `--no-input`
-/// run, where every un-flagged axis takes its default without a prompt.
+/// A flag pre-answers its axis, and the walk never prompts for it. The walk
+/// covers the three core axes (workflow, priority, organization) first. The four
+/// extras hide behind one "accept defaults for the rest?" gate. The walk is
+/// never a wall of seven prompts. `interactive` is false for a non-terminal or
+/// `--no-input` run, where every un-flagged axis takes its default without a
+/// prompt.
 ///
 /// # Errors
 /// Propagates I/O errors from reading the answers or writing the prompts.
@@ -163,7 +165,7 @@ pub fn resolve<R: BufRead, W: Write>(
     })
 }
 
-/// A flag wins outright, suppressing the question; otherwise ask when `ask`,
+/// A flag wins outright and suppresses the question. Otherwise ask when `ask`,
 /// else take the default.
 ///
 /// # Errors
@@ -278,8 +280,8 @@ pub fn assemble(answers: Answers) -> Result<Outcome> {
     })
 }
 
-/// The recorded answer block: documents how the project was made and lets
-/// `preset-save` read the answers back ([`parse_answer_comment`]).
+/// The recorded answer block documents the answers that built the project, and
+/// lets `preset-save` read them back ([`parse_answer_comment`]).
 fn render_answer_comment(answers: Answers) -> String {
     format!(
         "# Composed by the `mt init` wizard; this block records the axis answers.\n\
@@ -302,14 +304,14 @@ fn render_answer_comment(answers: Answers) -> String {
 }
 
 /// Recover the answers from a recorded comment block, the inverse of
-/// [`render_answer_comment`]. A comment line reads `#   <axis> = <slug>`; lines
-/// whose value is not a valid slug for that axis are ignored, so an axis
-/// fragment's own commentary cannot spoof an answer. Returns `None` unless every
-/// axis is present.
+/// [`render_answer_comment`]. A comment line reads `#   <axis> = <slug>`. The
+/// parser ignores a line whose value is not a valid slug for that axis. An axis
+/// fragment's own commentary then cannot spoof an answer. Returns `None` unless
+/// every axis is present.
 ///
 /// The reader half of the recorded answer block: the sibling task `preset-save`
 /// reads a scaffolded project's answers back through this. Only the tests
-/// exercise it today, hence the allow.
+/// exercise it today. The allow keeps the dead-code lint quiet.
 #[must_use]
 #[allow(dead_code)]
 pub fn parse_answer_comment(text: &str) -> Option<Answers> {

@@ -117,16 +117,16 @@ fn rawvalue_type_name_returns_correct_name() {
     assert_eq!(RawValue::List(vec![]).type_name(), "list");
 }
 
-/// The kind was spelled `typst` before it was renamed to `raw`. A template
-/// still carrying the old spelling must be caught as an unknown kind, not
-/// quietly accepted — see `unknown_kind_is_carried_for_fill_to_reject`.
+/// The old spelling of this kind is `typst`, and `raw` replaced that name. A
+/// template still carrying the old spelling must surface as an unknown kind, not
+/// pass quietly. See `unknown_kind_is_carried_for_fill_to_reject`.
 #[test]
 fn slotkind_parse_rejects_the_retired_typst_spelling() {
     assert_eq!(SlotKind::parse("typst"), None);
 }
 
-/// Discovery cannot fail, so a bad `kind:` rides along on the spec. Without
-/// this the spelling is lost and the slot reads as a plain `string`.
+/// Discovery cannot fail, so a bad `kind:` rides along on the spec. Without this
+/// the spelling would vanish and the slot would read as a plain `string`.
 #[test]
 fn unknown_kind_is_carried_for_fill_to_reject() {
     let specs = discover_slots(r#"#f(body: slot("body", kind: "typst"))"#);
@@ -137,7 +137,7 @@ fn unknown_kind_is_carried_for_fill_to_reject() {
     );
 }
 
-/// Only `text` and `raw` splice their value into body markup; every other kind
+/// Only `text` and `raw` splice their value into body markup. Every other kind
 /// renders as a self-delimiting Typst literal, so the `#`-drop and unquoting
 /// must not apply to them.
 #[test]
@@ -159,8 +159,8 @@ fn only_text_and_raw_splice_verbatim() {
     }
 }
 
-/// A slot with no `kind:` at all is a `string` by design, and must not be
-/// confused with one whose kind failed to parse.
+/// A slot with no `kind:` at all is a `string` by design, and must not read as
+/// one whose kind failed to parse.
 #[test]
 fn absent_kind_is_not_an_unknown_kind() {
     let specs = discover_slots(r#"#f(title: slot("title"))"#);
@@ -210,8 +210,8 @@ fn reads_a_raw_block_default_dedented_with_any_tag() {
     );
 }
 
-/// Every kind is listed once, and each spelling parses back to its kind, so
-/// `ALL` and `parse` can't disagree.
+/// Every kind appears once, and each spelling parses back to its kind, so `ALL`
+/// and `parse` can't disagree.
 #[test]
 fn all_lists_each_kind_once_and_parse_reads_each_back() {
     for (i, kind) in SlotKind::ALL.iter().enumerate() {

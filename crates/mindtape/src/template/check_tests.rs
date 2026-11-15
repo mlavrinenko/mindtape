@@ -100,8 +100,8 @@ fn a_built_in_template_breach_names_the_template_not_a_path() {
 }
 
 /// A `text` slot escapes what a caller fills it with, so an example showing a
-/// code span teaches input that files as backslashes. A `string` title and a
-/// `raw` slot keep their markup, and a path's `_` files as written.
+/// code span would file as backslashes. A `string` title and a `raw` slot keep
+/// their markup, and a path's `_` files as written.
 #[test]
 fn a_text_slot_whose_example_shows_a_code_span_is_a_breach_at_its_line() {
     let template = "#show: task.with(title: slot(\"title\", example: \"Fix `x`\"))\n\n\

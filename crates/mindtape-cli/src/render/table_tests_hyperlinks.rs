@@ -63,8 +63,8 @@ fn slug_and_file_columns_share_the_same_row_target() {
     );
 }
 
-/// A column with no `link_uris` (every column but `slug#`/`file`) is untouched by
-/// hyperlinks even when the linker is forced on.
+/// Hyperlinks leave a column with no `link_uris` (every column but
+/// `slug#`/`file`) untouched, even when the test forces the linker on.
 #[test]
 fn columns_without_link_uris_are_never_wrapped() {
     let cols = vec![Column {
@@ -87,12 +87,12 @@ fn columns_without_link_uris_are_never_wrapped() {
 
 // render_grid: width accounting
 
-/// The width-accounting trap this task exists to pin: rendering with
+/// The width-accounting trap this task exists to pin. Rendering with
 /// hyperlinks on must lay out identically to rendering with them off, once
-/// the OSC 8 escapes are stripped back out. Both `slug#` and `file` carry
+/// the test strips the OSC 8 escapes back out. Both `slug#` and `file` carry
 /// `link_uris` here, exactly mirroring a real `--columns slug#,title,file` run,
-/// with `title` as the flex column and `file` last (so the
-/// unpadded-last-column path is exercised too).
+/// with `title` as the flex column and `file` last. That also exercises the
+/// unpadded-last-column path.
 #[test]
 fn hyperlink_wrap_does_not_disturb_column_layout() {
     let uri = "file:///abs/truth/tasks/x.typ";
@@ -151,7 +151,7 @@ fn hyperlink_wrap_does_not_disturb_column_layout() {
 
 /// The real risk this task exists to guard against: `apply_highlight` colours
 /// the slug# cell reverse-video for `mt ls -i`, and the same cell also
-/// carries a hyperlink target. The two must compose — the invert style rides
+/// carries a hyperlink target. The two must compose. The invert style rides
 /// inside the OSC 8 wrap without disturbing it, and stripping the OSC 8 wrap
 /// back out restores exactly the highlighted (but unlinked) rendering.
 #[test]

@@ -212,7 +212,7 @@ fn path_format_is_empty_for_no_tasks() {
     assert_eq!(out, "");
 }
 
-/// One process renders several projects: each context relativizes a task's
+/// One process renders more than one project. Each context relativizes a task's
 /// path from its own root, not from whichever project opened first.
 #[test]
 fn path_format_reads_the_root_of_its_own_context() {
@@ -240,7 +240,7 @@ fn path_format_reads_the_root_of_its_own_context() {
     assert_ne!(seen[0], seen[1], "the two roots must not share a rendering");
 }
 
-/// `--format path` is paired with the *table's* `file` column — both read
+/// `--format path` pairs with the *table's* `file` column. Both read
 /// `file_path::cell_text`, so the list you paste into the next command spells
 /// each path the way the listing you read it from did. CSV is not part of
 /// that pair: it is a record format, and pins the pairing to the wrong side
@@ -257,8 +257,8 @@ fn path_format_matches_the_table_file_column_cell() {
 }
 
 /// One value under `file` across both machine formats: CSV's cell is the
-/// root-relative path `--format json` carries — the value `mt import` reads
-/// back and `contrib/jq/*.jq` select on — never the table's cwd-relative
+/// root-relative path `--format json` carries, the value `mt import` reads
+/// back and `contrib/jq/*.jq` select on, never the table's cwd-relative
 /// display.
 #[test]
 fn csv_file_cell_equals_the_json_file_key() {

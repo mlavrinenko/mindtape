@@ -1,12 +1,12 @@
 //! End-to-end tests for `mt allow`: no `[[tasks.waits]]` checker runs until
 //! the user records the config's commands, and a changed `run` line asks again.
-//! What an un-allowed `[[on.flip]]` `run` does is `flip_hooks_e2e`'s; here only
-//! that `mt allow` records one.
+//! What an un-allowed `[[on.flip]]` `run` does is `flip_hooks_e2e`'s. These
+//! tests cover only that `mt allow` records one.
 //!
 //! Every stub checker is a line that `sh -c` and `cmd /C` both run the same
-//! way, so the battery holds on the Windows job too. Each spawn gets its own
-//! data home from [`support::isolated_env`], so no test reads or writes the
-//! developer's approvals.
+//! way, which keeps the battery holding on the Windows job too. Each spawn gets
+//! its own data home from [`support::isolated_env`], so no test reads or writes
+//! the developer's approvals.
 #![allow(
     clippy::unwrap_used,
     clippy::disallowed_methods,
@@ -19,8 +19,8 @@ use std::path::Path;
 
 use crate::support;
 
-/// The checker every test declares: it leaves a mark, then says the wait is
-/// over.
+/// The checker every test declares, which leaves a mark and then says the wait
+/// is over.
 const RUN: &str = "echo run>> runs.txt&& exit 0";
 
 /// A project whose `up` checker runs `run`, holding one task that waits on
@@ -172,8 +172,9 @@ fn a_config_whose_only_command_is_a_flip_run_has_something_to_allow() {
     assert!(allowed.contains("  exit 0"), "{allowed}");
 }
 
-/// A set member's warning names `mt allow` with the member's `@name` and the
-/// member itself, so the line runs as printed from where the set was listed.
+/// A set member's warning references `mt allow` with the member's `@name` and
+/// the member itself. The line then runs as printed from the directory that
+/// listed the set.
 #[test]
 fn a_set_members_warning_asks_for_its_own_mt_allow() {
     let dir = project(RUN);

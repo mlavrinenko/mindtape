@@ -2,7 +2,7 @@
 //! decides whether a task waits on something outside the repo.
 //!
 //! Every stub checker is a line that `sh -c` and `cmd /C` both run the same
-//! way, so the battery holds on the Windows job too. Each project runs
+//! way. The battery then holds on the Windows job too. Each project runs
 //! `mt allow` first, into the test's own data home, since no checker runs
 //! before it: `allow_e2e` covers that.
 #![allow(
@@ -206,7 +206,7 @@ fn reopening_a_finished_task_asks_its_checker_before_the_guard() {
 }
 
 /// A committed repository whose `start-only-ready-work` rule refuses a flip
-/// into `wip` while the task is blocked, holding `drop-the-patch` as
+/// into `wip` while the task stays blocked, holding `drop-the-patch` as
 /// `proposed` and waiting on `up:pr-7`.
 fn waiting_repo(run: &str) -> tempfile::TempDir {
     let rule = "\n[[commits.rules]]\nname = \"start-only-ready-work\"\nscope = \"task\"\n\
@@ -275,9 +275,9 @@ fn a_commit_range_asks_a_checker_once_however_many_commits_it_holds() {
 }
 
 /// A checker that runs `mt ls ready` against its own project loads it again,
-/// and so would run itself again without end. The nested `mt` runs no checker,
-/// so its listing exits 0 and frees the task. The timeout turns a regression
-/// into a failure instead of a hung suite.
+/// and so would run itself again without end. The nested `mt` doesn't run a
+/// checker. Its listing then exits 0 and frees the task. The timeout turns a
+/// regression into a failure instead of a hung suite.
 #[test]
 fn a_checker_that_runs_mt_on_its_own_project_answers_once() {
     let run = format!("['{}', 'ls', '{{id}}']", env!("CARGO_BIN_EXE_mt"));

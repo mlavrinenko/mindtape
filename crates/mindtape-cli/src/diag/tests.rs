@@ -29,7 +29,7 @@ fn a_shell_word_is_bare_when_safe_and_quoted_otherwise() {
     assert_eq!(shell_word(""), "''");
 }
 
-/// A Windows shell reads `\` literally, so a Windows path stays bare there,
+/// A Windows shell reads `\` literally, and a Windows path stays bare there,
 /// while a POSIX shell would take it as an escape.
 #[test]
 fn a_backslash_is_bare_only_where_it_separates() {

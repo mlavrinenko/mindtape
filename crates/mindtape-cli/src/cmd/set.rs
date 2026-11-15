@@ -1,29 +1,29 @@
-//! `mt set <task> <field>=<value>` — write one core field of an existing task.
+//! `mt set <task> <field>=<value>` writes one core field of an existing task.
 //!
 //! `mt` stamped `status:` (`flip`), `links:` (`link`), `reviewed:` (`review`)
-//! and the stem (`mv`), and nothing else. Every other field — a priority worth
-//! correcting, a tag worth adding, a due date worth moving — was a hand edit,
-//! which is the one path `skills/mindtape/SKILL.md` opens by warning against:
-//! it skips what `mt` stamps, resolves and validates, so a wrong value lands
-//! and is only reported later, by `mt check`, on a file already saved.
+//! and the stem (`mv`), and nothing else. Every other field was a hand edit: a
+//! priority worth correcting, a tag worth adding, a due date worth moving. That
+//! is the one path `skills/mindtape/SKILL.md` opens by warning against. It
+//! skips what `mt` stamps, resolves and validates, so a wrong value lands and
+//! is only reported later, by `mt check`, on a file already saved.
 //!
 //! So this command is the generic writer for the fields that never earned one.
 //! Three things keep it from becoming a second CLI of its own:
 //!
 //! - the token grammar is `mt add --set`'s, parsed by [`crate::cmd::add::tokens`]
-//!   itself rather than re-spelled, so `tags+=auth` means here what it means
-//!   there and a third operator can never appear on only one of them;
+//!   itself rather than re-spelled. `tags+=auth` then means here what it means
+//!   there, and a third operator can never appear on only one of them.
 //! - the field table and the literal each value renders to live in
-//!   [`mindtape::model::writable`], the same ones `mt add --set` uses, so the
-//!   two commands cannot drift on a field name, a shape or an escaping rule;
+//!   [`mindtape::model::writable`], the same ones `mt add --set` uses. The two
+//!   commands then cannot drift on a field name, a shape or an escaping rule.
 //! - the write goes through [`crate::pre_write`], so a value the project
 //!   refuses never reaches the file and there is nothing to repair.
 //!
 //! What it deliberately does not write is [`mindtape::model::writable::ELSEWHERE`]:
 //! a name with its own command or add flag, whose shape carries more than a
-//! value (a dated status, a typed edge, a renamed stem, a destination), and
-//! `estimate`, whose unit dict has no unambiguous `<field>=<value>` spelling to
-//! give it.
+//! value. That covers a dated status, a typed edge, a renamed stem and a
+//! destination. It also leaves `estimate` alone, whose unit dict lacks an
+//! unambiguous `<field>=<value>` spelling to give it.
 
 use clap::Args;
 use mindtape::FieldOp;
@@ -51,10 +51,10 @@ pub struct SetArgs {
 /// Run the `set` command.
 ///
 /// # Errors
-/// An unresolvable task, a token that is not an assignment, a field this
-/// command does not write, a value of the wrong shape for the field, a
-/// wrong-shaped file (no `task.with(…)` call), a value the project refuses, or
-/// a failed write.
+/// An unresolvable task. A token that is not an assignment. A field this
+/// command does not write. A value of the wrong shape for the field. A
+/// wrong-shaped file (no `task.with(…)` call). A value the project refuses. A
+/// failed write.
 pub fn run(args: &SetArgs) -> Result<()> {
     let project = util::open_warned()?;
 
@@ -93,8 +93,8 @@ fn parse_assignment(token: &str) -> Result<(String, FieldOp), Diag> {
     Ok((name, op))
 }
 
-/// The value as the caller typed it — what a refusal or a no-op quotes back,
-/// before any Typst literal was rendered from it.
+/// The value as the caller typed it, which a refusal or a no-op quotes back
+/// before any Typst literal renders from it.
 fn op_text(op: &FieldOp) -> &str {
     match op {
         FieldOp::Set(RawValue::Str(text)) | FieldOp::Append(text) => text,
@@ -112,7 +112,7 @@ pub(crate) fn writable_fields() -> impl Iterator<Item = &'static str> {
 }
 
 /// The long help of `mt set`, its field list read from [`writable::WRITABLE`]
-/// so the help names exactly the fields this command writes.
+/// so the help lists exactly the fields this command writes.
 pub(crate) fn long_about() -> String {
     let names: Vec<String> = writable::WRITABLE
         .iter()
@@ -137,9 +137,9 @@ pub(crate) fn long_about() -> String {
 /// The writable field `name` names.
 ///
 /// # Errors
-/// A name another command or add flag owns (named, with a hint to it), or an
-/// unknown one (named, with a nearest-match hint and a pointer to the writable
-/// fields).
+/// A name that another command or add flag owns, named with a hint to it. An
+/// unknown name, named with a nearest-match hint and a pointer to the writable
+/// fields.
 fn writable(name: &str) -> Result<&'static WritableField, Diag> {
     if let Some(field) = writable::get(name) {
         return Ok(field);

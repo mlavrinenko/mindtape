@@ -1,7 +1,7 @@
 //! Task-level `recur` policy check for `mt check`.
 //!
 //! A thin [`crate::validate::Violation`] adapter over
-//! [`crate::recur::check_policy`]'s pure problem strings — the same split as
+//! [`crate::recur::check_policy`]'s pure problem strings, the same split as
 //! [`crate::validate::links`] over the link resolution/cardinality checks.
 
 use crate::config::Config;

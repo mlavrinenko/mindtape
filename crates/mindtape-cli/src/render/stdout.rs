@@ -1,37 +1,38 @@
-//! The crate's stdout writer: every `print!`/`println!` in the binary lands
+//! The crate's stdout writer. Every `print!`/`println!` in the binary lands
 //! here, so a reader that walks away is a write error rather than a panic.
 //!
 //! The prelude's `println!` unwraps its write. Piping any `mt` command into a
-//! reader that stops early — `mt ls | head -3`, a pager quit part way, an
-//! `xargs` whose child failed — closes the pipe under it, and libstd (which
-//! ignores `SIGPIPE` at startup, so the write returns `EPIPE` rather than
-//! signalling) turns that `EPIPE` into `panicked at library/std/src/io/
-//! stdio.rs: failed printing to stdout: Broken pipe (os error 32)` and exit
-//! 101. That names an internal libstd line at a caller who did nothing wrong,
-//! and reports a crash for what is the normal end of a pipeline.
+//! reader that stops early closes the pipe under it. Examples are
+//! `mt ls | head -3`, a pager quit part way, and an `xargs` whose child
+//! failed. libstd ignores `SIGPIPE` at startup, which makes the write return
+//! `EPIPE` rather than signal. libstd then turns that `EPIPE` into `panicked at
+//! library/std/src/io/stdio.rs: failed printing to stdout: Broken pipe (os
+//! error 32)` and exit 101. That points at an internal libstd line for a caller
+//! who did nothing wrong, and reports a crash for what is the normal end of a
+//! pipeline.
 //!
-//! `main.rs` shadows both macros crate-wide (see the `macro_rules!` there) so
-//! the guarantee is total rather than per-call-site: there are ~110 print sites
-//! across the commands, and a policy that holds at some of them is a policy a
+//! `main.rs` shadows both macros crate-wide (see the `macro_rules!` there), so
+//! the guarantee is total rather than per-call-site. There are ~110 print sites
+//! across the commands. A policy that holds at some of them is a policy a
 //! reader cannot rely on anywhere.
 //!
 //! ## The policy
 //!
-//! A broken pipe stops the *printing*, not the command. Once the reader is
-//! gone every later write is dropped, and the command runs to completion and
-//! exits on its own merits — `mt ls | head -1` exits 0.
+//! A broken pipe stops the *printing*, not the command. Once the reader goes
+//! away the writer drops every later write, and the command runs to completion
+//! and exits on its own merits: `mt ls | head -1` exits 0.
 //!
 //! Exiting the process on the broken write was the other candidate and is
 //! wrong here: `mt` is not a read-only tool. A mutating command
 //! (`add`, `flip`, `rm`) prints as it goes, so bailing out at the first dropped
-//! write would abort it half way — and doing that with a status of 0 would
-//! claim a success that never happened, while doing it with a failing status
-//! would report a failure for work that mostly landed. Running on costs a
-//! rendered string nobody reads.
+//! write would abort it half way. Doing that with a status of 0 would claim a
+//! success that never happened. Doing it with a failing status would report a
+//! failure for work that had already landed. Running on costs a rendered string
+//! nobody reads.
 //!
-//! Only `BrokenPipe` is swallowed. Any other write error keeps libstd's
-//! behaviour — a full disk under `mt ls > out.txt` is a real failure and must
-//! not be silently reported as a clean run.
+//! The writer swallows only `BrokenPipe`. Any other write error keeps the
+//! libstd behaviour: a full disk under `mt ls > out.txt` is a real failure and
+//! must not be silently reported as a clean run.
 
 // The writer's entry points are reachable only through the shadowed macros,
 // which `main.rs` installs under `cfg(not(test))`. A `cargo test` build is
@@ -44,9 +45,9 @@ use std::fmt::Arguments;
 use std::io::{self, ErrorKind, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 
-/// Set once stdout's reader is gone. Later writes are dropped rather than
-/// retried: every one of them would fail the same way, and each costs a
-/// syscall.
+/// Set once the stdout reader goes away. The writer drops later writes rather
+/// than retrying them: every one of them would fail the same way, and each
+/// costs a syscall.
 static READER_GONE: AtomicBool = AtomicBool::new(false);
 
 /// Write `args` to stdout, as `print!` does.
@@ -59,7 +60,7 @@ pub fn write_line(args: Arguments) {
     emit(args, true);
 }
 
-/// The shared body: write, then classify a failure through [`handle`].
+/// The shared body writes, then classifies a failure through [`handle`].
 fn emit(args: Arguments, newline: bool) {
     if READER_GONE.load(Ordering::Relaxed) {
         return;
@@ -77,12 +78,12 @@ fn emit(args: Arguments, newline: bool) {
     }
 }
 
-/// Record a broken pipe and return; re-raise anything else the way libstd's
-/// `println!` would.
+/// Record a broken pipe and return. Re-raise anything else the way libstd
+/// `println!` does.
 ///
 /// # Panics
-/// On any write error other than [`ErrorKind::BrokenPipe`] — deliberately, to
-/// keep a genuine I/O failure (a full disk under a redirect) as loud as it is
+/// On any write error other than [`ErrorKind::BrokenPipe`], deliberately, to
+/// keep a real I/O failure (a full disk under a redirect) as loud as it is
 /// today.
 fn handle(err: &io::Error) {
     if err.kind() == ErrorKind::BrokenPipe {

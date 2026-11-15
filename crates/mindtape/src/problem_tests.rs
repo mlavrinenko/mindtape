@@ -8,8 +8,8 @@ fn with_hint(text: &str) -> Problem {
     })
 }
 
-/// What a user reads is the message alone: the suggestion travels as data and
-/// the CLI words it as `hint:` lines.
+/// The user reads the message alone. The suggestion travels as data, and the
+/// CLI words it as `hint:` lines.
 #[test]
 fn displays_the_message_without_the_suggestion() {
     assert_eq!(

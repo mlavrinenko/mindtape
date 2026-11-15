@@ -1,6 +1,6 @@
 //! `mt packs`, against a bare git repository under the test's own directory,
-//! which the project declares by a path relative to its root. No test
-//! touches the network.
+//! which the project declares by a path relative to its root. Every test stays
+//! offline.
 //!
 //! - `install.rs`: `mt packs install`.
 //! - `update.rs`: `mt packs update`.
@@ -26,7 +26,7 @@ pub(super) fn config(reference: &str) -> String {
     )
 }
 
-/// The source repository: a work tree `upstream/work` and its bare clone
+/// The source repository holds a work tree `upstream/work` and its bare clone
 /// `upstream/src.git`, which the project fetches from.
 pub(super) struct Upstream<'a> {
     pub(super) root: &'a Path,

@@ -208,8 +208,8 @@ const SPAWN_SRC: &str = "#show: task.with(\n  title: \"Chore\",\n  status: wip(2
      recur: every(weeks: 1, count: 10),\n)\n\n== Summary\n\nBody.\n";
 
 /// A minimal project holding one weekly recurring task on disk, with
-/// `[tasks.naming] stem` set to `stem_template` — the tests pick the template
-/// that makes the property they pin visible in the filename.
+/// `[tasks.naming] stem` set to `stem_template`. Each test picks the template
+/// that makes the property it pins visible in the filename.
 fn chain_project(dir: &Path, stem_template: &str) -> (Project, Task, PathBuf, Recur) {
     let task_dir = dir.join("tasks");
     std::fs::create_dir_all(&task_dir).unwrap();

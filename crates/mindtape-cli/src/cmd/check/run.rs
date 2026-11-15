@@ -1,10 +1,10 @@
 //! The `[commits] run` command: the project's own message check over a
 //! commit's message, and report each line it prints.
 //!
-//! The command is the project's policy, not Mindtape's: this binary only knows
-//! that a non-zero exit means the message failed and that the output is
-//! already worded for a reader. The same command runs over the message being
-//! written under `mt check --commit-msg` and over each past message under
+//! The command is the project's policy, not `Mindtape`'s. This binary only
+//! knows that a non-zero exit means the message failed and that the output is
+//! already worded for a reader. The same command runs over the message under
+//! construction in `mt check --commit-msg` and over each past message under
 //! `mt check --commits`.
 
 use std::path::Path;
@@ -17,7 +17,8 @@ use crate::util;
 
 /// Run the configured message command over `message`. `commit` is the id and
 /// subject when the message comes from a range. Returns how many problems the
-/// checker reported: zero when no command is configured or it passes.
+/// checker reported. It returns zero when the project defines no command, and
+/// zero when the command passes.
 ///
 /// # Errors
 /// Fails when the command cannot start. A command that runs and exits non-zero

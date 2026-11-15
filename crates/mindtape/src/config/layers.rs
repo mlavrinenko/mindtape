@@ -6,18 +6,17 @@
 //! 2. XDG global defaults: `<config home>/mindtape/defaults.toml`, with the
 //!    config home resolved by [`crate::loader::app_dirs::config_home`].
 //! 3. Every `.mindtape/defaults.toml` found walking up from the project root,
-//!    farthest ancestor first, so the nearest one wins.
+//!    farthest ancestor first. The nearest one wins.
 //! 4. The project's own `<root>/.mindtape/config.toml`.
 //!
-//! I/O (locating and reading files, [`discover_layers`]) is kept separate from
-//! the fold: [`crate::config::packs::merge_layers_with_packs`] takes the
-//! discovered [`Layer`]s and does the rest, so the merge order is testable
-//! without touching a filesystem (see that module's own tests). Every field
-//! wholesale-replaces a later layer's over an earlier one's, except
-//! `[[tasks.rules]]`, its two body-rule siblings and `[[commits.rules]]`,
-//! which append across
-//! layers (and across a layer's own `extends` packs) instead — that
-//! exception is entirely that module's, not this one's.
+//! I/O (locating and reading files, [`discover_layers`]) stays separate from the
+//! fold. [`crate::config::packs::merge_layers_with_packs`] takes the discovered
+//! [`Layer`]s and does the rest, so the merge order is testable without touching
+//! a filesystem (see that module's own tests). Every field wholesale-replaces a
+//! later layer's over an earlier one's. The exception is `[[tasks.rules]]`, its
+//! two body-rule siblings and `[[commits.rules]]`, which append across layers
+//! (and across a layer's own `extends` packs) instead. That exception belongs
+//! entirely to that module, not to this one.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -32,7 +31,7 @@ use crate::framework::merge_builtin_frameworks;
 /// One config text layer plus where it came from.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Layer {
-    /// Where this layer's text was read from (or [`LayerSource::Embedded`]).
+    /// Where this layer's text came from (or [`LayerSource::Embedded`]).
     pub source: LayerSource,
     /// Raw TOML text, not yet parsed.
     pub text: String,
@@ -53,10 +52,10 @@ pub enum LayerSource {
 
 /// Locate every config layer that applies to `root`, in precedence order
 /// (lowest first). Reads the real global config dir
-/// ([`crate::loader::app_dirs::config_home`]); see [`load_config_layered`] for the entry point
-/// that also supplies the real home directory.
+/// ([`crate::loader::app_dirs::config_home`]). See [`load_config_layered`] for
+/// the entry point that also supplies the real home directory.
 ///
-/// `home` bounds the ancestor walk-up (never ascended past); pass
+/// `home` bounds the ancestor walk-up, which never ascends past it. Pass
 /// `dirs::home_dir()` in production, an injected path in tests.
 #[must_use]
 pub fn discover_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
@@ -119,9 +118,9 @@ fn project_layer(root: &Path) -> Option<Layer> {
 
 /// Every ancestor `.mindtape/defaults.toml` from `root` up to (and including)
 /// `home`, or the filesystem root when `root` is not under `home`. Returned
-/// farthest-ancestor first, so the nearest overlays last (wins). Paths are
-/// canonicalised before comparison and de-duplication, so a symlinked home (or
-/// a symlink loop in the ancestry) does not double-count a layer.
+/// farthest-ancestor first. The nearest then overlays last and wins. The walk
+/// canonicalizes paths before comparison and de-duplication, so a symlinked home
+/// (or a symlink loop in the ancestry) does not double-count a layer.
 fn dir_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
     let canonical_home = home.and_then(|h| crate::canonical(h).ok());
     let mut dir = crate::canonical(root).unwrap_or_else(|_| root.to_path_buf());
@@ -150,16 +149,16 @@ fn dir_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
     found
 }
 
-/// [`crate::config::packs::merge_layers_with_packs`] (deep-merges every layer,
-/// folding in each one's own `extends` packs and `disable` names as it goes),
-/// then splice in the built-in priority frameworks — the merged document,
-/// plus every rule's provenance, shared by [`build_config`] and
+/// [`crate::config::packs::merge_layers_with_packs`], which deep-merges every
+/// layer and folds in each one's own `extends` packs and `disable` names as it
+/// goes. The result then gains the built-in priority frameworks: the merged
+/// document, plus every rule's provenance, shared by [`build_config`] and
 /// [`merged_config_table`].
 ///
 /// # Errors
 /// Returns [`ConfigError`] if any layer or pack fails to parse, an `extends`
-/// pack can't be resolved, or a `disable` name matches no rule. The error
-/// already names its file.
+/// pack does not resolve, or a `disable` name is not a known rule. The error
+/// already carries its file.
 fn merge_doc(
     layers: &[Layer],
     root: &Path,
@@ -184,34 +183,34 @@ struct MergedDoc {
     sources: Sources,
 }
 
-/// [`merge_doc`], then deserialize and run semantic validation — the shared
-/// tail with [`crate::config::parse_config`], plus the checks that need the
-/// project root.
+/// [`merge_doc`], then deserialize and run semantic validation: the shared tail
+/// with [`crate::config::parse_config`], plus the checks that need the project
+/// root.
 ///
-/// `[dicts.<name>]` is compiled here and kept on the config: a `path` entry
-/// resolves against `root`, so this is the first point that can read one, and
-/// the whole point of compiling at load is that a broken dictionary is one
-/// config error instead of one per task. The result lands in
-/// [`Config::compiled_dicts`] rather than being dropped, because the filter
-/// language's `in_dict()` runs wherever a filter runs — a view, a limit, a
-/// `required` rule, a `[[tasks.rules]]` assertion, an `[[on.flip]]` gate — and
-/// none of those call sites has a project root to re-read the section with.
+/// The load compiles `[dicts.<name>]` here and keeps it on the config. A `path`
+/// entry resolves against `root`, so this is the first point that can read one.
+/// Compiling at load makes a broken dictionary one config error instead of one
+/// per task. The result lands in [`Config::compiled_dicts`] rather than going
+/// away. The filter language's `in_dict()` runs wherever a filter runs: a view, a
+/// limit, a `required` rule, a `[[tasks.rules]]` assertion, an `[[on.flip]]`
+/// gate. Each of those call sites lacks a project root to re-read the section
+/// with.
 ///
-/// It compiles before [`Config::validate`], not after. That pass dry-runs
-/// every saved filter expression against a probe task, so an expression
-/// reaching a project dictionary — `in_dict("verbs", word(title, 1))`, the
-/// canonical rule — is checked against a config whose only dictionaries are
-/// the built-ins if the cache is still empty, and fails at load naming a dict
-/// the project plainly declares. Nothing is lost by the order:
+/// It compiles before [`Config::validate`], not after. That pass dry-runs every
+/// saved filter expression against a probe task. An expression reaching a project
+/// dictionary, such as `in_dict("verbs", word(title, 1))`, the canonical rule,
+/// then checks against a config whose only dictionaries are the built-ins. The
+/// cache is still empty at that point. It fails at load naming a dict the project
+/// plainly declares. The order is safe:
 /// [`crate::config::compile_dicts`] runs `validate_dicts` itself, so a broken
 /// `[dicts]` section is still refused, by the first pass that can see it.
 ///
 /// [`crate::config::tasks::expand_dict_refs`] runs right after, for the same
-/// reason: a `@<dict>` reference in `[tasks.tags] allowed` or
+/// reason. A `@<dict>` reference in `[tasks.tags] allowed` or
 /// `[tasks.fields.<name>] values` needs the compiled dictionaries to resolve
-/// against, and needs to have resolved before `validate` (which does not
-/// itself read either list, but every command downstream of a successful load
-/// does) ever sees a bare `@name` instead of the set it names.
+/// against. It also needs to have resolved before `validate` ever sees a bare
+/// `@name` instead of the set it names. `validate` does not itself read either
+/// list, but every command downstream of a successful load does.
 ///
 /// An error comes back naming the layer, ancestor `defaults.toml` or pack that
 /// holds its key.
@@ -291,10 +290,11 @@ fn build_typed(
     Ok((config, rule_origins))
 }
 
-/// Assemble the merged TOML document for `root` — every discovered layer (and
-/// each one's `extends` packs) folded together, plus the spliced-in built-in
-/// priority frameworks — without deserializing into a typed [`Config`] or
-/// running semantic validation. Backs `mt config show`: the emitted document
+/// Assemble the merged TOML document for `root`, with every discovered layer (and
+/// each one's `extends` packs) folded together and the built-in priority
+/// frameworks spliced in. The result stays untyped, with no [`Config`]
+/// deserialization and no semantic validation. Backs `mt config show`, where the
+/// emitted document
 /// re-parses through [`crate::config::parse_config`] to an equal [`Config`].
 ///
 /// # Errors
@@ -334,12 +334,12 @@ fn name_file(err: ConfigError, sources: &Sources, root: &Path) -> ConfigError {
 /// The config `root` would load if its own `.mindtape/config.toml` held
 /// `project_text` instead of the file on disk.
 ///
-/// The embedded floor, XDG defaults and ancestor `.mindtape/defaults.toml`
-/// layers are the same ones [`load_config_layered`] discovers, and the
-/// project layer is `project_text`, so a commit state keeps the roots, pins
-/// and packs a working-tree load would have read. Files a layer references
-/// (packs, dictionary paths) still come from the working tree; a past tree's
-/// own copies are not virtualized.
+/// The embedded floor, XDG defaults and ancestor `.mindtape/defaults.toml` layers
+/// are the same ones [`load_config_layered`] discovers, and the project layer is
+/// `project_text`. A commit state then keeps the roots, pins and packs a
+/// working-tree load would have read. Files a layer references (packs, dictionary
+/// paths) still come from the working tree. A past tree's own copies are not
+/// virtualized.
 ///
 /// # Errors
 /// As [`load_config_layered`].
@@ -381,8 +381,8 @@ pub(crate) fn load_config_with_project_in(
 ///
 /// # Errors
 /// Returns [`ConfigError`] if any layer or pack fails to parse, an `extends`
-/// pack can't be resolved, a `disable` name matches no rule, the merged
-/// document fails to deserialize, or semantic validation fails.
+/// pack does not resolve, or a `disable` name is not a known rule. It also fails
+/// when the merged document does not deserialize or semantic validation fails.
 pub fn load_config_layered(
     root: &Path,
 ) -> Result<(Config, Vec<LayerSource>, Vec<RuleOriginEntry>), ConfigError> {
@@ -396,13 +396,14 @@ pub fn load_config_layered(
 
 /// [`load_config_layered`] with both environment-derived directories injected:
 /// `home` bounds the ancestor walk, `xdg_config_dir` locates the global
-/// `mindtape/defaults.toml` layer. Pass `None` for either to drop it. No pack
-/// source is installed, so a pack from a declared source fails to resolve.
+/// `mindtape/defaults.toml` layer. Pass `None` for either to drop it. The call
+/// leaves the pack cache empty. A pack from a declared source then fails to
+/// resolve.
 ///
-/// The entry point for a caller that must not read the running machine —
-/// embedders wiring their own config discovery, and any test asserting on a
-/// full merge, which through [`load_config_layered`] would instead assert on
-/// whether the developer keeps a global `defaults.toml`.
+/// The entry point for a caller that must not read the running machine. That
+/// covers embedders wiring their own config discovery, and any test asserting on
+/// a full merge. Through [`load_config_layered`] such a test would instead assert
+/// on whether the developer keeps a global `defaults.toml`.
 ///
 /// # Errors
 /// As [`load_config_layered`].
@@ -416,7 +417,7 @@ pub fn load_config_layered_from(
 
 /// [`load_config_layered_from`] with the pack cache injected too:
 /// `pack_cache` is the directory each declared source's tree sits in, as
-/// `<sha256>/`, or `None` when no source is installed.
+/// `<sha256>/`, or `None` when the pack cache is absent.
 ///
 /// # Errors
 /// As [`load_config_layered`].

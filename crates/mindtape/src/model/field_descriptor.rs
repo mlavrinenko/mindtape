@@ -2,7 +2,7 @@
 //! `[tasks.assignee]` and `[tasks.tags]` each declare allowed values, a
 //! requirement and a `values-when` exemption, and validation, the `mt add`
 //! slot splice and choice inheritance all read the [`Descriptor`] built here.
-//! A task's value is read through [`crate::model::fields::held`].
+//! A task's value comes through [`crate::model::fields::held`].
 
 use typst_harvest::HVal;
 
@@ -20,7 +20,7 @@ pub enum Cardinality {
     One,
     /// A non-empty list of distinct strings, each allowed.
     Multiple,
-    /// A list, empty or repeating allowed; each entry must be allowed.
+    /// A list that may be empty or repeat an entry, with each entry allowed.
     Many,
 }
 
@@ -34,8 +34,8 @@ impl Cardinality {
 
 /// One field's rules, whichever config table declared them: `[tasks.fields]`,
 /// `[tasks.assignee]` or `[tasks.tags]`. Validation, the `mt add` slot splice
-/// and choice inheritance all read it, so a field's allowed values, default,
-/// requirement and exemption live in one place.
+/// and choice inheritance all read it. A field's allowed values, default,
+/// requirement and exemption then live in one place.
 #[derive(Debug, Clone)]
 pub struct Descriptor<'a> {
     /// The field's name: `kind`, `assignee`, `tags` or an `x-<ns>` name.
@@ -54,9 +54,9 @@ pub struct Descriptor<'a> {
     pub when: Option<Filter>,
     /// How many values the field takes.
     pub cardinality: Cardinality,
-    /// What an allowed value is called in a message.
+    /// The word a message uses for an allowed value.
     pub noun: &'static str,
-    /// Whether a rejected value names the nearest allowed one.
+    /// Whether a rejection message specifies the nearest allowed value.
     pub hint: bool,
     /// The variable a slot for the field reads first.
     pub env: Option<&'static str>,
@@ -64,9 +64,9 @@ pub struct Descriptor<'a> {
     pub example: Option<String>,
 }
 
-/// The `[tasks.tags]` filter default: a closed task keeps a tag dropped from
-/// `allowed`, so retiring a tag is one edit rather than a rewrite of every
-/// closed task that carried it.
+/// `TAGS_VALUES_WHEN` is the filter default for `[tasks.tags]`. A closed task
+/// keeps a tag dropped from `allowed`. Retiring a tag is then one edit rather
+/// than a rewrite of every closed task that carried it.
 const TAGS_VALUES_WHEN: &str = "!terminal";
 
 /// A list of strings as a Typst array literal.
@@ -148,7 +148,7 @@ pub fn descriptors(config: &Config) -> Vec<Descriptor<'_>> {
 }
 
 impl Descriptor<'_> {
-    /// Whether `task` is held to the allowed values.
+    /// Whether the allowed values apply to `task`.
     #[must_use]
     pub fn holds(&self, task: &Task, config: &Config) -> bool {
         self.when
@@ -156,17 +156,17 @@ impl Descriptor<'_> {
             .is_none_or(|filter| filter.matches(task, config).unwrap_or(true))
     }
 
-    /// Whether `value` is one of the allowed values. Always, when none are
-    /// declared.
+    /// Whether `value` is one of the allowed values. Always, when the field
+    /// declares none.
     #[must_use]
     pub fn allows(&self, value: &str) -> bool {
         self.allowed.is_empty() || self.allowed.iter().any(|allowed| allowed == value)
     }
 
-    /// The messages for one held value: a value of the wrong cardinality, a
-    /// string that is not allowed, and in a list an empty list, a repeated
-    /// entry or a non-string entry. A single-valued field without allowed
-    /// values takes any shape.
+    /// The messages for one held value. The value can have the wrong
+    /// cardinality, or be a string that is not allowed. In a list it can also
+    /// be an empty list, a repeated entry or a non-string entry. A
+    /// single-valued field without allowed values takes any shape.
     #[must_use]
     pub fn breaches(&self, task: &Task, value: &HVal) -> Vec<Problem> {
         let refused = |text: &str| self.refusal(task, text);

@@ -171,8 +171,8 @@ fn a_filter_error_is_a_usage_error_naming_the_filter() {
     assert_eq!(plain(&git), "error: can't read git: changed(): no repo\n");
 }
 
-/// The quoting hint quotes the unknown name only where it is compared with a
-/// field, in the user's own expression, and never inside a string.
+/// The quoting hint quotes the unknown name only where the user's own
+/// expression compares it with a field, and never inside a string.
 #[test]
 fn an_unknown_name_compared_with_a_field_gets_the_quoted_form() {
     let hint = |expr: &str, name: &str| {

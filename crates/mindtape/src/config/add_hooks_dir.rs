@@ -2,9 +2,9 @@
 //! file-size gate.
 //!
 //! A `dir` is project-root-relative text with `{macro}` placeholders. A static
-//! template may name `{template}`, any add-safe scalar field, and the date
+//! template may reference `{template}`, any add-safe scalar field, and the date
 //! macros `{date}`, `{date:FMT}`, `{yy}`, `{mm}` and `{dd}`, all in the
-//! `[tasks.naming] stem` grammar; a value a derive function returns is a plain
+//! `[tasks.naming] stem` grammar. A value a derive function returns is a plain
 //! path and skips macro expansion, but must still stay relative and free of
 //! `.`/`..`.
 
@@ -16,8 +16,8 @@ use crate::date::format_iso;
 /// The one non-field macro a `dir` template takes.
 pub(super) const TEMPLATE_MACRO: &str = "template";
 
-/// The date a [`is_date_macro`] probe formats with: only the name's shape is
-/// asked about, never the value.
+/// The date a [`is_date_macro`] probe formats with. The probe checks the name's
+/// shape only, never the value.
 const PROBE_DATE: (i32, u8, u8) = (2000, 1, 1);
 
 /// One date macro's value for `date`: `{date}` in ISO, `{date:FMT}` through
@@ -124,7 +124,7 @@ impl<'a> DirTemplate<'a> {
 /// carrying no `/` or `\`.
 ///
 /// # Errors
-/// Returns a message naming what the value violates.
+/// Returns a message that reports what the value violates.
 pub fn validate_component(value: &str) -> Result<(), String> {
     if value.is_empty() {
         return Err("empty value".to_owned());
@@ -162,7 +162,7 @@ pub(super) fn validate_dir(text: &str) -> Result<(), String> {
 /// against the project it writes into.
 ///
 /// # Errors
-/// Returns a message naming what the path violates.
+/// Returns a message that reports what the path violates.
 pub fn validate_derived_dir(text: &str) -> Result<(), String> {
     validate_relative_dir(text, "a derived dir")
 }

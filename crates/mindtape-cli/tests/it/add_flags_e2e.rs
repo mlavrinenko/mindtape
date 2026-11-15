@@ -25,7 +25,7 @@ fn every_scalar_flag_writes_its_field() {
 }
 
 /// `status` has its own add flag, so the generic writer's `mt flip` hint would
-/// name a task that does not exist yet.
+/// point at a task that does not exist yet.
 #[test]
 fn a_status_token_hints_the_add_flag_not_the_flip_command() {
     let dir = support::scaffold();

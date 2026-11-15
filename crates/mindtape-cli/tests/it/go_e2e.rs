@@ -113,7 +113,7 @@ fn go_marking(
 #[cfg(unix)]
 /// A clone's `[go] editor` is a program `mt` would run, so it waits for
 /// `mt allow` like a checker does: until then `$VISUAL` opens the task and
-/// one warning names the held command.
+/// one warning reports the held command.
 #[test]
 fn a_project_editor_waits_for_mt_allow_and_visual_opens_the_task() {
     let (dir, held, visual) = project_with_marking_editors("held");
@@ -165,9 +165,9 @@ fn go_without_fallback(dir: &std::path::Path) -> (Option<i32>, String) {
     )
 }
 
-/// With no `$VISUAL` or `$EDITOR`, a held `[go] editor` is refused with the
+/// With no `$VISUAL` or `$EDITOR`, `mt` refuses a held `[go] editor` with the
 /// reason and a hint at `mt allow`, not at setting an editor that is already
-/// set, while a blank one holds nothing back and still asks for an editor.
+/// set. A blank one skips the hold, and the command still needs an editor.
 #[test]
 fn a_held_editor_with_no_fallback_points_at_mt_allow_and_a_blank_one_does_not() {
     let cases = [

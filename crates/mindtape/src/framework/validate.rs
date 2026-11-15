@@ -1,7 +1,7 @@
 //! Validation of framework definitions against the active scale and the Typst
 //! source they generate. Split out of `framework` so both modules fit their
-//! file-size caps; the Rust layer keeps the evaluator, this module keeps every
-//! config-load-time rejection.
+//! file-size caps. The Rust layer keeps the evaluator, and this module keeps
+//! every config-load-time rejection.
 
 use std::collections::BTreeMap;
 
@@ -11,7 +11,8 @@ use crate::framework::eval::{eval_predicate, parse_check, score_interval};
 use crate::framework::{Framework, InputKind};
 use crate::model::numeric::{InputValue, format_num};
 
-/// The framework-validation scope: the field label, framework name, and scale.
+/// Carries the framework-validation scope: the field label, framework name, and
+/// scale.
 pub(crate) struct Scope<'a> {
     pub(crate) field: &'a str,
     pub(crate) name: &'a str,
@@ -36,10 +37,10 @@ fn is_typst_ident(name: &str) -> bool {
 
 impl Framework {
     /// Validate every declared input name is a name a Typst named argument can
-    /// carry. Input names reach the DSL twice — as named args in
-    /// `framework("f", input: …)` calls and as `--set` keys — and an invalid
-    /// name otherwise surfaces only after `mt add` writes the task, as an eval
-    /// error. Runs for every declared framework, active or not.
+    /// carry. Input names reach the DSL twice, as named args in
+    /// `framework("f", input: …)` calls and as `--set` keys. An invalid name
+    /// otherwise surfaces only after `mt add` writes the task, as an eval error.
+    /// Runs for every declared framework, active or not.
     pub(crate) fn validate_input_names(&self, field: &str, name: &str, out: &mut Vec<String>) {
         for input in self.inputs.keys() {
             if !is_typst_ident(input) {

@@ -1,10 +1,10 @@
 //! Version-aware `[[typst.local-packages]]` pins: a pin serves the version its
 //! `typst.toml` declares, and every other version falls through to the package
 //! directory. [`super::with_packages`] installs the result in every world
-//! Mindtape builds.
+//! `Mindtape` builds.
 //!
-//! A commit state can hand in its own package files ([`StatePackages`]) so a
-//! past tree's imports resolve against that tree's `lib/`, not the working
+//! A commit state can hand in its own package files ([`StatePackages`]). A past
+//! tree's imports then resolve against that tree's `lib/`, not the working
 //! tree's pin or the machine's install.
 
 use std::collections::HashMap;
@@ -36,7 +36,7 @@ pub fn unsupported_prelude_version(message: &str) -> Option<&str> {
 
 /// The refusal for `@local/mindtape` at a version this binary does not read.
 /// The set is in the message too, so a surface that has no fold point still
-/// names what does work.
+/// states what does work.
 fn unsupported_prelude_error(version: &PackageVersion) -> FileError {
     FileError::Package(PackageError::Other(Some(
         format!(
@@ -71,7 +71,7 @@ pub(crate) struct StatePackages {
     pub(crate) fingerprint: String,
 }
 
-/// [`super::with_packages`] with the installed-package root named, so a test
+/// [`super::with_packages`] with the installed-package root named. A test then
 /// resolves a version under a temp directory without touching the process
 /// environment.
 pub(super) fn with_packages_at(
@@ -112,7 +112,7 @@ pub(crate) fn with_packages_and(
 /// version its directory's `typst.toml` declares.
 struct Pin {
     name: String,
-    /// `None` when the manifest cannot be read or parsed. The pin then serves
+    /// `None` when the manifest fails to read or parse. The pin then serves
     /// every version, so Typst reports the pin's own manifest problem rather
     /// than a not-found for a package the project never asked the machine for.
     version: Option<PackageVersion>,
@@ -147,8 +147,8 @@ impl Pin {
     }
 }
 
-/// The version `dir`'s `typst.toml` declares, or `None` when the file cannot
-/// be read or parsed.
+/// The version `dir`'s `typst.toml` declares, or `None` when the file fails to
+/// read or parse.
 fn manifest_version(dir: &Path) -> Option<PackageVersion> {
     let text = std::fs::read_to_string(dir.join("typst.toml")).ok()?;
     let manifest: PackageManifest = toml::from_str(&text).ok()?;
@@ -156,8 +156,9 @@ fn manifest_version(dir: &Path) -> Option<PackageVersion> {
 }
 
 /// The state's packages, then the pins, then the installed and embedded
-/// packages. The fallback is handed no overrides: a pin that does not serve the
-/// import's version must not capture it on the way to the package directory.
+/// packages. The fallback carries no overrides, since a pin that does not serve
+/// the import's version must not capture it on the way to the package
+/// directory.
 struct Pins {
     state: Option<StatePackages>,
     pins: Vec<Pin>,

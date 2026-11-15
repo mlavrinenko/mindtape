@@ -1,13 +1,13 @@
 //! End-to-end tests for the completions the binary answers itself
 //! (`crates/mindtape-cli/src/cli/completion/mod.rs`).
 //!
-//! These drive the same protocol the installed shell hook does — `COMPLETE=`
-//! plus the word list after `--` — rather than a Rust-level call, because the
-//! thing under test is exactly that a tab press reaches a live project. A unit
-//! test over a source function would pass while the hook handed clap the wrong
-//! argv, which is the failure a user would see.
+//! These drive the same protocol the installed shell hook does (`COMPLETE=`
+//! plus the word list after `--`) rather than a Rust-level call. The thing
+//! under test is exactly that a tab press reaches a live project. A unit test
+//! over a source function would pass while the hook handed clap the wrong argv,
+//! which is the failure a user would see.
 //!
-//! The fixtures are the two checked-in example projects, not tempdirs: the
+//! The fixtures are the two checked-in example projects, not tempdirs. The
 //! whole claim is "this project's values, not a baked list", and only two real
 //! projects whose configs disagree can witness it.
 //!
@@ -29,9 +29,9 @@ fn example(name: &str) -> PathBuf {
 
 /// The candidates `mt` offers for `words`, with the cursor on the last one.
 ///
-/// `words` is the whole command line as the shell knows it, `mt` included —
-/// the hook passes `"${COMP_WORDS[@]}"` verbatim after `--`, and
-/// `_CLAP_COMPLETE_INDEX` names the word being completed.
+/// `words` is the whole command line as the shell knows it, `mt` included. The
+/// hook passes `"${COMP_WORDS[@]}"` verbatim after `--`, and
+/// `_CLAP_COMPLETE_INDEX` names the word the user is completing.
 fn complete(dir: &Path, words: &[&str]) -> Vec<String> {
     let index = words.len() - 1;
     let mut args = vec!["--"];
@@ -61,10 +61,10 @@ fn complete(dir: &Path, words: &[&str]) -> Vec<String> {
         .collect()
 }
 
-/// The red test this whole change was written against: `mt flip <TAB>` in
-/// `examples/minimal` offers that project's four-value legend. `todo` is
-/// minimal's and `proposed` is api-service's, so a baked list, a list read from
-/// the wrong project, and the right one are three distinguishable answers.
+/// The red test this whole change targets: `mt flip <TAB>` in
+/// `examples/minimal` offers that project's four-value legend. `todo` belongs to
+/// minimal and `proposed` to api-service, so a baked list, a list read from the
+/// wrong project, and the right one are three distinguishable answers.
 #[test]
 fn flip_offers_the_legend_of_the_project_it_runs_in() {
     let candidates = complete(&example("minimal"), &["mt", "flip", ""]);
@@ -138,7 +138,7 @@ fn explain_dicts_offers_the_dictionary_names() {
     }
 }
 
-/// `mt add -t <TAB>` offers the template stems this project ships, plus the
+/// `mt add -t <TAB>` offers the template stems this project carries, plus the
 /// built-in `task` fallback.
 #[test]
 fn add_offers_template_stems() {
@@ -187,7 +187,7 @@ fn the_shortcut_verbs_are_offered_once() {
 }
 
 /// Whatever a candidate list still carries once no project value can be in it:
-/// clap's own flags, which are the parser's half and correct everywhere.
+/// clap's own flags, which belong to the parser and are correct everywhere.
 fn project_values(candidates: &[String]) -> Vec<&String> {
     candidates
         .iter()
@@ -196,10 +196,10 @@ fn project_values(candidates: &[String]) -> Vec<&String> {
 }
 
 /// The requirement that keeps a broken tab-press from looking like a broken
-/// shell: outside any project there is no project value to offer, and saying
-/// so is an exit-0 answer with a silent stderr (asserted in `complete`) rather
-/// than a diagnostic. The static half survives — `mt flip`'s flags are clap's
-/// to know and do not depend on a project loading.
+/// shell. Outside any project there is no project value to offer, and saying so
+/// is an exit-0 answer with a silent stderr (asserted in `complete`) rather than
+/// a diagnostic. The static half survives: `mt flip`'s flags are clap's to know
+/// and do not depend on a project loading.
 #[test]
 fn a_project_that_does_not_load_yields_no_project_values_and_no_error() {
     let dir = tempdir();
@@ -211,7 +211,7 @@ fn a_project_that_does_not_load_yields_no_project_values_and_no_error() {
 }
 
 /// The same, one step worse: a project whose config is unparseable. `mt flip`
-/// itself exits non-zero naming the TOML error; the completer must not.
+/// itself exits non-zero naming the TOML error, and the completer must not.
 #[test]
 fn an_unparseable_config_yields_no_project_values_and_no_error() {
     let dir = tempdir_with_config("[tasks\n");
@@ -241,8 +241,8 @@ fn the_registration_hook_calls_the_binary_back() {
 }
 
 /// `mt init --preset <TAB>` offers the preset registry: a built-in's name
-/// comes from `mt preset ls`, and an empty user directory still yields them —
-/// the one source that loads no project.
+/// comes from `mt preset ls`, and an empty user directory still yields them.
+/// This is the one source that doesn't load a project.
 #[test]
 fn init_offers_the_preset_registry() {
     let candidates = complete(&example("minimal"), &["mt", "init", "--preset", ""]);
@@ -255,8 +255,8 @@ fn init_offers_the_preset_registry() {
 }
 
 /// `mt set <task> <TAB>` offers the fields the command writes, each as a
-/// whole `field=` token — the same `WRITABLE` table the refusal reads, so a
-/// tab press can never offer a field `mt set` would reject.
+/// whole `field=` token. The completer reads the same `WRITABLE` table the
+/// refusal reads, so a tab press can never offer a field `mt set` would reject.
 #[test]
 fn set_offers_its_writable_fields() {
     let candidates = complete(&example("minimal"), &["mt", "set", "add-dark-mode", "tit"]);
@@ -266,8 +266,8 @@ fn set_offers_its_writable_fields() {
     );
 }
 
-/// Once the token carries a value there is no field name left to complete, so
-/// the completer yields nothing rather than guessing.
+/// Once the token carries a value there is no field name left to complete, and
+/// the completer doesn't guess.
 #[test]
 fn set_offers_nothing_once_an_assignment_carries_a_value() {
     let candidates = complete(
@@ -277,7 +277,7 @@ fn set_offers_nothing_once_an_assignment_carries_a_value() {
     assert!(project_values(&candidates).is_empty(), "{candidates:?}");
 }
 
-/// `mt set <task> tags=<TAB>` offers the tags a write is validated against:
+/// `mt set <task> tags=<TAB>` offers the tags that validate a write.
 /// api-service declares an `allowed` list, and each candidate is a whole
 /// `tags=<tag>` token rather than a bare tag the token grammar would reject.
 #[test]
@@ -297,7 +297,7 @@ fn set_offers_the_allowed_tags_as_whole_tokens() {
 }
 
 /// With no `[tasks.tags] allowed`, the vocabulary is the tags the tasks
-/// actually carry — `mt add --set`'s template-slot grammar completes from the
+/// actually carry. `mt add --set`'s template-slot grammar completes from the
 /// same set, filtered by the prefix typed so far.
 #[test]
 fn add_set_offers_the_tags_its_tasks_carry() {
@@ -312,7 +312,7 @@ fn add_set_offers_the_tags_its_tasks_carry() {
 }
 
 /// A tag token outside any project resolves its vocabulary to nothing, the
-/// quiet failure every source shares — no diagnostic, no candidates.
+/// quiet failure every source shares: no diagnostic, no candidates.
 #[test]
 fn a_tag_token_outside_a_project_yields_nothing() {
     let dir = tempdir();

@@ -17,8 +17,8 @@ fn config_with_external_kind(kind: LinkKind) -> Config {
     })
 }
 
-/// A well-formed external target does not go through stem resolution: it names
-/// no task file, and that is not an error.
+/// A well-formed external target does not go through stem resolution: it points
+/// at no task file, and that is not an error.
 #[test]
 fn external_target_is_not_resolved_against_tasks() {
     let config = config_with_external_kind(LinkKind {
@@ -30,7 +30,7 @@ fn external_target_is_not_resolved_against_tasks() {
     assert!(violations.is_empty(), "got {violations:?}");
 }
 
-/// A malformed external target is an error, and the message names the kind,
+/// A malformed external target is an error, and the message states the kind,
 /// the validator, and the offending value.
 #[test]
 fn malformed_external_target_names_kind_validator_and_value() {
@@ -68,8 +68,8 @@ fn external_kind_participates_in_no_cycle() {
     );
 }
 
-/// Even a target that happens to spell a loaded task's stem stays external: it
-/// is validated for shape, never resolved into the graph.
+/// Even a target that happens to spell a loaded task's stem stays external: the
+/// check validates it for shape, never resolving it into the graph.
 #[test]
 fn external_target_spelling_a_stem_is_still_shape_checked() {
     let config = config_with_external_kind(LinkKind {
@@ -85,7 +85,7 @@ fn external_target_spelling_a_stem_is_still_shape_checked() {
     );
 }
 
-/// A note rule still binds on an external kind — the escape hatch that lets a
+/// A note rule still binds on an external kind, the escape hatch that lets a
 /// project demand a reason for the artifact it points at.
 #[test]
 fn note_rule_still_applies_to_an_external_kind() {
@@ -113,7 +113,7 @@ fn note_rule_still_applies_to_an_external_kind() {
 }
 
 /// Cardinality counts task-graph edges, so an external kind's cap does not
-/// fire — the axis excludes it along with resolution and cycles.
+/// fire. The axis excludes it along with resolution and cycles.
 #[test]
 fn external_kind_is_excluded_from_cardinality() {
     let config = config_with_external_kind(LinkKind {

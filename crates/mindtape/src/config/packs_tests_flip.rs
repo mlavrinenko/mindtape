@@ -1,7 +1,7 @@
-//! `[[on.flip]]` merges by name across packs and layers like a rule array: an
-//! ancestor's or a pack's gate fires beside the project's, a later entry with
-//! the same `name` replaces an earlier one in place, `disable` drops one, and
-//! an unnamed entry appends and can't be replaced.
+//! `[[on.flip]]` merges by name across packs and layers like a rule array. An
+//! ancestor's or a pack's gate fires beside the project's, and a later entry
+//! with the same `name` replaces an earlier one in place. `disable` drops one,
+//! and an unnamed entry appends, and nothing replaces it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::config::Config;
@@ -211,10 +211,10 @@ fn a_packs_gate_applies_beside_the_projects_and_the_project_replaces_it_by_name(
     );
 }
 
-/// Mindtape's own embedded packs declare no command, so a project that
-/// extends one runs nothing it must `mt allow` first, on any OS. A gate a pack
-/// ships is a filter condition, as `review-stale-task-before-starting` is. A user's own pack may
-/// declare any `run`: this holds the embedded ones alone to the rule.
+/// The embedded packs of `Mindtape` carry no command, so a project that extends
+/// one runs nothing it must `mt allow` first, on any OS. A gate a pack provides
+/// is a filter condition, as `review-stale-task-before-starting` is. A user's own
+/// pack may declare any `run`: this holds the embedded ones alone to the rule.
 #[test]
 fn no_embedded_pack_declares_a_command() {
     for (pack, _) in crate::config::pack_registry::EMBEDDED_PACKS {

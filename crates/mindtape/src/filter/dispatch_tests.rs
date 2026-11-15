@@ -1,9 +1,10 @@
 //! Coverage for the error and fall-through arms of the `function` dispatcher
-//! and its helpers — the paths a happy-path filter never walks.
+//! and its helpers, the paths a happy-path filter never walks.
 //!
 //! `function` is a flat match over filter-function names, so its cyclomatic
 //! complexity is dispatch breadth. Leaving the rare arms unexercised is what
-//! pushed it over the CRAP threshold (`just crap::check`); these tests walk them.
+//! pushed it over the CRAP threshold (`just crap::check`). These tests walk
+//! them.
 
 #![allow(clippy::unwrap_used)]
 
@@ -114,12 +115,12 @@ fn path_field_equality_matches_the_full_root_relative_path() {
     assert!(hit("path != \"tasks/other.typ\"", &task));
 }
 
-/// `file` must fail loudly rather than silently: a reader who copies a path
-/// out of the `file` column and writes `file` into a filter that gets an
-/// empty listing, which is also what a correct filter over an empty result
-/// set looks like
+/// `file` must fail loudly rather than silently. A reader who copies a path
+/// out of the `file` column and writes `file` into a filter gets an empty
+/// listing. A correct filter over an empty result set looks the same. The task
+/// artifact spells that out
 /// (`truth/tasks/2026-09/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
-/// It is simply not a filter field — `path` is — so it fails as any other
+/// It is simply not a filter field (`path` is), so it fails as any other
 /// unknown field would, with no pointer back to the replacement.
 #[test]
 fn the_file_field_is_an_unknown_field() {
@@ -180,8 +181,9 @@ fn names_term_covers_language_words_fields_and_config_names() {
     }
 }
 
-/// A word with arity zero is a bare predicate; every other registry word is
-/// refused bare as a non-boolean field, and an unregistered one is unknown.
+/// A word with arity zero is a bare predicate. The code refuses every other
+/// registry word bare as a non-boolean field, and an unregistered one is
+/// unknown.
 #[test]
 fn bare_words_follow_the_registry_arity() {
     for entry in crate::filter::functions() {

@@ -1,5 +1,5 @@
-//! A `typst_cleanup::Error` as a `Diag`: each file git can't pin a tombstone
-//! to is named, and a failed read, write or splice says which.
+//! A `typst_cleanup::Error` as a `Diag`: the message reports each file git
+//! can't pin a tombstone to, and a failed read, write or splice says which.
 
 use crate::diag::{Diag, plain};
 

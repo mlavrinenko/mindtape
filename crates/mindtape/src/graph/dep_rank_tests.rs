@@ -27,7 +27,7 @@ fn rank(tasks: &mut [Task], config: &Config, id: &str) -> (u32, u32) {
     (found.topo, found.blocks)
 }
 
-/// A two-task fixture: an open `a` carrying exactly `links`, and a plain open
+/// Builds a two-task fixture: an open `a` carrying exactly `links`, and a plain open
 /// `b` for those links to point at.
 fn pair(links: Vec<Link>) -> [Task; 2] {
     let mut a = task("a", "wip", &[]);

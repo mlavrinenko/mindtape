@@ -1,15 +1,15 @@
-//! `mt _cli --check-argv` — judge one command line the way `mt` would parse it.
+//! `mt _cli --check-argv` judges one command line the way `mt` parses it.
 //!
 //! The doc gate `just docs::spans` finds `mt ...` command lines in the
-//! docs and hands each to this check, so a doc span is accepted or refused by
-//! the parser that runs it. The line goes through the same steps as a real
+//! docs and hands each to this check, so the parser that runs a doc span
+//! accepts or refuses it. The line goes through the same steps as a real
 //! run: [`crate::cmd::at::desugar_argv`]'s `@name` rewrite, then clap, then the
 //! status-verb parser for a shortcut such as `mt done`. A line that only lacks
 //! a required argument passes, because a doc span shows part of a command.
 //!
 //! A word the doc writes as a stand-in (`<cmd>`, `TERM`, `...`) is never
-//! refused: a subcommand or argument clap rejects as unknown is accepted when
-//! it is a stand-in.
+//! refused: clap accepts a subcommand or argument it rejects as unknown when
+//! the word is a stand-in.
 
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -50,8 +50,8 @@ fn check(line: &str, statuses: &[String]) -> Result<(), String> {
     }
 }
 
-/// `mt <verb> ...` where clap saw no command of that name: a declared status
-/// verb parses through the shortcut parser, anything else is no command.
+/// `mt <verb> ...` where clap doesn't see a command of that name: a declared
+/// status verb parses through the shortcut parser, anything else is no command.
 fn check_status(external: &[String], statuses: &[String]) -> Result<(), String> {
     let verb = external.first().map_or("", String::as_str);
     if statuses.iter().any(|s| s == verb) {
@@ -132,9 +132,7 @@ fn closest<S: AsRef<str>>(name: Option<S>) -> String {
 }
 
 fn first_line(err: &clap::Error) -> String {
-    let text = err.to_string();
-    let line = text.lines().next().unwrap_or_default();
-    line.strip_prefix("error: ").unwrap_or(line).to_owned()
+    mindtape::error_text::first_line(&err.to_string())
 }
 
 /// The strings clap attached to `kind` on `err`.

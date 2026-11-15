@@ -1,5 +1,5 @@
 //! The one door for resolving a path to its canonical form, and for showing
-//! a path relative to a root that may be spelled another way.
+//! a path relative to a root that may carry another spelling.
 //!
 //! `std::fs::canonicalize` returns a verbatim path on Windows, such as
 //! `\\?\C:\Users\ada\tasks`, which a user should never read. [`canonical`]
@@ -21,18 +21,18 @@ use std::path::{Path, PathBuf};
 /// Windows verbatim prefix.
 ///
 /// # Errors
-/// Returns the I/O error when `path` does not exist or can't be read.
+/// Returns the I/O error when `path` does not exist or the read fails.
 pub fn canonical(path: &Path) -> io::Result<PathBuf> {
     dunce::canonicalize(path)
 }
 
 /// `path` relative to `root` when it sits under it, else `path` unchanged.
-/// A relative `path` is taken as already shown, never resolved against the
-/// working directory.
+/// The code takes a relative `path` as already shown, and never resolves it
+/// against the working directory.
 ///
-/// Both are tried as given first, then both in canonical form, so a root
-/// reached through a symlink or a short name still matches a path that was
-/// resolved.
+/// The function tries both as given first, then both in canonical form, so a
+/// root reached through a symlink or a short name still matches a path the
+/// caller resolved.
 #[must_use]
 pub fn relative_to(path: &Path, root: &Path) -> PathBuf {
     if let Ok(rel) = path.strip_prefix(root) {

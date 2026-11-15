@@ -2,13 +2,13 @@
 //!
 //! A task is *ready* when it is non-terminal and every direct blocking-kind
 //! edge target is terminal, so it can start. `depends-on` is the only
-//! built-in kind flagged blocking (see [`crate::link::blocking_kinds`]); a
-//! project's custom `[[tasks.links.kinds]]` can opt another kind in. It is
-//! *blocked* when some direct target is non-terminal or names no loaded task.
-//! Terminal tasks are *settled* (neither). The check is one hop, not
-//! transitive: a still-open grandparent keeps the parent non-terminal, which
-//! keeps this task blocked anyway, so no toposort is needed and dependency
-//! cycles cannot hang the classification.
+//! built-in kind flagged blocking (see [`crate::link::blocking_kinds`]). A
+//! project's custom `[[tasks.links.kinds]]` can opt another kind in. A task
+//! counts as *blocked* when some direct target is non-terminal or outside the
+//! loaded set. Terminal tasks count as *settled*, which is neither. The check
+//! is one hop, not transitive. A still-open grandparent keeps the parent
+//! non-terminal, which keeps this task blocked anyway. The check skips the
+//! toposort, and dependency cycles cannot hang the classification.
 //!
 //! History-pointer targets (SWHID tombstones) are already absent from
 //! [`Task::links`], so a dependency retired by `cleanup` stops blocking.
@@ -34,18 +34,18 @@ pub enum ReadyState {
     Ready,
     /// Non-terminal with some dependency non-terminal or unresolved.
     Blocked,
-    /// Terminal — neither ready nor blocked.
+    /// Terminal, so neither ready nor blocked.
     Settled,
 }
 
-/// What a blocked task waits on: one unfinished direct blocking-kind target,
-/// or one `waits-on` entry whose checker did not say the wait is over.
+/// One thing a blocked task waits on: an unfinished direct blocking-kind
+/// target, or a `waits-on` entry whose checker did not say the wait is over.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Blocker {
-    /// The target's stem, or the edge's own target stem when it names no
-    /// loaded task. For a `waits-on` entry, the entry itself.
+    /// The target's stem, or the edge's own target stem when the target is not
+    /// loaded. For a `waits-on` entry, the entry itself.
     pub stem: String,
-    /// The target's status name; `None` when the target is not loaded or
+    /// The target's status name, `None` when the target is not loaded or
     /// carries no status. For a `waits-on` entry, the checker's reason.
     pub status: Option<String>,
     /// The blocking edge kind, or `waits-on`.
@@ -54,22 +54,23 @@ pub struct Blocker {
 
 /// Dependency-readiness over a task set: which tasks are ready vs blocked.
 ///
-/// Build this once over the *full* loaded set with [`compute`](Self::compute): a
-/// dependency hidden by a view filter (e.g. a `done` task under
-/// `status != "done"`) must still count as satisfied, so a narrowed set would
-/// misread every leaf as blocked. Membership is keyed by [`Task::file`], the
+/// Build this once over the *full* loaded set with [`compute`](Self::compute). A
+/// dependency hidden by a view filter, such as a `done` task under
+/// `status != "done"`, must still count as satisfied. A narrowed set would
+/// misread every leaf as blocked. Membership uses [`Task::file`] as its key, the
 /// stable per-task identity.
 #[derive(Debug, Clone, Default)]
 pub struct Readiness {
     ready: HashSet<PathBuf>,
     blocked: HashMap<PathBuf, Vec<Blocker>>,
-    /// The same set, snapshotted for `count(...)`; see [`LoadedSet`].
+    /// The same set, snapshotted for `count(...)`. See [`LoadedSet`].
     set: LoadedSet,
 }
 
 impl Readiness {
-    /// An empty readiness: every query returns false, every task is settled. Use
-    /// where no task-set context exists (single-file eval, per-task gating).
+    /// An empty readiness, where every query returns false and every task counts
+    /// as settled. Use it where no task-set context exists (single-file eval,
+    /// per-task gating).
     #[must_use]
     pub fn empty() -> Self {
         Self::default()
@@ -102,7 +103,7 @@ impl Readiness {
         out
     }
 
-    /// The loaded set `count(...)` ranges over; no set at all for
+    /// The loaded set `count(...)` ranges over, empty for
     /// [`empty`](Self::empty).
     pub(crate) fn set(&self) -> &LoadedSet {
         &self.set
@@ -114,14 +115,14 @@ impl Readiness {
         self.ready.contains(&task.file)
     }
 
-    /// Whether `task` is blocked: non-terminal with an unmet dependency.
+    /// Whether `task` counts as blocked: non-terminal with an unmet dependency.
     #[must_use]
     pub fn is_blocked(&self, task: &Task) -> bool {
         self.blocked.contains_key(&task.file)
     }
 
     /// What `task` waits on: its unfinished direct blocking-kind targets, in
-    /// edge order. Empty unless the task is blocked.
+    /// edge order. Empty unless the task counts as blocked.
     #[must_use]
     pub fn blockers(&self, task: &Task) -> &[Blocker] {
         self.blocked.get(&task.file).map_or(&[], Vec::as_slice)
@@ -152,7 +153,7 @@ pub fn blockers_of(tasks: &[Task], task: &Task, config: &Config) -> Vec<Blocker>
 }
 
 /// The unfinished direct `kinds` targets of `task`, resolved through `index`:
-/// a target that is non-terminal or names no loaded task.
+/// a target that is non-terminal or outside the loaded set.
 pub(crate) fn collect_blockers(
     task: &Task,
     index: &DepIndex<'_>,
@@ -179,7 +180,7 @@ pub(crate) fn collect_blockers(
 
 /// The `waits-on` entries of `task` whose checker said waiting or unknown, in
 /// entry order, each with the checker's reason. An entry nobody asked about
-/// blocks nothing (see [`Task::answers`]).
+/// never blocks (see [`Task::answers`]).
 fn wait_blockers(task: &Task) -> impl Iterator<Item = Blocker> + '_ {
     task.waits_on.iter().filter_map(|entry| {
         let reason = task.answers.get(entry)?.reason()?;
@@ -191,9 +192,9 @@ fn wait_blockers(task: &Task) -> impl Iterator<Item = Blocker> + '_ {
     })
 }
 
-/// Why entering `status` is refused while `task` waits on `blockers`:
-/// `` `done` requires an unblocked task; waits on: a (proposed) `` — shared
-/// by the `mt flip` refusal and the `mt check` warning.
+/// The reason a move into `status` fails while `task` waits on `blockers`:
+/// `` `done` requires an unblocked task; waits on: a (proposed) ``, shared by
+/// the `mt flip` refusal and the `mt check` warning.
 #[must_use]
 pub fn unblocked_violation(status: &str, blockers: &[Blocker]) -> String {
     format!(
@@ -202,7 +203,7 @@ pub fn unblocked_violation(status: &str, blockers: &[Blocker]) -> String {
     )
 }
 
-/// `blockers` as one line — `waits on: a (proposed), b (wip)` — or empty when
+/// `blockers` as one line, `waits on: a (proposed), b (wip)`, or empty when
 /// there are none. A target with no known status reads `unknown`.
 #[must_use]
 pub fn waits_on(blockers: &[Blocker]) -> String {
@@ -212,7 +213,7 @@ pub fn waits_on(blockers: &[Blocker]) -> String {
     format!("waits on: {}", list_targets(blockers))
 }
 
-/// `targets` as `a (proposed), b (wip)`; a target with no known status reads
+/// `targets` as `a (proposed), b (wip)`. A target with no known status reads
 /// `unknown`.
 pub(crate) fn list_targets(targets: &[Blocker]) -> String {
     let list: Vec<String> = targets

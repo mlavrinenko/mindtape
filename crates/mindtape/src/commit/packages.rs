@@ -1,6 +1,6 @@
 //! The `@local` package files a commit state's pins resolve, and the
-//! fingerprint that lets evaluations be reused when two states resolve imports
-//! identically.
+//! fingerprint that lets a caller reuse evaluations when two states resolve
+//! imports identically.
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -13,14 +13,14 @@ use typst_world::{BytesProvider, local_package_file_id};
 use crate::config::Config;
 use crate::loader::{StatePackages, package_overrides};
 
-/// One package file: its path within the package and its bytes.
+/// A package file's path within the package, paired with its bytes.
 pub(crate) type PackageBlob = (String, Vec<u8>);
 
 /// One package's spec and files, when a pin tree holds a readable manifest.
 type CachedPackage = Option<(PackageSpec, Vec<PackageBlob>)>;
 
 /// The last package files read for each pin name. A range walks commits in
-/// order, so a pin's previous tree is the only other one it can need; keeping
+/// order, so a pin's previous tree is the only other one it can need. Keeping
 /// every historical tree would hold a long prelude history in memory.
 #[derive(Default)]
 pub(crate) struct PackageCache {
@@ -94,7 +94,7 @@ impl PackageSet {
 
 /// The package files the working tree's pins hold, fingerprinted by the same
 /// recipe as a state's so the two compare. The bytes come from the working
-/// tree, not the state's git tree. `None` when a pin cannot be read, which
+/// tree, not the state's git tree. `None` when reading a pin fails, which
 /// disables the reuse path rather than guessing.
 pub(crate) fn working_packages(root: &Path, config: &Config) -> Option<StatePackages> {
     let mut set = PackageSet::default();

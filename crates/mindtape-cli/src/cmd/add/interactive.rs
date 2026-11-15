@@ -2,7 +2,7 @@
 //!
 //! Builds a commented YAML scaffold from a template's discovered slots, opens it
 //! in the user's editor, and parses the saved buffer back into fill values. The
-//! `mindtape` library stays format-blind; this glue lives in the CLI.
+//! `mindtape` library stays format-blind. This glue lives in the CLI.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
@@ -29,8 +29,8 @@ const DEFAULT_HEADER: &str = "\
 /// `tty` should be `std::io::stdin().is_terminal() && std::io::stdout().is_terminal()`.
 ///
 /// # Errors
-/// Returns an error when an editor is demanded (`--edit`, or `interactive` set to
-/// `always`) but `tty` is false.
+/// Returns an error when the caller demands an editor (`--edit`, or `interactive`
+/// set to `always`) but `tty` is false.
 pub fn should_open(
     force: bool,
     config: &AddConfig,
@@ -74,7 +74,7 @@ pub struct Edited {
 /// (`mt allow`), which falls back to `$VISUAL`.
 ///
 /// # Errors
-/// Returns an error when no editor can be spawned, the editor exits without
+/// Returns an error when the editor fails to spawn, the editor exits without
 /// saving, or the saved buffer is not a valid YAML mapping.
 pub fn run(
     config: &AddConfig,
@@ -105,9 +105,9 @@ fn changed_keys(
 }
 
 /// Last-resort editor when neither `[add] editor` nor `$VISUAL`/`$EDITOR` says
-/// anything: the one editor the platform is guaranteed to have. `vi` is
-/// POSIX-mandated and absent from Windows, where `notepad` is the equivalent
-/// floor — it also blocks until closed, which is what this path needs.
+/// anything: the one editor the platform always has. `vi` is POSIX-mandated and
+/// absent from Windows, where `notepad` is the equivalent floor. It also blocks
+/// until closed, which is what this path needs.
 #[cfg(not(windows))]
 const FALLBACK_EDITOR: &str = "vi";
 #[cfg(windows)]
@@ -192,7 +192,8 @@ fn scaffold(config: &AddConfig, specs: &[SlotSpec], seed: &BTreeMap<String, RawV
 }
 
 /// One slot's (optional) comment + value entry, ending with a newline. The
-/// comment is dropped when `comments` is false, leaving a bare `name: value`.
+/// function drops the comment when `comments` is false, leaving a bare
+/// `name: value`.
 fn entry_block(spec: &SlotSpec, seed: Option<&RawValue>, comments: bool) -> String {
     let mut block = String::new();
     if comments {
@@ -202,9 +203,9 @@ fn entry_block(spec: &SlotSpec, seed: Option<&RawValue>, comments: bool) -> Stri
     block
 }
 
-/// Resolve the scaffold header: empty when comments are disabled, the built-in
-/// default when unset, empty when the config disables it, else the custom text
-/// comment-prefixed.
+/// Resolve the scaffold header: empty when the config disables comments, the
+/// built-in default when unset, empty when the config disables it, else the
+/// custom text comment-prefixed.
 fn header_text(config: &AddConfig) -> String {
     if !config.comments {
         return String::new();
@@ -215,8 +216,8 @@ fn header_text(config: &AddConfig) -> String {
     }
 }
 
-/// Comment-prefix each non-empty line of a custom header so it stays valid YAML;
-/// an all-blank header yields the empty string (no header).
+/// Comment-prefix each non-empty line of a custom header so it stays valid YAML.
+/// An all-blank header yields the empty string (no header).
 fn commentify(text: &str) -> String {
     let body = text.trim_end_matches('\n');
     if body.trim().is_empty() {
@@ -307,11 +308,11 @@ fn seed_entry(kind: SlotKind, raw: &RawValue) -> Entry {
     }
 }
 
-/// Pre-fill from a non-`text` slot's default. String/choice defaults come from
-/// the unescaped `default_string`; numeric and bool defaults pass through the raw
-/// literal; an empty/absent list default renders as an explicit `[]` so the list
-/// kind is visible; a dated default and a non-empty list default are left blank
-/// (the comment shows the default).
+/// Pre-fill from a non-`text` slot's default. String and choice defaults come
+/// from the unescaped `default_string`. Numeric and bool defaults pass through
+/// the raw literal. An empty or absent list default renders as an explicit `[]`
+/// so the list kind is visible. A dated default and a non-empty list default
+/// stay blank, and the comment shows the default.
 fn default_entry(spec: &SlotSpec) -> Option<Entry> {
     if let Some(text) = &spec.default_string {
         return Some(Entry::Scalar(quote(text)));
@@ -328,8 +329,8 @@ fn default_entry(spec: &SlotSpec) -> Option<Entry> {
     }
 }
 
-/// A list slot whose default is empty (`()`) or absent — so an empty `[]` in the
-/// scaffold matches its default and leaving it untouched changes nothing. A
+/// A list slot whose default is empty (`()`) or absent, so an empty `[]` in the
+/// scaffold matches its default and an untouched slot keeps that default. A
 /// non-empty list default stays blank so an untouched slot falls through to it.
 fn is_empty_list_default(spec: &SlotSpec) -> bool {
     match &spec.default {
@@ -399,11 +400,11 @@ fn quote(text: &str) -> String {
     out
 }
 
-/// Parse a saved buffer into fill values, dropping null/empty entries. The
-/// YAML -> `RawValue` conversion itself lives in `yaml_values` (shared with
-/// the `-f/--values` YAML path); only the empty-string drop is specific to
-/// this caller — blank means "use the default" in the editor scaffold, but a
-/// `-f` file's `""` is a real value the other caller must keep.
+/// Parse a saved buffer into fill values, dropping null and empty entries. The
+/// YAML -> `RawValue` conversion itself lives in `yaml_values`, shared with the
+/// `-f/--values` YAML path. Only the empty-string drop is specific to this
+/// caller. Blank means "use the default" in the editor scaffold, but a `-f`
+/// file's `""` is a value the other caller must keep.
 ///
 /// # Errors
 /// Returns an error when the buffer is not a YAML mapping, a key is non-string,
@@ -413,10 +414,10 @@ fn parse_buffer(text: &str) -> Result<BTreeMap<String, RawValue>> {
     Ok(drop_blank(values))
 }
 
-/// Drop entries the editor treats as "not filled": a `null` (already `None`
-/// from the shared converter) and an empty string (kept as a real value by
-/// the shared converter for the `-f` caller, but blank here means "fall
-/// through to the default").
+/// Drop the entries the editor treats as "not filled". One is a `null`, already
+/// `None` from the shared converter. The other is an empty string: the shared
+/// converter keeps it as a value for the `-f` caller, but blank here means
+/// "fall through to the default".
 fn drop_blank(values: BTreeMap<String, Option<RawValue>>) -> BTreeMap<String, RawValue> {
     values
         .into_iter()

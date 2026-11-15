@@ -1,14 +1,15 @@
 //! Steps of `.github/workflows/release.yml`, lifted out with `yq` and run on
 //! fixtures.
 //!
-//! "Extract the changelog section" writes the tag's `CHANGELOG.md` section as
-//! the GitHub release body. GitHub refuses a body over 125,000 characters, and
-//! 0.3.0's section is longer, so a section over the step's budget is cut before
-//! the entry that crosses it and ends with a link to the whole file.
+//! The `Extract the changelog section` step writes the tag's `CHANGELOG.md`
+//! section as the GitHub release body. GitHub refuses a body over 125,000
+//! characters, and 0.3.0's section is longer. The step cuts a section over its
+//! budget before the entry that crosses it, and the section ends with a link to
+//! the whole file.
 //!
 //! "Require a green ci.yml run" stands in for a second `just check`: it passes
 //! only when `ci.yml` succeeded on the commit the tag names. A stub `gh` on
-//! `PATH` answers the run lookup and records what it was asked.
+//! `PATH` answers the run lookup and records the arguments the step passes.
 //!
 //! Unix only: the steps need `bash`, `awk`, `git` and the dev shell's `yq`.
 #![cfg(unix)]
@@ -111,8 +112,8 @@ fn a_version_with_no_section_fails_the_step() {
 }
 
 /// Runs the CI gate step in a one-commit repo, with a stub `gh` that answers
-/// `answer` and logs its arguments: what the step printed, whether it passed,
-/// the commit, and the stub's log.
+/// `answer` and logs its arguments. Returns what the step printed, whether it
+/// passed, the commit, and the stub's log.
 fn ci_gate(answer: &str) -> (Result<String, String>, String, String) {
     let dir = tempdir();
     let bin = dir.path().join("bin");
@@ -160,8 +161,8 @@ fn the_ci_gate_fails_when_ci_has_no_green_run_on_the_tagged_commit() {
 
 /// Runs the "Publish mindtape-cli" step with stub `curl` and `cargo` on `PATH`.
 /// crates.io answers `krate` for the crate and `version` for 1.2.0, and the
-/// step gets `new_token` as its new-crate token: what it printed, whether it
-/// passed, and each `cargo` call with the token it saw.
+/// step gets `new_token` as its new-crate token. Returns what it printed,
+/// whether it passed, and each `cargo` call with the token it saw.
 fn publish(krate: &str, version: &str, new_token: &str) -> (Result<String, String>, String) {
     let dir = tempdir();
     let bin = dir.path().join("bin");

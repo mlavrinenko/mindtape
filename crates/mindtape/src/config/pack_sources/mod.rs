@@ -1,12 +1,12 @@
 //! `[pack-sources]`: the git repositories a project takes packs from, and
 //! `.mindtape/packs.lock`, which pins each one to a commit and a hash.
 //!
-//! Only the project's own `.mindtape/config.toml` declares a source, so a
-//! clone resolves the same packs on every machine. [`for_layers`] reads the
+//! Only the project's own `.mindtape/config.toml` declares a source. A clone
+//! then resolves the same packs on every machine. [`for_layers`] reads the
 //! sources on every config load, refuses them in any other layer, and refuses
 //! a source the lock doesn't pin from its declared `git` and `ref`.
 //! [`read_raw`] reads the same two files without loading the config, for
-//! `mt packs`, which repairs the very state a load refuses. A fetched source
+//! `mt packs`, which repairs the state a load refuses. A fetched source
 //! sits in [`cache_root`] under its `sha256`.
 //!
 //! # Files
@@ -113,7 +113,7 @@ impl PackSources {
 
 /// The directory each fetched source's tree sits in, as `<sha256>/`:
 /// `mindtape/packs/` under [`crate::cache_home`]. `None` when no cache
-/// directory applies, so no source is installed.
+/// directory applies. The project then has no source to install.
 #[must_use]
 pub fn cache_root() -> Option<PathBuf> {
     crate::cache_home().map(|home| home.join("mindtape").join("packs"))
@@ -121,7 +121,7 @@ pub fn cache_root() -> Option<PathBuf> {
 
 /// Whether `name` takes only letters, digits, `-` and `_`, as a source name
 /// and the pack part of a `<source>:<pack>` entry must. Such a name can't
-/// leave the directory it is looked up in.
+/// leave the directory the lookup uses.
 pub(crate) fn is_plain_name(name: &str) -> bool {
     !name.is_empty()
         && name
@@ -134,8 +134,9 @@ pub(crate) fn is_plain_name(name: &str) -> bool {
 /// lock reads as empty.
 ///
 /// # Errors
-/// Returns [`ConfigError`] when the config or the lock can't be read, isn't
-/// valid TOML, or declares a malformed source or lock entry.
+/// Returns [`ConfigError`] when the command cannot read the config or the lock,
+/// either is not valid TOML, or either declares a malformed source or lock
+/// entry.
 pub fn read_raw(root: &Path) -> Result<PackSources, ConfigError> {
     let text = match std::fs::read_to_string(config_path(root)) {
         Ok(text) => text,
@@ -153,8 +154,8 @@ pub fn read_raw(root: &Path) -> Result<PackSources, ConfigError> {
 ///
 /// # Errors
 /// Returns [`ConfigError`] when a layer other than the project's declares a
-/// source, a source is malformed, the lock can't be read, or the lock is
-/// stale.
+/// source, a source has a malformed entry, the command cannot read the lock, or
+/// the lock is stale.
 pub(crate) fn for_layers(layers: &[Layer], root: &Path) -> Result<PackSources, ConfigError> {
     let mut sources = BTreeMap::new();
     for layer in layers {
@@ -190,7 +191,8 @@ fn parse_sources(text: &str) -> Result<BTreeMap<String, PackSource>, ConfigError
     Ok(sources)
 }
 
-/// Refuse `mindtape`, which names the packs built into `mt`, and a name an
+/// Refuse `mindtape`, the source name of the packs built into `mt`, and a name
+/// an
 /// `extends` entry couldn't spell as `<name>:<pack>`.
 fn check_name(name: &str) -> Result<(), ConfigError> {
     if name == EMBEDDED_SOURCE {

@@ -1,8 +1,8 @@
-//! Where the shape-error channel meets the `required` rules: a field the
-//! marker could not read is reported once, naming the type, and never a second
-//! time as missing. Split out of `validate/tests_fields.rs` (file-size gate),
-//! whose subject is what a single field's constraints say about a value that
-//! did load.
+//! Where the shape-error channel meets the `required` rules. A field the marker
+//! could not read gets one report, naming the type, and never a second one as
+//! missing. This module sits apart from `validate/tests_fields.rs` (file-size
+//! gate), whose subject is what a single field's constraints say about a value
+//! that did load.
 
 #![allow(clippy::unwrap_used)]
 
@@ -27,7 +27,7 @@ const EMPTIABLE: [&str; 6] = [
     "kind",
 ];
 
-/// A config requiring all of [`EMPTIABLE`]: the shared legend and priority
+/// A config requiring all [`EMPTIABLE`]: the shared legend and priority
 /// scale, plus `difficulty`, `estimate`, `assignee` and a `kind` enum field all
 /// made mandatory.
 fn demanding_config() -> Config {
@@ -48,7 +48,7 @@ fn demanding_config() -> Config {
     cfg
 }
 
-/// A task carrying every required field with a legal value — the clean baseline
+/// A task carrying every required field with a legal value, the clean baseline
 /// each case below breaks in exactly one place.
 fn complete_task() -> Task {
     let mut t = bare_task("a");
@@ -81,7 +81,7 @@ fn emptied(name: &str) -> Task {
 }
 
 /// [`emptied`], plus the [`ShapeError`] the projection would have left at
-/// `path` — the field name for a field-level report, an element path for an
+/// `path`, the field name for a field-level report, an element path for an
 /// element one.
 fn unreadable(name: &str, path: &str, message: &str) -> Task {
     let mut t = emptied(name);
@@ -93,8 +93,8 @@ fn unreadable(name: &str, path: &str, message: &str) -> Task {
 }
 
 /// The one violation `validate` returned. Every case here is about the count as
-/// much as the content — the bug was a second report — so the assertion is
-/// shared rather than restated per case, and it is what keeps the read
+/// much as the content, since the bug was a second report. The cases share the
+/// assertion rather than restating it, and that is what keeps the read
 /// index-free under `clippy::indexing_slicing`.
 fn only(violations: &[Violation], what: &str) -> Violation {
     assert_eq!(
@@ -109,7 +109,7 @@ fn only(violations: &[Violation], what: &str) -> Violation {
 }
 
 /// Each violation's field path, in order, for a case whose subject is which
-/// reports survived rather than how they are worded.
+/// reports survived rather than the wording of each report.
 fn paths(violations: &[Violation]) -> Vec<&str> {
     violations.iter().map(|v| v.field.as_str()).collect()
 }

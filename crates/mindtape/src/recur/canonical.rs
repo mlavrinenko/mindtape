@@ -1,4 +1,4 @@
-//! `recur`'s canonical task-JSON shape — the marker dict verbatim (`rule.kind`,
+//! `recur`'s canonical task-JSON shape, the marker dict verbatim (`rule.kind`,
 //! `on[i]`, …), so a hand-edited canonical record reads the same as the
 //! `every()`/`rrule()` call it came from. Split out from `recur/mod.rs` to stay
 //! under the file-size gate (`crate::emit`'s `format`/`links` split is the
@@ -14,13 +14,13 @@ use super::{PeriodUnit, Recur, Rule, parse_weekday, weekday_name};
 pub struct CanonicalRecur {
     /// The period or rrule rule.
     pub rule: CanonicalRule,
-    /// `"completion"` or `"due"`; `None` = the project's `default-anchor`.
+    /// `"completion"` or `"due"`. `None` = the project's `default-anchor`.
     pub anchor: Option<String>,
-    /// Series end date (`YYYY-MM-DD`); `None` = unbounded.
+    /// Series end date (`YYYY-MM-DD`). `None` = unbounded.
     pub until: Option<String>,
-    /// Remaining occurrence budget; `None` = unbounded.
+    /// Remaining occurrence budget. `None` = unbounded.
     pub count: Option<u32>,
-    /// `"spawn"` or `"mutate"`; `None` = the project's `materialize` default.
+    /// `"spawn"` or `"mutate"`. `None` = the project's `materialize` default.
     pub materialize: Option<String>,
 }
 
@@ -35,7 +35,7 @@ pub enum CanonicalRule {
         unit: String,
         /// The unit multiple.
         value: u32,
-        /// Weekday names (`"mon"`, …); empty when unnarrowed.
+        /// Weekday names (`"mon"`, …), empty when unnarrowed.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         on: Vec<String>,
         /// The `start:` date (`YYYY-MM-DD`) fixing a weekday series' week parity.
@@ -81,13 +81,13 @@ impl Recur {
 }
 
 impl CanonicalRecur {
-    /// Reverse into a [`Recur`]. An unrecognized `on:` weekday name is
-    /// dropped rather than failing the whole record; an unrecognized `unit`
-    /// falls back to [`PeriodUnit::Days`] — a hand-edited canonical record is
-    /// the only way to reach either arm (this crate's own
-    /// [`Recur::to_canonical`] never authors one), and `mt check`/`mt
-    /// recur`'s config-driven [`super::check_policy`] is what reports a
-    /// meaningful problem once the record lands as a task.
+    /// Reverse into a [`Recur`]. The conversion drops an unrecognized `on:`
+    /// weekday name rather than failing the whole record. An unrecognized
+    /// `unit` falls back to [`PeriodUnit::Days`]. A hand-edited canonical
+    /// record is the only way to reach either arm, since this crate's own
+    /// [`Recur::to_canonical`] never authors one. Once the record lands as a
+    /// task, `mt check`/`mt recur`'s config-driven [`super::check_policy`]
+    /// reports the problem.
     #[must_use]
     pub fn to_recur(&self) -> Recur {
         Recur {

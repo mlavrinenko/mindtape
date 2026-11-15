@@ -5,13 +5,12 @@
 //! `truth/tasks/2026-07/decide-whether-today-is-utc-or-local.typ`).
 //!
 //! These shell out to the compiled `mt` binary (like `recur_e2e.rs`) rather
-//! than calling `mindtape::date` directly: the override is resolved once into
-//! a process-wide cache in `main` (`crates/mindtape/src/date/pin.rs`), so the
-//! only race-free way to prove two different pins actually take effect is two
-//! separate processes — each `assert_cmd` invocation is its own OS process
-//! with its own env, so this sidesteps the shared-global-state hazard a
-//! same-process test (mutating `std::env` or re-calling `init_pinned_today`)
-//! would hit.
+//! than calling `mindtape::date` directly. `main` resolves the override once
+//! into a process-wide cache (`crates/mindtape/src/date/pin.rs`). The only
+//! race-free way to prove two different pins actually take effect is two
+//! separate processes. Each `assert_cmd` invocation is its own OS process with
+//! its own env. This sidesteps the shared-global-state hazard a same-process
+//! test (mutating `std::env` or re-calling `init_pinned_today`) would hit.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;
@@ -21,9 +20,9 @@ use crate::support;
 
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 
-/// A non-terminal task, status-dated 2026-06-01, due 2026-07-10 — something
-/// for `now()`/`due`/`stale()` filters and the today-stamping commands to bite
-/// on once "today" is pinned around those dates.
+/// A non-terminal task, status-dated 2026-06-01, due 2026-07-10. It gives
+/// `now()`/`due`/`stale()` filters and the today-stamping commands something to
+/// bite on once a pin lands around those dates.
 const WIRE_OAUTH: &str = mindtape::typst_task!(
     "(\n  \
 title: \"Wire OAuth\",\n  \
@@ -95,11 +94,11 @@ fn num(part: &str) -> u32 {
 
 /// Unpinned, "today" is the machine's local calendar date, not UTC.
 ///
-/// POSIX `TZ` strings, so no tzdb file has to exist: the offset is what gets
-/// added to local time to reach UTC, making `MTE-14` UTC+14 and `MTW+12`
-/// UTC-12 — the two extremes of the inhabited calendar, 26 hours apart. At
-/// every instant their dates differ, and east is always the later one; a
-/// UTC-stamping `mt` would write the same date on both sides.
+/// POSIX `TZ` strings, so no tzdb file has to exist. The offset is what the
+/// code adds to local time to reach UTC, which makes `MTE-14` UTC+14 and
+/// `MTW+12` UTC-12. Those are the two extremes of the inhabited calendar, 26
+/// hours apart. At every instant their dates differ, and east is always the
+/// later one. A UTC-stamping `mt` would write the same date on both sides.
 ///
 /// `#[cfg(unix)]`: chrono reads the Windows zone through the platform API,
 /// which no environment variable overrides, so there is nothing to set there.
@@ -116,8 +115,8 @@ fn today_is_the_local_calendar_date_not_utc() {
     );
 }
 
-/// The pin outranks the local zone: with `$MINDTAPE_NOW` set, the offset that
-/// would otherwise decide the date changes nothing.
+/// The pin outranks the local zone: with `$MINDTAPE_NOW` set, the offset has no
+/// effect on the date.
 #[cfg(unix)]
 #[test]
 fn mindtape_now_outranks_the_local_timezone() {

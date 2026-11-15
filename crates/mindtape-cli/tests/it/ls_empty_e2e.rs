@@ -1,5 +1,5 @@
-//! A listing that selects nothing names the way out: widen the filter to every
-//! task, or read the project's views. The hint is table-only, so the machine
+//! A listing that selects nothing carries the way out: widen the filter to
+//! every task, or read the project's views. The hint is table-only. The machine
 //! formats stay streams with no trailing prose.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 

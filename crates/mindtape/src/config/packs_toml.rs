@@ -1,8 +1,9 @@
 //! Nested-path reads and writes over a raw `toml::Table`, shared by
-//! [`crate::config::packs`]'s pre-typed-`Config` merge: reading and stripping
-//! a layer's own rule arrays before the generic fold, and splicing the
-//! resolved ones back in afterward. Split out of `config/packs.rs` to keep
-//! that module's own pack-resolution and merge logic under the file-size cap.
+//! [`crate::config::packs`]'s pre-typed-`Config` merge. The merge reads and
+//! strips a layer's own rule arrays before the generic fold, and splices the
+//! resolved ones back in afterward. This module lives apart from `config/packs.rs`
+//! so that module's own pack-resolution and merge logic stays under the file-size
+//! cap.
 
 use crate::config::ConfigError;
 use crate::problem::Problem;
@@ -94,8 +95,8 @@ fn extends_entry(item: &toml::Value) -> Result<ExtendsEntry, ConfigError> {
 /// The keys an `extends` entry table takes.
 const ENTRY_KEYS: [&str; 2] = ["pack", "with"];
 
-/// The array at a nested TOML path (e.g. `["tasks", "body", "headers",
-/// "rules"]`), or empty when any segment along the way is missing or not a
+/// The array at a nested TOML path (such as `["tasks", "body", "headers",
+/// "rules"]`), or empty when any segment on the path is missing or not a
 /// table/array.
 pub(crate) fn read_array(table: &toml::Table, path: &[&str]) -> Vec<toml::Value> {
     let Some((&last, ancestors)) = path.split_last() else {
@@ -115,8 +116,8 @@ pub(crate) fn read_array(table: &toml::Table, path: &[&str]) -> Vec<toml::Value>
         .unwrap_or_default()
 }
 
-/// The value at a nested TOML path, or `None` when any segment along the way
-/// is missing or not a table.
+/// The value at a nested TOML path, or `None` when any segment on the path is
+/// missing or not a table.
 pub(crate) fn get_path<'a>(table: &'a toml::Table, path: &[&str]) -> Option<&'a toml::Value> {
     let (&last, ancestors) = path.split_last()?;
     let mut current = table;
@@ -127,9 +128,9 @@ pub(crate) fn get_path<'a>(table: &'a toml::Table, path: &[&str]) -> Option<&'a 
 }
 
 /// The one-based line of each `[[<path>]]` table header in `text`, in file
-/// order — the position of every entry [`read_array`] reads from a file
+/// order. That is the position of every entry [`read_array`] reads from a file
 /// declaring its rules as tables. A file that writes the array inline has no
-/// header to point at, so the caller checks the count against the array.
+/// header to point at, and the caller then checks the count against the array.
 pub(crate) fn header_lines(text: &str, path: &[&str]) -> Vec<usize> {
     let header = format!("[[{}]]", path.join("."));
     text.lines()
@@ -143,8 +144,8 @@ pub(crate) fn header_lines(text: &str, path: &[&str]) -> Vec<usize> {
         .collect()
 }
 
-/// Remove whatever sits at a nested TOML path, leaving any intermediate
-/// tables in place (only the leaf key is dropped).
+/// Remove whatever sits at a nested TOML path, leaving any intermediate tables
+/// in place (the code drops only the leaf key).
 pub(crate) fn remove_path(table: &mut toml::Table, path: &[&str]) {
     let Some((&last, ancestors)) = path.split_last() else {
         return;

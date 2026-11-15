@@ -9,7 +9,7 @@ pub struct TypstConfig {
     /// `@local/<name>` packages to load from a directory in the project, so a
     /// task can import a package that is not installed globally. `mt`
     /// registers `@local/mindtape` itself when `<root>/lib` holds the
-    /// `mindtape` package; list any other package here.
+    /// `mindtape` package. List any other package here.
     pub local_packages: Vec<LocalPackage>,
 }
 

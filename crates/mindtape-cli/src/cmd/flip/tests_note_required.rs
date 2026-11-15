@@ -9,7 +9,7 @@ use super::run_with;
 use super::tests::{ALPHA, flip_args, read, setup};
 use crate::diag::plain;
 
-/// `blocked` declares `note = "required"`; `wip`/`done` are left at the
+/// `blocked` declares `note = "required"`. `wip` and `done` keep the
 /// `Optional` default.
 const NOTE_REQUIRED_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"blocked\"\nnote = \"required\"\n\

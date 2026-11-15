@@ -1,8 +1,8 @@
-//! End-to-end tests for the `add` command that shell out to the `mt` binary:
-//! core wiring (positional title, `--dir` nesting, YAML stdin), the slot
-//! schema, error surfaces (collisions, unknown keys, a body-rule breach),
-//! and the kept-on-verification-failure contract. Markup-hazard coverage
-//! lives in `add_markup_e2e.rs`.
+//! End-to-end tests for the `add` command that shell out to the `mt` binary.
+//! They cover core wiring (positional title, `--dir` nesting, YAML stdin), the
+//! slot schema, error surfaces (collisions, unknown keys, a body-rule breach),
+//! and the kept-on-verification-failure contract. Markup-hazard coverage lives
+//! in `add_markup_e2e.rs`.
 //!
 //! Config-derived splicing (a required priority slot, a custom status legend,
 //! a required estimate default) lives in `add_config_scaffold_e2e.rs`, a
@@ -76,8 +76,9 @@ fn a_relative_dir_lands_from_the_project_root_not_the_cwd() {
     assert!(!nested.join("tasks/fixes/rooted.typ").exists());
 }
 
-/// The removed flags still parse, and are refused with the replacement named,
-/// rather than falling through to clap's unknown-argument error.
+/// The removed flags still parse, and the parser refuses them with the
+/// replacement named, rather than falling through to clap's unknown-argument
+/// error.
 #[test]
 fn the_old_destination_flags_are_refused_with_a_dir_hint() {
     for (flag, value) in [("--into", "tasks"), ("--to", "shopping")] {
@@ -113,8 +114,8 @@ fn describe_json_emits_slot_schema() {
     );
 }
 
-/// `mt add --list` prints the template stems and stops: no template is
-/// resolved, no slot is filled, nothing is written.
+/// `mt add --list` prints the template stems and stops. It never resolves a
+/// template, never fills a slot, and never writes a file.
 #[test]
 fn list_prints_template_stems_and_stops() {
     let dir = support::scaffold();
@@ -135,7 +136,7 @@ fn list_prints_template_stems_and_stops() {
     );
 }
 
-/// A directory pack outside the project ships `feat` and `shared`; the
+/// A directory pack outside the project provides `feat` and `shared`, and the
 /// project has its own `shared`. `mt add --list` lists all three, and `-t
 /// shared` files the project's, since a project template wins by name.
 #[test]
@@ -190,8 +191,8 @@ fn collision_is_a_hard_error() {
         .failure();
 }
 
-/// `--set` naming no slot of the active template must fail loudly, naming the
-/// key, rather than silently filing a task with the wrong (default) value.
+/// A `--set` key outside the active template's slots must fail loudly, naming
+/// the key, rather than silently filing a task with the wrong (default) value.
 #[test]
 fn unknown_set_key_is_a_hard_error() {
     let dir = support::scaffold();
@@ -212,10 +213,10 @@ fn unknown_set_key_is_a_hard_error() {
     );
 }
 
-/// `mt add -f -` accepts YAML on stdin, not just JSON — real stdin can only
-/// be exercised by shelling out, hence this lives here rather than as a unit
-/// test (unit coverage for the dispatch/sniff logic itself lives in
-/// `cmd/add/values_tests.rs`).
+/// `mt add -f -` accepts YAML on stdin, not just JSON. Only shelling out can
+/// exercise real stdin, so this test lives here rather than as a unit test.
+/// Unit coverage for the dispatch/sniff logic itself lives in
+/// `cmd/add/values_tests.rs`.
 #[test]
 fn end_to_end_files_from_yaml_on_stdin() {
     let dir = support::scaffold();
@@ -252,8 +253,8 @@ fn unknown_values_json_key_is_a_hard_error() {
 }
 
 /// A template whose whole `task.with(…)` call sits on one line, with no
-/// trailing comma for `add`'s own `status:` to be separated by. Legal Typst,
-/// and the one shape no in-tree template happens to be written in.
+/// trailing comma to separate `add`'s own `status:` from it. Legal Typst, and
+/// the one shape that every in-tree template avoids.
 const SINGLE_LINE_TEMPLATE: &str = mindtape::typst_task!(
     r#"(title: slot("title", example: "Fix the login redirect"))
 
@@ -262,11 +263,10 @@ const SINGLE_LINE_TEMPLATE: &str = mindtape::typst_task!(
 );
 
 /// `add` injects `status:` into whatever `task.with(…)` the template declares.
-/// Against a single-line call, the injection must add a separator; without
-/// one it writes `title: "…"status: proposed(…)`, a file that cannot parse. The whole
-/// point of this test is being the other shape: the multi-line one every
-/// in-tree template uses is covered several times over above, which is how this
-/// got through.
+/// Against a single-line call, the injection must add a separator. Without one
+/// it writes `title: "…"status: proposed(…)`, a file that cannot parse. This
+/// test exists to be the other shape: the multi-line one every in-tree
+/// template uses appears many times above, which is how this got through.
 #[test]
 fn single_line_template_files_a_task_that_loads() {
     let dir = support::project_with_template(SINGLE_LINE_TEMPLATE);
@@ -277,8 +277,8 @@ fn single_line_template_files_a_task_that_loads() {
     support::check_ok(dir.path());
 }
 
-/// A template that cannot evaluate no matter how its slots are filled, so the
-/// verification always fails.
+/// A template that cannot evaluate no matter how the caller fills its slots,
+/// so the verification always fails.
 const BROKEN_TEMPLATE: &str = mindtape::typst_task!(
     r#"(title: slot("title"))
 
@@ -286,10 +286,10 @@ const BROKEN_TEMPLATE: &str = mindtape::typst_task!(
 "#
 );
 
-/// `add` validates the render before it commits it, so a rejection creates no
-/// file at all. The board is readable straight afterwards — one mistyped slot
-/// costs a retry, not a repair — and the error names the input rather than a
-/// file to fix or delete.
+/// `add` validates the render before it commits it. A rejection never writes a
+/// file. The board stays readable straight afterwards (one mistyped slot costs
+/// a retry, not a repair), and the error reports the input rather than a file
+/// to fix or delete.
 #[test]
 fn a_task_that_fails_verification_is_never_written() {
     let dir = support::project_with_template(BROKEN_TEMPLATE);
@@ -326,7 +326,7 @@ fn a_task_that_fails_verification_is_never_written() {
     assert_only_the_template_breaches(dir.path());
 }
 
-/// `mt check` in `dir` reports breaches, and every one names a template.
+/// `mt check` in `dir` reports breaches, and every one points at a template.
 fn assert_only_the_template_breaches(dir: &std::path::Path) {
     let output = support::mt(dir).arg("check").output().unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -339,10 +339,11 @@ fn assert_only_the_template_breaches(dir: &std::path::Path) {
     );
 }
 
-/// A template that evaluates fine but whose filled value breaks a *rule* — the
-/// shape actually observed: an `estimate` slot filled with a bare number where
-/// the field wants a dict. Distinct from [`BROKEN_TEMPLATE`], which fails at
-/// eval; this one reaches the marker and is refused by the Rust layer.
+/// A template that evaluates fine but whose filled value breaks a *rule*. An
+/// `estimate` slot filled with a bare number where the field expects a dict
+/// reproduces the shape actually observed. Distinct from [`BROKEN_TEMPLATE`],
+/// which fails at eval. This one reaches the marker, and the Rust layer
+/// refuses it.
 const ESTIMATE_TEMPLATE: &str = mindtape::typst_task!(
     r#"(
   title: slot("title", example: "Fix the login redirect"),
@@ -353,8 +354,8 @@ const ESTIMATE_TEMPLATE: &str = mindtape::typst_task!(
 "#
 );
 
-/// The reported case, end to end: a slot filled with the wrong shape is caught
-/// before the write, so no repair is needed before the next command.
+/// The reported case, end to end: `add` catches a slot filled with the wrong
+/// shape before the write. The next command then runs without a repair.
 #[test]
 fn a_wrong_shaped_slot_value_is_refused_before_the_write() {
     let dir = support::project_with_template(ESTIMATE_TEMPLATE);
@@ -387,9 +388,9 @@ fn a_wrong_shaped_slot_value_is_refused_before_the_write() {
     support::check_ok(dir.path());
 }
 
-/// `--no-verify` still writes whatever it was handed: the flag skips the check
-/// wherever the check sits, and moving it before the write must not quietly
-/// turn it into a gate the flag cannot open.
+/// `--no-verify` still writes whatever value it receives. The flag skips the
+/// check wherever the check sits, and moving it before the write must not
+/// quietly turn it into a gate the flag cannot open.
 #[test]
 fn no_verify_writes_a_task_that_would_be_refused() {
     let dir = support::project_with_template(BROKEN_TEMPLATE);
@@ -410,10 +411,10 @@ fn no_verify_writes_a_task_that_would_be_refused() {
 }
 
 /// A project-configured content rule (this repo's own "every `TO-BE` bullet
-/// opens with 🟢") — mirroring
-/// `truth/tasks/2026-09/validate-body-rules-before-mt-add-writes-a-task.typ`'s own
-/// Problem: `mt check` already refuses this shape, but a filled task reached
-/// disk anyway and waited for that later check to catch it.
+/// opens with 🟢"), mirroring the Problem in
+/// `truth/tasks/2026-09/validate-body-rules-before-mt-add-writes-a-task.typ`.
+/// `mt check` already refuses this shape, but a filled task reached disk
+/// anyway and waited for that later check to catch it.
 const TO_BE_CONTENT_RULE_CONFIG: &str = r#"[tasks]
 roots = ["tasks"]
 
@@ -423,7 +424,7 @@ assert = { must-not-match = "(?m)^\\s*- [^🟢]" }
 message = "open every TO-BE bullet with 🟢"
 "#;
 
-/// A template whose `TO-BE` bullet does not open with 🟢 — breaks
+/// A template whose `TO-BE` bullet does not open with 🟢, breaking
 /// [`TO_BE_CONTENT_RULE_CONFIG`]'s rule on every fill.
 const TO_BE_TEMPLATE: &str = mindtape::typst_task!(
     r#"(
@@ -438,8 +439,8 @@ const TO_BE_TEMPLATE: &str = mindtape::typst_task!(
 );
 
 /// The Problem this task fixes, end to end: `mt add` runs the same
-/// content gate `mt check` does, refuses the task before writing it, and
-/// leaves nothing behind for a later `mt check` to catch.
+/// content gate `mt check` does and refuses the task before writing it. A later
+/// `mt check` then finds a clean tree.
 #[test]
 fn refuses_a_task_whose_to_be_bullet_breaks_a_content_rule() {
     let dir = support::project_with_template_and_config(TO_BE_CONTENT_RULE_CONFIG, TO_BE_TEMPLATE);
@@ -465,8 +466,8 @@ fn refuses_a_task_whose_to_be_bullet_breaks_a_content_rule() {
 
 /// The harness must never hand a spawned `mt` the developer's editor. A
 /// `cargo-mutants` mutant that wrongly makes `add` interactive otherwise
-/// spawns `$VISUAL` once per test and blocks until the test timeout —
-/// a `--wait` GUI editor opens one window per affected test.
+/// spawns `$VISUAL` once per test and blocks until the test timeout. A
+/// `--wait` GUI editor opens one window per affected test.
 /// Every e2e spawn goes through `support::isolate`, so the lock is here and
 /// not on `add`'s callers.
 #[test]

@@ -1,5 +1,5 @@
-//! Tests for the density split helpers: how a violation names its unit, how a
-//! unit is snipped to its first few words, and the sentence/trim rules behind
+//! Tests for the density split helpers: how a violation reports its unit, how a
+//! unit gets snipped to its first few words, and the sentence/trim rules behind
 //! `split_sentences` and `push_trimmed`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
@@ -76,7 +76,7 @@ fn split_sentences_splits_on_a_terminator_at_the_end() {
 }
 
 /// A `.` inside a number is not a sentence end: it is not followed by
-/// whitespace, so the whole run stays one sentence.
+/// whitespace. The whole run then stays one sentence.
 #[test]
 fn split_sentences_does_not_split_inside_a_number() {
     assert_eq!(

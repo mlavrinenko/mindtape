@@ -220,7 +220,7 @@ fn a_runnable_parent_the_registry_names_carries_its_class_and_reach() {
 }
 
 /// A global flag a subcommand declares rides on that node, because it only
-/// applies under it; the root globals stay at the top.
+/// applies under it. The root globals stay at the top.
 #[test]
 fn a_subcommand_global_flag_rides_on_its_own_node() {
     let t = tree();
@@ -240,8 +240,8 @@ fn go_carries_an_exempt_class_with_a_reason() {
 
 /// Every visible command's `(flattened path, class, is_leaf)` under
 /// `commands`, recursing into any node with subcommands (`config`, `preset`,
-/// `explain`) — the same tree `www/generated/cli.json` ships, walked back for
-/// the exhaustiveness tests below rather than re-derived from
+/// `explain`). That is the same tree `www/generated/cli.json` carries, walked
+/// back for the exhaustiveness tests below rather than re-derived from
 /// `Cli::command()` a second, possibly-diverging way.
 fn visible_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value, bool)>) {
     for cmd in commands {
@@ -265,9 +265,9 @@ fn visible_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value,
 
 /// The exhaustiveness gate this module exists for: the union of
 /// `cli::command_class::CLASSIFICATION` must equal the visible leaf commands
-/// `mt _cli --json` reflects, in both directions — mirrors
-/// `docs::coverage`'s set-difference shape, failing naming the
-/// offender rather than healing silently.
+/// `mt _cli --json` reflects, in both directions. It mirrors
+/// `docs::coverage`'s set-difference shape, and it fails naming the offender
+/// rather than healing silently.
 #[test]
 fn every_visible_leaf_is_classified_and_no_entry_is_stale() {
     let t = tree();
@@ -333,7 +333,7 @@ fn dump_json_contains_bin_name() {
 }
 
 /// `completion_json` reflects the `cli::completion::SOURCES` table: a sourced
-/// argument names its source, a deliberately-sourceless one carries its
+/// argument carries its source, a deliberately-sourceless one carries its
 /// reason, and an unnamed argument is `null`. A stub return of
 /// `Default::default()` (always `null`) loses the first two.
 #[test]
@@ -356,7 +356,7 @@ fn completion_json_reflects_the_source_table() {
     assert!(completion_json("nope", "nope").is_null());
 }
 
-/// Every visible read command prints JSON with `--json`; `config schema`
+/// Every visible read command prints JSON with `--json`. `config schema`
 /// already prints JSON and is the one exemption.
 #[test]
 fn every_read_command_takes_json() {

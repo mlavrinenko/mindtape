@@ -1,7 +1,7 @@
 //! Reading an `x-<ns>` extension slot's value: a scalar compares like a core
 //! field, a list answers membership through `has(field, value)`, a dict stays
-//! presence-only. Readability does not depend on `[tasks.fields.x-<ns>]`, so
-//! every test here runs under the default config.
+//! presence-only. Readability does not depend on `[tasks.fields.x-<ns>]`.
+//! Every test here runs under the default config.
 
 use std::collections::BTreeMap;
 

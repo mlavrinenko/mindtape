@@ -1,5 +1,5 @@
 //! The canonical task-source contract in `www/content/concepts.typ` is the one
-//! statement of which files count as tasks, so every page that names a task
+//! statement of which files count as tasks, so every page that lists a task
 //! file links to it. `tola validate` checks routes, not anchors, and the docs
 //! gates read prose and spans rather than links, so this holds the set.
 #![allow(clippy::unwrap_used)]
@@ -9,7 +9,7 @@ use std::path::PathBuf;
 /// The anchor of the `== Which files count as tasks` section.
 const ANCHOR: &str = "/concepts/#which-files-count-as-tasks";
 
-/// Every page that names which files are tasks.
+/// Every page that lists which files are tasks.
 const PAGES: [&str; 12] = [
     "www/content/concepts.typ",
     "www/content/templates.typ",

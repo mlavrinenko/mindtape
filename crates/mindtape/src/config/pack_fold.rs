@@ -4,10 +4,10 @@
 //! takes each pack's rule arrays out for their merge by name, and hands the
 //! rest of the pack to [`PackLayer::add`]. That checks it against every
 //! earlier pack of the same layer, then deep-merges it in with
-//! [`deep_merge_tables`]. A leaf value, a scalar or an array, that two packs
-//! set differently is an error naming the dotted key and both packs, unless
-//! the extending layer sets that key itself and so picks the value. Equal
-//! values agree.
+//! [`deep_merge_tables`]. When two packs set a leaf value, a scalar or an
+//! array, differently, `PackLayer::add` reports an error with the dotted key
+//! and both packs. The extending layer can set that key itself and pick the
+//! value. Equal values agree.
 //!
 //! The finished sub-layer merges into the document after the earlier layers
 //! and before the extending layer's own keys. So the layer beats its packs,
@@ -16,8 +16,8 @@
 //! conflict: the later layer's wins, as for any two layers.
 //!
 //! [`PackLayer`] keeps each pack's own table and resolved parameters beside the
-//! merge, in `extends` order, so [`crate::config::origins`] can name the pack
-//! behind each value.
+//! merge, in `extends` order, so [`crate::config::origins`] can report the
+//! pack behind each value.
 
 use std::path::Path;
 
@@ -40,8 +40,8 @@ pub(super) struct PackLayer {
 }
 
 impl PackLayer {
-    /// Fold one pack in, after every earlier pack of this layer. `layer` is
-    /// the extending layer's own table: a key it sets settles any conflict
+    /// Fold one pack in, after every earlier pack of this layer. `layer` holds
+    /// the extending layer's own table. A key it sets settles any conflict
     /// between its packs, since its value wins over both.
     ///
     /// # Errors
@@ -114,7 +114,7 @@ impl PackLayer {
 }
 
 /// The dotted key of the first value `a` and `b` both set, differently,
-/// that `layer` leaves open. Tables recurse key by key; any other pair, a
+/// that `layer` leaves open. Tables recurse key by key. Any other pair, a
 /// table against a scalar included, conflicts unless equal. `layer` settles
 /// a key it sets, and a non-table it sets settles everything under it.
 fn first_conflict(a: &toml::Table, b: &toml::Table, layer: Option<&toml::Table>) -> Option<String> {

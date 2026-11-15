@@ -3,10 +3,9 @@
 //! dest-dir resolution, and the outside-roots warning.
 //!
 //! Binary-invoking end-to-end tests live in `tests/it/add_e2e.rs` (integration
-//! tests), where Cargo guarantees the `mt` binary is built first. Every test
-//! that needs its own process — a controllable stdin, cwd, or captured
-//! stderr — lives in the sibling `add_tests_subprocess` module; nothing in
-//! this file spawns a child.
+//! tests), where Cargo builds the `mt` binary first. Every test that needs its
+//! own process (a controllable stdin, cwd, or captured stderr) lives in the
+//! sibling `add_tests_subprocess` module. This file never spawns a child.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::tempdir;
@@ -72,10 +71,11 @@ fn injects_default_status_proposed() {
 }
 
 /// Every in-tree template is multi-line with trailing commas, which is exactly
-/// why the single-line shape — legal Typst, and a reasonable thing to write —
-/// went untested until it wrote `title: "Do thing"status: proposed(…)`, a file
-/// that cannot parse. The injected argument brings its own separator, so
-/// the template's shape is the header's business and not the injection's.
+/// why the single-line shape went untested. That shape is legal Typst, and a
+/// reasonable thing to write, until it wrote
+/// `title: "Do thing"status: proposed(…)`, a file that cannot parse. The
+/// injected argument brings its own separator, so the template's shape is the
+/// header's business and not the injection's.
 #[test]
 fn injects_status_into_a_single_line_header() {
     const ONE_LINE: &str = mindtape::typst_task!("(title: \"Do thing\")\n");
@@ -249,12 +249,11 @@ fn output_stem_applies_naming_template_when_configured() {
     assert_eq!(stem.len(), "ship-it.task-".len() + 6);
 }
 
-/// `output_stem` is pure minting: it never consults a destination and
-/// never disambiguates, even when the rendered stem would collide. That
-/// decision moved wholesale into `resolve_outcome`/`cmd::add::dedup::resolve`, the
-/// one place a collision under any stem shape is decided — see
-/// `add_dedup_e2e.rs` for the full dedup-mode × stem-shape matrix this
-/// enables.
+/// `output_stem` is pure minting: it never consults a destination and never
+/// disambiguates, even when the rendered stem would collide. That decision
+/// moved wholesale into `resolve_outcome`/`cmd::add::dedup::resolve`, the one
+/// place that resolves a collision under any stem shape. See `add_dedup_e2e.rs`
+/// for the full dedup-mode × stem-shape matrix this enables.
 #[test]
 fn output_stem_never_disambiguates_a_templated_collision() {
     let mut config = Config::default();
@@ -322,7 +321,6 @@ fn a_bad_stem_template_is_a_failure_that_points_at_the_config() {
     );
 }
 
-/// A project rooted at `dir` with its `tasks` root created on disk — the
 /// One slot per kind that can carry caller text, discovered the way a real
 /// template's would be.
 const KIND_SLOTS: &str = r#"#f(
@@ -342,7 +340,7 @@ const HAZARDS: &str = "create-*star* _u_ $x$ #h [b] <a> >g @at";
 const HAZARDS_ESCAPED: &str = r"create-\*star\* \_u\_ \$x\$ \#h \[b\] \<a> >g \@at";
 
 /// Escaping is a per-kind decision, and getting it wrong is a bug in either
-/// direction: an unescaped `text` slot lets Typst reinterpret the value, and an
+/// direction. An unescaped `text` slot lets Typst reinterpret the value, and an
 /// escaped literal kind writes the backslashes into the value itself.
 #[test]
 fn markup_safe_escapes_text_slots_and_nothing_else() {
@@ -389,7 +387,7 @@ fn park_writes_the_rejected_source_to_a_readable_file() {
     std::fs::remove_file(&parked).unwrap();
 }
 
-/// The fallback arm named the file it left behind, so "wrote X" followed by an
+/// The fallback arm cites the file it left behind, so "wrote X" followed by an
 /// error cannot read as if `add` had cleaned up. Pins `kept`'s composed
 /// message (a `String::new()` or placeholder body leaves the error mute about
 /// the kept file).

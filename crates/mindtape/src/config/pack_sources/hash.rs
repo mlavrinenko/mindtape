@@ -1,8 +1,8 @@
-//! The framed tree hash a lock's `sha256` holds: every file under a
-//! directory, sorted bytewise by its `/`-separated path, each framed by the
-//! little-endian `u64` length of its path and of its bytes, so no two trees
-//! frame to the same stream. A directory adds nothing of its own, so an
-//! empty one is invisible, as it is to git.
+//! The framed tree hash a lock's `sha256` holds. It covers every file under a
+//! directory, sorted bytewise by its `/`-separated path. Each file contributes
+//! the little-endian `u64` length of its path and of its bytes, so no two trees
+//! frame to the same stream. A directory has no entry of its own, so an empty
+//! one is invisible, as it is to git.
 
 use std::path::Path;
 
@@ -14,7 +14,7 @@ use crate::config::pack_sources::FetchError;
 ///
 /// # Errors
 /// Returns [`FetchError::Unsupported`] for a symlink or a path that is not
-/// UTF-8, and [`FetchError::Io`] when a file can't be read.
+/// UTF-8, and [`FetchError::Io`] when the command cannot read a file.
 pub fn hash(dir: &Path) -> Result<String, FetchError> {
     let files = files(dir)?;
     let mut hasher = Sha256::new();

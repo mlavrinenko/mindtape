@@ -26,8 +26,8 @@ pub(super) fn every_val(rule: HVal, policy: Vec<(&str, HVal)>) -> HVal {
     dict(fields)
 }
 
-/// [`parse_recur`] without caring about shape errors — most tests here feed
-/// it a well-shaped dict; shape-error tests call `parse_recur` directly.
+/// [`parse_recur`] without caring about shape errors. Most tests here feed it a
+/// well-shaped dict, and shape-error tests call `parse_recur` directly.
 pub(super) fn parse(value: Option<&HVal>) -> Option<Recur> {
     parse_recur(value, &mut Vec::new())
 }

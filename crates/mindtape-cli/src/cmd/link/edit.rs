@@ -1,11 +1,11 @@
 //! `mt link`'s pure half: render edges as prelude helper calls, and reconcile
 //! them with the `links:` a task already carries.
 //!
-//! No I/O and no project here — a source string, the task's evaluated edges, and
-//! the edges the caller asked for go in; one [`typst_edit::Edit`] comes out (or
+//! No I/O and no project here. A source string, the task's evaluated edges, and
+//! the edges the caller asked for go in. One [`typst_edit::Edit`] comes out (or
 //! `None`, when the file already says this). The same `task_edit::{task_with,
-//! upsert_named_arg}` + `typst_edit::apply` shape `cmd/flip/mod.rs` and `cmd/recur/edit.rs`
-//! use to rewrite a single named argument.
+//! upsert_named_arg}` + `typst_edit::apply` shape `cmd/flip/mod.rs` and
+//! `cmd/recur/edit.rs` use to rewrite a single named argument.
 
 use std::collections::{HashMap, HashSet};
 
@@ -17,43 +17,44 @@ use typst_edit::Edit;
 use crate::diag::{Diag, Hint};
 use crate::task_edit::{task_with, upsert_named_arg};
 
-/// One edge to write: its kind, its target as the caller authored it, and an
-/// optional note.
+/// Describes one edge to write: its kind, its target as the caller authored it,
+/// and an optional note.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EdgeSpec {
-    /// Edge kind — a built-in or a configured `[[tasks.links.kinds]]` name.
+    /// Edge kind: a built-in or a configured `[[tasks.links.kinds]]` name.
     pub kind: String,
     /// Target, as the literal string that goes into the file. The planner
     /// settles the `.typ` extension before an edge reaches here
     /// ([`crate::cmd::link::plan`]), because whether a target *has* one is a
-    /// property of the kind, not of the edge: a `local-task-path` kind's
-    /// target is a task file, while a kind pointing outside the backlog names
-    /// a URL or a commit that appending `.typ` would corrupt.
+    /// property of the kind, not of the edge. A `local-task-path` kind's target
+    /// is a task file, while a kind pointing outside the backlog holds a URL or
+    /// a commit that appending `.typ` would corrupt.
     pub target: String,
     /// Free-form note, rendered as the helper's trailing content block.
     pub note: Option<String>,
 }
 
 impl EdgeSpec {
-    /// The identity two edges are deduped on: the kind plus the target's
-    /// filename stem, so `other` and `other.typ` are one edge and re-running
-    /// the same command writes nothing the second time.
+    /// The identity the dedupe compares two edges on: the kind plus the
+    /// target's filename stem. That way `other` and `other.typ` are one edge,
+    /// and re-running the same command doesn't write anything the second time.
     fn key(&self) -> (&str, String) {
         (self.kind.as_str(), normalize_link(&self.target))
     }
 }
 
-/// How a run reconciles the edges it was given with the ones already there.
+/// How a run reconciles the edges the caller gives it with the ones already
+/// there.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mode {
-    /// Add what is missing; leave everything else alone (the default).
+    /// Add what is missing, and leave everything else alone (the default).
     Merge,
     /// Make the given edges the task's complete edge set (`--replace`).
     Replace,
 }
 
-/// One task's pending rewrite: the edit itself, plus what it does, for the
-/// plan/report line.
+/// Holds one task's pending rewrite: the edit itself, plus what it does, for
+/// the plan/report line.
 #[derive(Debug)]
 pub struct LinkEdit {
     /// The `links:` argument rewrite, ready for `typst_edit::apply`.
@@ -67,17 +68,17 @@ pub struct LinkEdit {
 /// Render `edges` as a `links:` value built from the prelude's own typed
 /// helpers, `+`-joined.
 ///
-/// A built-in kind uses its named helper (`depends-on("a.typ")`); every other
+/// A built-in kind uses its named helper (`depends-on("a.typ")`). Every other
 /// configured kind goes through the generic `edge("kind", "a.typ")`, because
-/// the prelude binds one helper per built-in and nothing per custom kind — a
-/// custom kind written as a bare call would be an unknown identifier and the
+/// the prelude binds one helper per built-in and nothing per custom kind. A
+/// custom kind written as a bare call would be an unknown identifier, and the
 /// file would not eval.
 ///
 /// Consecutive note-less edges of one kind collapse into a single variadic
 /// call, which is the shape the DSL page documents and a human writes. A noted
-/// edge always stands alone: the trailing block is the note for *every* target
-/// in its call, so folding a noted edge into a run would attach its note to
-/// the others.
+/// edge always gets a call of its own, because the trailing block is the note
+/// for *every* target in its call. Folding a noted edge into a run would attach
+/// its note to the others.
 #[must_use]
 pub fn render_edges(edges: &[EdgeSpec]) -> String {
     let mut calls: Vec<String> = Vec::new();
@@ -120,9 +121,9 @@ fn flush(run: &mut Vec<&EdgeSpec>, out: &mut Vec<String>) {
 }
 
 /// Quote `text` as a Typst string literal. Backslash and the closing quote are
-/// the only two characters that can end the literal early; a stem never holds
-/// either, which is exactly why escaping them costs nothing and forgetting to
-/// would fail loud only on the one target that does.
+/// the only two characters that can end the literal early. A stem never holds
+/// either, which is exactly why escaping them is free and forgetting to would
+/// fail loud only on the one target that does.
 fn quote(text: &str) -> String {
     let mut out = String::with_capacity(text.len() + 2);
     out.push('"');
@@ -137,17 +138,17 @@ fn quote(text: &str) -> String {
 }
 
 /// The rewrite one task needs to carry `desired`, given the edges it already
-/// holds (`existing` — the evaluated `links:` value).
+/// holds (`existing`, the evaluated `links:` value).
 ///
 /// [`Mode::Merge`] appends only the edges `existing` lacks and leaves the
-/// authored value byte-for-byte alone. That asymmetry is deliberate: a note in
-/// the source is Typst content and the model hands it back as plain text, so
+/// authored value byte-for-byte alone. That asymmetry is deliberate. A note in
+/// the source is Typst content, and the model returns it as plain text, so
 /// re-rendering an edge the caller never named would quietly flatten its
 /// markup. [`Mode::Replace`] writes `desired` as the whole value and accepts
-/// that cost, which is what it was asked for.
+/// that cost, which is what the caller asked for.
 ///
-/// `Ok(None)` means the file already says this — a merge with nothing new, or
-/// a replace whose set and notes already match — so re-runs are no-ops.
+/// `Ok(None)` means the file already says this: a merge with nothing new, or a
+/// replace whose set and notes already match. Re-runs are then no-ops.
 ///
 /// # Errors
 /// Returns an error when `source` holds no `task.with(…)` call, or when a
@@ -212,8 +213,8 @@ pub fn links_edit(
 }
 
 /// Whether every edge in `desired` that `existing` already carries carries the
-/// same note. Without this a `--replace` that only rewords a note would report
-/// itself a no-op: the key sets match, so nothing else in the comparison moves.
+/// same note. Without this a `--replace` that only rewords a note would come
+/// out a no-op: the key sets match, so nothing else in the comparison moves.
 /// A missing note and a blank one are the same absence, matching what
 /// `render_edges` writes and what the note rules read.
 fn notes_match(existing: &[Link], desired: &[EdgeSpec]) -> bool {
@@ -232,22 +233,22 @@ fn notes_match(existing: &[Link], desired: &[EdgeSpec]) -> bool {
     })
 }
 
-/// A note's comparable text: trimmed, with blank read as absent.
+/// Returns a note's comparable text: trimmed, with blank read as absent.
 fn note_text(note: Option<&str>) -> Option<&str> {
     note.map(str::trim).filter(|text| !text.is_empty())
 }
 
 /// Refuse a `--replace` on a task whose `links:` holds a SWHID history pointer
-/// — the tombstone `mt rm` mints in place of a retired task.
+/// (the tombstone `mt rm` mints in place of a retired task).
 ///
-/// A tombstone names no loaded task, so `parse_links` drops it and it is absent
-/// from `existing`; rewriting the value from `existing` alone would erase the
-/// provenance `mt rm` went to a git round trip to record, with nothing
-/// reporting the loss. Refusing is the honest answer: merge still works on such
-/// a file, and so does editing it by hand.
+/// `parse_links` drops a tombstone, because it refers to a task that doesn't
+/// load. The tombstone is then absent from `existing`. Rewriting the value from
+/// `existing` alone would erase the provenance `mt rm` went to a git round trip
+/// to record, with nothing reporting the loss. Refusing is the right call:
+/// merge still works on such a file, and so does editing it by hand.
 ///
 /// # Errors
-/// Returns an error naming the first pointer found.
+/// Returns an error that reports the first pointer found.
 fn refuse_tombstones(source: &str) -> Result<()> {
     for call in mindtape::link_edges(source) {
         for target in &call.targets {

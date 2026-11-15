@@ -240,7 +240,7 @@ fn the_commands_list_a_go_and_an_add_editor_beside_the_run_lines() {
 }
 
 /// `commands` of a project over a user layer, for each `(user, project, listed)`
-/// case: the editors that still ask for `mt allow`.
+/// case: the editors that still need `mt allow`.
 #[test]
 fn only_an_editor_the_users_own_layer_did_not_set_is_listed() {
     let cases = [

@@ -1,5 +1,5 @@
-//! A config filter naming an undeclared `x-` field warns at load, and still
-//! loads: reading an undeclared name stays legal.
+//! A config filter that references an undeclared `x-` field warns at load, and
+//! still loads: reading an undeclared name stays legal.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;

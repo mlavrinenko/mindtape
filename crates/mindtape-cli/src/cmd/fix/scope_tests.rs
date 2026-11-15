@@ -33,7 +33,7 @@ fn config(roots: &[&str], templates: &[&str]) -> Config {
     config
 }
 
-/// An empty Git repository, so the listing takes its Git mode.
+/// An empty Git repository. The listing takes its Git mode.
 fn git_project() -> tempfile::TempDir {
     let dir = tempdir();
     git_init(dir.path());

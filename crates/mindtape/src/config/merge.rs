@@ -4,8 +4,8 @@
 //! ([`crate::framework::merge_builtin_frameworks`]) and the embedded config
 //! floor ([`crate::config::parse_config`]).
 
-/// Merge `overlay` into `base` in place: tables merge key-by-key (recursing);
-/// arrays and scalars replace the base value wholesale.
+/// Merge `overlay` into `base` in place: tables merge key-by-key (recursing),
+/// and arrays and scalars replace the base value wholesale.
 pub(crate) fn deep_merge(base: &mut toml::Value, overlay: toml::Value) {
     match overlay {
         toml::Value::Table(over) => {

@@ -1,15 +1,16 @@
-//! `[tasks.estimate]` — the unit allow-list and whether an estimate is
-//! required.
+//! `[tasks.estimate]`: the unit allow-list and whether a task needs an
+//! estimate.
 //!
-//! An estimate is an opaque `unit -> quantity` dict (e.g. `(days: 5, hours: 5)`
-//! or `(src-files: 3)`). Units are free labels, never converted or compared
-//! across names; `units` only constrains which names are legal.
+//! An estimate is an opaque `unit -> quantity` dict (such as
+//! `(days: 5, hours: 5)` or `(src-files: 3)`). Units are free labels, never
+//! converted or compared across names. `units` only constrains which names are
+//! legal.
 //!
-//! Nothing here checks a quantity. A cap on a declared estimate, or a budget
-//! the git working tree is held to, is a `[[tasks.rules]]` entry reading
+//! The rules own every quantity check. A cap on a declared estimate, or a
+//! budget the git working tree must meet, is a `[[tasks.rules]]` entry reading
 //! `estimate.<unit>` and `changed(...)` in the filter language (see
-//! [`crate::rules`]), so no estimate check runs unless a project wrote
-//! or inherited one.
+//! [`crate::rules`]). An estimate check runs only when a project wrote or
+//! inherited one.
 
 use std::collections::BTreeMap;
 
@@ -23,7 +24,7 @@ use crate::config::Requirement;
 pub struct EstimateConfig {
     /// Allowed unit names. Empty = any unit.
     pub units: Vec<String>,
-    /// Whether an estimate must be set.
+    /// Whether a task must carry an estimate.
     #[schemars(extend("x-expression" = "filter"))]
     pub required: Requirement,
     /// The estimate `mt check` files a spliced slot with, as `unit = quantity`

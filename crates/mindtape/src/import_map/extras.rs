@@ -1,5 +1,5 @@
 //! `extras:` (`x-<ns>` slots) passthrough: validated for the `x-` discipline
-//! only — a jq author's structural drops are their own concern, not this
+//! only. A jq author's structural drops are their own concern, not this
 //! layer's (see the module doc on `crate::import_map`).
 
 use std::collections::BTreeMap;
@@ -8,12 +8,12 @@ use typst_harvest::HVal;
 
 use super::report::ReportEntry;
 
-/// Convert a canonical record's `extras` into `Task::extras`: every `x-<ns>`
-/// key carries through as is; a key missing the `x-` prefix
-/// violates the discipline the prelude enforces structurally, so it is
-/// dropped and reported rather than written to a field the prelude would
-/// reject anyway. Returns the converted map plus the keys carried through
-/// unchanged (for [`super::ImportReport::carried_extras`]).
+/// Convert a canonical record's `extras` into `Task::extras`. Every `x-<ns>`
+/// key carries through as is. A key missing the `x-` prefix violates the
+/// discipline the prelude enforces structurally. The mapper drops it and
+/// reports it rather than writing a field the prelude would reject anyway.
+/// Returns the converted map plus the keys carried through unchanged (for
+/// [`super::ImportReport::carried_extras`]).
 pub(crate) fn map_extras(
     canonical: &BTreeMap<String, HVal>,
     out: &mut Vec<ReportEntry>,

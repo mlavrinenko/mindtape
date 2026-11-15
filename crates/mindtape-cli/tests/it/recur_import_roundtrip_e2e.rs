@@ -1,10 +1,11 @@
-//! End-to-end proof that `mt ls --json | mt import` preserves `recur` —
-//! `truth/tasks/2026-09/carry-recur-through-the-canonical-task-json-round-trip.typ`.
-//! `examples/recurring` is both the fixture and the dogfood: `mt ls --json`
-//! reads it directly (a pure command; the export needs no scratch copy), and
-//! the export is piped into a scratch project sharing its `[tasks.recur]`
-//! policy and status legend. The fixture's one `rrule(...)` task needs
-//! `[tasks.recur] rrule = true`, which the scratch config carries too.
+//! End-to-end proof that `mt ls --json | mt import` preserves `recur`, as
+//! `truth/tasks/2026-09/carry-recur-through-the-canonical-task-json-round-trip.typ`
+//! records. `examples/recurring` is both the fixture and the dogfood.
+//! `mt ls --json` reads it directly, a pure command, and the export takes no
+//! scratch copy. The test pipes the export into a scratch project sharing its
+//! `[tasks.recur]` policy and status legend. The fixture's one `rrule(...)`
+//! task needs `[tasks.recur] rrule = true`, which the scratch config carries
+//! too.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::{Path, PathBuf};
@@ -16,7 +17,7 @@ fn repo_root() -> PathBuf {
 }
 
 /// A scratch project sharing `examples/recurring`'s status legend and
-/// `[tasks.recur]` policy — not its `[[typst.local-packages]]` override,
+/// `[tasks.recur]` policy, and not its `[[typst.local-packages]]` override,
 /// which `support::install_lib` substitutes with the in-tree prelude
 /// directly regardless of project location.
 fn scaffold() -> tempfile::TempDir {
@@ -31,10 +32,10 @@ fn scaffold() -> tempfile::TempDir {
 }
 
 /// `(title, recur)` pairs from `mt ls --json`'s envelope (`{"tasks": [...],
-/// ...}` — `mt ls` always has rule/view context, so it always envelope-wraps,
-/// unlike `mt eval --json`'s bare array), sorted by title so two duplicate
-/// titles (the fixture's pair of "Post standup notes" instances) compare as a
-/// multiset rather than colliding in a map.
+/// ...}`, since `mt ls` always has rule/view context and so always
+/// envelope-wraps, unlike `mt eval --json`'s bare array). The pairs sort by
+/// title. Two duplicate titles (the fixture's pair of "Post standup notes"
+/// instances) then compare as a multiset rather than colliding in a map.
 fn recur_pairs(json: &str) -> Vec<(String, serde_json::Value)> {
     let envelope: serde_json::Value = serde_json::from_str(json).unwrap();
     let mut pairs: Vec<(String, serde_json::Value)> = envelope

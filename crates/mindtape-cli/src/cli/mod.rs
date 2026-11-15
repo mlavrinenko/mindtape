@@ -2,11 +2,12 @@
 //!
 //! # Files
 //!
-//! - `check_argv.rs` — `mt _cli --check-argv`, which judges one command line as `mt` would parse it.
-//! - `command_class.rs` — each command's read or write class.
-//! - `completion/` — shell completions answered by the binary.
-//! - `task_ref.rs` — the `<task>` argument every single-task command shares.
-//! - `tree_json.rs` — `mt _cli`, the command tree as JSON for the docs.
+//! - `check_argv.rs`: `mt _cli --check-argv`, which judges one command line the
+//!   way `mt` parses it.
+//! - `command_class.rs`: each command's read or write class.
+//! - `completion/`: shell completions answered by the binary.
+//! - `task_ref.rs`: the `<task>` argument every single-task command shares.
+//! - `tree_json.rs`: `mt _cli`, the command tree as JSON for the docs.
 
 pub(crate) mod check_argv;
 pub(crate) mod command_class;
@@ -29,7 +30,7 @@ use crate::{
     cmd::recur, cmd::review, cmd::rm, cmd::schema, cmd::set,
 };
 
-/// Mindtape keeps your tasks as Typst files and checks them against your rules.
+/// `Mindtape` keeps your tasks as Typst files and checks them against your rules.
 #[derive(Parser)]
 #[command(
     name = "mt",
@@ -108,7 +109,7 @@ enum Command {
     Flip(flip::FlipArgs),
     /// Check every task and every template against your project's rules.
     ///
-    /// A template is checked by the task it would file.
+    /// mt checks a template as the task it would file.
     Check(check::CheckArgs),
     /// Rewrite the files an mt upgrade left behind.
     ///
@@ -124,7 +125,7 @@ enum Command {
     ///
     /// `mt link <task> <kind> <target>...` adds a link to each target, and
     /// `mt link --apply <file>` adds every link a YAML or JSON file lists.
-    /// Running either twice adds nothing the second time.
+    /// Running either twice doesn't add anything the second time.
     Link(link_cmd::LinkArgs),
     /// Rename a task's file and update every link that points to it.
     ///
@@ -152,7 +153,7 @@ enum Command {
     Graph(graph::GraphArgs),
     /// Import tasks from JSON (the `mt ls --json` format), checking them all first.
     ///
-    /// The whole batch is checked against your project's rules before mt
+    /// mt checks the whole batch against your project's rules before it
     /// writes any task.
     Import(import::ImportArgs),
     /// Install the Typst package, defaults, schema and completions.
@@ -165,7 +166,7 @@ enum Command {
     Install(install::InstallArgs),
     /// Fetch the pack sources `.mindtape/packs.lock` pins, or move the lock.
     ///
-    /// No other command touches the network, so a source the cache lacks
+    /// Only `mt packs` touches the network, so a source the cache lacks
     /// stays refused until `mt packs install` fetches it, and a source the
     /// lock lacks until `mt packs update` locks it.
     Packs(packs::PacksArgs),
@@ -214,8 +215,8 @@ enum Command {
 }
 
 impl Cli {
-    /// The raw `[verb, args…]` when the line named no command and so falls to
-    /// the status-shortcut fallback.
+    /// The raw `[verb, args…]` when the line falls to the status-shortcut
+    /// fallback.
     pub(crate) fn status_shortcut(&self) -> Option<&[String]> {
         match &self.command {
             Command::Status(external) => Some(external),
@@ -246,8 +247,8 @@ impl Cli {
 // jscpd:ignore-start
 // One arm per command, `Command::X(args) => x::run(&args)`: the matches are the
 // dispatch table, and a helper would only hide which module runs which verb.
-/// Run one command. The table is split in two so each half stays under the
-/// cognitive-complexity limit as commands are added.
+/// Run one command. The table has two halves, and each half stays under the
+/// cognitive-complexity limit as the command list grows.
 fn dispatch(command: Command) -> Result<()> {
     match command {
         Command::Add(args) => add::run(&args),
@@ -310,7 +311,7 @@ pub fn verbosity_level(verbosity: u8) -> LevelFilter {
     }
 }
 
-/// Initialize logging from the `-v` count; `RUST_LOG` overrides.
+/// Initialize logging from the `-v` count. `RUST_LOG` overrides.
 pub fn init_logger(verbosity: u8) {
     let level = verbosity_level(verbosity);
     env_logger::Builder::from_env(env_logger::Env::default())
@@ -379,7 +380,7 @@ mod tests {
         assert_eq!(cli.hyperlinks(), None);
     }
 
-    /// `check` is a built-in, which also proves the list is non-empty — a
+    /// `check` is a built-in, which also proves the list is non-empty. A
     /// separate emptiness test asserted strictly less than this one.
     #[test]
     fn builtin_names_contains_check() {

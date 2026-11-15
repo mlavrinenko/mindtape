@@ -28,7 +28,7 @@ impl fmt::Display for ColorChoice {
     }
 }
 
-/// Resolve whether colour output should be used for stdout.
+/// Resolve whether stdout gets colour output.
 ///
 /// Rules (in priority order):
 /// 1. `always` → colour on.
@@ -43,7 +43,7 @@ pub fn color_enabled(choice: ColorChoice, stdout_is_tty: bool) -> bool {
     }
 }
 
-/// Returns `true` if the `NO_COLOR` environment variable is set (any value).
+/// Returns `true` when the `NO_COLOR` environment variable holds any value.
 ///
 /// See <https://no-color.org/>.
 #[must_use]
@@ -59,8 +59,8 @@ static STDERR_COLOR_ENABLED: OnceLock<bool> = OnceLock::new();
 /// Resolve and cache the colour decisions for this process, one for stdout
 /// and one for stderr, each against its own stream's TTY.
 ///
-/// Must be called exactly once (from `main`). Subsequent calls from the same
-/// process read the cached value without re-checking the TTY or environment.
+/// `main` calls this exactly once. A later call from the same process reads
+/// the cached value without re-checking the TTY or environment.
 pub fn init(choice: ColorChoice) {
     let stdout_is_tty = std::io::stdout().is_terminal();
     let _ = COLOR_ENABLED.get_or_init(|| color_enabled(choice, stdout_is_tty));
@@ -70,13 +70,13 @@ pub fn init(choice: ColorChoice) {
 
 /// Returns whether colour output is active for this process.
 ///
-/// Falls back to `false` if [`init`] was not called (e.g. in tests).
+/// Falls back to `false` if [`init`] was not called, as in tests.
 #[must_use]
 pub fn is_color_active() -> bool {
     COLOR_ENABLED.get().copied().unwrap_or(false)
 }
 
-/// Returns whether the prefix of a stderr line is coloured. Before [`init`],
+/// Returns whether the prefix of a stderr line gets colour. Before [`init`],
 /// as when the argv fails to parse, it decides as `--color auto` would.
 #[must_use]
 pub fn is_stderr_color_active() -> bool {
@@ -86,8 +86,7 @@ pub fn is_stderr_color_active() -> bool {
 
 /// A styled string builder backed by `anstyle`.
 ///
-/// When `enabled` is `false` every call is a no-op and no ANSI sequences are
-/// emitted.
+/// When `enabled` is `false` every call is a no-op and the output stays plain.
 #[derive(Debug, Clone, Copy)]
 pub struct Painter {
     enabled: bool,
@@ -102,7 +101,7 @@ impl Painter {
 
     /// Wrap `text` in ANSI escape codes for the given `style`.
     ///
-    /// When the painter is disabled returns `text` unchanged.
+    /// A disabled painter returns `text` unchanged.
     #[must_use]
     pub fn paint(self, text: &str, style: Style) -> String {
         if self.enabled {
@@ -119,7 +118,7 @@ impl Painter {
     }
 }
 
-/// Parse a colour spec — a named ANSI colour or `#RRGGBB` — into a foreground
+/// Parse a colour spec, a named ANSI colour or `#RRGGBB`, into a foreground
 /// [`Style`]. Returns `None` for an unrecognised name or malformed hex.
 #[must_use]
 pub fn parse_color(spec: &str) -> Option<Style> {
@@ -227,7 +226,7 @@ mod tests {
     /// Every name the legend accepts, mapped to the colour it must produce.
     /// Asserting `is_some()` per name across twelve separate tests never
     /// pinned the mapping: a mutant routing "cyan" to `AnsiColor::Red` survived
-    /// all of them, because the result was still `Some`.
+    /// each test, because the result was still `Some`.
     #[test]
     fn parse_named_maps_each_name_to_its_colour() {
         use anstyle::AnsiColor::{

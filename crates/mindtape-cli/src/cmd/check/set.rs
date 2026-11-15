@@ -1,5 +1,5 @@
 //! `mt @name check` on a set: check every member, hold each report, and
-//! print them in set order, each problem naming its project.
+//! print them in set order, with each problem labeled by its project.
 
 use super::{CheckArgs, Findings, gather};
 use crate::cmd::schema::SET_CHECK;
@@ -9,7 +9,8 @@ use crate::project_set::{HeldSet, Member, member_load_problems_folded, open_set}
 use crate::render::envelope::Envelope;
 use crate::render::objects::{CheckSetPayload, ProjectCheckJson};
 
-/// One member's report: its problems in print order, and whether it failed.
+/// The report for one member holds its problems in print order, and whether
+/// it failed.
 struct MemberReport {
     name: String,
     diags: Vec<Diag>,
@@ -53,8 +54,8 @@ pub(super) fn run(held: &HeldSet, args: &CheckArgs) -> Result<()> {
 }
 
 /// Check every member on a thread of its own, and return the reports in the
-/// order the members came. The checks print nothing and share no state, so
-/// the order the threads finish in shows nowhere.
+/// order the members came. The checks stay silent and keep their own state.
+/// The order the threads finish in shows nowhere.
 fn report_all(members: Vec<Member>, verbose: bool) -> Vec<MemberReport> {
     mindtape::map_parallel(members, |member| report(member, verbose))
 }

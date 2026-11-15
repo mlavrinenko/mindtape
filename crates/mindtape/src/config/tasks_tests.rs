@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 use super::{FieldConfig, TagsConfig, TasksConfig, expand_dict_refs};
 use crate::config::dicts::{DictSpec, Dicts, compile_dicts_rootless};
 
-/// Compile a `Dicts` from `(name, values)` pairs — inline `values` only,
-/// which needs no project root.
+/// Compile a `Dicts` from `(name, values)` pairs, inline `values` only, which
+/// takes no project root.
 fn dicts(spec: &[(&str, &[&str])]) -> Dicts {
     let map: BTreeMap<String, DictSpec> = spec
         .iter()

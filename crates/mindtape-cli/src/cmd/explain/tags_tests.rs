@@ -116,8 +116,8 @@ fn reads_a_tag_through_has_tags_and_a_spaced_has_tag() {
     }
 }
 
-/// A run-less gate refuses a flip whether or not it sets a `message`, so the
-/// tags its `when` reads list at that moment too.
+/// A run-less gate refuses a flip whether it sets a `message` or not. The tags
+/// its `when` reads list at that moment too.
 #[test]
 fn a_flip_gate_with_no_message_reads_its_tags() {
     let config = parse_config(

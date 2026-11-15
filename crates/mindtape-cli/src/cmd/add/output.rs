@@ -1,13 +1,14 @@
 //! `mt add --format`: report what a run did, in the caller's chosen shape.
 //!
-//! Mirrors `mt ls`'s `--format` vocabulary (`crate::render::output::OutputFormat`) so
-//! a script learns one convention rather than two, but stays its own type:
-//! `add` never lists many tasks, so `table`/`csv` have nothing to reuse, and
-//! `text` — the `wrote <path> (<hash>)` prose — has no `ls` equivalent, whose bare
-//! default is the table. `--print` stays orthogonal: it previews the task
-//! source before any write is attempted; this reports what a write (or a
-//! `--dedup skip`/`add-suffix` decision) actually did — `wrote`, `skipped`,
-//! or `suffixed` — so a dedup outcome is observable without parsing prose.
+//! The vocabulary mirrors `mt ls`'s `--format`
+//! (`crate::render::output::OutputFormat`). A script then learns one convention
+//! rather than two. The type stays separate. `add` never lists many tasks, so
+//! `table`/`csv` have nothing to reuse. `text`, the `wrote <path> (<hash>)`
+//! prose, has no `ls` equivalent, whose bare default is the table. `--print`
+//! stays orthogonal: it previews the task source before any write. This module
+//! reports what a write (or a `--dedup skip`/`add-suffix` decision) actually
+//! did: `wrote`, `skipped`, or `suffixed`. A dedup outcome is then observable
+//! without parsing prose.
 
 use std::path::{Path, PathBuf};
 
@@ -40,14 +41,14 @@ pub enum Format {
 pub enum Outcome {
     /// Wrote a fresh file at this path.
     Wrote(PathBuf),
-    /// `--dedup skip` found this path already taken; nothing was written.
+    /// `--dedup skip` found this path already taken. The run didn't write a file.
     Skipped(PathBuf),
     /// `--dedup add-suffix` minted this disambiguated path and wrote there.
     Suffixed(PathBuf),
 }
 
 impl Outcome {
-    /// The path this outcome is about — written, existing, or suffixed.
+    /// The path this outcome is about: written, existing, or suffixed.
     #[must_use]
     pub fn path(&self) -> &Path {
         match self {
@@ -70,7 +71,7 @@ impl Outcome {
 /// What `mt add --json` prints beside its schema URL.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema)]
 pub struct AddReport {
-    /// What the run did: `wrote`, `skipped` or `suffixed`.
+    /// One of `wrote`, `skipped` or `suffixed`, naming what the run did.
     pub outcome: String,
     /// The task file's path, with `/` on every platform.
     pub path: String,
@@ -78,8 +79,8 @@ pub struct AddReport {
     pub slug: String,
 }
 
-/// How the task is named to a reader: its slug hash, which every command
-/// accepts as a reference, and its path as the prose report shows it.
+/// The task's slug hash, which every command accepts as a reference, and its
+/// path as the prose report shows it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Handle {
     /// The task's stem hash, as `mt ls` shows it in the `slug#` column.
@@ -108,9 +109,9 @@ pub fn handle(project: &util::Project, outcome: &Outcome) -> Handle {
     }
 }
 
-/// Render `outcome` in `format`. `Path0` is NUL-terminated and must reach the
-/// terminal via `print!`, never `println!`; every other format wants the
-/// caller's trailing newline (`println!`) — the same contract as
+/// Render `outcome` in `format`. `Path0` ends in a NUL byte and must reach the
+/// terminal through `print!`, never `println!`. Every other format needs the
+/// caller's trailing newline (`println!`). That is the same contract as
 /// `crate::render::output::render_path`/`render_path0`.
 #[must_use]
 pub fn render(outcome: &Outcome, handle: &Handle, format: Format) -> String {
@@ -142,7 +143,7 @@ fn render_json(outcome: &Outcome, handle: &Handle) -> String {
 
 /// Print `outcome` in `format` to stdout, honouring `Path0`'s no-trailing-
 /// newline contract. A text report ends on the command that reads the task it
-/// named, carrying this run's `@name` or `-w`; the machine formats end on
+/// named, carrying this run's `@name` or `-w`. The machine formats end on
 /// their own record.
 pub fn emit(outcome: &Outcome, handle: &Handle, format: Format) {
     let rendered = render(outcome, handle, format);

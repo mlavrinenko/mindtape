@@ -1,6 +1,7 @@
-//! The quoted form of a filter whose bare word was meant as text:
+//! The quoted form of a filter whose bare word the user meant as text:
 //! `status == wip` reads `wip` as a field, and `status == "wip"` is what the
-//! user meant. Built from the user's own expression, so it names no status.
+//! user meant. The code builds it from the user's own expression, so it never
+//! reports a status.
 
 /// Whether `c` can sit inside a field name, as in `estimate.src-files`.
 fn is_name_char(c: char) -> bool {
@@ -71,7 +72,7 @@ fn right_compared(after: &str) -> bool {
 }
 
 /// The character across the comparison operator that `side` opens with, or
-/// closes with when `from_end`, spaces skipped; `None` when no operator is
+/// closes with when `from_end`, spaces skipped. `None` when no operator is
 /// there.
 fn across_comparison(side: &str, from_end: bool) -> Option<char> {
     COMPARISONS.iter().find_map(|op| {

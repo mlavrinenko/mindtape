@@ -1,7 +1,7 @@
-//! End-to-end tests for `mt import` that shell out to the `mt` binary — the
+//! End-to-end tests for `mt import` that shell out to the `mt` binary, the
 //! only reliable way to exercise real stdin (unit tests can't fake process
-//! stdin). File-arg input is covered here too for parity; the mapping/
-//! round-trip/dry-run/failure-cleanup logic itself is unit-tested in
+//! stdin). These tests cover file-arg input too, for parity. The mapping,
+//! round-trip, dry-run and failure-cleanup logic itself has unit tests in
 //! `crates/mindtape-cli/src/cmd/import/tests.rs` via `cmd::import::import_records`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -105,7 +105,7 @@ fn a_reserved_destination_is_refused_and_writes_nothing() {
 }
 
 /// A dry run previews exactly what a real run would land, including the
-/// destination guard's refusal, and writes nothing either way.
+/// destination guard's refusal, and doesn't write either way.
 #[test]
 fn a_preview_still_guards_and_writes_nothing() {
     let dir = root_scaffold();
@@ -169,9 +169,10 @@ fn mixed_batch() -> String {
     )
 }
 
-/// One bad record does not refuse the batch — the good one still lands, and the
-/// run exits 1 after the report — and the bad one is never written, so no file has to be removed afterwards. The
-/// second record's status is outside the legend.
+/// One bad record does not refuse the batch. The good one still lands, and the
+/// run exits 1 after the report. The bad one never reaches a file, so nothing
+/// needs removing afterwards. The second record's status is outside the
+/// legend.
 #[test]
 fn a_rejected_record_is_never_written_and_the_rest_still_land() {
     let dir = scaffold();
@@ -196,7 +197,7 @@ fn a_rejected_record_is_never_written_and_the_rest_still_land() {
     support::check_ok(dir.path());
 }
 
-/// `--dry-run` names what it would file and says it wrote nothing.
+/// `--dry-run` names what it would file and says it didn't write.
 #[test]
 fn dry_run_says_would_file_and_writes_nothing() {
     let dir = scaffold();
@@ -213,7 +214,7 @@ fn dry_run_says_would_file_and_writes_nothing() {
 }
 
 /// A dry run that skips a record ends by saying what it would file, never
-/// that it filed; a real import keeps "filed".
+/// that it filed. A real import keeps "filed".
 #[test]
 fn the_failure_line_says_would_file_under_a_dry_run() {
     let dir = scaffold();
@@ -317,7 +318,8 @@ fn an_explicit_destination_overrides_the_record_file_for_the_whole_batch() {
     assert!(!dir.path().join("tasks/b").exists());
 }
 
-/// The removed flags still parse, and are refused with the replacement named.
+/// The removed flags still parse, and the command refuses them with the
+/// replacement named.
 #[test]
 fn the_old_destination_flags_are_refused_with_a_dir_hint() {
     for (flag, value) in [("--into", "tasks"), ("--to", "target")] {

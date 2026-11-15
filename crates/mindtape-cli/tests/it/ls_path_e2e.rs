@@ -37,7 +37,7 @@ fn git(dir: &Path, args: &[&str]) {
     );
 }
 
-/// The task's working-tree contract end to end: `mt ls` lists a tracked task
+/// The task's working-tree contract end to end. `mt ls` lists a tracked task
 /// even when an ignore rule matches it, lists an untracked task Git does not
 /// ignore, and leaves an untracked ignored file out entirely.
 #[test]
@@ -124,10 +124,10 @@ fn path0_format_is_nul_delimited_and_self_terminated() {
     assert_eq!(parts, ["tasks/a.typ", "tasks/b.typ"].map(support::native));
 }
 
-/// The spec's whole premise: paths render exactly as the table's `file`
-/// column does, so the two agree by construction — and they have to agree
-/// from a subdirectory too, which is the only place the claim has content.
-/// Run from `tasks/`, both spell every path `../tasks/…`.
+/// Paths render exactly as the table's `file` column does, so the two agree by
+/// construction. They have to agree from a subdirectory too, which is the only
+/// place the claim has content. Run from `tasks/`, both spell every path
+/// `../tasks/…`.
 #[test]
 fn path_format_matches_the_table_file_column_exactly() {
     let dir = scaffold();
@@ -167,10 +167,10 @@ fn path_format_matches_the_table_file_column_exactly() {
 
 /// `file` names one value across both machine formats. Run from `tasks/`,
 /// `--format csv` and `--format json` both report the project-root-relative
-/// `tasks/a.typ` — the value `mt import` reads back and the `path` filter
-/// field compares — while the table and `--format path` show `../tasks/a.typ`
-/// for the same task. Before this, CSV rendered the display and the two
-/// machine formats disagreed by whichever directory the producer stood in
+/// `tasks/a.typ`, the value `mt import` reads back and the `path` filter field
+/// compares. The table and `--format path` show `../tasks/a.typ` for the same
+/// task. Before this, CSV rendered the display and the two machine formats
+/// disagreed by whichever directory the producer stood in
 /// (`truth/tasks/2026-09/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 #[test]
 fn csv_and_json_report_the_same_root_relative_file_from_a_subdirectory() {
@@ -210,11 +210,11 @@ fn csv_and_json_report_the_same_root_relative_file_from_a_subdirectory() {
 }
 
 /// The `file` display and the `path` filter field are two different values,
-/// and this is the run that proves it: from `tasks/`, the column and
+/// and this is the run that proves it. From `tasks/`, the column and
 /// `--format path` render `../tasks/a.typ` (openable from where the reader is
-/// standing) while the filter still compares the root-relative
-/// `tasks/a.typ` — so a view or `[[ls.rules]]` entry means the same thing
-/// wherever `mt` runs from
+/// standing) while the filter still compares the root-relative `tasks/a.typ`.
+/// A view or `[[ls.rules]]` entry then means the same thing wherever `mt` runs
+/// from
 /// (`truth/tasks/2026-09/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
 #[test]
 fn the_path_field_stays_root_relative_while_the_display_follows_the_cwd() {
@@ -231,12 +231,11 @@ fn the_path_field_stays_root_relative_while_the_display_follows_the_cwd() {
     );
 }
 
-/// The rename's whole point: the old spelling fails loudly rather than
-/// silently. Before it, a filter built from what the listing showed returned
-/// zero rows and exit 0 — indistinguishable from a correct filter over an
-/// empty result set. `file` is simply not a filter field any more, so it
-/// fails the same way any other unknown field does, with no pointer back to
-/// `path`.
+/// The old spelling fails loudly rather than silently. Before the rename, a
+/// filter built from what the listing showed returned zero rows and exit 0,
+/// indistinguishable from a correct filter over an empty result set. `file` is
+/// simply not a filter field any more, so it fails the same way any other
+/// unknown field does, with no pointer back to `path`.
 #[test]
 fn the_file_filter_field_fails_loudly_as_unknown() {
     let dir = scaffold();

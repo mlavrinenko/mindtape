@@ -11,12 +11,13 @@ use crate::diag::{Diag, Result};
 use crate::task_edit::{initial_status, task_with, upsert_named_arg};
 
 /// Splice slot-bearing values for config-required core fields the template
-/// omits, so their slots surface in the fill scaffold, `--describe`, and the
-/// written task. A field already set by the template (literal or slot) is left
-/// untouched, except that a slot which is its whole value inherits the field's
-/// config `values` as choices ([`mindtape::inherit_field_choices`]). Runs
-/// before discovery, so a spliced value may itself nest slots — a
-/// strict-framework priority splices `framework("ice", impact: slot(…), …)`.
+/// omits. Their slots then surface in the fill scaffold, `--describe`, and the
+/// written task. The function leaves a field the template already set (literal
+/// or slot) untouched. A slot that is its whole value instead inherits the
+/// field's config `values` as choices
+/// ([`mindtape::inherit_field_choices`]). Runs before discovery, so a spliced
+/// value may itself nest slots. A strict-framework priority splices
+/// `framework("ice", impact: slot(…), …)`.
 ///
 /// Returns the fields actually spliced (the template omitted them), so the
 /// caller can report the values it filled that the template never mentioned.

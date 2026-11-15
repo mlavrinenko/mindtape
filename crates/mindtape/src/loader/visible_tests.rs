@@ -184,7 +184,7 @@ fn a_tracked_deleted_destination_is_visible() {
 
 /// A whitelist rule can leave a root's own name matching a broad ignore
 /// pattern while its contents stay visible. The root is then not an ignored
-/// root, and its untracked files must not be hidden behind a warning.
+/// root, and a warning must not hide its untracked files.
 #[test]
 fn a_whitelisted_root_is_not_an_ignored_root() {
     let dir = git_repo();
@@ -203,8 +203,8 @@ fn a_whitelisted_root_is_not_an_ignored_root() {
     assert!(outcome.warnings.is_empty(), "{:?}", outcome.warnings);
 }
 
-/// An absolute pathspec through a symlink makes Git reject the query, so the
-/// probe runs from the nearest existing parent instead and still answers.
+/// An absolute pathspec through a symlink makes Git reject the query. The probe
+/// then runs from the nearest existing parent instead and still answers.
 #[cfg(unix)]
 #[test]
 fn an_ignored_destination_through_a_symlink_is_refused() {

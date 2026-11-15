@@ -5,41 +5,42 @@
 //! `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses), walked by hand.
 //! The fields are the commit's:
 //!
-//! - `subject` — the message's first line; compares against a literal.
-//! - `refs` — the refs the task trailer names: task stems and external refs
+//! - `subject`: the message's first line, compared against a literal.
+//! - `refs`: the refs the task trailer names, task stems and external refs
 //!   as written.
-//! - `files` — every path the commit changes, repository-relative.
-//! - `trailers` — every trailer line of the message as `Key: value`, whatever
-//!   its key: `matches(trailers, "^Changelog: none$")`.
-//! - `tasks_only` — a boolean, bare or called: the commit changes only task
-//!   files.
-//! - `in_range` — a boolean, bare or called: the commit is read from a range
-//!   (`mt check --commits`), false for the message `mt check --commit-msg`
-//!   checks.
-//! - `is_merge` — a boolean, bare or called: the commit has more than one
-//!   parent. The CLI skips it unless `--check-merges` asks for it.
+//! - `files`: every path the commit changes, repository-relative.
+//! - `trailers`: every trailer line of the message as `Key: value`, whatever
+//!   its key, so `matches(trailers, "^Changelog: none$")` works.
+//! - `tasks_only`: a boolean, bare or called, true when the commit changes
+//!   only task files.
+//! - `in_range`: a boolean, bare or called, true when the commit comes from a
+//!   range (`mt check --commits`) and false for the message
+//!   `mt check --commit-msg` checks.
+//! - `is_merge`: a boolean, bare or called, true when the commit has more
+//!   than one parent. The CLI skips it unless `--check-merges` asks for it.
 //!
 //! Functions: `has(field)` / `miss(field)` (a non-empty subject, at least one
-//! ref or file) and `matches(field, "regex")` — over a list, whether any entry
-//! matches, so `!matches(files, "^services/")` reads "touches nothing under
-//! `services/`".
+//! ref or file) and `matches(field, "regex")`, which over a list reports
+//! whether any entry matches. So `!matches(files, "^services/")` reads
+//! "nothing under `services/`".
 //!
-//! `count(files, "glob"…)` is a number, so it only sits on the left of a
+//! `count(files, "glob"…)` yields a number, so it only sits on the left of a
 //! comparison: how many of the commit's files the globs admit, with the same
-//! `"!glob"` excludes as `changed()` ([`PathFilter`]) —
+//! `"!glob"` excludes as `changed()` ([`PathFilter`]), as in
 //! `count(files, "!docs/**") <= 1`. A rename counts once, at its destination,
 //! as in `changed()`, and an `"@name"` glob reads the `[dicts.<name>]` path
-//! set, so the two calls share one list. It reads the commit's own files, so it
-//! also works under `mt check --commits`, where `changed()` is skipped.
+//! set. The two calls then share one list. It reads the commit's own files, so
+//! it also works under `mt check --commits`, where `changed()` does not run.
 //!
 //! A `scope = "task"` rule reads the same fields, plus the task's states:
-//! `head(...)`, `staged(...)`, `worktree(...)`, `named` and `retires_other`, evaluated by
-//! [`crate::commit::task_expr`] against the [`TaskScope`] it runs under.
+//! `head(...)`, `staged(...)`, `worktree(...)`, `named` and `retires_other`,
+//! evaluated by [`crate::commit::task_expr`] against the [`TaskScope`] it runs
+//! under.
 //!
-//! A task field is refused by name: a commit rule sees the commit, not a
-//! task, and a bare `status` that silently read nothing would be a rule that
-//! never fires. Load dry-runs every expression against [`CommitRecord::default`],
-//! so the refusal is one config error.
+//! The parser refuses a task field by name, because a commit rule sees the
+//! commit and not a task. A bare `status` would silently read an empty value,
+//! and the rule would never fire. Load dry-runs every expression against
+//! [`CommitRecord::default`], so the refusal is one config error.
 
 use std::collections::BTreeSet;
 
@@ -58,7 +59,7 @@ use crate::git::state::PathFilter;
 use crate::model::fields::FieldValue;
 use crate::problem::Problem;
 
-/// The field names a commit expression reads, for the refusal message.
+/// The field names that a commit expression reads, for the refusal message.
 const COMMIT_FIELDS: &str = "subject, refs, files, trailers, tasks_only, in_range, is_merge";
 
 /// A parsed commit-scope expression.
@@ -67,8 +68,8 @@ pub struct CommitExpr {
     tree: Option<Node<DefaultNumericTypes>>,
 }
 
-/// What an expression is evaluated over: the commit, and under a task-scope
-/// rule the task it runs for.
+/// The values an expression reads, which are the commit and, under a
+/// task-scope rule, the task it runs for.
 #[derive(Clone, Copy)]
 struct Env<'a> {
     commit: &'a CommitRecord,
@@ -77,7 +78,7 @@ struct Env<'a> {
 }
 
 impl<'a> Env<'a> {
-    /// The task scope, or the refusal naming what needs one.
+    /// The task scope, or the refusal that reports what needs one.
     fn task(&self, what: &str) -> Result<&'a TaskScope<'a>, FilterError> {
         self.task.ok_or_else(|| {
             FilterError::Invalid(format!(
@@ -88,7 +89,7 @@ impl<'a> Env<'a> {
 }
 
 impl CommitExpr {
-    /// Parse `expr`; an empty one always holds.
+    /// Parse `expr`. An empty one always holds.
     ///
     /// # Errors
     /// [`FilterError::Parse`] on a syntax error.
@@ -117,8 +118,8 @@ impl CommitExpr {
         })
     }
 
-    /// Whether `commit` satisfies the expression for the task `scope` names —
-    /// a `scope = "task"` rule's evaluation.
+    /// Whether `commit` satisfies the expression for the task `scope` names,
+    /// which is a `scope = "task"` rule's evaluation.
     ///
     /// # Errors
     /// [`FilterError`] on a bare task field, an unknown function, a malformed
@@ -135,7 +136,7 @@ impl CommitExpr {
         })
     }
 
-    /// Every bare name the expression reads, in sorted order — a commit field,
+    /// Every bare name the expression reads, in sorted order: a commit field,
     /// or a task field inside a state wrapper.
     #[must_use]
     pub fn names(&self) -> BTreeSet<String> {
@@ -221,8 +222,8 @@ fn comparison(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fi
     Ok(crate::filter::compare::compare(op, &left, &literal))
 }
 
-/// A comparison side that resolves rather than being written out: `subject`,
-/// or a state wrapper's value. `None` for a literal.
+/// A comparison side that resolves at run time rather than as a literal:
+/// `subject`, or a state wrapper's value. `None` for a literal.
 fn side(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<Option<FieldValue>, FilterError> {
     let node = unwrap_root(node);
     match node.operator() {
@@ -368,8 +369,9 @@ fn single_field(children: &[Node<DefaultNumericTypes>], name: &str) -> Result<St
     }
 }
 
-/// A name no commit field answers to — a task field named by mistake, most
-/// likely, so say what a commit rule does read and where a task field goes.
+/// A name that matches no commit field, most likely a task field named by
+/// mistake. The message says what a commit rule does read and where a task
+/// field goes.
 fn unknown_field(name: &str, env: Env<'_>) -> FilterError {
     let task_field = if env.task.is_some() {
         format!(

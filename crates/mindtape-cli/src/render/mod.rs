@@ -6,26 +6,26 @@
 //!
 //! # Submodules
 //!
-//! - [`color`] — colour decision honouring `--color`, `NO_COLOR`, and TTY
+//! - [`color`]: colour decision honouring `--color`, `NO_COLOR`, and TTY
 //!   detection.
-//! - [`glyph`] — emoji vs. ASCII vs. no-glyph mode, with TTY-aware resolution.
-//! - [`width`] — Unicode display-width-aware truncation and padding helpers.
-//! - [`sep`] — stable separator policy for machine-readable output.
-//! - [`field`] — `Field` trait and generic cell rendering seam.
-//! - [`file_uri`] — a path as an RFC 8089 `file:` URI, for hyperlinks.
+//! - [`glyph`]: emoji vs. ASCII vs. no-glyph mode, with TTY-aware resolution.
+//! - [`width`]: Unicode display-width-aware truncation and padding helpers.
+//! - [`sep`]: stable separator policy for machine-readable output.
+//! - [`field`]: `Field` trait and generic cell rendering seam.
+//! - [`file_uri`]: a path as an RFC 8089 `file:` URI, for hyperlinks.
 //!
 //! # Files
 //!
-//! - `breach.rs` — one rendered line per rule breach.
-//! - `envelope.rs` — the `$schema` wrapper every object output carries.
-//! - `objects.rs` — the payloads of the object outputs other than `ls`.
-//! - `output.rs` — rendering tasks as a table, JSON or CSV.
-//! - `payload.rs` — the `mt ls --json` document and its `$schema` context.
-//! - `stdout.rs` — closed-pipe-safe `print!` and `println!` writers.
+//! - `breach.rs`: one rendered line per rule breach.
+//! - `envelope.rs`: the `$schema` wrapper every object output carries.
+//! - `objects.rs`: the payloads of the object outputs other than `ls`.
+//! - `output.rs`: rendering tasks as a table, JSON or CSV.
+//! - `payload.rs`: the `mt ls --json` document and its `$schema` context.
+//! - `stdout.rs`: closed-pipe-safe `print!` and `println!` writers.
 //!
-//! The submodules expose infrastructure that will be consumed by command modules
-//! as each command is migrated; `dead_code` is not suppressed here — see
-//! the `#[allow(dead_code)]` on the `mod render` declaration in `main.rs`.
+//! The submodules expose infrastructure that command modules consume as the
+//! migration proceeds. `dead_code` stays unsuppressed here: see the
+//! `#[allow(dead_code)]` on the `mod render` declaration in `main.rs`.
 
 pub(crate) mod breach;
 pub(crate) mod envelope;
@@ -41,43 +41,44 @@ use mindtape::{ConditionEnv, Config, Readiness, StemHashes};
 /// What every `ls` renderer needs beyond the tasks themselves.
 ///
 /// They travel together because [`columns::resolve_order`] needs the first
-/// three at once — the config for the column vocabulary, the readiness for the
-/// rows' `ready` state, and the environment for the conditions a column's
-/// `rules` evaluate — and because the table and CSV renderers must hand it the
-/// *same* three or they would stop agreeing on the column set.
+/// three at once. The config supplies the column vocabulary, the readiness
+/// supplies the rows' `ready` state, and the environment supplies the
+/// conditions a column's `rules` evaluate. The table and CSV renderers must
+/// also hand it the *same* three, or they would stop agreeing on the column
+/// set.
 #[derive(Debug, Clone, Copy)]
 pub struct RenderCtx<'a> {
     pub config: &'a Config,
     pub readiness: &'a Readiness,
     /// Ambient facts a column's `when` expression resolves against. Per-column
-    /// [`mindtape::ColumnFacts`] are filled in by `resolve_order`, which is
-    /// the only place that knows them.
+    /// [`mindtape::ColumnFacts`] come from `resolve_order`, the only place that
+    /// knows them.
     pub env: &'a ConditionEnv,
     /// The stem hashes of every task the project loaded, not only the rows
     /// printed, so the `slug#` column agrees across listings.
     pub hashes: &'a StemHashes,
-    /// The project root the tasks' `file` paths are relative to; empty when no
+    /// The project root the tasks' `file` paths are relative to. Empty when no
     /// project is in play, which leaves paths root-relative.
     pub root: &'a Path,
     /// Whether the `slug#` and `file` cells print as OSC 8 hyperlinks, resolved
     /// for this project from `--hyperlinks` and `[ls] hyperlinks`.
     pub hyperlinks: bool,
     /// The name of the set member these rows come from, which shows the
-    /// `PROJECT` column; `None` outside a set.
+    /// `PROJECT` column. `None` outside a set.
     pub project: Option<&'a str>,
 }
 
 /// Owned backing for a [`RenderCtx`] in a test.
 ///
 /// The context borrows its pieces, so a test that built them inline would be
-/// handing `render` references to temporaries. This holds them instead; the
-/// default is the shipped floor, no readiness, no ambient facts and no stem
-/// hashes — the unconfigured-project case nearly every render test wants.
+/// handing `render` references to temporaries. This holds them instead. The
+/// default is the built-in floor, with no readiness, no ambient facts and no
+/// stem hashes: the unconfigured-project case nearly every render test needs.
 ///
 /// The floor rather than [`Config::default`], because every column's
-/// visibility lives in `defaults.toml` as a `when` expression: a config
-/// that never went through `parse_config` describes no column, so it renders
-/// none, and a render test built on one would assert against an empty table.
+/// visibility lives in `defaults.toml` as a `when` expression. A config that
+/// never went through `parse_config` describes no column, so it renders none,
+/// and a render test built on one would assert against an empty table.
 #[cfg(test)]
 pub struct TestCtx {
     pub config: Config,

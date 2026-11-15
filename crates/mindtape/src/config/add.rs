@@ -1,8 +1,8 @@
 //! `[add]` config: the interactive editor fill for `mt add`.
 //!
 //! Shapes when the editor opens and which one to spawn. The fill machinery
-//! itself (scaffold, parse-back) lives in the CLI; this module is config shape
-//! only, so the library stays format-blind.
+//! itself (scaffold, parse-back) lives in the CLI. This module holds config
+//! shape only, which keeps the library format-blind.
 
 use serde::Deserialize;
 
@@ -15,8 +15,8 @@ pub struct AddConfig {
     pub editor: Option<String>,
     /// When the interactive editor opens.
     pub interactive: InteractiveMode,
-    /// Scaffold header override. Absent uses the built-in instructions; an empty
-    /// (or all-blank) string disables the header; any other text replaces it,
+    /// Scaffold header override. Absent uses the built-in instructions. An empty
+    /// (or all-blank) string disables the header. Any other text replaces it,
     /// comment-prefixed so it stays valid YAML. Ignored when `comments = false`.
     pub header: Option<String>,
     /// Whether the scaffold carries explanatory `#` comments. These are the header
@@ -44,8 +44,8 @@ pub enum InteractiveMode {
     /// Open in a terminal when a required slot is still unfilled (default).
     #[default]
     Auto,
-    /// Always open in a terminal; error when stdin/stdout is not a TTY.
+    /// Always open in a terminal, and error when stdin/stdout is not a TTY.
     Always,
-    /// Never open; behave as the non-interactive pipeline.
+    /// Never open, and behave as the non-interactive pipeline.
     Never,
 }

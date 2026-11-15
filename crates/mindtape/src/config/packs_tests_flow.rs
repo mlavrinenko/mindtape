@@ -1,8 +1,9 @@
 //! The `mindtape:flow` and `mindtape:ice` packs, loaded through the real
-//! registry: the status legend with its edges, the `review-stale-task-before-starting` gate and its
-//! `days` parameter, the ICE priority over the floor's scale, and a project's
-//! own legend replacing the pack's whole. How a flip moves through the graph
-//! is the CLI tests' business (`flow_pack_e2e.rs`).
+//! registry. They cover the status legend with its edges, the
+//! `review-stale-task-before-starting` gate and its `days` parameter, and the
+//! ICE priority over the floor's scale. A project's own legend replaces the
+//! pack's whole. How a flip moves through the graph is the CLI tests' business
+//! (`flow_pack_e2e.rs`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::tests_budget::load;

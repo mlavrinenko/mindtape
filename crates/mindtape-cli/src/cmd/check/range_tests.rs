@@ -1,11 +1,10 @@
 //! Regression tests for `cmd::check::range::run`'s per-commit reporting.
 //!
-//! The decisions pinned here are invisible to an exit-code-only test: a commit
-//! whose either state holds a task file that will not evaluate is still
-//! printed with its warnings, while one that fails only a `severity = "warn"`
-//! rule is printed but does not break the run. Driving the real binary is the
-//! only way to see the printed report, the same reason `cmd/rm/cli_tests.rs` spawns
-//! `mt`.
+//! An exit-code-only test cannot see the decisions pinned here. A commit whose
+//! either state holds a task file that will not evaluate still prints its
+//! warnings. One that fails only a `severity = "warn"` rule prints but does not
+//! break the run. Driving the real binary is the only way to see the printed
+//! report, the same reason `cmd/rm/cli_tests.rs` spawns `mt`.
 
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -15,7 +14,7 @@ use std::path::Path;
 use assert_cmd::Command;
 use swhid_mint::test_support::{git, repo_with};
 
-/// A task file that harvests to a marker and passes the floor's validation —
+/// A task file that harvests to a marker and passes the floor's validation,
 /// the seed every range builds on.
 const VALID: &str = "#metadata((\n  marker: \"mindtape.task\",\n  fields: (\n    title: \"Ok\",\n    \
                      status: (name: \"wip\", date: none, note: none),\n  ),\n  extras: (:),\n))\n";

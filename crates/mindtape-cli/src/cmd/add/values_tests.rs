@@ -1,7 +1,7 @@
 //! Tests for `add` value sources: `--set`/`-f` merging, the JSON/YAML `-f`
 //! dispatch (extension-driven and sniffed), slot resolution and unknown-key
 //! rejection.
-//! Env-var layering lives in `cmd/add/values_tests_env.rs`; template resolution
+//! Env-var layering lives in `cmd/add/values_tests_env.rs`. Template resolution
 //! and describe/slug output in `cmd/add/values_tests_templates.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
@@ -315,8 +315,8 @@ fn yaml_extension_dispatch_matches_parse_source() {
     assert_eq!(values.get("x"), Some(&Some(RawValue::Int(1))));
 }
 
-/// The `.json` extension picks the JSON parser outright, so a YAML-shaped body
-/// is rejected rather than silently sniffed into YAML. Pins both the `source ==
+/// The `.json` extension picks the JSON parser outright. A YAML-shaped body
+/// then fails rather than silently sniffing into YAML. Pins both the `source ==
 /// "-"` short-circuit and the `Some("json")` arm against removal.
 #[test]
 fn json_extension_forces_the_json_parser() {
@@ -327,7 +327,7 @@ fn json_extension_forces_the_json_parser() {
     );
 }
 
-/// Symmetrically, `.yaml`/`.yml` picks the YAML parser, so the reported error
+/// Symmetrically, `.yaml`/`.yml` picks the YAML parser. The reported error then
 /// names YAML even for brace-leading bytes that sniffing would try as JSON
 /// first. Pins the `Some("yaml" | "yml")` arm against removal.
 #[test]
@@ -339,10 +339,10 @@ fn yaml_extension_forces_the_yaml_parser() {
     );
 }
 
-/// A non-brace body goes straight to YAML, so a malformed one reports the YAML
-/// error rather than being tried as JSON first. Pins `looks_like_json`'s
-/// false branch — a constant `true` reroutes the failure through the JSON
-/// parser and rewrites the message.
+/// A non-brace body goes straight to YAML. A malformed one then reports the
+/// YAML error rather than going to JSON first. Pins `looks_like_json`'s false
+/// branch: a constant `true` reroutes the failure through the JSON parser and
+/// rewrites the message.
 #[test]
 fn sniffed_non_brace_malformed_input_reports_the_yaml_error() {
     let err = parse_sniffed_source("-", "title: [unterminated\n")
@@ -423,9 +423,10 @@ fn append_operator_accumulates_across_both_carriers() {
 }
 
 /// The pre-release `key[]=value` append spelling carries no diagnostic of its
-/// own any more: `collect_values` accepts the bracketed text as an ordinary
-/// key, and it fails downstream exactly as any other unknown key does — an
-/// `unknown slot or field` error naming it, with no pointer back to `+=`.
+/// own any more. `collect_values` accepts the bracketed text as an ordinary
+/// key, and it fails downstream exactly as any other unknown key does. The
+/// error is `unknown slot or field`, it cites the key, and it carries no
+/// pointer back to `+=`.
 #[test]
 fn token_without_an_equals_errors_naming_the_token() {
     let err = collect_values(&[], &[], &["tags".to_owned()])
@@ -435,8 +436,8 @@ fn token_without_an_equals_errors_naming_the_token() {
     assert!(err.contains("key+=value"), "{err}");
 }
 
-/// Several unknown keys come out as one error: the first is the value, the
-/// rest are notes, so none is lost to the first re-run.
+/// Every unknown key comes out as one error: the first is the value, the rest
+/// are notes, so none disappears on the first re-run.
 #[test]
 fn only_the_first_equals_separates() {
     let values = collect_map(&[], &[], &["summary=a=b=c".to_owned()]);

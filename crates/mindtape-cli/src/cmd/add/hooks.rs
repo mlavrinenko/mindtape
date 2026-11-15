@@ -3,17 +3,17 @@
 //!
 //! One mutable draft task flows through the hook list in declaration order, so
 //! each `when` sees what the earlier hooks left. `set` and `append` go through
-//! the shared writable writer ([`mindtape::model::writable`]); `derive` calls a
-//! project Typst function over the sanitized draft ([`mindtape::rules::typst`])
-//! and writes its value back; `dir` is expanded after them in the same action,
-//! over the draft's scalar values and the process date, and the last hook that
-//! names one wins.
+//! the shared writable writer ([`mindtape::model::writable`]). `derive` calls a
+//! project Typst function over the sanitized draft
+//! ([`mindtape::rules::typst`]) and writes its value back. `dir` expands after
+//! them in the same action, over the draft's scalar values and the process
+//! date, and the last hook that specifies one wins.
 //!
-//! An explicit `=` from the caller owns its field: a hook `set` or `derive` on
-//! it is skipped and reported, while an explicit `+=` does not block a later
-//! `set`. Hook appends always accumulate, and a later hook's `set` replaces the
-//! draft value (and so drops earlier appends), because the draft is the one
-//! source of truth both the next `when` and the final fill read.
+//! An explicit `=` from the caller owns its field. The hook list skips and
+//! reports a hook `set` or `derive` on that field, while an explicit `+=` does
+//! not block a later `set`. Hook appends always accumulate, and a later hook's
+//! `set` replaces the draft value (and so drops earlier appends). The draft is
+//! the one source of truth both the next `when` and the final fill read.
 
 use std::collections::BTreeSet;
 use std::fmt;
@@ -30,7 +30,7 @@ use typst_harvest::HVal;
 
 use crate::diag::{Diag, Kind, Note, Result, emit_text};
 
-/// What the hook list chose: the last `dir`, and every field an action wrote.
+/// The last `dir` the hook list chose, and every field an action wrote.
 #[derive(Debug, Default)]
 pub(super) struct Outcome {
     /// The last hook's expanded `dir`, project-root-relative.
@@ -42,7 +42,7 @@ pub(super) struct Outcome {
 /// The caller's own input, which a hook may not override: the fields an
 /// explicit `=` owns, and whether `--dir` already chose the destination.
 pub(super) struct Input<'a> {
-    /// The project root a derive's Typst file is resolved from.
+    /// The project root that a derive action resolves its Typst file against.
     pub(super) root: &'a Path,
     /// The template `mt add` used, readable as `{template}` and `template ==`.
     pub(super) template: &'a str,
@@ -55,10 +55,10 @@ pub(super) struct Input<'a> {
 /// Run every `[[on.add]]` hook whose `when` matches `draft`, in order.
 ///
 /// # Errors
-/// A `when` that cannot be parsed or evaluated, a value the shared writer
-/// refuses, a derive call that fails or returns the wrong type, or a `dir`
-/// whose macro has no value or expands to a path component the template cannot
-/// hold.
+/// A `when` the parser or evaluator rejects, a value the shared writer
+/// refuses, or a derive call that fails or returns the wrong type. Also a `dir`
+/// whose macro has no value, or one that expands to a path component the
+/// template cannot hold.
 pub(super) fn run(config: &Config, input: &Input<'_>, draft: &mut Task) -> Result<Outcome> {
     let mut outcome = Outcome::default();
     let pre_hook = draft.clone();
@@ -249,7 +249,7 @@ fn field_error(err: writable::WritableError, label: &str) -> Diag {
 }
 
 /// A derived value as the writer's input shape. A list field takes a Typst
-/// array of strings and nothing else; a scalar field takes one scalar. `None`
+/// array of strings and nothing else. A scalar field takes one scalar. `None`
 /// is a value the field cannot hold.
 fn field_value(field: &WritableField, value: &HVal) -> Option<RawValue> {
     if matches!(field.shape, Shape::List(_)) {
@@ -279,7 +279,7 @@ fn expand(text: &str, template: &str, draft: &Task, label: &str) -> Result<Strin
 }
 
 /// One `dir` macro's value: the template name, a date macro from the process's
-/// pinned or system date, or a writable scalar's text.
+/// pinned or system date, or the text of a writable scalar.
 fn macro_value(name: &str, template: &str, draft: &Task) -> Option<String> {
     if name == "template" {
         return Some(template.to_owned());

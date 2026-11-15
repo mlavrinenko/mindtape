@@ -7,11 +7,12 @@ use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
 use std::path::Path;
 
-/// A template whose slots span both sides of the escaping decision: a `string`
+/// A template whose slots span both sides of the escaping decision. A `string`
 /// title and an `int` priority render as literals and must stay verbatim, while
-/// the `text` slots land in markup and must be escaped. `why` sits inside a link
-/// note, the one markup position the harvest reads back as a value, so a test can
-/// assert what a filled `text` slot actually means rather than only how it looks.
+/// the `text` slots land in markup and need escaping. `why` sits inside a link
+/// note, the one markup position the harvest reads back as a value. A test can
+/// then assert what a filled `text` slot actually means rather than only how it
+/// looks.
 const SLOT_TEMPLATE: &str = mindtape::typst_task!(
     r#"(
   title: slot("title", prompt: "Task title", example: "Fix the login redirect"),
@@ -26,18 +27,18 @@ const SLOT_TEMPLATE: &str = mindtape::typst_task!(
 );
 
 /// A throwaway project scaffolded with `source` as its default template
-/// (`.mindtape/templates/task.typ`) — the shared prologue
-/// [`project_with_slot_template`] and [`project_with_raw_slot_template`]
-/// both build on before adding their own fixtures, and the one every test
-/// about a template's *shape* (a single-line `task.with(…)`, a template that
-/// cannot evaluate) reaches for directly.
+/// (`.mindtape/templates/task.typ`). It is the shared prologue
+/// [`project_with_slot_template`] and [`project_with_raw_slot_template`] both
+/// build on before adding their own fixtures. Every test about a template's
+/// *shape* (a single-line `task.with(…)`, a template that cannot evaluate)
+/// reaches for it directly.
 pub fn project_with_template(source: &str) -> tempfile::TempDir {
     project_with_template_and_config("[tasks]\nroots = [\"tasks\"]\n", source)
 }
 
 /// [`project_with_template`], but with `config` written to
 /// `.mindtape/config.toml` in place of the bare `[tasks] roots = ["tasks"]`
-/// default — for a test whose default template must clear a rule the
+/// default, for a test whose default template must clear a rule the
 /// project's own config declares (`[[tasks.body.headers.rules]]`,
 /// `[[tasks.body.content.rules]]`).
 pub fn project_with_template_and_config(config: &str, source: &str) -> tempfile::TempDir {
@@ -62,7 +63,7 @@ pub fn project_with_slot_template() -> tempfile::TempDir {
 }
 
 /// A template with one `raw`-kind slot, the unescaped counterpart to
-/// [`SLOT_TEMPLATE`]'s `text` slots — proves the escaping decision is a
+/// [`SLOT_TEMPLATE`]'s `text` slots. It proves the escaping decision is a
 /// per-slot choice the template author makes, not a per-command one.
 const TYPST_SLOT_TEMPLATE: &str = mindtape::typst_task!(
     r#"(
@@ -140,7 +141,7 @@ pub fn git_commit_all(dir: &Path) {
 
 /// Install `@local/mindtape` where [`super::mt`]'s isolated data home puts the
 /// package root, as `mt install` would, and an empty `tasks/` root under
-/// `dir`, so a task filed there can actually be evaluated.
+/// `dir`, so the loader can actually evaluate a task filed there.
 pub fn install_lib(dir: &Path) {
     let pkg = dir
         .join(super::DATA_HOME)
@@ -149,10 +150,10 @@ pub fn install_lib(dir: &Path) {
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
 }
 
-/// A temp project that can evaluate `@local/mindtape` via the
-/// in-tree lib override the loader honours, with the barebones `[tasks]
-/// roots = ["tasks"]` config the `add` e2e batteries build on before
-/// overriding it with a scenario-specific one.
+/// A temp project that can evaluate `@local/mindtape` via the in-tree lib
+/// override the loader honours. It carries the barebones `[tasks]
+/// roots = ["tasks"]` config the `add` e2e batteries build on before overriding
+/// it with a scenario-specific one.
 pub fn scaffold() -> tempfile::TempDir {
     scaffold_project(TASKS_ROOT_CONFIG)
 }
@@ -175,13 +176,14 @@ pub fn scaffold_project(config: &str) -> tempfile::TempDir {
     dir
 }
 
-/// `[tasks] roots = ["tasks"]` — the minimal config both [`project_with_tasks`]
+/// `[tasks] roots = ["tasks"]`, the minimal config both [`project_with_tasks`]
 /// and [`project_with_task`] scaffold onto via [`scaffold_project`].
 const TASKS_ROOT_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 
 /// A minimal real task source through the actual prelude: `title`, `wip`
-/// since 2026-06-01, priority 3 — the plumbing [`project_with_tasks`] shares
-/// across every fixture that needs several distinguishable real tasks.
+/// since 2026-06-01, priority 3. It is the plumbing [`project_with_tasks`]
+/// shares across every fixture that needs more than one distinguishable real
+/// task.
 fn task_source(title: &str) -> String {
     format!(
         "#import \"@local/mindtape:0.4.0\": *\n\n\
@@ -189,11 +191,11 @@ fn task_source(title: &str) -> String {
     )
 }
 
-/// A throwaway project — [`scaffold_project`] with [`TASKS_ROOT_CONFIG`],
-/// plus one real task per `(file, title)` pair, written under `tasks/`.
-/// Unlike [`project_with_task`]'s single raw-metadata fixture, this goes
-/// through the actual prelude and supports several tasks, for a test that
-/// needs to tell them apart (`mt find`/`mt ls --format path` fixtures).
+/// A throwaway project: [`scaffold_project`] with [`TASKS_ROOT_CONFIG`], plus
+/// one real task per `(file, title)` pair, written under `tasks/`. Unlike
+/// [`project_with_task`]'s single raw-metadata fixture, this goes through the
+/// actual prelude and supports more than one task, for a test that needs to tell
+/// them apart (`mt find`/`mt ls --format path` fixtures).
 pub fn project_with_tasks(tasks: &[(&str, &str)]) -> tempfile::TempDir {
     let dir = scaffold_project(TASKS_ROOT_CONFIG);
     for (file, title) in tasks {
@@ -202,8 +204,8 @@ pub fn project_with_tasks(tasks: &[(&str, &str)]) -> tempfile::TempDir {
     dir
 }
 
-/// A throwaway project — [`scaffold_project`] with [`TASKS_ROOT_CONFIG`] and
-/// one `wip` task titled `title` — for tests that only need something to list.
+/// A throwaway project: [`scaffold_project`] with [`TASKS_ROOT_CONFIG`] and one
+/// `wip` task titled `title`, for tests that only need something to list.
 pub fn project_with_task(title: &str) -> tempfile::TempDir {
     let dir = scaffold_project(TASKS_ROOT_CONFIG);
     write_file(
@@ -225,9 +227,8 @@ pub fn project_with_task(title: &str) -> tempfile::TempDir {
     dir
 }
 
-/// A committed-clean repository holding one `wip` task, `parser`, with
-/// `rules` appended to its config — where every `mt check --commit-msg` test
-/// starts.
+/// A committed-clean repository holding one `wip` task, `parser`, with `rules`
+/// appended to its config. Every `mt check --commit-msg` test starts there.
 pub fn commit_repo(rules: &str) -> tempfile::TempDir {
     let dir = project_with_tasks(&[("parser.typ", "Write the parser")]);
     let config = dir.path().join(".mindtape/config.toml");
@@ -239,7 +240,7 @@ pub fn commit_repo(rules: &str) -> tempfile::TempDir {
 
 /// Write `tasks/<stem>.typ` with its show rule reached through a `let` alias,
 /// so no literal `task.with(…)` call exists for an edit to hold. Returns the
-/// bytes written, for a test that checks the file was left alone.
+/// bytes written, for a test that checks the edit left the file alone.
 pub fn write_aliased_task(dir: &Path, stem: &str) -> String {
     let body = "#import \"@local/mindtape:0.4.0\": *\n#let t = task\n\
                 #show: t.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n";

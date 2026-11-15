@@ -1,18 +1,19 @@
 //! Working-directory-relative rendering of a task's source path.
 //!
-//! `Task.file` is stored root-relative (`truth/tasks/x.typ`), but the table's
-//! `file` column shows a path relative to the process's working directory —
-//! the form an editor-integrated terminal (Zed, Visual Studio Code, `JetBrains`) turns into
-//! a ctrl-click with no escape sequences involved
-//! (`truth/tasks/2026-07/opt-in-file-column-for-mt-ls.typ`). [`relativize`] is the
-//! pure core; the root comes from [`super::RenderCtx`], so one process can
-//! render several projects, and the working directory is read once ([`cwd`]).
+//! `Task.file` holds a root-relative path (`truth/tasks/x.typ`), but the table's
+//! `file` column shows a path relative to the process's working directory. That
+//! is the form an editor-integrated terminal (Zed, Visual Studio Code,
+//! `JetBrains`) turns into a ctrl-click with no escape sequences involved
+//! (`truth/tasks/2026-07/opt-in-file-column-for-mt-ls.typ`). [`relativize`] is
+//! the pure core. The root comes from [`super::RenderCtx`], so one process can
+//! render more than one project, and [`cwd`] reads the working directory once.
 //!
 //! Only the two surfaces a human reads from a shell come through here: the
-//! table cell and `--format path`/`path0`, which exist to be pasted back into
-//! a command from the cwd that produced them. The record formats do not —
-//! `--format json` and `--format csv` both carry `task.file` unchanged, so a
-//! stored record means the same thing whatever directory produced it
+//! table cell and `--format path`/`path0`. Both exist so a reader can paste
+//! them back into a command from the cwd that produced them. The record
+//! formats do not. `--format json` and `--format csv` both carry `task.file`
+//! unchanged. A stored record then means the same thing whatever directory
+//! produced it
 //! (`truth/tasks/2026-09/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 
 use std::path::{Component, Path, PathBuf};
@@ -57,12 +58,12 @@ pub fn cell_text(root: &Path, file: &Path) -> String {
 /// Express `root.join(file)` relative to `cwd`.
 ///
 /// `file` is already relative to `root`, so only locating `root` relative to
-/// `cwd` requires walking a shared prefix; `file`'s own components ride along
+/// `cwd` requires walking a shared prefix. `file`'s own components ride along
 /// unchanged. Concretely: drop the components `root` and `cwd` share, emit one
 /// `..` per remaining `cwd` component, then descend through `root`'s
-/// remaining components, then `file`. Always relative; falls back to the
-/// absolute path only when `root` and `cwd` share no common ancestor at all
-/// (e.g. distinct Windows drive prefixes).
+/// remaining components, then `file`. The result is always relative. It falls
+/// back to the absolute path only when `root` and `cwd` have no common
+/// ancestor at all (such as distinct Windows drive prefixes).
 #[must_use]
 pub fn relativize(root: &Path, cwd: &Path, file: &Path) -> PathBuf {
     match ascend(root, cwd) {
@@ -76,14 +77,14 @@ pub fn relativize(root: &Path, cwd: &Path, file: &Path) -> PathBuf {
 /// editor registers its own URI scheme overrides this in config instead.
 pub const DEFAULT_HYPERLINK_TARGET: &str = "file://{abs}";
 
-/// Build the `file` column's hyperlink target URI for `file` (a task's
-/// root-relative source path) by substituting `{abs}` and `{rel}` into
+/// Build the `file` column's hyperlink target URI for `file`, a task's
+/// root-relative source path. It substitutes `{abs}` and `{rel}` into
 /// `template`: what follows `file://` for `root.join(file)`
 /// ([`file_uri::uri_tail`]), and the working-directory-relative path
 /// [`cell_text`] renders, both `/`-separated and percent-encoded.
 ///
 /// Falls back to `file` for both tokens when `root` is empty or the
-/// working directory is unreadable — the same fallback [`cell_text`] uses.
+/// working directory is unreadable, the same fallback [`cell_text`] uses.
 #[must_use]
 pub fn hyperlink_target(root: &Path, file: &Path, template: &str) -> String {
     match cwd() {
@@ -97,8 +98,8 @@ pub fn hyperlink_target(root: &Path, file: &Path, template: &str) -> String {
 }
 
 /// Pure core of [`hyperlink_target`], with `root`/`cwd` passed explicitly so
-/// the substitution is unit-testable without the process working directory —
-/// mirrors [`relativize`]'s split from [`cell_text`].
+/// the substitution is unit-testable without the process working directory.
+/// It mirrors [`relativize`]'s split from [`cell_text`].
 fn build_hyperlink_target(root: &Path, cwd: &Path, file: &Path, template: &str) -> String {
     let abs = root.join(file);
     let rel = relativize(root, cwd, file);
@@ -110,7 +111,7 @@ fn build_hyperlink_target(root: &Path, cwd: &Path, file: &Path, template: &str) 
 /// The relative path from `from` to `to` (both absolute): shared-prefix
 /// components dropped, one `..` per leftover `from` component, then `to`'s
 /// leftover components appended. `None` when `to` and `from` disagree on
-/// their very first component (e.g. distinct Windows drive letters) — the one
+/// their first component (such as distinct Windows drive letters), the one
 /// case with no relative path between them at all.
 fn ascend(to: &Path, from: &Path) -> Option<PathBuf> {
     let to_parts: Vec<Component<'_>> = to.components().collect();

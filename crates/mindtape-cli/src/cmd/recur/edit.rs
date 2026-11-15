@@ -4,7 +4,7 @@
 //! `recurred-from` rewrite (spawn only), and the nested `every()`/`rrule()`
 //! `count:` decrement. Same `task_edit::{task_with, upsert_named_arg}` +
 //! `typst_edit::apply` shape as `cmd/flip/mod.rs`'s `status_edit` and `cmd/review.rs`'s
-//! `build_edit` — just more fields rewritten at once.
+//! `build_edit`, just more fields rewritten at once.
 
 use std::ops::Range;
 
@@ -16,7 +16,7 @@ use typst_edit::{Call, Edit, apply, find_calls};
 use crate::diag::{Diag, Hint};
 use crate::task_edit::{initial_status, task_with, upsert_named_arg};
 
-/// Render a Typst `on(y, m, d)` call for `date` — the same literal shape
+/// Render a Typst `on(y, m, d)` call for `date`, the same literal shape
 /// `cmd/review.rs`'s `build_edit` writes for `reviewed:`.
 #[must_use]
 pub fn on_call(date: NaiveDate) -> String {
@@ -29,7 +29,7 @@ pub fn on_call(date: NaiveDate) -> String {
 /// instead of four.
 #[derive(Debug, Clone, Copy)]
 pub struct OccurrenceDates {
-    /// Today's date — the status stamp's date.
+    /// Today's date, which the status stamp carries.
     pub today: (i32, u8, u8),
     /// The source task's current `due:`, if it set one.
     pub old_due: Option<NaiveDate>,
@@ -41,8 +41,8 @@ pub struct OccurrenceDates {
 
 /// The shifted `start` for one occurrence advance: moves by the same delta as
 /// `due` (a "N days before due" offset stays constant across occurrences).
-/// `None` when the source task did not set both `due` and `start` — nothing
-/// to shift.
+/// `None` when the source task did not set both `due` and `start`, so there is
+/// nothing to shift.
 #[must_use]
 pub fn shift_start(
     old_due: Option<NaiveDate>,
@@ -55,7 +55,7 @@ pub fn shift_start(
 }
 
 /// The `due:`/`start:` edits for one occurrence advance: `due` set to
-/// `next_due`; `start` set to `next_start` when the caller computed a shift
+/// `next_due`, and `start` set to `next_start` when the caller computed a shift
 /// (see [`shift_start`]).
 pub fn due_start_edits(
     source: &str,
@@ -72,12 +72,12 @@ pub fn due_start_edits(
 
 /// The full set of edits a fresh occurrence needs: status reset to the
 /// initial legend value dated `today`, plus [`due_start_edits`]. Shared by
-/// spawn (on the copied source) and mutate (in place); `mt recur --skip`
-/// calls [`due_start_edits`] directly since it must not touch status.
+/// spawn (on the copied source) and mutate (in place). `mt recur --skip` calls
+/// [`due_start_edits`] directly since it must not touch status.
 ///
 /// # Errors
-/// Returns an error when `source` holds no `task.with(…)` call, no status is
-/// configured to stamp, or an edit cannot be built.
+/// Returns an error when `source` holds no `task.with(…)` call, the config has
+/// no status to stamp, or an edit fails to build.
 pub fn status_due_start_edits(
     source: &str,
     config: &Config,
@@ -107,13 +107,13 @@ pub fn status_due_start_edits(
 ///
 /// It replaces rather than appends, and the difference is the whole point. A
 /// spawn's source is its predecessor's source, so an occurrence spawned from an
-/// occurrence already carries a `recurred-from` — and that kind allows one edge
+/// occurrence already carries a `recurred-from`, and that kind allows one edge
 /// per task ([`mindtape::link::builtin_kinds`]). Appending wrote a second one,
 /// which is a file `mt check` refuses: the chain is a linked list, and each
-/// occurrence names only the one before it.
+/// occurrence references only the one before it.
 ///
 /// # Errors
-/// Returns an error when `source` holds no `task.with(…)` call.
+/// Returns an error when `source` carries no `task.with(…)` call.
 pub fn set_recurred_from(source: &str, predecessor_stem: &str) -> Result<Edit> {
     let call = task_with(source)?;
     let edge = format!("recurred-from(\"{predecessor_stem}.typ\")");
@@ -126,15 +126,16 @@ pub fn set_recurred_from(source: &str, predecessor_stem: &str) -> Result<Edit> {
 }
 
 /// The `links:` value in `range` rewritten as every edge call that is not
-/// `recurred-from`, then `edge` — each surviving call's text taken verbatim, so
-/// a note's markup passes through untouched rather than being re-rendered.
+/// `recurred-from`, then `edge`. The rewrite copies each surviving call's text
+/// verbatim, which lets a note's markup pass through untouched rather than
+/// being re-rendered.
 ///
 /// `None` when there is nothing to replace (no `recurred-from` in there, so the
-/// plain append is already right and byte-identical), or when the edge calls do
-/// not account for the whole value apart from `+` and whitespace. The second
-/// case is the guard: this scanner only knows the edge helpers, and silently
-/// dropping something it cannot see would be a worse bug than the duplicate
-/// edge it is here to prevent.
+/// plain append is already right and byte-identical). It is also `None` when the
+/// edge calls do not account for the whole value apart from `+` and whitespace.
+/// The second case is the guard. This scanner only knows the edge helpers, and
+/// silently dropping something it cannot see would be a worse bug than the
+/// duplicate edge it is here to prevent.
 fn without_recurred_from(source: &str, range: &Range<usize>, edge: &str) -> Option<String> {
     let calls: Vec<_> = mindtape::link_edges(source)
         .into_iter()
@@ -164,11 +165,11 @@ fn without_recurred_from(source: &str, range: &Range<usize>, edge: &str) -> Opti
 }
 
 /// Decrement the recur rule's `count:` in place, when the task set one
-/// (`None` stays unbounded — nothing to rewrite).
+/// (`None` stays unbounded, so there is nothing to rewrite).
 ///
 /// # Errors
-/// Returns an error when `old_count` is set but no `every(...)`/`rrule(...)`
-/// call can be located in `source`.
+/// Returns an error when `old_count` holds a value but `source` has no
+/// `every(...)`/`rrule(...)` call.
 pub fn decrement_count_edit(source: &str, old_count: Option<u32>) -> Result<Option<Edit>> {
     let Some(old_count) = old_count else {
         return Ok(None);
@@ -196,7 +197,7 @@ fn recur_call(source: &str) -> Result<Call> {
 /// ([`decrement_count_edit`]), in one atomic splice.
 ///
 /// # Errors
-/// Returns an error when the count can't be located or the edits can't apply.
+/// Returns an error when the command cannot find the count or apply the edits.
 pub fn apply_counted(source: &str, mut edits: Vec<Edit>, count: Option<u32>) -> Result<String> {
     if let Some(edit) = decrement_count_edit(source, count)? {
         edits.push(edit);

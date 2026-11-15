@@ -25,7 +25,7 @@ fn retire_removal() -> Removal {
     })
 }
 
-/// Run `ask_with` on a terminal, answering `answer`; return the result and the
+/// Run `ask_with` on a terminal, answering `answer`. Returns the result and the
 /// lines the prompt showed.
 fn ask(removal: &Removal, answer: bool) -> (crate::diag::Result<()>, Vec<String>) {
     let shown = RefCell::new(Vec::new());

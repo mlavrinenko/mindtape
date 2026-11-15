@@ -92,7 +92,7 @@ pub(crate) fn load_env(config: &Config, packages: Option<&StatePackages>) -> Str
 }
 
 /// The git blob id of `rel`'s working-tree bytes, as `git hash-object` would
-/// report it. `None` when the file cannot be read.
+/// report it. `None` when reading the file fails.
 pub(crate) fn working_oid(root: &Path, rel: &Path) -> Option<String> {
     let bytes = std::fs::read(root.join(rel)).ok()?;
     let mut hasher = Sha1::new();
@@ -105,7 +105,7 @@ pub(crate) fn working_oid(root: &Path, rel: &Path) -> Option<String> {
 pub(crate) struct Reuse<'a> {
     pub(crate) tasks: &'a [Task],
     pub(crate) files: &'a HashMap<PathBuf, SeenFile>,
-    /// True for the working-tree load, whose root choice must be checked.
+    /// True for the working-tree load, which must check its root choice.
     pub(crate) seeded: bool,
 }
 
@@ -123,7 +123,7 @@ pub(crate) struct Build {
     pub(crate) seen: Vec<Seen>,
 }
 
-/// The task and error lists a state is being assembled into.
+/// The task and error lists that a state assembles into.
 pub(crate) struct Parts<'a> {
     pub(crate) tasks: &'a mut Vec<Task>,
     pub(crate) errors: &'a mut Vec<LoadError>,

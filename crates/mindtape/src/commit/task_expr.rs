@@ -5,20 +5,21 @@
 //! ([`crate::commit::CommitRecord::tasks`]). It reads the commit's own
 //! fields as a commit rule does ([`crate::commit::expr`]), plus:
 //!
-//! - `head(<expr>)`, `staged(<expr>)`, `worktree(<expr>)` — any filter
+//! - `head(<expr>)`, `staged(<expr>)`, `worktree(<expr>)`: any filter
 //!   expression, graph predicates and `count(...)` included, evaluated over
 //!   the task as that state holds it, against that state's whole task set. As
 //!   a comparison side, `staged(status)` is the field's value in that state.
-//! - `exists`, inside a wrapper — whether the state holds the task's file.
-//! - `named` — the commit's trailer names the task.
-//! - `retires_other` — the staged state lacks a task other than this one that
-//!   `HEAD` holds: the commit deletes (or moves away) another task's file.
-//! - `into("s")` — `staged(status == "s") && !head(status == "s")`, rewritten
+//! - `exists`, inside a wrapper: whether the state holds the task's file.
+//! - `named`: the commit's trailer references the task.
+//! - `retires_other`: the staged state lacks a task other than this one that
+//!   `HEAD` holds, which means the commit deletes (or moves away) another
+//!   task's file.
+//! - `into("s")`: `staged(status == "s") && !head(status == "s")`, rewritten
 //!   before the parse by the scanner `[[on.flip]]` shares
 //!   ([`crate::config::hooks::rewrite_into`]).
 //!
-//! A bare task field is refused: which state it would read is the one thing
-//! a reader of the rule could not tell.
+//! The parser refuses a bare task field, because the state it would read is
+//! ambiguous.
 
 use evalexpr::{DefaultNumericTypes, Node};
 
@@ -40,11 +41,12 @@ pub(crate) const STATES: [&str; 3] = ["head", "staged", "worktree"];
 pub struct TaskScope<'a> {
     /// The task's stem.
     pub stem: &'a str,
-    /// The project in every state the commit is checked against.
+    /// The project in every state the check reads the commit against.
     pub states: &'a CommitStates,
     /// The config the inner filter expressions resolve against.
     pub config: &'a Config,
-    /// The load-time dry run: `changed()` checks its arguments, reads no git.
+    /// The load-time dry run: `changed()` checks its arguments and never
+    /// reads git.
     pub(crate) dry: bool,
 }
 
@@ -60,7 +62,7 @@ impl<'a> TaskScope<'a> {
         }
     }
 
-    /// `named`: the trailer names this task.
+    /// `named`: the trailer references this task.
     pub(crate) fn named(&self, commit: &CommitRecord) -> bool {
         commit.refs.iter().any(|stem| stem == self.stem)
     }
@@ -84,8 +86,8 @@ impl<'a> TaskScope<'a> {
         }
     }
 
-    /// Evaluate `read` over the task as state `name` holds it — a stand-in
-    /// carrying only the stem where the state lacks the file.
+    /// Evaluate `read` over the task as state `name` holds it, with a
+    /// stand-in carrying only the stem where the state lacks the file.
     fn read<T>(
         &self,
         name: &str,
@@ -142,9 +144,10 @@ pub fn desugar_commit_into(expr: &str) -> String {
     })
 }
 
-/// What makes one task-scope expression unusable, if anything: an `into(...)`
-/// naming no configured status, a syntax error, or what a dry run over a
-/// probe task present in every state surfaces — a bare task field above all.
+/// What makes one task-scope expression unusable, if anything. That is an
+/// `into(...)` that references no configured status, a syntax error, or what a
+/// dry run over a probe task present in every state surfaces. The dry run
+/// catches a bare task field above all.
 #[must_use]
 pub(crate) fn task_expr_problem(source: &str, config: &Config) -> Option<Problem> {
     let legend = &config.tasks.status;

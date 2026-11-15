@@ -32,7 +32,7 @@ max = 9
     .unwrap()
 }
 
-/// A task with status, priority, and optional due set — shared with the
+/// A task with status, priority, and optional due set, shared with the
 /// `sort_compare_tests.rs` sibling.
 pub(super) fn task(id: &str, status: &str, priority: f64, due: Option<&str>) -> Task {
     let mut t = bare_task(id);
@@ -169,10 +169,10 @@ fn sort_by_specs_rejects_an_unknown_direction() {
     assert!(err.contains("asc") && err.contains("desc"), "{err}");
 }
 
-/// `--sort file` is the same trap the filter field was: the column is named
-/// `file`, the sort key is `path`. `file` is not a sort field at all, so both
-/// the pre-flight validator and `sort_by_specs`' own guard fail it as any
-/// other unknown field, since a saved `[ls] default-sort` reaches one and a
+/// `--sort file` is the same trap the filter field was: the column carries the
+/// name `file`, the sort key is `path`. `file` is not a sort field at all, and
+/// both the pre-flight validator and `sort_by_specs`' own guard fail it as any
+/// other unknown field. A saved `[ls] default-sort` reaches one, and a
 /// `--sort` flag the other.
 #[test]
 fn the_file_sort_field_is_an_unknown_field() {
@@ -256,7 +256,7 @@ default-sort = ["id"]
 // --- Graph-derived sort keys (`topo`, `blocks`) ---
 
 /// A task carrying the graph ranks the loader derives (`crate::graph::dep_rank`),
-/// plus a priority — the shape the tiebreak tests need.
+/// plus a priority, the shape the tiebreak tests need.
 fn ranked(id: &str, topo: u32, blocks: u32, priority: f64) -> Task {
     let mut t = task(id, "wip", priority, None);
     t.topo = topo;

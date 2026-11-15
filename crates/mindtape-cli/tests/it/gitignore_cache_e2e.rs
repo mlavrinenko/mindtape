@@ -1,9 +1,9 @@
 //! The checkout's root `.gitignore` ignores a task cache wherever the project
 //! sits, before `mt` has written the cache's own `.gitignore`.
 //!
-//! A pattern with a slash in the middle is anchored to the repo root, so
+//! Git anchors a pattern with a slash in the middle to the repo root, so
 //! `.mindtape/cache/` alone covers no project under `examples/`. mmz hashes
-//! what git does not ignore, so a gate that reaches `examples/` hashed a cache
+//! what git does not ignore. A gate that reaches `examples/` hashed a cache
 //! file that another gate's `mt` then renamed away.
 //!
 //! Unix only: the checkout and the `git` door come from `support::shell`.

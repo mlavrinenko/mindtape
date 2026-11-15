@@ -30,8 +30,8 @@ fn assert_has(problems: &[Problem], needle: &str) {
     assert!(problems.iter().any(|p| p.contains(needle)), "{problems:?}");
 }
 
-/// No problem carries a nearest name: the far-miss shared assertion for every
-/// unknown-name suggestion test below (view / column), so the negative check
+/// The far-miss shared assertion for every unknown-name suggestion test below
+/// (view / column): the problem carries no nearest name. The negative check then
 /// lives once rather than once per site.
 fn assert_no_suggestion(problems: &[Problem]) {
     assert!(
@@ -166,8 +166,9 @@ fn rule_with_list(entries: &[&str], build: impl Fn(Vec<String>) -> LsRule) -> Ls
 }
 
 /// Each case is one rule with exactly one bad field, plus a substring the
-/// resulting problem must contain — covers every field `validate_ls_rules`
-/// checks without repeating the same rule-then-assert skeleton per field.
+/// resulting problem must contain. The table covers every field
+/// `validate_ls_rules` checks without repeating the same rule-then-assert
+/// skeleton per field.
 #[test]
 fn validate_rules_reports_one_problem_per_bad_field() {
     let import_views = |v| LsRule {

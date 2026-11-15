@@ -1,19 +1,20 @@
-//! A commit state's git tree: the task files under its roots, the config it
-//! declares, and the `@local` package files that config pins.
+//! A commit state's git tree, with the task files under its roots, the config
+//! it declares, and the `@local` package files that config pins.
 //!
 //! [`StateTree`] reads a revision, or the index when the revision is empty.
-//! [`crate::commit::tasks`] turns what it reads into a project state, so a
-//! task file the state leaves unchanged still resolves against that state's
+//! [`crate::commit::tasks`] turns what it reads into a project state. A task
+//! file the state leaves unchanged then still resolves against that state's
 //! own package tree rather than the working tree's.
 //!
 //! The state's `.mindtape/config.toml` is the top layer over the embedded
 //! floor, XDG defaults and ancestor `.mindtape/defaults.toml` files that a
-//! working-tree load discovers, so roots and pins those layers declare still
+//! working-tree load discovers. Roots and pins those layers declare still
 //! apply. The state's project config text, task file bytes and pinned package
 //! files come from its git tree.
-//! A task file's relative imports outside a pin, files a config layer names
-//! such as packs and dictionary paths, and task roots outside the project
-//! still read the working tree; a state cannot list them.
+//!
+//! A task file's relative imports outside a pin still read the working tree,
+//! and so do files a config layer names, such as packs and dictionary paths.
+//! Task roots outside the project read it too. A state cannot list them.
 
 use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -31,7 +32,8 @@ use crate::config::Config;
 use crate::loader::{LoadError, StatePackages, package_overrides};
 use crate::task_source::TaskSource as TaskSourcePolicy;
 
-/// The config a state's tree declares, or the reason it could not be used.
+/// The config a state's tree declares, or the reason the load could not use
+/// it.
 #[derive(Clone)]
 pub(crate) struct StateConfig {
     /// The state's own config, absent when the tree holds none or it did not
@@ -62,7 +64,7 @@ pub(crate) enum TaskSource {
     /// The Typst source to evaluate at the entry's path, and the final blob
     /// identity that source came from.
     Text { text: String, source: String },
-    /// The state holds no blob at the entry.
+    /// The state lacks a blob at the entry.
     Missing { source: String },
     /// A symlink the state tree cannot resolve.
     Unsupported { message: String, source: String },
@@ -85,7 +87,7 @@ pub(crate) struct StateTree<'a> {
     root: &'a Path,
     /// The repository root above `root`.
     repo: PathBuf,
-    /// `root`'s path within the repository, `/`-terminated or empty.
+    /// `root`'s path within the repository, ending in `/` or empty.
     prefix: &'a str,
     /// The revision read, or empty for the index.
     rev: &'a str,
@@ -110,7 +112,7 @@ impl<'a> StateTree<'a> {
     }
 
     /// [`Self::parse_config`] with the config home, XDG directory and pack cache
-    /// injected, so a test never reads the developer's global layers.
+    /// injected. A test then never reads the developer's global layers.
     pub(crate) fn parse_config_in(
         &self,
         text: &str,
@@ -141,9 +143,9 @@ impl<'a> StateTree<'a> {
     /// that identify unchanged files between states. Classification is the
     /// shared [`crate::task_source::TaskSource`] policy, so a template dir,
     /// reserved component or path outside every root is not an entry. It is
-    /// lexical: a tracked file the working tree lacks is still listed, and a
+    /// lexical: a tracked file the working tree lacks still appears, and a
     /// `120000` symlink entry is not a source. A file under two overlapping
-    /// roots is listed once.
+    /// roots appears once.
     pub(crate) fn task_entries(&self, config: &Config) -> Result<Vec<TaskEntry>, CommitMsgError> {
         let policy = TaskSourcePolicy::new(self.root, config);
         let mut entries = BTreeMap::new();
@@ -192,7 +194,7 @@ impl<'a> StateTree<'a> {
             .collect())
     }
 
-    /// The Typst source `entry` resolves to, following a symlink's target
+    /// The Typst source `entry` resolves to, following the target of a symlink
     /// inside the state tree.
     pub(crate) fn task_source(&self, entry: &TaskEntry) -> Result<TaskSource, CommitMsgError> {
         if entry.mode != "120000" {
@@ -255,8 +257,8 @@ impl<'a> StateTree<'a> {
         }
     }
 
-    /// Each `paths` object as text, in order, through one `cat-file --batch`;
-    /// `None` where this state holds no such path.
+    /// Each `paths` object as text, in order, through one `cat-file --batch`.
+    /// `None` where this state lacks that path.
     pub(crate) fn read(&self, paths: &[&str]) -> Result<Vec<Option<String>>, CommitMsgError> {
         let specs: Vec<String> = paths
             .iter()
@@ -305,7 +307,7 @@ impl<'a> StateTree<'a> {
     }
 
     /// The package at `name` and repository path `prefix`, from `cache` when
-    /// the pin tree is unchanged.
+    /// the pin tree has not changed.
     fn package_cached(
         &self,
         name: &str,
@@ -345,7 +347,7 @@ impl<'a> StateTree<'a> {
     }
 
     /// The package at repository path `prefix`: its spec and every file's
-    /// package-relative path with its bytes, or `None` when the tree holds no
+    /// package-relative path with its bytes, or `None` when the tree lacks a
     /// readable manifest there.
     fn package(
         &self,
@@ -397,8 +399,8 @@ impl<'a> StateTree<'a> {
     }
 
     /// The git entry repository-relative `path` holds in this state. An index
-    /// has no directory entries, so a path that only prefixes tracked files is
-    /// returned as a synthetic tree entry.
+    /// has no directory entries, so a path that only prefixes tracked files
+    /// yields a synthetic tree entry.
     fn entry_at(&self, path: &str) -> Result<Option<GitEntry>, CommitMsgError> {
         if path.is_empty() {
             return Ok(None);

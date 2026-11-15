@@ -1,9 +1,9 @@
 //! `extends` resolution: a layer's `extends` list, resolved against an
-//! injected pack registry so a test never needs a real embedded pack —
-//! `source:pack` names, path entries, and the keys a pack may not
-//! declare. Split out of `config/packs_tests.rs`, which was near the linecop
-//! cap; the shared `layer` fixture stays in the parent test module and is
-//! reached through `super::tests`.
+//! injected pack registry so a test never needs a real embedded pack. The
+//! tests here exercise `source:pack` names, path entries, and the keys a pack
+//! may not declare. Split out of `config/packs_tests.rs`, which was near the
+//! linecop cap. The shared `layer` fixture lives in the parent test module,
+//! and `super::tests` provides it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::tests::layer;
@@ -65,8 +65,8 @@ fn extends_unknown_pack_lists_what_the_source_holds() {
 }
 
 /// The real registry, not an injected one: `mindtape:tasks` is the pack the
-/// binary ships, and the old `mindtape-tasks` name is refused with the new one
-/// as the suggestion.
+/// binary embeds. `mt` refuses the old `mindtape-tasks` name and suggests the
+/// new one.
 fn real_registry_error(entry: &str) -> crate::config::ConfigError {
     let root = tempdir();
     let layers = [layer(
@@ -223,9 +223,9 @@ fn a_pack_may_declare_a_sibling_of_a_denied_key() {
     assert_eq!(merged.table["commits"]["trailer"].as_str(), Some("Fixes"));
 }
 
-/// `[[commits.rules]]` merges by name like the task rule arrays: a pack's
-/// rule is replaced in place by a layer's same-named one, and `disable`
-/// drops another.
+/// `[[commits.rules]]` merges by name like the task rule arrays. A layer's
+/// same-named rule replaces a pack's rule in place, and `disable` drops
+/// another.
 #[test]
 fn commit_rules_merge_by_name_across_packs() {
     let registry: &[(&str, &str)] = &[(

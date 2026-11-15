@@ -1,10 +1,10 @@
 //! The `@local/mindtape` packages this crate embeds, and the file provider
-//! that serves them where no package directory holds that version, so a CI
-//! runner or a fresh clone loads tasks before anyone runs `mt install`.
+//! that serves them where no package directory holds that version. A CI runner
+//! or a fresh clone then loads tasks before anyone runs `mt install`.
 //!
 //! Each supported version keeps its own immutable snapshot under
 //! `preludes/<version>/`. A release archives the outgoing current snapshot
-//! there before it bumps `lib/typst.toml`; a version leaves the set only with
+//! there before it bumps `lib/typst.toml`. A version leaves the set only with
 //! its snapshot and fixture, in the release that stops reading it.
 
 use std::path::PathBuf;
@@ -26,13 +26,13 @@ pub const PRELUDE_VERSION: &str = "0.4.0";
 pub const PRELUDE_SUPPORTED: &[&str] = &["0.2.0", "0.3.0", "0.4.0"];
 
 /// The current prelude, a copy of `lib/prelude.typ` inside the crate so the
-/// published tarball holds it; a test keeps the two equal.
+/// published tarball holds it, and a test keeps the two equal.
 pub const PRELUDE: &str = include_str!("preludes/0.4.0/prelude.typ");
 
 const PRELUDE_0_2: &str = include_str!("preludes/0.2.0/prelude.typ");
 const PRELUDE_0_3: &str = include_str!("preludes/0.3.0/prelude.typ");
 
-/// One supported prelude version and the source it ships.
+/// One supported prelude version and the source it carries.
 #[derive(Debug, Clone, Copy)]
 pub struct PreludeSnapshot {
     /// The version, as `lib/typst.toml` spells it.

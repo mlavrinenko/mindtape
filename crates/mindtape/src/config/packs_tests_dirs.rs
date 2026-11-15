@@ -1,7 +1,7 @@
-//! A directory pack: an `extends` path naming a directory reads its
+//! A directory pack is an `extends` path naming a directory, which reads its
 //! `pack.toml`, and the pack's `templates/` joins `templates.dirs` after the
-//! merge. The shared `layer` fixture stays in the parent test module and is
-//! reached through `super::tests`.
+//! merge. The shared `layer` fixture stays in the parent test module, and
+//! `super::tests` reaches it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::{Path, PathBuf};
@@ -159,8 +159,7 @@ fn load_dirs(files: &[(&str, &str)], ancestor: &str, own: &str) -> Vec<String> {
     config.templates.dirs
 }
 
-/// Two directory packs, `a` and `b`, each shipping `x.typ`, beside the
-/// project.
+/// Two directory packs, `a` and `b`, each carrying `x.typ`, beside the project.
 const AB: [(&str, &str); 4] = [
     ("a/pack.toml", ""),
     ("a/templates/x.typ", ""),

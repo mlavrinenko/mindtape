@@ -11,7 +11,7 @@ use crate::model::{Status, Task};
 use crate::shell::ConfigCommand;
 use crate::test_support::bare_task;
 
-/// A task at `status`, for scoping a `when` against the status being left.
+/// A task at `status`, for scoping a `when` against the status a flip leaves.
 fn task_at(id: &str, status: &str) -> Task {
     let mut task = bare_task(id);
     task.status = Some(Status {
@@ -28,7 +28,7 @@ fn config_with(hooks: &str) -> Config {
 
 /// The two atoms `into(...)` rewrites to must really be constant, since every
 /// hook's scoping rests on them. `has(id)` holds for any task because `Task::id`
-/// is a plain `String` that is never absent; `miss(id)` is its complement.
+/// is a plain `String` that is never absent. `miss(id)` is its complement.
 /// If the filter language ever makes `id` optional, this fails first.
 #[test]
 fn into_atoms_are_constant() {
@@ -76,8 +76,8 @@ fn desugar_into_skips_string_literals() {
     assert!(into_targets(expr).is_empty());
 }
 
-/// A backslash inside a literal consumes the character after it, so the quote
-/// it escapes does not close the string and a following `into(...)` stays data.
+/// A backslash inside a literal consumes the character after it. The escaped
+/// quote does not close the string, and a following `into(...)` stays data.
 #[test]
 fn copy_in_string_consumes_the_escaped_character() {
     let mut out = String::new();
@@ -88,7 +88,7 @@ fn copy_in_string_consumes_the_escaped_character() {
     assert!(in_string, "an escaped quote must not close the literal");
 }
 
-/// An unescaped `"` clears `in_string`, so the scanner resumes looking for
+/// An unescaped `"` clears `in_string`. The scanner then resumes looking for
 /// `into(...)` calls after the literal.
 #[test]
 fn copy_in_string_closes_on_the_unescaped_quote() {
@@ -100,7 +100,7 @@ fn copy_in_string_closes_on_the_unescaped_quote() {
     assert!(!in_string, "an unescaped quote must close the literal");
 }
 
-/// `into` is matched as a whole identifier only.
+/// The scanner matches `into` as a whole identifier only.
 #[test]
 fn desugar_into_leaves_longer_identifiers_alone() {
     for expr in [r#"zinto("done")"#, r#"into_view("done")"#] {
@@ -108,7 +108,7 @@ fn desugar_into_leaves_longer_identifiers_alone() {
     }
 }
 
-/// A malformed call passes through, so the filter parser reports it by name
+/// A malformed call passes through. The filter parser then reports it by name
 /// rather than the hook silently never firing.
 #[test]
 fn desugar_into_passes_malformed_calls_through() {
@@ -168,7 +168,7 @@ gate = true"#
 }
 
 /// `run` is optional on a gating action: `gate = true` with no `run` still
-/// resolves to `Run`, just with no command to execute — the flip refuses
+/// resolves to `Run`, just with no command to execute. The flip refuses
 /// unconditionally whenever the hook's `when` matches.
 #[test]
 fn a_gate_with_no_run_resolves_as_a_runless_gate() {
@@ -187,7 +187,7 @@ message = "re-read the scope""#
     );
 }
 
-/// `message` is optional too, same as a `run` gate — the runner falls back to
+/// `message` is optional too, same as a `run` gate. The runner falls back to
 /// its default advice.
 #[test]
 fn a_runless_gate_needs_no_message() {
@@ -271,7 +271,7 @@ fn hooks_fire_only_on_the_matching_transition() {
     assert!(into_cancelled.is_empty());
 }
 
-/// The task half of `when` reads the status being left, not the one arriving.
+/// The task half of `when` reads the status a flip leaves, not the one arriving.
 #[test]
 fn when_reads_the_status_being_left() {
     let config = config_with(TWO_HOOKS);
@@ -351,7 +351,7 @@ fn validation_reports_each_problem() {
     }
 }
 
-/// A valid hook against the shipped legend passes both the module check and the
+/// A valid hook against the default legend passes both the module check and the
 /// whole-config check `mt check` runs.
 #[test]
 fn a_valid_hook_passes_validation() {
@@ -364,8 +364,8 @@ fn a_valid_hook_passes_validation() {
     assert!(config.validate().is_ok());
 }
 
-/// A run-less gate — `gate = true` and `message`, no `run` — is a valid hook:
-/// the config the task's Scope shows as the motivating example.
+/// A run-less gate (`gate = true` and `message`, no `run`) is a valid hook.
+/// The task's Scope shows that config as the motivating example.
 #[test]
 fn a_runless_gate_passes_validation() {
     let config = config_with(

@@ -3,9 +3,9 @@
 //! `mt add` files tasks from a template, but a project's config may require
 //! core fields (priority, difficulty, kind, assignee, estimate) or `x-<ns>`
 //! fields the chosen template never declares. This module derives the
-//! slot-bearing expressions those fields need so a CLI can splice them into
-//! `task.with(…)` — surfacing them in the fill scaffold and the `--describe`
-//! schema, and writing them into the final task. A slot the template does
+//! slot-bearing expressions those fields need, so a CLI can splice them into
+//! `task.with(…)`. It surfaces them in the fill scaffold and the `--describe`
+//! schema, and writes them into the final task. A slot the template does
 //! declare for such a field inherits the field's config `values` as its
 //! choices ([`inherit_field_choices`]). Consumer-blind: pure over [`Config`]
 //! and the template source, no I/O.
@@ -27,10 +27,10 @@ pub struct RequiredSlot {
     /// The config path the requirement comes from, named in the fill note
     /// (`[tasks.assignee]`, `[tasks.fields.kind]`).
     pub config_path: String,
-    /// The source to set as that argument's value: a bare `slot(...)` call, or
-    /// — for a strict-framework priority — a `framework(...)` call wrapping one
-    /// `slot(...)` per input. Either way slot discovery walks it and every slot
-    /// it holds is filled before the task is written.
+    /// The source to set as that argument's value: a bare `slot(...)` call, or,
+    /// for a strict-framework priority, a `framework(...)` call wrapping one
+    /// `slot(...)` per input. Either way slot discovery walks it, and every slot
+    /// it holds receives a value before the task reaches the disk.
     pub call: String,
     /// The environment variable the slot reads, when it declares one. A CLI
     /// uses it to name the origin of a value the caller did not supply.
@@ -46,12 +46,13 @@ pub struct RequiredSlot {
 /// then each `x-<ns>` field by name).
 ///
 /// A field counts as required unless its requirement is `false`, or `status`,
-/// the status the task is filed at, settles it as not required (`"!terminal"`
-/// at `done`). Any other filter expression (`"kind == \"bug\""`) is taken as
-/// possibly required, since the task being scaffolded does not exist yet —
-/// better to surface the slot and let `mt check` settle it. Priority driven by a strict framework
-/// (`framework` set, `allow-manual = false`) has no scalar form, so the
-/// framework call itself is spliced with one leaf slot per declared input.
+/// the status the task lands at, settles it as not required (`"!terminal"` at
+/// `done`). The code reads any other filter expression (`"kind == \"bug\""`) as
+/// possibly required, since the task under scaffolding does not exist yet.
+/// Better to surface the slot and let `mt check` settle it. Priority driven by
+/// a strict framework (`framework` set, `allow-manual = false`) has no scalar
+/// form. The code then splices the framework call itself with one leaf slot per
+/// declared input.
 #[must_use]
 pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<RequiredSlot> {
     let tasks = &config.tasks;
@@ -125,9 +126,9 @@ fn priority_slot(config: &Config) -> Option<String> {
 /// The `framework("name", input: slot(...), …)` call for a strict-framework
 /// priority: the generic spelling every framework shares (the named helpers
 /// like `ice(...)` are sugar over it), with one leaf slot per declared input.
-/// The leaves carry no defaults — a strict priority must be a conscious fill,
-/// and an unfilled leaf fails loudly at fill time instead of writing a
-/// misprioritised task. Each carries an example inside its range, which only
+/// The leaves omit every default, because a strict priority must be a conscious
+/// fill. An unfilled leaf fails loudly at fill time instead of writing a task
+/// with the wrong priority. Each carries an example inside its range, which only
 /// `mt check` fills.
 fn framework_call(name: &str, framework: &Framework) -> String {
     if framework.inputs.is_empty() {
@@ -196,8 +197,8 @@ fn choice_list(values: &[String]) -> String {
     values.iter().map(|value| format!("{value:?}, ")).collect()
 }
 
-/// The DSL spelling of a numeric field's scale, mirroring `ScaleKind`'s own
-/// config spelling (`int`/`real`) so a slot's kind faithfully reports the
+/// The DSL spelling of a numeric field's scale. It mirrors `ScaleKind`'s own
+/// config spelling (`int`/`real`), so a slot's kind faithfully reports the
 /// field's declared scale, not a generic template value kind.
 fn scale_kind_str(kind: ScaleKind) -> &'static str {
     match kind {
@@ -206,10 +207,10 @@ fn scale_kind_str(kind: ScaleKind) -> &'static str {
     }
 }
 
-/// The slot for a required described field: a choice over its allowed values
-/// when it declares any, else a plain string slot, falling back to `default`
-/// either way. Its example is the default, else the first allowed value, else
-/// the descriptor's own.
+/// The slot for a required described field. It is a choice over the field's
+/// allowed values when the field declares any, else a plain string slot, and it
+/// falls back to `default` either way. Its example is the default, else the
+/// first allowed value, else the one the descriptor carries.
 fn field_slot(field: &Descriptor) -> RequiredSlot {
     let name = field.name;
     let list = field.cardinality.is_list();
@@ -265,14 +266,14 @@ fn estimate_slot(config: &Config) -> String {
 ///
 /// The field is the argument the slot sits in, never the slot's name, so
 /// `kind: slot("type")` inherits `kind`'s values. A slot inherits only when it
-/// declares no `choices` and its kind is absent, `string` or `choice`; any
-/// other kind, and a slot nested inside a field's value, is left as written.
-/// The choices live only in the template source the fill reads: filling
-/// replaces the whole call, so none of them reach the filed task.
+/// omits `choices` and its kind is absent, `string` or `choice`. Any other kind,
+/// and a slot nested inside a field's value, stays as written. The choices live
+/// only in the template source the fill reads: filling replaces the whole call,
+/// so none of them reach the filed task.
 ///
 /// # Errors
-/// Returns an [`EditError`] when the edits cannot be applied, which two
-/// disjoint slot calls never cause.
+/// Returns an [`EditError`] when the edits fail, which two disjoint slot calls
+/// never cause.
 pub fn inherit_field_choices(source: &str, config: &Config) -> Result<String, EditError> {
     let Some(call) = find_method_calls(source, "task", "with").into_iter().next() else {
         return Ok(source.to_owned());

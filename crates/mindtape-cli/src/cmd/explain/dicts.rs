@@ -21,7 +21,7 @@ pub struct DictsArgs {
 /// Run `mt explain dicts`.
 ///
 /// # Errors
-/// Returns an error if the project cannot be opened or the named dictionary is
+/// Returns an error if the project fails to open or the named dictionary is
 /// unknown.
 pub fn run(args: &DictsArgs, as_json: bool) -> Result<()> {
     let project = util::open()?;
@@ -50,7 +50,7 @@ pub fn run(args: &DictsArgs, as_json: bool) -> Result<()> {
     Ok(())
 }
 
-/// One line per dictionary: its name, padded, then its count and case.
+/// Each line holds a dictionary's name, padded, then its count and case.
 fn list(dicts: &Dicts) -> String {
     let width = dicts.names().map(str::len).max().unwrap_or(0);
     dicts

@@ -1,9 +1,9 @@
 //! A directory pack's templates. After every layer and pack has merged,
 //! [`append_template_dirs`] adds each directory pack's `templates/` to
-//! `templates.dirs`, behind the project's own dirs, so a project template
-//! with a pack template's name wins and `mt add --list` lists both.
+//! `templates.dirs`, behind the project's own dirs. A project template with a
+//! pack template's name then wins, and `mt add --list` lists both.
 //!
-//! Template lookup takes the first dir holding a name, so the dirs go in
+//! Template lookup takes the first dir holding a name. The dirs go in
 //! precedence order: the pack of the latest layer, and the last one in its
 //! `extends`, first. That is the order a later rule replaces an earlier one
 //! by name. A directory pack that two layers extend counts once, at its
@@ -23,8 +23,8 @@ const TEMPLATE_DIRS: [&str; 2] = ["templates", "dirs"];
 const TEMPLATES_FOLDER: &str = "templates";
 
 /// Append the `templates/` folder of each of `pack_dirs`, given in the order
-/// the packs were folded, that exists, to the document's `templates.dirs`.
-/// A document with no such folder to add is left untouched.
+/// the merge folded the packs, that exists, to the document's `templates.dirs`.
+/// A document with no such folder to add stays untouched.
 ///
 /// # Errors
 /// Returns [`ConfigError::Invalid`] when `templates` isn't a table.
@@ -50,16 +50,16 @@ pub(super) fn append_template_dirs(
     crate::config::packs_toml::write_array(doc, &TEMPLATE_DIRS, dirs)
 }
 
-/// Whether `path` names `base` or a file under it, once both are
+/// Whether `path` references `base` or a file under it, once both are
 /// [`absolute`]. An absolute `path` joined to `base` replaces it, so it
-/// passes only when it names a file under `base` itself.
+/// passes only when it references a file under `base` itself.
 pub(crate) fn stays_inside(base: &Path, path: &Path) -> bool {
     absolute(path).starts_with(absolute(base))
 }
 
 /// `path` made absolute, with its `.` and `..` segments resolved by name, so
-/// two spellings of one folder compare equal. The working directory is left
-/// out when it can't be read.
+/// two spellings of one folder compare equal. The result leaves out the working
+/// directory when the read fails.
 pub(super) fn absolute(path: &Path) -> PathBuf {
     let path = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     let mut clean = PathBuf::new();

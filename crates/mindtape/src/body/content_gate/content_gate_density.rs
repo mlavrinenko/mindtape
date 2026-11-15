@@ -1,9 +1,9 @@
-//! The `density` content assertion: split one section's content into units
-//! (the section, its paragraphs, or its sentences), count each unit's regex
-//! matches, and report the first unit over the bound.
+//! The `density` content assertion splits one section's content into units: the
+//! section, its paragraphs, or its sentences. It counts each unit's regex
+//! matches and reports the first unit over the bound.
 //!
-//! Split out of [`crate::body::content_gate`] to stay under the file-size gate; the
-//! split rules ([`unit_ranges`]) are the entire reason this is its own file.
+//! Split out of [`crate::body::content_gate`] to stay under the file-size gate.
+//! The split rules ([`unit_ranges`]) are the entire reason this is its own file.
 
 use std::ops::Range;
 
@@ -12,13 +12,13 @@ use regex::Regex;
 use crate::body::content::DensityUnit;
 
 /// What a byte of inline code becomes in the text the splits and counts read:
-/// neither whitespace, punctuation nor a word character, so no pattern about
-/// prose matches it and no split happens inside a span.
+/// neither whitespace, punctuation nor a word character. A prose pattern then
+/// never matches it, and a split never happens inside a span.
 const MASK: char = '\u{1}';
 
-/// The first unit (in document order) whose match count of `re` exceeds
-/// `max`, named by ordinal and — for a paragraph or sentence unit — its
-/// first few words, or `None` when every unit is within bounds.
+/// The first unit (in document order) whose match count of `re` exceeds `max`.
+/// The report names it by ordinal, plus its first few words for a paragraph or
+/// sentence unit. `None` when every unit is within bounds.
 pub(super) fn density_violation(
     content: &str,
     heading: &str,
@@ -46,10 +46,10 @@ pub(super) fn density_violation(
         })
 }
 
-/// What a density violation message calls the offending unit: the section
-/// itself for `per = section` (there is only one unit, and the heading
-/// already names it), or an ordinal plus a leading-words snippet for a
-/// paragraph or sentence.
+/// Names the offending unit for a density violation message. That is the section
+/// itself for `per = section` (there is only one unit, and the heading already
+/// names it), or an ordinal plus a leading-words snippet for a paragraph or
+/// sentence.
 fn density_subject(heading: &str, per: DensityUnit, idx: usize, unit: &str) -> String {
     match per {
         DensityUnit::Section => format!("section `{heading}`"),
@@ -94,15 +94,14 @@ fn snippet(text: &str) -> String {
 /// ([`strip_fenced_code`], [`mask_inline_code`]), so code neither matches nor
 /// splits.
 ///
-/// 1. The text is grouped into paragraphs: runs of non-blank lines
-///    separated by one or more blank lines. A `- ` or `+ ` list-item line
-///    starts a new paragraph even with no blank line before it, so a tight
-///    list is one paragraph per item rather than one paragraph for the
-///    whole list; its continuation lines (indented text with no bullet)
-///    stay part of that item. Nested-subsection prose is already part of
-///    `content` by the time it reaches this function (the same span
-///    `min-words` counts over), so it is grouped exactly like top-level
-///    section prose.
+/// 1. Group the text into paragraphs: runs of non-blank lines separated by one
+///    or more blank lines. A `- ` or `+ ` list-item line starts a new paragraph
+///    even with no blank line before it. A tight list is then one paragraph per
+///    item rather than one paragraph for the whole list. Its continuation lines
+///    (indented text with no bullet) stay part of that item. Nested-subsection
+///    prose is already part of `content` by the time it reaches this function
+///    (the same span `min-words` counts over), so it groups exactly like
+///    top-level section prose.
 /// 2. At `per = sentence`, each paragraph is further split on `.`, `!`, or
 ///    `?` followed by whitespace or the paragraph's end.
 ///
@@ -120,7 +119,7 @@ fn unit_ranges(text: &str, per: DensityUnit) -> Vec<Range<usize>> {
 
 /// Drop every fenced code block (open/close lines and the lines between)
 /// from `content`, keeping every other line verbatim including blank ones,
-/// so paragraph boundaries around a removed fence are unaffected. A line
+/// so paragraph boundaries around a removed fence stay put. A line
 /// that opens with three or more backticks and closes them on the same line
 /// is inline code, which [`mask_inline_code`] handles, not a fence.
 fn strip_fenced_code(content: &str) -> String {
@@ -151,12 +150,12 @@ fn closes_on_line(line: &str) -> bool {
 }
 
 /// `text` with the inside of every inline raw span replaced byte for byte by
-/// [`MASK`], so a byte range means the same text in both.
+/// [`MASK`]. A byte range then means the same text in both.
 ///
-/// Typst's raw syntax decides a span: one backtick closes at the next
-/// backtick; two make an empty span; three or more close at the next run of
-/// as many. A backslash escapes the character after it, so an escaped
-/// backtick opens nothing, and a run that never closes is left as it is.
+/// Typst's raw syntax decides a span. One backtick closes at the next backtick,
+/// two make an empty span, and three or more close at the next run of as many.
+/// A backslash escapes the character after it. An escaped backtick then opens
+/// nothing. A run that never closes stays as it is.
 fn mask_inline_code(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     let mut rest = text;
@@ -196,10 +195,10 @@ fn mask_span<'a>(from: &'a str, out: &mut String) -> &'a str {
     after
 }
 
-/// Group lines into paragraph ranges: a blank line always closes the current
-/// one; a `- `/`+ ` list-item line closes it too (a new item starts even
-/// without a blank line before it) and opens a new paragraph on itself;
-/// every other line continues whichever paragraph is open.
+/// Group lines into paragraph ranges. A blank line always closes the current
+/// one. A `- `/`+ ` list-item line closes it too (a new item starts even without
+/// a blank line before it) and opens a new paragraph on itself. Every other line
+/// continues whichever paragraph is open.
 fn split_paragraphs(text: &str) -> Vec<Range<usize>> {
     let mut paragraphs = Vec::new();
     let mut current: Option<Range<usize>> = None;
@@ -241,7 +240,7 @@ fn split_sentences(text: &str, paragraph: Range<usize>) -> Vec<Range<usize>> {
 }
 
 /// Push `range` of `body`, trimmed of whitespace and shifted by `offset`,
-/// unless nothing but whitespace is left.
+/// unless nothing but whitespace remains.
 fn push_trimmed(sentences: &mut Vec<Range<usize>>, body: &str, range: Range<usize>, offset: usize) {
     let piece = body.get(range.clone()).unwrap_or_default();
     let lead = piece.len() - piece.trim_start().len();

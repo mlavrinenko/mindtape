@@ -6,15 +6,15 @@ use std::path::{Path, PathBuf};
 
 use super::{cache_home, config_home, data_home, package_root, package_root_from, resolve};
 
-/// A stand-in for `dirs::config_dir()`, so the fall-through case is asserted
+/// A stand-in for `dirs::config_dir()`, so the fall-through case is testable
 /// without depending on the machine running the test.
 #[allow(clippy::unnecessary_wraps)] // must match `dirs::config_dir`'s signature
 fn machine_dir() -> Option<PathBuf> {
     Some(PathBuf::from("/machine/config"))
 }
 
-/// A set, non-empty override replaces the platform directory entirely — the
-/// point of the seam, since on Windows the platform lookup ignores every
+/// A set, non-empty override replaces the platform directory entirely. That is
+/// the point of the seam, since on Windows the platform lookup ignores every
 /// environment variable.
 #[test]
 fn a_set_override_wins_over_the_platform_directory() {
@@ -24,7 +24,7 @@ fn a_set_override_wins_over_the_platform_directory() {
 }
 
 /// An empty override is an explicit "no such directory", not a fall-through to
-/// the machine's own — that is what makes it usable to isolate a test.
+/// the machine's own. That is what makes it usable to isolate a test.
 #[test]
 fn an_empty_override_disables_the_directory() {
     let resolved = resolve(Some(OsString::new()), machine_dir);
@@ -48,9 +48,9 @@ fn an_unset_override_with_no_platform_directory_is_none() {
     assert_eq!(resolved, None);
 }
 
-/// Each public entry point reads its own variable. Asserted only as "does not
-/// panic and agrees with the seam" — the env is process-global, so a test that
-/// set the variable would race every other test in this binary.
+/// Each public entry point reads its own variable. The test asserts only that
+/// it does not panic and agrees with the seam. The env is process-global, so a
+/// test that set the variable would race every other test in this binary.
 #[test]
 fn the_entry_points_resolve_without_panicking() {
     assert_eq!(
@@ -100,7 +100,7 @@ fn an_unset_data_home_uses_typsts_package_root() {
 }
 
 /// The entry point takes the fallback from typst-world, the reader every
-/// world uses, so the install and the read can't name two directories.
+/// world uses, so the install and the read cannot point at two directories.
 #[test]
 fn the_package_root_falls_back_to_typst_worlds() {
     assert_eq!(

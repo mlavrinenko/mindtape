@@ -1,8 +1,8 @@
 //! `[views]` config: named query bundles.
 //!
-//! A view names a filter plus optional sort and column set. It is referenced
-//! from the CLI by an `@name` sigil and from the filter language by
-//! `in_view("name")`. Validated at config load ([`validate_views`]): each filter
+//! A view holds a filter plus optional sort and column set. The CLI references
+//! it by an `@name` sigil, and the filter language by `in_view("name")`.
+//! Validated at config load ([`validate_views`]): each filter
 //! parses, sort specs and columns are legal, every `in_view` / `@` reference
 //! resolves to a declared view, and the reference graph is acyclic.
 
@@ -28,7 +28,7 @@ pub struct ViewSpec {
     #[schemars(extend("x-expression" = "filter"))]
     pub filter: String,
     /// Sort chain applied when this view drives sort (bundle mode or
-    /// `--sort @name`). Same spec grammar as `--sort`; empty means the default
+    /// `--sort @name`). Same spec grammar as `--sort`. Empty means the default
     /// order.
     pub sort: Vec<String>,
     /// Column set applied when this view drives columns (bundle mode or
@@ -47,7 +47,7 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<Problem> {
 }
 
 /// [`validate_views`] over a project's collectors too, so a view's sort may
-/// name a scalar derived field and a list or record is refused at load.
+/// reference a scalar derived field. A list or record then fails at load.
 #[must_use]
 pub fn validate_views_with(
     views: &BTreeMap<String, ViewSpec>,

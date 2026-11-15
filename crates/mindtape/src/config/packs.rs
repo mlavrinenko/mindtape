@@ -6,12 +6,12 @@
 //!
 //! A pack is a config-syntax fragment. `<source>:<pack>` resolves to one
 //! compiled into the binary ([`EMBEDDED_PACKS`], under `mindtape`) or to one
-//! in a declared source's tree in the cache; a path
-//! (anything with a path separator) resolves to a TOML file, or to a
-//! directory holding `pack.toml`, relative to the layer that names it. Before
-//! any layer folds, [`crate::config::pack_sources::for_layers`] reads the
-//! project's `[pack-sources]` and checks them against `.mindtape/packs.lock`,
-//! and only the project layer may name a pack in one. After the merge,
+//! in a declared source's tree in the cache. A path (anything with a path
+//! separator) resolves to a TOML file, or to a directory holding `pack.toml`,
+//! relative to the layer that names it. Before any layer folds,
+//! [`crate::config::pack_sources::for_layers`] reads the project's
+//! `[pack-sources]` and checks them against `.mindtape/packs.lock`, and only
+//! the project layer may reference a pack in one. After the merge,
 //! [`append_template_dirs`] adds each directory pack's `templates/` to
 //! `templates.dirs`. A pack may declare any config key but the few
 //! [`crate::config::pack_resolve`] refuses, `extends` among them, so
@@ -19,10 +19,10 @@
 //!
 //! Per layer, in order: [`fold_layer_packs`] resolves the layer's `extends`
 //! entries, takes each pack's rule arrays out, and folds the rest into one
-//! [`PackLayer`] sub-layer ([`crate::config::pack_fold`] holds the merge and
-//! its conflict check, which a key the layer sets itself settles). The
-//! sub-layer deep-merges into the document, then the layer's own keys on
-//! top, so a layer's table keeps the keys its packs set and it doesn't.
+//! [`PackLayer`] sub-layer. [`crate::config::pack_fold`] holds the merge and
+//! its conflict check, which a key the layer sets itself settles. The
+//! sub-layer deep-merges into the document, then the layer's own keys on top.
+//! A layer's table then keeps the keys its packs set and it doesn't.
 //!
 //! That loop in [`fold_layer_packs`] is the seam later steps hook into. A
 //! step that rewrites a whole pack, rule expressions included, sits between
@@ -33,12 +33,12 @@
 //! reads [`PackLayer`]'s per-pack tables before [`PackLayer::into_table`]
 //! drops them, as [`Sources::record_keys`] does for the keys each pack set.
 //!
-//! Per rule array, entries fold in source order — every pack a layer extends
-//! (in `extends` order), then the layer's own declared entries — and a later
-//! entry sharing an earlier one's `name` replaces it in place rather than
-//! appending a second copy. That replacement only ever looks at entries from
-//! an earlier source: two same-named entries within one source's own array
-//! are both kept untouched, so a same-file mistake still reaches
+//! Per rule array, entries fold in source order: every pack a layer extends
+//! (in `extends` order), then the layer's own declared entries. A later entry
+//! sharing an earlier one's `name` replaces it in place rather than appending
+//! a second copy. That replacement only ever looks at entries from an earlier
+//! source. Two same-named entries within one source's own array are both kept
+//! untouched, so a same-file mistake still reaches
 //! [`crate::body::headers::validate_header_rules`] /
 //! [`crate::body::content::validate_content_rules`] as a duplicate-name error
 //! instead of silently collapsing. `disable` then drops every entry (in any of
@@ -96,7 +96,7 @@ const RULE_ARRAY_PREFIXES: [&str; RULE_ARRAYS] = [
 /// result.
 #[derive(Debug)]
 pub(crate) struct PackMerge {
-    /// The merged TOML document — every layer and pack folded together, the
+    /// The merged TOML document, every layer and pack folded together, the
     /// rule arrays already resolved.
     pub table: toml::Table,
     /// One entry per final rule, across every rule array, in array order.
@@ -104,7 +104,7 @@ pub(crate) struct PackMerge {
     /// One entry per final collector, in declaration order.
     pub collector_origins: Vec<RuleOriginEntry>,
     /// The text of every layer and pack file, in merge precedence, so an
-    /// error can name the file it comes from.
+    /// error can reference the file it comes from.
     pub sources: Sources,
 }
 
@@ -113,11 +113,11 @@ pub(crate) struct PackMerge {
 /// applying its `disable` after every layer has merged in.
 ///
 /// # Errors
-/// Returns [`ConfigError::Invalid`] for a malformed `extends`/`disable`
-/// entry, a misplaced, stale or uninstalled pack source, a cached tree that
-/// doesn't match the lock, an unresolvable pack, a pack declaring a key it
-/// may not or naming a file outside its source, or a `disable` name matching
-/// no rule.
+/// Returns [`ConfigError::Invalid`] for a malformed `extends`/`disable` entry,
+/// a misplaced, stale or uninstalled pack source, or a cached tree that doesn't
+/// match the lock. It also fails on an unresolvable pack, a pack declaring a
+/// key it may not or naming a file outside its source, or a `disable` name
+/// matching no rule.
 pub(crate) fn merge_layers_with_packs(
     layers: &[Layer],
     root: &Path,
@@ -218,15 +218,15 @@ fn merge_with(
     })
 }
 
-/// Resolve one layer's `extends` entries in order: each pack's `param()`
-/// calls take the entry's values, its rule arrays join `accumulators`, and
-/// the rest of it folds into the [`PackLayer`] that merges just below
-/// `layer`, the layer's own table.
+/// Resolve one layer's `extends` entries in order. Each pack's `param()` calls
+/// take the entry's values, and its rule arrays join `accumulators`. The rest
+/// of it folds into the [`PackLayer`] that merges just below `layer`, the
+/// layer's own table.
 ///
 /// # Errors
-/// Returns [`ConfigError`] for an unresolvable pack, one declaring a key a
-/// pack may not, a parameter error, one pack listed twice, or two packs
-/// setting one value differently that `layer` doesn't set.
+/// Returns [`ConfigError`] for an unresolvable pack, one declaring a key a pack
+/// may not, a parameter error, or one pack listed twice. It also fails when two
+/// packs set one value differently and `layer` doesn't set it.
 fn fold_layer_packs(
     extends: &[ExtendsEntry],
     base_dir: &Path,
@@ -266,7 +266,8 @@ fn take_rule_arrays(
     }
 }
 
-/// One accumulated rule: its value, the source it came from and its header line.
+/// An accumulated rule holds its value, the source it came from and its header
+/// line.
 type Placed = (toml::Value, RuleOrigin, Option<usize>);
 
 /// One rule array's accumulated entries: `name`-indexed so a later source's
@@ -279,10 +280,10 @@ struct RuleAccumulator {
 
 impl RuleAccumulator {
     /// Fold one source's own array in, in order. A name this accumulator
-    /// already placed (from an earlier source) is replaced in place; a name
-    /// repeated within this batch is left alone — see the module doc for why.
-    /// `lines` holds each entry's header line, and is used only when it counts
-    /// the batch exactly.
+    /// already placed (from an earlier source) takes the new value in place. A
+    /// name repeated within this batch stays untouched, for the reason the
+    /// module doc gives. `lines` holds each entry's header line, and the fold
+    /// reads it only when it counts the batch exactly.
     fn extend_batch(&mut self, batch: Vec<toml::Value>, origin: &RuleOrigin, lines: &[usize]) {
         let mut seen_this_batch: HashSet<String> = HashSet::new();
         let exact = lines.len() == batch.len();
@@ -306,7 +307,7 @@ impl RuleAccumulator {
     }
 
     /// Drop every entry named `name`, across the whole array. Returns whether
-    /// any were removed.
+    /// it removed any.
     fn remove_named(&mut self, name: &str) -> bool {
         let before = self.entries.len();
         self.entries
@@ -345,7 +346,7 @@ impl RuleAccumulator {
 type NamedOrigin = (Option<String>, RuleOrigin, Option<usize>);
 
 /// One `RuleOriginEntry` per entry in `named_origins`, labeled `prefix.<name>`
-/// when named, else `prefix[<index>]` — matching
+/// when named, else `prefix[<index>]`, matching
 /// [`crate::rules::RuleSpec::label`]'s own name-or-position fallback.
 fn labeled_origins(prefix: &str, named_origins: Vec<NamedOrigin>) -> Vec<RuleOriginEntry> {
     named_origins
@@ -395,13 +396,13 @@ fn layer_parse_error(source: &LayerSource, error: toml::de::Error) -> ConfigErro
     }
 }
 
-/// The directory a layer's own relative paths resolve against: every layer
-/// file lives two segments under it (`<dir>/.mindtape/config.toml`,
-/// `<dir>/.mindtape/defaults.toml`, or XDG's `<config-home>/mindtape/
-/// defaults.toml`), so its grandparent is that directory — `root` itself for
-/// the project layer, matching the task's worked example. Falls back to
-/// `root` for the embedded floor (which carries no path, and never declares
-/// `extends`) or a layer path that turns out to be too shallow.
+/// The directory a layer's own relative paths resolve against. Every layer file
+/// lives two segments under it (`<dir>/.mindtape/config.toml`,
+/// `<dir>/.mindtape/defaults.toml`, or the XDG `<config-home>/mindtape/
+/// defaults.toml`), so its grandparent is that directory. That directory is
+/// `root` itself for the project layer, matching the task's worked example.
+/// Falls back to `root` for the embedded floor (which carries no path, and
+/// never declares `extends`) or a layer path that turns out to be too shallow.
 fn layer_base_dir(source: &LayerSource, root: &Path) -> PathBuf {
     let path = match source {
         LayerSource::Xdg(path) | LayerSource::Dir(path) | LayerSource::Project(path) => Some(path),

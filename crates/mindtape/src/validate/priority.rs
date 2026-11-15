@@ -1,10 +1,10 @@
-//! Priority validation, split out of `validate/mod.rs` (file-size gate): the
-//! framework-vs-manual dispatch, the active/known/valid-inputs checks a
-//! framework invocation must clear, and the strict-mode policy a manual value
-//! must clear instead.
+//! Priority validation, split out of `validate/mod.rs` (file-size gate). It
+//! covers the framework-vs-manual dispatch, the active/known/valid-inputs
+//! checks a framework invocation must clear, and the strict-mode policy a
+//! manual value must clear instead.
 //!
 //! Both paths bottom out on [`crate::validate::check_in_scale`], the same scale
-//! machinery difficulty (and any other plain numeric field) also uses — that
+//! machinery difficulty (and any other plain numeric field) also uses. That
 //! helper stays in `validate/mod.rs`, shared rather than duplicated.
 
 use std::collections::BTreeMap;

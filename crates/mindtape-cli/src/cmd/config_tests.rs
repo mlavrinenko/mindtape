@@ -46,10 +46,10 @@ fn effective_config_json_round_trips_to_same_shape_as_toml() {
     assert_eq!(from_toml, from_json);
 }
 
-/// `mt config show` surfaces `[dicts.<name>]` like any other section — it goes
-/// out on the merged document and comes back through the typed `Config`, which
-/// is `deny_unknown_fields`, so an unreflected section would fail the re-parse
-/// rather than print a table nothing reads.
+/// `mt config show` surfaces `[dicts.<name>]` like any other section. The
+/// section goes out on the merged document and comes back through the typed
+/// `Config`, which is `deny_unknown_fields`. An unreflected section would fail
+/// the re-parse rather than print a table nothing reads.
 #[test]
 fn effective_config_surfaces_the_dicts_section() {
     let dir = tempdir_with_config(
@@ -129,9 +129,9 @@ fn origin_marks_the_project_layer_as_existing() {
 /// Verify that `run()` with `--defaults` emits the embedded floor to stdout.
 ///
 /// Uses a self-spawn subprocess so the parent can capture what the child prints
-/// (println! goes to the child's stdout). A `run()` whose body is replaced with
-/// `Ok(())` would print nothing, so the `!is_empty()` assertion fails and the
-/// mutated test is caught.
+/// (println! goes to the child's stdout). A `run()` whose body returns `Ok(())`
+/// instead wouldn't print anything. The `!is_empty()` assertion then fails and
+/// the test catches the mutation.
 #[test]
 fn run_defaults_prints_embedded_floor() {
     if std::env::var("_MT_CONFIG_DELEGATE").is_err() {
@@ -164,9 +164,9 @@ fn run_defaults_prints_embedded_floor() {
     super::run(&args).unwrap();
 }
 
-/// `render_schema` must reuse `mindtape::config_schema_json` verbatim — the
-/// same generator `mt install` writes to disk — so the printed schema and the
-/// installed `config.schema.json` can never diverge.
+/// `render_schema` must reuse `mindtape::config_schema_json` verbatim, the same
+/// generator `mt install` writes to disk. The printed schema and the installed
+/// `config.schema.json` can then never diverge.
 #[test]
 fn render_schema_matches_the_install_generator() {
     assert_eq!(render_schema(), mindtape::config_schema_json());
@@ -178,10 +178,10 @@ fn render_schema_matches_the_install_generator() {
 /// Uses a self-spawn subprocess so the parent can capture what the child
 /// prints (println! goes to the child's stdout). The child runs under
 /// `--nocapture`, so the captured stream also carries the test harness's own
-/// banner lines — check the exact generated schema appears as a substring
-/// rather than parsing the whole capture as JSON. A `run()` whose body is
-/// replaced with `Ok(())` would print nothing, so the `contains` assertion
-/// fails and the mutated test is caught.
+/// banner lines. Check that the exact generated schema appears as a substring
+/// rather than parsing the whole capture as JSON. A `run()` whose body returns
+/// `Ok(())` instead wouldn't print anything. The `contains` assertion then
+/// fails and the test catches the mutation.
 #[test]
 fn run_schema_prints_json_schema_to_stdout() {
     if std::env::var("_MT_CONFIG_DELEGATE").is_err() {
@@ -226,7 +226,7 @@ fn describe_source_covers_xdg_and_dir() {
 // `pack <name>`, `xdg`); `embedded` never can, for the reason argued at its
 // test below, so it calls `describe_rule_origin` directly instead.
 
-/// A rule declared in the project's own `.mindtape/config.toml` is labeled
+/// A rule declared in the project's own `.mindtape/config.toml` gets the label
 /// `project`.
 #[test]
 fn origin_labels_the_projects_own_rule_as_project() {
@@ -241,14 +241,14 @@ fn origin_labels_the_projects_own_rule_as_project() {
     );
 }
 
-/// A rule declared in an ancestor `.mindtape/defaults.toml` is labeled `dir`.
+/// A rule declared in an ancestor `.mindtape/defaults.toml` gets the label `dir`.
 ///
 /// `render_origin` only calls the real-environment `load_config_layered`, not
-/// the `home`-injectable variant the crate's own layer tests use, so this
+/// the `home`-injectable variant the crate's own layer tests use. This test
 /// can't bound the walk at a fake `$HOME`. It doesn't need to: `dir_layers`
 /// keeps climbing past a `$HOME` the project isn't under all the way to the
-/// filesystem root, so an ancestor directly above a project nested in a
-/// tempdir is on that path regardless of where the real `$HOME` points.
+/// filesystem root. An ancestor directly above a project nested in a tempdir is
+/// on that path regardless of where the real `$HOME` points.
 #[test]
 fn origin_labels_an_ancestor_defaults_rule_as_dir() {
     let base = tempdir_with_dirs(&[".mindtape"]);
@@ -268,8 +268,8 @@ fn origin_labels_an_ancestor_defaults_rule_as_dir() {
 }
 
 /// A rule pulled in through a path pack (an `extends` entry with a path
-/// separator, resolved relative to the layer that names it — here the
-/// project itself) is labeled `pack <path>`.
+/// separator, resolved relative to the layer that references it, here the
+/// project itself) gets the label `pack <path>`.
 #[test]
 fn origin_labels_a_path_packs_rule_as_pack_path() {
     let dir = bare_project();
@@ -291,14 +291,14 @@ fn origin_labels_a_path_packs_rule_as_pack_path() {
     assert!(text.contains(&expected), "{text}");
 }
 
-/// A rule declared in the XDG global `defaults.toml` is labeled `xdg`.
+/// A rule declared in the XDG global `defaults.toml` gets the label `xdg`.
 ///
-/// `render_origin` resolves that layer through `$MINDTAPE_CONFIG_HOME` (the
-/// one override that lands on every platform — `dirs` reads `$HOME` on Unix
-/// but a known-folder API on Windows, which no env var moves; see
-/// `mindtape::loader::app_dirs`). Setting it on the current process would leak into
-/// every other test sharing it, so — like `run_defaults_prints_embedded_floor`
-/// above — this scopes the override to a spawned copy of the test binary
+/// `render_origin` resolves that layer through `$MINDTAPE_CONFIG_HOME`, the one
+/// override that lands on every platform. `dirs` reads `$HOME` on Unix but a
+/// known-folder API on Windows, which no env var moves. See
+/// `mindtape::loader::app_dirs`. Setting it on the current process would leak
+/// into every other test sharing it. Like `run_defaults_prints_embedded_floor`
+/// above, this test scopes the override to a spawned copy of the test binary
 /// instead of mutating this process's environment.
 #[test]
 fn origin_labels_an_xdg_defaults_rule_as_xdg() {
@@ -339,7 +339,7 @@ fn origin_labels_an_xdg_defaults_rule_as_xdg() {
 
 /// A rule pulled in through a `source:pack` `extends` name resolved against the
 /// compiled-in `EMBEDDED_PACKS` registry (`crates/mindtape/src/config/packs.
-/// rs`) is labeled `pack <name>`.
+/// rs`) gets the label `pack <name>`.
 #[test]
 fn origin_labels_an_embedded_packs_rule_as_pack_name() {
     let dir = tempdir_with_config("extends = [\"mindtape:tasks\"]\n");
@@ -351,12 +351,12 @@ fn origin_labels_an_embedded_packs_rule_as_pack_name() {
     );
 }
 
-/// `embedded` — a rule declared directly in the compiled-in floor
-/// (`RuleOrigin::Layer(LayerSource::Embedded)`) — can never be reached
-/// through `render_origin` at all: the embedded `defaults.toml` declares no
-/// `[[tasks.rules]]`, `[[tasks.body.headers.rules]]` or
-/// `[[tasks.body.content.rules]]` entry, so no real merge ever produces this
-/// origin. Call `describe_rule_origin` directly to pin the label regardless.
+/// `embedded` is a rule declared directly in the compiled-in floor
+/// (`RuleOrigin::Layer(LayerSource::Embedded)`). `render_origin` can never
+/// reach it: the embedded `defaults.toml` declares no `[[tasks.rules]]`,
+/// `[[tasks.body.headers.rules]]` or `[[tasks.body.content.rules]]` entry, so
+/// no real merge ever produces this origin. Call `describe_rule_origin`
+/// directly to pin the label regardless.
 #[test]
 fn describe_rule_origin_labels_the_embedded_floor() {
     use super::describe_rule_origin;

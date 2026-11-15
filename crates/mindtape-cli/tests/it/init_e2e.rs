@@ -1,8 +1,8 @@
-//! End-to-end tests that every built-in `init` preset, and every answer set
-//! the wizard's batch flags can compose, scaffold a project that is actually
-//! usable: `add`, `ls`, `check`, and a full status walk to a terminal value —
-//! including the `gated` preset's own runtime review gate — plus discovering
-//! presets via `--list-presets`.
+//! End-to-end tests that every built-in `init` preset scaffolds a usable
+//! project, and that every answer set the wizard's batch flags can compose
+//! does too. A usable project passes `add`, `ls`, `check`, and a full status
+//! walk to a terminal value, including the `gated` preset's own runtime review
+//! gate. The tests also cover discovering presets through `--list-presets`.
 //!
 //! What `init` writes to disk for a given input (rendering, `--annotate`, a
 //! custom preset file's `[overlay]` composition, the `#:schema` flags,
@@ -19,13 +19,14 @@ use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
 
 /// Every built-in preset: the walk from the status `mt add` stamps through to a
-/// terminal one, plus the `--set` fills that walk needs. The path is spelled out
-/// rather than derived so that a preset whose declared `to` edges do not
+/// terminal one, plus the `--set` fills that walk needs. The test spells out
+/// the path rather than deriving it. A preset whose declared `to` edges do not
 /// actually connect fails here.
 ///
-/// `gated` gates `done` on the task carrying no leftover TODO placeholders, so
-/// its walk fills the template's slots the way an author would — the walk then
-/// proves the preset's own gate passes for a task that was actually specified.
+/// `gated` gates `done` on the task carrying no leftover TODO placeholders.
+/// Its walk fills the template's slots the way an author would, and the walk
+/// then proves the preset's own gate passes for a task that was actually
+/// specified.
 const PRESET_PATHS: &[(&str, &[&str], &[&str])] = &[
     ("todo-done", &["done"], &[]),
     ("flow", &["wip", "done"], &[]),
@@ -59,15 +60,15 @@ fn file_and_walk(dir: &std::path::Path, name: &str, fills: &[&str], walk: &[&str
     }
 }
 
-/// The gate that makes a first run trustworthy: for every built-in preset,
-/// scaffold, file a task with nothing but a title, and walk it to a terminal
-/// status — validating at each step. It runs no `mt allow`, so it proves a
-/// fresh project closes a task on any OS, and that `gated`'s own gate passes a
-/// task whose slots are filled.
+/// The gate that makes a first run trustworthy. For every built-in preset, the
+/// test scaffolds, files a task with nothing but a title, and walks it to a
+/// terminal status, validating at each step. It runs no `mt allow`, so it
+/// proves a fresh project closes a task on any OS, and that `gated`'s own gate
+/// passes a task whose slots the walk filled.
 ///
 /// This is what catches a preset that requires something its own template does
 /// not produce. Such a project scaffolds cleanly and then fails on the user's
-/// very first `mt add`, which is the worst possible moment to discover it.
+/// first `mt add`, which is the worst possible moment to discover it.
 #[test]
 fn every_preset_supports_add_check_and_a_full_walk() {
     for (preset, path, fills) in PRESET_PATHS {
@@ -76,7 +77,7 @@ fn every_preset_supports_add_check_and_a_full_walk() {
     }
 }
 
-/// Reachable wizard answer sets — composed configs, not the four named presets.
+/// Reachable wizard answer sets: composed configs, not the four named presets.
 /// Each row is the batch flags that compose the config, the `--set` fills its
 /// first `mt add` needs, and the walk from the status `mt add` stamps through to
 /// a terminal one. Spelled out (not derived) so a set whose declared `to` edges
@@ -137,11 +138,11 @@ const ANSWER_SETS: &[(&[&str], &[&str], &[&str])] = &[
     ),
 ];
 
-/// A composed answer set is as trustworthy as a named preset: for each one,
-/// batch-compose the config from flags, file a task, and walk it to a terminal
-/// status — validating at each step. Free composition multiplies the risk a
-/// config requires a field its scaffolded template cannot fill, so this covers
-/// reachable sets, not only the four presets.
+/// A composed answer set is as trustworthy as a named preset. For each one, the
+/// test batch-composes the config from flags, files a task, and walks it to a
+/// terminal status, validating at each step. Free composition multiplies the
+/// risk a config requires a field its scaffolded template cannot fill, so this
+/// covers reachable sets, not only the four presets.
 #[test]
 fn composed_answer_sets_support_add_check_and_a_full_walk() {
     for (flags, fills, walk) in ANSWER_SETS {
@@ -174,7 +175,7 @@ fn init_accepts_the_rrule_answer_and_checks_an_rrule_task() {
     support::check_ok(dir.path());
 }
 
-/// The flag is spelled like `--color`, and the old spelling is gone.
+/// The flag uses the American spelling, like `--color`. The old spelling fails.
 #[test]
 fn init_spells_the_organization_flag_in_american_english() {
     let dir = tempdir();
@@ -190,10 +191,10 @@ fn init_spells_the_organization_flag_in_american_english() {
         .code(2);
 }
 
-/// A strict-framework answer set scaffolds like any other: it adopts the
+/// A strict-framework answer set scaffolds like any other. It adopts the
 /// `mindtape:ice` pack, which loads to a strict ICE priority on every open
-/// task, and the fallback template supplies it through the spliced framework
-/// leaf slots (covered end-to-end in `ANSWER_SETS` above).
+/// task. The fallback template supplies it through the spliced framework leaf
+/// slots (covered end-to-end in `ANSWER_SETS` above).
 #[test]
 fn strict_framework_priority_answer_set_scaffolds() {
     let dir = tempdir();
@@ -246,10 +247,10 @@ fn gated_preset_blocks_done_straight_from_wip() {
         .failure();
 }
 
-/// The `gated` preset's shipped `[[on.flip]]` gate is real: a task still
-/// carrying the template's TODO placeholders cannot reach `done`, with no `mt
-/// allow` either, and `--force` is the way past, which records itself in the
-/// status note.
+/// The `gated` preset's own `[[on.flip]]` gate is real. A task still carrying
+/// the template's TODO placeholders cannot reach `done`, with no `mt allow`
+/// either, and `--force` is the way past, which records itself in the status
+/// note.
 #[test]
 fn gated_preset_gates_done_on_an_unfilled_task() {
     let dir = support::init_preset("gated");
@@ -269,7 +270,7 @@ fn gated_preset_gates_done_on_an_unfilled_task() {
     assert!(task.contains("forced past failing gate"), "{task}");
 }
 
-/// `--list-presets` names every built-in and writes nothing.
+/// `--list-presets` lists every built-in and leaves the directory untouched.
 #[test]
 fn list_presets_writes_nothing() {
     let dir = tempdir();

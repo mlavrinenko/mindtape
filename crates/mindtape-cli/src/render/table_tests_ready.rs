@@ -1,8 +1,8 @@
 //! `ready_cell` floor-default and override tests, split out of
 //! `table_tests.rs` to keep it under the size gate.
 //!
-//! `Config::default()` bypasses `defaults.toml`; these regression tests go
-//! through `parse_config` so they exercise the actual shipped floor, not
+//! `Config::default()` bypasses `defaults.toml`. These regression tests go
+//! through `parse_config` so they exercise the actual built-in floor, not
 //! just `ready_cell`'s own Rust-side literal fallback.
 
 use mindtape::{ReadyState, parse_config};

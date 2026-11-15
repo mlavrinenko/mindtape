@@ -1,4 +1,4 @@
-//! A refused write is reported once: its breaches as `error:` lines, a breach
+//! `mt` reports a refused write once: its breaches as `error:` lines, a breach
 //! it raises on another task as one `note:` for the whole batch, and no
 //! summary of its own.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]

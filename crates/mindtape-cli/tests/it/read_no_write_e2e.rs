@@ -5,22 +5,22 @@
 //! `truth/tasks/2026-08/gate-the-cqrs-split-against-the-command-tree.typ`, and the
 //! "Command Semantics (read/write separation)" section of `CONTRIBUTING.md`.
 //! Each test builds a link-free fixture task tree, hashes it, runs a single
-//! read command, hashes it again, and asserts the two digests match —
-//! byte-identical, not just "still parses".
+//! read command, hashes it again, and asserts the two digests match. The match
+//! is byte-identical, not just "still parses".
 //!
 //! [`every_classified_read_command_leaves_tree_untouched`] generates one such
 //! check per command the classification in
-//! `crates/mindtape-cli/src/cli/command_class.rs` declares `Read`, read back via
-//! `mt _cli --json` (`cli/tree_json.rs` rides the `class` field along on the same
-//! tree `www/generated/cli.json` ships) — a bare invocation of every read
-//! command, so a newly classified one is covered with no test hand-written
-//! here. The hand-written tests below it stay: several exercise a read
-//! command with flag combinations (`ls --format json`, `config show
-//! --origin`) the generated loop's bare invocation does not reach, and a
-//! generated test that dropped them would assert less than what is here
-//! today. This crate has no `[lib]` target, so an integration test cannot
-//! `use crate::cli::command_class` directly — reading the classification back out
-//! of the CLI's own JSON dump is how a `tests/` binary sees it at all.
+//! `crates/mindtape-cli/src/cli/command_class.rs` declares `Read`, read back
+//! through `mt _cli --json`. `cli/tree_json.rs` rides the `class` field along on
+//! the same tree that `www/generated/cli.json` emits. Each check is a bare
+//! invocation of one read command, so a newly classified command gets coverage
+//! without a hand-written test here. The hand-written tests below it stay. Many
+//! of them exercise a read command with flag combinations (`ls --format json`,
+//! `config show --origin`) that the generated loop's bare invocation does not
+//! reach. A generated test that dropped them would assert less than what is
+//! here today. This crate has no `[lib]` target, so an integration test cannot
+//! `use crate::cli::command_class` directly. Reading the classification back
+//! out of the CLI's own JSON dump is how a `tests/` binary sees it at all.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::tempdir;
@@ -33,9 +33,10 @@ use crate::support;
 
 /// File two link-free tasks into a scaffolded project via `mt add`.
 ///
-/// No task holds a `depends-on`/`relates-to`/`supersedes`/`duplicates`/`links`
-/// field: a parallel task is reworking the link DSL on the same base commit,
-/// so these fixtures stay decoupled from it.
+/// The fixtures skip the
+/// `depends-on`/`relates-to`/`supersedes`/`duplicates`/`links` field. A
+/// parallel task is reworking the link DSL on the same base commit. These
+/// fixtures stay decoupled from it.
 fn build_fixture() -> tempfile::TempDir {
     let dir = support::scaffold();
 
@@ -49,11 +50,11 @@ fn build_fixture() -> tempfile::TempDir {
     dir
 }
 
-/// A fixture holding one recurring task (`recur: every(weeks: 1)`), proving a
-/// read command spawns/advances nothing even when a recurrence is present —
-/// the CQRS invariant `truth/tasks/2026-07/recurring-tasks.typ` depends on: `mt recur`
-/// is the only recurrence writer, so `mt ls`/`mt check` must leave a
-/// recurring task's tree exactly as untouched as any other.
+/// A fixture holding one recurring task (`recur: every(weeks: 1)`). It proves a
+/// read command spawns or advances nothing even when a recurrence is present.
+/// That is the CQRS invariant `truth/tasks/2026-07/recurring-tasks.typ` depends
+/// on. `mt recur` is the only recurrence writer, so `mt ls`/`mt check` must
+/// leave a recurring task's tree exactly as untouched as any other.
 fn build_recurring_fixture() -> tempfile::TempDir {
     let dir = support::scaffold();
     write_file(
@@ -82,9 +83,9 @@ fn check_over_a_recurring_task_spawns_nothing() {
     assert_read_untouched(dir.path(), &["check"]);
 }
 
-/// Hash every file under `dir` by relative path and byte content into a
-/// single order-independent digest, so any mutation — content change, added
-/// or removed file — changes the result.
+/// Hash every file under `dir` by relative path and byte content into a single
+/// order-independent digest. Any mutation then changes the result: a content
+/// change, an added file, or a removed file.
 fn hash_tree(dir: &Path) -> u64 {
     let mut files = Vec::new();
     collect_files(dir, dir, &mut files);
@@ -100,11 +101,12 @@ fn hash_tree(dir: &Path) -> u64 {
 
 /// Recursively collect `(path relative to root, file bytes)` pairs under `dir`.
 ///
-/// The git-ignored `.mindtape/cache/` scratch is skipped: it is derived, not
-/// authored, state — a read command populates it by design (the persistent
-/// content-hash harvest cache), the way a build populates `target/`. The CQRS
-/// invariant this test guards is that reads leave the *authored* tree
-/// byte-identical, not that they touch no disk at all.
+/// The walk skips the git-ignored `.mindtape/cache/` scratch, because the
+/// harvest derives that state rather than authoring it. A read command
+/// populates it by design
+/// (the persistent content-hash harvest cache), the way a build populates
+/// `target/`. The CQRS invariant this test guards is that reads leave the
+/// *authored* tree byte-identical, not that they avoid touching the disk.
 fn collect_files(root: &Path, dir: &Path, out: &mut Vec<(String, Vec<u8>)>) {
     for entry in std::fs::read_dir(dir).unwrap() {
         let entry = entry.unwrap();
@@ -126,7 +128,7 @@ fn collect_files(root: &Path, dir: &Path, out: &mut Vec<(String, Vec<u8>)>) {
 }
 
 /// Run `mt <args>` in `dir` and assert the tree hash is byte-identical before
-/// and after — the read command must succeed, but leave nothing changed.
+/// and after. The read command must succeed, and it must not change anything.
 fn assert_read_untouched(dir: &Path, args: &[&str]) {
     let before = hash_tree(dir);
 
@@ -184,9 +186,9 @@ fn eval_leaves_tree_untouched() {
 }
 
 /// `find` is sugar over `ls` with a `contains()` filter, and `graph` walks the
-/// same loaded project to emit DOT. Both are reads, and neither was covered
-/// here — the gap surfaced when CONTRIBUTING.md's read list turned out to name
-/// two commands that do not exist while omitting these.
+/// same loaded project to emit DOT. Both are reads, and neither had coverage
+/// here. The gap surfaced when CONTRIBUTING.md's read list turned out to
+/// reference two commands that do not exist while omitting these.
 #[test]
 fn find_leaves_tree_untouched() {
     let dir = build_fixture();
@@ -222,15 +224,16 @@ fn at_leaves_tree_untouched() {
 
 /// Every `Read`-classified leaf's flattened path (`"ls"`, `"config schema"`,
 /// `"preset ls"`, …), read from a fresh `mt _cli --json` rather than
-/// hand-copied — the exhaustiveness this file leans on lives in `cli/tree_json.rs`
-/// (`cli::command_class::CLASSIFICATION` must equal the visible command tree), so
-/// this only has to walk the tree the same way that gate does.
+/// hand-copied. The exhaustiveness this file leans on lives in
+/// `cli/tree_json.rs`, where `cli::command_class::CLASSIFICATION` must equal the
+/// visible command tree. This function only has to walk the tree the same way
+/// that gate does.
 fn read_command_paths() -> Vec<String> {
     read_leaves().into_iter().map(|(path, _)| path).collect()
 }
 
 /// Every `Read`-classified leaf of a fresh `mt _cli --json`, as its flattened
-/// path and its JSON node, so a test reads any mark the registry exports.
+/// path and its JSON node. A test can then read any mark the registry exports.
 pub(crate) fn read_leaves() -> Vec<(String, serde_json::Value)> {
     let dir = tempdir();
     let output = support::mt(dir.path())
@@ -248,9 +251,9 @@ pub(crate) fn read_leaves() -> Vec<(String, serde_json::Value)> {
     out
 }
 
-/// Recurse into a node with subcommands (`config`, `preset`, `explain`);
-/// collect a node whose `class.kind` is `"read"` — a leaf, or a runnable
-/// parent like `explain` — flattening its path the same way
+/// Recurse into a node with subcommands (`config`, `preset`, `explain`), and
+/// collect a node whose `class.kind` is `"read"`: a leaf, or a runnable parent
+/// like `explain`. The function flattens its path the same way
 /// `cli/tree_json.rs`'s `flattened_name` does.
 fn collect_read_leaves(
     commands: &[serde_json::Value],

@@ -18,11 +18,10 @@ fn commit(root: &Path, message: &str) {
 
 /// A history exercising every way a trailer value resolves:
 ///
-/// - `src/a.rs` is changed under a path-form trailer naming `old`, which a
-///   later commit renames to `new`, and under a stem-form trailer naming
-///   `kept`;
-/// - `src/b.rs` is changed under a trailer naming `gone`, a task that was
-///   deleted.
+/// - a path-form trailer naming `old` changes `src/a.rs`, and a later commit
+///   renames it to `new`. A stem-form trailer naming `kept` changes it too.
+/// - a trailer naming `gone` changes `src/b.rs`, where `gone` is a task the
+///   history deletes.
 fn repo() -> tempfile::TempDir {
     let dir = tempdir();
     let root = dir.path();

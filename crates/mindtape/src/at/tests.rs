@@ -1,6 +1,6 @@
 //! Unit tests for `at.toml`: parsing, `@name` resolution, globs, `exclude`,
 //! `forks` and member naming. A [`FakeFs`] stands in for the disk, so these
-//! touch no real paths.
+//! don't touch real paths.
 
 #![allow(clippy::unwrap_used)]
 
@@ -9,11 +9,11 @@ use std::path::{Path, PathBuf};
 
 use super::{AtConfig, AtError, AtFs, Forks, Target};
 
-/// An in-memory tree: the directories that exist and the files' text.
+/// Hold an in-memory tree: the directories that exist and the files' text.
 #[derive(Default)]
 struct FakeFs {
     dirs: BTreeSet<PathBuf>,
-    /// Directories that can be entered but not listed, as with mode `111`.
+    /// Directories that allow entry but not listing, as with mode `111`.
     unlisted: BTreeSet<PathBuf>,
     files: BTreeMap<PathBuf, String>,
 }
@@ -26,7 +26,7 @@ impl FakeFs {
         self
     }
 
-    /// A project at `path` whose `.git` points at `gitdir`; `linked` adds the
+    /// A project at `path` whose `.git` points at `gitdir`. `linked` adds the
     /// `commondir` a linked worktree's gitdir holds.
     fn git_project(mut self, path: &str, gitdir: &str, linked: bool) -> Self {
         self = self.project(path);

@@ -1,13 +1,13 @@
-//! The ast-grep collector: run the shared file-query engine and publish one
+//! The ast-grep collector runs the shared file-query engine and publishes one
 //! matching path per file as `derived.<name>`.
 //!
-//! The query reuses [`crate::query`] — the same git-listed file walk, Rust
+//! The query reuses [`crate::query`], the same git-listed file walk, Rust
 //! grammar and per-process caches an estimate's `ast_grep(...)` uses. The
 //! query's optional `glob`, a glob or `@name` path set, narrows the files it
-//! reads; without one every listed file is admitted. A failed walk or a query
-//! the engine refuses is one
-//! [`Problem`] naming the field, which [`crate::validate()`] reports as a
-//! `Collector` violation at `derived.<name>`.
+//! reads. Without one the collector admits every listed file. A failed walk or
+//! a query the engine refuses is one [`Problem`] that references the field,
+//! which [`crate::validate()`] reports as a `Collector` violation at
+//! `derived.<name>`.
 
 use typst_harvest::HVal;
 
@@ -17,8 +17,8 @@ use crate::git::state::PathFilter;
 use crate::problem::Problem;
 use crate::query::{self, Query};
 
-/// The paths `query` matches under `config`'s project root, or one problem
-/// naming the collector field.
+/// The paths `query` matches under `config`'s project root, or one problem that
+/// references the collector field.
 pub(crate) fn values(
     name: &str,
     query: &AstGrepQuery,

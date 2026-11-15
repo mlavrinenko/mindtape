@@ -1,7 +1,8 @@
-//! The shipped `mindtape:tasks` pack's `flip-task-with-its-work` lets a milestone close
+//! The `mindtape:tasks` pack's `flip-task-with-its-work` lets a milestone close
 //! in a task-only commit (`truth/tasks/exempt-a-milestones-close-from-the-
-//! flip-task-with-its-work-rule.typ`): it ends through its leaves and carries no work of
-//! its own, so its flip is the whole commit. A leaf's bare close stays refused.
+//! flip-task-with-its-work-rule.typ`). It ends through its leaves and carries no
+//! work of its own, so its flip is the whole commit. A leaf's bare close stays
+//! refused.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
@@ -10,7 +11,7 @@ use mindtape::test_support::write_file;
 
 use crate::support::{check_commit_msg, git, git_commit_all, project_with_tasks};
 
-/// Two `wip` tasks, `ship` a milestone and `leaf` a feat, under the shipped pack.
+/// Two `wip` tasks, `ship` a milestone and `leaf` a feat, under the bundled pack.
 fn pack_repo() -> tempfile::TempDir {
     let dir = project_with_tasks(&[("ship.typ", "Ship it"), ("leaf.typ", "Build the leaf")]);
     write_file(

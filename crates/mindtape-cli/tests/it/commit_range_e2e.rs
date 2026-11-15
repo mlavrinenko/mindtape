@@ -152,7 +152,7 @@ fn a_range_across_a_prelude_bump_loads_each_tree_against_its_own_version() {
 }
 
 /// A rule that refuses a commit whose parent state cannot load the task it
-/// changes, so a range check proves the parent tree's own package resolved.
+/// changes. A range check then proves the parent tree's own package resolved.
 const PARENT_LOADS: &str = "[[commits.rules]]\n\
      name = \"parent-loads\"\n\
      scope = \"task\"\n\
@@ -286,7 +286,7 @@ fn each_state_holds_a_task_once() {
     assert!(ok, "{text}");
 }
 
-/// The rule `mindtape:tasks` ships for the tip of a range.
+/// The rule `mindtape:tasks` provides for the tip of a range.
 pub(crate) const FINISH_AT_THE_TIP: &str = "[[commits.rules]]\n\
      name = \"finish-named-task-at-tip\"\n\
      scope = \"tip\"\n\

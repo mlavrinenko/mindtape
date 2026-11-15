@@ -25,7 +25,7 @@ fn config(queries: &str, rules: &str) -> String {
     )
 }
 
-/// The cap a resolved count is held to.
+/// The cap the code holds a resolved count to.
 const CAP: &str = "[[tasks.rules]]\nname = \"cap\"\n\
      assert = 'estimate.src-files <= 4'\nseverity = \"error\"\n";
 

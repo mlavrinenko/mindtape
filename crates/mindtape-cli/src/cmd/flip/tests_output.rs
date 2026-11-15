@@ -2,9 +2,9 @@
 //! verbs, the shadowed-verb warning, and `run`'s cwd-based project discovery.
 //!
 //! `std::io::set_output_capture` is nightly-only, so asserting on what the
-//! command prints means reading a real child's streams; `run` additionally
-//! needs `set_current_dir`, which is process-global. Each test below re-execs
-//! the test binary for its own name, with `_MT_FLIP_CHILD` marking the child
+//! command prints means reading a real child's streams. `run` also needs
+//! `set_current_dir`, which is process-global. Each test below re-execs the
+//! test binary for its own name, with `_MT_FLIP_CHILD` marking the child
 //! branch. Fixtures come from `cmd/flip/tests.rs`.
 #![allow(clippy::unwrap_used)]
 
@@ -26,11 +26,13 @@ fn list_verbs(project: &crate::util::Project) {
 
 /// `run` is the thin wrapper that discovers the project from the cwd and hands
 /// off to `run_with`. Asserting only `is_err()` on an unknown status would pass
-/// for any failure at all, so this drives a successful flip and checks the file
-/// on disk actually changed — which only holds if the delegation happened.
+/// for any failure at all. This test drives a successful flip instead and
+/// checks the file on disk actually changed, which only holds if the delegation
+/// happened.
 ///
-/// `set_current_dir` is process-global, hence the child: mutating the cwd of
-/// the shared test process would race every sibling test that resolves paths.
+/// `set_current_dir` is process-global. The test needs a child because mutating
+/// the cwd of the shared test process would race every sibling test that
+/// resolves paths.
 #[test]
 fn run_delegates_to_run_with() {
     if mindtape::test_support::rerun_isolated(FLIP_CHILD_ENV).is_some() {
@@ -47,7 +49,7 @@ fn run_delegates_to_run_with() {
 
 /// A legend value colliding with a built-in subcommand name (`add`) can never
 /// dispatch as a shortcut verb, because the built-in wins. The flip still
-/// succeeds; the warning is the whole observable effect, and it goes to stderr.
+/// succeeds. The warning is the whole observable effect, and it goes to stderr.
 #[test]
 fn shadowed_verb_warns_on_stderr() {
     if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
@@ -106,7 +108,7 @@ fn terminal_flip_prints_recur_notice() {
     run_with(&project, &flip_args("done", &["g"])).unwrap();
 }
 
-/// A legend whose entries carry glyphs renders them in the `--list` output —
+/// A legend whose entries carry glyphs renders them in the `--list` output,
 /// the `Some(glyph)` arm of `list_verbs`' entry loop, which the floor-free
 /// `LEGEND_CONFIG` never reaches.
 #[test]
@@ -154,9 +156,9 @@ fn list_prints_verbs() {
     list_verbs(&project);
 }
 
-/// The revalidation violation itself is printed, not returned: `run_with`'s
-/// error carries only the problem count, so the message naming the field and
-/// the reason is only observable on stderr.
+/// The revalidation violation itself goes to stderr, not to the return value.
+/// `run_with`'s error carries only the problem count, so the message that gives
+/// the field and the reason is only observable on stderr.
 #[test]
 fn revalidate_prints_the_unreachable_violation() {
     if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
@@ -171,8 +173,8 @@ fn revalidate_prints_the_unreachable_violation() {
     crate::diag::emit(&err);
 }
 
-/// A rewrite that would not evaluate is refused *before* the write, so the
-/// report says the source did not load rather than that the file did — the
+/// `mt flip` refuses a rewrite that would not evaluate *before* the write. The
+/// report then says the source did not load rather than that the file did, the
 /// difference being that there is no file. The message is only observable on a
 /// child's stderr. With one target, `run_with` returns that target's refusal
 /// rather than a summary, and the child prints it as `main` would.

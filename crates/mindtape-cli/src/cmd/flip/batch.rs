@@ -1,10 +1,10 @@
-//! `mt flip`'s post-write pass: whether anything one landed batch wrote
-//! fails to load or violates a rule ([`revalidate`]), asked of the project as
-//! it stands after the writes; and how the batch reports its problems
+//! `mt flip`'s post-write pass: whether anything one landed batch wrote fails to
+//! load or violates a rule ([`revalidate`]), asked of the project as it stands
+//! after the writes. It also covers how the batch reports its problems
 //! ([`finish`]).
 //!
 //! Split out of `cmd/flip/mod.rs`: everything left there is about deciding and
-//! performing one write, everything here is about reporting on all of them at
+//! performing one write, everything here is about reporting on them all at
 //! once. `mt link` shares [`after_batch_diags`], since it writes a batch of task
 //! files too and owes the same revalidation.
 
@@ -18,8 +18,8 @@ use crate::cmd::flip::{FlipArgs, Via};
 use crate::diag::{Command, Diag, Hint, Kind, Note};
 use crate::util::Project;
 
-/// What a batch actually wrote: the two sets answer "did this problem touch
-/// something we flipped" for the revalidation.
+/// The record of what a batch actually wrote. The two sets answer "did this
+/// problem touch something we flipped" for the revalidation.
 #[derive(Default)]
 pub(crate) struct Landed {
     ids: HashSet<String>,
@@ -55,14 +55,14 @@ pub(crate) fn after_batch_diags(
 }
 
 /// Append any load error or fatal validation violation in the reloaded
-/// `project` that touches a flipped file to `problems` (tolerant batch: writes
-/// are kept).
+/// `project` that touches a flipped file to `problems` (tolerant batch: the
+/// writes stay).
 ///
-/// A `severity = "warn"` rule breach is *not* a problem: it was already
-/// reported by the pre-write check each landed file passed through, and the
-/// batch is meant to carry on. Pushing it here would make a warning fail the
-/// command at the summary line, which is exactly the confusion the `error:` /
-/// `warning:` prefixes exist to end.
+/// A `severity = "warn"` rule breach is *not* a problem: the pre-write check
+/// each landed file passed through already reported it, and the batch should
+/// carry on. Pushing it here would make a warning fail the command at the
+/// summary line, which is exactly the confusion the `error:` / `warning:`
+/// prefixes exist to end.
 fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<Diag>) {
     for error in &project.outcome.errors {
         if landed.files.contains(&error.file) {
@@ -82,8 +82,8 @@ fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<Diag>) {
     }
 }
 
-/// Report a batch's problems: a single target's last problem is the command's
-/// error, so it gets no summary; several targets end with one.
+/// Report a batch's problems. A single target's last problem is the command's
+/// error, so it doesn't get a summary. More than one target ends with one.
 pub(crate) fn finish(mut problems: Vec<Diag>, landed: usize, total: usize) -> Result<()> {
     crate::diag::dedupe_notes(&mut problems);
     let last = match problems.pop() {
@@ -100,8 +100,8 @@ pub(crate) fn finish(mut problems: Vec<Diag>, landed: usize, total: usize) -> Re
     Err(last)
 }
 
-/// A target with a space in it that names no task is most likely a note given
-/// without `-m`: say how to pass it.
+/// A target with a space in it that doesn't reference a task is most likely a
+/// note given without `-m`: say how to pass it.
 pub(crate) fn note_hint(diag: Diag, spec: &str, args: &FlipArgs, via: Via) -> Diag {
     if args.note.is_some() || !spec.contains(char::is_whitespace) {
         return diag;
@@ -122,8 +122,8 @@ pub(crate) fn note_hint(diag: Diag, spec: &str, args: &FlipArgs, via: Via) -> Di
 }
 
 impl Landed {
-    /// Whether the batch wrote nothing at all — then there is no reload to
-    /// pay for and nothing to report on.
+    /// Whether the batch landed nothing at all. Then there is no reload to pay
+    /// for and nothing to report on.
     pub(crate) fn is_empty(&self) -> bool {
         self.ids.is_empty()
     }

@@ -1,5 +1,5 @@
 //! `[[on.add]]` merges by name across packs and layers like the other rule
-//! arrays: a pack's hook joins the project's, a later same-name entry replaces
+//! arrays. A pack's hook joins the project's, a later same-name entry replaces
 //! it in place, and `disable` drops it by name.
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)]

@@ -1,14 +1,14 @@
 #![allow(clippy::unwrap_used)]
 
-//! `resolve_order`: which columns render, and why. The shipped floor's `when`
+//! `resolve_order`: which columns render, and why. The built-in floor's `when`
 //! for `file`, what an absent `when` means, and the four listing predicates a
 //! `when` can read.
 //!
 //! Sibling of `columns_tests.rs`, which covers the cell builders and each
-//! column's own floored `when` in isolation. Split from it to keep both under
-//! the size gate, and because these tests answer a different question: not
-//! "what does the floor say about this column" but "what does the resolver
-//! decide once the config and the expressions have had their say".
+//! column's own floored `when` in isolation. The split keeps both under the
+//! size gate. These tests answer a different question: not what the floor says
+//! about this column, but what the resolver decides once the config and the
+//! expressions have had their say.
 
 use mindtape::test_support::{bare_task, dep_edge, floor_config};
 use mindtape::{ColumnConfig, Config, Readiness, Task, parse_config};
@@ -26,7 +26,7 @@ fn rows(tasks: &[Task]) -> Vec<(String, &Task)> {
 }
 
 /// The columns `config` resolves for `tasks`, under an environment carrying
-/// `tty` and `format` — the two ambient facts the shipped floor's `file`
+/// `tty` and `format`, the two ambient facts the built-in floor's `file`
 /// expression reads.
 fn order(config: Config, tasks: &[Task], tty: bool, format: &str) -> Vec<ColumnId> {
     let mut fixture = TestCtx {
@@ -44,7 +44,7 @@ fn captured(config: Config, tasks: &[Task], column: ColumnId) -> bool {
     order(config, tasks, false, "table").contains(&column)
 }
 
-/// The floor with one column's `when` replaced — a scalar replaces wholesale
+/// The floor with one column's `when` replaced. A scalar replaces wholesale
 /// across config layers, so this is exactly the one line a project writes.
 fn when(column: &str, expr: &str) -> Config {
     let mut config = floor_config();
@@ -104,7 +104,7 @@ fn the_floor_shows_file_on_a_terminal_once_it_is_named() {
 }
 
 /// The opt-out, and the whole reason one expression replaced a `visibility`
-/// key plus a rules list: a scalar replaces wholesale across config layers, so
+/// key plus a rules list. A scalar replaces wholesale across config layers, so
 /// turning the floored column off is one line with no precedence to know.
 #[test]
 fn a_project_when_replaces_the_floor_s() {
@@ -114,17 +114,17 @@ fn a_project_when_replaces_the_floor_s() {
 
 // what an absent `when` means
 
-/// A column the config does not describe never renders: nothing falls back to
-/// a built-in policy in Rust, so a config that never merged the floor resolves
-/// to no columns at all rather than to a hidden second opinion.
+/// A column the config does not describe never renders. The resolver reads
+/// every policy from the config, so a config that never merged the floor
+/// resolves to no columns at all rather than to a hidden second opinion.
 #[test]
 fn a_column_the_config_does_not_describe_never_renders() {
     let resolved = order(Config::default(), &[titled("t", "T")], false, "table");
     assert!(resolved.is_empty(), "{resolved:?}");
 }
 
-/// An entry with no `when` is the same answer as no entry: a project drops a
-/// floored column by writing over it, and an empty table is what it gets.
+/// An entry with no `when` gives the same answer as no entry. A project drops
+/// a floored column by writing over it, and an empty table is what it gets.
 #[test]
 fn an_entry_carrying_no_when_never_renders() {
     let mut config = floor_config();
@@ -136,7 +136,7 @@ fn an_entry_carrying_no_when_never_renders() {
 }
 
 /// Config load validates every `when`, so reaching this needs a config built
-/// in memory — but it must still report rather than silently not match.
+/// in memory. It must still report rather than silently not match.
 #[test]
 fn an_unevaluable_when_names_the_column() {
     let config = when("title", "ttty()");
@@ -170,7 +170,7 @@ fn contested_reads_whether_the_rows_disagree() {
     assert!(captured(config(), &agreed, ColumnId::Title));
 }
 
-/// `named()` reads the request — whether the caller asked for this column —
+/// `named()` reads the request (whether the caller asked for this column),
 /// never the outcome. Same expression, same rows, two different column
 /// requests.
 #[test]
@@ -184,8 +184,8 @@ fn named_reads_the_requested_order() {
     assert!(captured(config(), &tasks, ColumnId::Status));
 }
 
-/// `blocked()` reads the listing, so a column with nothing in it can still be
-/// forced on by what the rows say.
+/// `blocked()` reads the listing, so a column with nothing in it can still
+/// render when the rows say so.
 #[test]
 fn blocked_reads_the_listing_not_the_column() {
     let config = || when("due", "blocked()");
@@ -198,7 +198,7 @@ fn blocked_reads_the_listing_not_the_column() {
     assert!(captured(config(), &stuck, ColumnId::Due));
 }
 
-/// Each column is resolved against its own facts: one run, one expression text,
+/// Each column resolves against its own facts: one run, one expression text,
 /// two different answers, because `nonempty()` means this column's cells.
 #[test]
 fn facts_do_not_leak_between_columns() {

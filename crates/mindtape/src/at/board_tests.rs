@@ -39,7 +39,8 @@ fn counts(cells: &[Cell]) -> Vec<Option<usize>> {
         .collect()
 }
 
-/// Assert that `toml` is refused as a bad board, with `needle` in the message.
+/// Assert that `AtConfig::parse` refuses `toml` as a bad board, with `needle`
+/// in the message.
 fn refused(toml: &str, needle: &str) {
     match AtConfig::parse(toml) {
         Err(err @ AtError::Board { .. }) => {

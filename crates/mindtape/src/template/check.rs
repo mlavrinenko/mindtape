@@ -1,19 +1,19 @@
 //! What `mt check` makes of a template
 //! (`truth/tasks/2026-10/check-templates-file-healthy-tasks.typ`).
 //!
-//! A template is checked as the task it files when every slot holds its
+//! `mt check` checks a template as the task it files when every slot holds its
 //! `example`, else its `default` ([`crate::fill_examples`]). Under
-//! `[templates] check-defaults` it is also checked as the task every slot's
-//! `default` files ([`crate::fill_defaults`]), so a default that falls behind
-//! its example fails too. Every breach of either task is the template's. A
-//! slot with neither cannot be filled, so it is a breach of its own
+//! `[templates] check-defaults` it also checks the task every slot's `default`
+//! files ([`crate::fill_defaults`]). A default that falls behind its example
+//! then fails too. Every breach of either task is the template's. A slot with
+//! neither cannot take a value, so it is a breach of its own
 //! ([`unfillable_slots`]) and the template goes unchecked until it has one. A
 //! `text` slot whose example shows markup is a breach too
-//! ([`code_span_examples`]): `mt add` escapes what a caller types there, so
-//! the example would teach input that files as backslashes.
+//! ([`code_span_examples`]): `mt add` escapes what a caller types there, so the
+//! example would show input that files as backslashes.
 //!
-//! The candidate validation itself is [`crate::check_candidate`]; the CLI
-//! splices the config-required slots and the add-owned header in between,
+//! The candidate validation itself is [`crate::check_candidate`]. The CLI
+//! splices the config-required slots and the add-owned header between the two,
 //! exactly as `mt add` does. This module places what the validation says onto
 //! the template's own file and lines.
 
@@ -67,15 +67,15 @@ pub struct TemplateSources<'a> {
     pub home: TemplateHome<'a>,
     /// The template as authored on disk.
     pub authored: &'a str,
-    /// The task source that was validated: slots filled, header stamped.
+    /// The task source the check validated: slots filled, header stamped.
     pub checked: &'a str,
 }
 
-/// One breach per slot of `spliced` — the template with `mt add`'s
-/// config-required slots spliced in, each carrying an example from config —
-/// that has neither an `example` nor a `default`, placed at the slot in
-/// `authored`. A slot `mt add` spliced in (`injected`) names the config table
-/// that should carry its example.
+/// One breach per slot of `spliced` that has neither an `example` nor a
+/// `default`, placed at the slot in `authored`. `spliced` is the template with
+/// `mt add`'s config-required slots spliced in, each carrying an example from
+/// config. A slot `mt add` spliced in (`injected`) names the config table that
+/// should carry its example.
 #[must_use]
 pub fn unfillable_slots(
     home: TemplateHome<'_>,
@@ -112,11 +112,11 @@ pub fn unfillable_slots(
 }
 
 /// One breach per `text` slot of `authored` whose example shows a code span.
-/// `mt add` escapes a `text` slot's value, so the span files as literal
-/// backticks, and a caller who copies the example's style gets backslashes in
-/// the task. Only the backtick counts: in prose it marks code and nothing
-/// else, while `_`, `#` and the other escaped characters also spell paths,
-/// issue numbers and identifiers that the slot rightly files as written.
+/// `mt add` escapes a `text` slot's value, and the span then files as literal
+/// backticks. A caller who copies the example's style gets backslashes in the
+/// task. Only the backtick counts: in prose it marks code and nothing else.
+/// The other escaped characters, `_` and `#` among them, also spell paths, issue
+/// numbers and identifiers that the slot rightly files as written.
 #[must_use]
 pub fn code_span_examples(home: TemplateHome<'_>, authored: &str) -> Vec<Violation> {
     discover_slots(authored)

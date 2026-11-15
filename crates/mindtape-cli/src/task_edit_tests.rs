@@ -18,10 +18,10 @@ fn project_with(name: &str, body: &str) -> (TempDir, std::path::PathBuf) {
 }
 
 /// Upsert each `(name, value)` into `source`'s `task.with(…)` call and splice
-/// the whole set at once — the shape every write path builds, so what these
-/// tests read is what would reach the file. All the edits are computed against
-/// the same untouched `source`, which is what makes several insertions sharing
-/// one anchor worth pinning.
+/// the whole set at once. This is the shape every write path builds, so what
+/// these tests read is what would reach the file. The helper computes all the
+/// edits against the same untouched `source`, which is what makes insertions
+/// that share one anchor worth pinning.
 fn upsert(source: &str, args: &[(&str, &str)]) -> String {
     let call = task_with(source).unwrap();
     let edits = args
@@ -32,16 +32,16 @@ fn upsert(source: &str, args: &[(&str, &str)]) -> String {
 }
 
 /// Assert that `source` is a task file that loads and validates, by writing it
-/// into a throwaway project — the one property a separator bug destroys, and
-/// the one an assertion on the rendered text alone cannot see.
+/// into a throwaway project. That is the one property a separator bug destroys,
+/// and the one an assertion on the rendered text alone cannot see.
 fn assert_loads(name: &str, source: &str) {
     let (dir, file) = project_with(name, source);
     verify_written(dir.path(), &file).unwrap();
 }
 
-/// The bug this seam guards against: a `task.with(…)` call written on one
-/// line ends with no separator before its closing paren, so an injected
-/// `status:` must not land glued to the previous value:
+/// This seam guards against a `task.with(…)` call written on one line, which
+/// ends with no separator before its closing paren. An injected `status:` must
+/// not land glued to the previous value:
 /// `title: "One line"status: wip(…)`, a file that cannot parse. Legal Typst
 /// in, loadable Typst out.
 #[test]
@@ -57,10 +57,10 @@ fn injects_into_a_single_line_call() {
     assert_loads("one-line.typ", &out);
 }
 
-/// The same missing separator one line down: a multi-line call whose last
-/// argument carries no trailing comma. A newline is not an argument separator
-/// in Typst, so the injected argument needs the comma just as much as the
-/// single-line shape does — it merely looked plausible.
+/// The same missing separator appears one line down, in a multi-line call whose
+/// last argument carries no trailing comma. A newline is not an argument
+/// separator in Typst. The injected argument needs the comma just as much as
+/// the single-line shape does, and it merely looked plausible.
 #[test]
 fn injects_into_a_multi_line_call_with_no_trailing_comma() {
     let out = upsert(
@@ -76,10 +76,10 @@ fn injects_into_a_multi_line_call_with_no_trailing_comma() {
     assert_loads("no-comma.typ", &out);
 }
 
-/// The shape every in-tree template is written in — multi-line, trailing comma
-/// — is byte-identical to what the old anchor produced. The fix moved where the
-/// insertion lands, so the case that always worked is pinned here rather than
-/// left to be noticed as churn in a task file's diff.
+/// Every in-tree template uses the multi-line, trailing-comma shape, and that
+/// shape stays byte-identical to what the old anchor produced. The fix moved
+/// where the insertion lands, so this test pins the case that always worked. It
+/// also keeps that case from showing up as churn in a task file's diff.
 #[test]
 fn injects_into_a_multi_line_call_unchanged() {
     let out = upsert(
@@ -110,8 +110,8 @@ fn injects_into_an_empty_argument_list_without_a_leading_comma() {
     assert_loads("empty-args.typ", &out);
 }
 
-/// Two insertions computed against the same source share one anchor, so each
-/// carries its own separator or the second glues onto the first. `mt add`
+/// Two insertions computed against the same source share one anchor. Each then
+/// carries its own separator, or the second glues onto the first. `mt add`
 /// injects `status` and `id` exactly this way, in one splice.
 #[test]
 fn several_insertions_are_each_separated() {
@@ -126,8 +126,8 @@ fn several_insertions_are_each_separated() {
     assert_loads("two-inserts.typ", &out);
 }
 
-/// An argument the call already carries is replaced in place, separators and
-/// all — the path the insertion rules must not disturb.
+/// The edit replaces an argument the call already carries in place, separators
+/// and all. That is the path the insertion rules must not disturb.
 #[test]
 fn replaces_an_existing_argument_in_place() {
     let out = upsert(
@@ -152,8 +152,8 @@ fn verify_written_accepts_a_valid_task() {
     verify_written(dir.path(), &file).unwrap();
 }
 
-/// A file that fails to load (imports a package that does not exist) must be
-/// reported as a load failure. Kills `verify_written -> Ok(())` and the `==`
+/// A file that fails to load (imports a package that does not exist) must
+/// report as a load failure. Kills `verify_written -> Ok(())` and the `==`
 /// on the error-lookup line: flipping it to `!=` would miss the on-`rel` error
 /// and fall through to the "did not harvest" branch, so we pin the message.
 #[test]
@@ -185,10 +185,10 @@ fn rules_project(severity: &str) -> (TempDir, std::path::PathBuf) {
 }
 
 /// The post-write fallback prints a fatal violation as `error:` and a
-/// `severity = "warn"` breach as `warning:` — the same distinction the
-/// pre-write seam makes, so the per-issue lines match what the caller does
-/// with the write. `stderr` is only observable from a fresh process, so the
-/// test re-execs itself.
+/// `severity = "warn"` breach as `warning:`. That is the same distinction the
+/// pre-write seam makes, so the per-issue lines match what the caller does with
+/// the write. `stderr` is only observable from a fresh process, so the test
+/// re-execs itself.
 #[test]
 fn verify_written_prefixes_each_issue_by_its_severity() {
     const CHILD: &str = "_MT_VERIFY_WRITTEN_SEVERITY";
@@ -216,10 +216,10 @@ fn verify_written_prefixes_each_issue_by_its_severity() {
     verify_written(dir.path(), &file).unwrap();
 }
 
-/// A task that harvests but violates the priority scale (max 9) must be
-/// reported. Kills `verify_written -> Ok(())` and the `==` on the
-/// violation filter: flipping it to `!=` keeps only *other* tasks' violations
-/// — empty here — so the mutant would wrongly return `Ok`.
+/// A task that harvests but violates the priority scale (max 9) must produce a
+/// report. Kills `verify_written -> Ok(())` and the `==` on the violation
+/// filter: flipping it to `!=` keeps only *other* tasks' violations, which are
+/// empty here, so the mutant would wrongly return `Ok`.
 #[test]
 fn verify_written_reports_a_validation_violation_on_the_file() {
     let (dir, file) = project_with(

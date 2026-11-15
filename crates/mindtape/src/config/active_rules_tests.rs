@@ -108,7 +108,7 @@ fn body_rules_report_as_errors_with_their_own_message_or_none() {
 }
 
 /// A gate refuses the flip and a plain `run` only warns. Every gate lists,
-/// message or none; any other action lists only when it carries a message. An
+/// message or none. Any other action lists only when it carries a message. An
 /// empty `when` lists as none.
 #[test]
 fn flip_actions_list_gates_and_message_carriers_by_their_path() {
@@ -276,7 +276,7 @@ fn a_severity_labels_and_serializes_as_its_config_word() {
     }
 }
 
-/// A named hook is listed by its name, the way `mt config show --origin`
+/// A named hook lists by its name, the way `mt config show --origin`
 /// prints it, and the action's slot follows.
 #[test]
 fn a_named_flip_hook_lists_by_its_name() {

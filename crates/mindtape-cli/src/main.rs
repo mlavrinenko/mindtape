@@ -1,4 +1,4 @@
-//! Mindtape CLI entry point: parse arguments, init logging, dispatch.
+//! `Mindtape` CLI entry point: parse arguments, init logging, dispatch.
 
 // `disallowed-methods` in `clippy.toml` bans `std::fs::write`/`File::create`
 // outside `mindtape::write_atomic`; unit tests (this crate's own `cfg(test)`
@@ -61,7 +61,7 @@ use crate::diag::Diag;
 
 /// Run `mt` and print its error, if any, through the one renderer. Returning
 /// an `ExitCode` rather than a `Result` keeps Rust's `Error:` and `Caused by:`
-/// off stderr; the error's kind picks the code.
+/// off stderr. The error's kind picks the code.
 fn main() -> ExitCode {
     // Answer a completion request and exit, before anything else runs: the
     // request arrives through `$COMPLETE` rather than the argv, and stdout

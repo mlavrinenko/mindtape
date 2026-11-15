@@ -17,8 +17,8 @@ use super::visible_git::{RepoListing, repo_of};
 /// `lib/` and docs. It includes tracked files even where an ignore rule
 /// matches, and untracked files Git does not ignore. It excludes untracked
 /// ignored files, tracked-deleted files, symlinks that point at a directory,
-/// and any path with a `.mindtape` or `.git` component (so configured template
-/// dirs under `.mindtape` are the caller's separate scope, not this one).
+/// and any path with a `.mindtape` or `.git` component. Configured template
+/// dirs under `.mindtape` are the caller's separate scope, not this one.
 ///
 /// A project outside a work tree, or a machine without `git`, walks the
 /// project root with the same reserved-name skips and no directory symlinks.
@@ -66,7 +66,7 @@ fn project_git_files(root: &Path) -> Result<Option<BTreeSet<PathBuf>>, GitFailur
 
 /// Whether `path` is a `.typ` file `mt fix --all` may read: a regular file, or
 /// a symlink that does not point at a directory. A tracked-deleted path has no
-/// entry and is excluded.
+/// entry. The listing leaves it out.
 fn is_project_typ(path: &Path) -> bool {
     let Ok(metadata) = std::fs::symlink_metadata(path) else {
         return false;

@@ -2,8 +2,8 @@
 //! `--no-verify` guard in `run()`, and the outside-roots warning.
 //!
 //! Each execs the test binary itself as a child to get a controllable stdin,
-//! cwd, or capturable stderr — none of which can be asserted from inside the
-//! shared test process. Pure-helper tests live in `cmd/add/tests.rs`.
+//! cwd, or capturable stderr. The shared test process can assert none of those.
+//! Pure-helper tests live in `cmd/add/tests.rs`.
 
 use super::super::title::fill_title_from_stdin;
 use super::super::{effective_format, run, warn_if_outside_roots};
@@ -72,7 +72,7 @@ fn fill_stdin_base_args() -> AddArgs {
 /// Pins replace `fill_title_from_stdin` -> Result<()> with Ok(())
 ///
 /// The mutated function is a no-op and never reads stdin, so a piped title
-/// would not be stored. The real function reads stdin and sets the title.
+/// would never reach the task. The real function reads stdin and sets the title.
 #[test]
 fn fill_stdin_reads_piped_title() {
     if std::env::var(FILL_STDIN_INNER).is_ok() {
@@ -93,8 +93,8 @@ fn fill_stdin_reads_piped_title() {
 /// Original:  A || B || C   (returns early when title already set)
 /// Mutant:    A && B || C   (only returns early when title and stdin-terminal)
 ///
-/// When title is pre-set but stdin is a pipe (`is_terminal()` = false),
-/// the original returns early (A=true); the mutant computes
+/// When title is pre-set but stdin is a pipe (`is_terminal()` = false), the
+/// original returns early (A=true). The mutant computes
 /// (A && B) || C = (true && false) || false = false and proceeds to read
 /// stdin, overwriting the pre-set title.
 #[test]
@@ -122,10 +122,10 @@ fn fill_stdin_existing_title_is_not_overwritten() {
 /// Mutant:    A || B && C   (only returns early when both stdin-terminal
 ///                           and "-" in values)
 ///
-/// When stdin is a pipe (`is_terminal()` = false) and "-" is in values,
-/// the original returns early (C=true); the mutant computes
-/// A || (B && C) = false || (false && true) = false and proceeds to
-/// read stdin, setting the title even though stdin is claimed for JSON.
+/// When stdin is a pipe (`is_terminal()` = false) and "-" is in values, the
+/// original returns early (C=true). The mutant computes
+/// A || (B && C) = false || (false && true) = false and proceeds to read
+/// stdin, setting the title even though `-f -` claims stdin for JSON.
 #[test]
 fn fill_stdin_skips_when_dash_in_values() {
     if std::env::var(FILL_STDIN_INNER).is_ok() {
@@ -142,12 +142,12 @@ fn fill_stdin_skips_when_dash_in_values() {
 /// Pins replace == with != in
 /// `args.values.iter().any(|source| source == "-")`.
 ///
-/// Original:  any(source == "-") — false for non-"-" entries
-/// Mutant:    any(source != "-") — true for non-"-" entries, causing
+/// Original:  any(source == "-"), false for non-"-" entries
+/// Mutant:    any(source != "-"), true for non-"-" entries, causing
 ///                                 an unconditional early return
 ///
 /// When values have no "-" entry, the original proceeds to read stdin
-/// and sets the title; the mutant returns early and leaves the title unset.
+/// and sets the title. The mutant returns early and leaves the title unset.
 #[test]
 fn fill_stdin_reads_when_values_have_non_dash() {
     if std::env::var(FILL_STDIN_INNER).is_ok() {
@@ -191,7 +191,7 @@ fn run_scenario_project(dir: &Path, template: &str) {
 }
 
 /// A template with a depends-on link to a non-existent task: the file passes
-/// fill and write but fails post-write validation. When `--no-verify` is set,
+/// fill and write but fails post-write validation. With `--no-verify`,
 /// the original `run()` skips validation, but the `delete !` mutant would run
 /// it and error.
 const BAD_TEMPLATE: &str = mindtape::typst_task!(
@@ -205,9 +205,9 @@ const BAD_TEMPLATE: &str = mindtape::typst_task!(
 /// Pins delete ! in `if !args.no_verify`.
 ///
 /// Original:  `if !args.no_verify { verify_written(...)? }`
-/// Mutant:    `if args.no_verify { verify_written(...)? }` — inverts the guard.
+/// Mutant:    `if args.no_verify { verify_written(...)? }`, which inverts the guard.
 ///
-/// With --no-verify, the original skips post-write validation (and succeeds).
+/// With `--no-verify`, the original skips post-write validation (and succeeds).
 /// The mutant runs it on a task that has an unresolved depends-on link,
 /// which fails validation.
 #[test]
@@ -268,10 +268,10 @@ fn run_with_no_verify_skips_validation() {
 
 // ── declared-env fill through run() ──
 
-/// Env var gating the inner/outer split; also the variable the template names.
+/// Env var gating the inner/outer split, and the variable the template names.
 const ENV_FILL_INNER: &str = "_MT_ADD_ENV_FILL";
 
-/// A template whose `title` slot declares `env:` — deliberately not the
+/// A template whose `title` slot declares `env:`, deliberately not the
 /// implicit `MINDTAPE_ADD_TITLE` name, so only the declared lookup can fill it.
 const ENV_TEMPLATE: &str = mindtape::typst_task!(
     r#"(

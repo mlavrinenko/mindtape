@@ -238,9 +238,9 @@ fn required_assignee_yields_env_backed_plain_slot() {
     assert!(!slot.call.contains("kind: \"choice\""), "{}", slot.call);
 }
 
-/// The kind slot's config default is carried out so a CLI can tell a
-/// default-filled value from a hand-supplied one; the env-backed assignee slot
-/// names its environment; and the rest expose neither.
+/// The kind slot carries its config default out, so a CLI can tell a
+/// default-filled value from a hand-supplied one. The env-backed assignee slot
+/// reports its environment, and the rest expose neither.
 #[test]
 fn required_slots_carry_their_resolution() {
     let config = parse_config(
@@ -323,8 +323,8 @@ fn example_of(slot: &RequiredSlot) -> Option<String> {
     specs.into_iter().next().unwrap().example
 }
 
-/// Every spliced slot shows the configured example and invents none: Rust
-/// knows no scale midpoint, first value, placeholder actor or unit.
+/// Every spliced slot shows the configured example and invents none. Rust cannot
+/// supply a scale midpoint, first value, placeholder actor or unit.
 #[test]
 fn a_spliced_slot_shows_its_configured_example_and_invents_none() {
     let cases = [

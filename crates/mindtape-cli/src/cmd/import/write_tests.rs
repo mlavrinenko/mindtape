@@ -1,5 +1,5 @@
-//! Unit test for `land`'s destination-creation guard: the destination is
-//! created when the first write actually needs it, so a batch whose records
+//! Unit test for `land`'s destination-creation guard. `land` creates the
+//! destination when the first write actually needs it. A batch whose records
 //! all fail leaves not even an empty directory behind.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
@@ -10,8 +10,8 @@ use mindtape::test_support::bare_task;
 use super::{StagedTask, land};
 use crate::cmd::import::tests::setup_dest;
 
-/// A clean record must create its destination directory before writing into
-/// it — the import destination need not pre-exist.
+/// A clean record must create its destination directory before writing into it.
+/// The import destination need not pre-exist.
 #[test]
 fn land_creates_a_destination_that_did_not_exist_yet() {
     let (dir, project) = setup_dest();

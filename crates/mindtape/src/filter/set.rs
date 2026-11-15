@@ -1,5 +1,6 @@
 //! The names a task takes from the tasks around it. Split out of `mod.rs` for
-//! the line cap; read by [`Filter::reads_set`](crate::filter::Filter::reads_set).
+//! the line cap. [`Filter::reads_set`](crate::filter::Filter::reads_set) reads
+//! it.
 
 use std::collections::BTreeSet;
 
@@ -13,10 +14,11 @@ pub(crate) const SET_FIELDS: [&str; 6] =
     ["ready", "blocked", "blocks", "topo", "children", "progress"];
 
 /// The functions whose answer depends on the set, not just the task. A bare
-/// `ready` is a set field above; `ready()` is a call the name walk cannot see.
+/// `ready` is a set field above, and `ready()` is a call the name walk cannot
+/// see.
 pub(crate) const SET_FUNCTIONS: [&str; 3] = ["ready", "blocked", "count"];
 
-/// Whether `name` calls a function whose answer depends on the whole task set.
+/// Whether `name` calls a function whose answer depends on the entire task set.
 pub(crate) fn is_set_function(name: &str) -> bool {
     SET_FUNCTIONS.contains(&name)
 }

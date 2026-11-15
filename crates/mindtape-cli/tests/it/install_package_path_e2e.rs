@@ -4,7 +4,7 @@
 //!
 //! That directory is `$TYPST_PACKAGE_PATH` when set, else the platform data
 //! directory joined with `typst/packages`. The variable moves it on every
-//! platform, so these tests pin it. `XDG_DATA_HOME` points at an empty
+//! platform, and these tests pin it. `XDG_DATA_HOME` points at an empty
 //! tempdir, so a lookup that ignores the variable misses on Linux instead of
 //! touching the machine's own packages.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
@@ -120,8 +120,9 @@ fn ls_reads_the_prelude_from_typsts_package_path() {
     );
 }
 
-/// Set but empty, the data home names no package directory, and it wins over
-/// `$TYPST_PACKAGE_PATH`, so `mt install` refuses rather than write anywhere.
+/// Set but empty, the data home wins over `$TYPST_PACKAGE_PATH`, and the
+/// lookup fails to find a package directory, so `mt install` refuses rather
+/// than write anywhere.
 #[test]
 fn install_refuses_when_no_package_directory_resolves() {
     let home = tempdir();

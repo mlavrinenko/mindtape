@@ -8,7 +8,7 @@
           "type": "boolean"
         },
         "description": {
-          "description": "The built-in's description; `null` for a user preset.",
+          "description": "The built-in's description, or `null` for a user preset.",
           "type": [
             "string",
             "null"

@@ -1,19 +1,19 @@
 //! Numeric-field primitive: scale, classification, resolve and display.
 //!
 //! The numeric cousin of the [`Legend`](crate::config::Legend) primitive. It
-//! owns the machinery shared by the scalar numeric fields (priority, difficulty)
-//! so neither reinvents the scale, the numeric value, or the classification
-//! layer — and so neither has to depend on the other.
+//! owns the machinery shared by the scalar numeric fields (priority,
+//! difficulty). Both fields then share the scale, the numeric value and the
+//! classification layer, and each stays independent of the other.
 //!
 //! A [`NumericField`] is a `[min, max]` scale (`int` or `real`) plus one
 //! classification style:
 //!
-//! - bands — contiguous ranges that tile the scale (int: inclusive and
-//!   contiguous; real: half-open, closed last). A value falls in exactly one.
-//! - anchors — sparse labeled points. A value at an anchor shows its label;
-//!   a value between anchors inherits the nearest lower anchor's glyph and
-//!   color, its label derived as `lower-label + "+"×offset` (values below all
-//!   anchors derive upward with `−`).
+//! - bands: contiguous ranges that tile the scale (int: inclusive and
+//!   contiguous, real: half-open, closed last). A value falls in exactly one.
+//! - anchors: sparse labeled points. A value at an anchor shows its label. A
+//!   value between anchors inherits the nearest lower anchor's glyph and
+//!   color, and its label derives as `lower-label + "+"×offset` (values below
+//!   all anchors derive upward with `−`).
 //!
 //! Exactly one style is active: declaring both is a config error.
 
@@ -24,17 +24,19 @@ use serde::Deserialize;
 
 use crate::config::Requirement;
 
-/// One typed input value supplied to a priority framework (e.g. ICE's `impact`).
+/// One typed input value supplied to a priority framework, such as ICE's
+/// `impact`.
 ///
-/// Carries the value as the prelude packager shaped it; the framework's declared
-/// input types drive how it feeds the score formula or category predicate.
+/// Carries the value as the prelude packager shaped it. The framework's
+/// declared input types drive how it feeds the score formula or category
+/// predicate.
 #[derive(Debug, Clone, PartialEq)]
 pub enum InputValue {
     /// A numeric input (fed to the evalexpr context as a float).
     Num(f64),
-    /// A boolean input (e.g. Eisenhower's `urgent`).
+    /// A boolean input, such as Eisenhower's `urgent`.
     Bool(bool),
-    /// A string input (e.g. `MoSCoW`'s `level`).
+    /// A string input, such as `MoSCoW`'s `level`.
     Text(String),
 }
 
@@ -42,12 +44,12 @@ pub enum InputValue {
 /// classification label, or a priority framework dict carrying its inputs.
 #[derive(Debug, Clone, PartialEq)]
 pub enum NumValue {
-    /// A raw number on the scale (e.g. `priority: 4`).
+    /// A raw number on the scale, such as `priority: 4`.
     Num(f64),
-    /// A band or anchor label (e.g. `difficulty: "senior"`).
+    /// A band or anchor label, such as `difficulty: "senior"`.
     Label(String),
-    /// A framework invocation (e.g. `priority: ice(impact: 8, ...)`): the
-    /// framework name plus its named inputs. The score is resolved against the
+    /// A framework invocation, such as `priority: ice(impact: 8, ...)`, holding
+    /// the framework name plus its named inputs. The score resolves against the
     /// configured framework registry, never by the numeric field alone.
     Framework {
         /// Framework name, matched against the configured registry.
@@ -60,16 +62,17 @@ pub enum NumValue {
 impl NumValue {
     /// Parse a string form back into a value: a parseable number becomes
     /// [`NumValue::Num`], anything else a [`NumValue::Label`]. Framework values
-    /// never round-trip through a string and are resolved with config instead.
+    /// never round-trip through a string, and config resolves them instead.
     #[must_use]
     pub fn parse(text: &str) -> Self {
         text.parse::<f64>()
             .map_or_else(|_| Self::Label(text.to_owned()), Self::Num)
     }
 
-    /// The plain display string: a whole number renders without a fraction. A
-    /// framework value falls back to its name (the score needs config to
-    /// resolve; callers with config use [`crate::config::PriorityConfig`]).
+    /// The plain display string. A whole number renders without a fraction. A
+    /// framework value falls back to its name, because the score needs config
+    /// to resolve, and callers with config use
+    /// [`crate::config::PriorityConfig`].
     #[must_use]
     pub fn as_display(&self) -> String {
         match self {
@@ -98,10 +101,10 @@ pub fn format_num(num: f64) -> String {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum ScaleKind {
-    /// Whole numbers; bands are inclusive and contiguous.
+    /// Whole numbers, with bands inclusive and contiguous.
     #[default]
     Int,
-    /// Real numbers; bands are half-open, the last one closed.
+    /// Real numbers, with bands half-open and the last one closed.
     Real,
 }
 
@@ -113,7 +116,7 @@ pub struct Band {
     pub label: String,
     /// Inclusive lower bound.
     pub min: f64,
-    /// Upper bound (inclusive for int and the last real band; else exclusive).
+    /// Upper bound (inclusive for int and the last real band, else exclusive).
     pub max: f64,
     /// Optional decorative glyph.
     pub glyph: Option<String>,
@@ -148,7 +151,7 @@ pub struct NumCell {
 
 /// A numeric scalar field with a `[min, max]` scale and, optionally, one
 /// classification style, either contiguous bands or labeled anchor points.
-/// Defaults to an integer `0..9` scale with no classification.
+/// Defaults to an integer `0..9` scale without a classification.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct NumericField {
@@ -162,7 +165,7 @@ pub struct NumericField {
     pub bands: Vec<Band>,
     /// Anchor classification (mutually exclusive with `bands`).
     pub anchors: Vec<Anchor>,
-    /// Whether the field must be set.
+    /// Whether the field must carry a value.
     #[schemars(extend("x-expression" = "filter"))]
     pub required: Requirement,
     /// The value `mt check` files a spliced slot with. A required field with
@@ -185,8 +188,8 @@ impl Default for NumericField {
 }
 
 impl NumericField {
-    /// Resolve a written value to its numeric point: a number passes through;
-    /// a label maps via its band (representative = lower bound) or anchor.
+    /// Resolve a written value to its numeric point. A number passes through.
+    /// A label maps through its band (representative = lower bound) or anchor.
     #[must_use]
     pub fn resolve(&self, value: &NumValue) -> Option<f64> {
         match value {
@@ -209,7 +212,7 @@ impl NumericField {
     }
 
     /// Classify a resolved point into its display cell, or `None` when the
-    /// field declares no classification.
+    /// field has no classification.
     #[must_use]
     pub fn classify(&self, point: f64) -> Option<NumCell> {
         if !self.anchors.is_empty() {

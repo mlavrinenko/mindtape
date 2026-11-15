@@ -15,11 +15,11 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-/// Every golden this suite and `mt schema --check` compare byte for byte is
-/// checked out with LF. Git's `core.autocrlf` would otherwise turn it into
-/// CRLF on Windows, and the comparison would fail only there. New schema files
-/// and prelude snapshots are covered by the walk, so a new golden cannot ship
-/// without the attribute.
+/// Every golden this suite and `mt schema --check` compare byte for byte lands
+/// in the checkout with LF. Git's `core.autocrlf` would otherwise turn it into
+/// CRLF on Windows, and the comparison would fail only there. The walk covers
+/// new schema files and prelude snapshots, so a new golden cannot land without
+/// the attribute.
 #[test]
 fn byte_compared_goldens_are_pinned_to_lf() {
     let root = repo_root();

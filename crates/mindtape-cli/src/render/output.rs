@@ -36,12 +36,12 @@ pub enum OutputFormat {
     Path0,
 }
 
-/// What `--limit` cut from a listing: the rows the caller was shown against
-/// the rows the filter actually matched. Only ever constructed when the limit
-/// bit, so `shown < total` holds by construction and a consumer never
-/// re-derives whether anything was hidden — absent *is* "this listing is
-/// complete" (`truth/tasks/2026-08/ls-limit-flag.typ`). `skip` is the `--skip` this
-/// run applied before `-n` (`0` when the flag was absent), carried along so
+/// What `--limit` cut from a listing: the rows the caller saw against the rows
+/// the filter actually matched. The code constructs it only when the limit bit,
+/// so `shown < total` holds by construction and a consumer never re-derives
+/// whether the listing hid anything. Absent *is* "this listing is complete"
+/// (`truth/tasks/2026-08/ls-limit-flag.typ`). `skip` is the `--skip` this run
+/// applied before `-n` (`0` when the flag was absent), carried along so
 /// [`Self::next_skip`] can advance it rather than restate it
 /// (`truth/tasks/2026-09/add-skip-and-a-next-command-hint-to-ls-paging.typ`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,12 +53,12 @@ pub struct Truncation {
 
 impl Truncation {
     /// The truncation `--limit`/`--skip` produced: `total` matched tasks,
-    /// `skip` dropped before the cut, `limit` shown after it. `None` when no
-    /// limit was given — `--skip` alone shows every remaining row, so it
-    /// never truncates on its own — and `None` when this page reaches the
-    /// end of the match set (`skip + shown >= total`), a listing that fits
-    /// under its own cap is not truncated, and saying so would train the
-    /// reader to skip the line that means something.
+    /// `skip` dropped before the cut, `limit` shown after it. It is `None` when
+    /// the caller omits `--limit`, because `--skip` alone shows every remaining
+    /// row and never truncates on its own. It is also `None` when this page
+    /// reaches the end of the match set (`skip + shown >= total`). A listing
+    /// that fits under its own cap is not truncated, and saying so would train
+    /// the reader to skip the line that means something.
     #[must_use]
     pub fn new(limit: Option<usize>, skip: usize, total: usize) -> Option<Self> {
         let limit = limit?;
@@ -67,8 +67,8 @@ impl Truncation {
     }
 
     /// The `--skip` value that continues from here: this page's `--skip`
-    /// advanced past the rows it actually showed, not past `total` — so a
-    /// caller that runs it next sees the next page, not a gap or a repeat.
+    /// advanced past the rows it actually showed, not past `total`. A caller
+    /// that runs it next sees the next page, not a gap or a repeat.
     #[must_use]
     pub fn next_skip(&self) -> usize {
         self.skip + self.shown
@@ -76,7 +76,7 @@ impl Truncation {
 
     /// How many matched rows this page left out after it: `37 more not shown`.
     /// Plain, with no next-page command, which needs the parsed `LsArgs` this
-    /// type does not carry; `crate::cmd::ls::print_footer` adds it for the one
+    /// type does not carry. `crate::cmd::ls::print_footer` adds it for the one
     /// caller that has them, and the interactive picker shows it as is.
     #[must_use]
     pub fn footer(self) -> String {
@@ -93,26 +93,26 @@ fn status_name(task: &Task) -> String {
 
 /// Render `tasks` in the chosen `format`. `ctx` carries the config, the
 /// readiness driving the table's dependency column, and the environment a
-/// column's conditional visibility evaluates against; only `JSON` reads
+/// column's conditional visibility evaluates against. Only `JSON` reads
 /// `envelope` at all. When it is `Some`, `JSON` wraps the task array in the
 /// [`Envelope`] whose `$schema` names the `ls` schema, carrying `tasks`,
 /// `applied`, `truncated` and `retired`
 /// (`truth/tasks/2026-07/conditional-ls-rules.typ`,
 /// `truth/tasks/2026-11/generate-a-schema-for-every-json-output.typ`,
-/// `truth/tasks/2026-08/ls-limit-flag.typ`); `None`, a caller with no rule or view
-/// context, keeps the bare array.
+/// `truth/tasks/2026-08/ls-limit-flag.typ`). `None`, a caller with no rule or
+/// view context, keeps the bare array.
 ///
-/// `Table`, `CSV`, `Path` and `Path0` ignore `envelope`: the table's
-/// attribution and truncation lines are printed under it by the caller
-/// (`crate::cmd::ls`), and the three machine formats are record streams with
-/// nowhere to put a document-level fact — no header, no colour, no
-/// hyperlinks, no envelope, so a `csv` reader and `xargs -0` get records and
-/// nothing else (`truth/tasks/2026-08/emit-a-plain-path-list-from-ls.typ`).
+/// `Table`, `CSV`, `Path` and `Path0` ignore `envelope`. The caller
+/// (`crate::cmd::ls`) prints the table's attribution and truncation lines under
+/// it. The three machine formats are record streams with nowhere to put a
+/// document-level fact: no header, no colour, no hyperlinks, no envelope. A
+/// `csv` reader and `xargs -0` get records and nothing else
+/// (`truth/tasks/2026-08/emit-a-plain-path-list-from-ls.typ`).
 ///
 /// # Errors
 /// Returns an error if JSON or CSV serialization fails, or if a column's
-/// `rules` condition fails to evaluate (`table` and `csv` only — the record
-/// formats resolve no columns).
+/// `rules` condition fails to evaluate (`table` and `csv` only, because the
+/// record formats resolve no columns).
 pub fn render(
     tasks: &[Task],
     format: OutputFormat,
@@ -146,9 +146,9 @@ pub struct Listed<'a> {
 
 /// Render a set's listing in the chosen `format`, the projects in order. The
 /// table and CSV join every listed project's rows under one header, with the
-/// `PROJECT` column first; JSON is an array of one `mt ls --json` object per
-/// project, each with its `project` and its `error` (`null` when it listed);
-/// the path formats run on through every project.
+/// `PROJECT` column first. JSON is an array of one `mt ls --json` object per
+/// project, each with its `project` and its `error` (`null` when it listed).
+/// The path formats run on through every project.
 ///
 /// # Errors
 /// As [`render`].
@@ -194,7 +194,7 @@ pub struct ProjectListingJson {
     pub applied: Option<AppliedJson>,
     /// What `--limit` cut, or `null`.
     pub truncated: Option<TruncatedJson>,
-    /// The stems a `touches()` call met that no task answers to.
+    /// The stems a `touches()` call met with no matching task.
     pub retired: Vec<String>,
     /// Why the project did not list, or `null` when it did.
     pub error: Option<String>,
@@ -241,7 +241,7 @@ fn project_listing(group: &SetGroup<'_>) -> ProjectListingJson {
     }
 }
 
-/// `path` format: one task path per line, joined (not trailing) — the caller
+/// `path` format: one task path per line, joined (not trailing). The caller
 /// prints this through `println!`, which supplies the final newline the same
 /// way every other format already relies on it.
 fn render_path(tasks: &[Task], root: &Path) -> String {
@@ -252,10 +252,10 @@ fn render_path(tasks: &[Task], root: &Path) -> String {
         .join("\n")
 }
 
-/// `path0` format: each task path is its own NUL-terminated record, including
-/// the last — unlike [`render_path`], the caller must print this verbatim
-/// (`print!`, not `println!`), since a stray trailing newline after the final
-/// NUL would land inside the last `xargs -0` argument.
+/// `path0` format: each task path is its own NUL-ended record, including the
+/// last. Unlike [`render_path`], the caller must print this verbatim (`print!`,
+/// not `println!`), since a stray trailing newline after the final NUL would
+/// land inside the last `xargs -0` argument.
 fn render_path0(tasks: &[Task], root: &Path) -> String {
     tasks
         .iter()
@@ -285,7 +285,7 @@ fn render_json(
     }
 }
 
-/// [`render_json`]'s document, before it is printed.
+/// [`render_json`]'s document, before the caller prints it.
 fn json_value(
     tasks: &[Task],
     config: &Config,
@@ -307,41 +307,42 @@ fn json_value(
     }
 }
 
-/// Render CSV over the same resolved column set/order the table renderer
-/// uses ([`crate::render::columns::resolve_order`]: `[ls] columns-order` + each column's `when`
-/// against [`mindtape::LS_COLUMNS`]), so `--format csv` and the default table
-/// never disagree on which columns appear or in what sequence.
+/// Render CSV over the same resolved column set and order the table renderer
+/// uses ([`crate::render::columns::resolve_order`]: `[ls] columns-order` plus
+/// each column's `when` against [`mindtape::LS_COLUMNS`]). `--format csv` and
+/// the default table then never disagree on which columns appear or in what
+/// sequence.
 ///
-/// Column *mapping decision*: CSV column values are the plain/raw field
-/// (e.g. the status legend's raw name, the numeric priority score) rather
-/// than the table's coloured/labelled cell text — matching CSV's prior
-/// behaviour and staying friendly to non-interactive consumers. Two columns
-/// diverge from the table on purpose, and for one reason: where the table
-/// shows something only the render that produced it can resolve, CSV emits
-/// the stable value a program can keep.
+/// Column *mapping decision*: CSV column values are the plain/raw field, such
+/// as the status legend's raw name or the numeric priority score. The table
+/// instead shows coloured, labelled cell text. That matches CSV's prior
+/// behaviour and stays friendly to non-interactive consumers. Two columns
+/// diverge from the table on purpose, and for one reason. Where the table shows
+/// something only the render that produced it can resolve, CSV emits the stable
+/// value a program can keep.
 ///
 /// - `slug#`: a stem hash lengthens when a new stem comes to share its
 ///   prefix, so CSV emits the task's stable `id` under an `id` header instead.
 /// - `file`: the table's cell is relative to the process's working directory
 ///   ([`crate::render::file_path::cell_text`]), so one task reads
 ///   `tasks/a.typ` from the root and `../tasks/a.typ` from `tasks/`. CSV
-///   emits `task.file` — the project-root-relative path, byte-identical to
+///   emits `task.file`, the project-root-relative path, byte-identical to
 ///   `--format json`'s `file` key and to what the `path` filter field
-///   compares, so the two machine formats never disagree by cwd
+///   compares. The two machine formats then never disagree by cwd
 ///   (`truth/tasks/2026-09/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 ///   Rendering that path from where the reader stands is `--format path`'s
 ///   whole job, and the table's.
 ///
-/// Fields with no [`mindtape::LS_COLUMNS`] entry — `kind`, `estimate`, `tags`,
-/// derived tags, and any `x-<ns>` extra — have no column to drive from and so
-/// are not represented here, same as the table. `--format json` is the
-/// escape hatch: it always emits every field.
+/// Fields with no [`mindtape::LS_COLUMNS`] entry (`kind`, `estimate`, `tags`,
+/// derived tags, and any `x-<ns>` extra) have no column to drive from. They are
+/// not represented here, same as the table. `--format json` is the escape
+/// hatch: it always emits every field.
 fn render_csv(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
     render_csv_groups(&[(tasks, ctx)])
 }
 
-/// [`render_csv`] over several listings under one header: the columns any of
-/// them shows ([`joined_rows`]), each row's cells built by its own listing.
+/// [`render_csv`] over more than one listing under one header: the columns any
+/// of them shows ([`joined_rows`]), each row's cells built by its own listing.
 fn render_csv_groups(groups: &[(&[Task], RenderCtx<'_>)]) -> Result<String> {
     let (rows, columns) = joined_rows(groups)?;
     let mut writer = csv::Writer::from_writer(Vec::new());
@@ -359,9 +360,9 @@ fn render_csv_groups(groups: &[(&[Task], RenderCtx<'_>)]) -> Result<String> {
     Ok(String::from_utf8_lossy(&bytes).into_owned())
 }
 
-/// CSV header text for a resolved column: its [`ColumnId::key`], except
-/// for `StemHash`: `id` describes the CSV cell's content (the task's
-/// stable id), where the table's `slug#` holds a hash that can lengthen.
+/// CSV header text for a resolved column: its [`ColumnId::key`], except for
+/// `StemHash`. There `id` describes the CSV cell's content (the task's stable
+/// id), where the table's `slug#` holds a hash that can lengthen.
 fn csv_header(id: ColumnId) -> &'static str {
     match id {
         ColumnId::StemHash => "id",
@@ -392,8 +393,7 @@ fn csv_value(id: ColumnId, task: &Task, ctx: RenderCtx<'_>) -> String {
 }
 
 /// Plain readiness text for a CSV cell: settled tasks render blank, matching
-/// the table's `ready` column significance (hidden unless something is
-/// blocked).
+/// the table's `ready` column significance (hidden unless something blocks).
 fn ready_text(state: ReadyState) -> &'static str {
     match state {
         ReadyState::Ready => "ready",
@@ -403,15 +403,16 @@ fn ready_text(state: ReadyState) -> &'static str {
 }
 
 /// Project one task to a JSON object via the canonical schema
-/// ([`CanonicalTask`]) — the single shape shared with `mt import`. `config`
+/// ([`CanonicalTask`]), the single shape shared with `mt import`. `config`
 /// resolves a framework priority's read-side score.
 pub fn task_to_json(task: &Task, config: &Config) -> Value {
     let canonical = CanonicalTask::from_task(task, config);
     serde_json::to_value(canonical).unwrap_or(Value::Null)
 }
 
-/// The plain display string for a priority value: a framework value resolves to
-/// its numeric score; else the numeric-field display (empty when absent).
+/// The plain display string for a priority value. A framework value resolves to
+/// its numeric score, and anything else uses the numeric-field display (empty
+/// when absent).
 fn priority_display(value: Option<&NumValue>, config: &Config) -> String {
     match value {
         Some(framework @ NumValue::Framework { .. }) => config

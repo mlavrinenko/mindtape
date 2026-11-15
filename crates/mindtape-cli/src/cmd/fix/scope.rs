@@ -10,13 +10,13 @@
 //! `target` and `.mindtape/cache` skips.
 //!
 //! Both scopes add every configured template dir that stays under `root`,
-//! including the dirs a directory pack contributes after the config merge; a
-//! pack dir outside the project is skipped, because it is not the project's
-//! file to edit.
+//! including the dirs a directory pack contributes after the config merge.
+//! The scan skips a pack dir outside the project, because that dir is not the
+//! project's file to edit.
 //!
 //! A symlinked directory is never followed in either mode: a cycle or a shared
-//! tree would make the scan unbounded. A symlinked file under `--all` is
-//! collected so the fixer can read it and report that it will not rewrite one.
+//! tree would make the scan unbounded. The scan collects a symlinked file under
+//! `--all` so the fixer can read it and report that it will not rewrite one.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -72,9 +72,9 @@ fn collect_templates(root: &Path, config: &Config, files: &mut BTreeSet<PathBuf>
     }
 }
 
-/// Add every `.typ` file under `dir` to `files`. A symlinked `dir` is not
-/// entered, and a symlinked file is added only when it does not point at a
-/// directory.
+/// Add every `.typ` file under `dir` to `files`. The walk does not enter a
+/// symlinked `dir`, and it adds a symlinked file only when that file does not
+/// point at a directory.
 fn walk(dir: &Path, files: &mut BTreeSet<PathBuf>) {
     if !std::fs::symlink_metadata(dir).is_ok_and(|meta| meta.is_dir()) {
         return;
@@ -117,7 +117,7 @@ fn skipped(dir: &Path) -> bool {
             == Some(".mindtape")
 }
 
-/// Whether `path` names a Typst file by extension.
+/// Whether `path` has the `.typ` extension.
 fn is_typ(path: &Path) -> bool {
     path.extension().and_then(|ext| ext.to_str()) == Some("typ")
 }

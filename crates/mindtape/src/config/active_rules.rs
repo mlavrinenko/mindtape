@@ -3,9 +3,9 @@
 //!
 //! It reads the typed [`Config`], whose four rule arrays already hold what
 //! [`crate::config::packs`] left after packs, same-name overrides and
-//! `disable`, so the listing needs no merge of its own. The `[[on.flip]]`
-//! actions that gate a flip or carry a `message` join them, since a gate
-//! refuses the way a rule does.
+//! `disable`. The listing then doesn't need a merge of its own. The
+//! `[[on.flip]]` actions that gate a flip or carry a `message` join them, since
+//! a gate refuses the way a rule does.
 
 use serde::{Serialize, Serializer};
 
@@ -68,12 +68,11 @@ pub struct ActiveRule {
     /// The severity a breach reports at: the rule's own, else the level the
     /// engine applies to its section.
     pub severity: Severity,
-    /// What a breach prints, when that text is fixed: the rule's `message`,
-    /// else for an `assert` rule the engine's `must satisfy` advice. `None`
-    /// when each breach words its own: a `check` rule prints what its
-    /// function returns, a body rule with no `message` prints its gate's text
-    /// for the heading at fault, and a flip gate with none leaves the advice
-    /// to `mt flip`.
+    /// The fixed text a breach prints: the rule's `message`, else for an
+    /// `assert` rule the engine's `must satisfy` advice. `None` when each
+    /// breach words its own. A `check` rule prints what its function returns,
+    /// and a body rule with no `message` prints its gate's text for the heading
+    /// at fault. A flip gate with none leaves the advice to `mt flip`.
     pub message: Option<String>,
     /// The filter gating which tasks, commits or flips the rule applies to.
     pub when: Option<String>,
@@ -269,10 +268,10 @@ fn body_rule(section: RuleSection, index: usize, parts: BodyParts<'_>) -> Active
     }
 }
 
-/// Each `[[on.flip]]` action that gates a flip or carries a `message`. A
-/// gate refuses even with no message; `mt flip` refuses on it and only warns
-/// on a plain `run` (`cmd/flip/hooks.rs` in the CLI), so a gate is an error
-/// and a `run` a warning.
+/// Each `[[on.flip]]` action that gates a flip or carries a `message`. A gate
+/// refuses even with no message. `mt flip` refuses on it and only warns on a
+/// plain `run` (`cmd/flip/hooks.rs` in the CLI), so a gate is an error and a
+/// `run` a warning.
 fn flip_actions(config: &Config) -> Vec<ActiveRule> {
     let mut out = Vec::new();
     for (index, hook) in config.on.flip.iter().enumerate() {

@@ -21,8 +21,9 @@ fn edge(value: &str, to: &[&str]) -> LegendEntry {
     }
 }
 
-/// The dogfood-shaped lifecycle: proposed → accepted/wip/cancelled, wip →
-/// done/failed/accepted, terminal done/failed reopen to wip, cancelled a sink.
+/// The dogfood-shaped lifecycle runs proposed → accepted/wip/cancelled, wip →
+/// done/failed/accepted. Terminal done/failed reopen to wip, and cancelled is a
+/// sink.
 fn lifecycle() -> Legend {
     Legend {
         entries: vec![

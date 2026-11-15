@@ -1,4 +1,4 @@
-//! `mt explain views` — list or inspect named views (`[views]`).
+//! `mt explain views` lists or inspects named views (`[views]`).
 
 use std::collections::BTreeMap;
 
@@ -20,7 +20,7 @@ pub struct ViewsArgs {
 /// Run `mt explain views`.
 ///
 /// # Errors
-/// Returns an error if the project cannot be opened or a named view is unknown.
+/// Returns an error if the project fails to open or a named view is unknown.
 pub fn run(args: &ViewsArgs, as_json: bool) -> Result<()> {
     let project = util::open()?;
     let views = &project.config.views;
@@ -63,7 +63,7 @@ pub struct ViewsPayload {
     pub views: BTreeMap<String, ViewSpec>,
 }
 
-/// The filter as shown to a human; empty means match-all.
+/// The filter as shown to a human. An empty filter means match-all.
 fn filter_display(spec: &ViewSpec) -> &str {
     if spec.filter.trim().is_empty() {
         "(all)"

@@ -1,11 +1,11 @@
 //! How the command line chose its project, restated for a hint to paste.
 //!
-//! A single-project `@name` is rewritten into `-w <path>` before clap parses
-//! (`cmd::at`), so by the time a command builds a hint for the next step the
-//! name is gone. This module remembers what the reader typed: the `@name`, or
-//! else the `-w` value as typed. `$MINDTAPE_WORKTREE` is left out: the
-//! environment carries over when the hint is pasted, and restating it would pin
-//! a path the reader may have since changed.
+//! `cmd::at` rewrites a single-project `@name` into `-w <path>` before clap
+//! parses. By the time a command builds a hint for the next step, the name has
+//! gone. This module remembers what the reader typed: the `@name`, or else the
+//! `-w` value as typed. It omits `$MINDTAPE_WORKTREE`, because the environment
+//! carries over when the reader pastes the hint, and restating it would pin a
+//! path the reader may have since changed.
 
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
@@ -16,13 +16,13 @@ static AT_NAME: OnceLock<String> = OnceLock::new();
 static FLAG: OnceLock<Option<PathBuf>> = OnceLock::new();
 
 /// Record the single-project `@name` the command line led with. Call once from
-/// the desugar; later calls are ignored.
+/// the desugar. The function ignores later calls.
 pub fn init_at_name(name: &str) {
     let _ = AT_NAME.set(name.to_owned());
 }
 
-/// Record the `-w`/`--worktree` value as typed. Call once from `main`; later
-/// calls are ignored.
+/// Record the `-w`/`--worktree` value as typed. Call once from `main`. The
+/// function ignores later calls.
 pub fn init_flag(flag: Option<PathBuf>) {
     let _ = FLAG.set(flag);
 }

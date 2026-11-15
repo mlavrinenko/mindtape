@@ -1,14 +1,15 @@
 //! DOT and Mermaid rendering for `mt graph`.
 //!
 //! Pure string builders over a resolved node set and its induced [`Edge`]s.
-//! Nodes carry a readiness fill (ready/blocked/terminal); edges are styled per
-//! relation kind so a rendered graph reads the typed structure at a glance.
+//! Nodes carry a readiness fill (ready/blocked/terminal). The renderer styles
+//! edges per relation kind so a rendered graph reads the typed structure at a
+//! glance.
 //!
 //! A link kind whose `[[tasks.links.kinds]] validate` is not `local-task-path`
 //! points at an artifact outside the backlog (a commit, a pull request, a
 //! build). Those arrive separately as [`ExternalTarget`]s and render as their
-//! own distinctly-styled leaf nodes: never a task node, never traversed, and
-//! never part of the readiness or ordering the task nodes carry.
+//! own distinctly-styled leaf nodes. They are never a task node, never
+//! traversed, and never part of the readiness or ordering the task nodes carry.
 
 use std::collections::HashMap;
 use std::fmt::Write as _;
@@ -21,13 +22,13 @@ use mindtape::{Edge, Readiness, ReadyState, Task};
 pub struct ExternalTarget<'a> {
     /// The linking task (edge tail).
     pub from: &'a Task,
-    /// The edge kind, e.g. a project's `discharged-by`.
+    /// The edge kind, such as a project's `discharged-by`.
     pub kind: &'a str,
     /// The raw target string. Never resolved against the task set.
     pub target: &'a str,
 }
 
-/// The distinct external targets in `external`, in first-seen order — one node
+/// The distinct external targets in `external`, in first-seen order: one node
 /// per artifact, however many tasks point at it.
 fn distinct_targets<'a>(external: &[ExternalTarget<'a>]) -> Vec<&'a str> {
     let mut seen: Vec<&str> = Vec::new();
@@ -53,8 +54,8 @@ pub enum GraphFormat {
 /// can collide with.
 const EXTERNAL_PREFIX: &str = "external:";
 
-/// Fill colour for an external-target node — off the readiness palette
-/// entirely, since an artifact outside the backlog has no readiness.
+/// Fill colour for an external-target node, off the readiness palette entirely,
+/// since an artifact outside the backlog has no readiness.
 const EXTERNAL_FILL: &str = "#fdf3d0";
 
 /// Stroke colour for an external-target node and its edge.
@@ -80,7 +81,7 @@ pub(super) fn ready_name(state: ReadyState) -> &'static str {
 }
 
 /// DOT `(line-style, colour)` for an edge kind. Built-in kinds each get a
-/// distinct style; an unknown/custom kind falls back to a neutral solid line.
+/// distinct style. An unknown or custom kind falls back to a neutral solid line.
 fn dot_edge_style(kind: &str) -> (&'static str, &'static str) {
     match kind {
         "depends-on" => ("solid", "#c0392b"),
@@ -115,16 +116,16 @@ fn node_label(task: &Task) -> String {
     format!("{title} [{status}]")
 }
 
-/// Escape a string for a DOT double-quoted id/label: backslash and quote get
-/// escaped; embedded newlines collapse to spaces so a label stays one line.
+/// Escape a string for a DOT double-quoted id/label. Backslash and quote get
+/// escaped, and embedded newlines collapse to spaces so a label stays one line.
 fn dot_escape(s: &str) -> String {
     s.replace('\\', "\\\\")
         .replace('"', "\\\"")
         .replace('\n', " ")
 }
 
-/// Escape a string for a Mermaid quoted label: quotes become the `#quot;`
-/// entity Mermaid understands; newlines collapse to spaces.
+/// Escape a string for a Mermaid quoted label. Quotes become the `#quot;`
+/// entity Mermaid understands, and newlines collapse to spaces.
 fn mermaid_escape(s: &str) -> String {
     s.replace('"', "#quot;").replace('\n', " ")
 }
@@ -184,8 +185,9 @@ pub fn render_dot(
 
 /// Render the node set, its edges, and its external targets as a Mermaid
 /// flowchart. Task ids map to stable `nK` aliases so any stem is a legal
-/// Mermaid node id; the real stem/title lives in the label. External targets
-/// take their own `xK` aliases and a stadium shape, so they never read as tasks.
+/// Mermaid node id, and the real stem/title lives in the label. External
+/// targets take their own `xK` aliases and a stadium shape, so they never read
+/// as tasks.
 #[must_use]
 pub fn render_mermaid(
     tasks: &[Task],

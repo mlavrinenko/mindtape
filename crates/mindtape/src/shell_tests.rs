@@ -54,9 +54,10 @@ fn a_blank_line_or_an_array_with_no_program_is_blank() {
     assert!(!argv(&["x"]).is_blank());
 }
 
-/// An array spawns its program with no shell. The program is this test binary
+/// An array spawns its program without a shell. The program is this test binary
 /// itself, which every platform can run: `--list` prints the test names, this
-/// one among them, and an argument no shell has read reaches it whole.
+/// one among them. The program receives an argument whole, because the spawn
+/// skips the shell.
 #[test]
 fn an_array_runs_its_program_directly() {
     let exe = std::env::current_exe().unwrap();

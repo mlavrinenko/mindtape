@@ -1,13 +1,14 @@
 //! Status shortcut verbs, grafted onto the tree a completion run parses.
 //!
 //! An ordinary run catches `mt done <task>` with a clap `external_subcommand`,
-//! whose tail clap never parses. A completion run cannot use that shape, so
-//! [`super::decorate`] grafts each legend value on as a real subcommand
-//! carrying `flip`'s own arguments — `status` aside, the verb being the
-//! status — already decorated under `flip`'s [`super::SOURCES`] entries.
-//! `mt done <TAB>` therefore offers exactly what `mt flip done <TAB>` does,
-//! and a config adding a status gets its verb and its completion together.
-//! The dispatch is untouched: only a completion run ever sees the grafts.
+//! whose tail clap never parses. A completion run cannot use that shape.
+//! [`super::decorate`] instead grafts each legend value on as a real subcommand
+//! carrying `flip`'s own arguments, with `status` aside since the verb is the
+//! status. Each graft already carries the decoration from `flip`'s
+//! [`super::SOURCES`] entries. `mt done <TAB>` then offers exactly what
+//! `mt flip done <TAB>` does, and a config adding a status gets its verb and its
+//! completion together. The dispatch stays as it was: only a completion run ever
+//! sees the grafts.
 //!
 //! Refs: `truth/tasks/2026-09/complete-a-status-shortcut-verbs-task-argument.typ`
 
@@ -30,9 +31,8 @@ pub(super) fn legend_verbs() -> Vec<String> {
 }
 
 /// Add one subcommand per `verbs` entry, each carrying `flip`'s arguments but
-/// `status` (the verb is the status), completers already hung. A verb
-/// shadowed by a built-in command is left to that command, as the dispatch
-/// leaves it.
+/// `status` (the verb is the status), completers already hung. A verb shadowed
+/// by a built-in command stays with that command, as the dispatch leaves it.
 pub(super) fn graft(mut cmd: Command, verbs: &[String]) -> Command {
     let Some(flip) = cmd.find_subcommand("flip").cloned() else {
         return cmd;

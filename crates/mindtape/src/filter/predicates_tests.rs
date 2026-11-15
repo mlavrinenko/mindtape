@@ -1,5 +1,5 @@
 //! Coverage for `has`/`miss` presence, `stale(N)`, and the `contains()`
-//! default-haystack fold — the arms that moved into `filter::predicates`
+//! default-haystack fold, the arms that moved into `filter::predicates`
 //! (file-size gate). Lives in a child module so it shares `sample()` /
 //! `hit()` with the parent without duplicating them.
 #![allow(clippy::unwrap_used)]
@@ -155,8 +155,8 @@ fn an_absent_estimate_unit_is_missing() {
     assert!(hit("miss(estimate.src-files)", &task));
 }
 
-/// A unit outside a declared `[tasks.estimate] units` is an unknown field;
-/// with no allow-list, any unit name reads.
+/// A unit outside a declared `[tasks.estimate] units` is an unknown field. With
+/// no allow-list, any unit name reads.
 #[test]
 fn an_undeclared_estimate_unit_is_an_unknown_field() {
     let config = crate::parse_config("[tasks.estimate]\nunits = [\"hours\"]\n").unwrap();
@@ -186,8 +186,8 @@ fn a_hyphen_outside_a_name_is_untouched() {
     assert!(hit("contains(\"b - c\")", &task));
 }
 
-/// An unknown kebab-case name is reported as written, not in the stand-in
-/// spelling the parser saw.
+/// The message reports an unknown kebab-case name as written, not in the
+/// stand-in spelling the parser saw.
 #[test]
 fn an_unknown_kebab_name_is_reported_as_written() {
     let err = Filter::parse("no-such-field == 1")

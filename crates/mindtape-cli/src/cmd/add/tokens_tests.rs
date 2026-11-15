@@ -1,8 +1,8 @@
-//! Tests for the `key OP value` token grammar — see `cmd/add/tokens.rs`.
+//! Tests for the `key OP value` token grammar, see `cmd/add/tokens.rs`.
 //!
-//! The `=`/`+=` half is exercised through `collect_values` in
-//! `cmd/add/values_tests.rs`, where the two carriers meet; this file is about the
-//! `@` operator and the splitting rule all three share.
+//! `collect_values` in `cmd/add/values_tests.rs` exercises the `=`/`+=` half,
+//! where the two carriers meet. This file covers the `@` operator and the
+//! splitting rule all three share.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::tempdir;
@@ -68,8 +68,8 @@ fn file_operator_reads_the_value_from_the_file() {
 }
 
 /// Only trailing line terminators go. Interior blank lines are the shape of a
-/// prose or markup value and stripping them would be a conversion step, which
-/// this operator deliberately has none of; leading whitespace is the first
+/// prose or markup value, and stripping them would be a conversion step, which
+/// this operator deliberately has none of. Leading whitespace is the first
 /// line's own indentation.
 #[test]
 fn file_operator_strips_trailing_newlines_and_nothing_else() {
@@ -132,9 +132,9 @@ fn appending_a_file_is_rejected_naming_the_structured_channel() {
 }
 
 /// `-f -` is the one stdin channel, and it takes a whole mapping. A second
-/// claimant would have to arbitrate against it and against the piped-title
-/// read, so `@-` is refused pointing at the one that exists rather than
-/// silently looking for a file named `-`.
+/// claimant would have to compete with it and with the piped-title read. So
+/// `@-` fails with a pointer at the one that exists, rather than silently
+/// looking for a file named `-`.
 #[test]
 fn the_file_operator_refuses_stdin_naming_the_values_flag() {
     let err = rejected("summary@-");
@@ -148,7 +148,7 @@ fn the_file_operator_refuses_stdin_naming_the_values_flag() {
     );
 }
 
-/// An unreadable file names the slot as well as the path: the token is one
+/// An unreadable file cites the slot as well as the path: the token is one
 /// argument among many and a bare io error would not say which one failed.
 #[test]
 fn an_unreadable_file_errors_naming_the_slot_and_the_path() {
@@ -162,9 +162,9 @@ fn an_unreadable_file_errors_naming_the_slot_and_the_path() {
     );
 }
 
-/// The no-operator error is the grammar's only summary of itself, so it has
-/// to list the third form too — a caller who typed a bare path is exactly the
-/// one who needs to be told `@` exists.
+/// The no-operator error is the grammar's only summary of itself, so it has to
+/// list the third form too. A caller who typed a bare path is exactly the one
+/// who needs to hear that `@` exists.
 #[test]
 fn a_token_without_an_operator_names_all_three_forms() {
     let err = rejected("notes.txt");
@@ -174,11 +174,11 @@ fn a_token_without_an_operator_names_all_three_forms() {
     );
 }
 
-/// The `[]` suffix from the pre-release `key[]=value` append spelling is not
-/// a second operator this grammar knows about — it is just two more bytes of
-/// an arbitrary key, exactly as any other punctuation would be. The value
-/// lands under the literal key `tags[]`; whether that key means anything is
-/// a question for the slot the key is checked against, not this parser (see
+/// The `[]` suffix from the pre-release `key[]=value` append spelling is not a
+/// second operator this grammar knows about. It is just two more bytes of an
+/// arbitrary key, exactly as any other punctuation would be. The value lands
+/// under the literal key `tags[]`. Whether that key means anything is a
+/// question for the slot the key resolves against, not this parser (see
 /// `cmd/add/values_tests.rs`'s `reject_unknown_keys` coverage).
 #[test]
 fn a_bracket_suffixed_key_is_an_ordinary_key() {

@@ -1,6 +1,6 @@
 //! End-to-end tests for `mt add`'s `links` slot: the YAML list of typed edges,
 //! and the `--set` refusal that points at `-f`. The slot engine's rendering is
-//! unit-tested in `mindtape`; these prove the CLI path writes a task that
+//! unit-tested in `mindtape`. These prove the CLI path writes a task that
 //! `mt check` accepts.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 

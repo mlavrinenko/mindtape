@@ -1,4 +1,4 @@
-//! `[[tasks.rules]] check = { typst, function, field }` — call a project's own
+//! `[[tasks.rules]] check = { typst, function, field }` calls a project's own
 //! Typst function over one task, turning its returned array of strings into
 //! breaches.
 //!
@@ -14,60 +14,62 @@
 //!
 //! The import path is absolute (`/`-rooted), so it resolves against the
 //! project root regardless of where the synthetic file's own virtual path
-//! sits — Typst's own import rule, the one [`crate::validate::candidate`] leans on for
-//! the opposite reason (a candidate's relative imports must resolve as if the
-//! file already lived at its destination). The synthetic file never touches
-//! disk: the world is built around it with
-//! [`typst_world::World::with_main_source`], the same route
-//! [`crate::validate::candidate`] uses for a task that does not exist on disk yet.
+//! sits. That is Typst's own import rule, the one [`crate::validate::candidate`]
+//! leans on for the opposite reason. A candidate's relative imports must
+//! resolve as if the file already lived at its destination. The synthetic file
+//! never touches disk: [`typst_world::World::with_main_source`] builds the
+//! world around it, the same route [`crate::validate::candidate`] uses for a
+//! task that does not exist on disk yet.
 //!
 //! # Reuse across tasks
 //!
 //! A project with thousands of tasks and one `check` rule must not re-parse
 //! `typst`'s own source (and whatever it imports) once per task. Each task
-//! still gets its own [`typst_world::World`] — [`typst::World::main`] is fixed
-//! at construction, so one `World` cannot serve two different synthetic
-//! sources across calls without its private source cache serving the first
-//! one's text back for the second's id — but every `World` one call builds
-//! shares one [`SourceSnapshot`], so `typst`'s own file (and every file it
-//! imports) is read and parsed exactly once no matter how many tasks ask for
-//! it. This is the same pattern [`crate::loader`] uses for its own batch
-//! harvest.
+//! still gets its own [`typst_world::World`], because [`typst::World::main`]
+//! takes its value at construction. One `World` cannot serve two different
+//! synthetic sources across calls, because its private source cache would
+//! serve the first one's text back for the second's id. Every `World` one call
+//! builds shares one [`SourceSnapshot`]. That snapshot reads and parses
+//! `typst`'s own file (and every file it imports) exactly once, no matter how
+//! many tasks ask for it. This is the same pattern [`crate::loader`] uses for
+//! its own batch harvest.
 //!
 //! [`TypstCall`] is that reusable state on its own, so a caller outside the
-//! rule engine — an `[[on.add]] derive` — calls the same module through the
-//! same loader, and [`CompiledCheck`] is one `TypstCall` plus the field it
-//! reads. [`validate_call`] is the shared load-time check that the module
-//! exists and exports the function.
+//! rule engine (an `[[on.add]] derive`) calls the same module through the same
+//! loader. [`CompiledCheck`] is one `TypstCall` plus the field it reads.
+//! [`validate_call`] is the shared load-time check that the module exists and
+//! exports the function.
 //!
 //! # Value literal
 //!
 //! The function's argument is [`HVal::to_typst`] of an [`HVal`] tree, which
-//! evaluates back to the same value: a [`HVal::Date`] is a real
+//! evaluates back to the same value. A [`HVal::Date`] is a real
 //! `datetime(year:, month:, day:)` call, not the quoted string
-//! [`crate::emit::format::hval_to_typ`] writes into a task file. That
-//! distinction only has anything to preserve for `field`, which reads straight off
+//! [`crate::emit::format::hval_to_typ`] writes into a task file. Only `field`
+//! has anything to preserve there, and it reads straight off
 //! [`crate::model::Task::extras`] (never round-tripped through JSON, so a
-//! nested date the author wrote survives as [`HVal::Date`]); the no-`field`
-//! whole-task case is built from the same canonical shape `mt eval --json`
+//! nested date the author wrote survives as [`HVal::Date`]). The no-`field`
+//! whole-task case comes from the same canonical shape `mt eval --json`
 //! prints, whose date-shaped fields are already plain `YYYY-MM-DD` strings by
 //! the time [`crate::model::Task`] holds them.
 //!
 //! # Rules a pack declares
 //!
 //! A rule a pack declared evaluates in a world rooted at the pack's own
-//! directory ([`CheckSpec::root`]), so its file imports the pack's other files
-//! and `@local` packages, never the project's files. The `@local` overrides
-//! still come from the project: they name packages, not the project's tree.
+//! directory ([`CheckSpec::root`]). Its file then imports the pack's other
+//! files and `@local` packages, never the project's files. The `@local`
+//! overrides still come from the project: they name packages, not the
+//! project's tree.
 //!
 //! # Failure
 //!
-//! A missing file or an unexported function is refused at config load
-//! ([`validate_load`]), not discovered per task. Once loaded, every other
-//! failure — a Typst eval error, or the function itself calling Typst's
-//! `panic()` — becomes one breach carrying the diagnostic message rather than
-//! aborting the project load; so does a return value that is not an array of
-//! strings, and a non-string array element repr's itself into one.
+//! The config load refuses a missing file or an unexported function
+//! ([`validate_load`]) rather than discovering it per task. Once loaded, every
+//! other failure becomes one breach carrying the diagnostic message rather
+//! than aborting the project load. That covers a Typst eval error, the function
+//! itself calling Typst's `panic()`, and a return value that is not an array of
+//! strings. A non-string array element becomes one too, rendered by its own
+//! literal.
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -86,20 +88,19 @@ fn canonical(path: &Path) -> PathBuf {
     crate::canonical(path).unwrap_or_else(|_| path.to_path_buf())
 }
 
-/// One `check` rule, built once and reused across every task it is asked
-/// about: the project root, the resolved `@local` package overrides, and the
-/// [`SourceSnapshot`] that lets every per-task [`typst_world::World`] this
-/// rule builds share one parse of `typst`'s own source.
+/// One `check` rule, built once and reused across every task the rule covers.
+/// It holds the project root, the resolved `@local` package overrides, and the
+/// [`SourceSnapshot`] that lets every per-task [`typst_world::World`] this rule
+/// builds share one parse of `typst`'s own source.
 pub(crate) struct CompiledCheck {
     call: TypstCall,
     field: Option<String>,
 }
 
 impl CompiledCheck {
-    /// Build the reusable state for one `check` rule. Does no I/O and no Typst
-    /// evaluation itself — the first cost lands on the first
-    /// [`Self::evaluate`] call, so a rule declared but never reached (a `when`
-    /// that excludes every task) still pays nothing.
+    /// Build the reusable state for one `check` rule. It defers all I/O and all
+    /// Typst evaluation to the first [`Self::evaluate`] call, so a rule declared
+    /// but never reached (a `when` that excludes every task) still pays nothing.
     pub(crate) fn new(spec: &CheckSpec, root: &Path, config: &Config) -> Self {
         let call = TypstCall::new(config, root, &spec.typst, &spec.function);
         let call = match spec.root.as_deref() {
@@ -136,7 +137,7 @@ impl CompiledCheck {
 /// [`SourceSnapshot`] shared across calls.
 ///
 /// [`CompiledCheck`] is one of these plus the field it reads, and an
-/// `[[on.add]] derive` builds one per call, so both reach a project's own
+/// `[[on.add]] derive` builds one per call. Both then reach a project's own
 /// function through the same loader and the same world.
 pub struct TypstCall {
     typst_path: String,
@@ -144,11 +145,11 @@ pub struct TypstCall {
     root_abs: PathBuf,
     overrides: Vec<(String, PathBuf)>,
     snapshot: SourceSnapshot,
-    /// Mints a fresh virtual path per call, so each gets its own
-    /// [`typst::syntax::FileId`] — required because a [`typst_world::World`]'s
-    /// `main` id is fixed at construction, and its private source cache would
-    /// otherwise serve the first call's synthetic text back for every one
-    /// after it.
+    /// Mints a fresh virtual path per call, and each call then gets its own
+    /// [`typst::syntax::FileId`]. That matters because a
+    /// [`typst_world::World`]'s `main` id takes its value at construction. Its
+    /// private source cache would otherwise serve the first call's synthetic
+    /// text back for every one after it.
     counter: AtomicU64,
 }
 
@@ -157,8 +158,8 @@ impl TypstCall {
     /// the project root: the module resolves from it, and so does every
     /// `@local` package override.
     ///
-    /// Does no I/O and no Typst evaluation itself, so a call that never happens
-    /// pays nothing.
+    /// Defers all I/O and all Typst evaluation to the call itself, so a call
+    /// that never happens pays nothing.
     #[must_use]
     pub fn new(config: &Config, root: &Path, typst: &str, function: &str) -> Self {
         Self {
@@ -171,7 +172,7 @@ impl TypstCall {
         }
     }
 
-    /// Resolve the module from `root` instead of the project root: a rule a
+    /// Resolve the module from `root` instead of the project root, so a rule a
     /// pack declared reads from the pack's own directory. The `@local`
     /// overrides still come from the project.
     #[must_use]
@@ -209,11 +210,11 @@ impl TypstCall {
 }
 
 /// Root-aware load-time validation for every `[[tasks.rules]] check` entry:
-/// the named Typst module must exist and must export `function`. Complements
-/// [`crate::rules::validate_rules`], which validates rule shape
-/// without a project root — this validates the one thing shape-checking
-/// cannot see, so it runs from `crate::config::layers::build_config` instead,
-/// the one caller that already has root in hand for [`crate::config::compile_dicts`].
+/// the named Typst module must exist and must export `function`. It complements
+/// [`crate::rules::validate_rules`], which validates rule shape without a
+/// project root. This one validates the one thing shape-checking cannot see, so
+/// it runs from `crate::config::layers::build_config` instead, the one caller
+/// that already has root in hand for [`crate::config::compile_dicts`].
 ///
 /// # Errors
 /// Returns one joined message, one problem per offending rule, prefixed with
@@ -257,12 +258,12 @@ pub(crate) fn validate_load(config: &Config, root: &Path) -> Result<(), String> 
 }
 
 /// Whether `typst` exists under `root` and exports `function`, for a caller
-/// that is not a `[[tasks.rules]] check` entry: an `[[on.add]] derive` validates
-/// its call through this, so a hook and a rule share one loader and one set of
-/// messages.
+/// that is not a `[[tasks.rules]] check` entry. An `[[on.add]] derive`
+/// validates its call through this, so a hook and a rule share one loader and
+/// one set of messages.
 ///
 /// # Errors
-/// Returns why the module or function cannot be loaded.
+/// Returns why the module or function fails to load.
 pub fn validate_call(
     config: &Config,
     root: &Path,
@@ -272,13 +273,13 @@ pub fn validate_call(
     validate_module(root, config, typst, function, None)
 }
 
-/// Whether `check.typst` exists and exports `check.function`. A pack's
-/// module must sit in the pack's directory, the root its world reads from, so
-/// a path out of it is refused before `mt` looks for the file. Then an explicit
-/// filesystem check for the first (a clearer message than whatever Typst's
-/// own file-not-found diagnostic says), then a probe import for the second —
-/// no call, since a function that only errors for some inputs must not fail
-/// config load over a value it was never asked to handle.
+/// Whether `check.typst` exists and exports `check.function`. A pack's module
+/// must sit in the pack's directory, the root its world reads from, so `mt`
+/// refuses a path out of it before it looks for the file. Then an explicit
+/// filesystem check for the first (a clearer message than whatever Typst's own
+/// file-not-found diagnostic says), then a probe import for the second.
+/// Neither makes a call, since a function that only errors for some inputs must
+/// not fail config load over a value it was never asked to handle.
 fn check_module(root: &Path, config: &Config, check: &CheckSpec) -> Result<(), String> {
     validate_module(
         root,
@@ -317,11 +318,11 @@ fn validate_module(
         .map_err(|err| format!("`{typst}` does not export `{function}`: {err}"))
 }
 
-/// The value `check.function` receives for `task`: the raw extras value when
-/// `field` names an `x-<ns>` slot (see the module doc's "Value literal"
-/// section for why that keeps a nested [`HVal::Date`] intact), else a lookup
-/// into the same canonical shape `mt eval --json` prints, else — no `field` —
-/// the whole canonical task.
+/// The value `check.function` receives for `task`. It is the raw extras value
+/// when `field` names an `x-<ns>` slot (see the module doc's "Value literal"
+/// section for why that keeps a nested [`HVal::Date`] intact). Otherwise it is
+/// a lookup into the same canonical shape `mt eval --json` prints, or, with no
+/// `field`, the whole canonical task.
 fn field_value(task: &Task, config: &Config, field: Option<&str>) -> HVal {
     let Some(name) = field else {
         return canonical_hval(task, config);
@@ -336,7 +337,7 @@ fn field_value(task: &Task, config: &Config, field: Option<&str>) -> HVal {
 }
 
 /// `task` projected to the same canonical shape `mt eval --json` prints, as an
-/// [`HVal`] tree instead of [`serde_json::Value`] — routed through
+/// [`HVal`] tree instead of [`serde_json::Value`]. It routes through
 /// [`CanonicalTask`]'s JSON rather than a second projection off [`Task`], so
 /// the two never drift on what "the whole task" contains.
 fn canonical_hval(task: &Task, config: &Config) -> HVal {
@@ -377,7 +378,7 @@ pub(crate) fn add_unsafe(name: &str) -> bool {
 ///
 /// The clean shape is the one `mt eval --json` prints, routed through
 /// [`CanonicalTask`], so a hook's function and a rule's `check` read the same
-/// field names and shapes. What it cannot see is the draft's synthetic path:
+/// field names and shapes. It cannot see the draft's synthetic path, because
 /// the destination is exactly what the hook is about to choose.
 #[must_use]
 pub fn add_argument(task: &Task, config: &Config, template: &str) -> HVal {
@@ -395,10 +396,10 @@ pub fn add_argument(task: &Task, config: &Config, template: &str) -> HVal {
     HVal::deserialize(serde_json::Value::Object(draft)).unwrap_or(HVal::Null)
 }
 
-/// Read the harvested `mindtape.check` value back into a breach list: an
-/// array projects element by element (a string element verbatim, any other
-/// shape by its own literal repr — total rather than erroring on a function
-/// that returned the wrong element type); anything else is one breach naming
+/// Read the harvested `mindtape.check` value back into a breach list. An array
+/// projects element by element: a string element verbatim, any other shape by
+/// its own literal repr. That is total rather than erroring on a function that
+/// returned the wrong element type. Anything else is one breach that reports
 /// what came back.
 fn breaches_from(value: &HVal) -> Vec<String> {
     match value {

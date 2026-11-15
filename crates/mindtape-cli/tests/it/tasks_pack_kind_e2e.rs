@@ -1,4 +1,4 @@
-//! The shipped `mindtape:tasks` pack declares the `kind` field and the
+//! The built-in `mindtape:tasks` pack declares the `kind` field and the
 //! comment policy its own rules read, so a project that extends it alone
 //! needs no `[tasks.fields.kind]` or `[tasks.comments]` of its own.
 #![allow(clippy::unwrap_used)]

@@ -1,16 +1,16 @@
 //! `.mindtape/config.toml` loading and the configurable task schema.
 //!
-//! The config is a white-list: Mindtape constrains only what is declared here
-//! or in the embedded floor, `defaults.toml`, plus a shipped default for the
+//! The config is a white-list. `Mindtape` constrains only the keys this file and
+//! the embedded floor (`defaults.toml`) declare, plus a built-in default for the
 //! status legend, priority/difficulty scale, `roots`, `[templates]` and
-//! `[rm]`/`[ls]`. Omit one to inherit the floor; set it empty (`status = []`)
-//! to unconstrain it. Every other section stays unconstrained when omitted.
+//! `[rm]`/`[ls]`. Omit one to inherit the floor. Set it empty (`status = []`) to
+//! unconstrain it. Every other section stays unconstrained when omitted.
 //!
 //! # Files
 //!
 //! - `active_add.rs`/`active_rules.rs`: hooks and rules for `mt explain`.
 //! - `actors.rs`: `[[actors]]` and `[[roles]]`, the actor registry.
-//! - `add.rs`: `[add]`; `add_hooks*.rs`: `[[on.add]]` defaults, tests and destinations.
+//! - `add.rs`: `[add]`. `add_hooks*.rs`: `[[on.add]]` defaults, tests and destinations.
 //! - `assignee.rs`: `[tasks.assignee]` constraints.
 //! - `collect.rs`: `[[tasks.collectors]]`, the derived-field queries.
 //! - `comments.rs`: `[tasks.comments]`, policy over review comments.
@@ -41,7 +41,7 @@
 //! - `packs_toml.rs`: nested-path reads and writes over a raw `toml::Table`.
 //! - `params.rs`: `[params]` and `param()`, a pack's parameters and their rewrite.
 //! - `priority.rs`: `[tasks.priority]`, the priority scale and its frameworks.
-//! - `required.rs`: `required`, whether a core field must be set.
+//! - `required.rs`: `required`, whether a core field must carry a value.
 //! - `rm.rs`: `[rm]` and `[retire]`, removal and retirement policy.
 //! - `roots.rs`: task root specs and the folder-derived-tag policy.
 //! - `schema.rs`: the JSON Schema derived from the config structs.
@@ -149,17 +149,18 @@ pub use crate::config::templates::{FallbackSeverity, TemplatesConfig};
 pub use crate::config::typst::{LocalPackage, TypstConfig};
 pub use crate::config::views::{ViewSpec, validate_view_statuses, validate_views};
 
-/// The embedded config floor: canonical default values for the sections that
-/// carry an opinionated shipped default (status legend, priority/difficulty
-/// scale and classification, roots, templates, `rm`/`ls` defaults). Deep-merged
-/// as the base under the user's config before typed deserialization — see
-/// [`parse_config`]. Mirrors `BUILTIN_FRAMEWORKS` (`framework/mod.rs`). Also the
-/// lowest layer in [`crate::config::layers`]'s multi-file assembly.
+/// The embedded config floor holds canonical default values for the sections
+/// that carry an opinionated built-in default (status legend,
+/// priority/difficulty scale and classification, roots, templates, `rm`/`ls`
+/// defaults). The loader deep-merges it as the base under the user's config
+/// before typed deserialization, see [`parse_config`]. It mirrors
+/// `BUILTIN_FRAMEWORKS` (`framework/mod.rs`). It is also the lowest layer in
+/// [`crate::config::layers`]'s multi-file assembly.
 pub(crate) const EMBEDDED_DEFAULTS: &str = include_str!("defaults.toml");
 
 /// The embedded default floor's raw TOML text, verbatim. Backs
 /// `mt config show --defaults`, so a user seeding an XDG or project override
-/// sees the shipped baseline exactly as compiled in, not a re-serialised copy.
+/// sees the built-in baseline exactly as compiled in, not a re-serialised copy.
 #[must_use]
 pub fn embedded_defaults() -> &'static str {
     EMBEDDED_DEFAULTS
@@ -191,19 +192,19 @@ pub struct Config {
     pub format: FormatConfig,
     /// Named query bundles (`[views.<name>]`), referenced by `@name`.
     pub views: BTreeMap<String, ViewSpec>,
-    /// Named string sets (`[dicts.<name>]`), so a vocabulary two rules share is
-    /// one list rather than two that drift. Each unions `values`, `path` and
-    /// `include` into one set, compiled and checked once at config load. The
-    /// `mindtape-` prefix is reserved for the built-in dictionaries.
+    /// Named string sets (`[dicts.<name>]`), which let a vocabulary two rules
+    /// share stay one list rather than two that drift. Each unions `values`,
+    /// `path` and `include` into one set, compiled and checked once at config
+    /// load. The `mindtape-` prefix belongs to the built-in dictionaries.
     pub dicts: BTreeMap<String, DictSpec>,
-    /// [`Config::dicts`] compiled — the resolved entry sets the filter
+    /// [`Config::dicts`] compiled: the resolved entry sets the filter
     /// language's `in_dict()` probes. Derived, never declared: it carries no
     /// TOML key and no schema property, and it is the one field
     /// [`PartialEq`] ignores (see [`DictCache`]). Read it through
     /// [`Config::compiled_dicts`].
     #[serde(skip)]
     pub(crate) dict_cache: DictCache,
-    /// The project root this config was built for, resolved once by
+    /// The project root this config belongs to, resolved once by
     /// `crate::config::layers::build_config`. Derived, never declared: like
     /// [`Config::dict_cache`], it carries no TOML key, no schema property, and
     /// is never equal-compared. Read by a `[[tasks.rules]] check` entry
@@ -211,42 +212,41 @@ pub struct Config {
     /// on every validation call site.
     #[serde(skip)]
     pub(crate) rules_root: crate::rules::RulesRoot,
-    /// Where each `[[tasks.rules]]` entry is declared, recorded by
+    /// Where each `[[tasks.rules]]` entry sits, recorded by
     /// `crate::config::layers::build_config`. Derived, never declared, never
-    /// equal-compared — see [`crate::rules::sites::RuleSites`].
+    /// equal-compared, see [`crate::rules::sites::RuleSites`].
     #[serde(skip)]
     pub(crate) rule_sites: crate::rules::sites::RuleSites,
     /// The text of every layer and pack the config merged, and the origin of
     /// each key and parameter, kept by `crate::config::layers::build_config`.
-    /// Derived, never declared, never equal-compared — see
+    /// Derived, never declared, never equal-compared, see
     /// [`crate::config::locate::Provenance`].
     #[serde(skip)]
     pub(crate) provenance: crate::config::locate::Provenance,
-    /// Where each `[[tasks.collectors]]` entry is declared. Derived, never
-    /// declared, never equal-compared.
+    /// Where each `[[tasks.collectors]]` entry sits. Derived, never declared,
+    /// never equal-compared.
     #[serde(skip)]
     pub(crate) collector_origins: crate::config::collect::CollectorOrigins,
     /// The editor commands the user's own config layer sets, which `mt allow`
     /// does not ask about. Derived at load, never declared, never
-    /// equal-compared — see [`crate::allow::UserCommands`].
+    /// equal-compared, see [`crate::allow::UserCommands`].
     #[serde(skip)]
     pub(crate) user_commands: crate::allow::UserCommands,
     /// What git says changed under the project root, read the first time a
     /// filter's `changed()` asks and shared from then on. Derived, never
-    /// declared, never equal-compared — see [`crate::git::state::GitCache`].
+    /// declared, never equal-compared, see [`crate::git::state::GitCache`].
     #[serde(skip)]
     pub(crate) git: crate::git::state::GitCache,
     /// The commit trailer, its external refs, and the rules
     /// `mt check --commit-msg` checks a commit against.
     pub commits: crate::config::commits::CommitsConfig,
-    /// Hooks keyed by event: `[[on.flip]]` on a status change and
-    /// `[[on.add]]` on a new task.
+    /// Hooks keyed by event: `[[on.flip]]` on a status change and `[[on.add]]` on a new task.
     pub on: crate::config::hooks::OnConfig,
     /// The project's actor registry (`[[actors]]`): named workers (people and
     /// language models) that `assignee:` values may reference.
     pub actors: Vec<crate::config::actors::Actor>,
     /// Role names (`[[roles]]`) that actors may hold. A role carries no
-    /// settings; a harness keys its own config by role name.
+    /// settings, and a harness keys its own config by role name.
     pub roles: Vec<crate::config::actors::Role>,
     /// Packs this config builds on, in any config layer. An entry with a path
     /// separator is a TOML pack file, or a directory pack, a folder holding
@@ -274,9 +274,9 @@ pub struct Config {
     /// `[pack-sources.<name>]` table of `git`, the repository, and `ref`, a
     /// tag, branch or commit. An `extends` entry `<name>:<pack>` names a pack
     /// in one. Only the project's own `.mindtape/config.toml` declares a
-    /// source, and `mindtape` is taken. `.mindtape/packs.lock` pins each
-    /// source to a commit, and a config load refuses a source the lock
-    /// doesn't pin from the `git` and `ref` declared here.
+    /// source, and the embedded source already holds the name `mindtape`.
+    /// `.mindtape/packs.lock` pins each source to a commit, and a config load
+    /// refuses a source the lock doesn't pin from the `git` and `ref` here.
     #[serde(rename = "pack-sources")]
     pub pack_sources: BTreeMap<String, crate::config::pack_sources::PackSource>,
 }
@@ -306,7 +306,7 @@ pub use crate::config::estimate::EstimateConfig;
 /// Errors from loading or locating a config file.
 #[derive(Debug, Error)]
 pub enum ConfigError {
-    /// The config file could not be read.
+    /// The config file failed to read.
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
     /// The config file contained invalid TOML. The TOML error is the message,
@@ -319,10 +319,11 @@ pub enum ConfigError {
     ParseIn {
         /// The file path, or `pack <name>`, the TOML error is in.
         origin: String,
-        /// The TOML error, in the message rather than a `source` link, so a chain prints it once.
+        /// The TOML error, in the message rather than a `source` link, which
+        /// lets a chain print it once.
         error: toml::de::Error,
     },
-    /// The config parsed but failed a semantic check (e.g. band coverage).
+    /// The config parsed but failed a semantic check (such as band coverage).
     #[error("invalid config: {message}")]
     Invalid {
         /// The problems, one per line, each led by the dotted key it is about.
@@ -368,9 +369,9 @@ impl From<toml::de::Error> for ConfigError {
 }
 
 impl Config {
-    /// What loads fine but is likely a mistake: a stored filter naming an `x-`
-    /// field that `[tasks.fields]` does not declare, beside declared ones. One
-    /// message per finding, prefixed by the dotted TOML path of the filter.
+    /// What loads fine but is likely a mistake: a stored filter that references
+    /// an `x-` field `[tasks.fields]` does not declare, beside declared ones.
+    /// One message per finding, prefixed by the dotted TOML path of the filter.
     #[must_use]
     pub fn warnings(&self) -> Vec<crate::problem::Problem> {
         crate::config::warnings::warnings(self)
@@ -396,7 +397,7 @@ impl Config {
         config
     }
 
-    /// Where each merged collector is declared, in declaration order.
+    /// Where each merged collector sits, in declaration order.
     #[must_use]
     pub fn collector_origins(&self) -> &[crate::config::pack_registry::RuleOriginEntry] {
         &self.collector_origins.0
@@ -412,14 +413,14 @@ impl Config {
         self.provenance.param_origins().iter()
     }
 
-    /// The compiled `[dicts.<name>]` sets plus the built-ins; an absent name
-    /// is reported by its caller, never a silent miss.
+    /// The compiled `[dicts.<name>]` sets plus the built-ins. The caller
+    /// reports an absent name, never a silent miss.
     #[must_use]
     pub fn compiled_dicts(&self) -> &Dicts {
         self.dict_cache.dicts()
     }
 
-    /// The stems `touches()` met that no task answers to, even renamed.
+    /// The stems `touches()` met with no matching task, even renamed.
     #[must_use]
     pub fn retired_refs(&self) -> Vec<String> {
         self.git.retired_refs()
@@ -436,20 +437,20 @@ impl Config {
 
 /// Parse a config from a TOML string.
 ///
-/// The embedded floor ([`EMBEDDED_DEFAULTS`]) is deep-merged as the base, the
-/// user's text as the overlay (tables merge field-by-field; a user section
-/// wins wholesale over the floor's for arrays and scalars — an explicit
-/// `status = []` unconstrains a floored section rather than being ignored).
-/// Built-in priority frameworks are then deep-merged into
+/// The loader deep-merges the embedded floor ([`EMBEDDED_DEFAULTS`]) as the
+/// base and the user's text as the overlay. Tables merge field-by-field, and a
+/// user section wins wholesale over the floor's for arrays and scalars. An
+/// explicit `status = []` unconstrains a floored section rather than getting
+/// ignored. Built-in priority frameworks are then deep-merged into
 /// `[tasks.priority.frameworks]`, so a user config can activate (and
 /// selectively override) a built-in without redeclaring it. Order matters:
 /// floor, then user, then frameworks.
 ///
-/// `[dicts]` is compiled here too, rootless
+/// `[dicts]` compiles here too, rootless
 /// ([`crate::config::dicts::compile_dicts_rootless`]), so a config parsed from a
-/// string alone still answers `in_dict()`. This function is shape-only —
-/// semantic checks are [`Config::validate`]'s — so a section that fails to
-/// compile leaves the built-in dictionaries alone rather than erroring; the
+/// string alone still answers `in_dict()`. This function is shape-only, and
+/// semantic checks belong to [`Config::validate`]. A section that fails to
+/// compile leaves the built-in dictionaries alone rather than erroring. The
 /// real message comes from `validate` or from config load, which re-compiles
 /// against the project root.
 ///
@@ -470,14 +471,14 @@ pub fn parse_config(text: &str) -> Result<Config, ConfigError> {
 
 /// Load the effective config for `root`: the embedded floor, the XDG global
 /// defaults, every ancestor `.mindtape/defaults.toml`, and the project's own
-/// `.mindtape/config.toml`, deep-merged in that precedence order. The `.0` of
-/// [`crate::config::layers::load_config_layered`], which also returns each
-/// layer's provenance (for `mt config show --origin`); see that module for the
-/// full assembly.
+/// `.mindtape/config.toml`, deep-merged in that precedence order. This is the
+/// `.0` of [`crate::config::layers::load_config_layered`], which also returns
+/// each layer's provenance (for `mt config show --origin`). See that module for
+/// the full assembly.
 ///
 /// # Errors
-/// Returns [`ConfigError`] if a layer exists but cannot be read or parsed, or
-/// the merged config fails semantic validation.
+/// Returns [`ConfigError`] if a layer exists but fails to read or parse, or the
+/// merged config fails semantic validation.
 pub fn load_config(root: &Path) -> Result<Config, ConfigError> {
     crate::config::layers::load_config_layered(root).map(|(config, _sources, _rule_origins)| config)
 }

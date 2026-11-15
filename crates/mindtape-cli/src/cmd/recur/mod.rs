@@ -1,18 +1,18 @@
-//! `mt recur` — the sole recurrence writer: advance a recurring task to its
+//! `mt recur`, the sole recurrence writer: advance a recurring task to its
 //! next occurrence.
 //!
-//! Dispatches on the task's effective `materialize` (`spawn`, the default, or
-//! `mutate`; see `[tasks.recur] materialize`). `--dry-run` previews without
-//! writing; `--advance N` pre-materializes `N` future spawns without closing
-//! the current instance; `--skip` advances the anchor/`count` in place
-//! without materializing anything. `mt ls`/`mt check` never call into this
-//! module — see `truth/tasks/2026-07/command-semantics-cqrs.typ`.
+//! The command dispatches on the task's effective `materialize` (`spawn`, the
+//! default, or `mutate`, see `[tasks.recur] materialize`). `--dry-run`
+//! previews without writing. `--advance N` pre-materializes `N` future spawns
+//! without closing the current instance. `--skip` advances the anchor/`count`
+//! in place without materializing anything. `mt ls` and `mt check` never call
+//! into this module, see `truth/tasks/2026-07/command-semantics-cqrs.typ`.
 //!
 //! # Files
 //!
-//! - `advance.rs` — `--advance N`, pre-materializing future spawns.
-//! - `edit.rs` — the Typst-source rewrites for `mt recur`.
-//! - `stem.rs` — the stem and occurrence number of the next spawn.
+//! - `advance.rs`: `--advance N`, pre-materializing future spawns.
+//! - `edit.rs`: the Typst-source rewrites for `mt recur`.
+//! - `stem.rs`: the stem and occurrence number of the next spawn.
 
 pub(crate) mod edit;
 
@@ -54,7 +54,7 @@ pub struct RecurArgs {
     #[command(flatten)]
     pub task: crate::cli::task_ref::TaskRef,
 
-    /// Show what would be written without writing it.
+    /// Show what the command would write without writing it.
     #[arg(long = "dry-run")]
     pub dry_run: bool,
 
@@ -77,7 +77,7 @@ pub struct RecurArgs {
 /// Run `mt recur`.
 ///
 /// # Errors
-/// Returns an error if the task cannot be resolved, has no `recur` field,
+/// Returns an error if the task fails to resolve, has no `recur` field,
 /// fails the `[tasks.recur]` policy check, hits a series stop condition, or
 /// the write/revalidate fails.
 pub fn run(args: &RecurArgs) -> Result<()> {
@@ -134,8 +134,9 @@ fn dates(task: &Task) -> Result<(NaiveDate, Option<NaiveDate>, Option<NaiveDate>
     Ok((today, due, start))
 }
 
-/// Bail unless the series still has budget left — checked before a date is
-/// computed, since an exhausted series has no next occurrence to compute.
+/// Bail unless the series still has budget left. The check runs before the
+/// command computes a date, since an exhausted series has no next occurrence
+/// to compute.
 fn guard_budget(recur: &Recur) -> Result<()> {
     if exhausted(recur) {
         return Err(Diag::refused("series exhausted: count has reached 0"));
@@ -143,7 +144,7 @@ fn guard_budget(recur: &Recur) -> Result<()> {
     Ok(())
 }
 
-/// Bail if `next` overshoots the series' `until` bound; hand it back otherwise.
+/// Bail if `next` overshoots the series' `until` bound. Hand it back otherwise.
 fn guard_until(recur: &Recur, next: NaiveDate) -> Result<NaiveDate> {
     if past_until(recur, next) {
         return Err(
@@ -170,9 +171,9 @@ fn plan_next(
 /// The hop `mt recur --advance N` takes after its first: one plain step of the
 /// rule off the previous occurrence's date, under the same stop conditions.
 ///
-/// The first hop honours the anchor ([`plan_next`]); no hop after it can. An
+/// The first hop honours the anchor ([`plan_next`]). A later hop cannot. An
 /// anchor other than `due` resolves from today rather than from the task's
-/// date, so re-asking it N times plans the same date N times — `--advance 3`
+/// date, so re-asking it N times plans the same date N times. `--advance 3`
 /// over a daily rule asked for three occurrences and got three copies of
 /// tomorrow. So `--advance N` means: N occurrences at the rule's own spacing,
 /// starting wherever the anchor puts the first one. That keeps `--advance`
@@ -199,7 +200,7 @@ fn plan_and_read(
     Ok((next, due, start, source))
 }
 
-/// The folder `abs` sits in, where its occurrences are written.
+/// The folder `abs` sits in, where the command writes its occurrences.
 pub(super) fn parent_dir(abs: &Path) -> Result<&Path> {
     abs.parent().ok_or_else(|| {
         Diag::failed("task file has no parent directory").value(mindtape::display_path(abs))
@@ -305,10 +306,10 @@ fn shown(project: &Project, file: &Path) -> String {
 }
 
 /// Write an in-place rewrite over `abs`, or on a dry run leave it be. The
-/// destination guard asks whether the loader would still see the file, for a
-/// preview as much as for a write — a preview that exits 0 while the write it
-/// previews is refused would stop being a preflight. Returns the verb to
-/// report: `verbs` holds the dry-run one, then the written one.
+/// destination guard checks whether the loader would still see the file, for a
+/// preview as much as for a write. A preview that exits 0 while the write it
+/// previews fails would stop being a preflight. Returns the verb to report:
+/// `verbs` holds the dry-run one, then the written one.
 fn land(
     project: &Project,
     abs: &Path,

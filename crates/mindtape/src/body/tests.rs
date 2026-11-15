@@ -1,8 +1,7 @@
-//! [`check_body_rules`]'s own tests: it runs both gates, in header-then-content
-//! order, and neither gate's rule set is required for the other to run —
-//! `gate_tests.rs` and
-//! `content_gate/tests.rs` pin each gate's own
-//! behaviour; this pins only that the combinator calls both.
+//! [`check_body_rules`]'s own tests. The combinator runs both gates, in
+//! header-then-content order, and each gate runs without the other's rule set.
+//! `gate_tests.rs` and `content_gate/tests.rs` pin each gate's own behaviour.
+//! This file pins only that the combinator calls both.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::{BodyRules, check_body_rules};

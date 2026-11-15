@@ -1,5 +1,5 @@
-//! The `start-title-with-verb` rule the `mindtape:tasks` pack ships, run against
-//! titles an engineer files. The rule is loaded through `extends`, so the
+//! The `start-title-with-verb` rule the `mindtape:tasks` pack carries, run
+//! against titles an engineer files. The rule loads through `extends`, so the
 //! assertion under test is the one a project inherits, over the dictionaries
 //! the binary embeds.
 #![allow(clippy::unwrap_used)]

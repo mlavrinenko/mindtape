@@ -2,8 +2,8 @@
 //!
 //! Spawns the binary under `script` (which provides a pseudo-terminal) so the
 //! TTY checks in `guard` pass, then sends Esc to quit and asserts that the task
-//! table was rendered. Catches the body-replacement mutants on `event_loop` and
-//! `draw`, and every mutant in `guard` — including `||` -> `&&`, which only the
+//! table rendered. Catches the body-replacement mutants on `event_loop` and
+//! `draw`, and every mutant in `guard`, including `||` -> `&&`, which only the
 //! piped-stdin case below can tell apart.
 //!
 //! Unix only, for the same reason as `tty_e2e.rs`: the pty comes from
@@ -23,14 +23,15 @@ use std::time::{Duration, Instant};
 const POLL_INTERVAL: Duration = Duration::from_millis(20);
 
 /// Upper bound on how long `mt` may take to exit after receiving Esc. The
-/// happy path finishes in well under a second; this only needs to be long
-/// enough to absorb a machine busy with other builds while still failing
+/// happy path finishes in well under a second. This bound only needs to be
+/// long enough to absorb a machine busy with other builds while still failing
 /// (instead of hanging the whole test binary forever) if `event_loop` never
 /// returns. It is a backstop only: the tests send Esc once the TUI has shown
-/// it is reading again, so load makes the exit slower, not lost. It is
-/// what makes `event_loop`'s `!=` -> `==` mutant killable: that mutant drops
-/// every `Press` event, so the loop never sees the Esc and this test fails on
-/// the deadline instead of hanging the sweep.
+/// it is reading again, so load makes the exit slower, not lost.
+///
+/// It is what makes `event_loop`'s `!=` -> `==` mutant killable. That mutant
+/// drops every `Press` event, the loop never sees the Esc, and this test fails
+/// on the deadline instead of hanging the sweep.
 const WAIT_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Wait for `child` to exit, polling instead of blocking so a hung event loop
@@ -58,7 +59,8 @@ fn wait_with_timeout(mut child: Child) -> (Output, bool) {
 }
 
 /// Esc on its own, so crossterm reads it as the key rather than as the start
-/// of an Alt chord: the picker's quit, since every letter is a hash digit.
+/// of an Alt chord. It is the picker's quit, since every letter is a hash
+/// digit.
 const ESC: &[u8] = b"\x1b";
 
 /// The title of the one task each case lists.
@@ -71,10 +73,10 @@ const TASK_TITLE: &str = "E2E Task";
 const SUSPEND_MARKER: &str = "SUSPEND_MARKER";
 
 /// Spawn `mt ls --interactive <suffix>` inside `dir` under `script`, which
-/// hands it a pseudo-terminal. Stdin is piped so the caller can send keys.
-/// `with_editor` sets `$EDITOR` to echo [`SUSPEND_MARKER`] (and clears
+/// hands it a pseudo-terminal. The spawn pipes stdin so the caller can send
+/// keys. `with_editor` sets `$EDITOR` to echo [`SUSPEND_MARKER`] (and clears
 /// `$VISUAL`, which would otherwise inherit a real editor and hang the
-/// session) — the shape the opening tests need.
+/// session), the shape the opening tests need.
 fn spawn_interactive(dir: &std::path::Path, suffix: &str, with_editor: bool) -> Child {
     let mt_bin = PathBuf::from(env!("CARGO_BIN_EXE_mt"));
     let mt_str = mt_bin.to_string_lossy().to_string();
@@ -101,19 +103,19 @@ fn spawn_interactive(dir: &std::path::Path, suffix: &str, with_editor: bool) -> 
 
 /// The pty transcript captured so far, shared between the reader thread
 /// draining `child.stdout` in [`stream_into`] and [`wait_for_frame`] polling
-/// it — a `String` rather than raw bytes because every needle the tests poll
-/// for is text.
+/// it. It is a `String` rather than raw bytes because every needle the tests
+/// poll for is text.
 type Frame = Arc<Mutex<String>>;
 
 /// Drain `stdout` into `frame` on a background thread, appending each chunk
 /// as it arrives. Returns the thread's handle so a caller can join it once
-/// the child has exited, guaranteeing `frame` holds everything the process
-/// ever wrote rather than whatever had arrived by the last poll.
+/// the child has exited. The join guarantees `frame` holds everything the
+/// process ever wrote rather than whatever had arrived by the last poll.
 ///
-/// Reading incrementally (rather than the once-at-exit `wait_with_output`
-/// every other test in this file uses) is what makes [`wait_for_frame`]
-/// possible at all: polling needs a transcript that grows while the child is
-/// still running, not one only available after it quits.
+/// Reading incrementally is what makes [`wait_for_frame`] possible at all.
+/// Every other test in this file uses the once-at-exit `wait_with_output`
+/// instead. Polling needs a transcript that grows while the child is still
+/// running, not one only available after it quits.
 fn stream_into(mut stdout: ChildStdout, frame: Frame) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || {
         let mut buf = [0_u8; 4096];
@@ -133,10 +135,10 @@ fn stream_into(mut stdout: ChildStdout, frame: Frame) -> std::thread::JoinHandle
 }
 
 /// Upper bound on how long [`wait_for_frame`] polls for a needle before
-/// giving up. Generous — this only needs to absorb a machine busy with other
-/// test suites, never the happy path, which reaches every awaited frame in
-/// well under a second — because the failure this bounds (a hung or broken
-/// event loop) should still fail the test rather than hang the sweep.
+/// giving up. The bound is generous, because the failure it bounds (a hung or
+/// broken event loop) should still fail the test rather than hang the sweep.
+/// It only needs to absorb a machine busy with other test suites, never the
+/// happy path, which reaches every awaited frame in well under a second.
 const FRAME_TIMEOUT: Duration = Duration::from_secs(15);
 
 /// Interval between polls in [`wait_for_frame`].
@@ -144,12 +146,12 @@ const FRAME_POLL_INTERVAL: Duration = Duration::from_millis(20);
 
 /// Block until `frame` contains `needle` at or after byte offset `from`,
 /// polling instead of sleeping a fixed span so a busy machine only makes this
-/// slower, never flaky — the fix for the two tests
+/// slower, never flaky. That is the fix for the two tests
 /// `truth/tasks/2026-09/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
 /// describes, which raced a fixed wait against however long the TUI actually
-/// took to reach the state being asserted. Returns the offset just past the
-/// match, so a caller can wait for a later signal in order. Panics naming the
-/// last frame actually seen if [`FRAME_TIMEOUT`] elapses first.
+/// took to reach the asserted state. Returns the offset just past the match,
+/// so a caller can wait for a later signal in order. Panics naming the last
+/// frame actually seen if [`FRAME_TIMEOUT`] elapses first.
 fn wait_for_frame_from(frame: &Frame, needle: &str, from: usize) -> usize {
     let deadline = Instant::now() + FRAME_TIMEOUT;
     loop {
@@ -173,22 +175,23 @@ fn wait_for_frame(frame: &Frame, needle: &str) {
     wait_for_frame_from(frame, needle, 0);
 }
 
-/// Drive one interactive session under a pseudo-terminal: send `keys` (already
-/// shaped for raw mode), wait for the frames `expect_after_keys` names (if
-/// any), each after the previous, to actually appear, then Esc to quit, and assert a clean exit within
-/// [`WAIT_TIMEOUT`]. Returns the session's full transcript.
+/// Drive one interactive session under a pseudo-terminal. Send `keys` (already
+/// shaped for raw mode), wait for the frames `expect_after_keys` references
+/// (if any), each after the previous, to actually appear, then send Esc to
+/// quit. Asserts a clean exit within [`WAIT_TIMEOUT`] and returns the
+/// session's full transcript.
 ///
-/// Shared rather than inlined per test: the spawn-and-drive sequence is
-/// twenty lines of pty plumbing that says nothing about what any individual
-/// test is asserting, and two copies of it drifting apart is exactly the bug
-/// these tests exist to catch.
+/// Every test calls this helper rather than inlining the sequence. The
+/// spawn-and-drive sequence is twenty lines of pty plumbing that says nothing
+/// about what any individual test asserts. Two copies of it drifting apart is
+/// exactly the bug these tests exist to catch.
 ///
 /// The wait before `keys` is always a poll for the rendered task table
-/// ([`TASK_TITLE`]), never a fixed sleep: `keys` sent before the event loop is
+/// ([`TASK_TITLE`]), never a fixed sleep. `keys` sent before the event loop is
 /// actually reading them is exactly the race
 /// `truth/tasks/2026-09/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
 /// files. The wait after `keys` polls too when the caller has something to
-/// wait for; a caller with nothing to observe (a keystroke that should open
+/// wait for. A caller with nothing to observe (a keystroke that should open
 /// nothing) still gives the loop a moment to settle before quitting.
 fn drive_session(
     dir: &std::path::Path,
@@ -244,7 +247,8 @@ fn interactive_mode_renders_tasks_and_quits() {
 
 /// `guard` requires a TTY on *both* stdin and stdout. Redirecting only stdin
 /// from `/dev/null` leaves stdout on the pty, so exactly one half of the check
-/// fails — the only shape that tells `!stdin || !stdout` apart from `&&`.
+/// fails. That is the only shape that tells `!stdin || !stdout` apart from
+/// `&&`.
 #[test]
 fn interactive_refuses_piped_stdin_when_stdout_is_a_tty() {
     let dir = support::project_with_task(TASK_TITLE);
@@ -326,7 +330,7 @@ fn quitting_restores_the_terminal() {
 /// Opening a task suspends the TUI around the editor spawn: `suspend` leaves
 /// the alternate screen, runs the closure, and re-enters. `$EDITOR` here just
 /// echoes a marker, so the marker appearing in the transcript proves the
-/// closure ran — which is exactly what `replace suspend -> Result<()> with
+/// closure ran, which is exactly what `replace suspend -> Result<()> with
 /// Ok(())` would skip.
 ///
 /// This replaces the former in-process `suspend_executes_closure`, which built
@@ -340,7 +344,7 @@ fn opening_a_task_suspends_the_tui_and_runs_the_editor() {
     );
 }
 
-/// Enter with no task selected must not spawn the editor: `collect_first`
+/// Enter with no task selected must not spawn the editor. `collect_first`
 /// returns nothing for a buffer that matches no stem hash, `open` no-ops on an
 /// empty index set, and the loop keeps running. The transcript has no
 /// [`SUSPEND_MARKER`] and the session still quits cleanly on Esc.
@@ -362,7 +366,7 @@ fn enter_without_a_match_opens_nothing() {
 
 /// Drive one interactive session under a pseudo-terminal: select the first
 /// task, press Enter to open it, wait for the editor to actually run, then
-/// quit. `suffix` is appended to `ls --interactive` (e.g.
+/// quit. The caller appends `suffix` to `ls --interactive` (such as
 /// ` --hyperlinks always`). Returns the session's stdout, having already
 /// asserted it exited cleanly within [`WAIT_TIMEOUT`].
 fn select_first_task_and_open(suffix: &str) -> String {
@@ -391,7 +395,7 @@ fn open_first_task_in(dir: &tempfile::TempDir, suffix: &str) -> String {
 
 /// A project `[go] editor` waits for `mt allow` in the picker's open too: the
 /// held editor never runs, `$EDITOR` opens the task, and the warning after the
-/// session names the held command.
+/// session reports the held command.
 #[test]
 fn opening_a_task_holds_a_project_editor_and_falls_back_to_editor() {
     let dir = support::project_with_task(TASK_TITLE);
@@ -411,10 +415,10 @@ fn opening_a_task_holds_a_project_editor_and_falls_back_to_editor() {
 }
 
 /// The risk `truth/tasks/2026-07/hyperlink-the-handle-column.typ` exists to guard:
-/// the `slug#` column's cells carry an OSC 8 wrap (and, once a row is typed,
-/// an invert-colour wrap on top of that), but the key loop reads real key
-/// events off the terminal (crossterm), never the rendered screen — so typing
-/// a stem hash and Enter must still select and open the right task with
+/// the `slug#` column's cells carry an OSC 8 wrap (and, once the user types a
+/// row, an invert-colour wrap on top of that). The key loop reads real key
+/// events off the terminal (crossterm), never the rendered screen. Typing a
+/// stem hash and Enter must still select and open the right task with
 /// hyperlinks active. Mirrors
 /// `opening_a_task_suspends_the_tui_and_runs_the_editor`, with
 /// `--hyperlinks always` added.

@@ -1,17 +1,17 @@
 //! Named starter shapes for `mt init`.
 //!
 //! A preset is a `.mindtape/config.toml` body plus the `mt add` templates that
-//! body needs. The two travel together on purpose: a preset that constrains
-//! what a task must contain, without shipping a template that produces it,
-//! scaffolds a project whose very first `mt add` fails validation.
+//! body needs. The two travel together on purpose. A preset that constrains
+//! what a task must contain, without a template that produces it, scaffolds a
+//! project whose first `mt add` fails validation.
 //!
-//! Presets are written annotated — every non-obvious choice carries the reason
-//! for it — and [`strip_comments`] renders the quiet form. One source, two
-//! renderings, so `--annotate` cannot drift from the default.
+//! A preset stays annotated, and every non-obvious choice carries the reason for
+//! it. [`strip_comments`] renders the quiet form. One source, two renderings, so
+//! `--annotate` cannot drift from the default.
 //!
 //! Resolution order, highest first: a user preset under the XDG config dir, a
 //! built-in, then an explicit path (an argument carrying a separator or a
-//! `.toml` suffix). An unknown name is an error listing what exists — never a
+//! `.toml` suffix). An unknown name is an error listing what exists, never a
 //! fall-through to somewhere else, which is how `cargo-generate` turns a typo
 //! into a git clone.
 
@@ -21,10 +21,10 @@ use crate::diag::Result;
 
 use crate::diag::{Command, Diag, Hint};
 
-/// The preset `mt init` writes when none is named.
+/// The preset `mt init` writes when the caller names none.
 pub const DEFAULT_PRESET: &str = "flow";
 
-/// One built-in preset: its name, its config body, and its templates.
+/// One built-in preset, with its name, its config body, and its templates.
 struct Builtin {
     name: &'static str,
     description: &'static str,
@@ -71,7 +71,7 @@ pub struct Preset {
 }
 
 impl Preset {
-    /// The config body as written: annotated verbatim, or comment-stripped.
+    /// The config body as written, annotated verbatim or comment-stripped.
     #[must_use]
     pub fn render(&self, annotate: bool) -> String {
         if annotate {
@@ -85,13 +85,14 @@ impl Preset {
 /// Split a preset config into its base and its `[overlay]` fragment, if any.
 ///
 /// A preset may carry a top-level `[overlay]` table: raw config the init axes
-/// cannot express (custom link kinds, named views, body-header rules). It is an
-/// init-time-only concept — [`crate::cmd::init::compose::compose`] deep-merges it over
+/// cannot express (custom link kinds, named views, body-header rules). It exists
+/// only at init time. [`crate::cmd::init::compose::compose`] deep-merges it over
 /// the composed base last, and the flattened result the loader reads never
-/// carries a literal `[overlay]`. Returns `Some((base, overlay))` — the config
-/// without `[overlay]`, and the overlay's inner contents promoted to top level,
-/// each a standalone TOML document — when the preset declares one; else `None`,
-/// so an ordinary preset keeps its verbatim/comment-stripped rendering.
+/// carries a literal `[overlay]`. Returns `Some((base, overlay))` when the
+/// preset declares one. `base` is the config without `[overlay]`, and `overlay`
+/// holds the overlay's inner contents promoted to top level, each a standalone
+/// TOML document. Returns `None` otherwise, and an ordinary preset then keeps
+/// its verbatim or comment-stripped rendering.
 ///
 /// # Errors
 /// Returns an error when the config is not valid TOML, when `[overlay]` is
@@ -123,9 +124,9 @@ pub fn list_builtins() -> Vec<(&'static str, &'static str)> {
 
 /// Resolve `name` to a preset, searching the user preset directory first.
 ///
-/// `user_dir` is the XDG preset directory (`<config home>/mindtape/
-/// presets`); pass `None` when it cannot be determined. Injected rather than
-/// read here so tests need not touch the real environment.
+/// `user_dir` is the XDG preset directory (`<config home>/mindtape/presets`).
+/// Pass `None` when it does not resolve. The caller injects it rather than
+/// reading it here, so tests need not touch the real environment.
 ///
 /// # Errors
 /// Returns an error if `name` matches no user preset, no built-in, and no
@@ -162,8 +163,8 @@ pub fn resolve(name: &str, user_dir: Option<&Path>) -> Result<Preset> {
     ))
 }
 
-/// Whether an argument should be treated as a filesystem path rather than a
-/// name: it carries a path separator, or ends in `.toml`.
+/// Whether an argument counts as a filesystem path rather than a name: it
+/// carries a path separator, or ends in `.toml`.
 fn looks_like_path(name: &str) -> bool {
     name.contains(std::path::MAIN_SEPARATOR)
         || name.contains('/')
@@ -200,10 +201,9 @@ fn user_preset(dir: &Path, name: &str) -> Result<Option<Preset>> {
 }
 
 /// Whether a user preset already exists under `dir` for `name`, in either
-/// layout. Returns the path that constitutes it — the flat `<name>.toml`
-/// file, or the nested `<name>/` directory — without reading its content, so
-/// `mt preset save` can name what is already there before deciding to clobber
-/// it.
+/// layout. Returns the path that constitutes it, the flat `<name>.toml` file or
+/// the nested `<name>/` directory, without reading its content. `mt preset save`
+/// then reports what is already there before deciding to clobber it.
 #[must_use]
 pub fn existing_user_preset(dir: &Path, name: &str) -> Option<PathBuf> {
     let flat = dir.join(format!("{name}.toml"));
@@ -218,11 +218,11 @@ pub fn existing_user_preset(dir: &Path, name: &str) -> Option<PathBuf> {
 }
 
 /// Every user preset name under `dir`, from either supported layout, sorted
-/// and deduplicated. A missing directory yields none, so `mt preset ls` needs
-/// no special case for a machine that has never saved one.
+/// and deduplicated. A missing directory yields none, so `mt preset ls` works
+/// without a special case for a machine that has never saved one.
 ///
 /// # Errors
-/// Returns an error if `dir` exists but cannot be read.
+/// Returns an error when `dir` exists and the read fails.
 pub fn list_user_presets(dir: &Path) -> Result<Vec<String>> {
     if !dir.is_dir() {
         return Ok(Vec::new());
@@ -247,7 +247,7 @@ pub fn list_user_presets(dir: &Path) -> Result<Vec<String>> {
     Ok(names)
 }
 
-/// An explicit path: a `.toml` file, or a directory laid out like a nested
+/// An explicit path, either a `.toml` file or a directory laid out like a nested
 /// user preset.
 fn path_preset(path: &Path) -> Result<Preset> {
     let name = path.file_stem().map_or_else(
@@ -308,7 +308,7 @@ pub(crate) fn read_templates(dir: &Path) -> Result<Vec<(String, String)>> {
 ///
 /// Only lines whose first non-space character is `#` go, so a `#` inside a
 /// string value survives. The result keeps at most one blank line in a row and
-/// never opens with one, which is what makes the stripped rendering read as a
+/// never opens with one. That is what makes the stripped rendering read as a
 /// deliberate file rather than a gutted one.
 #[must_use]
 pub fn strip_comments(text: &str) -> String {

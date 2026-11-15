@@ -1,26 +1,27 @@
-//! `mt link` — the write path for `links:`, the one task field that had none.
+//! `mt link` writes `links:`, the one task field that had no write path.
 //!
 //! Two forms over one pipeline. `mt link <task> <kind> <target…>` upserts a
-//! single edge; `mt link --apply <file>` reads an adjacency map (stem to kind
+//! single edge. `mt link --apply <file>` reads an adjacency map (stem to kind
 //! to targets, YAML or JSON, `-` for stdin) and merges every entry in it. Both
-//! desugar to the same list of [`input::Entry`], so the checks, the
-//! rendering, the dedupe and the report are written once.
+//! desugar to the same list of [`input::Entry`]. That way the checks, the
+//! rendering, the dedupe and the report run once.
 //!
-//! Batch semantics mirror `mt rm` and `mt flip`: the whole plan is computed in
-//! memory before a byte is written ([`crate::cmd::link::plan::build`]), so `--dry-run`
-//! reports exactly what a real run would do; then the valid entries land and a
-//! per-entry failure is reported without rolling the others back.
+//! Batch semantics mirror `mt rm` and `mt flip`. The whole plan lands in memory
+//! before the command writes a byte ([`crate::cmd::link::plan::build`]), so
+//! `--dry-run` reports exactly what a real run would do. Then the valid entries
+//! land, and the command reports a per-entry failure without rolling the others
+//! back.
 //!
 //! Merging is by `(kind, target-stem)`, so running the same command twice
-//! writes nothing the second time — the property that makes an adjacency map
-//! safe to re-apply as it grows, and the reason the regex one-shot this
+//! doesn't write anything the second time. That property makes an adjacency map
+//! safe to re-apply as it grows, and it is the reason the regex one-shot this
 //! command replaces was a one-shot.
 //!
 //! # Files
 //!
-//! - `edit.rs` — renders edges as prelude helper calls and reconciles them.
-//! - `input.rs` — the `--apply` adjacency map, read as YAML.
-//! - `plan.rs` — resolves every entry and checks every edge before a write.
+//! - `edit.rs`: renders edges as prelude helper calls and reconciles them.
+//! - `input.rs`: the `--apply` adjacency map, read as YAML.
+//! - `plan.rs`: resolves every entry and checks every edge before a write.
 
 pub(crate) mod edit;
 pub(crate) mod input;
@@ -49,8 +50,8 @@ pub struct LinkArgs {
 
     /// The tasks to link to, each by stem, hash or path.
     ///
-    /// A path is relative to the task. A stem that tasks in two folders share
-    /// is refused, so give a path then.
+    /// A path is relative to the task. `mt link` refuses a stem that tasks in
+    /// two folders share, so give a path then.
     #[arg(required_unless_present = "apply")]
     pub targets: Vec<String>,
 
@@ -98,7 +99,7 @@ pub struct LinkArgs {
 }
 
 /// The `KIND` help: the short line, then the built-in kinds read off the table
-/// `mt check` resolves them with, so a new kind needs no edit here.
+/// `mt check` resolves them with. A new kind then doesn't need an edit here.
 fn kind_help() -> String {
     let names: Vec<String> = mindtape::link::builtin_kinds()
         .map(|(name, _)| format!("`{name}`"))
@@ -120,9 +121,9 @@ fn join_and(items: &[String]) -> String {
 /// Run the `link` command.
 ///
 /// # Errors
-/// Returns an error if the project cannot be opened, the adjacency map cannot
-/// be read or parsed, or any entry failed to resolve, check, write or
-/// revalidate — the last of which still leaves the entries that did land.
+/// Returns an error if the project fails to open, the adjacency map fails to
+/// read or parse, or any entry fails to resolve, check, write or revalidate.
+/// That last case still leaves the entries that did land.
 pub fn run(args: &LinkArgs) -> Result<()> {
     let project = util::open_warned()?;
     run_with(&project, args)
@@ -195,14 +196,13 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
     finish(problems, failed, total)
 }
 
-/// The entries one invocation asks for: the whole adjacency map under
+/// Collects the entries one invocation covers: the whole adjacency map under
 /// `--apply`, or the single edge set the positional form spells.
 ///
 /// # Errors
-/// Returns an error if the map cannot be read or parsed, or — on the
-/// positional form — a required argument is missing (clap guarantees these,
-/// so reaching one of these bails means the attributes and this function have
-/// drifted apart).
+/// Returns an error if the map fails to read or parse, or, on the positional
+/// form, a required argument is missing. clap guarantees these, so reaching one
+/// of these bails means the attributes and this function have drifted apart.
 fn entries(args: &LinkArgs) -> Result<Vec<Entry>> {
     if let Some(source) = &args.apply {
         return input::parse_adjacency(&input::read_source(source)?);
@@ -279,8 +279,8 @@ fn change_summary(staged: &Staged) -> String {
 
 /// Report a batch's `problems` and set the exit status, or succeed on none.
 /// Same shape as `mt flip`'s tail: a single target's last problem is the
-/// command's error and gets no summary; several targets end with one. The
-/// exit status does not undo what landed.
+/// command's error and doesn't get a summary. Two or more targets end with one.
+/// The exit status does not undo what landed.
 fn finish(mut problems: Vec<Diag>, failed: usize, total: usize) -> Result<()> {
     let last = match problems.pop() {
         None => return Ok(()),

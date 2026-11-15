@@ -1,14 +1,14 @@
-//! The writable core fields: one table, one renderer and one mutation path
-//! shared by `mt set`, `mt add --set` and the add hooks.
+//! The writable core fields share one table, one renderer and one mutation
+//! path across `mt set`, `mt add --set` and the add hooks.
 //!
 //! A field is writable when its value is one unambiguous Typst literal: a
 //! quoted string, a bare number, an `on(y, m, d)` call, or an array of quoted
-//! strings. Everything with a richer argument shape — a dated status, a typed
-//! edge, a renamed stem, an estimate's unit dict or a destination — keeps its
-//! own command or flag, and [`ELSEWHERE`] names it instead of reporting a typo.
+//! strings. Everything with a richer argument shape keeps its own command or
+//! flag: a dated status, a typed edge, a renamed stem, an estimate's unit dict
+//! or a destination. [`ELSEWHERE`] names it instead of reporting a typo.
 //!
-//! The rendering lives here, not in the CLI, so the value `mt set` writes and
-//! the value `mt add` inserts cannot drift: both call [`render_op`], and both
+//! The rendering lives here, not in the CLI. The value `mt set` writes and the
+//! value `mt add` inserts then cannot drift. Both call [`render_op`], and both
 //! use [`apply_op`] when they need the value reflected in a [`Task`] before
 //! rendering.
 
@@ -23,13 +23,13 @@ use crate::template::RawValue;
 pub enum Shape {
     /// A quoted, escaped string literal.
     Text,
-    /// A bare number. Whether it is in bounds, or on the configured scale at
-    /// all, is the validator's call, not this module's.
+    /// A bare number. The validator checks whether it is in bounds, or on the
+    /// configured scale at all.
     Num,
     /// A `YYYY-MM-DD` argument, rendered as the prelude's `on(y, m, d)`.
     Date,
     /// An array literal. The accessor reads the field's current items, which
-    /// `+=` appends to; naming it per field is what stops a second list field
+    /// `+=` appends to. Naming it per field is what stops a second list field
     /// from silently appending to `tags`.
     List(fn(&Task) -> &[String]),
 }
@@ -45,7 +45,7 @@ pub struct WritableField {
 
 /// Every writable field, in the task emitter's own field order: the scalars
 /// and lists whose Typst literal is unambiguous. `priority` is the raw numeric
-/// form only — a framework priority (`ice(impact: 8, …)`) is a call with its
+/// form only. A framework priority (`ice(impact: 8, …)`) is a call with its
 /// own inputs, and packing those into one `=<value>` token would invent a
 /// spelling nothing else in the CLI uses.
 pub const WRITABLE: &[WritableField] = &[
@@ -87,9 +87,10 @@ pub const WRITABLE: &[WritableField] = &[
     },
 ];
 
-/// Names no generic writer sets, and the hint that says what to do instead.
-/// Refused by name rather than as unknown: `status` is not a typo for `start`,
-/// and a message that suggested so would teach the wrong CLI.
+/// The names that a generic writer cannot set, and the hint that says what to
+/// do instead. The writer refuses them by name rather than as unknown: `status`
+/// is not a typo for `start`, and a message that suggested so would point the
+/// reader at the wrong CLI.
 pub const ELSEWHERE: &[(&str, &str)] = &[
     (
         "status",
@@ -130,7 +131,7 @@ pub enum FieldOp {
     Append(String),
 }
 
-/// Why a value cannot be written to a field.
+/// Why a value cannot reach a field.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum WritableError {
     /// `+=` on a field that holds one value.
@@ -161,7 +162,8 @@ pub enum WritableError {
         /// The field the array was for.
         field: &'static str,
     },
-    /// A value shape no writable field holds, such as a list of typed edges.
+    /// A value shape outside every writable field, such as a list of typed
+    /// edges.
     #[error("this value shape does not fit the field")]
     WrongShape {
         /// The field the value was for.
@@ -195,13 +197,14 @@ pub fn elsewhere(name: &str) -> Option<&'static str> {
         .find_map(|(field, hint)| (*field == name).then_some(*hint))
 }
 
-/// The Typst literal to write, or `None` when the task already says it — a
-/// re-run then writes nothing at all.
+/// The Typst literal to write, or `None` when the task already says it. A
+/// re-run then leaves the file unchanged.
 ///
 /// # Errors
-/// A `+=` on a field that holds no list, or a value the field's shape cannot
-/// be made from — refused here, before a file is even read, so the error names
-/// the field rather than arriving as a Typst type error later.
+/// A `+=` on a field that doesn't hold a list, or a value the field's shape
+/// cannot make. The writer refuses both here, before it even reads a file. The
+/// error then specifies the field rather than arriving as a Typst type error
+/// later.
 pub fn render_op(
     field: &WritableField,
     op: &FieldOp,
@@ -227,13 +230,13 @@ pub fn render_op(
 }
 
 /// Mutate `task`'s field from `op`, coercing the value exactly as [`render_op`]
-/// does. Used by `mt add` after it evaluates the draft task, so a field the
-/// template omits can be inserted with its authored value.
+/// does. `mt add` calls it after it evaluates the draft task, so a field the
+/// template omits can take its authored value.
 ///
 /// # Errors
-/// The same refusals as [`render_op`]: an append to a scalar field, a non-number
-/// for a numeric one, a non-date for a date one, or a value shape the field
-/// cannot hold.
+/// `apply_op` refuses what [`render_op`] refuses. That covers an append to a
+/// scalar field, a non-number for a numeric one, a non-date for a date one, or
+/// a value shape the field cannot hold.
 pub fn apply_op(task: &mut Task, field: &WritableField, op: &FieldOp) -> Result<(), WritableError> {
     match op {
         FieldOp::Set(value) => set(task, field, value),
@@ -242,7 +245,7 @@ pub fn apply_op(task: &mut Task, field: &WritableField, op: &FieldOp) -> Result<
 }
 
 /// The field's current value as a [`RawValue`], for feeding a template slot.
-/// `None` when a scalar field is absent; a list field always reads as its
+/// `None` when a scalar field is absent, and a list field always reads as its
 /// (possibly empty) array.
 #[must_use]
 pub fn current_raw(field: &WritableField, task: &Task) -> Option<RawValue> {
@@ -296,8 +299,8 @@ fn list_items(field: &WritableField, value: &RawValue) -> Result<Vec<String>, Wr
 
 /// `+=`: the field's current items plus `item`, or `None` when it already
 /// holds it. Deduping here rather than writing a repeated entry keeps the
-/// command re-runnable — a script that appends a tag twice is not a script
-/// that meant to tag it twice.
+/// command re-runnable: a script that appends a tag twice is not a script that
+/// meant to tag it twice.
 fn append(current: &[String], item: &str) -> Option<String> {
     if current.iter().any(|held| held == item) {
         return None;
@@ -412,7 +415,7 @@ fn date_field<'a>(field: &WritableField, task: &'a Task) -> Option<&'a str> {
 
 /// A numeric field's current value as a [`RawValue`].
 ///
-/// A number reads as its text form, not [`RawValue::Float`]: a template slot
+/// A number reads as its text form, not [`RawValue::Float`]. A template slot
 /// may declare `kind: "int"`, whose coercion accepts a string or an integer
 /// but not a float, and `3` and `3.0` are the same number to the writer.
 fn num_raw(value: &NumValue) -> RawValue {

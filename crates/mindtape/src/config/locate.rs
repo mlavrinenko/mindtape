@@ -1,9 +1,9 @@
 //! Where a config error comes from: the file, and the line of the key in it.
-//! [`Sources`] holds the text of every file a merged config was built from,
-//! the layers and each layer's packs, in merge precedence. A load error asks
-//! it for `.mindtape/config.toml:12:` ([`Sources::place_of`]) or for the file
-//! that holds a key serde refuses ([`Sources::blame`]), so a key a pack or an
-//! ancestor `defaults.toml` sets is never charged to the project config.
+//! [`Sources`] holds the text of every file that fed a merged config, the
+//! layers and each layer's packs, in merge precedence. A load error queries it
+//! for `.mindtape/config.toml:12:` ([`Sources::place_of`]) or for the file that
+//! holds a key serde refuses ([`Sources::blame`]). A key that a pack or an
+//! ancestor `defaults.toml` sets is then never charged to the project config.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -32,19 +32,18 @@ pub struct ConfigPlace {
     pub line: usize,
 }
 
-/// One file a merged config was built from.
+/// One file that fed a merged config.
 #[derive(Debug)]
 struct Source {
     origin: RuleOrigin,
-    /// How an error names it: relative to the project root when under it, or
+    /// An error names it relative to the project root when under it, or
     /// `pack <name>` for a pack compiled into the binary.
     file: PathBuf,
     text: String,
 }
 
-/// A merged rule array's entry, so the index an error leads with, which
-/// counts the merged array, can be turned into the entry's index in the one
-/// file that wrote it.
+/// A merged rule array's entry. It maps the index an error leads with, which
+/// counts the merged array, to the entry's index in the one file that wrote it.
 #[derive(Debug)]
 struct RuleSlot {
     /// The array's dotted path, such as `tasks.rules`.
@@ -59,7 +58,7 @@ struct RuleSlot {
     local: Option<usize>,
 }
 
-/// Every file a merged config was built from, lowest precedence first.
+/// Every file that fed a merged config, lowest precedence first.
 #[derive(Debug, Default)]
 pub(crate) struct Sources {
     items: Vec<Source>,
@@ -106,7 +105,7 @@ impl Sources {
         sources
     }
 
-    /// Add a layer's file. The embedded floor is no file, so it is skipped.
+    /// Add a layer's file. The embedded floor is no file, and this skips it.
     pub(crate) fn push_layer(&mut self, layer: &Layer, root: &Path) {
         let (LayerSource::Xdg(path) | LayerSource::Dir(path) | LayerSource::Project(path)) =
             &layer.source
@@ -192,10 +191,10 @@ impl Sources {
         })
     }
 
-    /// The error for a merged document serde refused: when a file, read
-    /// alone, fails with the same message, that file is the one at fault, and
-    /// its error carries the line. The highest-precedence such file wins. A
-    /// failure that only the merge causes has no file, and stays as it was.
+    /// The error for a merged document serde refused. When a file, read alone,
+    /// fails with the same message, that file is the one at fault, and its
+    /// error carries the line. The highest-precedence such file wins. A failure
+    /// that only the merge causes has no file, and stays as it was.
     pub(crate) fn blame(&self, merged: toml::de::Error) -> ConfigError {
         let culprit = self.items.iter().rev().find_map(|item| {
             let alone = toml::from_str::<Config>(&item.text).err()?;

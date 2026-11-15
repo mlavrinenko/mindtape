@@ -89,8 +89,9 @@ fn survivor(edges: &str) -> String {
 }
 
 /// The `depends-on` survivor used across the base cases: one inbound edge to
-/// `gone`, authored as a helper call over a plain stem string (never `link(...)`)
-/// — the shape the crate's `link()`-only scanner cannot see.
+/// `gone`, authored as a helper call over a plain stem string (never
+/// `link(...)`). That is the shape the crate's `link()`-only scanner cannot
+/// see.
 fn depends_survivor() -> String {
     survivor("depends-on(\"gone.typ\")")
 }

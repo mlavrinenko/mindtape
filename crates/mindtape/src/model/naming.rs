@@ -3,52 +3,53 @@
 //! [`mint_stem`] is a pure macro expander: no clock reads, no filesystem
 //! access. Both `mt add` (today's date, occurrence `0`) and the later `mt
 //! recur` spawn path (an occurrence's anchor date, its index) build a
-//! [`MintContext`] and call the same function, so the two paths can never
+//! [`MintContext`] and call the same function. The two paths then can never
 //! diverge. Filesystem collision handling ([`disambiguate`]) is a separate,
-//! equally pure function — callers inject an `exists` predicate rather than
-//! this module touching disk itself. The split: `mint_stem` renders a
-//! template into a candidate stem; `disambiguate` decides, against the real
-//! (or faked) destination directory, whether that candidate is safe to use.
+//! equally pure function: callers inject an `exists` predicate rather than
+//! this module touching disk itself. `mint_stem` renders a template into a
+//! candidate stem, and `disambiguate` decides, against the real (or faked)
+//! destination directory, whether that candidate is safe to use.
 
 use thiserror::Error;
 
 use crate::date::format_iso;
 use serde::{Deserialize, Deserializer};
 
-/// The bare-slug template: today's behaviour when `[tasks.naming] stem` is
-/// unset.
+/// The bare-slug template, which is the behaviour when `[tasks.naming] stem`
+/// is unset.
 pub const DEFAULT_STEM_TEMPLATE: &str = "{slug}";
 
 /// How `mt add` and `mt recur` name a new task's file, and what `mt add` does
-/// when that name is taken (`dedup`).
+/// when that name already exists (`dedup`).
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct NamingConfig {
     /// Filename stem template. Macros: `{slug}`, `{date}`, `{date:FMT}`,
     /// `{yy}`, `{mm}`, `{dd}`, `{n}` and `{n:0N}`. Unset means `{slug}`.
     pub stem: Option<String>,
-    /// What `mt add` does when the stem is taken; `--dedup` overrides it for
-    /// one run. Unset means `add-suffix` when `stem` is set, else `fail`.
+    /// What `mt add` does when the stem already exists. `--dedup` overrides it
+    /// for one run. Unset means `add-suffix` when `stem` has a value, else
+    /// `fail`.
     // `NamingConfig::effective_dedup` holds that default.
     pub dedup: Option<DedupMode>,
 }
 
 impl NamingConfig {
-    /// The template to mint with: the configured `stem`, or
+    /// The template to mint with, which is the configured `stem` or
     /// [`DEFAULT_STEM_TEMPLATE`] when unset.
     #[must_use]
     pub fn template(&self) -> &str {
         self.stem.as_deref().unwrap_or(DEFAULT_STEM_TEMPLATE)
     }
 
-    /// The collision policy `mt add` falls back to when `--dedup` is absent:
-    /// an explicitly configured `dedup` wins outright. Left unset, the
-    /// default itself depends on `stem` — a configured stem *template*
-    /// defaults to [`DedupMode::AddSuffix`], so a project that sets `stem`
-    /// and never touches `dedup` sees no behaviour change from before dedup
-    /// modes reached the templated-stem path; a bare (unset) `stem` keeps
+    /// The collision policy `mt add` falls back to when `--dedup` is absent.
+    /// An explicitly configured `dedup` wins outright. Left unset, the default
+    /// itself depends on `stem`. A configured stem *template* defaults to
+    /// [`DedupMode::AddSuffix`], so a project that sets `stem` and never
+    /// touches `dedup` keeps the behaviour it had before dedup modes reached
+    /// the templated-stem path. A bare (unset) `stem` keeps
     /// [`DedupMode::Fail`], today's hard error. This is the single place the
-    /// default lives — collision *handling* itself does not branch on
+    /// default lives, and collision *handling* itself does not branch on
     /// whether the stem came from a template (`mindtape_cli::cmd::add::dedup`).
     #[must_use]
     pub fn effective_dedup(&self) -> DedupMode {
@@ -60,17 +61,17 @@ impl NamingConfig {
     }
 }
 
-/// `mt add`'s policy when the destination stem already exists. Config-side
-/// counterpart of `mt add --dedup`; the CLI carries its own `clap::ValueEnum`
-/// (`mindtape` has no clap dependency — see `mindtape_cli::cmd::add::dedup::DedupArg`)
-/// that converts into this one, so the flag and `[tasks.naming] dedup` share a
-/// single vocabulary.
+/// `mt add`'s policy when the destination stem already exists. This is the
+/// config-side counterpart of `mt add --dedup`. The CLI carries its own
+/// `clap::ValueEnum` (`mindtape` has no clap dependency, see
+/// `mindtape_cli::cmd::add::dedup::DedupArg`) that converts into this one, so
+/// the flag and `[tasks.naming] dedup` share a single vocabulary.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum DedupMode {
     /// Bail before writing (today's behaviour, the default).
     #[default]
     Fail,
-    /// Exit 0, write nothing, report the existing path.
+    /// Exit 0, leave the file unwritten, and report the existing path.
     Skip,
     /// Reuse [`disambiguate`] to append `-2`, `-3`, … until a free stem turns up.
     AddSuffix,
@@ -93,10 +94,10 @@ impl<'de> Deserialize<'de> for DedupMode {
     }
 }
 
-/// Inputs to [`mint_stem`], supplied entirely by the caller — the expander
+/// Inputs to [`mint_stem`], supplied entirely by the caller: the expander
 /// itself never reads a clock or a counter. `mt add` passes today's date and
-/// occurrence `0`; `mt recur` spawn passes the occurrence's anchor date and
-/// its index.
+/// occurrence `0`, and `mt recur` spawn passes the occurrence's anchor date
+/// and its index.
 #[derive(Debug, Clone, Copy)]
 pub struct MintContext<'a> {
     /// The task's slug (from its title): the `{slug}` macro.
@@ -131,10 +132,10 @@ pub enum NamingError {
 /// Supported macros: `{slug}`, `{date}` (ISO `YYYY-MM-DD`), `{date:FMT}`
 /// (formatted via [`format_iso`]'s token grammar), `{yy}` / `{mm}` / `{dd}`,
 /// `{n}` (bare occurrence index) and `{n:0N}` (zero-padded to width `N`).
-/// `{kind}` is reserved for a future convergence extension (speconaut's
-/// artifact-kind classifier) — recognised but not yet resolvable from
-/// [`MintContext`], so it passes through literally rather than erroring or
-/// silently vanishing.
+/// `{kind}` stays reserved for a future convergence extension (speconaut's
+/// artifact-kind classifier). The expander recognises it but cannot yet
+/// resolve it from [`MintContext`], so it passes through literally rather than
+/// erroring or silently vanishing.
 ///
 /// # Errors
 /// Returns [`NamingError`] for an unterminated `{`, an unknown macro name, or
@@ -154,7 +155,7 @@ pub fn mint_stem(template: &str, ctx: &MintContext<'_>) -> Result<String, Naming
 }
 
 /// Consume `chars` up to (and including) the closing `}`, returning the
-/// content in between. Errors if the input ends first.
+/// content between them. Errors if the input ends first.
 fn read_macro(chars: &mut std::str::Chars<'_>) -> Result<String, NamingError> {
     let mut inner = String::new();
     for ch in chars {
@@ -202,14 +203,14 @@ fn expand_occurrence(occurrence: u32, arg: Option<&str>) -> Result<String, Namin
 
 /// Ceiling on numeric suffixes [`disambiguate`] will try before giving up.
 /// `10_000` covers a daily recurring task disambiguating against a full
-/// destination directory for roughly 27 years — comfortably past any
-/// realistic collision run — while still bounding the search against a
-/// pathological or buggy `exists` predicate.
+/// destination directory for roughly 27 years, comfortably past any realistic
+/// collision run. It still bounds the search against a pathological or buggy
+/// `exists` predicate.
 const MAX_DISAMBIGUATE_ATTEMPTS: u32 = 10_000;
 
 /// Disambiguate `stem` against an `exists` predicate: appends an incrementing
 /// `-{n}` (`stem`, `stem-2`, `stem-3`, …) until a candidate reports as free.
-/// Never returns a stem `exists` reports as taken. Fs-free — callers pass a
+/// Never returns a stem `exists` reports as taken. Fs-free: callers pass a
 /// closure over the real filesystem (the `add` destination dir) or a fake set
 /// in tests.
 ///

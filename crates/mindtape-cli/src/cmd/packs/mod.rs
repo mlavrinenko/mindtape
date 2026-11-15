@@ -2,7 +2,7 @@
 //! pins in `.mindtape/packs.lock`.
 //!
 //! Each subcommand reads the two files with `pack_sources::read_raw`, not a
-//! config load, because a load refuses the very state they repair. `install`
+//! config load, because a load refuses the state they repair. `install`
 //! writes only the cache, so it is a read command. `update` writes the lock.
 //!
 //! # Files
@@ -59,15 +59,16 @@ enum PacksAction {
     /// It refuses a lock that disagrees with `[pack-sources]`, as `npm ci`
     /// does, so run it in CI or after a clone.
     Install {
-        /// Print JSON: each source's name, commit, sha256 and whether it
-        /// was fetched.
+        /// Print JSON: each source's name, commit, sha256 and whether the run
+        /// fetched it.
         #[arg(long)]
         json: bool,
     },
     /// Lock each source at the commit its `ref` points to.
     ///
     /// It fetches each source whose commit moved, rewrites its lock entry,
-    /// and drops the entries no source declares.
+    /// and drops the lock entries that name a source the project does not
+    /// declare.
     Update {
         /// The sources to update. Without one, it updates them all.
         sources: Vec<String>,
@@ -77,9 +78,10 @@ enum PacksAction {
 /// Run the `packs` command.
 ///
 /// # Errors
-/// Returns an error if no project is found, its sources or lock can't be
-/// read or disagree, no cache directory applies, a `ref` can't be resolved,
-/// a fetch fails, or the lock can't be written.
+/// Returns an error when the search cannot find a project, when its sources or
+/// lock fail to read or disagree, or when no cache directory applies. It also
+/// fails when a `ref` fails to resolve, when a fetch fails, or when the lock
+/// write fails.
 pub fn run(args: &PacksArgs) -> Result<()> {
     match &args.action {
         PacksAction::Install { json } => install::run(*json),

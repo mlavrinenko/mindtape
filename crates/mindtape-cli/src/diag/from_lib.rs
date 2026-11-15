@@ -91,7 +91,7 @@ impl From<DateOverrideError> for Diag {
 }
 
 /// A filter that failed to parse or evaluate. `expr` is the filter as the
-/// user typed it, quoted in the message; pass it whenever the call site has
+/// user typed it, quoted in the message. Pass it whenever the call site has
 /// it.
 pub(crate) fn filter(err: FilterError, expr: Option<&str>) -> Diag {
     let in_filter = |diag: Diag| match expr {
@@ -278,7 +278,7 @@ impl From<RecurError> for Diag {
 
 /// A rule breach: `tasks/x.typ:2: rules.one-wip: <message>`. The message is
 /// the config's or the check's own words. An `error` severity refused the
-/// work; a `warn` one refused nothing.
+/// work. A `warn` one let it through.
 impl From<&Violation> for Diag {
     fn from(violation: &Violation) -> Self {
         let diag = match violation.severity {
@@ -341,8 +341,8 @@ impl Diag {
     }
 }
 
-/// The one refusal for a task reference that named no task, wherever it was
-/// typed: a `<task>` argument or a `links:` target.
+/// The one refusal for a task reference that matched no task, whether the user
+/// typed it as a `<task>` argument or as a `links:` target.
 fn reference(err: &RefError) -> Diag {
     let list = || Hint::run(Command::mt().word("ls"), "to see your tasks");
     match err {
@@ -406,8 +406,9 @@ impl From<WritableError> for Diag {
     }
 }
 
-/// A slot fill that was rejected. A missing, mistyped or out-of-choice value is
-/// the command line's; a bad kind in the template or a failed rewrite is not.
+/// A slot fill that the code rejected. A missing, mistyped or out-of-choice
+/// value belongs to the command line. A bad kind in the template or a failed
+/// rewrite does not.
 impl From<FillError> for Diag {
     fn from(err: FillError) -> Self {
         match err {

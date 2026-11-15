@@ -1,5 +1,5 @@
-//! A hint's `mt` command carries the `@name` or `-w <dir>` the run was given,
-//! so it runs as printed from where the user stood.
+//! A hint's `mt` command carries the `@name` or `-w <dir>` the user gave the
+//! run, so it runs as printed from where the user stood.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;

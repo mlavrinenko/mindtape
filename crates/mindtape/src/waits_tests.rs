@@ -298,7 +298,7 @@ fn annotate_holds_every_open_task_back_when_not_allowed() {
     assert_eq!(tasks[1].answers["up:x"], Answer::NotAllowed);
 }
 
-/// An array's `{id}` fills each item alone, so the id stays one argument.
+/// An array's `{id}` fills each item alone. The id stays one argument.
 #[test]
 fn an_array_checker_fills_the_id_into_each_item() {
     let command = command_line("up:pr-7", &array_config(&["gh", "{id}", "x{id}"]));
@@ -315,8 +315,8 @@ fn an_array_with_no_program_is_an_empty_command() {
     );
 }
 
-/// Inside a checker no checker runs, so one that runs `mt` on its own project
-/// cannot spawn itself again.
+/// Inside a checker, `mt` skips every checker, so one that runs `mt` on its own
+/// project cannot spawn itself again.
 #[test]
 fn inside_a_checker_no_checker_runs() {
     let dir = tempdir();

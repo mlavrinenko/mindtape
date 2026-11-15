@@ -99,7 +99,7 @@ fn disable_naming_no_rule_anywhere_is_a_config_error() {
 }
 
 /// A single config layer for the merge-level tests, with its text and its
-/// [`LayerSource`] — shared with `config/packs_tests_extends.rs`, which reaches
+/// [`LayerSource`], shared with `config/packs_tests_extends.rs`, which reaches
 /// it through `super::tests`.
 pub(crate) fn layer(source: LayerSource, text: &str) -> Layer {
     Layer {
@@ -163,13 +163,13 @@ fn an_ancestor_layers_check_rule_still_fails_load_when_absent_at_the_project_roo
     assert!(err.to_string().contains("checks.typ"), "{err}");
 }
 
-/// Build the typed [`crate::config::Config`] `project`'s own
-/// `.mindtape/config.toml` extending `registry`'s `"test"` pack (and
-/// nothing else) would produce — merge, then the same typed-deserialization
-/// tail [`crate::config::layers::build_config`] runs after its own merge — for
-/// a test that needs the pack registry injected, which
-/// `load_config_layered_from`'s real (possibly empty) [`crate::config::pack_registry::EMBEDDED_PACKS`]
-/// cannot give it.
+/// Build the typed [`crate::config::Config`] that `project`'s own
+/// `.mindtape/config.toml` would produce when it extends `registry`'s `"test"`
+/// pack and nothing else. The build runs the merge, then the same
+/// typed-deserialization tail [`crate::config::layers::build_config`] runs
+/// after its own merge. A test that needs the pack registry injected uses
+/// this, since `load_config_layered_from`'s real (possibly empty)
+/// [`crate::config::pack_registry::EMBEDDED_PACKS`] cannot give it one.
 fn config_extending_test_pack(project: &Path, registry: &[(&str, &str)]) -> crate::config::Config {
     let merged = merge_layers_with_packs_using(
         &[layer(
@@ -281,13 +281,13 @@ fn a_same_file_duplicate_name_is_left_for_validation_not_collapsed_at_merge() {
 }
 
 /// The full layered load actually refuses the scenario the merge-level test
-/// above only shows survives the merge: two `[[tasks.body.headers.rules]]`
+/// above only shows survives the merge. Two `[[tasks.body.headers.rules]]`
 /// entries sharing a name within the project's own file fail
 /// `Config::validate` (`validate_header_rules`), the same treatment
 /// `rejects_duplicate_rule_names_within_one_array`
 /// (`rules/tests.rs`) gives `[[tasks.rules]]`. Cross-file
-/// replacement by name is a different scenario entirely — see
-/// `same_name_project_rule_replaces_the_ancestors_in_place` — and stays
+/// replacement by name is a different scenario entirely, see
+/// `same_name_project_rule_replaces_the_ancestors_in_place`, and stays
 /// legal.
 #[test]
 fn a_same_file_duplicate_header_rule_name_fails_the_full_load() {

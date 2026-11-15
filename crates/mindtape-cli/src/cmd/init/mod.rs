@@ -1,26 +1,29 @@
-//! `mt init` — project scaffold, and the library install `mt install` shares.
+//! `mt init` writes the project scaffold, and holds the library install that
+//! `mt install` shares.
 //!
-//! `init` writes one of the named presets in [`crate::cmd::init::preset`]. Two axes, kept
-//! independent: `--preset` picks what the config says, `--annotate` picks
-//! whether it says it with the reasoning attached. They were conflated before —
-//! a `--full` flag meant both "the elaborate shape" and "the commented
-//! rendering" — which left no way to get a documented copy of a simple shape.
+//! `init` writes one of the named presets in [`crate::cmd::init::preset`]. Two
+//! axes stay independent. `--preset` picks what the config says, and
+//! `--annotate` picks whether it says it with the reasoning attached. An earlier
+//! `--full` flag conflated them, meaning both "the elaborate shape" and "the
+//! commented rendering". That combination blocked a documented copy of a simple
+//! shape.
 //!
 //! The scaffold's first line is a `#:schema` comment directive so a
 //! schema-aware TOML editor (tombi, Taplo) assists filling `.mindtape/
 //! config.toml`. It points, by default, at the schema `mt install` writes under
-//! the XDG config dir; `--schema URL|PATH` overrides it (e.g. the published
-//! URL for a portable, checked-in config), `--no-schema` drops it.
+//! the XDG config dir. `--schema URL|PATH` overrides it, with the published URL
+//! for a portable, checked-in config. `--no-schema` drops it.
 //!
 //! # Files
 //!
-//! - `compose.rs` — folds the wizard's axis fragments into one config body.
-//! - `preset.rs` — the named starter shapes.
-//! - `wizard/` — the questionnaire over the configuration axes.
-//! - `presets/` — the built-in preset directories, one folder each.
-//! - `axes/` — the axis fragments the wizard composes.
-//! - `tests.rs` — unit tests of this file.
-//! - `compose_tests.rs`, `preset_tests.rs` — unit tests of `compose.rs` and `preset.rs`.
+//! - `compose.rs`: folds the wizard's axis fragments into one config body.
+//! - `preset.rs`: the named starter shapes.
+//! - `wizard/`: the questionnaire over the configuration axes.
+//! - `presets/`: the built-in preset directories, one folder each.
+//! - `axes/`: the axis fragments the wizard composes.
+//! - `tests.rs`: unit tests of this file.
+//! - `compose_tests.rs`, `preset_tests.rs`: unit tests of `compose.rs` and
+//!   `preset.rs`.
 
 pub(crate) mod compose;
 pub(crate) mod preset;
@@ -33,9 +36,9 @@ use self::preset::Preset;
 use self::wizard::{Estimate, Headers, Organization, Priority, Recurrence, Required, Workflow};
 use crate::diag::{Diag, Hint, Result};
 
-/// The `#:schema` directive controls, grouped so they travel together — the
-/// two are one decision, and splitting them across the parent's flag list
-/// makes it read like four unrelated toggles.
+/// The `#:schema` directive controls, grouped so they travel together. The two
+/// are one decision, and splitting them across the parent's flag list makes it
+/// read like four unrelated toggles.
 #[derive(Debug, clap::Args)]
 pub struct SchemaArgs {
     /// Where the config's `#:schema` line points.
@@ -87,7 +90,7 @@ pub struct InitArgs {
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub workflow: Option<Workflow>,
 
-    /// Answer the priority question up front: how tasks are ranked.
+    /// Answer the priority question up front: how the config ranks tasks.
     #[arg(long, value_enum, conflicts_with = "preset")]
     pub priority: Option<Priority>,
 
@@ -117,11 +120,12 @@ pub struct InitArgs {
     pub schema: SchemaArgs,
 }
 
-/// Run the `init` command — scaffold `.mindtape/config.toml` in the current directory.
+/// Run the `init` command: scaffold `.mindtape/config.toml` in the current
+/// directory.
 ///
 /// # Errors
-/// Returns an error if the preset cannot be resolved or the config cannot be
-/// written.
+/// Returns an error when the preset does not resolve or the config write
+/// fails.
 pub fn run(args: &InitArgs) -> Result<()> {
     if args.list_presets {
         print_preset_list();
@@ -172,7 +176,7 @@ fn wizard_flags(args: &InitArgs) -> wizard::Flags {
     }
 }
 
-/// Resolve, render, and write a named preset — the shared path for `--preset X`
+/// Resolve, render, and write a named preset: the shared path for `--preset X`
 /// and for the non-interactive default fall-through. `explicit` suppresses the
 /// "other presets" hint that only helps someone who did not pick one.
 fn write_preset(name: &str, args: &InitArgs, explicit: bool) -> Result<()> {
@@ -192,10 +196,10 @@ fn write_preset(name: &str, args: &InitArgs, explicit: bool) -> Result<()> {
 /// Render a preset's config body for writing.
 ///
 /// An ordinary preset renders as before: annotated verbatim, or comment-stripped.
-/// A preset carrying a top-level `[overlay]` is composed instead — its base and
-/// overlay run through [`crate::cmd::init::compose::compose`], which deep-merges the
-/// overlay last and flattens the result to one file the loader can read (no
-/// literal `[overlay]` survives). That composed form is already comment-free, so
+/// A preset carrying a top-level `[overlay]` goes through
+/// [`crate::cmd::init::compose::compose`] instead. That deep-merges the overlay
+/// last and flattens the result to one file the loader can read, so no literal
+/// `[overlay]` survives. The composed form is already comment-free, so
 /// `--annotate` has nothing left to keep.
 fn render_preset(preset: &Preset, annotate: bool) -> Result<String> {
     match preset::split_overlay(&preset.config)? {
@@ -258,15 +262,15 @@ fn print_preset_list() {
 /// Prepend the `#:schema` comment directive to the scaffold, unless
 /// `--no-schema`.
 ///
-/// Defaults to the published [`mindtape::SCHEMA_URL`]. `.mindtape/config.toml` is a
-/// checked-in file, and the previous default — a `file://` URL into the running
-/// user's XDG dir — was meaningless to anyone who cloned the repo, so every
-/// scaffold started life needing a hand edit. An editor fetches and caches the
-/// URL, so this needs no local install either.
+/// Defaults to the published [`mindtape::SCHEMA_URL`]. `.mindtape/config.toml`
+/// is a checked-in file, and the previous default was a `file://` URL into the
+/// running user's XDG dir. That was meaningless to anyone who cloned the repo,
+/// so every scaffold started life needing a hand edit. An editor fetches and
+/// caches the URL, so this works without a local install either.
 ///
 /// `--schema local` opts back into the XDG path for offline use or a project
-/// that is never shared; that file may not exist yet, so a hint nudges the user
-/// to run `mt install`.
+/// that is never shared. That file may not exist yet. A hint then nudges the
+/// user to run `mt install`.
 fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
     if args.no_schema {
         return Ok(template.to_owned());
@@ -291,10 +295,10 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
 /// Write every `@local/mindtape` package this binary embeds.
 ///
 /// A package dir that is a symlink, such as one a developer points at a
-/// checkout's `lib/`, stays as it is unless `force`: written through, it would
+/// checkout's `lib/`, stays as it is unless `force`. Written through, it would
 /// rewrite that checkout with this binary's prelude. `force` replaces the link
-/// with a plain copy and leaves its target alone. Each version decides on its
-/// own link.
+/// with a plain copy and leaves its target alone. Each version handles its own
+/// link.
 pub(crate) fn install_lib(force: bool) -> Result<()> {
     for snapshot in mindtape::PRELUDE_SNAPSHOTS {
         install_prelude(snapshot, force)?;
@@ -337,7 +341,7 @@ fn install_prelude(snapshot: &mindtape::PreludeSnapshot, force: bool) -> Result<
 
 /// Remove the symlink at `link` without touching what it points to. Windows
 /// keeps a link to a directory as a directory entry, which `remove_dir`
-/// removes; Unix removes any link with `remove_file`.
+/// removes. Unix removes any link with `remove_file`.
 fn remove_link(link: &Path) -> Result<()> {
     std::fs::remove_file(link)
         .or_else(|_| std::fs::remove_dir(link))
@@ -359,9 +363,9 @@ fn package_dir_for(version: &str) -> Result<PathBuf> {
     Ok(path)
 }
 
-/// Write the scaffold. Without `--force` an existing config is refused and
-/// left alone, so the caller writes no templates either: a half-applied preset
-/// is worse than none.
+/// Write the scaffold. Without `--force` the function refuses an existing config
+/// and leaves it alone. The caller then skips the templates too, since a
+/// half-applied preset is worse than none.
 pub(crate) fn scaffold_config(root: &Path, force: bool, template: &str) -> Result<()> {
     let dir = root.join(".mindtape");
     let config = dir.join("config.toml");
@@ -385,8 +389,8 @@ pub(crate) fn write_announced(dir: &Path, path: &Path, content: &str) -> Result<
 
 /// Drop the preset's `mt add` templates into `.mindtape/templates`.
 ///
-/// A preset that constrains what a task must contain ships the template that
-/// produces it; without this the scaffolded project's first `mt add` would
+/// A preset that constrains what a task must contain carries the template that
+/// produces it. Without this the scaffolded project's first `mt add` would
 /// write a task its own config rejects.
 pub(crate) fn write_templates(root: &Path, preset: &Preset) -> Result<()> {
     if preset.templates.is_empty() {

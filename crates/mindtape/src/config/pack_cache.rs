@@ -4,11 +4,11 @@
 //! The tree came from the network, so [`resolve_cached`] hashes it with
 //! [`crate::config::pack_sources::hash`] and refuses it unless it hashes to
 //! the lock's `sha256`, before it reads a file of it. [`VerifiedTrees`]
-//! keeps each tree that passed, so a load hashes a source once however many
-//! of its packs it extends. The hash refuses a
-//! symlink, so a tree that passes holds plain files and directories only. The
-//! pack part of the entry takes a plain name, so `<pack>.toml` and
-//! `<pack>/pack.toml` both stay inside the tree.
+//! keeps each tree that passed. A load then hashes a source once however many
+//! of its packs it extends. The hash refuses a symlink, so a tree that passes
+//! holds plain files and directories only. The pack part of the entry takes a
+//! plain name, so `<pack>.toml` and `<pack>/pack.toml` both stay inside the
+//! tree.
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -36,9 +36,10 @@ pub(super) struct VerifiedTrees(RefCell<BTreeMap<String, PathBuf>>);
 ///
 /// # Errors
 /// Returns [`ConfigError::Invalid`] when `pack` is no plain name, the source
-/// isn't in the cache, its tree doesn't hash to the lock's `sha256`, the tree
-/// holds no such pack or holds it both as a file and as a directory, or the
-/// pack fails to parse or declares a key a pack may not.
+/// isn't in the cache, or its tree doesn't hash to the lock's `sha256`. It also
+/// fails when the tree lacks that pack, or holds it both as a file and as a
+/// directory. A pack that fails to parse, or that declares a key a pack may
+/// not, fails too.
 pub(super) fn resolve_cached(
     entry: &str,
     source: &str,
@@ -114,7 +115,7 @@ fn hash_tree(source: &str, scope: &PackScope<'_>) -> Result<PathBuf, ConfigError
     }
 }
 
-/// `entry` names no pack of the tree at `tree`: list the ones it holds.
+/// `entry` references no pack of the tree at `tree`: list the ones it holds.
 fn unknown_cached_pack(entry: &str, source: &str, tree: &Path) -> ConfigError {
     let names: Vec<String> = tree_packs(tree)
         .into_iter()

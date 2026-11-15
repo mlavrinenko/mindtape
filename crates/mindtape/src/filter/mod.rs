@@ -1,26 +1,26 @@
 //! The filter-expression query language, evaluated over live tasks.
 //!
-//! `evalexpr` is used only as a parser: its syntax tree is walked and evaluated against
-//! each [`Task`] in memory (never against a database).
+//! `evalexpr` is only a parser: the walk reads its syntax tree and evaluates it
+//! against each [`Task`] in memory, never against a database.
 //!
 //! # Syntax
 //!
-//! Comparable fields: every [`crate::model::fields::FIELDS`] entry, including the
-//! dotted properties of a nested value (`status.name`, `status.date`,
-//! `status.note`, `status.index`), plus `role` (a virtual, comparison-only
-//! field with no `Task` field behind it: the literal resolves against the
-//! assignee's declared roles from the `[[actors]]` registry at read time, so
-//! `role == "reviewer"` matches a task whose assignee holds that role; any
-//! other comparison follows the missing-field rule, making
-//! `role != "reviewer"` its exact complement). `priority` and `difficulty` are
-//! numeric, so they compare numerically against a number literal (e.g.
-//! `priority >= 7`). The `estimate` dict itself supports presence only
-//! (`has(estimate)` / `miss(estimate)`); one unit of it reads as a number,
+//! Comparable fields: every [`crate::model::fields::FIELDS`] entry, including
+//! the dotted properties of a nested value (`status.name`, `status.date`,
+//! `status.note`, `status.index`), plus `role`. `role` is a virtual,
+//! comparison-only field with no `Task` field behind it: the literal resolves
+//! against the assignee's declared roles from the `[[actors]]` registry at read
+//! time. So `role == "reviewer"` matches a task whose assignee holds that role,
+//! and any other comparison follows the missing-field rule, which makes
+//! `role != "reviewer"` its exact complement. `priority` and `difficulty` are
+//! numeric, so they compare numerically against a number literal, such as
+//! `priority >= 7`. The `estimate` dict itself supports presence only
+//! (`has(estimate)` / `miss(estimate)`). One unit of it reads as a number,
 //! `estimate.<unit>` (see [`crate::filter::predicates::estimate_unit`]). An
-//! `x-<ns>` extension slot reads whether or not `[tasks.fields]` declares it
-//! (see [`crate::filter::predicates::extra_value`]): a scalar compares like a
+//! `x-<ns>` extension slot reads even when `[tasks.fields]` doesn't declare it
+//! (see [`crate::filter::predicates::extra_value`]). A scalar compares like a
 //! core field, a list equals and orders against nothing, and a dict supports
-//! presence only. The same vocabulary backs `--sort` — see
+//! presence only. The same vocabulary backs `--sort`, see
 //! [`crate::sort::is_sort_field`], `estimate.<unit>` aside.
 //!
 //! Names follow Typst's identifier rule: a `-` between name characters is part
@@ -30,30 +30,31 @@
 //!
 //! Functions: `has(field)`, `miss(field)`, `has(field, value)` (a list holds
 //! the element, a scalar equals it, a dict has the key), `has_tag("name")`,
-//! `contains("substr")` / `contains("substr", field, ...)` — case-insensitive
-//! substring, needle first; fields optional, defaulting to `title`, `id`,
-//! `body` (an explicit field draws from
+//! `contains("substr")`, `contains("substr", field, ...)`. The substring match
+//! is case-insensitive and takes the needle first. Fields are optional and
+//! default to `title`, `id`, `body` (an explicit field draws from
 //! [`crate::model::fields::is_contains_field`]). `stale(N)`,
-//! `links("kind")` (does the task carry a `links:` edge of that kind — built-in
+//! `links("kind")` (does the task carry a `links:` edge of that kind, built-in
 //! or a project's custom `[[tasks.links.kinds]]`), `in_view("name")` (also
 //! written `@name`, which desugars to it): matches when the named view's
 //! filter matches.
 //!
 //! Three functions read a string rather than compare one, and may take the
-//! result of another call as an argument (see [`crate::filter::strings`]):
-//! `word(field, n)` (the n-th whitespace-separated word, counting from 1,
-//! punctuation-trimmed), `matches(field, "regex")`, and `in_dict("name", <string
-//! expr>)` — membership in a `[dicts.<name>]` set or a built-in one, under that
-//! dictionary's `case`. Canonically: `in_dict("verbs", word(title, 1))`.
-//! `old("field")` also gives text there, so `matches(old("title"), "^Add")`
-//! reads the draft before the hook's actions ran.
+//! result of another call as an argument (see [`crate::filter::strings`]).
+//! `word(field, n)` gives the n-th whitespace-separated word, counting from 1,
+//! punctuation-trimmed. `matches(field, "regex")` tests a regex.
+//! `in_dict("name", <string expr>)` tests membership in a `[dicts.<name>]` set
+//! or a built-in one, under that dictionary's `case`. Canonically:
+//! `in_dict("verbs", word(title, 1))`. `old("field")` also gives text there, so
+//! `matches(old("title"), "^Add")` reads the draft before the hook's actions
+//! ran.
 //!
 //! `changed("<states>", "<glob>"…)` counts the distinct paths git reports
 //! changed in `staged`, `worktree`, or both joined with `+`, narrowed by
 //! include globs and `!`-prefixed exclude globs (see [`crate::git::state`]).
-//! It is a count, so it only appears in a comparison — against a literal or a
+//! It is a count, so it only appears in a comparison, against a literal or a
 //! field: `changed("staged", "src/**") <= estimate.files`. Either side of a
-//! comparison may name a field when the other is a field or a count.
+//! comparison can reference a field when the other is a field or a count.
 //!
 //! `touches("<path>")` matches a task named by the `[commits] trailer` of a
 //! commit that changed the repository-relative path (see [`crate::commit::refs`]).
@@ -67,9 +68,9 @@
 //!
 //! Dependency-aware predicates `ready` and `blocked` answer "what can start
 //! " over the whole loaded set (see [`Readiness`]). They take no argument and
-//! may be written bare (`ready`) or as a call (`ready()`). The `terminal`
-//! predicate (likewise bare or `terminal()`) matches a task whose status is
-//! flagged terminal in config.
+//! accept a bare spelling (`ready`) or a call (`ready()`). The `terminal`
+//! predicate (bare or `terminal()`) matches a task whose status carries the
+//! terminal flag in config.
 
 //!
 //! # Files
@@ -140,16 +141,16 @@ pub(crate) struct Eval<'a> {
 }
 
 /// A parsed filter expression, or the match-all filter for an empty or
-/// whitespace-only expression, e.g. `mt ls ''`.
+/// whitespace-only expression, such as `mt ls ''`.
 #[derive(Debug, Clone)]
 pub struct Filter {
     tree: Option<Node<DefaultNumericTypes>>,
 }
 
 impl Filter {
-    /// Parse a filter expression. `@name` view sugar is desugared to
-    /// `in_view("name")` first; an empty or whitespace-only expression is the
-    /// match-all filter.
+    /// Parse a filter expression. The parser desugars `@name` view sugar to
+    /// `in_view("name")` first. An empty or whitespace-only expression gives
+    /// the match-all filter.
     ///
     /// # Errors
     /// Returns [`FilterError::Parse`] on a syntax error.
@@ -167,8 +168,8 @@ impl Filter {
     /// Whether `word` names a filter term on its own: a predicate or function
     /// of the language, a task field, or a view, dictionary, field or status
     /// the config declares. A caller that reads a bare token as either a task
-    /// reference or a filter asks this first, so a term never addresses a task
-    /// whose stem hash happens to spell it.
+    /// reference or a filter checks this first. That way a term never
+    /// addresses a task whose stem hash happens to spell it.
     #[must_use]
     pub fn names_term(word: &str, config: &Config) -> bool {
         eval::is_word(word)
@@ -196,15 +197,16 @@ impl Filter {
             .map_or(Ok(()), |tree| compare::check_statuses(tree, legend))
     }
 
-    /// The view names this filter references through `in_view` / `@`, in
-    /// traversal order (may contain duplicates). Empty for the match-all filter.
+    /// The names of the views this filter references through `in_view` / `@`,
+    /// in traversal order (may contain duplicates). Empty for the match-all
+    /// filter.
     #[must_use]
     pub fn view_refs(&self) -> Vec<String> {
         self.collect_with(collect_view_refs)
     }
 
-    /// Every bare name the filter reads — a field, or a predicate written bare
-    /// such as `ready` — as written. Empty for the match-all filter.
+    /// Every bare name the filter reads (a field, or a predicate written bare
+    /// such as `ready`), as written. Empty for the match-all filter.
     #[must_use]
     pub fn names(&self) -> std::collections::BTreeSet<String> {
         self.tree
@@ -226,8 +228,8 @@ impl Filter {
     }
 
     /// Every tag the filter reads through `has_tag("name")` or
-    /// `has(tags, "name")`, however either call is spaced, in sorted order.
-    /// Empty for the match-all filter.
+    /// `has(tags, "name")`, whatever the spacing of either call, in sorted
+    /// order. Empty for the match-all filter.
     #[must_use]
     pub fn tag_reads(&self) -> BTreeSet<String> {
         self.collect_with(collect_tag_reads)
@@ -304,7 +306,7 @@ impl Filter {
 
     /// Whether `task` satisfies the filter, resolving framework scores against
     /// `config`. The `ready` / `blocked` predicates are unavailable here (no
-    /// task-set context); use [`matches_with`](Self::matches_with) for those.
+    /// task-set context). Use [`matches_with`](Self::matches_with) for those.
     ///
     /// # Errors
     /// Returns [`FilterError`] on an unknown field or unsupported operator.
@@ -313,8 +315,8 @@ impl Filter {
     }
 
     /// Whether `task` satisfies the filter, with `readiness` answering the
-    /// `ready` / `blocked` predicates. `readiness` must be computed over the full
-    /// loaded set (see [`Readiness::compute`]).
+    /// `ready` / `blocked` predicates. `readiness` must cover the full loaded
+    /// set (see [`Readiness::compute`]).
     ///
     /// # Errors
     /// Returns [`FilterError`] on an unknown field or unsupported operator.
@@ -329,7 +331,7 @@ impl Filter {
 
     /// Whether `task` satisfies the filter, with `old` answering the `old()`
     /// predicate: the task before an `[[on.add]]` hook's actions ran. Only an
-    /// add hook has such a draft, so every other caller uses
+    /// add hook has such a draft. Every other caller uses
     /// [`Self::matches_with`].
     ///
     /// # Errors
@@ -358,7 +360,7 @@ impl Filter {
         strings::dict_miss(self.tree.as_ref()?, task, config)
     }
 
-    /// Evaluate against `task`; `dry` checks every `changed()` call's
+    /// Evaluate against `task`. `dry` checks every `changed()` call's
     /// arguments without reading git (see [`expr_problem`]).
     fn eval(
         &self,
@@ -403,7 +405,7 @@ pub(crate) fn names_in(source: &str, config: &Config) -> BTreeSet<String> {
     set::reads_in(source, config, Filter::names)
 }
 
-/// The names a filter takes from the whole task set; split out to keep this
+/// The names a filter takes from the whole task set, split out to keep this
 /// file under its line budget. See [`Filter::reads_set`].
 mod set;
 use set::SET_FIELDS;
@@ -438,7 +440,7 @@ fn push_tag(tag: &Node<DefaultNumericTypes>, tags: &mut BTreeSet<String>) {
     }
 }
 
-/// The tree walk; split out to keep this file under its line budget. See
+/// The tree walk, split out to keep this file under its line budget. See
 /// [`eval_bool`].
 mod eval;
 pub(crate) use eval::eval_bool;
@@ -450,7 +452,7 @@ pub const fn functions() -> &'static [FilterFunction] {
     &eval::FUNCTIONS
 }
 
-/// Whether `name` calls a function whose answer depends on the whole task set.
+/// Whether `name` calls a function whose answer depends on the entire task set.
 #[must_use]
 pub(crate) fn is_set_function(name: &str) -> bool {
     set::is_set_function(name)

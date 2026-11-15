@@ -1,27 +1,30 @@
 //! Fold the `mt init` wizard's axis fragments into one config body.
 //!
-//! Each configuration axis the wizard walks answers with one TOML fragment
-//! ([`crate::cmd::init::wizard`]); this module is the single place those fragments
-//! become one `.mindtape/config.toml`. Keeping the merge in one function is
-//! deliberate: presets reach the same [`compose`] when they carry an `[overlay]`
-//! ([`crate::cmd::init::run`]'s `--preset` path), so composition never forks.
+//! Each configuration axis the wizard walks produces one TOML fragment
+//! ([`crate::cmd::init::wizard`]). This module is the single place those
+//! fragments become one `.mindtape/config.toml`. Keeping the merge in one
+//! function is deliberate. Presets reach the same [`compose`] when they carry an
+//! `[overlay]` ([`crate::cmd::init::run`]'s `--preset` path), so composition
+//! never forks.
 //!
 //! Two rules make the fold safe. A fragment named `"overlay"` is the escape
-//! hatch: it is deep-merged over the composed base last, so whatever the axes
-//! cannot express (custom link kinds, named views, body-header rules) still wins.
-//! And when two ordinary fragments both bind the same array-valued section — a
-//! status legend, priority bands, difficulty anchors, roots — the fold hard-errors
-//! naming both, because an array replaces wholesale and one would silently win.
-//! The one array exempt from that rule is the top-level `extends`: each
-//! fragment may adopt packs, and the fold joins their entries into one array.
+//! hatch. The fold deep-merges it over the composed base last, so whatever the
+//! axes cannot express (custom link kinds, named views, body-header rules) still
+//! wins. And when two ordinary fragments both bind the same array-valued
+//! section, such as a status legend, priority bands, difficulty anchors or
+//! roots, the fold hard-errors. The error reports both fragment names. An array
+//! replaces wholesale, so one would silently win. The one array exempt from that
+//! rule is the top-level `extends`: each fragment may adopt packs, and the fold
+//! joins their entries into one array.
 
 use crate::diag::Result;
 
 use crate::diag::{Diag, Hint, Note};
 
-/// The reserved fragment name: its body is deep-merged over the composed base
-/// last, and it alone is exempt from the array-conflict rule. The `--preset`
-/// path in [`crate::cmd::init`] labels a preset's extracted overlay with it.
+/// The reserved fragment name. The fold deep-merges its body over the composed
+/// base last, and it alone is exempt from the array-conflict rule. The
+/// `--preset` path in [`crate::cmd::init`] labels a preset's extracted overlay
+/// with it.
 pub(crate) const OVERLAY_AXIS: &str = "overlay";
 
 /// The top-level key a fragment adopts packs under. [`compose`] folds every
@@ -31,29 +34,30 @@ const EXTENDS: &str = "extends";
 /// Fold ordered fragments into one flattened config body.
 ///
 /// Each fragment is a self-contained, readable TOML snippet that owns disjoint
-/// sections: it uses only sub-table (`[tasks.priority]`) and array-of-table
-/// (`[[tasks.status]]`) headers — never a bare `[tasks]` — so no two fragments
+/// sections. It uses only sub-table (`[tasks.priority]`) and array-of-table
+/// (`[[tasks.status]]`) headers, never a bare `[tasks]`, so no two fragments
 /// re-open the same table. The ordinary (non-overlay) fragments concatenate in
-/// order, preserving each one's comments and layout, then re-parse as one TOML
-/// document so a table two fragments both define surfaces here rather than at the
-/// config loader.
+/// order, preserving each one's comments and layout. The result re-parses as one
+/// TOML document. A table two fragments both define then surfaces here rather
+/// than at the config loader.
 ///
 /// A fragment's top-level `extends` leaves its place: the entries of every
 /// fragment fold, in order and each once, into one `extends` array after the
 /// comment block that opens the body. Left in place, a later fragment's
 /// `extends` would land in the table an earlier one opened.
 ///
-/// A fragment named `"overlay"` (see [`OVERLAY_AXIS`]) is not concatenated: its
-/// body is deep-merged over the composed base after every other fragment, so it
-/// beats them all, and the flattened result carries no literal `[overlay]`. When
-/// an overlay is present the output is re-serialised from the merged document (so
-/// comments do not survive the merge); with no overlay it is the annotated
-/// concatenation unchanged.
+/// A fragment named `"overlay"` (see [`OVERLAY_AXIS`]) is not concatenated. The
+/// fold deep-merges its body over the composed base after every other fragment,
+/// so it beats them all, and the flattened result carries no literal `[overlay]`.
+/// When an overlay is present the output is re-serialized from the merged
+/// document, so comments do not survive the merge. With no overlay it is the
+/// annotated concatenation unchanged.
 ///
 /// # Errors
 /// Returns an error when two ordinary fragments declare the same array-typed
-/// section, when the concatenation is not one valid TOML document (two fragments
-/// defined the same table), or when the overlay is not valid TOML.
+/// section, or when the overlay is not valid TOML. It also fails when the
+/// concatenation is not one valid TOML document, which happens when two
+/// fragments define the same table.
 pub fn compose(fragments: &[(&str, String)]) -> Result<String> {
     reject_array_conflicts(fragments)?;
     let (base, entries) = concat_base(fragments);
@@ -151,8 +155,8 @@ fn fold_extends(base: &str, entries: &[toml::Value]) -> String {
 }
 
 /// The byte offset just past the comment block that opens `text`, when a blank
-/// line or the end closes it; else 0, since a comment right above a key
-/// describes that key.
+/// line or the end closes it. Returns 0 otherwise, since a comment right above a
+/// key describes that key.
 fn leading_comment_end(text: &str) -> usize {
     let mut end = 0;
     for line in text.split_inclusive('\n') {
@@ -168,12 +172,13 @@ fn leading_comment_end(text: &str) -> usize {
 /// Refuse two ordinary fragments that each bind the same array-valued section.
 ///
 /// Arrays replace wholesale under the overlay merge and append blindly under
-/// plain concatenation, so neither expresses "two legends, one project" — the
-/// only honest answer is to name the collision. The overlay is exempt: it exists
-/// to override. The message names both fragments, the section, and the way out.
+/// plain concatenation, so neither expresses "two legends, one project". The
+/// fold reports the collision instead. The overlay is exempt: it exists to
+/// override. The message carries both fragments, the section, and the way out.
 ///
 /// # Errors
-/// Returns an error naming the two fragments and the array section they share.
+/// Returns an error that reports the two fragments and the array section they
+/// share.
 fn reject_array_conflicts(fragments: &[(&str, String)]) -> Result<()> {
     let mut owner: std::collections::BTreeMap<String, &str> = std::collections::BTreeMap::new();
     for (axis, text) in fragments {
@@ -206,9 +211,9 @@ fn reject_array_conflicts(fragments: &[(&str, String)]) -> Result<()> {
     Ok(())
 }
 
-/// Record every dotted path in `table` that binds an array, recursing through
-/// sub-tables but never descending into an array's own elements (a `to =` list
-/// inside one status entry is not a section of its own).
+/// Record every dotted path in `table` that binds an array. The walk recurses
+/// through sub-tables but never descends into an array's own elements, since a
+/// `to =` list inside one status entry is not a section of its own.
 fn collect_array_paths(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
     for (key, value) in table {
         let path = if prefix.is_empty() {
@@ -224,8 +229,8 @@ fn collect_array_paths(table: &toml::Table, prefix: &str, out: &mut Vec<String>)
     }
 }
 
-/// Overlay `top` onto `base`: two tables at the same key merge recursively;
-/// anything else (a scalar, an array, or a table meeting a non-table) replaces
+/// Overlay `top` onto `base`: two tables at the same key merge recursively.
+/// Anything else (a scalar, an array, or a table meeting a non-table) replaces
 /// what the base held. This is the overlay-beats-base rule applied once, kept
 /// CLI-side rather than reaching into mindtape's private merge.
 fn merge_overlay(base: &mut toml::Table, top: toml::Table) {

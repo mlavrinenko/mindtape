@@ -46,9 +46,9 @@ pub struct CountEstimate {
     pub queries: Vec<Query>,
     /// How many files each query matched, in the order of
     /// [`queries`](Self::queries), set by [`annotate`]. Their sum can pass
-    /// the resolved count, since a file several queries match counts once.
+    /// the resolved count, since a file that many queries match counts once.
     pub matches: Vec<usize>,
-    /// Why the unit didn't resolve, set by [`annotate`]; `None` once it did.
+    /// Why the unit didn't resolve, set by [`annotate`]. `None` once it did.
     pub problem: Option<String>,
 }
 

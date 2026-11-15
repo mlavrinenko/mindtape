@@ -1,22 +1,22 @@
 //! One module per `mt` command: the `Args` struct, its `run` function and the
 //! helpers only that command uses. `cli/` wires each `Args` into the `Command`
-//! enum, and `render/` holds the output code several commands share.
+//! enum, and `render/` holds the output code that more than one command shares.
 //!
 //! A command that outgrows one file becomes a folder with a `mod.rs`.
 //!
 //! # Files
 //!
-//! - `add/`, `check/`, `flip/`, `init/` — `mt add`, `mt check`, `mt flip` (with
+//! - `add/`, `check/`, `flip/`, `init/`: `mt add`, `mt check`, `mt flip` (with
 //!   the status shortcut verbs) and `mt init` (with its wizard, presets, axes).
-//! - `explain/` — `mt explain` and its four listings, one file each.
+//! - `explain/`: `mt explain` and its four listings, one file each.
 //! - `graph/`, `import/`, `install/`, `link/`, `ls/`, `packs/`, `recur/`,
-//!   `rm/` — the commands split over helper files, or with subcommands of
+//!   `rm/`: the commands split over helper files, or with subcommands of
 //!   their own.
-//! - `fix/` — `mt fix`, which rewrites an unsupported prelude import.
+//! - `fix/`: `mt fix`, which rewrites an unsupported prelude import.
 //! - `allow.rs`, `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`,
-//!   `preset.rs`, `review.rs`, `schema.rs`, `set.rs`, `at.rs`, `board.rs` —
+//!   `preset.rs`, `review.rs`, `schema.rs`, `set.rs`, `at.rs`, `board.rs`:
 //!   one file each.
-//! - `write_guard.rs` — the destination guard `mt add`, `mt import` and
+//! - `write_guard.rs`: the destination guard `mt add`, `mt import` and
 //!   `mt recur` share before they create a file.
 
 pub(crate) mod add;

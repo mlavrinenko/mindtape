@@ -30,7 +30,7 @@ const GAMMA: &str = mindtape::typst_task!(
 const CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
-/// Wrapper so `LinkArgs` can be parsed on its own, without the whole `Cli`.
+/// Wrapper so `LinkArgs` parses on its own, without the whole `Cli`.
 #[derive(Parser)]
 #[command(name = "link", no_binary_name = true)]
 struct Harness {
@@ -84,8 +84,8 @@ fn several_targets_land_in_one_call() {
     );
 }
 
-/// The property the whole command is built around: an adjacency map is safe to
-/// re-apply as it grows, so a second run over the same input writes nothing.
+/// An adjacency map is safe to re-apply as it grows, and the whole command rests
+/// on that. A second run over the same input doesn't write anything.
 #[test]
 fn a_second_identical_run_writes_nothing() {
     let (dir, project) = setup();
@@ -179,8 +179,8 @@ fn apply_reads_an_adjacency_map_from_a_file() {
     );
 }
 
-/// The rm-style contract: one bad entry is reported and the run exits
-/// non-zero, but every other entry still lands.
+/// The run reports one bad entry and exits non-zero, but every other entry still
+/// lands. That is the rm-style contract.
 #[test]
 fn a_failing_entry_does_not_hold_back_the_rest() {
     let (dir, project) = setup();
@@ -247,7 +247,7 @@ fn an_empty_map_is_not_an_error() {
     run_with(&project, &parse(&["--apply", map.to_str().unwrap()])).unwrap();
 }
 
-/// A `--replace` that drops edges says so; a change that drops none does not.
+/// A `--replace` that drops edges says so. A change that drops none does not.
 /// Inverting the `removed == 0` test would move the "(dropping N)" note to
 /// exactly the runs with nothing to drop.
 #[test]
@@ -273,7 +273,7 @@ fn change_summary_names_dropped_edges_only_when_some_drop() {
 
 const WRITTEN_CHILD: &str = "_MT_LINK_WRITTEN_CHILD";
 
-/// Each landed task is reported as `linked <stem>: ...`. Replacing the report
+/// The run reports each landed task as `linked <stem>: ...`. Replacing the report
 /// with `()` would write the file silently.
 #[test]
 fn run_with_reports_each_written_task() {
@@ -288,8 +288,8 @@ fn run_with_reports_each_written_task() {
     run_with(&project, &parse(&["alpha", "depends-on", "beta"])).unwrap();
 }
 
-/// Once a batch lands, the post-write pass reloads the config from disk; a
-/// reload that fails is surfaced rather than swallowed. Inverting the
+/// Once a batch lands, the post-write pass reloads the config from disk. A
+/// reload that fails surfaces rather than getting swallowed. Inverting the
 /// emptiness guard would skip that pass for exactly the runs that wrote
 /// something.
 #[test]
@@ -305,9 +305,9 @@ fn a_landed_batch_runs_the_post_write_reload() {
     );
 }
 
-/// A written edge is checked against the whole project after the batch lands,
-/// so a rule only the reloaded set can see — a `depends-on` cycle — is still
-/// reported rather than left for the next `mt check`.
+/// The post-write pass checks a written edge against the whole project. A rule
+/// only the reloaded set can see (a `depends-on` cycle) then still gets reported
+/// rather than left for the next `mt check`.
 #[test]
 fn a_cycle_created_by_the_batch_is_reported() {
     let (dir, project) = setup();
@@ -322,7 +322,7 @@ fn a_cycle_created_by_the_batch_is_reported() {
 }
 
 /// `mt link --help` lists the built-in kinds off the table `mt check` resolves
-/// them with, so a seventh kind shows up there without an edit.
+/// them with. A seventh kind then shows up there without an edit.
 #[test]
 fn the_kind_help_names_every_builtin() {
     let help = super::kind_help();

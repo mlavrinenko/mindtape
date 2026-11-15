@@ -14,9 +14,9 @@ use crate::support;
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 
 /// A weekly, spawn-materialized recurring task (`materialize` defaults to
-/// `spawn`), due today plus a week from whenever the fixture is written —
-/// callers overwrite `due:`/`recur:` inline when a test needs a specific
-/// stop-condition shape.
+/// `spawn`), due today plus a week from whenever the fixture lands. Callers
+/// overwrite `due:`/`recur:` inline when a test needs a specific stop-condition
+/// shape.
 const WEEKLY_SPAWN: &str = mindtape::typst_task!(
     "(\n  \
 title: \"Water plants\",\n  \
@@ -56,7 +56,7 @@ fn tasks_dir_entries(dir: &Path) -> Vec<String> {
     names
 }
 
-/// The `(stem, source)` of the task whose `recurred-from` edge names `stem` —
+/// The `(stem, source)` of the task whose `recurred-from` edge names `stem`,
 /// one hop forward along a spawn chain.
 fn successor_of(dir: &Path, stem: &str) -> Option<(String, String)> {
     let edge = format!(r#"recurred-from("{stem}.typ")"#);
@@ -75,7 +75,7 @@ fn due_of(source: &str) -> String {
 }
 
 /// A project whose Git work tree ignores `tasks/hidden/`, with `stem`'s task
-/// source at `tasks/hidden/<stem>.typ` force-tracked, so the loader sees it
+/// source at `tasks/hidden/<stem>.typ` force-tracked. The loader then sees it,
 /// while a new sibling there would be invisible.
 fn tracked_ignored(stem: &str, source: &str) -> tempfile::TempDir {
     let dir = scaffold(&[]);
@@ -101,9 +101,9 @@ fn hidden_entries(dir: &Path) -> Vec<String> {
     names
 }
 
-/// Mutating an existing tracked file under an ignore rule changes it in place;
-/// the task is visible because the loader lists tracked files whichever way the
-/// ignore rules read.
+/// Mutating an existing tracked file under an ignore rule changes it in place.
+/// The task stays visible because the loader lists tracked files whichever way
+/// the ignore rules read.
 #[test]
 fn mutate_allows_a_tracked_ignored_task() {
     let dir = tracked_ignored("standup", WEEKLY_MUTATE);
@@ -132,7 +132,7 @@ fn skip_allows_a_tracked_ignored_task() {
 }
 
 /// The predecessor may be visible as a tracked file, but the sibling a spawn
-/// would create is new and ignored, so the guard refuses before writing.
+/// would create is new and ignored. The guard then refuses before writing.
 #[test]
 fn spawn_refuses_a_new_sibling_in_an_ignored_directory() {
     let dir = tracked_ignored("water-plants", WEEKLY_SPAWN);
@@ -154,7 +154,7 @@ fn spawn_refuses_a_new_sibling_in_an_ignored_directory() {
     );
 }
 
-/// `--advance` plans a whole chain in memory; the guard checks every member
+/// `--advance` plans a whole chain in memory. The guard checks every member
 /// before the batch writes any of them.
 #[test]
 fn advance_refuses_a_chain_in_an_ignored_directory() {
@@ -172,8 +172,8 @@ fn advance_refuses_a_chain_in_an_ignored_directory() {
     );
 }
 
-/// A dry run previews what a real run would write, so it asks the same guard
-/// and creates nothing.
+/// A dry run previews what a real run would write. It asks the same guard, and
+/// the tree stays untouched.
 #[test]
 fn a_dry_run_still_guards_an_ignored_occurrence() {
     let dir = tracked_ignored("water-plants", WEEKLY_SPAWN);
@@ -264,7 +264,7 @@ fn mutate_refreshes_the_same_file_in_place() {
 
 /// Scaffold a weekly-spawn task with its `recur:` replaced by
 /// `recur_override`, run `mt recur`, and assert it refuses with a stderr
-/// message containing `expect` — writing nothing.
+/// message containing `expect`. The tree stays untouched.
 fn assert_recur_refused(recur_override: &str, expect: &str) {
     let body = WEEKLY_SPAWN.replace("recur: every(weeks: 1),", recur_override);
     let dir = scaffold(&[("water-plants.typ", &body)]);
@@ -322,7 +322,7 @@ fn done_notice_says_mutate_series_ends() {
     assert!(stdout.contains("ends the series"), "{stdout}");
 }
 
-/// Spawning from an occurrence that is itself a spawn — every hop of the
+/// Spawning from an occurrence that is itself a spawn, every hop of the
 /// ordinary loop after the first. The new occurrence's `recurred-from` names
 /// its immediate predecessor and nothing else: that kind allows one edge, so
 /// carrying the older hop forward as well wrote a file `mt check` refuses.
@@ -356,8 +356,8 @@ fn a_second_hop_names_only_its_immediate_predecessor() {
     support::check_ok(dir.path());
 }
 
-/// The defect this seam closes for `recur`: a spawn whose occurrence would not
-/// validate is refused before the write, so the tasks directory is exactly as
+/// The defect this seam closes for `recur`. A spawn whose occurrence would not
+/// validate never reaches the write. The tasks directory then stays exactly as
 /// it was. The fixture's `estimate` unit is outside the configured allow-list,
 /// which the predecessor is exempt from (terminal) and the fresh occurrence is
 /// not.
@@ -395,11 +395,11 @@ recur: every(weeks: 1),\n\
     );
 }
 
-/// `--advance N` for `N > 1` over a rule anchored on completion — the default
-/// anchor, and the one every hop but the first has to stop honouring. Both
-/// halves of the chain must stay distinct: the anchor re-resolves from today
-/// each hop, so the N dates differ, and the stem minter sees the earlier
-/// planned files, so the N filenames differ.
+/// `--advance N` for `N > 1` over a rule anchored on completion, the default
+/// anchor and the one every hop but the first has to stop honouring. Both halves
+/// of the chain must stay distinct. The anchor re-resolves from today each hop,
+/// which makes the N dates differ. The stem minter sees the earlier planned
+/// files, which makes the N filenames differ.
 #[test]
 fn advance_lays_out_a_chain_of_distinct_occurrences() {
     let body = WEEKLY_SPAWN.replace("recur: every(weeks: 1),", "recur: every(days: 1),");

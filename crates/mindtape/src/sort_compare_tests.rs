@@ -1,7 +1,7 @@
-//! Every per-field `--sort` arm routed through `sort_by_specs` — the
-//! `compare_field` dispatch exercised end to end. Shares `sort_tests.rs`'s
-//! `config()`/`task()` fixtures; the comparators' own unit tests live in
-//! `sort_compare_tests_comparators.rs`.
+//! Every per-field `--sort` arm routed through `sort_by_specs`, with the
+//! `compare_field` dispatch exercised end to end. The file shares
+//! `sort_tests.rs`'s `config()`/`task()` fixtures. The comparators' own unit
+//! tests live in `sort_compare_tests_comparators.rs`.
 #![allow(clippy::unwrap_used)]
 
 use super::sort_by_specs;
@@ -149,7 +149,7 @@ fn sort_by_specs_orders_by_difficulty_ascending() {
 // compare) flips the order.
 
 /// Bands whose labels sort opposite to their numeric order in both fields:
-/// `low`/`soft` = 1 and `high`/`hard` = 6 — each "bigger" label is
+/// `low`/`soft` = 1 and `high`/`hard` = 6, where each "bigger" label is
 /// lexicographically the *smaller* string.
 fn inverted_label_config() -> Config {
     parse_config(

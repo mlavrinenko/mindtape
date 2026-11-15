@@ -31,7 +31,7 @@ fn an_add_argument_drops_the_identity_and_derived_values() {
 }
 
 /// A `check` spec naming `function` in `check.typ` at the project root, with
-/// no `field` — the whole task.
+/// no `field`. The function then receives the whole task.
 fn spec(function: &str) -> CheckSpec {
     CheckSpec {
         typst: "check.typ".to_owned(),
@@ -51,7 +51,7 @@ fn field_spec(function: &str, field: &str) -> CheckSpec {
     }
 }
 
-/// A bare project with `check.typ` at its root holding `source` — the fixture
+/// A bare project with `check.typ` at its root holding `source`, the fixture
 /// every test here evaluates a rule against.
 fn project(source: &str) -> tempfile::TempDir {
     let dir = tempdir();
@@ -65,10 +65,10 @@ fn config() -> Config {
 }
 
 /// The Problem's own rule: `x-goals` reaches a Typst function instead of the
-/// filter language, which cannot name an `x-` field or a nested dict at all
-/// (`truth/tasks/2026-09/check-a-task-field-with-a-typst-function.typ`'s Problem
-/// section). A task carrying the goal verdicts the task file's example gives
-/// passes; the function only rejects a `neutral` verdict on a goal named
+/// filter language, which cannot reference an `x-` field or a nested dict at
+/// all (`truth/tasks/2026-09/check-a-task-field-with-a-typst-function.typ`'s
+/// Problem section). A task carrying the goal verdicts the task file's example
+/// gives passes. The function only rejects a `neutral` verdict on a goal named
 /// `readable-tasks`.
 const CHECK_GOALS: &str = "\
 #let check-goals(goals) = {
@@ -83,7 +83,7 @@ const CHECK_GOALS: &str = "\
 ";
 
 /// `x-goals: (product: (readable-tasks: <verdict>),)`, or a `product` table
-/// with no `readable-tasks` entry at all when `verdict` is `None` — the
+/// with no `readable-tasks` entry at all when `verdict` is `None`. That is the
 /// nested extras shape both `the_problem_config_...` and `a_pass_...` check
 /// against, differing only in that one entry.
 fn x_goals(verdict: Option<&str>) -> typst_harvest::HVal {
@@ -168,8 +168,8 @@ fn a_non_array_return_is_one_breach_naming_it() {
 }
 
 /// A nested date in an `x-<ns>` slot survives as an [`HVal::Date`] and reaches
-/// the function as a real Typst `datetime(...)` through `HVal::to_typst` — where it
-/// diverges from `hval_to_typ`'s quoted-string round-trip.
+/// the function as a real Typst `datetime(...)` through `HVal::to_typst`. There
+/// it diverges from `hval_to_typ`'s quoted-string round-trip.
 #[test]
 fn a_date_in_an_x_field_reaches_the_function_as_a_datetime() {
     let dir = project(
@@ -217,7 +217,7 @@ fn an_unparseable_date_in_an_x_field_falls_back_to_a_quoted_string() {
 }
 
 /// An array element that is not a string is its own literal repr, not an
-/// error — a function returning the wrong element type still names it.
+/// error. A function returning the wrong element type still names it.
 #[test]
 fn a_non_string_array_element_is_rendered_by_its_literal() {
     let dir = project("#let check-mixed(task) = (\"first\", 42)\n");

@@ -1,18 +1,18 @@
 //! `mt link`'s plan: resolve every entry, check every edge against the
 //! project's kind registry, and stage each rewrite in memory.
 //!
-//! Nothing is written here — the whole batch is computed first, `rm`-style, so
-//! `--dry-run` reports exactly what a real run would do rather than a
-//! separately-derived guess at it. A per-entry failure stays with that entry:
-//! the rest of the batch still lands, which is what makes a bulk `--apply`
-//! usable over a map the caller assembled from another tool.
+//! This stage keeps the whole batch in memory. It computes everything first,
+//! `rm`-style, so `--dry-run` reports exactly what a real run would do rather
+//! than a separately-derived guess at it. A per-entry failure stays with that
+//! entry, and the rest of the batch still lands. That is what makes a bulk
+//! `--apply` usable over a map the caller assembled from another tool.
 //!
-//! What is checked here rather than left to the post-write `mt check`: the
-//! kind, the note rule, and target resolution — the three that make a written
-//! file invalid rather than merely different. Refusing them before the write
-//! means a rejected edge leaves nothing on disk to repair, the same discipline
-//! `mt add`'s pre-write validation follows. A target resolves through
-//! [`Refs::target`], the reader every `<task>` argument shares.
+//! This stage checks the kind, the note rule, and target resolution rather than
+//! leaving them to the post-write `mt check`. Those three make a written file
+//! invalid rather than merely different. Refusing them before the write means a
+//! rejected edge leaves nothing on disk to repair, the same discipline `mt add`'s
+//! pre-write validation follows. A target resolves through [`Refs::target`], the
+//! reader every `<task>` argument shares.
 
 use std::path::{Path, PathBuf};
 
@@ -26,7 +26,7 @@ use crate::util::{Project, Refs};
 
 /// One task's staged rewrite, ready to write or to report.
 pub struct Staged {
-    /// The linking task's id, as it will be reported.
+    /// The linking task's id, as the report shows it.
     pub stem: String,
     /// Absolute path to its file.
     pub abs: PathBuf,
@@ -45,18 +45,18 @@ pub struct Staged {
 pub struct Plan {
     /// Files to rewrite.
     pub staged: Vec<Staged>,
-    /// Entries whose task already says exactly this — reported, not written.
+    /// Entries whose task already says exactly this: reported, not written.
     pub unchanged: Vec<String>,
     /// Per-entry failures, each naming the entry it belongs to.
     pub problems: Vec<Diag>,
     /// How many entries failed, which can be fewer than `problems` when one
-    /// entry has several.
+    /// entry has more than one.
     pub failed: usize,
 }
 
 /// Stage every entry against `project`. Never fails as a whole: an entry that
-/// cannot be resolved, checked or rewritten becomes a [`Plan::problems`] line
-/// and the rest are staged regardless.
+/// fails to resolve, check or rewrite becomes a [`Plan::problems`] line, and the
+/// rest still stage.
 #[must_use]
 pub fn build(project: &Project, entries: &[Entry], mode: Mode) -> Plan {
     let mut plan = Plan::default();
@@ -107,7 +107,7 @@ fn stage(project: &Project, refs: &Refs<'_>, entry: &Entry, mode: Mode, plan: &m
     }
 }
 
-/// One file's computed rewrite: the new source and what changed in it.
+/// Holds one file's computed rewrite: the new source and what changed in it.
 struct Rewritten {
     updated: String,
     added: Vec<EdgeSpec>,
@@ -141,11 +141,11 @@ fn rewrite(
 }
 
 /// Check `typed` for `task` and settle each target into the literal the file
-/// gets, collecting every refusal rather than short-circuiting, so one run
-/// reports all of them instead of one per re-run.
+/// gets. This collects every refusal rather than short-circuiting, so one run
+/// reports them all instead of one per re-run.
 ///
 /// A `local-task-path` kind's target is a task, written as the path from the
-/// linking file to it, whether it was typed as a path, a stem or a stem hash.
+/// linking file to it, whether the caller typed a path, a stem or a stem hash.
 /// A kind pointing *outside* the backlog keeps its target verbatim: appending
 /// `.typ` to `https://…/pull/42` would corrupt the one thing that edge records.
 fn check_edges(
@@ -184,8 +184,8 @@ fn check_edges(
     (edges, refusals)
 }
 
-/// The unknown-kind refusal: what was written, the nearest configured name
-/// when one clears the similarity floor, and what is configured.
+/// Builds the unknown-kind refusal: the kind the caller wrote, the nearest
+/// configured name when one clears the similarity floor, and the configured set.
 fn unknown_kind(kind: &str, links: &mindtape::link::LinksConfig, task: &Task) -> Diag {
     let names = kind_names(links);
     let diag = Diag::usage("unknown link kind")

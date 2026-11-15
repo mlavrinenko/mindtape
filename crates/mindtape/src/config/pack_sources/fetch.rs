@@ -1,12 +1,12 @@
-//! Fetching one locked source into the cache: `git fetch` of its `ref` into
-//! a temporary repository inside the cache root, the locked commit's files
-//! written from the objects themselves, the tree hashed with
-//! [`crate::config::pack_sources::hash()`], and the result renamed to
+//! Fetching one locked source into the cache. The steps are `git fetch` of its
+//! `ref` into a temporary repository inside the cache root, then the locked
+//! commit's files written from the objects themselves. The fetch hashes the
+//! tree with [`crate::config::pack_sources::hash()`] and renames the result to
 //! `<cache root>/<sha256>/`.
 //!
 //! The files come from `git ls-tree` and `git cat-file --batch`, not a
-//! checkout, so neither the machine's `core.autocrlf` nor the source's
-//! `.gitattributes`, filters or hooks change a byte: every platform writes
+//! checkout. Neither the machine's `core.autocrlf` nor the source's
+//! `.gitattributes`, filters or hooks change a byte, so every platform writes
 //! and hashes the bytes the commit stores. A 64-digit commit is a SHA-256
 //! repository's, so the scratch repository takes that object format.
 
@@ -24,7 +24,7 @@ use crate::config::quote;
 /// Why a fetch failed.
 #[derive(Debug, Error)]
 pub enum FetchError {
-    /// No `git` program could be started.
+    /// The command could not start a `git` program.
     #[error("git not found")]
     GitNotFound,
     /// A git command exited non-zero.
@@ -61,14 +61,14 @@ pub enum FetchError {
     MissingCommit {
         /// The locked commit.
         commit: String,
-        /// The ref that was fetched.
+        /// The ref the fetch asked for.
         reference: String,
     },
     /// The source holds an entry the cache can't hold the same way on every
     /// platform.
     #[error("pack source holds a {what}: {}", quote(path))]
     Unsupported {
-        /// What the entry is, such as `symlink`.
+        /// The kind of entry, such as `symlink`.
         what: &'static str,
         /// The entry's path in the source.
         path: String,
@@ -92,7 +92,7 @@ pub enum FetchError {
         dir: PathBuf,
     },
     /// Reading or writing the cache failed. It prints as the OS words it,
-    /// and has no source of its own, so a cause chain prints it once.
+    /// and has no source of its own. A cause chain then prints it once.
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
@@ -132,9 +132,9 @@ impl FetchError {
 /// lock's hash, a tree of another hash fails before it reaches the cache.
 ///
 /// # Errors
-/// Returns [`FetchError`] when git is missing or fails, the commit is not
-/// on the ref, the tree holds a symlink or a submodule, its hash isn't
-/// `expected`, or the cache can't be written.
+/// Returns [`FetchError`] when git is missing or fails, the commit is not on
+/// the ref, or the tree holds a symlink or a submodule. It also fails when the
+/// hash isn't `expected`, or when the cache refuses the write.
 pub fn fetch(
     git: &str,
     reference: &str,
@@ -153,13 +153,13 @@ pub fn fetch(
 }
 
 /// Where git finds the source `git` that the project under `root` declares.
-/// [`fetch`] runs git apart from the project, so a relative path is joined
+/// [`fetch`] runs git apart from the project. The lookup joins a relative path
 /// to `root`. A URL, an scp-like `host:path` and an absolute path pass as
 /// given.
 ///
 /// # Errors
 /// Returns [`FetchError::DriveRelative`] for a drive letter and a colon with
-/// no separator after it, such as `C:packs`, on every platform: Windows reads
+/// no separator after it, such as `C:packs`, on every platform. Windows reads
 /// it against the current directory of that drive, which is not the project.
 pub fn locate(git: &str, root: &Path) -> Result<String, FetchError> {
     if is_drive_relative(git) {
@@ -180,9 +180,9 @@ fn is_drive_relative(git: &str) -> bool {
     drive && chars.next() == Some(':') && !matches!(chars.next(), Some('/' | '\\'))
 }
 
-/// Whether git reads `git` as a URL rather than a path: it holds `://`, or a
-/// colon before any slash after more than one character, as `host:path`
-/// does and a drive letter's `C:` doesn't.
+/// Whether git reads `git` as a URL rather than a path. A URL holds `://`, or a
+/// colon before any slash after more than one character, as `host:path` does
+/// and a drive letter's `C:` doesn't.
 fn is_remote(git: &str) -> bool {
     if git.contains("://") {
         return true;

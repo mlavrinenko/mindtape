@@ -13,12 +13,12 @@ pub struct AllowArgs {}
 /// Run the `allow` command: print every command the config runs, then record
 /// them as allowed for this repository and each of its worktrees.
 ///
-/// It reads the config only. Loading the tasks would ask the very checkers it
-/// is about to allow.
+/// It reads the config only. Loading the tasks would run the checkers it is
+/// about to allow.
 ///
 /// # Errors
-/// Returns an error if the project or its config cannot be read, or the
-/// approval cannot be written.
+/// Returns an error if the project or its config does not read, or the write of
+/// the approval fails.
 pub fn run(_args: &AllowArgs) -> Result<()> {
     let root = util::resolve_root()?;
     let config = mindtape::load_config(&root)?;

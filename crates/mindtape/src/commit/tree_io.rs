@@ -87,7 +87,7 @@ pub(crate) fn project_repo_path(prefix: &str, rel: &Path) -> Option<String> {
 }
 
 /// The repository-relative path of `pkg` under `root_prefix`, or `None` when
-/// it is absolute or escapes the repository. `.` and `..` are resolved
+/// it is absolute or escapes the repository. The check resolves `.` and `..`
 /// lexically, since a package may sit outside the project but inside the repo.
 pub(crate) fn repo_path(root_prefix: &str, pkg: &Path) -> Option<String> {
     lexical_path(Path::new(root_prefix).components().chain(pkg.components()))
@@ -129,7 +129,7 @@ pub(crate) fn git_failed(command: &str, output: &std::process::Output) -> Commit
 }
 
 /// Each object `specs` names, in order, through one `git cat-file --batch`:
-/// its text, or `None` where the revision holds no such path.
+/// its text, or `None` where the revision lacks that path.
 pub(crate) fn read_blobs(
     root: &Path,
     specs: &[String],
@@ -141,7 +141,7 @@ pub(crate) fn read_blobs(
 }
 
 /// Each object `specs` names, in order, through one `git cat-file --batch`:
-/// its bytes, or `None` where the revision holds no such path. A package may
+/// its bytes, or `None` where the revision lacks that path. A package may
 /// carry images or fonts, so this keeps the bytes a task file would read as
 /// text.
 pub(crate) fn read_objects(

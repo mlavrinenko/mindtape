@@ -1,6 +1,6 @@
 //! Priority validation: the framework-vs-manual dispatch, the
 //! active/known/valid-inputs checks a framework invocation must clear, and the
-//! strict-mode policy a manual value must clear instead — exercising
+//! strict-mode policy a manual value must clear instead. These tests exercise
 //! `check_priority` directly, the same shape the `validate()` seam drives.
 #![allow(clippy::unwrap_used)]
 

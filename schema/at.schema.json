@@ -79,7 +79,7 @@
     },
     "BoardSpec": {
       "additionalProperties": false,
-      "description": "One board layer as written: each key overrides the layer below it.",
+      "description": "One board layer as written. Each key overrides the layer below it.",
       "properties": {
         "columns": {
           "description": "The columns, in display order.",
@@ -92,7 +92,7 @@
           ]
         },
         "hide": {
-          "description": "An expression over the cells; a row it holds for is hidden. Empty hides\nnothing.",
+          "description": "An expression over the cells. The board hides a row the expression holds\nfor. An empty expression leaves every row visible.",
           "type": [
             "string",
             "null"
@@ -133,7 +133,7 @@
           "type": "null"
         }
       ],
-      "description": "The board every entry shows, over the shipped board key by key."
+      "description": "The board every entry shows, over the built-in board key by key."
     }
   },
   "title": "Mindtape projects and sets",

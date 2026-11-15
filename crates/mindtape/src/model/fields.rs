@@ -3,62 +3,63 @@
 //!
 //! `filter::field_value` and `sort`'s generic per-field comparator both read
 //! [`FIELDS`], so wiring a field in here gives it filter *and* sort support
-//! together — there is no second match statement to remember. Before this
+//! together. There is no second match statement to remember. Before this
 //! module existed, `filter/mod.rs` and `sort.rs` each hand-rolled their own
-//! field-name match, and they drifted: `assignee` and `reviewed` were
+//! field-name match, and they drifted. `assignee` and `reviewed` were
 //! comparable in a filter but silently unsortable.
 //!
 //! Three fields stay outside the generic comparator because their filter and
-//! sort semantics genuinely differ rather than merely being unimplemented:
-//! `status` and `ready` (a comparison reads the lifecycle name / the
-//! readiness predicate; an ordering reads the legend position / the readiness
-//! rank), and `role` (a virtual, filter-only field with no `Task` field
-//! behind it — see `filter::role_field`). `sort.rs` special-cases
+//! sort semantics differ rather than merely lacking an implementation.
+//! `status` and `ready` are two: a comparison reads the lifecycle name or the
+//! readiness predicate, and an ordering reads the legend position or the
+//! readiness rank. `role` is the third, a virtual, filter-only field with no
+//! `Task` field behind it (see `filter::role_field`). `sort.rs` special-cases
 //! `status`/`ready`/`priority`/`difficulty` before falling back to this
 //! registry for everything else.
 //!
-//! A field with fixed named parts is addressed as `field.property` — a dotted
-//! identifier a filter already parses and a `--sort` spec already carries, so
-//! no grammar sits behind this. A property is one [`FieldDef`] like any
-//! other: comparison, `has`/`miss`, `contains`, `matches`, and `--sort` all
-//! read it through the same registry lookup, and no downstream match
-//! statement mentions the property. Authored parts use the serialized name
-//! (`status.name`, `status.date`, `status.note`); a derived part names its
+//! A filter addresses a field with fixed named parts as `field.property`, a
+//! dotted identifier it already parses and a `--sort` spec already carries, so
+//! no grammar sits behind this. A property is one [`FieldDef`] like any other.
+//! Comparison, `has`/`miss`, `contains`, `matches`, and `--sort` all read it
+//! through the same registry lookup, and no downstream match statement
+//! mentions the property. Authored parts use the serialized name
+//! (`status.name`, `status.date`, `status.note`). A derived part specifies its
 //! derivation (`status.index`, the 0-based legend position). Bare `status`
-//! keeps its deliberate split — a comparison reads the name, an ordering
-//! reads the position — and the explicit properties spell the two apart.
-//! Collections (`links`, `estimate`, `tags`) stay out until an aggregate
-//! meaning exists for them; `has(field, value)` reads `tags` and `estimate`
-//! through [`held`].
+//! keeps its deliberate split, where a comparison reads the name and an
+//! ordering reads the position, and the explicit properties spell the two
+//! apart. Collections (`links`, `estimate`, `tags`) stay out until an
+//! aggregate meaning exists for them, and `has(field, value)` reads `tags` and
+//! `estimate` through [`held`].
 //!
 //! A field with allowed values, a default or a requirement is one
 //! [`crate::model::field_descriptor::Descriptor`].
 //!
 //! `path` is the task's project-root-relative source path
-//! ([`Task::file_key`]), and is deliberately not spelled `file`: the `file`
+//! ([`Task::file_key`]), and is deliberately not spelled `file`. The `file`
 //! column renders the same task's path relative to the working directory, so
 //! one name covered two values that coincide inside the project root and
-//! diverge under `-w <other-project>` — where a filter copied from the
-//! listing matched nothing, silently, an empty listing being also what a
-//! correct filter over an empty result set looks like
+//! diverge under `-w <other-project>`. There a filter copied from the listing
+//! silently produced an empty result, which is also what a correct filter over
+//! an empty result set looks like
 //! (`truth/tasks/2026-09/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
-//! Display stays working-directory-relative (the only form openable from
-//! where the reader is standing); the comparable value stays root-relative,
-//! so a filter saved in `.mindtape/config.toml` means the same thing wherever
-//! `mt` runs from.
+//! Display stays working-directory-relative (the only form openable from where
+//! the reader is standing). The comparable value stays root-relative, so a
+//! filter saved in `.mindtape/config.toml` means the same thing wherever `mt`
+//! runs from.
 //!
 //! `dir` is `path`'s parent directory, `""` for a task in a root itself, so a
 //! rule about placement reads one field instead of splitting a path.
 //!
-//! `depth`, `topo`, `blocks`, `children` and `progress` are *derived*
-//! entries: nothing authors them, the loader computes them (folder nesting;
-//! dependency level, transitive leverage, and the `parent`-edge child count
-//! and terminal share — see `crate::graph::dep_rank`). `progress` alone can be
-//! missing: a task with no children has no share to report. They enter here rather than being
-//! special-cased because they are plain numbers on `Task` by the time a filter
-//! or a sort sees one, so the generic comparator already orders them right —
-//! which is the whole point of a registry: a graph-derived rank becomes both
-//! `mt ls 'blocks > 3'` and `--sort blocks:desc` by being listed once.
+//! The loader derives `depth`, `topo`, `blocks`, `children` and `progress`, and
+//! nothing authors them. That covers folder
+//! nesting, dependency level, transitive leverage, and the `parent`-edge child
+//! count and terminal share (see `crate::graph::dep_rank`). `progress` alone
+//! can be missing, because a task with no children has no share to report.
+//! They enter here rather than taking a special case, because they are plain
+//! numbers on `Task` by the time a filter or a sort sees one. The generic
+//! comparator then already orders them right. That is the whole point of a
+//! registry: listing a graph-derived rank once gives it both
+//! `mt ls 'blocks > 3'` and `--sort blocks:desc`.
 
 use typst_harvest::HVal;
 
@@ -67,7 +68,7 @@ use crate::model::Task;
 use crate::model::numeric::NumValue;
 
 /// A resolved field value. String fields compare lexicographically
-/// (ISO-correct for dates); numeric fields compare as numbers. `Missing`
+/// (ISO-correct for dates), and numeric fields compare as numbers. `Missing`
 /// is unequal to every filter literal (see `filter::compare`) and, for sort,
 /// orders after every present value. `List` is an `x-<ns>` array: it equals
 /// and orders against nothing, and `has(field, value)` reads its elements.
@@ -82,14 +83,14 @@ pub enum FieldValue {
     Missing,
 }
 
-/// One comparable field: its filter/`--sort` name and how to read it off a
-/// task.
+/// One comparable field, holding its filter and `--sort` name and how to read
+/// it off a task.
 pub struct FieldDef {
     pub name: &'static str,
     pub get: fn(&Task, &Config) -> FieldValue,
 }
 
-/// Every generically comparable field. Order is not significant.
+/// Every generically comparable field. The order doesn't matter.
 pub const FIELDS: &[FieldDef] = &[
     FieldDef {
         name: "status",
@@ -203,20 +204,21 @@ pub fn get(name: &str) -> Option<&'static FieldDef> {
 
 /// `body` holds a task's prose, verbatim and already marker-free (the
 /// `#show: task.with(…)` head never reaches it). It is deliberately outside
-/// [`FIELDS`]: prose is neither comparable (`==`/`<`) nor sortable — the two
-/// jobs `FIELDS` backs — so `contains()` is the one place it is searchable.
+/// [`FIELDS`]: prose is neither comparable (`==`/`<`) nor sortable, the two
+/// jobs `FIELDS` backs, so `contains()` is the one place it is searchable.
 pub const BODY_FIELD: &str = "body";
 
 /// Every `links[].note` on a task, concatenated for `contains()` matching.
 /// Link notes are prose (`related("x")[why]`) but live on `links[].note`, not
-/// in [`BODY_FIELD`] — text-only like `body`, so it joins the same tier
+/// in [`BODY_FIELD`]. It is text-only like `body`, so it joins the same tier
 /// rather than entering [`FIELDS`].
 pub const NOTE_FIELD: &str = "note";
 
 /// A task's authored and derived tags (see `Task::all_tags`), joined for
 /// `contains()` matching. `tags` is a controlled vocabulary with `has_tag()`
-/// for exact match, so this is the substring-match escape hatch — text-only
-/// like `body`, so it joins the same tier rather than entering [`FIELDS`].
+/// for exact match, so this is the substring-match escape hatch. It is
+/// text-only like `body`, so it joins the same tier rather than entering
+/// [`FIELDS`].
 pub const TAGS_FIELD: &str = "tags";
 
 /// Fields addressable by `contains()` but carrying no comparison or sort
@@ -226,7 +228,7 @@ const TEXT_ONLY_CONTAINS_FIELDS: [&str; 3] = [BODY_FIELD, NOTE_FIELD, TAGS_FIELD
 
 /// The `contains()` field vocabulary: every [`FIELDS`] name, plus the
 /// text-only tier ([`TEXT_ONLY_CONTAINS_FIELDS`]). One derived source of
-/// truth, so `contains()` never hand-matches field names of its own —
+/// truth, so `contains()` never hand-matches field names of its own. That is
 /// exactly the drift this module exists to end (see the module doc).
 #[must_use]
 pub fn is_contains_field(name: &str) -> bool {
@@ -234,7 +236,7 @@ pub fn is_contains_field(name: &str) -> bool {
 }
 
 /// Every name [`is_contains_field`] accepts, [`FIELDS`] first then the
-/// text-only tier — for "expected one of ..." error messages (an unknown
+/// text-only tier, for "expected one of ..." error messages (an unknown
 /// explicit `contains()` field, or an unknown name in a configured default
 /// haystack).
 #[must_use]
@@ -245,8 +247,8 @@ pub fn contains_field_names() -> Vec<&'static str> {
 }
 
 /// Whether `name` names an `x-<ns>` extension slot. Every such name reads,
-/// whether or not `[tasks.fields]` declares it: a declaration adds
-/// validation, not readability.
+/// whether `[tasks.fields]` declares it or not: a declaration adds validation,
+/// not readability.
 #[must_use]
 pub fn is_extra(name: &str) -> bool {
     name.starts_with("x-")
@@ -272,7 +274,7 @@ pub fn from_extra(value: &HVal) -> Option<FieldValue> {
 }
 
 /// An `x-<ns>` slot's value on `task`, missing when the task leaves it unset
-/// or holds a dict there — the reading `--sort` uses.
+/// or holds a dict there, the reading `--sort` uses.
 #[must_use]
 pub fn extra(task: &Task, name: &str) -> FieldValue {
     task.extras
@@ -289,8 +291,8 @@ pub fn is_derived(name: &str) -> bool {
 }
 
 /// The declared type of `name`, when it is a derived field. `None` for an
-/// undeclared collector or an undeclared record field, so a filter naming one
-/// fails load.
+/// undeclared collector or an undeclared record field, so a filter that
+/// references one fails load.
 #[must_use]
 pub fn derived_type<'a>(
     config: &'a Config,
@@ -299,8 +301,8 @@ pub fn derived_type<'a>(
     derived_type_in(&config.tasks.collectors, name)
 }
 
-/// [`derived_type`] over the collectors alone, for a caller that holds no
-/// whole config (sort validation).
+/// [`derived_type`] over the collectors alone, for a caller that doesn't hold
+/// a whole config (sort validation).
 #[must_use]
 pub fn derived_type_in<'a>(
     collectors: &'a [crate::config::CollectorSpec],
@@ -318,8 +320,9 @@ pub fn derived_type_in<'a>(
     Some(ty)
 }
 
-/// The raw value of a derived field on `task`, or `None` when the task is
-/// gated out, the collector is undeclared, or the record path misses.
+/// The raw value of a derived field on `task`, or `None` when the collector's
+/// filter excludes the task, the config lacks the collector, or the record path
+/// misses.
 #[must_use]
 pub fn derived_hval<'a>(task: &'a Task, name: &str) -> Option<&'a HVal> {
     let rest = name.strip_prefix("derived.")?;
@@ -363,11 +366,12 @@ fn from_hval(value: &HVal) -> FieldValue {
     }
 }
 
-/// A task's value for one of the fields a [`crate::model::field_descriptor::Descriptor`] describes, as the
-/// marker held it: `kind` and `assignee` as text, `tags` (authored and
-/// derived) as an array of text, `estimate` as a dict of its units, and an
-/// `x-<ns>` slot as authored. `None` for an unset `kind`, `assignee` or slot,
-/// and for any other name.
+/// A task's value for one of the fields a
+/// [`crate::model::field_descriptor::Descriptor`] describes, as the marker held
+/// it. `kind` and `assignee` read as text, `tags` (authored and derived) as an
+/// array of text, `estimate` as a dict of its units, and an `x-<ns>` slot as
+/// authored. `None` for an unset `kind`, `assignee` or slot, and for any other
+/// name.
 #[must_use]
 pub fn held(task: &Task, name: &str) -> Option<HVal> {
     let text = |value: &Option<String>| value.clone().map(HVal::Str);
@@ -392,7 +396,7 @@ fn opt_str(value: Option<String>) -> FieldValue {
     value.map_or(FieldValue::Missing, FieldValue::Str)
 }
 
-/// `key`'s parent directory, `""` when it names a file in a root itself.
+/// `key`'s parent directory, `""` when it references a file in a root itself.
 fn parent_dir(key: &str) -> String {
     key.rsplit_once('/')
         .map_or_else(String::new, |(dir, _)| dir.to_owned())
@@ -403,9 +407,9 @@ fn dir_field(task: &Task, _config: &Config) -> FieldValue {
     FieldValue::Str(parent_dir(&task.file_key()))
 }
 
-/// A numeric scalar field (`priority`/`difficulty`) as a comparable value: a
-/// raw number compares numerically; a label falls back to a string compare
-/// (so `priority == "high"` matches the written label); a framework value
+/// A numeric scalar field (`priority`/`difficulty`) as a comparable value. A
+/// raw number compares numerically, and a label falls back to a string compare,
+/// so `priority == "high"` matches the written label. A framework value
 /// resolves its score through `priority` when given the priority config.
 fn num_field(value: Option<&NumValue>, priority: Option<&PriorityConfig>) -> FieldValue {
     match value {

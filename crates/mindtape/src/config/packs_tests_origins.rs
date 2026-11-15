@@ -1,5 +1,5 @@
 //! The keys and parameters a loaded config remembers a pack for, and the
-//! file a load warning is placed in. The fixtures write real files, so the
+//! file that holds a load warning. The fixtures write real files, so the
 //! origins are the ones `mt config show --origin` prints.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 

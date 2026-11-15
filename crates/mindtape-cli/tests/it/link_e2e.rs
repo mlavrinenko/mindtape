@@ -2,9 +2,9 @@
 //!
 //! `cmd/link/mod.rs`'s inline tests drive `run_with` against an in-process
 //! project, which covers the merge/dedupe/replace/note/unknown-kind matrix.
-//! What they cannot reach is what needs a spawned binary: the stdin (`-`)
-//! adjacency source, the exit status a per-entry failure carries out of the
-//! process, and the fact that a written file still passes `mt check`.
+//! Three things need a spawned binary. The first is the stdin (`-`) adjacency
+//! source. The second is the exit status a per-entry failure carries out of the
+//! process. The third is a written file that still passes `mt check`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
@@ -42,10 +42,10 @@ fn source(dir: &Path, stem: &str) -> String {
     std::fs::read_to_string(dir.join("tasks").join(format!("{stem}.typ"))).unwrap()
 }
 
-/// An edge that would make the linking task invalid is refused before the
-/// write, so the file is byte-identical afterwards. `depends-on` is acyclic,
-/// and a self-edge is the shortest cycle there is — a rule the planner does not
-/// check and only the whole-project validator can answer.
+/// The check refuses an edge that would make the linking task invalid before
+/// the write. The file stays byte-identical afterwards. `depends-on` is
+/// acyclic, and a self-edge is the shortest cycle there is, a rule the planner
+/// does not check and only the whole-project validator can answer.
 #[test]
 fn a_rejected_edge_leaves_the_file_untouched() {
     let dir = scaffold();
@@ -260,9 +260,10 @@ fn replace_drops_the_edges_the_map_omits() {
     support::check_ok(dir.path());
 }
 
-/// Closing a cycle is refused whichever end the validator attributes it to:
-/// `mt check` names the cycle on its first member, which need not be the task
-/// being written, so the refusal cannot rest on the writer's own violations.
+/// The check refuses a cycle close whichever end the validator attributes it
+/// to. `mt check` reports the cycle on its first member, which need not be the
+/// task the write targets, so the refusal cannot rest on the writer's own
+/// violations.
 #[test]
 fn closing_a_dependency_cycle_is_refused_from_either_end() {
     for (first, second) in [
@@ -289,7 +290,7 @@ fn closing_a_dependency_cycle_is_refused_from_either_end() {
     }
 }
 
-/// A cycle already on disk is not the write's doing, so it never blocks an
+/// A cycle already on disk comes from an earlier write, so it never blocks an
 /// edge elsewhere.
 #[test]
 fn a_cycle_already_on_disk_does_not_block_an_unrelated_edge() {
@@ -334,9 +335,9 @@ fn a_dry_run_lists_an_edge_already_on_disk_as_unchanged() {
     assert!(stdout.contains("- wire-oauth: unchanged"), "{stdout}");
 }
 
-/// A write the OS refuses is reported as its own failure, and the run exits
-/// non-zero. The tasks folder is read-only, so the atomic rewrite cannot make
-/// its temporary file; the task itself must come through unchanged.
+/// The run reports a write the OS refuses as its own failure, and exits
+/// non-zero. The tasks folder allows reads only, so the atomic rewrite cannot
+/// make its temporary file. The task itself must come through unchanged.
 #[cfg(unix)]
 #[test]
 fn a_refused_write_is_reported_and_leaves_the_task_as_it_was() {
@@ -358,9 +359,10 @@ fn a_refused_write_is_reported_and_leaves_the_task_as_it_was() {
     assert_eq!(source(dir.path(), "wire-oauth"), before);
 }
 
-/// An edge cannot be written into a task whose show rule is aliased: there is
-/// no literal `task.with(…)` call to hold the `links:` slot. The entry is
-/// refused as a whole, the diagnostic names the file, and the file stays put.
+/// The writer cannot write an edge into a task whose show rule carries an
+/// alias: there is no literal `task.with(…)` call to hold the `links:` slot.
+/// The check refuses the entry as a whole, the diagnostic reports the file, and
+/// the file stays put.
 #[test]
 fn an_edge_into_an_aliased_task_is_refused_and_leaves_it_untouched() {
     let dir = scaffold();

@@ -9,9 +9,10 @@
 use crate::support;
 
 /// Prose carrying every Typst markup leader must file a task that loads and
-/// whose values read back exactly as typed. The `text` slots reach markup and
-/// are escaped on the way in; the `string` title and `int` priority render as
-/// literals and must not be, or the backslashes would become part of the value.
+/// whose values read back exactly as typed. The `text` slots reach markup, and
+/// the writer escapes them on the way in. The `string` title and `int` priority
+/// render as literals and must not be, or the backslashes would become part of
+/// the value.
 #[test]
 fn markup_hazards_in_slot_values_round_trip_literally() {
     let dir = support::project_with_slot_template();
@@ -54,8 +55,8 @@ fn markup_hazards_in_slot_values_round_trip_literally() {
 
 /// A `raw`-kind slot splices its value verbatim: a code span filled through
 /// `--set` survives as a code span, not an escaped literal. Round trip: a
-/// code span in, a code span out, no backslashes — the opt-out `text` slots
-/// deferred (`add-a-typst-slot-kind-for-pre-formatted-markup.typ`).
+/// code span in, a code span out, no backslashes. This is the opt-out `text`
+/// slots deferred (`add-a-typst-slot-kind-for-pre-formatted-markup.typ`).
 #[test]
 fn raw_slot_splices_markup_without_escaping() {
     let dir = support::project_with_raw_slot_template();
@@ -84,10 +85,10 @@ fn raw_slot_splices_markup_without_escaping() {
     support::check_ok(dir.path());
 }
 
-/// A `raw` slot's filler is trusted to be markup, not guaranteed to be
-/// *valid* markup: a value that fails to parse must fail `mt add` itself,
-/// before anything is written, with an error naming the slot rather than a
-/// bare compiler diagnostic about a file the caller never hand-wrote.
+/// A `raw` slot's filler counts as markup, not as *valid* markup. A value that
+/// fails to parse must fail `mt add` itself, before anything reaches a file.
+/// The error references the slot rather than a bare compiler diagnostic about a
+/// file the caller never hand-wrote.
 #[test]
 fn raw_slot_unparseable_markup_fails_naming_the_slot_before_writing() {
     let dir = support::project_with_raw_slot_template();

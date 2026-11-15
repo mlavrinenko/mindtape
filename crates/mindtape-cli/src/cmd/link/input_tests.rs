@@ -56,7 +56,7 @@ fn a_target_mapping_carries_its_own_note() {
 }
 
 /// YAML 1.2 is a superset of JSON, so the `.json` spelling the docs advertise
-/// needs no second parser and no extension sniffing.
+/// doesn't need a second parser or extension sniffing.
 #[test]
 fn the_json_spelling_parses_through_the_same_reader() {
     let entries = parse(r#"{"a": {"depends-on": ["b", "c"]}}"#);
@@ -74,9 +74,9 @@ fn stems_keep_document_order() {
     assert_eq!(stems, vec!["zeta", "alpha"]);
 }
 
-/// An empty map is an empty run, not a parse failure: `mt link --apply` fed by
-/// a pipeline that matched nothing has nothing to do, and nothing to do is not
-/// an error.
+/// An empty map is an empty run, not a parse failure. A pipeline that produces
+/// an empty map gives `mt link --apply` an empty run, and an empty run is not an
+/// error.
 #[test]
 fn an_empty_document_is_an_empty_run() {
     assert!(parse("").is_empty());
@@ -145,9 +145,9 @@ fn malformed_yaml_is_reported_as_such() {
     );
 }
 
-/// `shape_of` labels what arrived instead of what was asked for; one test per
-/// arm the parser can reach, so a mislabeled arm is caught rather than merely
-/// executed.
+/// `shape_of` labels what arrived instead of what the caller asked for. One test
+/// per arm the parser can reach. A mislabeled arm then fails rather than merely
+/// running.
 #[test]
 fn a_null_target_is_named_null() {
     let err = error("alpha:\n  parent: ~\n");

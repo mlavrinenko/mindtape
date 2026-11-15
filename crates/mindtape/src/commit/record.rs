@@ -12,7 +12,7 @@ use crate::task_source::TaskSource;
 use super::trailer::{is_path_form, ref_text, value_stem};
 use super::{ChangedFiles, CommitMessage, RefLists, RefProblem, TrailerValue, classify_refs};
 
-/// The commit a `scope = "commit"` rule reads — the fields its expressions
+/// The commit a `scope = "commit"` rule reads, and the fields its expressions
 /// name.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CommitRecord {
@@ -23,18 +23,19 @@ pub struct CommitRecord {
     pub refs: Vec<String>,
     /// `files`: every changed path, repository-relative.
     pub files: Vec<String>,
-    /// The old path of each rename among `files`; `count(files, …)` skips
+    /// The old path of each rename among `files`. `count(files, …)` skips
     /// them, `has` and `matches` still see them.
     pub renamed_from: Vec<String>,
     /// `tasks_only`: the commit changes at least one file, and every one is a
     /// task file (a `.typ` under a `[tasks] roots` entry, outside every
     /// template dir and reserved `.mindtape`/`.git` component).
     pub tasks_only: bool,
-    /// `in_range`: the commit was read from a range (`mt check --commits`),
-    /// not from a message being written (`mt check --commit-msg`).
+    /// `in_range`: the commit came from a range (`mt check --commits`), not
+    /// from a message a developer is writing (`mt check --commit-msg`).
     pub in_range: bool,
     /// `is_merge`: the commit has more than one parent. A `commit-msg` check
-    /// sets it for the merge being written, an amend of a merge included.
+    /// sets it for the merge a developer is writing, an amend of a merge
+    /// included.
     pub is_merge: bool,
     /// The stems a `scope = "task"` rule runs for: every task file the commit
     /// changes, then every task ref, each once. An external ref is not a task.
@@ -53,7 +54,7 @@ impl CommitRecord {
     /// classifies as a task.
     ///
     /// Returns the record, plus one [`RefProblem`] per ref that is a path to a
-    /// task, or names no task and matches no external pattern.
+    /// task, or that resolves to neither a task nor an external pattern.
     #[must_use]
     pub fn build(
         message: &CommitMessage,
@@ -103,7 +104,8 @@ fn dedup_keeping_order(values: &mut Vec<String>) {
     values.retain(|value| seen.insert(value.clone()));
 }
 
-/// A task's stem: its file name without `.typ` — the identity a trailer names.
+/// A task's stem, which is its file name without `.typ` and the identity a
+/// trailer names.
 pub(crate) fn task_stem(task: &Task) -> String {
     task.file.file_stem().map_or_else(
         || task.id.clone(),
@@ -140,9 +142,9 @@ pub(super) fn ref_problem(value: &str, stem: &str, stems: &[String], key: &str) 
 }
 
 /// Whether repository-relative `path` is a task file of this project under
-/// `source`'s policy. Classification is per path: a path the state holds no
-/// regular file for, such as a tracked-deleted path, still counts, while a
-/// symlink does not.
+/// `source`'s policy. Classification is per path: a path the state doesn't
+/// hold a regular file for, such as a tracked-deleted path, still counts, while
+/// a symlink does not.
 pub(crate) fn is_task_change(
     path: &str,
     root_prefix: &str,

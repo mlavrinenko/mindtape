@@ -29,7 +29,7 @@ fn takes(validator: TargetValidator, value: &str) -> bool {
     accepts(validator, value, None)
 }
 
-/// Assert one validator's accept/reject pair through the live config path
+/// Assert the accept/reject pair of one validator through the live config path
 /// (`Validators::problem`), not just the raw dispatch.
 fn assert_pair(validator: TargetValidator, good: &str, bad: &str) {
     let config = one(kind("artifact", validator));
@@ -107,7 +107,7 @@ fn regex_validator_uses_the_sibling_pattern() {
 }
 
 /// `validate = "regex"` with no sibling `regex` key is a config error, not a
-/// silently permissive kind: caught at load, before any task is read.
+/// silently permissive kind: the loader catches it before it reads any task.
 #[test]
 fn regex_without_pattern_is_a_config_error() {
     let err = parse_config("[[tasks.links.kinds]]\nname = \"ticket\"\nvalidate = \"regex\"\n")
@@ -135,7 +135,7 @@ fn uncompilable_regex_is_a_config_error() {
     assert!(problems.first().unwrap().contains("invalid pattern"));
 }
 
-/// A `regex` key on any other validator is dead config — flagged rather than
+/// A `regex` key on any other validator is dead config, flagged rather than
 /// silently ignored.
 #[test]
 fn regex_key_on_another_validator_is_a_config_error() {
@@ -165,7 +165,7 @@ fn well_formed_kinds_have_no_config_problems() {
     assert!(config.validate().is_ok());
 }
 
-/// A `local-task-path` kind carries no shape check of its own — resolution
+/// A `local-task-path` kind carries no shape check of its own. Resolution
 /// against the loaded task set is its check, so `Validators` never holds it.
 #[test]
 fn local_task_path_kinds_are_not_shape_checked() {
@@ -177,7 +177,7 @@ fn local_task_path_kinds_are_not_shape_checked() {
 }
 
 /// A pattern that failed to compile rejects every target rather than waving
-/// them through — the failure stays loud even if config validation is skipped.
+/// them through. The failure stays loud even when config validation never runs.
 #[test]
 fn broken_pattern_rejects_every_target() {
     let config = one(LinkKind {

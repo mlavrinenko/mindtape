@@ -38,7 +38,7 @@ fn all_default() -> Answers {
     }
 }
 
-/// A non-interactive run writes no prompt and takes every default.
+/// A non-interactive run skips the prompt and takes every default.
 #[test]
 fn non_interactive_never_prompts() {
     let (answers, prompts) = walk(&Flags::default(), false, "");
@@ -65,8 +65,8 @@ fn non_interactive_with_flags_uses_flags_silently() {
     assert_eq!(answers.organization, Organization::default_value());
 }
 
-/// Every axis flag pre-answers its question, so an interactive walk with all of
-/// them set reads nothing and prompts nothing.
+/// Every axis flag pre-answers its question, so an interactive walk with every
+/// flag set stays silent and takes each answer from the flag.
 #[test]
 fn all_flags_suppress_every_question() {
     let flags = Flags {
@@ -85,8 +85,8 @@ fn all_flags_suppress_every_question() {
     assert_eq!(answers.recurrence, Recurrence::Rrule);
 }
 
-/// A core-axis flag suppresses exactly its own question; the other core
-/// questions are still asked.
+/// A core-axis flag suppresses exactly its own question. The walk still
+/// prompts for the other core questions.
 #[test]
 fn core_flag_suppresses_only_its_question() {
     let flags = Flags {
@@ -107,8 +107,8 @@ fn core_flag_suppresses_only_its_question() {
     assert_eq!(answers.estimate, Estimate::default_value());
 }
 
-/// An extra-axis flag suppresses its question even once the extras are being
-/// asked (the accept-defaults gate declined).
+/// An extra-axis flag suppresses its question even once the walk reaches the
+/// extras (the accept-defaults gate declined).
 #[test]
 fn extra_flag_suppresses_only_its_question() {
     let flags = Flags {
@@ -126,8 +126,8 @@ fn extra_flag_suppresses_only_its_question() {
     assert_eq!(answers.required, Required::None);
 }
 
-/// Accepting the defaults at the gate answers the three core questions and
-/// leaves the four extras at their defaults.
+/// Accepting the defaults at the gate takes the three core answers and leaves
+/// the four extras at their defaults.
 #[test]
 fn accept_defaults_gate_skips_the_extras() {
     let (answers, prompts) = walk(&Flags::default(), true, "gated\nice\nflat\ny\n");
@@ -138,7 +138,8 @@ fn accept_defaults_gate_skips_the_extras() {
     assert_eq!(answers.headers, Headers::default_value());
 }
 
-/// Declining the gate walks every extra too. A choice can be given by number.
+/// Declining the gate walks every extra too. The walk accepts a choice by
+/// number.
 #[test]
 fn declining_the_gate_walks_the_extras() {
     let (answers, _) = walk(
@@ -152,8 +153,8 @@ fn declining_the_gate_walks_the_extras() {
     assert_eq!(answers.recurrence, Recurrence::Rrule);
 }
 
-/// Declining the extras gate asks the recurrence question, with `rrule` listed
-/// on its menu and picked by its number.
+/// Declining the extras gate reaches the recurrence question, with `rrule`
+/// listed on its menu and picked by its number.
 #[test]
 fn declining_the_gate_lists_the_rrule_menu_entry() {
     let (answers, prompts) = walk(
@@ -202,7 +203,7 @@ fn eof_at_every_prompt_takes_the_defaults() {
     assert_eq!(answers, all_default());
 }
 
-/// An empty line takes the default; an unrecognised line re-prompts.
+/// An empty line takes the default. An unrecognised line re-prompts.
 #[test]
 fn empty_takes_default_and_garbage_reprompts() {
     // workflow: garbage then empty (=> default Flow); priority empty; org empty; gate empty.
@@ -236,7 +237,8 @@ fn default_answers_assemble_and_validate() {
     config.validate().unwrap();
 }
 
-/// `sets` with each one's `pick` axis set to every value of `A`, in turn.
+/// `sets` with each one's `pick` axis set to every value of `A`, one after
+/// another.
 fn across<A: Axis>(sets: Vec<Answers>, pick: fn(&mut Answers, A)) -> Vec<Answers> {
     sets.into_iter()
         .flat_map(|answers| {
@@ -260,9 +262,9 @@ fn every_answer_set() -> Vec<Answers> {
     across::<Recurrence>(sets, |set, value| set.recurrence = value)
 }
 
-/// Every answer set the axes compose declares no command, so `mt init`'s
-/// project runs nothing it must `mt allow` first, on any OS. It walks the
-/// whole cross product, because a command could come from any one fragment.
+/// The axes compose every answer set without a command. On any OS, `mt init`'s
+/// project runs without a prior `mt allow`. The test walks the whole cross
+/// product, because a command could come from any one fragment.
 #[test]
 fn no_answer_set_declares_a_command() {
     let sets = every_answer_set();
@@ -277,7 +279,7 @@ fn no_answer_set_declares_a_command() {
     }
 }
 
-/// The `spec` body-headers answer ships the task template that produces its
+/// The `spec` body-headers answer writes the task template that produces its
 /// required sections.
 #[test]
 fn spec_headers_ship_a_template() {
@@ -302,8 +304,7 @@ fn strict_framework_priority_adopts_the_ice_pack() {
     assert!(config.contains("/packs/"), "{config}");
 }
 
-/// The recorded answer comment round-trips: parsing it back yields the same
-/// answers that produced it.
+/// Parsing the recorded answer comment back yields the answers it recorded.
 #[test]
 fn answer_comment_round_trips() {
     let answers = Answers {
@@ -366,8 +367,8 @@ fn any_is_true_for_each_single_flag() {
     assert!(!Flags::default().any());
 }
 
-/// The extras are skipped only when *all four* are pre-answered. Three flags
-/// with the fourth missing must still offer the accept-defaults gate; reading
+/// The walk skips the extras only when *all four* are pre-answered. Three flags
+/// with the fourth missing must still offer the accept-defaults gate. Reading
 /// the headers line as `||` would treat the three as complete.
 #[test]
 fn three_of_four_extra_flags_still_offer_the_gate() {
@@ -404,7 +405,7 @@ fn ask<A: Axis>(script: &str) -> (A, String) {
     (chosen, String::from_utf8(writer).unwrap())
 }
 
-/// The default choice is the one the menu marks; the marker is not on every
+/// The default choice is the one the menu marks. The marker is not on every
 /// other choice instead. Inverting the equality would mark the others.
 #[test]
 fn the_menu_marks_the_default_choice() {

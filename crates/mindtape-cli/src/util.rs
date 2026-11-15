@@ -36,10 +36,10 @@ pub struct Project {
 impl Project {
     /// Whether `abs` is a task root or lies inside one.
     ///
-    /// Both sides resolve as directories through the nearest existing
-    /// ancestor, so a root directory that does not exist yet is still the root
-    /// a first add lands under, a symlinked root names its target, and a
-    /// symlink on either side cannot make it look outside.
+    /// Both sides resolve as directories through the nearest existing ancestor.
+    /// A root directory that does not exist yet is still the root a first add
+    /// lands under. A symlinked root resolves to its target, and a symlink on
+    /// either side cannot make it look outside.
     #[must_use]
     pub fn holds(&self, abs: &Path) -> bool {
         let abs = crate::cmd::write_guard::resolve_directory(abs);
@@ -56,9 +56,9 @@ static WORKTREE: OnceLock<Option<PathBuf>> = OnceLock::new();
 
 /// Resolve and cache the worktree override for this process.
 ///
-/// `flag` is the `-w`/`--worktree` value; the flag wins over the
+/// `flag` is the `-w`/`--worktree` value. The flag wins over the
 /// `MINDTAPE_WORKTREE` environment variable, which is the fallback. Call once
-/// from `main`; later calls are ignored.
+/// from `main`. The function ignores later calls.
 pub fn init_worktree(flag: Option<PathBuf>) {
     let _ = WORKTREE.set(pick_override(flag, std::env::var_os("MINDTAPE_WORKTREE")));
 }
@@ -72,33 +72,33 @@ fn pick_override(flag: Option<PathBuf>, env: Option<OsString>) -> Option<PathBuf
 /// Process-global `-v` flag, resolved once from `main`.
 static VERBOSE: OnceLock<bool> = OnceLock::new();
 
-/// Record whether `-v` was passed. Call once from `main`; later calls are
-/// ignored. Tests that never call it read `false`.
+/// Record whether the caller passed `-v`. Call once from `main`. The function
+/// ignores later calls. Tests that never call it read `false`.
 pub fn init_verbose(verbose: bool) {
     let _ = VERBOSE.set(verbose);
 }
 
-/// Whether `-v` was passed, for a report that normally folds repeated lines
-/// and should list every site when asked.
+/// Whether the caller passed `-v`, for a report that normally folds repeated
+/// lines and should list every site when asked.
 pub(crate) fn verbose() -> bool {
     VERBOSE.get().copied().unwrap_or(false)
 }
 
-/// Process-global `--hyperlinks` flag, resolved once from `main`. `None`
-/// means the flag was not passed, deferring to `[ls] hyperlinks` — unlike
-/// `WORKTREE`, this cannot be resolved to a final on/off decision until a
-/// project's config is loaded, which is why [`crate::render::link::resolve`]
-/// itself runs from [`open`] rather than from `main`.
+/// Process-global `--hyperlinks` flag, resolved once from `main`. `None` means
+/// the caller didn't pass the flag, which defers to `[ls] hyperlinks`. Unlike
+/// `WORKTREE`, this cannot resolve to a final on/off decision until a project's
+/// config loads, so [`crate::render::link::resolve`] itself runs from [`open`]
+/// rather than from `main`.
 static HYPERLINKS_FLAG: OnceLock<Option<HyperlinkChoice>> = OnceLock::new();
 
-/// Record the `--hyperlinks` flag for this process. Call once from `main`;
-/// later calls are ignored.
+/// Record the `--hyperlinks` flag for this process. Call once from `main`. The
+/// function ignores later calls.
 pub fn init_hyperlinks_flag(flag: Option<HyperlinkChoice>) {
     let _ = HYPERLINKS_FLAG.set(flag);
 }
 
-/// The cached flag, or `None` if [`init_hyperlinks_flag`] never ran (e.g.
-/// tests) or the flag itself was not passed.
+/// The cached flag, or `None` if [`init_hyperlinks_flag`] never ran (as in
+/// tests) or the caller didn't pass the flag.
 fn hyperlinks_flag() -> Option<HyperlinkChoice> {
     HYPERLINKS_FLAG.get().copied().flatten()
 }
@@ -112,7 +112,8 @@ fn resolve_hyperlinks(
     flag.unwrap_or_else(|| config_choice.into())
 }
 
-/// The cached override, or `None` if [`init_worktree`] never ran (e.g. tests).
+/// The cached override, or `None` if [`init_worktree`] never ran (as in
+/// tests).
 fn worktree_override() -> Option<PathBuf> {
     WORKTREE.get().cloned().flatten()
 }
@@ -130,8 +131,8 @@ fn current_dir() -> Result<PathBuf> {
 /// (absolute paths as-is) and requires a `.mindtape/` directory there.
 ///
 /// # Errors
-/// Returns an error if the current directory is unreadable, no project is
-/// found, or the override path lacks a `.mindtape/` directory.
+/// Returns an error if the current directory is unreadable, the walk fails to
+/// find a project, or the override path lacks a `.mindtape/` directory.
 pub fn resolve_root() -> Result<PathBuf> {
     let cwd = current_dir()?;
     resolve_root_with(&cwd, worktree_override().as_deref())
@@ -170,15 +171,15 @@ fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf
 /// Find the project from the current directory (or the worktree override) and
 /// load all its tasks.
 ///
-/// Writes no render state: the project carries its root and its resolved
-/// hyperlink choice ([`resolve_hyperlinks`], [`crate::render::link::resolve`]),
-/// which a renderer reads from its `RenderCtx`. The choice resolves here
-/// rather than in `main`, since it also consults this project's `[ls]
-/// hyperlinks`.
+/// This doesn't write render state. The project carries its root and its
+/// resolved hyperlink choice ([`resolve_hyperlinks`],
+/// [`crate::render::link::resolve`]), which a renderer reads from its
+/// `RenderCtx`. The choice resolves here rather than in `main`, since it also
+/// consults this project's `[ls] hyperlinks`.
 ///
 /// # Errors
-/// Returns an error if a set is held (`mt @set …`), no `.mindtape/` project is
-/// found or the config is invalid.
+/// Returns an error if a set holds the project (`mt @set …`), the walk fails to
+/// find a `.mindtape/` project, or the config is invalid.
 pub fn open() -> Result<Project> {
     crate::project_set::refuse_held()?;
     let root = resolve_root()?;
@@ -248,9 +249,9 @@ fn warn_config(root: &Path, config: &Config) {
     }
 }
 
-/// One `warning:` per load warning of `config`, placed at the file and line
-/// of its key in the layer or pack that holds it, or at the project config
-/// when no file does.
+/// One `warning:` per load warning of `config`. Each sits at the file and line
+/// of its key in the layer or pack that holds it, or at the project config when
+/// no file does.
 pub(crate) fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
     let file = config_path(root);
     let shown = mindtape::relative_to(&file, root);
@@ -268,8 +269,8 @@ pub(crate) fn config_warnings(root: &Path, config: &Config) -> Vec<Diag> {
         .collect()
 }
 
-/// The stem hash of every task the project loaded, closed ones included, so a
-/// task carries the same hash in every listing. A hash never equals a loaded
+/// The stem hash of every task the project loaded, closed ones included. A task
+/// then carries the same hash in every listing. A hash never equals a loaded
 /// stem or a word [`Filter::names_term`] accepts, so neither captures it.
 #[must_use]
 pub fn stem_hashes(tasks: &[Task], config: &Config) -> StemHashes {
@@ -307,21 +308,23 @@ impl<'p> Refs<'p> {
         })
     }
 
-    /// The task a `<task>` argument names: a path from the working directory,
-    /// else an exact stem, else a stem hash.
+    /// Resolve the task a `<task>` argument specifies. The reference is a path
+    /// from the working directory, else an exact stem, else a stem hash.
     ///
     /// # Errors
-    /// Returns why the reference names no task or several; `?` words it.
+    /// Returns the reason a reference failed to resolve, or resolved to more
+    /// than one task. The `?` operator words it.
     pub fn task(&self, reference: &str) -> std::result::Result<Resolved<'p>, RefError> {
         self.resolve(Base::Cwd(&self.cwd), reference)
     }
 
     /// The literal a `links:` edge in `linker`'s file writes for `reference`:
-    /// the path from that file to the task it names, `/`-separated on every
-    /// platform. A path reads from the file, as `mt check` reads the edge.
+    /// the path from that file to the task it references, `/`-separated on
+    /// every platform. A path reads from the file, as `mt check` reads the edge.
     ///
     /// # Errors
-    /// Returns why the reference names no task or several; `?` words it.
+    /// Returns the reason a reference failed to resolve, or resolved to more
+    /// than one task. The `?` operator words it.
     pub fn target(&self, linker: &Task, reference: &str) -> std::result::Result<String, RefError> {
         let base = Base::Linker(&linker.file);
         let found = self.resolve(base, reference)?;
@@ -346,10 +349,12 @@ impl<'p> Refs<'p> {
     }
 }
 
-/// The task a `<task>` argument names, and its file, read by [`Refs::task`].
+/// The task a `<task>` argument specifies, and its file, read by
+/// [`Refs::task`].
 ///
 /// # Errors
-/// Returns the refusal when the reference names no task or several.
+/// Returns the refusal when a reference fails to resolve, or resolves to more
+/// than one task.
 pub fn resolve_task(project: &Project, reference: &str) -> Result<(Task, PathBuf)> {
     let found = Refs::new(project)?.task(reference)?;
     Ok((found.task.clone(), found.path))
@@ -366,10 +371,10 @@ pub fn warn_errors(outcome: &LoadOutcome) {
 /// `kind` is how a file that failed to load reads: [`Kind::Warning`] for a
 /// command that lists what did load, [`Kind::Failed`] for one that fails on it
 /// (`mt check`). Typst's message, its place and its hints come through as
-/// Typst words them. Project-wide advice is said once, not per file: a prelude
-/// that does not resolve is one error naming the install command and the
-/// config key, and the escaped-hash and status hints of [`RegionHints`] each
-/// ride on the first error that needs them.
+/// Typst words them. The function states project-wide advice once, not per
+/// file. A prelude that does not resolve produces one error that carries the
+/// install command and the config key. The escaped-hash and status hints of
+/// [`RegionHints`] each ride on the first error that needs them.
 pub fn report_load_problems(outcome: &LoadOutcome, kind: Kind) {
     for diag in load_problems(outcome, kind) {
         emit(&diag);
@@ -433,10 +438,10 @@ fn load_diag(kind: Kind, error: &LoadError) -> Diag {
 }
 
 /// Canonicalize task source before it lands on disk or stdout. Runs typstyle
-/// (idempotent, so a clean file is unchanged beyond the edited span) when
-/// `[format] enabled` — the default — else passes the surgical edit through
-/// verbatim. Every `mt` write path funnels through here so a fill or injected
-/// argument never leaves non-canonical whitespace behind.
+/// (idempotent: a clean file stays unchanged beyond the edited span) when
+/// `[format] enabled` holds, the default. Otherwise it passes the surgical edit
+/// through verbatim. Every `mt` write path funnels through here so a fill or
+/// injected argument never leaves non-canonical whitespace behind.
 #[must_use]
 pub fn canonical_source(config: &Config, source: String) -> String {
     if config.format.enabled {
@@ -455,7 +460,8 @@ pub fn report_change(verb: &str, task: &mindtape::Task, detail: &str) {
 /// Write `body` to `path`, creating its parent directory first.
 ///
 /// # Errors
-/// Returns an error when the directory or file cannot be written.
+/// Returns an error when `write_creating_parent` cannot create the directory or
+/// write the file.
 pub(crate) fn write_creating_parent(path: &Path, body: &str) -> Result<()> {
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).map_err(|err| Diag::cannot_write(path, &err))?;
@@ -466,7 +472,7 @@ pub(crate) fn write_creating_parent(path: &Path, body: &str) -> Result<()> {
 /// [`canonical_source`], then write the result to `path`.
 ///
 /// # Errors
-/// Returns an error when the file cannot be written.
+/// Returns an error when `write_task` cannot write the file.
 pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
     write_atomic(path, canonical_source(config, source).as_bytes())
         .map_err(|err| Diag::cannot_write(path, &err))

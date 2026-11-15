@@ -1,7 +1,7 @@
 //! End-to-end tests for `[[on.flip]]` hooks, driven through the `mt` binary.
 //!
-//! The load-bearing one is [`read_commands_run_no_flip_action`]: `mt flip` is
-//! the only command that runs an action, and a read that ran one would be a
+//! The central test is [`read_commands_run_no_flip_action`]. `mt flip` is the
+//! only command that runs an action, and a read that ran one would be a
 //! surprise in every editor and commit hook `mt check` runs inside. A read may
 //! run a `[[tasks.waits]]` checker, which `waits_e2e` covers.
 //! Every other test here pins a gate's effect on the write, and the last
@@ -56,7 +56,7 @@ const SENTINEL_HOOK: &str = "[[on.flip]]\nwhen = ''\n\
 ///
 /// The hook fires on every transition, so a single read command reaching the
 /// runner would leave the sentinel behind. The trailing `mt flip` proves the
-/// sentinel mechanism works at all — without it this test would pass on a
+/// sentinel mechanism works at all. Without it this test would pass on a
 /// hook that never ran for anyone.
 #[test]
 fn read_commands_run_no_flip_action() {
@@ -148,7 +148,7 @@ fn force_waives_the_gate_and_records_it_in_the_note() {
     assert!(note.contains("forced past failing gate"), "{note}");
 }
 
-/// A `-m` note keeps its text; the waiver is appended to it.
+/// A `-m` note keeps its text, and the waiver appends to it.
 #[test]
 fn a_waiver_is_appended_to_an_authored_note() {
     let dir = project(
@@ -206,8 +206,8 @@ fn actions_run_in_order_and_stop_at_a_failed_gate() {
     );
 }
 
-/// Piped stdout suppresses `show` and `list` — but the gate still runs, which
-/// is the whole point of separating presentation from enforcement.
+/// Piped stdout suppresses `show` and `list`, but the gate still runs. That is
+/// the whole point of separating presentation from enforcement.
 #[test]
 fn show_and_list_are_silent_when_piped_but_gates_still_run() {
     let dir = project(

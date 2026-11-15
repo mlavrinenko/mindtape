@@ -1,16 +1,16 @@
 //! JSON Schema for `.mindtape/config.toml`, derived from the config structs.
 //!
 //! `schemars` derives the bulk straight off [`crate::config::Config`] and its
-//! nested types — the doc comments on each field become the schema's
-//! descriptions — so the schema tracks the types with no hand-maintained
+//! nested types: the doc comments on each field become the schema's
+//! descriptions. The schema then tracks the types with no hand-maintained
 //! mirror. This module supplies the manual `JsonSchema` impls for the config
 //! types whose `Deserialize` is hand-written (schemars cannot read a custom
 //! deserializer), assembles the root schema, and stamps a title / `$id`.
 //!
-//! `mt install` writes the schema next to the app-wide config; `mt init`
+//! `mt install` writes the schema next to the app-wide config. `mt init`
 //! scaffolds a project config carrying a `#:schema` comment directive that
 //! points at it, so a TOML-schema-aware editor (tombi, Taplo) assists filling
-//! values. The shipped `schema/config.schema.json` is exactly this output,
+//! values. The committed `schema/config.schema.json` is exactly this output,
 //! gate-checked for drift by `tests`.
 
 use std::borrow::Cow;
@@ -22,10 +22,10 @@ use crate::config::{
 };
 use crate::model::naming::DedupMode;
 
-/// Canonical published location of this schema. Used as the schema `$id`, and
-/// as the `#:schema` directive `mt init` writes by default — a checked-in
-/// config has to mean the same thing on someone else's machine, and an editor
-/// fetches and caches the URL, so no local install is required.
+/// Canonical published location of this schema. The schema uses it as its
+/// `$id`, and `mt init` writes it as the `#:schema` directive by default. A
+/// checked-in config has to mean the same thing on someone else's machine, and
+/// an editor fetches and caches the URL, so a local install is unnecessary.
 pub const SCHEMA_URL: &str =
     "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/config.schema.json";
 
@@ -34,8 +34,8 @@ pub const SCHEMA_URL: &str =
 /// so it can never drift from the accepted config shape.
 ///
 /// # Panics
-/// Panics only if the schemars-generated schema fails to serialise to JSON —
-/// unreachable for the well-formed `Config` schema.
+/// Panics only if the schemars-generated schema fails to serialise to JSON,
+/// which is unreachable for the well-formed `Config` schema.
 #[must_use]
 pub fn config_schema_json() -> String {
     stamped_schema_json(

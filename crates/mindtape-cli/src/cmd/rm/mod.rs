@@ -1,43 +1,44 @@
-//! `mt rm` — retire tasks and rewrite inbound links into SWHID tombstones,
-//! atomically. A thin consumer of the consumer-blind [`typst_cleanup`] crate,
-//! which owns the shared skeleton (dirty-tree guard, tombstone minting, atomic
-//! link rewriting). This module supplies the project [`Policy`] ([`TaskLinks`]):
-//! which references a survivor holds ([`TaskLinks::scan`] via
-//! [`mindtape::link_target_spans`] — the `links:` helper edges, not just
-//! `link()`), file-stem link identity, the tombstone label, and the task-worded
-//! presentation.
+//! `mt rm` retires tasks and rewrites inbound links into SWHID tombstones,
+//! atomically. It is a thin consumer of the consumer-blind [`typst_cleanup`]
+//! crate, which owns the shared skeleton (dirty-tree guard, tombstone minting,
+//! atomic link rewriting). This module supplies the project [`Policy`]
+//! ([`TaskLinks`]). That policy covers which references a survivor holds
+//! ([`TaskLinks::scan`] via [`mindtape::link_target_spans`], the `links:` helper
+//! edges, not just `link()`), file-stem link identity, the tombstone label, and
+//! the task-worded presentation.
 //!
-//! Selection: `target` is variadic — zero or more entries, each a task reference
+//! Selection: `target` is variadic, zero or more entries, each a task reference
 //! (stem, path, or stem hash), a folder under a task root or a filter
-//! expression. A reference resolves a single task regardless of its status; a
-//! folder retires every task inside it, as naming each would; a filter retires
-//! every match; the union across every entry, deduplicated by id, is retired in one
-//! pass — one confirmation prompt, one tombstone/rewrite pass. With no targets
-//! at all, the configured `[rm] default_filter` applies (built-in `terminal`:
-//! sweep every terminal-status task).
+//! expression. A reference resolves a single task regardless of its status. A
+//! folder retires every task inside it, as naming each would. A filter retires
+//! every match. The union across every entry, deduplicated by id, retires in
+//! one pass: one confirmation prompt, one tombstone/rewrite pass. With no
+//! targets at all, the configured `[rm] default_filter` applies (built-in
+//! `terminal`: sweep every terminal-status task).
 //!
 //! Atomic by construction: [`typst_cleanup::plan`] computes every mint and
-//! rewrite in memory; not a byte is written until [`apply`] runs on a complete
-//! plan. `rm` does not commit — the user reviews the diff and commits.
+//! rewrite in memory, and every byte waits there until [`apply`] runs on a
+//! complete plan. `rm` does not commit: the user reviews the diff and commits.
 //!
-//! Git is gated on need, not presence: [`run`] scans the survivors for inbound
-//! references before touching the repository, and a task nothing references is
-//! deleted directly ([`typst_cleanup::delete_plan`]) — no strategy-deciding toplevel
-//! discovery, no tombstone, no committed-clean guard. When a survivor does
-//! reference a removed task, the configured `[rm] strategy` decides what
-//! happens to those edges: the git-pinned SWHID tombstone rewrite
-//! (`git-tombstone`, the default in a repository) or one of the gitless
-//! strategies — `reject`, `unlink`, `retire` — implemented in [`gitless`].
-//! Every path's applied report still does one cheap, reused discovery
-//! ([`gitless::print_commit_hint`]) to decide whether the commit hint is
-//! worth printing at all — pointless outside a repository, since there is
-//! nothing to commit and no tool to name.
+//! `rm` gates git on need, not presence. [`run`] scans the survivors for
+//! inbound references before touching the repository. It deletes an
+//! unreferenced task directly ([`typst_cleanup::delete_plan`]), with no
+//! strategy-deciding toplevel discovery, no tombstone, no committed-clean
+//! guard, and no mint. When a survivor does reference a removed task, the
+//! configured
+//! `[rm] strategy` decides what happens to those edges. The choices are the
+//! git-pinned SWHID tombstone rewrite (`git-tombstone`, the default in a
+//! repository) or one of the gitless strategies (`reject`, `unlink`, `retire`),
+//! implemented in [`gitless`]. Every path's applied report still does one cheap,
+//! reused discovery ([`gitless::print_commit_hint`]) to decide whether the
+//! commit hint is worth printing at all. It is pointless outside a repository,
+//! since there is nothing to commit and no tool to name.
 //!
 //! # Files
 //!
-//! - `gitless/` — the strategies when no git repository pins a tombstone.
-//! - `report.rs` — the delete-style plan's report and confirm helpers.
-//! - `select.rs` — resolves the `target` argument into task ids.
+//! - `gitless/`: the strategies when no git repository pins a tombstone.
+//! - `report.rs`: the delete-style plan's report and confirm helpers.
+//! - `select.rs`: resolves the `target` argument into task ids.
 
 use std::collections::HashSet;
 use std::io::IsTerminal;
@@ -71,7 +72,7 @@ use crate::{git, util};
 /// Arguments for `mt rm`.
 #[derive(Args)]
 pub struct RmArgs {
-    /// The tasks to delete: tasks, folders, or a filter such as `done`.
+    /// What to delete: tasks, folders, or a filter such as `done`.
     ///
     /// Each is a task (stem, hash or path), a folder under a task root (every
     /// task inside it, however deep) or a filter such as `done`. Without any,
@@ -85,15 +86,15 @@ pub struct RmArgs {
 
     #[arg(short = 'y', long)]
     pub yes: bool,
-    /// Show what would be deleted and rewritten without changing anything.
+    /// Show the deletions and rewrites without changing anything.
     #[arg(long)]
     pub dry_run: bool,
 }
 
 /// The removal policy. A survivor's rewritable references are its `link()` calls
-/// and `links:` edge strings ([`Self::scan`]); each names a task by file stem
-/// ([`Self::identity`]), unless already a SWHID history pointer. The tombstone is
-/// the bare quoted SWHID.
+/// and `links:` edge strings ([`Self::scan`]). Each reference gives a task by
+/// file stem ([`Self::identity`]), unless already a SWHID history pointer. The
+/// tombstone is the bare quoted SWHID.
 struct TaskLinks;
 
 impl Policy for TaskLinks {
@@ -123,17 +124,17 @@ impl Policy for TaskLinks {
 /// Run the `rm` command.
 ///
 /// Applies the plan in place (deletes the selected task files, rewrites inbound
-/// links) but does not commit — the user reviews the diff and commits. A task
-/// no survivor references is deleted directly, with no git at all: nothing
-/// needs a tombstone, so there is no toplevel discovery, no committed-clean
-/// guard, no mint. When a survivor does reference a removed task, the
-/// configured `[rm] strategy` (default: `git-tombstone` in a repository,
-/// `reject` without one) decides what happens to the inbound edges.
+/// links) but does not commit: the user reviews the diff and commits. `rm`
+/// deletes an unreferenced task directly, with no git at all. Such a task skips
+/// the tombstone, so there is no toplevel discovery, no committed-clean guard,
+/// and no mint. When a survivor does reference a removed task, the configured
+/// `[rm] strategy` (default: `git-tombstone` in a repository, `reject` without
+/// one) decides what happens to the inbound edges.
 ///
 /// # Errors
 /// Returns an error (non-zero exit) on an unresolvable target, an invalid
-/// filter, an unreadable surviving file, a declined prompt, a `reject`
-/// strategy with surviving referrers, or — under `git-tombstone` — an
+/// filter, an unreadable surviving file, a declined prompt, or a `reject`
+/// strategy with surviving referrers. Under `git-tombstone` it also fails on an
 /// uncommitted task file, a task file that is not recoverable from git, a
 /// wrong-shaped surviving file, or any git failure.
 pub fn run(args: &RmArgs) -> Result<()> {
@@ -184,18 +185,18 @@ pub fn run(args: &RmArgs) -> Result<()> {
     }
 }
 
-/// What a run will do, before it happens: a delete-style plan (deletions plus
-/// optional rewrites — the git-tombstone and unlink shapes) or a retire plan
-/// (status flips plus optional moves).
+/// The work a run will do is a delete-style plan (deletions plus optional
+/// rewrites, the git-tombstone and unlink shapes) or a retire plan (status
+/// flips plus optional moves).
 enum Removal {
     Delete(Plan),
     Retire(RetirePlan),
 }
 
 /// Refuse to ask when nobody can answer: with stdin not a terminal the prompt
-/// would read nothing, and `--yes` is the way to confirm without one.
+/// would reach nobody, and `--yes` is the way to confirm without one.
 ///
-/// Takes the terminal answer rather than reading it, so a test reaches both
+/// Takes the terminal answer rather than reading it. A test then reaches both
 /// arms whatever the suite's stdin is.
 fn ensure_can_ask(stdin_is_terminal: bool) -> Result<()> {
     if stdin_is_terminal {
@@ -210,8 +211,8 @@ fn ensure_can_ask(stdin_is_terminal: bool) -> Result<()> {
 /// Ask the person at the terminal whether to go on with `removal`.
 ///
 /// # Errors
-/// Refuses without a terminal to ask on; `aborted by user` when the answer is
-/// no.
+/// Refuses without a terminal to ask on, and reports `aborted by user` when the
+/// answer is no.
 fn ask_to_proceed(removal: &Removal) -> Result<()> {
     ask_with(
         removal,
@@ -220,8 +221,8 @@ fn ask_to_proceed(removal: &Removal) -> Result<()> {
     )
 }
 
-/// [`ask_to_proceed`] with the terminal answer and the question given, so a
-/// test reaches the prompt whatever the suite's stdin is.
+/// [`ask_to_proceed`] with the terminal answer and the question given. A test
+/// then reaches the prompt whatever the suite's stdin is.
 fn ask_with(
     removal: &Removal,
     stdin_is_terminal: bool,
@@ -235,7 +236,7 @@ fn ask_with(
     ensure_confirmed(confirm(&lines)?)
 }
 
-/// `Ok` for a yes; a no is the user stopping the run.
+/// `Ok` for a yes. A no is the user stopping the run.
 fn ensure_confirmed(answered_yes: bool) -> Result<()> {
     if answered_yes {
         return Ok(());
@@ -245,12 +246,12 @@ fn ensure_confirmed(answered_yes: bool) -> Result<()> {
 
 /// The tail shared by every removal path: strategy dry-run reporting,
 /// confirmation, and the atomic apply + summary. Writes nothing on
-/// `--dry-run`. `root` gates the applied report's commit hint — printed only
+/// `--dry-run`. `root` gates the applied report's commit hint, which prints only
 /// inside a git repository.
 ///
 /// # Errors
-/// Without a terminal and without `--yes` it refuses; a declined prompt aborts
-/// with `aborted by user`; the apply propagates its write failures.
+/// Without a terminal and without `--yes` it refuses. A declined prompt aborts
+/// with `aborted by user`. The apply propagates its write failures.
 fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>, root: &Path) -> Result<()> {
     if args.dry_run {
         if let Some(name) = strategy {

@@ -9,7 +9,7 @@ use super::{CommitStates, StateLoader, StatePlan};
 use crate::config::{Config, parse_config};
 use crate::model::Task;
 
-/// A raw task marker needing no prelude package.
+/// A raw task marker that doesn't use the prelude package.
 pub(crate) const MARKER: &str =
     "#metadata((marker: \"mindtape.task\", fields: (title: \"Build\"), extras: (:)))\n";
 

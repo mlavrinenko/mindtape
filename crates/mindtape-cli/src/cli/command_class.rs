@@ -1,28 +1,28 @@
-//! Declared read/write classification for every visible `mt` command — the
+//! Declared read/write classification for every visible `mt` command: the
 //! machine-readable source that replaces hand-typing the CQRS split.
-//! `cli/tree_json.rs` annotates each reflected leaf with its `class`, so it rides
-//! along into `www/generated/cli.json` for free; `docs/src/contributing.typ`
-//! renders the "Command Semantics" bullets from that JSON instead of
-//! retyping them, and `tests/it/read_no_write_e2e.rs` generates a per-command
-//! read test from the same JSON.
+//! `cli/tree_json.rs` annotates each reflected leaf with its `class`. That
+//! class rides along into `www/generated/cli.json` for free.
+//! `docs/src/contributing.typ` renders the "Command Semantics" bullets from
+//! that JSON instead of retyping them. `tests/it/read_no_write_e2e.rs`
+//! generates a per-command read test from the same JSON.
 //!
 //! A command's key is its bare top-level name (`"ls"`), or the space-joined
 //! path for a command under a parent with subcommands (`"explain rules"`,
-//! `"config show"`), the same flattening `cli/tree_json.rs` uses when it
-//! computes a node's path. A parent that runs itself with no listing carries
-//! an entry of its own (`"explain"`); `config` and `preset` carry none,
+//! `"config show"`). That is the same flattening `cli/tree_json.rs` uses when
+//! it computes a node's path. A parent that runs itself with no listing carries
+//! an entry of its own (`"explain"`). `config` and `preset` carry none,
 //! because neither is a command in its own right and `preset`'s two children
 //! land in different classes.
 //!
-//! Exhaustiveness — every visible leaf classified, and no stale entry left
-//! behind by a removed command — is asserted in `cli/tree_json.rs`'s own tests,
+//! `cli/tree_json.rs`'s own tests assert exhaustiveness: every visible leaf
+//! classified, and no stale entry left behind by a removed command. That is
 //! the one place in this crate that sees both `Cli::command()`'s reflected
 //! tree and this table at compile time.
 //!
 //! A read command also carries its [`Reach`]: whether it runs on a set that a
 //! leading `@name` holds. `main` refuses a set for every command not marked
-//! [`Reach::Set`] before it runs ([`refuses_a_set`]), and `cli/tree_json.rs`
-//! exports the mark as `runs_on_set`, so the docs list the set commands from
+//! [`Reach::Set`] before it runs ([`refuses_a_set`]). `cli/tree_json.rs`
+//! exports the mark as `runs_on_set`, and the docs list the set commands from
 //! this table.
 //!
 //! Refs: `truth/tasks/2026-08/gate-the-cqrs-split-against-the-command-tree.typ`,
@@ -42,15 +42,15 @@ pub enum Class {
 /// What a read command runs on.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Reach {
-    /// One project: a held set is refused.
+    /// Runs on one project, and refuses a held set.
     One,
     /// One project, or every project of a held set.
     Set,
 }
 
 /// `(flattened command name, classification)` for every visible leaf `mt
-/// _cli --json` reflects. Order follows `cli/mod.rs`'s own `Command` enum, so a
-/// diff here tracks a diff there.
+/// _cli --json` reflects. Order follows `cli/mod.rs`'s own `Command` enum, and
+/// a diff here tracks a diff there.
 // jscpd:ignore-start
 // A table of `(command, class)` rows: rows of one shape are the data, not a
 // pasted block.
@@ -115,8 +115,8 @@ pub fn runs_on_set(name: &str) -> bool {
 }
 
 /// Whether `argv` names a command that does not run on a set: one not marked
-/// [`Reach::Set`], or one with no class at all (a status verb). A held set is
-/// refused for such a command before it runs. An argv clap refuses, or one
+/// [`Reach::Set`], or one with no class at all (a status verb). `mt` refuses a
+/// held set for such a command before it runs. An argv clap refuses, or one
 /// with no command, is `false`: clap words that itself.
 #[must_use]
 pub fn refuses_a_set(argv: &[std::ffi::OsString]) -> bool {

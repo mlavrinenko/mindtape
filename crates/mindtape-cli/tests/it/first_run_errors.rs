@@ -1,6 +1,6 @@
-//! The first errors a new user meets each name the fix, not only the symptom:
-//! a task file that cannot find the prelude, a config with an unknown table,
-//! and a command run outside any project.
+//! Each first error a new user meets states the fix, not only the symptom.
+//! The tests cover a task file that cannot find the prelude, a config with an
+//! unknown table, and a command run outside any project.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;
@@ -9,9 +9,9 @@ use std::path::Path;
 
 use crate::support;
 
-/// `mt <args>` in `dir`, isolated, with a data home that holds no prelude —
-/// a machine where `mt install` never ran. Returns stderr and whether it
-/// succeeded.
+/// `mt <args>` in `dir`, isolated, with a data home that lacks a prelude, the
+/// state of a machine where `mt install` never ran. Returns stderr and whether
+/// it succeeded.
 fn run_fresh(dir: &Path, args: &[&str]) -> (bool, String) {
     let output = support::mt(dir)
         .env(mindtape::DATA_HOME_ENV, dir.join("empty-data"))
@@ -111,8 +111,8 @@ const PRELUDE_ERROR: &str = "error: can't find the prelude package: '@local/mind
 
 const ONE_RECORD: &str = r#"[{"id":"","file":"","title":"Fix login","status":{"name":"proposed","date":"2026-06-01","note":null},"priority":null,"difficulty":null,"kind":null,"estimate":{},"links":[],"tags":[],"derived_tags":[],"due":null,"start":null,"reviewed":null,"body":"","extras":{}}]"#;
 
-/// `mt import` writes the import this `mt` embeds, so a fresh machine files
-/// every record.
+/// `mt import` writes the import this `mt` embeds. A fresh machine files every
+/// record.
 #[test]
 fn import_on_a_fresh_machine_files_every_record() {
     let (_home, project) = fresh_project();
@@ -220,7 +220,7 @@ fn add_names_the_supported_set_for_a_template_on_an_old_prelude() {
 }
 
 /// A project template on a prelude version this `mt` does not support fails
-/// the check with one error naming the set and the rewrite.
+/// the check with one error that specifies the set and the rewrite.
 #[test]
 fn check_names_the_supported_set_once_for_a_template_on_an_old_prelude() {
     let (_home, project) = fresh_project();

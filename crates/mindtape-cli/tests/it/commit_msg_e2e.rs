@@ -1,7 +1,7 @@
 //! End-to-end tests for `mt check --commit-msg <file>`
 //! (`truth/tasks/2026-09/check-commit-messages-against-commit-rules.typ`): the
-//! `[[commits.rules]]` a `commit-msg` hook runs over the message being
-//! written and the index it is about to commit.
+//! `[[commits.rules]]` a `commit-msg` hook runs over the message the user is
+//! writing and the index it is about to commit.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
@@ -15,8 +15,8 @@ use support::{
     project_with_tasks, scaffold_project,
 };
 
-/// The rule the task ships as its worked example: every commit carrying work
-/// names the task it works on.
+/// The rule the task carries as its worked example: every commit carrying work
+/// references the task it works on.
 const WORK_NAMES_A_TASK: &str = "[commits]\ntrailer = \"Refs\"\n\n\
      [[commits.rules]]\n\
      name = \"name-task-in-refs-trailer\"\n\
@@ -239,7 +239,7 @@ fn check_merges_checks_a_merge_message() {
     );
 }
 
-/// A commit repo whose config extends the shipped `mindtape:tasks` pack.
+/// A commit repo whose config extends the built-in `mindtape:tasks` pack.
 fn pack_repo() -> tempfile::TempDir {
     let dir = commit_repo("");
     let config = dir.path().join(".mindtape/config.toml");
@@ -269,7 +269,7 @@ fn the_pack_still_refuses_a_plain_commit_without_refs() {
     assert!(text.contains("name-task-in-refs-trailer"), "{text}");
 }
 
-/// A trailer whose values may name a task or an external ref, with a rule
+/// A trailer whose values may reference a task or an external ref, with a rule
 /// that needs at least one of either.
 const EXTERNAL_REFS: &str = "[commits]\ntrailer = \"Refs\"\n\
      external-refs = [\"^r#[0-9]+$\"]\n\n\

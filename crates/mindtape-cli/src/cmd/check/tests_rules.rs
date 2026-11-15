@@ -1,7 +1,7 @@
 //! The body-rule half of the `mt check` tests: `[[tasks.body.headers.rules]]`
 //! and `[tasks.body.content.rules]` applied to a real project.
 //!
-//! Split out of `cmd/check/tests.rs` to stay under the line budget; shared
+//! Split out of `cmd/check/tests.rs` to stay under the line budget. Shared
 //! fixtures come from `super::tests`.
 #![allow(clippy::unwrap_used)]
 

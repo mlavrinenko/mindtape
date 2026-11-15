@@ -105,8 +105,8 @@ fn a_template_dir_inside_a_root_is_valid() {
     accepts("[tasks]\nroots = [\"tasks\"]\n\n[templates]\ndirs = [\"tasks/templates\"]\n");
 }
 
-/// A commit state's config goes through `build_config` alone, so a reserved
-/// root it declares is read as written rather than refused at load.
+/// A commit state's config goes through `build_config` alone. The loader reads
+/// a reserved root it declares as written rather than refusing it.
 #[test]
 fn a_historical_state_config_skips_the_reserved_root_check() {
     let (_tmp, home, project) = home_and_project();

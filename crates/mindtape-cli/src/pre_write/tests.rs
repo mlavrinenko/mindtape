@@ -1,6 +1,6 @@
-//! The pre-write seam's own tests: what it accepts, what it refuses, and the
-//! two properties the writers on top of it depend on — that a batch is one
-//! question, and that a refusal touches nothing.
+//! The pre-write seam's own tests. They cover what it accepts and what it
+//! refuses, and the two properties the writers on top of it depend on. A batch
+//! is one question, and a refusal leaves every file as it was.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::tempdir;
@@ -13,7 +13,7 @@ use crate::test_util::make_project;
 use crate::util::Project;
 
 /// A task marker with the given status and `depends-on` edges, written as a
-/// bare `#metadata(...)` so no `@local/mindtape` package has to be installed.
+/// bare `#metadata(...)` so no `@local/mindtape` package needs installing.
 fn marker(status: &str, deps: &[&str]) -> String {
     let links: String = deps
         .iter()
@@ -27,14 +27,14 @@ fn marker(status: &str, deps: &[&str]) -> String {
 }
 
 /// A project under `dir` with `files` already on disk, loaded under the floor
-/// config — whose status legend is non-empty, so a bogus status name is
-/// actually out of bounds.
+/// config. Its status legend is non-empty, which puts a bogus status name out
+/// of bounds.
 fn setup(files: &[(&str, &str)]) -> (tempfile::TempDir, Project) {
     make_project(files, parse_config("").unwrap())
 }
 
-/// The whole point, in one assertion: a rewrite that would not validate is
-/// refused, and the file it would have replaced is byte-identical afterwards.
+/// The whole point, in one assertion: `mt` refuses a rewrite that would not
+/// validate, and the file it would have replaced is byte-identical afterwards.
 #[test]
 fn refuses_a_rewrite_without_touching_the_file() {
     let good = marker("wip", &[]);
@@ -51,8 +51,8 @@ fn refuses_a_rewrite_without_touching_the_file() {
     assert_eq!(std::fs::read_to_string(&file).unwrap(), good);
 }
 
-/// An accepted rewrite hands back the task it will load as, so a batch landing
-/// file by file can fold it into the world the next entry is checked against.
+/// An accepted rewrite hands back the task it will load as. A batch landing
+/// file by file can fold it into the world it checks the next entry against.
 #[test]
 fn accepts_a_rewrite_and_returns_its_task() {
     let (dir, project) = setup(&[("a.typ", marker("wip", &[]).as_str())]);
@@ -72,9 +72,9 @@ fn accepts_a_rewrite_and_returns_its_task() {
 }
 
 /// A batch is one question, not N: `a` depends on `b`, and `b` exists only as
-/// the other candidate in the same batch. Checked together the edge resolves;
-/// this is the property `mt link --apply`, `mt import` and `mt recur --advance`
-/// each rely on.
+/// the other candidate in the same batch. The edge resolves when one batch
+/// holds both candidates. This is the property `mt link --apply`, `mt import` and
+/// `mt recur --advance` each rely on.
 #[test]
 fn resolves_an_edge_between_two_candidates_in_one_batch() {
     let (dir, project) = setup(&[]);
@@ -140,8 +140,8 @@ fn ensure_refuses_the_whole_batch_on_one_bad_entry() {
     assert!(!good_file.exists(), "ensure must not write anything");
 }
 
-/// A source that does not evaluate is reported as its own problem rather than
-/// costing the batch its answer.
+/// A source that does not evaluate becomes its own problem rather than costing
+/// the batch its answer.
 #[test]
 fn reports_a_source_that_does_not_evaluate() {
     let (dir, project) = setup(&[]);
@@ -163,8 +163,8 @@ fn reports_a_source_that_does_not_evaluate() {
     assert!(verdicts[0].problems()[0].contains("no task marker"));
 }
 
-/// A load failure names the line it is at, in the file as it stands on disk, and
-/// in a new task when there is no file yet.
+/// A load failure reports the line it is at, in the file as it stands on disk,
+/// and in a new task when there is no file yet.
 #[test]
 fn a_load_failure_names_its_line() {
     let good = marker("wip", &[]);
@@ -195,7 +195,7 @@ fn a_load_failure_names_its_line() {
 }
 
 /// A destination outside the project root has no project-relative path to
-/// evaluate a candidate at. That is reported as *unchecked*, not as clean:
+/// evaluate a candidate at. The verdict then reads *unchecked*, not clean:
 /// `mt add` reads the flag to fall back to its post-write verification.
 #[test]
 fn marks_a_destination_outside_the_root_unchecked() {
@@ -218,9 +218,9 @@ fn marks_a_destination_outside_the_root_unchecked() {
     assert!(verdicts[0].problems().is_empty());
 }
 
-/// A misconfigured header rule fails the whole call up front — the same
-/// compile error `mt check` reports — rather than silently skipping the rule
-/// or letting a candidate land unchecked against it.
+/// A misconfigured header rule fails the whole call up front, with the same
+/// compile error `mt check` reports, rather than silently skipping the rule or
+/// letting a candidate land unchecked against it.
 #[test]
 fn refuses_to_check_against_an_unparseable_header_rule() {
     let config = parse_config(
@@ -248,8 +248,8 @@ fn refuses_to_check_against_an_unparseable_header_rule() {
 }
 
 /// `absorb` replaces by path, so folding a flipped task in does not leave the
-/// pre-flip copy beside it — which would read as a duplicate id to the very
-/// next check.
+/// pre-flip copy beside it. That copy would read as a duplicate id to the next
+/// check.
 #[test]
 fn absorb_replaces_the_task_at_the_same_path() {
     let mut world = vec![mindtape::test_support::bare_task("a")];

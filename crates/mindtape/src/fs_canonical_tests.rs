@@ -19,7 +19,7 @@ fn canonical_fails_on_a_missing_path() {
     assert!(canonical(&dir.path().join("missing")).is_err());
 }
 
-/// The point of the helper: no `\\?\` reaches the user.
+/// The helper keeps the `\\?\` prefix away from the user.
 #[cfg(windows)]
 #[test]
 fn canonical_drops_the_verbatim_prefix() {

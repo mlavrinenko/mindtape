@@ -1,9 +1,9 @@
-//! End-to-end tests for the array form of `run`: an `[[on.flip]]` action or a
+//! End-to-end tests for the array form of `run`. An `[[on.flip]]` action or a
 //! `[[tasks.waits]]` checker written as `["program", "arg", ...]` spawns the
 //! program directly, with no shell, the same on every platform.
 //!
 //! The program each test spawns is `mt` itself, the one binary every runner
-//! has, so the battery holds on the Windows job too. Its path goes into the
+//! has. The battery then holds on the Windows job too. Its path goes into the
 //! config as a TOML literal string, which keeps a Windows path's backslashes.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
@@ -72,9 +72,9 @@ fn an_array_gate_runs_its_program_and_passes_on_exit_zero() {
     );
 }
 
-/// No shell reads an argument: `&` splits a line under both `sh` and `cmd`,
-/// so the line `mt bogus & exit 0` would pass, but `mt` gets `bogus & exit 0`
-/// as one argument, names it, and exits 2.
+/// The array form never involves a shell: `&` splits a line under both `sh`
+/// and `cmd`, so the line `mt bogus & exit 0` would pass, but `mt` gets
+/// `bogus & exit 0` as one argument, reports it, and exits 2.
 #[test]
 fn an_array_argument_reaches_the_program_whole() {
     let dir = project(&gate(&["bogus & exit 0"]), "()");
@@ -94,8 +94,8 @@ fn an_array_argument_reaches_the_program_whole() {
 
 /// A checker's `{id}` fills one array item: `mt help <id>` exits 0 for a
 /// command that exists, so the task is ready, and 2 for one that doesn't, so
-/// it stays blocked. `mt help` loads no project, so the checker asks no
-/// checker of its own.
+/// it stays blocked. `mt help` doesn't load a project, and the checker runs
+/// without one of its own.
 #[test]
 fn an_array_checker_fills_its_id_into_one_argument() {
     let checker = format!(

@@ -13,8 +13,8 @@ use mindtape::test_support::PRELUDE;
 const TASK: &str =
     mindtape::typst_task!("(\n  title: \"Write the parser\",\n  status: wip(2026, 6, 1),\n)\n");
 
-/// A trailer that names no task is a ref problem, and an error-severity rule
-/// the message breaks is a breach — this config makes one of each fire.
+/// A trailer that references no task is a ref problem, and an error-severity
+/// rule the message breaks is a breach. This config makes one of each fire.
 const RULE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
      [commits]\ntrailer = \"Refs\"\n\n\
      [[commits.rules]]\n\
@@ -25,7 +25,7 @@ const RULE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
      message = \"docs changes need a docs subject\"\n\
      severity = \"error\"\n";
 
-/// A config with no commit rules, so a well-formed message passes.
+/// A config with no commit rules. A well-formed message passes under it.
 const PASS_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[commits]\ntrailer = \"Refs\"\n";
 
 fn git(dir: &Path, args: &[&str]) {
@@ -76,8 +76,9 @@ fn the_failure_count_sums_trailer_problems_and_rule_breaches() {
 
 const QUIET_CHILD: &str = "_MT_CHECK_COMMIT_QUIET_CHILD";
 
-/// `quiet` suppresses the success line: a valid message checked quietly prints
-/// nothing. Dropping the `!` would print it exactly when quiet was asked for.
+/// `quiet` suppresses the success line: a valid message checked quietly stays
+/// silent. Dropping the `!` would print it exactly when the caller asks for
+/// quiet.
 #[test]
 fn quiet_suppresses_the_ok_line() {
     if let Some(stdout) = mindtape::test_support::rerun_isolated_stdout(QUIET_CHILD) {
@@ -96,8 +97,9 @@ fn quiet_suppresses_the_ok_line() {
 
 const WARN_CHILD: &str = "_MT_CHECK_COMMIT_WARN_CHILD";
 
-/// Every state that holds a task file it cannot evaluate is reported as a
-/// warning on stderr. Replacing the body with `()` would print nothing.
+/// `warn_state_errors` reports every state that holds a task file it cannot
+/// evaluate, as a warning on stderr. Replacing the body with `()` would stay
+/// silent.
 #[test]
 fn warn_state_errors_reports_each_state() {
     if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(WARN_CHILD) {

@@ -1,10 +1,10 @@
 //! Load-time warnings: what a config stores that loads fine but is likely a
 //! mistake. [`Config::validate`](crate::config::Config::validate) refuses what
-//! cannot work, and this module only reports, so a command still runs.
+//! cannot work, and this module only reports. A command still runs.
 //!
-//! Today that is a stored filter naming an `x-` field `[tasks.fields]` does not
-//! declare, beside fields it does: reading an undeclared name is legal, so the
-//! misspelling `x-machnie` matches nothing without a word.
+//! Today that is a stored filter that references an `x-` field `[tasks.fields]`
+//! does not declare, beside fields it does. Reading an undeclared name is
+//! legal, so the misspelling `x-machnie` matches no task and passes silently.
 
 use crate::config::Config;
 use crate::problem::Problem;

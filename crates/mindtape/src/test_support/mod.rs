@@ -1,16 +1,16 @@
 //! Shared task fixtures for unit tests.
 //!
 //! Exposed behind the `test-support` feature so dependent crates (the CLI) can
-//! reuse these builders in their own unit tests; within this crate they are
+//! reuse these builders in their own unit tests. Within this crate they are
 //! available to `#[cfg(test)]` code directly.
 //!
 //! Built for the `test-support` feature alone (no `cfg(test)`), so the
 //! crate-root `cfg_attr(test, ...)` exemption from `disallowed-methods`
-//! (`clippy.toml`) does not reach it; it is test fixture code all the same,
-//! hence its own module-wide allow.
+//! (`clippy.toml`) does not reach it. It is test fixture code all the same, so
+//! it carries its own module-wide allow.
 //!
 //! Files: `process.rs` re-runs a test in a child process, `fs.rs` builds temp
-//! projects and git seeds; the task and edge builders live here.
+//! projects and git seeds. The task and edge builders live here.
 #![allow(clippy::disallowed_methods)]
 
 mod fs;
@@ -45,7 +45,7 @@ pub fn assert_schema(value: &serde_json::Value, name: &str) {
 
 /// Typst source opening with the `@local/mindtape` import line, then
 /// `$part`s, string literals. It expands to one literal, so a `const` can hold
-/// it, and a test names the package version only here.
+/// it, and a test states the package version only here.
 #[macro_export]
 macro_rules! typst_import {
     ($($part:literal),+) => {
@@ -109,10 +109,10 @@ pub fn bare_task(id: &str) -> Task {
 /// The config an unconfigured project gets: the embedded floor and nothing
 /// over it.
 ///
-/// [`Config::default`] is not that — it bypasses `defaults.toml` entirely, so
-/// it carries no `[ls.columns]` entries and therefore no column that renders.
-/// A test asserting on what `mt ls` shows wants the floor; a test pinning one
-/// key in isolation still wants `Config::default()`.
+/// [`Config::default`] is not that. It bypasses `defaults.toml` entirely, so
+/// it carries no `[ls.columns]` entries and no column that renders. A test
+/// asserting on what `mt ls` shows wants the floor. A test pinning one key in
+/// isolation still wants `Config::default()`.
 ///
 /// # Panics
 /// Panics only if the compiled-in floor stops parsing, which every other
@@ -123,7 +123,7 @@ pub fn floor_config() -> Config {
     crate::parse_config("").expect("the embedded floor must parse")
 }
 
-/// An `ice` framework priority with the given inputs — the shared fixture for
+/// An `ice` framework priority with the given inputs, the shared fixture for
 /// framework-priority scenarios (schema serialization, validation).
 #[must_use]
 pub fn ice_priority(impact: f64, confidence: f64, ease: f64) -> NumValue {
@@ -137,7 +137,7 @@ pub fn ice_priority(impact: f64, confidence: f64, ease: f64) -> NumValue {
     }
 }
 
-/// A `links:` edge of `kind` to `target`, with no note — the common shape test
+/// A `links:` edge of `kind` to `target`, with no note, the common shape test
 /// fixtures need for readiness/cycle/resolution scenarios.
 /// A [`bare_task`] carrying `links`.
 #[must_use]
@@ -157,14 +157,14 @@ pub fn link_edge(target: &str, kind: &str) -> Link {
     }
 }
 
-/// A `depends-on` edge to `target` — the most common edge kind in fixtures.
+/// A `depends-on` edge to `target`, the most common edge kind in fixtures.
 #[must_use]
 pub fn dep_edge(target: &str) -> Link {
     link_edge(target, "depends-on")
 }
 
-/// A `links:` edge of `kind` to `target` carrying `note` (e.g. the `related`
-/// escape hatch, which requires one).
+/// A `links:` edge of `kind` to `target` carrying `note`, as the `related`
+/// escape hatch requires.
 #[must_use]
 pub fn noted_edge(target: &str, kind: &str, note: &str) -> Link {
     Link {
@@ -186,14 +186,15 @@ pub const TASK_SRC: &str = "#metadata((
 ))
 ";
 
-/// The minimal legend any dependency-graph fixture needs: an open `wip` and a
-/// terminal `done`, with `extra` appended for a project that also declares,
-/// say, a custom blocking link kind. Shared by `graph/ready_tests.rs` and
-/// `graph/dep_rank_tests.rs` — the one-hop and transitive readers of the same edges,
-/// which must be exercised against the same project shape to be comparable.
+/// The minimal legend any dependency-graph fixture needs. It holds an open
+/// `wip` and a terminal `done`, with `extra` appended for a project that also
+/// declares, say, a custom blocking link kind. Shared by `graph/ready_tests.rs`
+/// and `graph/dep_rank_tests.rs`, the one-hop and transitive readers of the
+/// same edges. A test must exercise them against the same project shape to keep
+/// the two comparable.
 ///
 /// # Panics
-/// Panics if `extra` does not parse — a test-only helper, so a malformed
+/// Panics if `extra` does not parse. This is a test-only helper, so a malformed
 /// fixture is a test bug rather than a case to recover from.
 #[must_use]
 #[allow(clippy::unwrap_used)]
@@ -205,7 +206,7 @@ pub fn dep_config(extra: &str) -> Config {
     .unwrap()
 }
 
-/// Each violation as `(task_id, field, message)` — what a check test asserts.
+/// Each violation as `(task_id, field, message)`, what a check test asserts.
 #[must_use]
 pub fn violation_triples(violations: &[crate::validate::Violation]) -> Vec<(&str, &str, &str)> {
     violations
@@ -215,8 +216,8 @@ pub fn violation_triples(violations: &[crate::validate::Violation]) -> Vec<(&str
 }
 
 /// A task with `status` stamped and one `depends-on` edge per entry in `deps`
-/// (each a raw target as authored, e.g. `"other.typ"`) — the fixture shape the
-/// readiness and graph-rank tests are written in.
+/// (each a raw target as authored, such as `"other.typ"`), the fixture shape
+/// the readiness and graph-rank tests use.
 #[must_use]
 pub fn dep_task(id: &str, status: &str, deps: &[&str]) -> Task {
     let mut task = bare_task(id);
@@ -234,9 +235,10 @@ mod tests {
     use super::*;
 
     /// The helper's contract: `@local/mindtape` resolves from the written
-    /// directory, and the prelude lands verbatim. The manifest is asserted by
-    /// the fields a Typst package resolver actually reads, not byte-for-byte —
-    /// a test helper's exact formatting is not a behaviour worth pinning.
+    /// directory, and the prelude lands verbatim. The test asserts the manifest
+    /// through the fields a Typst package resolver actually reads, not
+    /// byte-for-byte. A test helper's exact formatting is not a behaviour worth
+    /// pinning.
     #[test]
     fn write_lib_package_writes_a_resolvable_package() {
         let dir = tempdir();

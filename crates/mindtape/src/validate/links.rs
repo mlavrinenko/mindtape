@@ -1,15 +1,15 @@
 //! Validation for the typed `links:` edge field, split out of `validate/mod.rs`
-//! (file-size gate): target resolution, per-kind cardinality, required-note
-//! enforcement, unknown-kind rejection, and cycle detection over every
-//! acyclic-flagged kind (`depends-on` and `parent` ship flagged this way; see
-//! [`crate::link::acyclic_kinds`]).
+//! (file-size gate). It covers target resolution, per-kind cardinality,
+//! required-note enforcement, unknown-kind rejection, and cycle detection over
+//! every acyclic-flagged kind (`depends-on` and `parent` carry the flag by
+//! default, see [`crate::link::acyclic_kinds`]).
 //!
 //! A kind whose `[[tasks.links.kinds]] validate` is not `local-task-path`
-//! points outside the backlog (a commit, a pull request, a build). Its targets
-//! are checked for *shape* by [`crate::config::links_validate`] instead of being
-//! resolved against the task set, and they take no part in cardinality or
-//! cycles — `acyclic_kinds` already drops them. The note rule still applies, so
-//! such a kind can demand a reason like any other.
+//! points outside the backlog (a commit, a pull request, a build).
+//! [`crate::config::links_validate`] checks its targets for *shape* instead of
+//! resolving them against the task set, and they take no part in cardinality or
+//! cycles, since `acyclic_kinds` already drops them. The note rule still
+//! applies, so such a kind can demand a reason like any other.
 
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
@@ -27,8 +27,8 @@ use crate::validate::severity::Severity;
 use crate::validate::violation::ViolationKind;
 
 /// Validate every task's `links:` edges against `config`, appending violations
-/// to `out`: resolution (or target-shape validation) and per-kind
-/// cardinality/note rules run per task; cycle detection runs once over the
+/// to `out`. Resolution (or target-shape validation) and the per-kind
+/// cardinality/note rules run per task. Cycle detection runs once over the
 /// whole set, per acyclic-flagged kind.
 pub(crate) fn check_all(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
     let files: HashSet<&Path> = tasks.iter().map(|task| task.file.as_path()).collect();
@@ -82,7 +82,8 @@ fn check_unblocked(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
 
 /// Validate one task's edges: resolution against `files` (or target-shape
 /// validation, for a kind that points outside the backlog), unknown-kind
-/// rejection, the note rule, and (once all edges are seen) cardinality.
+/// rejection, the note rule, and cardinality. Cardinality runs once every edge
+/// is in.
 fn check_task(
     task: &Task,
     files: &HashSet<&Path>,
@@ -113,7 +114,7 @@ fn check_task(
 }
 
 /// Flag every kind whose edge count on `task` exceeds its cardinality cap.
-/// Only kinds that target tasks reach here — a cap counts task-graph edges.
+/// Only kinds that target tasks reach here, since a cap counts task-graph edges.
 fn check_cardinality(
     task: &Task,
     per_kind: &HashMap<&str, u32>,
@@ -207,9 +208,9 @@ fn check_note_rule(
     }
 }
 
-/// Flag a cycle over one kind's edges: no valid order exists, so the toposort
-/// fails loud. Attributed to the first task on the loop; the message names
-/// the full chain.
+/// Flag a cycle over one kind's edges. The kind has no valid order, and the
+/// toposort fails loud. The violation lands on the first task on the loop, and
+/// the message spells out the full chain.
 fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
     if let Err(cycle) = toposort_kind(tasks, kind) {
         let task_id = cycle.members.first().cloned().unwrap_or_default();

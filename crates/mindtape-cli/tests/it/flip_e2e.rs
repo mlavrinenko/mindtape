@@ -9,7 +9,8 @@ const LEGEND: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
 /// `mt done --help` is a help request, not a failure: it exits 0, prints to
-/// stdout, names the verb and shows none of the internal parser's doc comment.
+/// stdout, names the verb and shows none of the doc comment of the internal
+/// parser.
 #[test]
 fn shortcut_verb_help_prints_help_and_exits_zero() {
     let dir = support::scaffold_project(LEGEND);
@@ -30,7 +31,7 @@ fn shortcut_verb_help_prints_help_and_exits_zero() {
     assert!(!stdout.contains("mindtape-cli"), "{stdout}");
 }
 
-/// A genuine parse error on a shortcut verb prints clap's usage error once and
+/// A real parse error on a shortcut verb prints clap's usage error once and
 /// exits 2, as `mt flip done --no-such-flag` does.
 #[test]
 fn shortcut_verb_bad_flag_is_a_usage_error_exiting_two() {

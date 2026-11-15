@@ -1,9 +1,9 @@
 //! Folder-derived tags: virtual tags injected from a task's location under its
-//! root. Pure (no I/O) — the loader supplies the path relative to the root dir.
+//! root. Pure (no I/O): the loader supplies the path relative to the root dir.
 //!
-//! A [`RootDeriver`] is built once per root (it compiles the gating globs),
-//! then queried per file. Tags are the union of the root name plus the
-//! configured collectors over the intervening folder segments.
+//! The loader builds a [`RootDeriver`] once per root (it compiles the gating
+//! globs), then queries it per file. Tags are the union of the root name plus
+//! the configured collectors over the intervening folder segments.
 
 use std::path::Path;
 
@@ -15,7 +15,7 @@ use crate::config::{Collector, Config, DeriveConfig, DeriveTags, RootSpec};
 pub struct RootDeriver<'a> {
     enabled: bool,
     name: String,
-    /// Gate matcher; `None` = every file under the root.
+    /// Gate matcher. `None` means every file under the root.
     matcher: Option<GlobSet>,
     global: &'a DeriveConfig,
 }
@@ -34,7 +34,7 @@ impl<'a> RootDeriver<'a> {
     }
 
     /// Derived tags for a file at `rel_within_root` (relative to the root dir).
-    /// Empty when derivation is off for this root or the file is gated out.
+    /// Empty when derivation is off for this root or the gate drops the file.
     #[must_use]
     pub fn tags_for(&self, rel_within_root: &Path) -> Vec<String> {
         if !self.enabled {
@@ -50,7 +50,7 @@ impl<'a> RootDeriver<'a> {
 }
 
 /// Resolve the per-file gate into `(enabled, globs)`. Empty globs with `enabled`
-/// means every file; non-empty globs gate to matches.
+/// means every file, and non-empty globs gate to matches.
 fn resolve(root: &RootSpec, global: &DeriveConfig) -> (bool, Vec<String>) {
     match root.derive_tags() {
         None => (global.enabled, Vec::new()),

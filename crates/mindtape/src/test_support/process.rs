@@ -8,15 +8,16 @@ use std::process::{Command, Output};
 /// `sentinel` set in the child's environment, after `configure` adds its own
 /// env or working directory.
 ///
-/// Process-global state (a `OnceLock`, the `log` global logger) can only be
-/// asserted "unset before init" in a fresh process: sharing the test binary's
-/// process would race on init order and poison the state for every other test.
-/// Callers branch on `std::env::var(sentinel)` — parent side spawns, child side
-/// runs the real assertions. `RUST_LOG` is cleared so the child's logging is
-/// independent of the developer's environment.
+/// A test can assert process-global state (a `OnceLock`, the `log` global
+/// logger) as "unset before init" only in a fresh process. Sharing the test
+/// binary's process would race on init order and poison the state for every
+/// other test. Callers branch on `std::env::var(sentinel)`: the parent side
+/// spawns, the child side runs the real assertions. The helper clears
+/// `RUST_LOG` so the child's logging is independent of the developer's
+/// environment.
 ///
 /// # Panics
-/// Panics if the test binary cannot be spawned, a test-harness bug.
+/// Panics if the test binary fails to spawn, a test-harness bug.
 #[allow(clippy::unwrap_used)]
 pub fn run_self_test(
     test_name: &str,
@@ -46,11 +47,11 @@ pub fn current_test_name() -> String {
 
 /// Run the calling test again, alone, in a fresh process with `sentinel` set
 /// ([`run_self_test`]), assert it ran and passed, and return its output. In
-/// that child the sentinel is set, so this returns `None` and the test body
+/// that child the sentinel is present, so this returns `None` and the test body
 /// runs. Callers write `if rerun_isolated(CHILD).is_some() { return; }`.
 ///
 /// # Panics
-/// Panics if the child failed or ran no test.
+/// Panics if the child failed, or if its filter selected no test.
 pub fn rerun_isolated(sentinel: &str) -> Option<Output> {
     rerun_isolated_with(sentinel, |_| {})
 }
@@ -59,7 +60,7 @@ pub fn rerun_isolated(sentinel: &str) -> Option<Output> {
 /// directory.
 ///
 /// # Panics
-/// Panics if the child failed or ran no test.
+/// Panics if the child failed, or if its filter selected no test.
 pub fn rerun_isolated_with(sentinel: &str, configure: impl FnOnce(&mut Command)) -> Option<Output> {
     if std::env::var(sentinel).is_ok() {
         return None;
@@ -73,7 +74,7 @@ pub fn rerun_isolated_with(sentinel: &str, configure: impl FnOnce(&mut Command))
 /// parent half gets the text, the child half gets `None`.
 ///
 /// # Panics
-/// Panics if the child failed or ran no test.
+/// Panics if the child failed, or if its filter selected no test.
 pub fn rerun_isolated_stdout(sentinel: &str) -> Option<String> {
     rerun_isolated(sentinel).map(|out| String::from_utf8_lossy(&out.stdout).into_owned())
 }
@@ -81,7 +82,7 @@ pub fn rerun_isolated_stdout(sentinel: &str) -> Option<String> {
 /// [`rerun_isolated_stdout`] for the child's stderr.
 ///
 /// # Panics
-/// Panics if the child failed or ran no test.
+/// Panics if the child failed, or if its filter selected no test.
 pub fn rerun_isolated_stderr(sentinel: &str) -> Option<String> {
     rerun_isolated(sentinel).map(|out| String::from_utf8_lossy(&out.stderr).into_owned())
 }

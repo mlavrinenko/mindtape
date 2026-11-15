@@ -1,26 +1,26 @@
-//! `mt _cli` — dump the command tree as JSON for the docs generator.
+//! `mt _cli` dumps the command tree as JSON for the docs generator.
 //!
 //! Hidden. Reflects `Cli::command()` (the clap tree the parser already builds
 //! from the `#[derive(Parser)]` structs) into a stable JSON schema consumed by
 //! the docs site's rendered CLI reference (`www/content/cli.typ`). The derive
-//! structs are the single source of truth; this only reads them back, so the
-//! docs can never restate — or drift from — a flag fact.
+//! structs are the single source of truth. This only reads them back, so the
+//! docs can never restate a flag fact, or drift from one.
 //!
-//! Every leaf command node also carries a `class` field — its read/write
-//! classification from [`crate::cli::command_class`] — so `www/generated/cli.json`
-//! carries the CQRS split for `docs/src/contributing.typ` and
-//! `tests/it/read_no_write_e2e.rs` to read, instead of either retyping it. A
-//! node with subcommands (`config`, `preset`) carries `class: null`: it is
-//! not a leaf, only its children are classified. A parent that runs itself
-//! carries its class and reach too: `explain` with no listing prints the
-//! index. A leaf, and a runnable parent the registry names, also carries
-//! `runs_on_set`, whether the registry marks it as running on a set, so the
-//! docs list the set commands from the table `main` refuses a set by; a node
-//! with subcommands and no class carries `runs_on_set: null`.
+//! Every leaf command node also carries a `class` field: its read/write
+//! classification from [`crate::cli::command_class`]. That way
+//! `www/generated/cli.json` carries the CQRS split for
+//! `docs/src/contributing.typ` and `tests/it/read_no_write_e2e.rs` to read,
+//! instead of either retyping it. A node with subcommands (`config`, `preset`)
+//! carries `class: null`: it is not a leaf, and only its children carry a
+//! class. A parent that runs itself carries its class and reach too: `explain`
+//! with no listing prints the index. A leaf, and a runnable parent the registry
+//! names, also carries `runs_on_set`, whether the registry marks it as running
+//! on a set. The docs then list the set commands from the table `main` refuses
+//! a set by. A node with subcommands and no class carries `runs_on_set: null`.
 //!
-//! A global argument is hoisted once to the root, except one a subcommand
-//! declares for its own subtree (`mt explain --json`), which rides on that
-//! node so the docs show the flag where it is typed.
+//! The dump hoists a global argument once to the root. The exception is one a
+//! subcommand declares for its own subtree (`mt explain --json`), which rides
+//! on that node so the docs show the flag at the node that declares it.
 //!
 //! Refs: `truth/tasks/2026-07/structured-cli-reference-from-command-dump.typ`,
 //! `truth/tasks/2026-08/gate-the-cqrs-split-against-the-command-tree.typ`.
@@ -55,8 +55,8 @@ pub struct CliDumpArgs {
 
 /// Run `mt _cli`: print the reflected command tree as pretty JSON.
 ///
-/// `--json` is accepted for an explicit invocation; JSON is the only format, so
-/// it is emitted regardless.
+/// The dump accepts `--json` for an explicit invocation. JSON is the only
+/// format, and the dump emits it regardless.
 ///
 /// # Errors
 /// Propagates a JSON serialization failure (not expected for this fixed shape).
@@ -74,8 +74,8 @@ fn dump_json() -> Result<String> {
     serde_json::to_string_pretty(&dump(&Cli::command())).map_err(Into::into)
 }
 
-/// The top-level document: about, version, the once-captured globals, and the
-/// recursive command tree.
+/// The top-level document holds about, version, the once-captured globals, and
+/// the recursive command tree.
 fn dump(root: &Command) -> Value {
     let global_ids: Vec<clap::Id> = root
         .get_arguments()
@@ -106,8 +106,8 @@ fn dump(root: &Command) -> Value {
 }
 
 /// The filter language's registry of predicates and functions, each with its
-/// arity (`max` is null when variadic), so the docs gate reads the names off
-/// the code that dispatches them.
+/// arity (`max` is null when variadic). The docs gate reads the names off the
+/// code that dispatches them.
 fn filter_functions() -> Vec<Value> {
     mindtape::filter::functions()
         .iter()
@@ -121,8 +121,8 @@ fn filter_functions() -> Vec<Value> {
         .collect()
 }
 
-/// The `{date:FMT}` tokens `format_iso` reads, in match order, so the docs
-/// render the table the code runs.
+/// The `{date:FMT}` tokens `format_iso` reads, in match order. The docs render
+/// the table the code runs.
 fn date_tokens() -> Vec<Value> {
     mindtape::DATE_TOKENS
         .iter()
@@ -131,7 +131,7 @@ fn date_tokens() -> Vec<Value> {
 }
 
 /// The slot kinds a template may declare, in the order `SlotKind::ALL` lists
-/// them, so the docs render the kinds the parser accepts.
+/// them. The docs render the kinds the parser accepts.
 fn slot_kinds() -> Vec<Value> {
     mindtape::SlotKind::ALL
         .iter()
@@ -140,7 +140,7 @@ fn slot_kinds() -> Vec<Value> {
 }
 
 /// The fields a filter compares, in registry order, each marked with whether
-/// `--sort` takes it, so the docs render the sort rule the code applies.
+/// `--sort` takes it. The docs render the sort rule the code applies.
 fn fields() -> Vec<Value> {
     mindtape::field_names()
         .map(|name| json!({"name": name, "sortable": mindtape::sort::is_sort_field(name)}))
@@ -148,7 +148,7 @@ fn fields() -> Vec<Value> {
 }
 
 /// The built-in link kinds in table order, each with the rule `mt check`
-/// holds its edges to, so the docs render the kinds the code resolves.
+/// holds its edges to. The docs render the kinds the code resolves.
 fn link_kinds() -> Vec<Value> {
     mindtape::link::builtin_kinds()
         .map(|(name, rule)| {
@@ -174,9 +174,9 @@ fn subcommands(cmd: &Command, prefix: &str, global_ids: &[clap::Id]) -> Vec<Valu
         .collect()
 }
 
-/// One command node: name, both about levels, visible aliases, local args,
-/// read/write `class`, `runs_on_set`, and nested subcommands. Global args are dropped here —
-/// they live once at the top.
+/// One command node holds name, both about levels, visible aliases, local args,
+/// read/write `class`, `runs_on_set`, and nested subcommands. The dump drops
+/// global args here, because they live once at the top.
 fn command_json(cmd: &Command, prefix: &str, global_ids: &[clap::Id]) -> Value {
     let name = cmd.get_name();
     let path = flattened_name(prefix, name);
@@ -214,9 +214,10 @@ fn command_json(cmd: &Command, prefix: &str, global_ids: &[clap::Id]) -> Value {
     })
 }
 
-/// A node's flattened path: its own name if `prefix` is empty, else `"<prefix>
-/// <name>"` — the same joining [`crate::cli::command_class::CLASSIFICATION`]'s keys
-/// use for a nested leaf like `"config show"`.
+/// The flattened path of a node is its own name if `prefix` is empty, else
+/// `"<prefix> <name>"`. That is the same joining
+/// [`crate::cli::command_class::CLASSIFICATION`]'s keys use for a nested leaf
+/// like `"config show"`.
 fn flattened_name(prefix: &str, name: &str) -> String {
     if prefix.is_empty() {
         name.to_owned()
@@ -233,9 +234,9 @@ fn has_class(path: &str) -> bool {
 
 /// A leaf's classification as JSON: `"read"`/`"write"`, or `{"kind":
 /// "exempt", "reason": "..."}`. `null` for a name with no
-/// [`crate::cli::command_class`] entry — never expected to ship (the
-/// exhaustiveness tests below catch it first), but this function stays total
-/// rather than panicking the dump itself.
+/// [`crate::cli::command_class`] entry. The dump never expects that case to
+/// reach a release (the exhaustiveness tests below catch it first), but this
+/// function stays total rather than panicking the dump itself.
 fn class_json(path: &str) -> Value {
     match command_class::classify(path) {
         Some(Class::Read(_)) => json!({"kind": "read", "reason": null}),
@@ -248,8 +249,8 @@ fn class_json(path: &str) -> Value {
 /// One argument (positional, flag, or option), discriminated by `kind`.
 ///
 /// Boolean/count flags carry a clap-synthesized value placeholder and
-/// `true`/`false` possible-values; both are formatter noise, so they are
-/// nulled for `flag` kinds — a flag takes no value.
+/// `true`/`false` possible-values. Both are formatter noise, and the dump nulls
+/// them for `flag` kinds, because a flag takes no value.
 fn arg_json(arg: &Arg, path: &str) -> Value {
     let is_flag = kind_of(arg) == "flag";
     json!({
@@ -269,14 +270,14 @@ fn arg_json(arg: &Arg, path: &str) -> Value {
 }
 
 /// Where the argument's values come from, as [`crate::cli::completion::SOURCES`]
-/// declares it: `{"source": "stems", "reason": null}` for an argument with a
-/// value source, `{"source": null, "reason": "..."}` for one deliberately
-/// without, and `null` for an argument the table does not name at all.
+/// declares it. An argument with a value source reads `{"source": "stems",
+/// "reason": null}`, and one deliberately without reads `{"source": null,
+/// "reason": "..."}`. An argument the table does not name at all reads `null`.
 ///
-/// That third state is the one `just docs::facts` fails on, which is why
-/// it is reflected here rather than grepped out of `cli/completion/mod.rs`: the gate
-/// then reads the same table the completers are built from, so it cannot be
-/// satisfied by a mention the parser never sees.
+/// `just docs::facts` fails on that third state. The dump reflects it here
+/// rather than grepping it out of `cli/completion/mod.rs`. The gate then
+/// reads the same table the completers come from, so a mention the parser never
+/// sees cannot satisfy it.
 fn completion_json(path: &str, id: &str) -> Value {
     match completion::lookup(path, id) {
         Some(Source::None(reason)) => json!({"source": Value::Null, "reason": reason}),
@@ -306,7 +307,7 @@ fn value_name(arg: &Arg) -> Option<String> {
         .map(ToString::to_string)
 }
 
-/// The default value rendered as a string, if one is declared.
+/// The default value rendered as a string, when the arg declares one.
 fn default_value(arg: &Arg) -> Option<String> {
     arg.get_default_values()
         .first()

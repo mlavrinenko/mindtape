@@ -3,7 +3,7 @@
 //!
 //! `truth/tasks/2026-11/fold-the-project-listings-into-mt-explain.typ` is the change
 //! these pin. The rules engine itself, and the breach each rule prints, stay
-//! in `rules_e2e.rs`; this file is about the reading surface.
+//! in `rules_e2e.rs`. This file is about the reading surface.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::write_file;
@@ -37,11 +37,11 @@ assert = 'has(refs)'
 message = "name the task in a Refs: footer"
 "#;
 
-/// The project: it extends [`PACK`], overrides `verb-title` with its own
-/// message and severity, disables `no-todo`, adds an unnamed rule with no
-/// message, gates `done` with a flip action that carries a message, declares
-/// tags, views, a dictionary and a collector, and puts `default` last where a
-/// list order might otherwise hide it.
+/// The project extends [`PACK`], overrides `verb-title` with its own message
+/// and severity, disables `no-todo`, and adds an unnamed rule with no message.
+/// It gates `done` with a flip action that carries a message, declares tags,
+/// views, a dictionary and a collector, and puts `default` last where a list
+/// order might otherwise hide it.
 const CONFIG: &str = r#"extends = ["./pack.toml"]
 disable = ["no-todo"]
 
@@ -96,7 +96,7 @@ fn json(dir: &std::path::Path, args: &[&str]) -> serde_json::Value {
     serde_json::from_str(&stdout(dir, args)).unwrap()
 }
 
-/// The bare index names every listing, grouped, and puts `default` first in
+/// The bare index lists every listing, grouped, and puts `default` first in
 /// the view list although the config declares it last.
 #[test]
 fn bare_lists_every_listing_grouped() {
@@ -195,7 +195,7 @@ fn rules_lists_each_rule_after_the_pack_override_and_disable() {
     assert!(text.contains("[path]  derived.changes"), "{text}");
 }
 
-/// Each array rule is named as `mt config show --origin` names it, in its
+/// Each array rule carries the name `mt config show --origin` gives it, in its
 /// order, so a reader can look a listed rule up there.
 #[test]
 fn rules_names_each_rule_as_config_show_origin_does() {
@@ -285,7 +285,7 @@ fn rules_refuses_an_unknown_moment() {
     );
 }
 
-/// The tag scan: an allowed tag with the rules that read it and their
+/// The tag scan shows an allowed tag with the rules that read it and their
 /// messages, an area label for one no rule reads, and `--for` narrowing both.
 #[test]
 fn tags_lists_each_allowed_tag_and_its_rules() {
@@ -394,7 +394,7 @@ fn views_unknown_name_suggests_the_near_miss() {
     );
 }
 
-/// The dictionary list, one dictionary's entries, and the refusal that names
+/// The dictionary list, one dictionary's entries, and the refusal that reports
 /// the command which lists them.
 #[test]
 fn dicts_lists_counts_and_entries() {

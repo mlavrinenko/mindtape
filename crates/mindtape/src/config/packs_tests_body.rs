@@ -1,10 +1,10 @@
 //! End-to-end proof that the embedded `mindtape:tasks` pack, extended alone
-//! (no local rules layered over it), enforces the task practice it ships:
-//! a well-formed body passes every header/content rule the pack declares, an
-//! empty body — the task's own AS-IS step — is refused, and the AS-IS,
-//! decision, statefulness and example rules follow the task's properties.
-//! Split out of `config/packs_tests.rs`, which was already at the linecop
-//! cap, per `CONTRIBUTING.md`'s `just fix-check`/ejectest convention.
+//! (no local rules layered over it), enforces the task practice it carries.
+//! A well-formed body passes every header/content rule the pack declares. The
+//! pack refuses an empty body, the task's own AS-IS step. The AS-IS, decision,
+//! statefulness and example rules follow the task's properties. Split out of
+//! `config/packs_tests.rs`, which was already at the linecop cap, per
+//! `CONTRIBUTING.md`'s `just fix-check`/ejectest convention.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::body::content_gate::compile_content_rules;
@@ -16,11 +16,11 @@ use crate::model::Task;
 use crate::test_support::{bare_task, home_and_project};
 use crate::validate::Violation;
 
-/// Build the typed [`Config`] a project whose only `.mindtape/config.toml`
-/// content is `extends` would load — against the real
-/// [`crate::config::pack_registry::EMBEDDED_PACKS`], not a fixture registry,
-/// so this proves the pack actually shipped, not just that the merge
-/// mechanism works.
+/// Build the typed [`Config`] that a project would load when its only
+/// `.mindtape/config.toml` content is `extends`. The build runs against the
+/// real [`crate::config::pack_registry::EMBEDDED_PACKS`], not a fixture
+/// registry, so this proves the binary actually carries the pack, not just
+/// that the merge mechanism works.
 fn config_extending(extends: &str) -> (tempfile::TempDir, Config) {
     let (tmp, home, project) = home_and_project();
     std::fs::write(project.join(".mindtape").join("config.toml"), extends).unwrap();
@@ -73,7 +73,7 @@ fn task_rule_violations(config: &Config, task: &Task) -> Vec<Violation> {
     out
 }
 
-/// The rule names a body breaches.
+/// The rules a body breaches.
 fn breached(violations: &[Violation]) -> Vec<&str> {
     violations
         .iter()
@@ -102,8 +102,8 @@ fn assert_task_breaches(config: &Config, kind: &str, source: &str, rule: &str) {
     assert_breaches(&violations_for_task(config, &task(kind, &[]), source), rule);
 }
 
-/// A body carrying every section the pack's practice asks for, in the order
-/// it asks for it, each with its markers — the shape `mindtape:tasks`
+/// A body carrying every section the pack's practice requires, in the order
+/// it requires them, each with its markers. This is the shape `mindtape:tasks`
 /// exists to require.
 const WELL_FORMED: &str = "\
 == AS-IS

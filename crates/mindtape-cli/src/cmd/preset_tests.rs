@@ -151,8 +151,8 @@ fn ls_with_no_user_presets_lists_only_builtins() {
     assert!(!out.contains("shadow"));
 }
 
-/// `ls` over an empty (but existing) user preset directory reports no user
-/// presets, same as a missing one.
+/// `ls` over an empty (but existing) user preset directory reports the same as
+/// a missing one: built-ins only.
 #[test]
 fn ls_with_empty_user_preset_dir_lists_only_builtins() {
     let user_dir = tempdir();
@@ -160,9 +160,9 @@ fn ls_with_empty_user_preset_dir_lists_only_builtins() {
     assert!(!out.contains("user presets"));
 }
 
-/// A user preset that matches no built-in and is not the default is marked
-/// with neither marker. Pins both `==` comparisons in `render_ls`: inverting
-/// either spuriously annotates a novel name.
+/// A user preset that matches no built-in and is not the default carries
+/// neither marker. Pins both `==` comparisons in `render_ls`: inverting either
+/// spuriously annotates a novel name.
 #[test]
 fn ls_leaves_a_novel_user_preset_unmarked() {
     let user_dir =
@@ -241,7 +241,7 @@ fn run_save_writes_preset_and_prints_destination() {
     super::run(&args).unwrap();
 }
 
-/// `run` with the `Save` action outside a Mindtape project surfaces
+/// `run` with the `Save` action outside a `Mindtape` project surfaces
 /// `resolve_root`'s error rather than panicking or silently doing nothing.
 #[test]
 fn run_save_outside_project_fails() {
@@ -309,7 +309,7 @@ fn ls_json_marks_a_user_preset_and_its_shadowing() {
 }
 
 /// Run `f` with `dir` read-only, and restore its mode before the caller
-/// asserts anything, so the tempdir can still be removed.
+/// asserts anything, so the tempdir can still go away.
 #[cfg(unix)]
 fn read_only<T>(dir: &std::path::Path, f: impl FnOnce() -> T) -> T {
     use std::os::unix::fs::PermissionsExt;
@@ -320,7 +320,7 @@ fn read_only<T>(dir: &std::path::Path, f: impl FnOnce() -> T) -> T {
 }
 
 /// A user preset directory the OS will not let us add to refuses a save with
-/// "can't create", naming the directory, and writes nothing.
+/// "can't create", references the directory, and doesn't write.
 #[cfg(unix)]
 #[test]
 fn save_reports_a_user_preset_dir_it_cannot_create() {
@@ -358,7 +358,7 @@ fn force_reports_a_flat_preset_it_cannot_remove() {
 }
 
 /// `ls --json` with no user preset directory lists the built-ins only, and
-/// none of them is marked shadowed.
+/// none of them carries the shadowed mark.
 #[test]
 fn ls_json_without_a_user_dir_lists_only_builtins() {
     let json = serde_json::to_value(super::ls_json(None).unwrap()).unwrap();
