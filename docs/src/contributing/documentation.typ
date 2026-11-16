@@ -178,6 +178,9 @@ the prose can't satisfy a rule, keep it at `NO` with the reason beside it.
 Every level has a check. #just.lint-vale-levels() fails on a `MinAlertLevel`
 other than `error`, on any rule set to `warning`, and on a rule of an enabled
 style with no level line. It reads the rule names from `target/vale/styles`.
+It also fails when the linked style predates an edit to
+`.config/vale/local` or the verb dictionaries, with `direnv reload` as the
+remedy.
 A new rule needs a line in every config that enables its style.
 
 == Rules the prose follows

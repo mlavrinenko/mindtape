@@ -19,6 +19,12 @@
 # prints each rule as a boolean, so `warning` and `error` both read `true`, and
 # it omits a rule the config does not name.
 #
+# A stale style is a silent gate change. The dev shell links
+# `target/vale/styles` at its nix build, and a cached direnv or nix evaluation
+# can keep serving the old one after an edit. The drift check catches a stale
+# link. Every overlay file must match its built copy, and each verb dictionary
+# must be older than the `Imperative.tengo` the build embeds it into.
+#
 # The control runs first over a synthetic style and configs. A parser that
 # stopped reading sections would report a clean tree, which is exactly what a
 # correct gate reports. The fixture pins the findings and their order.
@@ -123,7 +129,35 @@ check() {
     ' "$rules" "$config"
 }
 
-# The fixture. It runs against its own style and rules, never the built style,
+# Print a finding for every overlay file or dictionary the built <style>
+# copy left behind. The build copies the overlay verbatim. A differing copy is
+# a stale link. It embeds the dictionaries into the verb list of
+# `Imperative.tengo`, and the check reads that list back to compare it with
+# the dictionaries.
+drift() {
+    local overlay=$1 style=$2 dicts=$3 f status=0
+    while IFS= read -r f; do
+        if ! cmp -s "$overlay/$f" "$style/$f"; then
+            printf 'check-vale-levels: %s/%s differs from the built copy; run direnv reload\n' \
+                "$overlay" "$f"
+            status=1
+        fi
+    done < <(cd "$overlay" && find . -type f | sed 's|^\./||' | sort)
+    if ! diff -q \
+        <(awk '/^verbs := \[/ { inlist = 1; next }
+            /^\]/ { inlist = 0 }
+            inlist { gsub(/[",[[:space:]]/, ""); print }' \
+            "$style/config/scripts/Imperative.tengo") \
+        <(awk '!/^#/ && NF { print $1 }' "$dicts/verbs.txt" "$dicts/dev-verbs.txt") \
+        >/dev/null; then
+        printf 'check-vale-levels: %s disagrees with the verbs in the built Imperative.tengo; run direnv reload\n' \
+            "$dicts"
+        status=1
+    fi
+    return "$status"
+}
+
+# The fixture. It runs against its own style and configs, never the built style,
 # so it proves the parser and the completeness walk without depending on a
 # flake update's rule set.
 control() {
@@ -190,6 +224,44 @@ EOF
             "$got" "$want" >&2
         exit 1
     fi
+
+    # The drift fixture. A matching file passes, a differing file and a
+    # disagreeing verb list each name one finding.
+    local overlay=$1/drift-overlay style=$1/drift-style dicts=$1/drift-dicts
+    mkdir -p "$overlay/Prose" "$overlay/Commits" "$style/Prose" \
+        "$style/Commits" "$style/config/scripts" "$dicts"
+    echo one >"$overlay/Prose/words.txt"
+    echo one >"$style/Prose/words.txt"
+    echo old >"$overlay/Commits/History.yml"
+    echo new >"$style/Commits/History.yml"
+    printf 'verbs := [\n  "run",\n  "fix"\n]\n' >"$style/config/scripts/Imperative.tengo"
+    printf '# a comment\nrun\nfix\n' >"$dicts/verbs.txt"
+    : >"$dicts/dev-verbs.txt"
+    want=$(cat <<EOF
+check-vale-levels: $overlay/Commits/History.yml differs from the built copy; run direnv reload
+EOF
+    )
+    status=0
+    got=$(drift "$overlay" "$style" "$dicts" 2>&1) || status=$?
+    if [ "$status" -eq 0 ] || [ "$got" != "$want" ]; then
+        printf 'check-vale-levels: the control drift fixture gave\n%s\nexpected\n%s\n' \
+            "$got" "$want" >&2
+        exit 1
+    fi
+
+    printf 'verbs := [\n  "run"\n]\n' >"$style/config/scripts/Imperative.tengo"
+    want=$(cat <<EOF
+check-vale-levels: $overlay/Commits/History.yml differs from the built copy; run direnv reload
+check-vale-levels: $dicts disagrees with the verbs in the built Imperative.tengo; run direnv reload
+EOF
+    )
+    status=0
+    got=$(drift "$overlay" "$style" "$dicts" 2>&1) || status=$?
+    if [ "$status" -eq 0 ] || [ "$got" != "$want" ]; then
+        printf 'check-vale-levels: the control stale-verbs fixture gave\n%s\nexpected\n%s\n' \
+            "$got" "$want" >&2
+        exit 1
+    fi
 }
 
 tmp=$(mktemp -d)
@@ -210,6 +282,10 @@ if [ ${#configs[@]} -eq 0 ]; then
 fi
 
 fail=0
+if ! drift .config/vale/local "$(readlink -f "$styles")" crates/mindtape/src/dicts; then
+    echo "check-vale-levels: a stale style reads old rules and old words" >&2
+    fail=1
+fi
 for config in "${configs[@]}"; do
     check "$config" "$rules" || fail=1
 done

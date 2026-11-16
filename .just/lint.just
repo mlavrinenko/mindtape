@@ -62,7 +62,7 @@ banners:
 vale-code:
     bash .just/scripts/check-code-prose.sh
 
-[doc("Fail on a Vale level below error or a rule with no level")]
+[doc("Fail on a Vale level below error, a rule with no level, or a stale style link")]
 [group("gate")]
 vale-levels:
     bash .just/scripts/check-vale-levels.sh
