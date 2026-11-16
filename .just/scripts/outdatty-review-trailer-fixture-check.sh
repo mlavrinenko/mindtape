@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/outdatty-review-trailer-fixture-check.sh — the body of the
+# .just/scripts/outdatty-review-trailer-fixture-check.sh: the body of the
 # `outdatty::trailer-fixture` recipe
 # (truth/tasks/require-a-docs-unaffected-trailer-when-an-outdatty-re-record-
 # edits-no-dependent.typ). Runs from the repo root, like the recipe that
@@ -7,11 +7,11 @@
 #
 # Lock .just/scripts/outdatty-review-trailer.sh, which `.githooks/commit-msg`
 # runs, against the commits it must refuse and the ones it must let through.
-# The check only runs inside a real `git commit`, and what it reads (the index
-# git hands the hook, the message file, the amend and the merge in progress)
-# exists only there, so each case is a real commit in a temp repo whose
+# The check only runs inside a real `git commit`. What it reads (the index git
+# hands the hook, the message file, the amend and the merge in progress)
+# exists only there. So each case is a real commit in a temp repo whose
 # `core.hooksPath` runs the script. The lock is hand-written: the check reads
-# the lock's diff and never hashes a file, so the fixture needs no outdatty.
+# the lock's diff and never hashes a file. The fixture doesn't need outdatty.
 set -eo pipefail
 
 check="$PWD/.just/scripts/outdatty-review-trailer.sh"
@@ -42,8 +42,8 @@ fail() {
     exit 1
 }
 
-# The lock, where this repo keeps it: ls-docs and add-docs share
-# docs/rules.typ, so a re-record of one carries the shared file's hash along
+# The lock, where this repo keeps it. ls-docs and add-docs share
+# docs/rules.typ, so a re-record of one carries the shared file's hash
 # in the other. src-only has no dependents. $1 ls-docs source, $2
 # docs/rules.typ in both groups, $3 add-docs source, $4 src-only source, $5
 # any extra group text.
@@ -85,7 +85,7 @@ edit() { local f; for f in "$@"; do echo two >>"$repo/$f"; done; }
 
 # One commit of the staged tree with the message $2.., asserting exit $1 and
 # that each needle shows in the output (`NOT:x` forbids x). The commit is
-# undone after, so every case starts from `base`.
+# undone after. Every case starts from `base`.
 expect() { # <label> <want: 0|1> <message> <needle>...
     local label=$1 want=$2 msg=$3 rc=0 needle
     shift 3
@@ -145,8 +145,8 @@ expect "two groups, two trailers" 0 "$(printf 'feat: both\n\nDocs-Unaffected: ls
 reset; edit src/ls.rs
 expect "a source edit with no lock change" 0 "feat: ls"
 
-# An amend is judged against HEAD^, so dropping the trailer while rewording a
-# re-record is refused, though the amend itself stages nothing.
+# The hook judges an amend against HEAD^. A reword that drops the trailer
+# from a re-record fails, though the amend itself stages nothing.
 reset; edit src/ls.rs; lock l2 r2 a1
 expect "amend base" 0 "$(printf 'feat: ls\n\nDocs-Unaffected: ls-docs')"
 rc=0

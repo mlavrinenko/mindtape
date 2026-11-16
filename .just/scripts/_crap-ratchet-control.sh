@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/_crap-ratchet-control.sh — the control `just crap::check` runs before
+# .just/scripts/_crap-ratchet-control.sh: the control `just crap::check` runs before
 # it scores the real tree. Runs from the repo root. Builds a one-file tree with
 # two same-named functions in a temp dir, never the working tree.
 set -eo pipefail
@@ -21,7 +21,7 @@ expect() { # <label> <want: 0|1> <output-file> <rc> <needle>...
     done
 }
 
-# write_tree <dir> <blank lines above the impls>: two `D::from`, CC 1 and 3,
+# `write_tree` <dir> <blank lines above the impls>: two `D::from`, CC 1 and 3,
 # with one line of the second left uncovered.
 write_tree() {
     local d=$1 pad=$2 i
@@ -62,7 +62,7 @@ mint() {
     jq --arg root "$1/" '.entries |= map(.file |= ltrimstr($root))' "$2.raw" > "$2"
 }
 
-ratchet() { # <dir> <baseline> <out>; prints the exit status
+ratchet() { # <dir> <baseline> <out>: prints the exit status
     local rc=0
     crap_ratchet "$1" "$2" --path "$1" --lcov "$1/lcov.info" > "$3" 2>&1 || rc=$?
     echo "$rc"

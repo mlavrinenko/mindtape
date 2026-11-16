@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
-# .just/scripts/check-code-prose.sh — the body of the `lint::vale-code`
+# .just/scripts/check-code-prose.sh: the body of the `lint::vale-code`
 # recipe. Runs from the repo root, like the recipe that invokes it.
 #
-# Vale reads comments through the Rust grammar. .config/vale-code.ini names
-# the RustDoc View, a tree-sitter query that keeps `///` and `//!` and drops an
-# inline `//` comment. `[formats] rs = md` parses the comment body as Markdown,
-# so a code span and a fenced doc test stay out. This script points Vale at
-# every Rust source under `crates/`.
+# Vale reads a comment through its file's grammar. The RustDoc View keeps
+# `///` and `//!` and drops an inline `//` comment. `[formats] rs = md` parses
+# the comment body as Markdown, so a code span and a fenced doc test stay out.
+# Vale reads a shell script through the R grammar, whose Comments View keeps
+# each `#` comment and drops a shebang, a heredoc body and a `shellcheck`
+# directive. This script points Vale at every Rust source under `crates/`
+# and every tracked shell script.
 #
-# The control proves the View selects a doc comment, drops an inline one, and
-# keeps each line number.
+# The control proves each reader picks the lines it should and keeps each
+# line number.
+#
 set -eo pipefail
 
-# The control fixture. A hit in each doc form, and a decoy in each form the
-# View must skip.
+# The control fixtures. A hit in each comment form, and a decoy in each form
+# the reader must skip.
 control() {
     local dir actual expected
     dir=$(mktemp -d)
@@ -31,8 +34,19 @@ fn code() { let s = "used to"; }
 /// A SHOUTED word fails.
 /// A `SHOUTED` span passes.
 EOF
+    cat >"$dir/demo.sh" <<'SH'
+#!/usr/bin/env bash
+# A used to phrase in a comment.
+# A `used to` span passes.
+cat <<'EOF'
+used to stays out of the heredoc.
+EOF
+# shellcheck source=/dev/null
+# A SHOUTED word fails.
+echo "used to stays out of code."
+SH
     set +e
-    actual=$(vale --no-global --config=.config/vale-code.ini --output=line "$dir/demo.rs" 2>&1)
+    actual=$(vale --no-global --config=.config/vale-code.ini --output=line "$dir" 2>&1)
     set -e
     rm -rf "$dir"
     actual=$(printf '%s\n' "$actual" |
@@ -40,7 +54,9 @@ EOF
     expected='demo.rs:1:Prose.History
 demo.rs:4:Prose.History
 demo.rs:5:Prose.History
-demo.rs:11:Prose.Shouting'
+demo.rs:11:Prose.Shouting
+demo.sh:2:Prose.History
+demo.sh:8:Prose.Shouting'
     if [ "$actual" != "$expected" ]; then
         printf 'check-code-prose: the control fixture gave\n%s\nexpected\n%s\n' \
             "$actual" "$expected" >&2
@@ -50,5 +66,5 @@ demo.rs:11:Prose.Shouting'
 
 control
 
-git ls-files -z --cached --others --exclude-standard -- 'crates/**/*.rs' |
+git ls-files -z --cached --others --exclude-standard -- 'crates/**/*.rs' '*.sh' |
     xargs -0 -r vale --no-global --config=.config/vale-code.ini --output=line

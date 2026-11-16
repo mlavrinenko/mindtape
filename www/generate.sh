@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# www/generate.sh — capture live `mt` output for the docs site.
+# www/generate.sh: capture live `mt` output for the docs site.
 #
 # The pages read what this writes under www/generated/. A transcript is a
 # record that keeps each command line beside what it printed (www/capture.sh
@@ -7,39 +7,39 @@
 # JSON and source files are facts the pages quote as code. The build regenerates everything, so no transcript can drift
 # from the binary.
 #
-# MINDTAPE_NOW pins "today", and the fixture's dates are written around it, so
-# the same commit renders the same site on every build. A capture changes
-# nothing the binary printed except paths into the build's own directories,
-# which it cuts to project-relative paths or rewrites to a reader's defaults.
+# MINDTAPE_NOW pins "today", and the fixtures set their dates around it. The
+# same commit renders the same site on every build. A capture doesn't change
+# what the binary printed except paths into the build's own directories. It
+# cuts those to project-relative paths or rewrites them to a reader's defaults.
 #
-# `just docs::gen` invokes this; docs::build / docs::serve / docs::check run it first.
+# `just docs::gen` invokes this. docs::build / docs::serve / docs::check run it first.
 #
 # One capture is not an `mt` transcript: release-targets.json reads
 # .github/workflows/release.yml (the build-matrix targets and the
-# `cargo publish -p` crate list) via `yq`, for the same reason as everything
-# else here — the install page must derive from the pipeline that actually
-# ships artifacts, never transcribe it by hand.
+# `cargo publish -p` crate list) via `yq`. The reason matches the rest of
+# this file: the install page must derive from the pipeline that actually
+# releases artifacts, never transcribe it by hand.
 #
 # Docs SSG gotchas (tola), learned building this generator:
-#   - Build-time images (the hero-card SVG)
-#     live only under generated/, never copied to public/. `tola validate`
-#     statically flags an `image("<path>")` string literal as a broken link when
-#     the target isn't a copied asset, so the pages inline these via
-#     `image(read(path, encoding: none), format: "svg")` — validate ignores byte
-#     reads (as it does the `.txt`/`.json` reads) and the inline is identical.
-#     Keep any new build-time image on the read() path, not a bare `image(path)`.
+#   - Build-time images (the hero-card SVG) live only under generated/, never
+#     copied to public/. `tola validate` statically flags an `image("<path>")`
+#     string literal as a broken link when the target isn't a copied asset.
+#     The pages inline these via `image(read(path, encoding: none), format: "svg")`
+#     because validate ignores byte reads (as it does the `.txt`/`.json` reads)
+#     and the inline is identical. Keep any new build-time image on the read()
+#     path, not a bare `image(path)`.
 #   - `tola serve` caches its file index at startup: a brand-new generated/ file
 #     is not found by an already-running serve (pre-existing files read fine).
-#     Restart serve (`just docs::serve`) after adding a capture here; `tola build`
-#     (the gate path) always re-scans and is unaffected.
+#     Restart serve (`just docs::serve`) after adding a capture here.
+#     `tola build` (the gate path) always re-scans and remains unaffected.
 set -eo pipefail
 
-# The fixed docs clock. The fixtures under examples/ are dated around it.
-# The scripts that capture api-service export their own clock, because its
-# tasks are dated in late September.
+# The fixed docs clock. The fixtures under examples/ set their dates around
+# it. The scripts that capture api-service export their own clock, because
+# its tasks carry late-September dates.
 export MINDTAPE_NOW=2026-07-06
-# An empty value drops the user config layer, so a builder's own defaults.toml
-# neither changes a capture nor appears in `config show --origin`.
+# An empty value drops the user config layer. A builder's own defaults.toml
+# then neither changes a capture nor appears in `config show --origin`.
 export MINDTAPE_CONFIG_HOME=
 # A capture shows the URL a released binary names, never a `file://` path into
 # this worktree: pin the schema base empty so it falls back to the canonical
@@ -53,53 +53,53 @@ FIX="$REPO/examples/api-service"
 OUT="$SCRIPT_DIR/generated"
 MT="$REPO/target/debug/mt"
 
-# Serialize every writer of www/generated/ (see www/generate-facts.sh for the
-# other one). `just check` is [parallel] and three of its arms touch this
-# directory: docs::check runs this script, while check-doc-facts and
-# docs::md-check regenerate the facts inside it. The `rm -rf` below would then
-# delete the facts out from under a concurrent reader — an intermittent
-# "file not found (searched at www/generated/crate-map.json)" on work that is
-# perfectly correct (truth/tasks/stop-the-generated-docs-writers-racing-under-
-# parallel-check.typ). Re-exec under flock rather than locking at each call
-# site, so a new caller is safe by default instead of by remembering.
+# Serialize every writer of www/generated/ (see www/generate-facts.sh for the other
+# one). `just check` is [parallel] and three of its arms touch this directory:
+# docs::check runs this script, while check-doc-facts and docs::md-check
+# regenerate the facts inside it. The `rm -rf` below would then delete the
+# facts out from under a concurrent reader, which intermittently hits "file
+# not found (searched at www/generated/crate-map.json)". The hit lands on
+# perfectly correct work (truth/tasks/stop-the-generated-docs-writers-racing-
+# under-parallel-check.typ). Re-exec under flock rather than locking at each
+# call site, so a new caller is safe by default instead of by remembering.
 #
 # The lock lives under target/ because this script deletes the directory it
 # would otherwise live in.
 #
-# The build runs before the lock is taken, deliberately. Every reader of
-# www/generated/ holds this lock for its whole run (docs/generate-md.sh
-# and the check-doc-facts recipe both do), so anything held inside it is time
-# the rest of `just check`'s [parallel] arms spend blocked. This is the debug
-# binary: the captures are --help/_cli/config/ls transcripts, byte-identical to
-# release (nothing here depends on optimisation), and `target/debug/mt` is the
-# artifact the test suite already keeps warm — so a docs run pays a ~15s debug
+# The build runs before the script takes the lock, deliberately. Every reader
+# of www/generated/ holds this lock for its whole run (docs/generate-md.sh
+# and the check-doc-facts recipe both do). Anything held inside it is time the
+# rest of `just check`'s [parallel] arms spend blocked. This is the debug
+# binary: the captures are `--help/_cli/config/ls` transcripts, byte-identical
+# to release (nothing here depends on optimisation). `target/debug/mt` is the
+# artifact the test suite already keeps warm. A docs run pays a ~15s debug
 # rebuild, not a minutes-long fat-LTO relink (truth/tasks/capture-docs-output-
 # with-the-debug-binary-not-release.typ).
 # `--tests` keeps this the same `mt` the test arm links (the dev-dependency
-# features), so it never relinks `target/debug/mt` under that arm; see
+# features), so it never relinks `target/debug/mt` under that arm. See
 # docs/contributing/gates.md, "One mt binary, one feature set".
 ( cd "$REPO" && cargo build -p mindtape-cli --tests -q )
 
 # Taken on a file descriptor rather than by re-exec'ing under `flock`, because
-# a re-exec would rerun the build above. The lock is held until this script
+# a re-exec would rerun the build above. This script holds the lock until it
 # exits and fd 9 closes. MINDTAPE_GENERATED_LOCK tells the nested
 # generate-facts.sh and generate-site-pages.sh calls at the end of this file
-# that the lock is already held, so neither deadlocks waiting for a lock this
+# that the lock is already held. Neither deadlocks waiting for a lock this
 # process owns.
 #
 # Acquisition itself is conditional on that same variable, for a second
-# reason beyond the nested calls: check-doc-facts.sh and docs/generate-md.sh
+# reason beyond the nested calls. check-doc-facts.sh and docs/generate-md.sh
 # both call this script (`bash www/generate.sh`, because the site-pages
-# manifest needs this script's captures too), and both already hold the lock — via their own
-# `exec 9>...; flock 9` — across the regenerate and their own subsequent
-# reads, for the same race this comment block opens with. Without this
-# check, this script's unconditional `exec 9>...; flock 9` would open a
-# second file descriptor on the same lock file and block forever on the
-# first one, held by a parent that is itself blocked waiting for this
-# script to exit — a guaranteed deadlock. Skipping the acquisition when a
-# caller already holds it is the same reentrant handshake generate-facts.sh
-# uses for the nested call below; this is that handshake applied
-# one level up, where generate.sh itself can be the nested call.
+# manifest needs this script's captures too). Both already hold the lock,
+# via their own `exec 9>...; flock 9`, across the regenerate and their
+# subsequent reads, for the same race this comment block opens with.
+# Without this check, this script's unconditional `exec 9>...; flock 9`
+# would open a second file descriptor on the same lock file. It would then
+# block forever on the first one, held by a parent that is itself blocked
+# waiting for this script to exit. That guarantees a deadlock. Skipping the
+# acquisition when a caller already holds it is the same reentrant handshake
+# generate-facts.sh uses for the nested call below. This is that handshake
+# applied one level up, where generate.sh itself can be the nested call.
 mkdir -p "$REPO/target"
 if [ -z "$MINDTAPE_GENERATED_LOCK" ]; then
   exec 9>"$REPO/target/www-generated.lock"
@@ -113,28 +113,28 @@ mkdir -p "$OUT"
 # version + structured command tree
 "$MT" --version >"$OUT/version.txt"
 # The command tree as JSON (clap reflection via the hidden `_cli`). cli.typ
-# renders it into the styled CLI reference — grouped commands and flag tables,
+# renders it into the styled CLI reference: grouped commands and flag tables,
 # not a verbatim `--help` dump. The `#[derive(Parser)]` structs are the single
-# source, so the reference cannot restate or drift from a flag fact; the
+# source. The reference cannot restate or drift from a flag fact, and the
 # reference-only prose and worked examples live in www/utils/cli-notes.typ.
 "$MT" _cli --json >"$OUT/cli.json"
 
-# The config JSON Schema (project-independent — the exact bytes `mt install`
+# The config JSON Schema (project-independent: the exact bytes `mt install`
 # also writes to disk). config.typ renders it into the generated Sections
-# table; config-gate (www/utils/config-ref.typ) asserts every schema property
-# is surfaced, so a newly added config key cannot silently vanish — same
-# discipline as cli.json above.
+# table. config-gate (www/utils/config-ref.typ) asserts the table surfaces
+# every schema property. A newly added config key cannot silently vanish,
+# the same discipline as cli.json above.
 "$MT" config schema >"$OUT/config-schema.json"
 
 # The `at.toml` JSON Schema, which `mt install` writes beside the one above.
 # read-many-projects.typ and the board note in cli-notes.typ render its key
-# tables. The file is committed, and the golden test in crates/mindtape holds
-# it to the structs.
+# tables. The golden test in crates/mindtape holds this committed file to
+# the structs.
 cp "$REPO/schema/at.schema.json" "$OUT/at-schema.json"
 
-# release workflow: prebuilt targets + published crates
+# release workflow: prebuilt targets + published crates.
 # Derived from .github/workflows/release.yml by generate-release-targets.sh
-# (its own file, so this one clears the Shell cap); the call sits here, ahead
+# (its own file, so this one clears the Shell cap). The call sits here, ahead
 # of the read-command captures below, because the install page it feeds is not
 # one of them.
 bash "$SCRIPT_DIR/generate-release-targets.sh" "$REPO" "$OUT"
@@ -157,11 +157,11 @@ python3 "$SCRIPT_DIR/lsp-capture.py" "$REPO" "$OUT"
 # The task carries docs:slice markers for other pages, which the hero omits.
 grep -v '^// docs:' "$FIX/tasks/throttle-failed-logins-per-ip.typ" >"$OUT/hero-source.typ"
 
-# The hero "typeset" face is that same task, genuinely compiled by the `task`
-# show rule (lib/prelude.typ) — not hand-built HTML. Typst HTML export inlines
+# The hero "typeset" face is that same task, compiled by the `task` show
+# rule (lib/prelude.typ), not hand-built HTML. Typst HTML export inlines
 # the SVG as a self-contained data-uri `<img>`, so nothing lands in public/.
 # Resolve @local/mindtape via a throwaway local-package path symlinked at lib/,
-# so this never depends on `just install::lib` being run first.
+# so this never depends on `just install::lib` running first.
 PKGS="$(mktemp -d)"
 LIBVER="$(sed -n 's/^version = "\(.*\)"/\1/p' "$REPO/lib/typst.toml" | head -1)"
 mkdir -p "$PKGS/local/mindtape"
@@ -170,42 +170,42 @@ typst compile --package-path "$PKGS" \
   "$FIX/tasks/throttle-failed-logins-per-ip.typ" "$OUT/hero-card.svg"
 rm -rf "$PKGS"
 
-# The records: the quickstart's session, the CLI reference's captures, and a
-# session for each recipe examples/api-service holds.
+# The records hold the quickstart's session, the CLI reference's captures, and
+# a session for each recipe examples/api-service holds.
 bash "$SCRIPT_DIR/generate-quickstart.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-cli.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-api-service.sh" "$REPO" "$OUT"
 
-# --- favicon + apple touch icon, rasterised from the one hand-maintained SVG --
+# favicon + apple touch icon, rasterised from the one hand-maintained SVG.
 # assets/images/ (unlike generated/) is a tola-copied dir (see the header
-# comment above), so a file written here lands at a real, stable public URL —
-# the <link> tags in layout.typ point at it. Regenerated every build from
+# comment above), so a file written here lands at a real, stable public URL.
+# The <link> tags in layout.typ point at it. Regenerated every build from
 # logo.svg, the sole hand-maintained copy of the mark, so the raster can never
-# drift from it; both PNGs are gitignored (see www/.gitignore / www/.ignore).
+# drift from it. Git ignores both PNGs (see www/.gitignore / www/.ignore).
 LOGO="$SCRIPT_DIR/assets/images/logo.svg"
 rsvg-convert -w 32 -h 32 "$LOGO" -o "$SCRIPT_DIR/assets/images/favicon-32.png"
 rsvg-convert -w 180 -h 180 "$LOGO" -o "$SCRIPT_DIR/assets/images/apple-touch-icon.png"
 
-# Restore the derived facts inside the same critical section that deleted
-# them. Splitting the wipe and the restore across two lock acquisitions would
-# leave a window where www/generated/ exists with no facts in it, which is the
-# exact state a concurrent reader must never see. `just docs::gen` still calls
-# generate-facts.sh after this script — that run is idempotent and locked, and
-# it keeps the recipe honest about what it produces.
+# Restore the derived facts inside the same critical section that deleted them.
+# Splitting the wipe and the restore across two lock acquisitions would leave
+# a window where www/generated/ exists with no facts in it. That window is
+# the exact state a concurrent reader must never see. `just docs::gen` still
+# calls generate-facts.sh after this script: that run is idempotent and
+# locked, and it keeps the recipe honest about what it produces.
 bash "$SCRIPT_DIR/generate-facts.sh"
 
-# Then the page manifest — after generate-facts.sh, never before, and inside
-# the same lock: compiling a page (www/generate-site-pages.sh's query is a
-# full compile) imports layout.typ -> site.typ, which needs crate-map.json
-# (PKG_VERSION) just written above, plus every capture this script itself
-# wrote (hero-source.typ, cli.json, …) — a page importing utils/ui.typ dies on
-# a top-level read() otherwise (measured in the umbrella task). Its own file
+# Then the page manifest, after generate-facts.sh, never before, and inside the
+# same lock. Compiling a page is a full compile (www/generate-site-pages.sh's
+# query). It imports layout.typ -> site.typ. That chain needs crate-map.json
+# (PKG_VERSION) just written above, plus every capture this script wrote
+# (hero-source.typ, cli.json, …). A page importing utils/ui.typ dies on a
+# top-level read() otherwise (measured in the umbrella task). Its own file
 # because this one is already at .config/linecop.yaml's 300-line Shell cap.
 bash "$SCRIPT_DIR/generate-site-pages.sh"
 
-# A capture shows what any reader's `mt` prints, so no capture may name this
+# A capture shows what any reader's `mt` prints, so no capture may mention this
 # machine: refuse a hit on $HOME or the repo root, naming file and line. An
-# empty or `/` needle would match every line, so it is skipped.
+# empty or `/` needle would match every line. The case below skips it.
 needles=()
 for dir in "$HOME" "$REPO"; do
   case "$dir" in "" | /) ;; *) needles+=(-e "$dir") ;; esac

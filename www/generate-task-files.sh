@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# www/generate-task-files.sh — the captures /task-files/ shows. www/generate.sh
+# www/generate-task-files.sh: the captures /task-files/ shows. www/generate.sh
 # calls it inside the lock it holds, so this script takes no lock of its own.
 #
-# The page walks examples/task-files/tasks/fix-the-login-redirect.typ, so this
+# The page walks examples/task-files/tasks/fix-the-login-redirect.typ. This
 # copies it under generated/ without its docs:slice markers, as generate.sh
 # does for the hero source. Then it copies each broken file from
-# examples/task-files/invalid/ into a scratch copy of the project, captures the
-# `mt check` that refuses it, and removes it again, so each record shows one
-# error. Each capture expects exit 1 and the error the page explains, so the
+# examples/task-files/invalid/ into a scratch copy of the project, captures
+# the `mt check` that refuses it, and removes it again. Each record shows one
+# error. Each capture expects exit 1 and the error the page explains. The
 # build fails if a mistake starts passing or fails for another reason.
 set -eo pipefail
 
@@ -23,7 +23,7 @@ source "$REPO/www/capture.sh"
 capture_init
 capture_copy TF "$FIX"
 
-# check_invalid <stem> <regex>: capture `mt check` with invalid/<stem>.typ
+# `check_invalid` <stem> <regex>: capture `mt check` with invalid/<stem>.typ
 # among the tasks, as the record task-files-<stem>.
 check_invalid() {
   cp "$TF/invalid/$1.typ" "$TF/tasks/$1.typ"

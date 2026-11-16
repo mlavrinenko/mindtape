@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# www/generate-packs.sh — capture every built-in pack, this repo's
-# own `mt config show --origin`, a pack's priority merged below the project's,
-# a directory pack, a pack's parameter set from `with`, and ten configs
-# `mt` refuses, for /packs/.
+# www/generate-packs.sh: capture every built-in pack, this repo's own
+# `mt config show --origin`, and a pack's priority merged below the project's.
+# It also captures a directory pack, a pack's parameter set from `with`, and
+# ten configs `mt` refuses, for /packs/.
 #
-# Split out of www/generate.sh (which calls this, still inside the lock it
-# already holds) under the same 300-line Shell cap that split off
-# generate-self-validating.sh — see that script's header for the reasoning
-# this one does not repeat.
+# Split out of www/generate.sh, which calls this, still inside the lock it
+# already holds. The same 300-line Shell cap that split off
+# generate-self-validating.sh split this one out too. See that script's header
+# for the reasoning this one does not repeat.
 #
 # Unlike every other capture in generate.sh, this one runs `mt` against the
-# real repo, not a fixture: the packs' dogfood use — one pack replacing
-# another's rule by name (`allow-only-declared-sections`, in
-# `mindtape:dogfood`), and a project-only rule no pack has an opinion on
-# (`give-every-goal-verdict`) — is the worked example the page quotes, and only
-# this repo's own config shows it. `config show --origin` is read-only (see
-# CONTRIBUTING.md's command-class table), so running it here mutates
-# nothing.
+# real repo, not a fixture. The packs' dogfood use is the worked example the
+# page quotes. It covers one pack replacing another's rule by name
+# (`allow-only-declared-sections`, in `mindtape:dogfood`) and a project-only
+# rule no pack has an opinion on (`give-every-goal-verdict`). Only this repo's
+# own config shows it. `config show --origin` belongs to the read-only class
+# (see CONTRIBUTING.md's command-class table), so running it here doesn't
+# mutate anything.
 set -eo pipefail
 
 REPO="$1"
@@ -24,8 +24,8 @@ OUT="$2"
 MT="$REPO/target/debug/mt"
 
 # Every pack file, copied verbatim to packs/<pack>.toml so a page can read()
-# it under www's --root (same reason generate.sh copies hero-source.typ and
-# template.typ out of examples/api-service instead of reading them in place).
+# it under `www`'s `--root`. generate.sh copies hero-source.typ and template.typ
+# out of examples/api-service for the same reason, not reading them in place.
 mkdir -p "$OUT/packs"
 cp "$REPO"/crates/mindtape/src/packs/*.toml "$OUT/packs/"
 
@@ -46,8 +46,8 @@ capture packs-merge "$merge" 'head .mindtape/config.toml team.toml'
 capture packs-merge "$merge" \
   "mt config show --json | jq -c '.config.tasks.priority | {framework, \"allow-manual\", min, max}'"
 
-# A directory pack: its `pack.toml` is the pack, and the template beside it
-# reaches `mt add --list`.
+# A directory pack is its `pack.toml`, and the template beside it reaches
+# `mt add --list`.
 dirpack=
 capture_scratch dirpack
 mkdir -p "$dirpack/.mindtape" "$dirpack/team/templates"
@@ -114,11 +114,11 @@ refused packs-params-unknown 'has no parameter' 'head .mindtape/config.toml team
   $'.mindtape/config.toml=extends = [{ pack = "./team.toml", with = { max-file = 8 } }]\n' \
   $'team.toml=[params]\nmax-files = 5\n'
 
-# A pack source the build can fetch offline: a bare repository beside the
+# A pack source the build can fetch offline: the bare repository beside the
 # project, whose `v1` and `v2` tags hold two commits of one pack, and `v2`
 # a second pack. `mt packs update` locks `v1`, `mt packs install` fetches it
 # into an empty cache, and the bump to `v2` prints what the new commit
-# changes. git reads no config of the builder's, and the fixed identity and
+# changes. git doesn't read the builder's config, and the fixed identity and
 # dates give each commit the same hash on every build. capture.sh points
 # MINDTAPE_CACHE_HOME at the capture area, which prints as `~/.cache`.
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# www/generate-import-export.sh — run the /import-export/ recipes and record
+# www/generate-import-export.sh: run the /import-export/ recipes and record
 # them. www/generate.sh calls it inside the lock it holds, so this script takes
 # no lock of its own.
 #
@@ -8,7 +8,7 @@
 # `mt ls '' --json`, imports the file into a new project and lists it there.
 # The export recipes run against the same fixture.
 #
-# `mt import` exits 1 when it skips a record, so a skip fails the build, and the
+# `mt import` exits 1 when it skips a record. A skip fails the build, and the
 # round trip fails it when the new project's tasks differ from the ones
 # exported.
 set -eo pipefail
@@ -24,7 +24,7 @@ source "$REPO/www/capture.sh"
 export MINDTAPE_NOW=$API_SERVICE_NOW
 capture_init
 
-# capture_one <slug> <dir>: capture all of stdin as one command. A quoted
+# `capture_one` <slug> <dir>: capture all stdin as one command. A quoted
 # heredoc keeps a multi-line command exactly as the reader sees it.
 capture_one() { capture "$1" "$2" "$(cat)"; }
 
@@ -88,8 +88,8 @@ EOF
 # /schema/
 # The output index, one full record, the two shapes of `priority` from
 # examples/dsl/, which configures the ICE framework, and the envelope with its
-# records counted. www/generate.sh pins MINDTAPE_SCHEMA_BASE empty, so the
-# index names the canonical URL a released binary prints.
+# records counted. www/generate.sh pins MINDTAPE_SCHEMA_BASE empty. The index
+# lists the canonical URL a released binary prints.
 capture schema-list "$SRC" 'mt schema'
 capture schema-record "$SRC" "mt ls 'id == \"expire-idle-sessions\"' --json | jq '.tasks[0]'"
 capture schema-priority "$REPO/examples/dsl" "mt ls '' --json | jq -c '.tasks[] | {id, priority}'"

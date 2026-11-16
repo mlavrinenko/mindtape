@@ -1,9 +1,9 @@
-# ask-refactoring: the dry arm — the clones `just lint::dry` tolerates.
+# ask-refactoring: the dry arm: the clones `just lint::dry` tolerates.
 #
-# Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
+# Sourced by `contrib/ask-refactoring.sh`, not executable on its own. It reads
 # that script's globals (`$repo`, `$MT`, `$WRITE`, `$DRY_GAIN`) and calls its `stem_for` and
-# `file_finding`. It owns three functions the driver looks up by name —
-# `score_dry`, `signal_dry` and `emit_dry` — reading jscpd's json report.
+# `file_finding`. It owns three functions the driver looks up by name:
+# `score_dry`, `signal_dry` and `emit_dry`, reading jscpd's json report.
 #
 # The gate stops a new clone, and `.config/jscpd-baseline.json` lists the ones
 # that predate it. A tolerated clone is not enforced by anything, so it is the
@@ -13,21 +13,21 @@
 # block into a class that lists each copy once. It keeps the classes marked
 # `isNew: false`.
 #
-# Fold: classes are taken by gain, highest first, and one whose copies mostly
-# (half or more) fall on lines a kept class already holds is dropped. A clone
-# that slides by one line would otherwise file a task per window.
+# Fold: gain orders the classes, highest first, and one whose copies (half or
+# more) fall on lines a kept class already holds gets dropped. A clone that
+# slides by one line would otherwise file a task per window.
 #
 # Classes anchored in one file make one task: jscpd reports a pattern's
 # sliding windows as separate classes, and the first sweep filed the same
-# assert helper as five tasks. Their gains add up; each class clears the bar
+# assert helper as five tasks. Their gains add up. Each class clears the bar
 # on its own first.
 #
 # The bar is `--dry-gain`, 300 by default, the repeats arm's number. With no
 # bar the arm reported 639 families at a median gain of 50 tokens, 510 of them
-# in tests: a batch nobody empties. 100 still left 147; 300 leaves 25, each a
+# in tests: a batch nobody empties. 100 still left 147. 300 leaves 25, each a
 # block worth a helper.
 #
-#   gain = (copies - 1) * tokens - 5 * copies - 10
+#   gain = (copies - 1) * tokens - 5 * copies - 10.
 #     The tokens an extraction removes, net of a 5-token call per copy and a
 #     10-token helper, with the tokens of the class's largest pair.
 #

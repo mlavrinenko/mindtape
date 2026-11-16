@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
-# .just/scripts/mutants-diff.sh — the body of the `mutants::diff` recipe,
-# extracted under
-# truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
-# Runs from the repo root, like the recipe that invokes it. What a
-# missed mutant means is argued in docs/contributing/mutation-testing.md; where
-# the speed knobs came from is argued in _mutants-env.sh, next to them. Extra
+# .just/scripts/mutants-diff.sh: the body of the `mutants::diff` recipe,
+# pulled out under
+# `truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ`.
+# Runs from the repo root, like the recipe that invokes it.
+# docs/contributing/mutation-testing.md argues what a missed mutant means.
+# _mutants-env.sh, next to them, argues where the speed knobs came from. Extra
 # args pass through ("$@").
 #
-# CARGO_MUTANTS_JOBS/RUSTFLAGS come from _mutants-env.sh, shared with
-# mutants.sh. Both stay script-local: sourcing exports them into this
-# script's own process, never a Justfile-level `export`, which would land
-# RUSTFLAGS in every cargo invocation's fingerprint and invalidate the
-# workspace build cache for every other recipe.
+# CARGO_MUTANTS_JOBS/RUSTFLAGS come from _mutants-env.sh, shared with mutants.sh. Both stay
+# script-local: sourcing exports them into this script's own process, never a Justfile-level
+# `export`. That export would land RUSTFLAGS in every cargo invocation's fingerprint and
+# invalidate the workspace build cache for every other recipe.
 set -eo pipefail
 # shellcheck source=_mutants-env.sh
 # shellcheck source-path=SCRIPTDIR
@@ -21,7 +20,7 @@ trap 'rm -f "$diff_file"' EXIT
 git diff "$(git merge-base main HEAD)" > "$diff_file"
 
 # Always a subset run, so it writes to the same `target/mutants-scoped`
-# scratch `mutants.sh` routes `-f` sweeps to — never to `mutants.out`, whose
+# scratch `mutants.sh` routes `-f` sweeps to, never to `mutants.out`, whose
 # `--iterate` cache a full sweep reads (see mutants.sh).
 has_output=""
 for arg in "$@"; do

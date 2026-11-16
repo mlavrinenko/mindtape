@@ -1,35 +1,35 @@
 #!/usr/bin/env bash
-# .just/scripts/size-fixture-check.sh — the body of the `meta::size-fixture`
+# .just/scripts/size-fixture-check.sh: the body of the `meta::size-fixture`
 # recipe. Runs from the repo root, like the recipe that invokes it.
 #
 # Lock the file-size gate's scan scope, not its limits: synthesize an
 # oversized shell script at `.just/scripts/` inside a replica tree, then
 # assert `linecop`, reading this repo's `.config/linecop.yaml`, reports it.
-# The limits themselves need no self-test — a cap either fires or the number
-# is wrong, and either is visible. What is invisible, and what this gate exists
-# for, is a walker that never reaches the file: linecop skipped dot-prefixed
-# directories until `include_hidden: true`, so every recipe body the Justfile
-# extraction moved into `.just/scripts/` was uncapped for as long as the
-# extraction claimed the opposite (truth/tasks/restore-size-gate-coverage-
-# over-the-dot-just-scripts.typ). A silently unscanned directory reports
-# "All files within size limits." — the same output a clean tree gives.
+# The limits themselves don't need a self-test, because a cap either fires
+# or the number is wrong, and either is visible. What is invisible, and what
+# this gate exists for, is a walker that never reaches the file: linecop
+# skipped dot-prefixed directories until `include_hidden: true`. Every recipe
+# body the Justfile extraction moved into `.just/scripts/` stayed uncapped for
+# as long as the extraction claimed the opposite. truth/tasks/restore-size-
+# gate-coverage-over-the-dot-just-scripts.typ has the story. A silently
+# unscanned directory reports "All files within size limits." That is the same
+# output a clean tree gives.
 #
 # Why A replica rather than a probe in the real `.just/scripts/`: `just check`
-# runs its arms in parallel, and the real `lint::size` arm is one of
-# them. A 401-line file appearing in the tracked tree mid-run would fail that
-# arm, nondeterministically, for a reason no reader could place — and an
-# interrupted run would leave the junk file behind. The replica carries the
-# repo's own config file verbatim at the same path, whose `root: ..` makes the
-# replica the tree it describes, so it still tests the real policy: a
-# `.just` entry added to `exclude_dirs`, or `include_hidden` flipped back off,
-# fails here.
+# runs its arms in parallel, and the real `lint::size` arm is one of them. A
+# 401-line file appearing in the tracked tree mid-run would fail that arm,
+# nondeterministically, for a reason no reader could place. An interrupted run
+# would leave the junk file behind. The replica carries the repo's own config
+# file verbatim at the same path, whose `root: ..` makes the replica the tree
+# it describes. It still tests the real policy: a `.just` entry added to
+# `exclude_dirs`, or `include_hidden` flipped back off, fails here.
 #
-# Both directions are asserted, for fmt-fixture-check.sh's reason. Arm one
-# alone would pass on any linecop that reports the probe for some unrelated
-# reason; arm two re-runs the identical scan against the same config with
-# `include_hidden` deleted and requires the probe to go unreported, which is
+# This script asserts both directions, for fmt-fixture-check.sh's reason. Arm
+# one alone would pass on any linecop that reports the probe for some unrelated
+# reason. Arm two re-runs the identical scan against the same config with
+# `include_hidden` deleted and requires the probe to go unreported. That is
 # what pins the pass to the key this gate is about. Arm two is also the
-# regression test for the bug itself — it reproduces the old behaviour on
+# regression test for the bug itself: it reproduces the old behaviour on
 # demand.
 set -eo pipefail
 tmp=$(mktemp -d)
@@ -38,21 +38,21 @@ trap 'rm -rf "$tmp"' EXIT
 probe_rel=".just/scripts/_probe.sh"
 probe="$tmp/$probe_rel"
 mkdir -p "$(dirname "$probe")"
-# One line over the Shell cap read from the config, never a literal 401: the
-# cap is .config/linecop.yaml's to set, and a hard-coded number here would
-# turn a deliberate cap change into a failure of this gate instead of a pass.
+# One line over the Shell cap read from the config, never a literal 401. The
+# cap is .config/linecop.yaml's to set. A hard-coded number here would turn
+# a deliberate cap change into a failure of this gate instead of a pass.
 cap=$(yq -r '.limits.Shell' .config/linecop.yaml)
 {
     echo '#!/usr/bin/env bash'
     for _ in $(seq "$cap"); do echo 'echo probe'; done
 } > "$probe"
 
-# Assert the fixture exists and is genuinely over the cap before asserting the
-# gate rejects it. A negative test whose fixture was never written passes for
-# the wrong reason — the tool fails, or reports nothing, over an absent file
-# and the assertion reads that as the bug being caught. This repo has shipped
-# that once already, which is why the task asked for the existence check by
-# name rather than leaving it to taste.
+# Assert the fixture exists and exceeds the cap before asserting the gate
+# rejects it. A negative test whose fixture was never written passes for the
+# wrong reason. Over an absent file the tool fails or stays silent, and the
+# assertion reads that as a caught bug. This repo made that mistake once
+# already, and the task asked for the existence check by name rather than
+# leaving it to taste.
 [ -f "$probe" ] || { echo "size-fixture-check: probe was never written to $probe" >&2; exit 1; }
 lines=$(wc -l < "$probe")
 if [ "$lines" -le "$cap" ]; then
@@ -74,7 +74,7 @@ if ! grep -qF "$probe_rel" <<<"$reported"; then
 fi
 
 # Arm two: the same scan, the same probe, `include_hidden` deleted. The probe
-# must go unreported — proving the arm above passed because of that key.
+# must go unreported, proving the arm above passed because of that key.
 yq -y 'del(.include_hidden)' .config/linecop.yaml > "$tmp/.config/no-hidden.yaml"
 if unreported=$(linecop --config "$tmp/.config/no-hidden.yaml" --format paths "$tmp"); then
     [ -z "$unreported" ] || {

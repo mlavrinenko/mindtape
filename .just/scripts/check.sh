@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# .just/scripts/check.sh — the body of the `check` recipe
+# .just/scripts/check.sh: the body of the `check` recipe
 # (truth/tasks/print-nothing-from-a-passing-just-check-but-its-verdict.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #
-# Mostly an agent reads this output, after the run ends, and each line costs
+# The main reader is an agent, after the run ends, and each line costs
 # its context. So a pass prints one verdict line and a failure prints the full
 # log of each failed gate and nothing from the gates that passed. Each arm
 # writes its log and its outcome under target/check/ (mmz-arm.sh), and this
-# script reads them back once the stages are done.
+# script reads them back once the stages finish.
 #
 # The stages are the dependencies of `_check-stages`, run one `just` call each,
 # in order, stopping at the first red stage. Stage names as arguments (`fast`,
 # `build`, `cover`) keep only those stages, still in that order: CI runs
 # `cover` in a job of its own. The stage calls' own output is just's, not a
-# gate's: on a red arm it is only just's "Recipe failed" line, so it is printed
-# only when no arm recorded a failure, which means just itself failed (a parse
-# error, a missing recipe).
+# gate's. On a red arm it is only just's "Recipe failed" line. This script
+# prints it only when no arm recorded a failure, which means just itself
+# failed (a parse error, a missing recipe).
 set -eo pipefail
 
 dir=target/check
@@ -23,7 +23,7 @@ rm -rf "$dir"
 mkdir -p "$dir"
 export MINDTAPE_CHECK_DIR="$PWD/$dir"
 
-# Each stage is called by its literal name, so script-scope-check can read the
+# This script calls each stage by its literal name, so script-scope-check can read the
 # call graph. That spells the list twice, so a stage `_check-stages` gains and
 # this script misses fails here rather than going unrun.
 dump=$(just --dump --dump-format json)

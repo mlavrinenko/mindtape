@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# www/generate-reference.sh — capture the mt runs that /filters/,
+# www/generate-reference.sh: capture the mt runs that /filters/,
 # /named-sets/, /priority/, /estimates/ and /read-many-projects/ show.
 # www/generate.sh calls it with the repo root and the generated/ directory,
 # inside the lock it holds, so this script takes no lock of its own.
 #
 # Read commands run in a fixture in place. Commands that write, or need git,
-# run in a copy. Each capture is a record (www/capture.sh), so a page prints
+# run in a copy. Each capture is a record (www/capture.sh). A page prints
 # the command from the run. A refusal records the exit code it must return,
 # so a refusal that starts passing fails the build.
 set -eo pipefail
@@ -22,7 +22,7 @@ SETS="$REPO/examples/named-sets"
 
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
-# The fixtures' tasks are dated in the last week of September 2026, so
+# The fixtures' tasks carry dates in the last week of September 2026, so
 # "today" is just after them.
 export MINDTAPE_NOW=$API_SERVICE_NOW
 capture_init
@@ -92,7 +92,7 @@ capture priority-ls "$REPO/examples/priority" 'mt ls --columns title,priority --
 capture --exit 1 --expect 'allow-manual = false' priority-strict "$REPO/examples/priority" 'mt set fix-the-signup-email-typo priority=8'
 
 # /estimates/
-# A rule reading changed() needs a git repository, so the copy gets one.
+# A rule reading changed() needs a git repository. The copy gets one.
 capture_copy P examples/estimates
 capture_prep "$P" "git init -q && git add -A && $COMMIT -m fixture"
 capture estimates-eval "$P" 'mt eval rename-the-harvest-cache'
@@ -106,7 +106,7 @@ capture estimates-budget "$P" 'mt check'
 # The copy is `$HOME` and holds the at.toml under .config/, so `~/projects` is the
 # copy's projects/. shop gets a git repository and one linked worktree, the
 # fork that the `forks` key keeps out or lets in. The runs start outside every
-# project, so each path prints whole, from `~`.
+# project. Each path prints whole, from `~`.
 (
     capture_copy P examples/across-projects
     CAPTURE_HOME=$P CAPTURE_CONFIG_HOME=$P/.config

@@ -81,7 +81,7 @@ overrides:
   # shared ceiling below (the first match wins) instead of a rewrite that would
   # cut a rule. The 48-rule table is the bulk of it.
   - pattern: "**/docs/src/contributing/documentation.typ"
-    limit: 360
+    limit: 370
   # One cap for every deep-dive source. No deep dive is loaded into every
   # session, so one ceiling serves them all.
   - pattern: "**/docs/src/contributing/**"

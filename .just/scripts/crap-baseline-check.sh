@@ -1,34 +1,31 @@
 #!/usr/bin/env bash
-# .just/scripts/crap-baseline-check.sh — the body of the `crap::baseline-check`
+# .just/scripts/crap-baseline-check.sh: the body of the `crap::baseline-check`
 # recipe (truth/tasks/relativize-the-crap-baseline-s-committed-file-paths.typ).
-# Runs from the repo root, like the recipe that invokes it, and is called a
-# second time by .just/scripts/crap-baseline.sh so a bad mint fails at the mint
-# rather than at the next `just check`.
+# Runs from the repo root, like the recipe that invokes it. The mint script
+# (.just/scripts/crap-baseline.sh) calls it a second time, and a bad mint fails
+# at the mint rather than at the next `just check`.
 #
-# What it locks. `cargo crap --workspace` reports the member roots
-# `cargo metadata` gives it, which are absolute, and cargo-crap 0.3.1 has no
-# flag to shorten them. crap-baseline.sh strips the workspace root back off
-# before writing the tracked file; nothing about that is enforced by the mint
-# succeeding, and a re-mint by hand (`cargo crap … --output
-# .config/crap-baseline.json`, the exact command the recipe ran before) puts
-# every local path straight back.
-# The leak is invisible in review — a 1000-entry JSON diff nobody reads line by
-# line — so it needs a check rather than a convention.
+# What it locks. `cargo crap --workspace` reports the member roots `cargo metadata` gives it,
+# which are absolute, and cargo-crap 0.3.1 has no flag to shorten them. crap-baseline.sh strips
+# the workspace root back off before writing the tracked file. The mint succeeding doesn't
+# enforce that, and a re-mint by hand (`cargo crap … --output .config/crap-baseline.json`, the
+# exact command the recipe ran before) puts every local path straight back.
+# The leak is invisible in review (a 1000-entry JSON diff nobody reads line by line), so it
+# needs a check rather than a convention.
 #
 # Why it is not a gitleaks rule, measured under `--log-level trace` on gitleaks
-# 8.30.1: the default ruleset's global allowlist matches `/home/<user>/` and
+# 8.30.1. The default ruleset's global allowlist matches `/home/<user>/` and
 # drops any custom rule's finding on it (`skipping finding: global allowlist
 # allowed-regex=true`), and an extending config can only add allowlists, never
-# remove one. A machine-local-path rule is dead the moment
-# `[extend] useDefault = true` is set, which is the "rule that cannot fire" this
-# repo argues against everywhere else. gitleaks is worth having for the job it
-# is actually good at — see truth/tasks/scan-the-tree-for-secrets-with-
-# gitleaks.typ.
+# remove one. A machine-local-path rule is dead the moment a config sets
+# `[extend] useDefault = true`, which is the "rule that cannot fire" this repo
+# argues against everywhere else. gitleaks is worth having for the job it is
+# actually good at (see truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ).
 #
 # Static, like check-doc-recipes.sh and script-scope-check.sh: it reads one
-# committed JSON file. No recipe body runs, nothing is minted, and it needs no
-# lcov — this is the only CRAP-adjacent arm that is always correct rather than
-# skipping when coverage is stale.
+# committed JSON file. It doesn't run a recipe body, doesn't mint anything,
+# and doesn't need lcov. This is the only CRAP-adjacent arm that is always
+# correct rather than skipping when coverage is stale.
 set -eo pipefail
 
 baseline=.config/crap-baseline.json
@@ -39,20 +36,20 @@ if [ ! -f "$baseline" ]; then
 fi
 
 # An entries-less baseline passes every per-entry test below while disabling
-# the ratchet completely: `--fail-regression` against an empty baseline reports
+# the ratchet: `--fail-regression` against an empty baseline reports
 # every function as New and exits 0. Absent and empty are the same failure to
-# the gate this file feeds, so both are refused here.
+# the gate this file feeds, and this check refuses both.
 count=$(jq '.entries | length' "$baseline")
 if [ "$count" -eq 0 ]; then
     echo "crap-baseline-check: $baseline scores no functions — the ratchet would pass anything" >&2
     exit 1
 fi
 
-# A leading `/`, a `\\` UNC prefix or a `C:` drive letter is machine-local; so
-# is any path that climbs out of the repo with `..`. Windows spellings are
-# checked even though the file is minted on Linux, because the failure they
-# describe is a baseline minted on a Windows checkout — the one place a
-# forward-slash test would silently pass a fully absolute path.
+# A leading `/`, a `\\` UNC prefix or a `C:` drive letter is machine-local, and
+# so is any path that climbs out of the repo with `..`. The filter checks
+# Windows spellings even though the repo mints the file on Linux, because the
+# failure they describe is a baseline minted on a Windows checkout. That is
+# the one place a forward-slash test would silently pass a fully absolute path.
 filter='
   .entries[]
   | .file
@@ -64,13 +61,13 @@ filter='
     )
 '
 
-# Positive control, because this gate's failure mode is a false green: a typo
-# in the filter above matches nothing, and matching nothing is exactly what a
-# clean baseline looks like — the check would print its success line over a
-# file full of local paths. So the same filter runs first over a fixture
-# carrying one of each spelling, and the gate refuses to report on the real
-# file unless the fixture trips it. `$filter` is used verbatim in both places
-# rather than restated, or the control would pin a copy nothing runs.
+# Positive control, because this gate's failure mode is a false green. A typo in the filter
+# above doesn't match anything, and a filter that doesn't match anything is exactly what a
+# clean baseline looks like. The check would print its success line over a file full of local
+# paths. The same filter runs first over a fixture carrying one of each spelling, and the gate
+# refuses to report on the real file unless the fixture trips it. The check uses `$filter`
+# verbatim in both places rather than restating it, or the control would pin a duplicate the
+# gate never runs.
 fixture='{"entries":[
   {"file":"/home/u/repo/src/a.rs"},
   {"file":"C:/repo/src/b.rs"},

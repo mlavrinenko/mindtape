@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# www/generate-model.sh — capture the runs /concepts/, /links/ and
+# www/generate-model.sh: capture the runs /concepts/, /links/ and
 # /recurring/ show, against copies of examples/links/ and examples/recurring/,
 # and draw the graph of examples/links/ that /links/ shows.
 # www/generate.sh calls it inside the lock it holds, so this script takes no
 # lock of its own.
 #
-# Each capture is a record (www/capture.sh), so a page prints the command from
-# the run. A step that exits other than its expected code fails the build.
+# Each capture is a record (www/capture.sh), which lets a page print the command from the
+# run. A step that exits other than its expected code fails the build.
 set -eo pipefail
 
 REPO="$1"
 OUT="$2"
 MT="$REPO/target/debug/mt"
 
-# The fixtures' tasks are dated August and September 2026, so "today" falls
+# The fixtures' tasks carry dates in August and September 2026, so "today" falls
 # just after the latest of them.
 export MINDTAPE_NOW=2026-09-15
 
@@ -22,7 +22,7 @@ source "$REPO/www/capture.sh"
 capture_init
 
 # /concepts/: one whole task file, copied so the page can read() it under the
-# site's --root www. `just check-examples` validates its project.
+# site's `--root www`. `just check-examples` validates its project.
 cp "$REPO/examples/api-service/tasks/add-redis-client.typ" "$OUT/concepts-task.typ"
 
 # /concepts/: a rename by hand leaves an inbound link dangling, and `mt mv`

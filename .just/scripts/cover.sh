@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
-# .just/scripts/cover.sh — the body of the `cover` recipe, extracted under
-# truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
-# Runs from the repo root, like the recipe that invokes it. Why cargo-llvm-cov
-# replaced tarpaulin, and why the `clean --workspace` below is the line that
-# makes the number mean anything, are argued in
-# docs/contributing/coverage-crap.md.
+# .just/scripts/cover.sh: the body of the `cover` recipe, split out under
+# `truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ`.
+# Runs from the repo root, like the recipe that invokes it.
+# docs/contributing/coverage-crap.md argues why cargo-llvm-cov replaced
+# tarpaulin and why the `clean --workspace` below is the line that makes the
+# number mean anything.
 set -eo pipefail
-# main.rs is excluded — keep it thin (`just crap::check` excludes it too); so is any
-# registry checkout, which llvm-cov's own dep filter misses when CARGO_HOME is
-# relocated (a local kache), so local and CI report the same set.
+# The regex excludes main.rs to keep it thin (`just crap::check` excludes it
+# too), plus registry checkouts, which llvm-cov's dep filter misses when
+# CARGO_HOME relocates (a local kache). So local and CI report the same set.
 ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
 # Test files are not production code: the same regex as COVERAGE_TEST_RE in
 # contrib/ask-refactoring/undertested.sh, jq's equivalent of `just crap::check`'s globs.
 test_re='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
 mkdir -p target/coverage
-# Instrument once (--no-report), then render both reports from that profdata.
+# Instrument once (`--no-report`), then render both reports from that profdata.
 # The clean is cargo-llvm-cov's own documented precondition for that split
-# ("should be called before the first run"): --no-report deliberately does not
-# clear the profraw pile, because the split exists so several runs can be
-# merged. Dropping it unions every profraw and every object file left in
-# target/llvm-cov-target since the last `cargo clean` into the lcov — measured,
+# ("should be called before the first run"). `--no-report` deliberately does
+# not clear the profraw pile: the split exists to merge more than one run.
+# Dropping it unions every profraw and every object file left in
+# target/llvm-cov-target since the last `cargo clean` into the lcov. Measured,
 # and argued in the docs page above.
 cargo llvm-cov clean --workspace
-# `nextest` subcommand, matching `just test`'s own move to nextest: gating a
+# `nextest` subcommand, matching `just test`'s own move to nextest. Gating a
 # suite under one execution model while measuring it under another can pass in
 # one and fail in the other with nothing saying so. llvm-cov merges the
 # profraw of child processes, so subprocess-based CLI e2e tests still
@@ -31,25 +31,25 @@ cargo llvm-cov clean --workspace
 cargo llvm-cov nextest --workspace --no-report --cargo-quiet --cargo-quiet
 cargo llvm-cov report --ignore-filename-regex "$ignore" \
     --lcov --output-path target/coverage/lcov.info
-# Only the header and `TOTAL` row: the per-file table is ~230 lines a gate run
-# never reads, `just crap::check` reads the lcov above, and llvm-cov's --summary-only
-# drops nothing in text mode. pipefail keeps --fail-under-lines' exit status.
+# Only the header and `TOTAL` row: the per-file table is ~230 lines a gate
+# run never reads, `just crap::check` reads the lcov above, and `--summary-only`
+# drops nothing in text mode. pipefail keeps `--fail-under-lines`' exit status.
 cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90 |
     sed -n '1p;$p'
 
-# The per-file floor: a production file fails below 88% line coverage when it
-# also has 5 or more uncovered lines. Read from each lcov record's line totals,
-# not from `cargo llvm-cov report --json`, whose summary counts a line once per
-# compiled copy of the `mt` crate, so a file the suite covers whole reads as 75%.
+# The per-file floor fails a production file below 88% line coverage when it
+# also has 5 or more uncovered lines. Read from every lcov record's line
+# totals, not from `cargo llvm-cov report --json`. Its summary counts a line
+# once per compiled `mt` copy, so a file the suite covers whole reads as 75%.
 #
 # Why 88, and not the workspace total's 90: the workspace total can stay green
-# while one file sinks, and 88 is ~1.5 standard deviations under the per-file
-# mean (95.97%, sd 5.32 over 125 files when measured). That reports a real tail
-# rather than the scatter of files a point or two under the average. Why the
-# 5-line minimum: in a small file 3 lines of tty or stdio wiring sink it below
-# the floor, and a test for them is not worth writing.
+# while one file sinks. 88 is ~1.5 standard deviations under the per-file mean
+# (95.97%, sd 5.32 over 125 files when measured). That reports a real tail
+# rather than the scatter of files a point or two under the average. The 5-line
+# minimum exists because in a small file 3 lines of tty or stdio wiring sink it
+# below the floor. A test for them is not worth writing.
 #
-# The fix is a test. If the lines cannot be tested, add the file to `ignore`
+# The fix is a test. If you cannot test the lines, add the file to `ignore`
 # above with the reason beside it.
 floor=88
 min_uncovered=5
@@ -75,11 +75,11 @@ if [ -n "$below" ]; then
     exit 1
 fi
 
-# The changed-line floor: a branch can sit above every absolute floor while its
-# new guards are untested. `git diff` rather than `--compare-branch` so staged
-# and working-tree lines count too; a plain `git diff <ref>` includes both.
-# `main` itself has an empty diff and passes; a checkout without the ref (a
-# shallow CI clone) says so rather than failing on git.
+# The changed-line floor catches a branch that sits above every absolute floor
+# while its new guards have no tests. `git diff` rather than `--compare-branch`
+# so staged and working-tree lines count too. A plain `git diff <ref>` includes
+# both. `main` itself has an empty diff and passes. A checkout without the ref
+# (a shallow CI clone) says so rather than failing on git.
 base="${MINDTAPE_COVER_BASE:-${GITHUB_BASE_REF:-main}}"
 if git rev-parse --verify --quiet "$base" >/dev/null; then
     diff_file=target/coverage/changed.diff

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# .just/scripts/wt-carry-lcov.sh <primary-checkout> — the worktrunk `pre-remove`
-# hook's lcov carry (.config/wt.toml). Runs from the root of the worktree about
-# to be removed, which is where worktrunk runs that hook.
+# .just/scripts/wt-carry-lcov.sh <primary-checkout>: the worktrunk `pre-remove`
+# hook's lcov carry (.config/wt.toml). Runs from the root of the worktree on
+# pending removal, which is where worktrunk runs that hook.
 #
 # `just cover` writes target/coverage/lcov.info, and `just crap::check` scores against
-# it. The file is gitignored, so after a fast-forward the primary checkout holds
-# none, or one from before the merge, and the next `just crap::check` there would pay
-# a second instrumented build for numbers the worktree already has.
+# it. git ignores the file. After a fast-forward the primary checkout holds
+# none, or one from before the merge. The next `just crap::check` there would
+# pay a second instrumented build for numbers the worktree already has.
 #
 # Never fatal: the merge has landed, and a failed copy does not un-land it. Every
 # way out exits 0, and a skip for staleness or a failed copy says so on stderr.
@@ -27,10 +27,10 @@ if [ -f "$primary/$lcov" ] && [ ! "$here/$lcov" -nt "$primary/$lcov" ]; then
     exit 0
 fi
 
-# The copy gets a new mtime, so staleness is judged here, against the sources
-# the lcov was written from, by the same script `just crap::check` asks. That script
-# judges by content through mmz, so a rebase that rewrites mtimes but not bytes
-# still carries.
+# The copy gets a new mtime. The check below judges staleness against the
+# sources the lcov came from, running the same script `just crap::check` asks.
+# That script judges by content through mmz, so a rebase that rewrites mtimes
+# but not bytes still carries.
 stale=$(cd "$here" && bash .just/scripts/_lcov-stale-reason.sh 2>/dev/null) || stale=unanswered
 if [ -n "$stale" ]; then
     echo "wt-carry-lcov: skipped, $stale" >&2

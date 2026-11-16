@@ -1,62 +1,56 @@
 #!/usr/bin/env bash
-# .just/scripts/crap.sh — the body of the `crap::check` recipe, extracted under
-# truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
-# Runs from the repo root, like the recipe that invokes it. The threshold
-# itself, why a stale lcov is refused rather than scored against, and why there
-# is deliberately no advisory band below the gate are argued in
-# docs/contributing/coverage-crap.md.
+# .just/scripts/crap.sh: the body of the `crap::check` recipe, extracted under
+# `truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ`.
+# Runs from the repo root, like the recipe that invokes it.
+# docs/contributing/coverage-crap.md argues for the threshold itself and for
+# refusing a stale lcov rather than scoring against it. It also explains the
+# deliberate absence of an advisory band below the gate.
 #
 # The exclude flags arrive as arguments ("$@"), never as a copy of the list.
-# CRAP_EXCLUDES stays one variable in .just/crap.just because three consumers
-# must score the same file set — this gate, `crap::baseline`, and
-# contrib/ask-refactoring/undertested.sh via `just --evaluate` — and a baseline
-# minted over a different set than the gate scores reports every difference
-# between the two lists as a regression.
+# Three consumers must score the same file set: this gate, `crap::baseline`,
+# and contrib/ask-refactoring/undertested.sh via `just --evaluate`.
+# CRAP_EXCLUDES stays one variable in .just/crap.just for that reason. A
+# baseline minted over a different set than the gate scores reports every
+# difference between the two lists as a regression.
 #
-# Each value in that list is spelled `**/…` because `--exclude` is matched
-# twice, in two different roots: once per-crate during `cargo crap`'s own
-# source walk (so `main.rs` must read `**/main.rs`, not
-# `crates/mindtape-cli/src/main.rs` — the latter never matches a walk rooted at
-# the crate dir, and so leaves `main.rs` in the "no matching entry in the LCOV
-# report" warning even though it is correctly excluded from scoring), and once
-# workspace-root-relative when filtering the final table. A `**/` prefix
-# matches both.
+# Every value in that list takes the form `**/…`, because `--exclude` takes effect twice, in
+# two different roots. Once per-crate, during `cargo crap`'s own source walk, where `main.rs`
+# must read `**/main.rs`, not `crates/mindtape-cli/src/main.rs`. The latter never matches a
+# walk rooted at the crate dir. That leaves `main.rs` in the "no matching entry in the LCOV
+# report" warning even though the walk correctly excludes it from scoring. And once
+# workspace-root-relative, when filtering the final table. A `**/` prefix matches both.
 #
-# What each exclusion buys:
+# Each exclusion, and what it buys:
 #
 #   - `*_tests.rs`/`tests.rs`/`*_tests_*.rs`/`tests_*.rs` keep CRAP on production code. They
-#     are inline test modules (`#[path] mod tests`, `ejectest`'s split form
-#     included — `validate/tests_shape.rs`, `config/packs_tests_body.rs`, and
-#     the rest ejectest names when a file crosses the linecop cap), which
-#     llvm-cov emits no records for, so scoring them meant 71 of the 73 "no
-#     matching entry in the LCOV report" warnings and a complexity budget
-#     spent on test helpers. Excluding them changes no verdict.
-#   - `ls/interactive/tui.rs` drives the real terminal in every function — raw
-#     mode, the alternate screen, keyboard-enhancement negotiation — so an
-#     in-process test would either hijack the developer's own screen or assert
-#     nothing without a TTY. It is pinned end-to-end under a pseudo-terminal
-#     instead (tests/it/interactive_e2e.rs: quitting_restores_the_terminal pins
-#     the enter/leave byte sequences;
-#     opening_a_task_suspends_the_tui_and_runs_the_editor pins the suspend
-#     path). The one uncovered branch left (the `enhanced`
-#     keyboard-enhancement path in enter_screen) depends on a terminal
-#     negotiation no test can force.
+#     are inline test modules: `#[path] mod tests`, or `ejectest`'s split form. The split form
+#     spans `validate/tests_shape.rs`, `config/packs_tests_body.rs`, and the rest that ejectest
+#     names when a file crosses the linecop cap. llvm-cov doesn't emit records for them, so
+#     scoring them meant 71 of the 73 "no matching entry in the LCOV report" warnings and a
+#     complexity budget spent on test helpers. Excluding them doesn't change a single verdict.
+#   - `ls/interactive/tui.rs` drives the real terminal in every function: raw mode, the
+#     alternate screen, keyboard-enhancement negotiation. An in-process test would then
+#     either hijack the developer's own screen or assert nothing without a TTY.
+#     tests/it/interactive_e2e.rs pins it end-to-end under a pseudo-terminal instead:
+#     `quitting_restores_the_terminal` pins the enter/leave byte sequences, and
+#     `opening_a_task_suspends_the_tui_and_runs_the_editor` pins the suspend path. The one
+#     uncovered branch left (the `enhanced` keyboard-enhancement path in `enter_screen`)
+#     depends on a terminal negotiation no test can force.
 #   - `main.rs` stays thin, and `cover.sh` excludes it from coverage for the
 #     same reason.
 #
-# Arm selection. The first argument picks which checks run; the excludes
-# follow it:
+# Arm selection. The first argument picks which checks run. The excludes follow it:
 #
-#   all       both arms — the gate (`just crap::check`).
-#   absolute  the threshold arm only — the pre-mint check
+#   all       both arms: the gate (`just crap::check`).
+#   absolute  the threshold arm only: the pre-mint check
 #             (.just/scripts/crap-baseline.sh).
 #
 # The split exists because the two arms answer to different owners. The
 # absolute arm asks "is anything actually bad", and minting a >30 function into
 # the baseline as acceptable is exactly the freeze the pre-mint guard is for.
 # The ratchet arm asks "did anything get worse than the file we are about to
-# rewrite" — and a deliberate complexity increase makes it red by definition,
-# which is the one moment CONTRIBUTING.md tells you to re-mint. Running both
+# rewrite", and a deliberate complexity increase makes it red by definition.
+# That is the one moment CONTRIBUTING.md calls for a re-mint. Running both
 # before a mint made the recipe refuse in its own documented use case, so the
 # ratchet is not the pre-mint guard: the threshold is.
 set -eo pipefail
@@ -77,36 +71,35 @@ if [ -n "$reason" ]; then
     exit 1
 fi
 # Two checks, run separately so each failure prints its own readable table.
-# Folding them into one invocation does not work: `--min 30` is a print
-# filter, so a regression from 5 to 12 would fail the gate with no visible
-# row, and baseline mode hides unchanged rows, so a function sitting above
-# the threshold without moving would fail with no visible row either. Each
-# mode needs the other's rows suppressed to stay legible.
+# Folding them into one invocation does not work: `--min 30` is a print filter,
+# so a regression from 5 to 12 would fail the gate with no visible row. And
+# baseline mode hides unchanged rows, so a function sitting above the threshold
+# without moving would fail with no visible row either. Each mode needs the
+# other's rows suppressed to stay legible.
 #
 # 1. Absolute: no function above 30, whatever its history. `--min` matches
-# `--threshold`, so the table lists only the functions that fail; without it
-# the report is every analyzed function — 976 rows to carry the one that
-# matters. The cost is that the tail summary then counts printed rows ("1/1",
-# not "1/976"); the numerator, which is the number that decides the gate, is
-# unaffected.
+# `--threshold`. The table then lists only the functions that fail. Without it
+# the report is every analyzed function: 976 rows to carry the one that
+# matters. The tail summary then counts printed rows ("1/1", not "1/976"). The
+# numerator, the number that settles the gate, stays unaffected.
 cargo crap --lcov "$lcov" --workspace "$@" \
     --threshold 30 --min 30 --fail-above --format markdown
 # An explicit `if`, not `[ … ] && exit 0`: under `set -e` a failing test at the
-# head of an `&&` list fails the list, and the script would exit 1 on the `all`
-# path — the gate reporting a regression it never checked for.
+# head of an `&&` list fails the list. The script would then exit 1 on the
+# `all` path, the gate reporting a regression it never checked for.
 if [ "$mode" = absolute ]; then
     exit 0
 fi
 # 2. Ratchet: no function worse than the committed baseline, at any level.
 # This is the half that sees the 12 complex-and-undertested functions scoring
-# below 15 that no advisory band could separate from noise
-# (truth/tasks/sweep-crap-scores-into-tasks.typ measured why). It never reads
-# the absolute score, only the delta, so the degeneracy that killed the band
-# — CRAP collapsing to cyclomatic complexity above ~90% coverage — does not
-# apply: a rise still means complexity went up or coverage went down.
+# below 15 that no advisory band could separate from noise.
+# truth/tasks/sweep-crap-scores-into-tasks.typ measured why. It never reads
+# the absolute score, only the delta. The degeneracy that killed the band, CRAP
+# collapsing to cyclomatic complexity above ~90% coverage, does not apply. A
+# rise still means complexity went up or coverage went down.
 #
-# The arm lives in _crap-ratchet-lib.sh, which argues why the baseline is
-# aligned to the scan before cargo-crap pairs them; its control runs first.
+# The arm lives in _crap-ratchet-lib.sh, which argues why it aligns the
+# baseline to the scan before cargo-crap pairs them. Its control runs first.
 # shellcheck source=.just/scripts/_crap-ratchet-lib.sh
 source .just/scripts/_crap-ratchet-lib.sh
 bash .just/scripts/_crap-ratchet-control.sh

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# www/generate-site-pages.sh — derive www/generated/site-pages.json from
+# www/generate-site-pages.sh: derive www/generated/site-pages.json from
 # every www/content/**/*.typ page's own
 # `#metadata((route, label, title, summary, home)) <page-meta>` block.
 # www/utils/site.typ keeps only what no single page holds: the nav groups and
@@ -27,11 +27,10 @@ if [ -z "$MINDTAPE_GENERATED_LOCK" ]; then
   export MINDTAPE_GENERATED_LOCK=1
 fi
 
-# Same temp-file-plus-atomic-mv-plus-parse-check discipline as
-# generate-facts.sh's own emit() (argued in place there): a reader holding no
-# lock must see the previous complete file or the next one, never a
-# truncated/absent one, and a malformed producer must never install a
-# plausible-looking partial artifact.
+# Same temp-file-plus-atomic-mv-plus-parse-check discipline as generate-facts.sh's own emit()
+# (argued in place there). A reader that doesn't hold the lock must see the previous complete
+# file or the next one, never a truncated/absent one. A malformed producer must never install
+# a plausible-looking partial artifact.
 emit() {
   local name="$1" dest="$OUT/.$1.tmp.$$"
   cat >"$dest"
@@ -43,12 +42,11 @@ emit() {
   mv -f "$dest" "$OUT/$name"
 }
 
-# Bootstrap pass. Compiling any page imports layout.typ -> site.typ, and
-# site.typ's `PAGES` reads this very file, so it has to exist — even empty —
-# before the query below can compile the first page. Only seeded when
-# absent: a real build already has a real manifest on disk, and re-seeding it
-# empty here would make every page compile against a momentarily-empty `PAGES`
-# for no reason.
+# Bootstrap pass. Compiling any page imports layout.typ -> site.typ, and site.typ's `PAGES`
+# reads this file itself. The file has to exist (even empty) before the query below can compile
+# the first page. The script seeds it only when absent, because a real build already has a real
+# on disk. Re-seeding it empty here would make every page compile against a momentarily-empty
+# `PAGES` for no reason.
 if [ ! -f "$OUT/site-pages.json" ]; then
   jq -n '{pages: {}}' | emit site-pages.json
 fi
@@ -56,12 +54,11 @@ fi
 workdir="$(mktemp -d -p "$REPO/target")"
 trap 'rm -rf "$workdir"' EXIT
 
-# One `<page-meta>` query per page. `--one` makes a page with no block (or
-# more than one) a hard failure; typst's own error names the file, so it is
-# echoed straight through rather than swallowed. `--target html --features
-# html` is required because compiling a page walks layout.typ, which calls
-# `html.elem` (see docs/generate-md.sh's header for the same requirement on
-# a different render path).
+# One `<page-meta>` query per page. `--one` makes a page with no block (or more than one) a
+# hard failure. typst's own error names the file, so this script echoes it straight through
+# rather than swallowing it. The query needs `--target html --features html` because compiling
+# a page walks layout.typ, which calls `html.elem` (see docs/generate-md.sh's header for the
+# same requirement on a different render path).
 pages_json="{}"
 routes_json="[]"
 summary_problems=""
@@ -101,7 +98,7 @@ fi
 
 # Two pages declaring the same route: fail naming both, before installing
 # anything. The dict-insert above would otherwise let the second writer win
-# silently — this is the check that makes that impossible.
+# silently. This is the check that makes that impossible.
 dupes="$(jq -c 'group_by(.route) | map(select(length > 1))' <<<"$routes_json")"
 if [ "$(jq 'length' <<<"$dupes")" -gt 0 ]; then
   echo "generate-site-pages.sh: two pages declare the same route:" >&2
@@ -109,15 +106,13 @@ if [ "$(jq 'length' <<<"$dupes")" -gt 0 ]; then
   exit 1
 fi
 
-# The site URL, path prefix and repo link — read back off site.typ through a
-# target/-rooted driver, the same trick www/generate-facts.sh used for this
-# artifact before this script existed, moved here verbatim. site.typ resolves
-# its own reads relative to itself rather than the root, so `--root .` here
-# and `--root www` above both work against the same file. `NAV` rides along in
-# the same query in two shapes. The flattened routes order the `pages` object
-# below by `NAV`'s reading order rather than the glob's alphabetical one, and
-# `groups` carries each `NAV` group's title and routes in order, which
-# docs/src/readme.typ's index reads.
+# The site URL, path prefix and repo link: read back off site.typ through a target/-rooted
+# driver. It is the same trick www/generate-facts.sh used for this artifact before this script
+# existed, moved here verbatim. site.typ resolves its own reads relative to itself rather than
+# the root, so `--root .` here and `--root www` above both work against the same file. `NAV`
+# rides along in the same query in two shapes. The flattened routes order the `pages` object
+# below by `NAV`'s reading order rather than the glob's alphabetical one. `groups` carries
+# each `NAV` group's title and routes in order, which docs/src/readme.typ's index reads.
 printf '#import "/www/utils/site.typ": NAV, PREFIX, REPO, SITE_URL\n#metadata((url: SITE_URL, prefix: PREFIX, repo: REPO, nav: NAV.map(g => g.items).flatten(), groups: NAV.map(g => (title: g.title, routes: g.items)))) <site-meta>\n' \
   >"$workdir/site-meta-driver.typ"
 site_meta="$(typst query --root "$REPO" "$workdir/site-meta-driver.typ" '<site-meta>' \

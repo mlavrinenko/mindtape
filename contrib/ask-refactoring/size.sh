@@ -1,12 +1,12 @@
-# ask-refactoring: the size arm — linecop file sizes at --baseline.
+# ask-refactoring's size arm: linecop file sizes at `--baseline`.
 #
-# Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
+# Sourced by `contrib/ask-refactoring.sh`. Not executable on its own. It reads
 # that script's globals (`$repo`, `$MT`, `$WRITE`, the thresholds) and calls its
-# `stem_for`. It owns three functions the driver looks up by name —
-# `score_size`, `signal_size`, `emit_size` — reading linecop --format json.
+# `stem_for`. It owns three functions the driver looks up by name (`score_size`,
+# `signal_size`, `emit_size`), reading `linecop --format json`.
 #
 # The reasoning behind this arm's numbers lives here with the code that
-# applies them, deliberately: it is the most valuable thing in the arm and a
+# applies them, deliberately. It is the most valuable thing in the arm, and a
 # doc it lived in instead would drift away from the constants it explains.
 
 # ── signal: linecop ─────────────────────────────────────────────────────────
@@ -15,29 +15,29 @@
 #
 #   impact = 10 - round(free% / 1.5), clamped 1..10
 #     `free%` is how much of the cap is still unspent. A file at its limit
-#     blocks the next edit outright; one at 91% has forty-odd lines of room and
+#     blocks the next edit outright. One at 91% has forty-odd lines of room and
 #     can wait. One impact point per 1.5% of the cap keeps the whole reported
 #     band (85%..100%) spread across the scale instead of bunched at the top.
 #
 #   confidence = 0.9 production, 0.7 test
 #     High because linecop measures: the line count is a fact, not a forecast.
-#     Not 1.0 because the remedy is a judgment call — a re-cap with a reason is
-#     as valid an outcome as a split. Test modules score lower still: ejectest
+#     Not 1.0 because the remedy is a judgment call (a re-cap with a reason is
+#     as valid an outcome as a split). Test modules score lower still: ejectest
 #     already played its one move on them, so whether a further split is even
-#     the right answer is genuinely open.
+#     the right answer is an open question.
 #
 #   ease = 9 - round(move / 20), minus 2 for a test module, clamped 1..10
 #     `move` is how many lines have to find a new home to get back under the
-#     baseline. The remedy is well understood, so ease starts high; the only
+#     baseline. The remedy is well understood, so ease starts high. The only
 #     real cost is volume. Test modules lose two: `just eject` has no second
-#     move on an already-ejected `*_tests.rs`, so the seam is drawn by hand.
+#     move on an already-ejected `*_tests.rs`, so you draw the seam by hand.
 #
 #   difficulty tracks `move` on the config's judgment rubric (3 = one obvious
-#   extraction, 5 = several defensible seams), +1 for a test module.
+#   extraction, 5 = more than one defensible seam), +1 for a test module.
 #
-# A test module is reported only from 97% of its cap. The first sweep's lanes
-# split six test files at 90..95% and called it busywork: a test file grows by
-# whole cases, its seams are arbitrary, and nothing reads it end to end.
+# `score_size` reports a test module only from 97% of its cap. The first sweep's
+# lanes split six test files at 90..95% and called it busywork. A test file
+# grows by whole cases, its seams are arbitrary, and nothing reads it end to end.
 #
 # The result is monotone in headroom (5,5,4,4,3,3,3 on today's tree) and sits in
 # the `normal` band. That is honest: mechanical refactoring is real work and is
@@ -46,16 +46,16 @@
 # Two axes, kept apart deliberately. Kind decides the remedy: linecop's own
 # `language` field, never re-derived from the extension, except that prose
 # (Markdown, or a doc source `size_meta` marks) is one kind whatever its
-# language. A Rust file is carved into a module, prose is rewritten.
-# Test-versus-production decides
-# tone and score, and is a Rust distinction only — it is what `ejectest` already
-# played its move on — so it is scored `false` for anything else rather than
-# left to a path regex that would happen to agree.
+# language. A Rust file splits into a module, prose is rewritten.
+# Test-versus-production decides tone and score, and is a Rust distinction
+# only. It is what `ejectest` already played its move on. This arm scores it
+# `false` for anything else rather than leaving it to a path regex that would
+# happen to agree.
 # A rendered doc and its source are one artifact, so they make one finding.
 # `size_meta` maps each reported path to what `score_size` folds by: the
-# source a render names in its `Generated from` banner, and whether the file is
-# prose (a render, or a Typst source carrying a `<mindtape-md>` block). It
-# reads linecop's JSON on stdin and prints `{path: {source?, prose?}}`.
+# source named in a render's `Generated from` banner, and whether the file is
+# prose. Prose means a render, or a Typst source carrying a `<mindtape-md>`
+# block. It reads linecop's JSON on stdin and prints `{path: {source?, prose?}}`.
 size_meta() {
     local path src
     jq -r '.[].path | ltrimstr("./")' | while read -r path; do
@@ -68,7 +68,7 @@ size_meta() {
     done | jq -s 'add // {}'
 }
 
-# `$1` is `size_meta`'s map, `{}` when absent. Rows are grouped by source, the
+# `$1` is `size_meta`'s map, `{}` when absent. It groups rows by source, the
 # tightest member scores the group, and `measured` holds one AS-IS line per
 # member, with newlines escaped by @tsv.
 score_size() {
@@ -126,10 +126,10 @@ signal_size() {
 }
 
 # One plain sentence on where the seam question stands. Rust splits on the
-# test-versus-production axis; every other language has only the one form,
+# test-versus-production axis. Every other language has only the one form,
 # because ejectest is a Rust tool and the distinction it draws does not exist
 # outside it. Plain prose, no backticks: the `seam` slot is `kind: "text"`, so
-# markup would be escaped and shown literally.
+# markup would appear escaped and literal.
 seam_for() {
     case "$1:$2" in
         Rust:test) echo "Test code: ejectest already moved these tests out of their parent once, so the eject recipe has no second move here and any further seam is one you draw by hand." ;;
@@ -197,7 +197,7 @@ emit_size() {
 
     local seam remedy
     seam="$(seam_for "$kind" "$flavour")"
-    # Trailing newline stripped by the substitution, so the spliced bullets abut
+    # Trailing newline stripped by the substitution. The spliced bullets abut
     # the literal ones after the slot and the Scope reads as one list.
     remedy="$(remedy_for "$kind" "$path")"
 

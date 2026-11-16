@@ -1,53 +1,49 @@
 #!/usr/bin/env bash
-# .just/scripts/_script-graph.sh — the recipe-to-script reachability that
-# script-scope-check.sh's arm two judges a rule's declared mmz inputs against
-# (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ).
+# .just/scripts/_script-graph.sh: the recipe-to-script reachability that
+# script-scope-check.sh's arm two judges a rule's declared mmz inputs against.
+# truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ is the task behind it.
 #
 # What it does. Arm two demands a scope for every script a recipe reaches, however
-# far. A script one hop further — script-to-script, or through a nested `just` —
-# would otherwise be invisible, so the caller's rule would have to name that
-# scope by hand or serve a stale hit against a body it never hashed, with
-# nothing failing to say so. Walking the closure makes a new caller covered by
-# arriving — the property the `.just/scripts/**` glob had and the enumeration
-# gave up.
+# far. A script one hop further, script-to-script or through a nested `just`, would
+# otherwise be invisible. The caller's rule would have to name that scope by hand or
+# serve a stale hit against a body it never hashed, with nothing failing to say so.
+# Walking the closure makes a new caller covered by arriving, the property the
+# `.just/scripts/**` glob had and the enumeration gave up.
 #
-# One graph for both shapes, not two derivations: a recipe and a script are the
-# same kind of node, a body that can name another body, and the hop kinds differ
-# only in which edge reaches the next one. `just check-crap` reaches crap.sh
-# through one recipe hop and _lcov-stale-reason.sh through two separate ones;
-# nothing in the caller's manifest entry records which.
+# One graph for both shapes, not two derivations: a recipe and a script are the same kind
+# of node, a body that can name another body. The hop kinds differ only in which edge
+# reaches the next one. `just check-crap` reaches crap.sh through one recipe hop and
+# _lcov-stale-reason.sh through two separate ones. The caller's manifest entry does not
+# record which.
 #
-# A wrong edge fails a correct manifest, which is why this reading is narrow where it could
+# A wrong edge fails a correct manifest, and this reading is narrow where it could
 # over-read and loud where it cannot read at all:
 #
-#   - A `.just/scripts/*.sh` path counts in any position, not only after a
-#     `bash`: a script is as much a dependency read as run (positional-args-
-#     check.sh greps mutants.sh; a script may assign another's path and run it
-#     a line later). Three shapes are subtracted. A comment
-#     line and a heredoc body are not code — the control fixtures write scripts
-#     with a heredoc, so reading one as code would make a fixture an edge of the
+#   - A `.just/scripts/*.sh` path counts in any position, not only after a `bash`. A script
+#     is as much a dependency read as run. positional-args-check.sh greps mutants.sh, and a
+#     script may assign another's path and run it a line later. The walk subtracts three
+#     shapes. A comment line and a heredoc body are not code. The control fixtures write
+#     scripts with a heredoc, so reading one as code would make a fixture an edge of the
 #     gate that runs it. The path must exist: size-fixture-check.sh names
-#     `.just/scripts/_probe.sh`, which it synthesizes inside a replica, and no
-#     scope can hash a file that is not there. And an `echo`/`printf` fragment
-#     is skipped, that being how these scripts name a script they do not run.
-#   - A nested `just` counts only at command position — the start of a fragment
-#     the line splits into at `; & | ( ) { } !`. A backquote is deliberately not
-#     a command-substitution opener here: `$( )` is the invocation form these
-#     scripts use, and reading a backquote as one would turn every "run
-#     \`just cover\` first" hint into an edge demanding a scope for a body that
-#     never runs.
+#     `.just/scripts/_probe.sh`, which it synthesizes inside a replica, and no scope can
+#     hash a file that is not there. And the walk skips an `echo`/`printf` fragment, that
+#     being how these scripts refer to a script they do not run.
+#   - A nested `just` counts only at command position, the start of a fragment the line
+#     splits into at `; & | ( ) { } !`. A backquote is deliberately not a
+#     command-substitution opener here: `$( )` is the invocation form these scripts use.
+#     Reading a backquote as one would turn every "run \`just cover\` first" hint into an
+#     edge demanding a scope for a body that never runs.
 #
-# And loud where it cannot read. A command-position `just` resolves two ways: to
-# a known recipe (an edge) or to a flag in the table below that runs no recipe of
-# this justfile (no edge). Anything else — a variable, a flag nobody has
-# classified — fails naming the file and line, because swallowing it would put
-# back the silent miss this file exists to remove. One shape is still not
-# walked, and is not a miss today: a recipe dependency (`check-full: check cover
-# crap`), which the dump reports separately from bodies and which no rule's
-# scopes turn on.
+# And loud where it cannot read. A command-position `just` resolves two ways: to a
+# known recipe (an edge), or to a flag in the table below. The flag doesn't run a
+# recipe of this justfile (no edge). Anything else (a variable, a flag nobody has
+# classified) fails naming the file and line, because swallowing it would put back
+# the silent miss this file exists to remove. One shape is still not walked, and is
+# not a miss today: a recipe dependency (`check-full: check cover crap`), which the
+# dump reports separately from bodies and which no rule's scopes turn on.
 #
-# Static: it reads the dump it is handed and the script files under the tree it
-# runs in. No recipe body and no script runs. Pinned by
+# Static: it reads the dump it receives and the script files under the tree it runs
+# in. It never runs a recipe body or a script. Pinned by
 # .just/scripts/_script-graph-control.sh, which drives it over a synthetic tree
 # carrying each of these shapes at once.
 #
@@ -56,8 +52,8 @@
 #
 # Usage: _script-graph.sh <just-dump.json>, from a tree root holding
 # `.just/scripts/*.sh`. Prints `recipe<TAB>script<TAB>chain`, one line per
-# (recipe, reachable script) pair, where the chain names the hops that reached
-# it so a caller's failure message can say how rather than only that.
+# (recipe, reachable script) pair, where the chain lists the hops that reached it
+# so a caller's failure message can say how rather than only that.
 set -eo pipefail
 
 if [ $# -ne 1 ]; then
@@ -70,14 +66,13 @@ here=$(dirname "${BASH_SOURCE[0]}")
 # shellcheck source=.just/scripts/_script-graph-lib.sh
 source "$here/_script-graph-lib.sh"
 
-# A node's printable form: a recipe is named the way the manifest names its
-# rule, a script by its path, so a chain reads as the sequence a reader can
-# follow by opening files.
+# A recipe's label matches the manifest's label for its rule, a script's label is
+# its path. A chain then reads as the sequence a reader can follow by opening files.
 label() { case $1 in r:*) echo "just ${1#r:}" ;; *) echo "${1#s:}" ;; esac; }
 
-# Breadth-first from each recipe, keeping the first parent that reached a node —
-# so the chain reported is a shortest one, which is the one a reader has to
-# check the fewest files to confirm.
+# Breadth-first from each recipe, keeping the first parent that reached a node. The
+# chain reported is then a shortest one, which is the one a reader has to check the
+# fewest files to confirm.
 for recipe in $recipes; do
     root="r:$recipe"
     [ -n "${adjacent[$root]}" ] || continue

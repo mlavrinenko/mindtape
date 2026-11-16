@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# www/generate-api-service.sh — capture, for each recipe examples/api-service
-# holds, a short session in which mt refuses the work that recipe forbids.
+# www/generate-api-service.sh: capture, for each recipe examples/api-service
+# holds, a short session in which mt refuses the work that recipe rules out.
 # Called by www/generate.sh with the repo root and the generated/ directory,
 # inside the lock that script holds.
 #
 # Each `# docs:slice api-service/<id>` block in the project's config is one
 # recipe, and the session for it is the record <id>. The script fails when a
-# slice has no record, so a recipe added to the config cannot ship without its
+# slice has no record, so a recipe added to the config cannot reach the docs
 # demo.
 #
 # Each session runs in its own copy of the project, so no session sees what
@@ -19,32 +19,32 @@ OUT="$2"
 MT="$REPO/target/debug/mt"
 API="$REPO/examples/api-service"
 
-# git reads no config of the builder's, so a hooks path, a signing key or a
-# default branch on this machine changes no capture. The fixed identity and
-# dates give each commit the same hash on every build.
+# git doesn't read the builder's config. A hooks path, a signing key or a
+# default branch on this machine cannot change a capture. The fixed identity
+# and dates give each commit the same hash on every build.
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 export GIT_AUTHOR_NAME=Ada GIT_AUTHOR_EMAIL=ada@example.com
 export GIT_COMMITTER_NAME=Ada GIT_COMMITTER_EMAIL=ada@example.com
 
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
-# The api-service tasks are dated in the last week of September 2026, so
+# The api-service tasks carry dates in the last week of September 2026, so
 # "today" is just after them, and a flip writes the same date on every build.
 # www/capture.sh declares that clock for every generator that runs the fixture.
 export MINDTAPE_NOW=$API_SERVICE_NOW
 export GIT_AUTHOR_DATE="${API_SERVICE_NOW}T12:00:00Z" GIT_COMMITTER_DATE="${API_SERVICE_NOW}T12:00:00Z"
 capture_init
 
-# api_copy <var>: a copy of the project, committed as the first commit of a
+# `api_copy` <var>: a copy of the project, committed as the first commit of a
 # new repository, stored in <var>.
 api_copy() {
     capture_copy "$1" examples/api-service
     capture_prep "${!1}" 'git init -q -b main && git add -A && git commit -qm "Start the backlog"'
 }
 
-# Split oversized tasks: a task that takes judgment and touches 7 source
-# files is refused at `mt add`, and nothing is written. A rename touches 12
-# and is filed, because mechanical work has no cap.
+# Split oversized tasks: `mt add` refuses a task that takes judgment and
+# touches 7 source files, and nothing gets written. A rename touches 12 and
+# gets filed, because mechanical work has no cap.
 api_copy P
 capture --exit 1 --expect 'rules\.judgment-stays-small' split-oversized-tasks "$P" "$(
     cat <<'CMD'
@@ -114,10 +114,10 @@ EOF
 CMD
 )"
 
-# Start titles with a verb: a title whose first word is in no verb list is
-# refused, and one that starts with a shipped verb or the project's own word
-# is filed. sections.yaml holds the sections the template asks for besides
-# the title, so the session shows only the titles.
+# Start titles with a verb. `mt add` refuses a title whose first word is in
+# no verb list, and files one that starts with a built-in verb or the
+# project's own word. sections.yaml holds the sections the template requires
+# besides the title. The session shows only the titles.
 api_copy P
 capture_prep "$P" "$(
     cat <<'CMD'
@@ -140,7 +140,7 @@ capture start-titles-with-a-verb "$P" 'mt add Fix the login redirect -f sections
 capture start-titles-with-a-verb "$P" 'mt add Backport the login redirect fix to v1 -f sections.yaml'
 
 # Tie work to your goals: the milestone template rates each goal `neutral`
-# unless the answers say otherwise, so the goals rule refuses a milestone that
+# unless the answers say otherwise. The goals rule refuses a milestone that
 # helps none of them, and files it once one goal says how it helps.
 api_copy P
 capture_prep "$P" "$(
@@ -166,7 +166,7 @@ EOF
 
 # Limit work in progress: a milestone and one task under it are in progress,
 # so a second task cannot start, and a task cannot start before its
-# dependencies are done.
+# dependencies finish.
 api_copy P
 capture limit-work-in-progress "$P" "mt ls 'status == \"wip\"' --columns title,children,progress"
 capture --exit 1 --expect 'rules\.one-task' limit-work-in-progress "$P" 'mt wip add-redis-client'
@@ -174,7 +174,7 @@ capture --exit 1 --expect 'requires an unblocked task' limit-work-in-progress "$
 capture limit-work-in-progress "$P" 'mt ls blocked --columns title,why'
 
 # Wait on upstream: a task waits until Cargo.lock pins the release it needs.
-# No checker runs before `mt allow`, so the session allows first. The
+# The checkers don't run before `mt allow`. The session allows first. The
 # dependency bot's branch bumps the lockfile, and merging it frees the task.
 (
 CAPTURE_ALLOW=
@@ -200,7 +200,7 @@ capture wait-on-upstream "$P" 'mt ls blocked --columns title,why'
 # Trace commits to tasks: a commit-msg hook runs `mt check --commit-msg`, which
 # refuses a commit without a `Refs:` trailer. touches() then finds the task
 # behind a file. The project's first commit holds the file, and the reader's
-# edit to it is made before the session.
+# edit to it happens before the session.
 api_copy P
 mkdir -p "$P/src/auth"
 cat >"$P/src/auth/session.rs" <<'EOF'

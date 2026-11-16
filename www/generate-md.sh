@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# www/generate-md.sh — write the Markdown copy of every docs page, and
+# www/generate-md.sh: write the Markdown copy of every docs page, and
 # /llms.txt, into the built site.
 #
 # Each www/content page renders a second time with typlite and
@@ -10,9 +10,9 @@
 # as `[title](md url): summary`, with a nested page such as /cli/ls/ listed
 # under its parent's entry.
 #
-# The build fails on a page typlite cannot render, on an HTML tag typlite
-# wrote because a construct has no Markdown form, and on a link to a Markdown
-# copy that does not exist.
+# The build fails on a page typlite cannot render. It also fails on an HTML tag
+# typlite wrote because a construct has no Markdown form, and on a link to a
+# Markdown copy that does not exist.
 #
 # Usage: www/generate-md.sh [SITE_DIR]. SITE_DIR defaults to the directory
 # `tola build` writes, www/public plus the site's path prefix. Run it after

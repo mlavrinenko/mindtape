@@ -1,18 +1,17 @@
-# .just/scripts/_script-graph-lib.sh — the walk both front-ends share: reads the
-# `just` dump and the scripts on disk and leaves the call graph in `adjacent`
-# (node -> newline-separated nodes it names), the recipe names in `recipes` and
-# every code line in `lines` (owner<TAB>where<TAB>line). Sourced by
-# _script-graph.sh (which prints the recipe-to-script pairs script-scope-check
-# judges) and by _script-reach.sh (which prints the code lines a recipe
-# reaches); what counts as a call is argued below, once, for both.
+# .just/scripts/_script-graph-lib.sh: the walk both front-ends share. It reads the `just` dump
+# and the scripts on disk. The walk leaves the call graph in `adjacent` (node -> newline-separated
+# nodes it names), the recipe names in `recipes`, and every code line in `lines`
+# (owner<TAB>where<TAB>line). _script-graph.sh sources it, and so does _script-reach.sh. The
+# first prints the recipe-to-script pairs script-scope-check judges. The second prints the code
+# lines a recipe reaches. The comment below argues what counts as a call, once, for both.
 #
-# The caller sets `dump`, and optionally `extra` (globs naming scripts outside
-# .just/scripts/ to add as nodes) and `reach=1` (recipe dependencies become
-# edges too; the default leaves them, since no rule's scopes turn on one).
+# The caller sets `dump`, and optionally `extra` (globs naming scripts outside .just/scripts/
+# to add as nodes) and `reach=1`. With `reach=1`, recipe dependencies become edges too. The
+# default leaves them out, because no rule's scopes turn on one.
 #
-# A script is named by its path in any position, and a `$VAR/name.sh` also
-# resolves beside the script naming it — how www/ and .just/scripts/ call their
-# own siblings, and how the front-ends source this file.
+# The walk reads a script's path in any position as a call, and a `$VAR/name.sh`
+# also resolves beside the script naming it. That is how www/ and .just/scripts/
+# call their own siblings, and how the front-ends source this file.
 
 shopt -s nullglob
 scripts=(.just/scripts/*.sh)
@@ -28,10 +27,9 @@ for glob in "${extra[@]}"; do
     allscripts+=($glob)
 done
 
-# The `just` flags that reach no recipe of the justfile being read, each with
-# the reason it reaches none. A flag absent from here is not assumed harmless:
-# the walk fails on it and asks for this decision, because "it probably runs
-# nothing" is how a real call stops being followed.
+# The `just` flags that reach no recipe of the justfile the walk reads, each with the reason it
+# reaches none. A flag absent from here is not assumed harmless: the walk fails on it and asks
+# for this decision, because "it probably runs nothing" is how the walk loses a real call.
 noop_flags=$(
     cat <<'EOF'
 --justfile	reads a different justfile; no recipe of this one is reached
@@ -45,15 +43,14 @@ noop_flags=$(
 EOF
 )
 
-# One pass over the dump for both things it holds: the recipe names (`N`), which
-# are what a nested `just` has to resolve to, and the body lines (`L`), which are
-# where a call can be written. Modules are walked recursively (`docs::md-check`'s
-# body is the reason) and a `namepath` is already fully qualified, so it maps
-# straight onto the `just <namepath>` rule names the manifest uses. A body line
-# is a list of string and `{{ VAR }}` fragments; the variable fragments are
-# dropped and the rest joined, and just's own line prefixes (`@` quiet, `-`
-# ignore-error) are stripped so `@just --list` reads as a call rather than as a
-# word opening with `@`.
+# One pass over the dump for both things it holds: the recipe names (`N`), which are what a
+# nested `just` has to resolve to. The body lines (`L`) are where a call can appear. The walk
+# recurses into modules (`docs::md-check`'s body is the reason), and a `namepath` is already
+# fully qualified, so it maps straight onto the `just <namepath>` rule names the manifest
+# uses. A body line is a list of string and `{{ VAR }}` fragments. The walk drops the variable
+# fragments and joins the rest. It also strips just's own line prefixes (`@` quiet, `-`
+# ignore-error), which makes `@just --list` read as a call rather than as a word opening with
+# `@`.
 dumped=$(jq -r '
     def all_recipes:
       ((.recipes // {}) | to_entries | map(.value))
@@ -83,9 +80,9 @@ fi
 lines=$(
     grep '^L	' <<<"$dumped" | cut -f2-
     # A heredoc body is data, and the control fixtures write scripts carrying
-    # `just` calls and script paths with one — so reading a heredoc as code
-    # would make the control's own fixture an edge of the gate that runs it.
-    # The opening line is still code (it is where a redirection or a `cat` is).
+    # `just` calls and script paths with one. Reading a heredoc as code would
+    # make the control's own fixture an edge of the gate that runs it. The
+    # opening line is still code (it is where a redirection or a `cat` is).
     # `<<<` is a herestring, not a heredoc, and the delimiter pattern requires a
     # word character where a herestring has its third `<`.
     for script in "${allscripts[@]}"; do

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/positional-args-check.sh — the body of the `positional-args-
+# .just/scripts/positional-args-check.sh: the body of the `positional-args-
 # check` recipe (truth/tasks/preserve-argument-quoting-with-positional-
 # arguments.typ). Runs from the repo root, like the recipe that invokes it.
 #
@@ -7,53 +7,53 @@
 # one is itself separate from fmt-fixture-check.sh: different subject. That
 # one locks that `[arg(...)]` `pattern`s reject bad input and accept good
 # input at dispatch, entirely via `--dry-run`, so no recipe body ever runs.
-# This one locks that `test`, `build`, `mutants::sweep` and `mutants::diff` — the
-# recipes that take a passthrough `*ARGS` — actually forward it as a real
+# This one locks that `test`, `build`, `mutants::sweep` and `mutants::diff`
+# (the recipes that take a passthrough `*ARGS`) actually forward it as a real
 # argument vector instead of a bare string.
 # That property is invisible to `--dry-run`: word-splitting and globbing
 # happen when the shell interpreting the recipe body evaluates it, which
 # dry-run explicitly never does. So this is a two-part check instead:
 #
-#   1. Structural, over `just --dump --dump-format json` — the same source
+#   1. Structural, over `just --dump --dump-format json`: the same source
 #      check-doc-recipes.sh reads recipe names from. Each of the four must
 #      carry the `positional-arguments` attribute, and its body must be
 #      exactly one line with no `{{ VAR }}` interpolation fragment left in
-#      it (gates.jq's own comment documents the shape: an interpolated
-#      fragment serializes as `["variable", "NAME"]`, not a plain string) —
-#      catching a regression where the attribute stays but a body reverts to
-#      `{{ ARGS }}`, which would silently drop back to word-splitting even
-#      though the attribute suggests otherwise.
+#      it. (gates.jq's own comment documents the shape: an interpolated
+#      fragment serializes as `["variable", "NAME"]`, not a plain string.)
+#      That catches a regression where the attribute stays but a body
+#      reverts to `{{ ARGS }}`, which would silently drop back to
+#      word-splitting even though the attribute suggests otherwise.
 #   2. Textual, over the two scripts the passthrough recipes forward into
-#      (mutants.sh, mutants-diff.sh) — each must consume its own "$@", not
+#      (mutants.sh, mutants-diff.sh). Each must consume its own "$@", not
 #      re-join or re-split it.
 #
 # `ask-refactoring` is not covered here, because it takes no passthrough
-# `*ARGS`. Its five thresholds are declared parameters, each with an
-# `[arg(...)]` attribute and a digits-only `pattern`, so a value that could be
-# word-split or globbed cannot pass dispatch at all, and the body forwards
+# `*ARGS`. The recipe declares its five thresholds as parameters, each with
+# an `[arg(...)]` attribute and a digits-only `pattern`. A value that could
+# be word-split or globbed cannot pass dispatch at all, and the body forwards
 # exported parameters through quoted `"$VAR"` expansions instead of
 # interpolating `{{ }}`. arg-pattern-check.sh locks the patterns, and the
 # patterns lock the quoting.
-# This script reads nothing outside .just/scripts/** and the two justfiles.
+# This script doesn't read anything outside .just/scripts/** and the two justfiles.
 #
 # Both are static: nothing here runs cargo test, cargo build or cargo
-# mutants. A dynamic proof (an argument containing a space and a glob
-# character surviving as one word, end to end) lives in this task's own
-# commit message and is not re-run on every `just check` — mutants and
+# mutants. A proof from a real run lives in this task's own commit message:
+# an argument containing a space and a glob character surviving as one
+# word, end to end. It is not re-run on every `just check`. mutants and
 # ask-refactoring shell out to real cargo/mt builds, and this repo already
-# keeps them out of `just check` for exactly that cost (see docs/contributing/
-# mutation-testing.md for why the mutation sweep has no CI job either). A static gate is
-# what stays cheap
-# enough to run every time and still catches the regression that matters:
-# the attribute or the "$@" disappearing from the Justfile or a script.
+# keeps them out of `just check` for exactly that cost. (See
+# docs/contributing/mutation-testing.md for why the mutation sweep has no
+# CI job either.) A static gate is what stays cheap enough to run every
+# time and still catches the regression that matters: the attribute or the
+# "$@" disappearing from the Justfile or a script.
 set -eo pipefail
 
 fail=0
 dump="$(just --dump --dump-format json)"
 
-# assert_forwards <recipe>
+# `assert_forwards` <recipe>
 # `[positional-arguments]` present, body is exactly one line, and that line
-# has no leftover `{{ VAR }}` fragment — i.e. every element of the body's
+# has no leftover `{{ VAR }}` fragment: every element of the body's
 # single line is a plain string, never a `{"variable": ...}` node.
 assert_forwards() {
     local recipe="$1" ok
@@ -76,8 +76,8 @@ assert_forwards build
 assert_forwards mutants::sweep
 assert_forwards mutants::diff
 
-# assert_script_forwards <script> <pattern>
-# The script a passthrough recipe forwards into must consume "$@" itself —
+# `assert_script_forwards` <script> <pattern>
+# The script a passthrough recipe forwards into must consume "$@" itself:
 # grepped, not parsed, because these are the same files
 # .just/scripts/crap.sh's own header points to as the convention to follow.
 assert_script_forwards() {

@@ -1,50 +1,48 @@
-# ask-refactoring: the mutants arm — surviving mutants.
+# ask-refactoring: the mutants arm, surviving mutants.
 #
-# Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
+# Sourced by `contrib/ask-refactoring.sh`, not executable on its own. It reads
 # that script's globals (`$repo`, `$MT`, `$WRITE`, the thresholds) and calls its
-# `stem_for` and `skip_arm`. It owns three functions the driver looks up by name —
-# `score_mutants`, `signal_mutants`, `emit_mutants` — reading the last sweep's
-# outcomes.json.
+# `stem_for` and `skip_arm`. It owns three functions the driver looks up by
+# name (`score_mutants`, `signal_mutants`, `emit_mutants`), reading the last
+# sweep's outcomes.json.
 #
 # The reasoning behind this arm's numbers lives here with the code that
-# applies them, deliberately: it is the most valuable thing in the arm and a
+# applies them, deliberately. It is the most valuable thing in the arm, and a
 # doc it lived in instead would drift away from the constants it explains.
 
 # ── signal: cargo-mutants ───────────────────────────────────────────────────
 #
-# A surviving mutant is a line the suite covers but does not pin — a bad test,
-# stated precisely. It is the only one of the three signals whose producer this
+# A surviving mutant is a line the suite covers but does not pin (a bad test,
+# stated precisely). It is the only one of the three signals whose producer this
 # script will not run for you, and that asymmetry is the whole design of this
 # arm.
 #
-# `just cover` re-runs in minutes and `just mmz cover` makes an unchanged tree
-# free, so the undertested arm refreshes its own input and refuses a stale one. A
-# full `cargo mutants` sweep is hours — it rebuilds and re-runs the suite once
-# per mutant — so refreshing here is not an option and refusing would be worse:
-# it would block the size arm behind an hours-long prerequisite
-# for a signal that is deliberately not a gate. So this arm skips instead, and
-# says on stderr that it skipped and which recipe produces the data. What it
-# must never do is stay quiet, because "no surviving mutants" and "nobody has
-# measured" would then print identically, and the second one reads as good news.
+# `just cover` re-runs in minutes, and `just mmz cover` makes an unchanged tree free. The
+# undertested arm refreshes its own input and refuses a stale one. A full `cargo mutants` sweep
+# is hours: it rebuilds and re-runs the suite once per mutant. Refreshing here is not an
+# option, and refusing would be worse. It would block the size arm behind an hours-long
+# prerequisite for a signal that is deliberately not a gate. This arm skips instead, and says
+# on stderr that it skipped and which recipe produces the data. What it must never do is stay
+# quiet, because "no surviving mutants" and "nobody has measured" would then print
+# identically, and the second one reads as good news.
 #
 # Staleness is the same call for the same reason. An outcomes.json a source has
-# outrun can name a survivor that was pinned since, so the arm skips rather than
-# files it — a phantom finding is the one thing the sweep cannot afford, and
-# unlike the lcov there is no cheap way back to a fresh one.
+# outrun can list a survivor pinned since, and the arm skips rather than files
+# it. A phantom finding is the one thing the sweep cannot afford, and unlike
+# the lcov there is no cheap way back to a fresh one.
 #
-# Scope comes out of the data, not a ledger. The outcomes.json this arm reads
-# records every mutant that ran, so the set of files a sweep covered is
-# derivable from the file itself — `--in-diff` and `-f` runs alike. That matters
-# because a finding must never read as covering more than it does, and it means
-# the honest answer needs no recorded last-sweep marker: a ledger would go
-# stale, conflict between contributors, and be absent on a fresh clone, which is
-# exactly the reasoning that kept the undertested arm off a stored baseline.
+# Scope comes out of the data, not a ledger. The outcomes.json this arm reads records every
+# mutant that ran. The set of files a sweep covered is derivable from the file itself
+# (`--in-diff` and `-f` runs alike). That matters because a finding must never read as
+# covering more than it does. The scope sentence doesn't need a recorded last-sweep marker
+# either: a ledger would go stale, conflict between contributors, and be absent on a fresh
+# clone. That is exactly the reasoning that kept the undertested arm off a stored baseline.
 #
-# Where to read it: `just mutants::sweep` (full) writes `mutants.out`, while a scoped
-# run (`-f`, `--in-diff`) writes `target/mutants-scoped` so it cannot clobber
-# the `--iterate` cache the full sweep reads (`.just/scripts/mutants.sh`). Both
-# are complete sweep records, so the arm takes whichever ran last; a sweep is a
-# sweep regardless of which directory the wrangler routed it to.
+# Where to read it: `just mutants::sweep` (full) writes `mutants.out`, while a scoped run
+# (`-f`, `--in-diff`) writes `target/mutants-scoped` so it cannot clobber the `--iterate`
+# cache the full sweep reads (`.just/scripts/mutants.sh`). Both are complete sweep records.
+# The arm takes whichever ran last, and a sweep is a sweep regardless of which directory the
+# wrangler routed it to.
 MUTANTS_JSON=""
 for candidate in mutants.out/outcomes.json target/mutants-scoped/outcomes.json; do
     if [ -f "$candidate" ] && { [ -z "$MUTANTS_JSON" ] || [ "$candidate" -nt "$MUTANTS_JSON" ]; }; then
@@ -70,16 +68,15 @@ mutants_available() {
     return 0
 }
 
-# One sentence naming what the recorded sweep actually covered, derived from
-# outcomes.json itself. Read on a task filed weeks later, this is what stops a
-# single-file `-f` run from reading like a verdict on the workspace.
+# One sentence stating what the recorded sweep actually covered, derived from outcomes.json
+# itself. Read on a task filed weeks later, this is what stops a single-file `-f` run from
+# reading like a verdict on the workspace.
 #
-# The file list is capped at six names. It lands in the task's `AS-IS`
-# section, whose word cap is 120, and a full-sweep outcomes.json holds a run
-# across every file — spelling all of them out pushed the section over the cap
-# and `mt add` refused the whole sweep with nothing filed. Six names carry the
-# same "how wide was this" the full list did, and `and N more` keeps the count
-# honest; the arm only ever filed cleanly for `--in-diff` runs before this.
+# The file list stops at six names. It lands in the task's `AS-IS` section, whose word cap is
+# 120, and a full-sweep outcomes.json holds a run across every file. Spelling them all out
+# pushed the section over the cap and `mt add` refused the whole sweep with nothing filed. Six
+# names carry the same "how wide was this" the full list did, and `and N more` keeps the count
+# honest. The arm only ever filed cleanly for `--in-diff` runs before this.
 mutants_scope() {
     jq -r '
       ([.outcomes[] | select(.scenario | type == "object") | .scenario.Mutant.file]
@@ -97,31 +94,29 @@ non-verdict, not a pass" else "" end)
 
 # Scoring, and why these numbers:
 #
-#   impact = clamp(round(3 + 5 * share + (fn > 20 lines)), 1, 10)
-#     `share` is how much of the function the mutation replaced: 1.0 when the
-#     whole body went and the suite still passed, which says the function's
-#     entire contract is unpinned rather than one decision inside it. A flipped
-#     operator scores near the floor because it is a narrower claim — real, but
-#     about one expression. The size bump is there because a longer function
-#     decides more, so the same share buys more risk.
+#   `impact = clamp(round(3 + 5 * share + (fn > 20 lines)), 1, 10)`
+#     `share` is how much of the function the mutation replaced: 1.0 when the whole body went
+#     and the suite still passed. That says the suite fails to pin the function's entire
+#     contract, not just one decision inside it. A flipped operator scores near the floor
+#     because it is a narrower claim (real, but about one expression). The size bump is there
+#     because a longer function decides more. The same share buys more risk.
 #
 #   confidence = 0.8, constant
-#     cargo-mutants ran the suite, so survival is measured, not forecast. Lower
-#     than the 0.9 the size arm carries because a survivor can be
-#     provably unkillable — `.config/mutants.toml` documents two such equivalent
-#     mutants today — so unlike a line count, the finding itself can turn out to
-#     be a non-problem. That is a different uncertainty from "the remedy is a
-#     judgment call", and it belongs in the number.
+#     cargo-mutants ran the suite, so survival is a measurement, not a forecast. Lower than
+#     the 0.9 the size arm carries because a survivor can be provably unkillable
+#     (`.config/mutants.toml` documents two such equivalent mutants today). Unlike a line
+#     count, the finding itself can turn out to be a non-problem. That is a different
+#     uncertainty from "the remedy is a judgment call", and it belongs in the number.
 #
 #   ease = clamp(9 - round(fn_lines / 10), 1, 10)
-#     The mutant marks the line; what costs time is reaching it from a test. A
-#     short function takes a direct assertion, a long one takes fixture setup
-#     before the branch is even reachable — the template's "how far the mutant
-#     sits from a seam", measured by the only proxy the data carries.
+#     The mutant marks the line. What costs time is reaching it from a test. A short
+#     function takes a direct assertion, a long one takes fixture setup before the branch is
+#     even reachable: the template's "how far the mutant sits from a seam", measured by the
+#     only proxy the data carries.
 #
 #   difficulty tracks the same length on the config's judgment rubric. The
-#   remedy is one file either way: the test module gains a case, or
-#   `.config/mutants.toml` gains an exclusion.
+#     remedy is one file either way: the test module gains a case, or
+#     `.config/mutants.toml` gains an exclusion.
 score_mutants() {
     jq -r '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
@@ -167,13 +162,12 @@ emit_mutants() {
     local impact="$5" confidence="$6" ease="$7" difficulty="$8"
     local location="$9"
 
-    # The stem carries the mutation's span as well as its description. The
-    # description alone is not unique — three `replace > with >=` survivors in
-    # `sweep_operator` share it — and `--dedup skip` then hides every sibling
-    # after the first, which is the bug this scheme fixes. `stem_for` spells
-    # the operators out, so the description half stays readable. A survivor
-    # whose line shifts is refiled under a new stem; a killed one never
-    # reappears, and a survivor that moved is a fresh finding either way.
+    # The stem carries the mutation's span as well as its description. The description alone is
+    # not unique (three `replace > with >=` survivors in `sweep_operator` share it), and
+    # `--dedup skip` then hides every sibling after the first, which is the bug this scheme
+    # fixes. `stem_for` spells the operators out, which keeps the description half readable. A
+    # survivor whose line shifts files under a new stem. A killed one never reappears, and a
+    # survivor that moved is a fresh finding either way.
     local stem
     stem="$(stem_for mutants "$path-$location-$mutation")"
 

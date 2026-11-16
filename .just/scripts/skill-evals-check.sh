@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# .just/scripts/skill-evals-check.sh — the body of the `skill-evals-check`
+# .just/scripts/skill-evals-check.sh: the body of the `skill-evals-check`
 # recipe. Runs from the repo root, like the recipe that invokes it.
 #
 # The evals have two arms. `assertions` grades the executor that loaded the
 # skill, and `without.assertions` grades a consumer given only the prompt and
 # `mt`. The second block is the bar the CLI must clear with no external
 # documentation, so a missing or empty block would quietly drop that arm from a
-# release run. This checks the shape and the fixture paths; it never calls a
+# release run. This checks the shape and the fixture paths. It never calls a
 # model. The manual loop is skill-creator's, and its results live in README.md.
 set -eo pipefail
 
@@ -19,8 +19,8 @@ fi
 
 fail=0
 
-# An eval with no with-skill assertions or no no-docs block cannot be graded on
-# both arms.
+# This check cannot grade an eval with no with-skill assertions or no no-docs
+# block on both arms.
 while IFS= read -r id; do
     if ! jq -e --argjson id "$id" '
         .evals[] | select(.id == $id)
@@ -39,7 +39,7 @@ if [ "$(jq '.evals | length' "$manifest")" -eq 0 ]; then
     fail=1
 fi
 
-# A fixture may be renamed or retired, and a stale path fails every eval aimed
+# Fixtures get renamed and retired, and a stale path fails every eval aimed
 # at it at config load. Check both the shared map and each eval's own key.
 while IFS=$'\t' read -r where path; do
     [ -n "$path" ] || continue

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# .just/scripts/_doc-blocks-control.sh — the control `just docs::blocks`
+# .just/scripts/_doc-blocks-control.sh: the control `just docs::blocks`
 # runs before it scans the real tree. Runs from the repo root and writes only
 # to a temp dir, since `just check` runs its arms in parallel.
 #
-# A scan that finds nothing looks the same as a scanner that reads nothing, for
-# example after a typstyle bump changes the `--ast` format. So the control
+# A scan that finds nothing looks the same as a scanner that doesn't read,
+# such as after a typstyle bump changes the `--ast` format. So the control
 # scans synthetic files carrying every known-bad shape and every known-good
 # one, and requires the exact rows below.
 set -eo pipefail
@@ -115,8 +115,8 @@ EOF
 diff "$tmp/want" "$tmp/got" >"$tmp/diff" ||
     fail_control "scan rows differ from the fixture's (- want, + got): $(cat "$tmp/diff")"
 
-# The list rule: an unlisted file with a block and a listed file without one
-# both fail by name; listing exactly the files with blocks passes.
+# The list rule fails an unlisted file with a block and a listed file without
+# one, both by name. Listing exactly the files with blocks passes.
 printf 'a.typ\t3\tblock\ta fenced block\n' >"$tmp/scan"
 rc=0
 doc_blocks_judge "$tmp/scan" b.typ 2>"$tmp/judge" || rc=$?

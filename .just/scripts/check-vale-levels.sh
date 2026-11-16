@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/check-vale-levels.sh — the body of the `lint::vale-levels`
+# .just/scripts/check-vale-levels.sh: the body of the `lint::vale-levels`
 # recipe (truth/tasks/2026-11/forbid-warning-levels-in-vale-configs.typ). Runs
 # from the repo root, like the recipe that invokes it.
 #
@@ -7,21 +7,21 @@
 # `error` shows in an editor and passes every gate, so nobody has to fix it.
 # This gate reads every `.config/vale*.ini` and requires:
 #
-#   - `MinAlertLevel = error`, so a config cannot default to warnings;
-#   - every rule line at `error` or `NO`;
+#   - `MinAlertLevel = error`, so a config cannot default to warnings.
+#   - every rule line at `error` or `NO`.
 #   - every rule of every style a section enables, because a new rule file in
 #     `target/vale/styles` otherwise inherits a quiet level.
 #
 # The style rule names come from `target/vale/styles/*/*.yml`, which the dev
 # shell links from the pinned nix build. A style with no directory (`Vale`, the
-# tool's built-in style) has no rule file to read, so only the config's own
-# lines are checked for it. `vale ls-config` cannot stand in for this file: it
+# tool's built-in style) has no rule file to read, so this gate checks only the
+# config's own lines for it. `vale ls-config` cannot stand in for this file: it
 # prints each rule as a boolean, so `warning` and `error` both read `true`, and
 # it omits a rule the config does not name.
 #
 # The control runs first over a synthetic style and configs. A parser that
 # stopped reading sections would report a clean tree, which is exactly what a
-# correct gate reports, so the fixture pins the findings and their order.
+# correct gate reports. The fixture pins the findings and their order.
 set -eo pipefail
 
 styles=target/vale/styles

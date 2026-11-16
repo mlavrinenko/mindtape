@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Body of `just mutants status [DIR]`. cargo-mutants prints no ETA, so derive
-# one from the two files a run writes as it goes: mutants.json (the fixed list
-# to test) and outcomes.json (one entry per finished mutant, after the opening
-# Baseline entry). Needs jq >= 1.7 for `localtime`.
+# Body of `just mutants status [DIR]`. cargo-mutants doesn't print an ETA, so
+# derive one from the two files a run writes as it goes. mutants.json is the
+# fixed list to test. outcomes.json holds one entry per finished mutant, after
+# the opening Baseline entry. Needs jq >= 1.7 for `localtime`.
 set -eo pipefail
 dir="${1:-mutants.out}"
 if [ ! -f "$dir/outcomes.json" ]; then

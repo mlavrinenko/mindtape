@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# www/generate-cli.sh — capture the CLI reference's transcripts and examples,
-# for www/content/cli.typ and the notes in www/utils/cli-notes.typ. Called by
-# www/generate.sh with the repo root and the generated/ directory, inside the
+# www/generate-cli.sh: capture the CLI reference's transcripts and examples, for
+# www/content/cli.typ and the notes in www/utils/cli-notes.typ, on the docs site.
+# www/generate.sh calls it with the repo root and the generated/ directory, inside the
 # lock that script holds.
 #
 # Read commands run in examples/api-service in place. Commands that write run
 # in a copy of a fixture, or in a project `mt init --no-input` makes. Each
 # session gets its own project, so no session depends on what another wrote.
-# Files a command reads (notes, an import, a link map) are written before the
-# session; the reader brings their own.
+# The script writes the files a command reads (notes, an import, a link map)
+# before the session. The reader brings their own.
 set -eo pipefail
 
 REPO="$1"
@@ -18,7 +18,7 @@ FIX="$REPO/examples/api-service"
 
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
-# The api-service tasks are dated in the last week of September 2026, so
+# The api-service tasks carry dates in the last week of September 2026, so
 # "today" is just after them.
 export MINDTAPE_NOW=$API_SERVICE_NOW
 capture_init
@@ -96,8 +96,8 @@ mt add ship-it --dedup skip
 mt add ship-it --dedup add-suffix
 EOF
 
-# The jq adapters emit the default legend's status names, so the imports run
-# in a project `mt init --no-input` made.
+# The imports run in a project `mt init --no-input` made, because the jq
+# adapters emit the default legend's status names.
 init_scratch P
 mkdir -p "$P/contrib/jq"
 cp "$REPO/contrib/jq/taskwarrior.jq" "$P/contrib/jq/"

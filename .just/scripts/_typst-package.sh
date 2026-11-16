@@ -4,9 +4,9 @@
 # `mt install` resolves the directory itself.
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
 # The package directory `mt` installs into and loads from, `package_root()` in
-# crates/mindtape/src/loader/app_dirs.rs: `$MINDTAPE_DATA_HOME/typst/packages`
-# when that is set, else Typst's own, `$TYPST_PACKAGE_PATH` when set, else the
-# Linux data directory's `typst/packages`. A set but empty variable means none.
+# `crates/mindtape/src/loader/app_dirs.rs`: `$MINDTAPE_DATA_HOME/typst/packages`
+# when set, else Typst's own, `$TYPST_PACKAGE_PATH` when set, else the Linux
+# data directory's `typst/packages`. A set but empty variable means none.
 if [ -n "${MINDTAPE_DATA_HOME+set}" ]; then
     VAR=MINDTAPE_DATA_HOME
     PACKAGES="${MINDTAPE_DATA_HOME:+$MINDTAPE_DATA_HOME/typst/packages}"

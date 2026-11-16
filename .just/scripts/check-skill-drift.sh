@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# .just/scripts/check-skill-drift.sh — the body of the `skill-drift` recipe.
+# .just/scripts/check-skill-drift.sh: the body of the `skill-drift` recipe.
 # Runs from the repo root, like the recipe that invokes it.
 #
 # `just install` writes a `.mindtape-source-hash` stamp into each skill it
 # copies. This compares that stamp with a fresh hash of `skills/<name>`. A
 # harness dir with no copy for a skill stays quiet. A copy with no stamp fails
 # as unverified, because it came from an install this check cannot vouch for.
-# The check reads the harness dirs and writes nothing there.
+# The check reads the harness dirs and doesn't write anything there.
 #
-# A mismatch or a missing stamp warns and fails the gate: `just check` prints
+# A mismatch or a missing stamp warns and fails the gate. `just check` prints
 # a failed gate's log and drops a passing one, so a warning on a green gate
 # would never reach the reader.
 set -eo pipefail

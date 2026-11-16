@@ -4,13 +4,13 @@
 # from the repo root, where `skills/` is.
 #
 # Each copied skill gets a `.mindtape-source-hash` stamp holding the hash of
-# the source tree it copied, so `just check` can tell a stale copy from a
+# the source tree it copied. `just check` can then tell a stale copy from a
 # current one (.just/scripts/check-skill-drift.sh).
 #
-# `defaults.toml` is deliberately not refreshed. It is seeded once and then
-# hand-edited as the global config layer (crates/mindtape-cli/src/cmd/install/mod.rs),
-# so --force there would erase local settings; the schema is generated from the
-# config structs, so forcing it is always safe.
+# `defaults.toml` is deliberately not refreshed. The install seeds it once, and the file then
+# takes hand edits as the global config layer (crates/mindtape-cli/src/cmd/install/mod.rs).
+# `--force` there would erase local settings. The generator builds the schema from the config
+# structs, so forcing it is always safe.
 set -eo pipefail
 "${CARGO_HOME:-$HOME/.cargo}/bin/mt" install --no-lib --no-defaults --force
 
@@ -25,8 +25,8 @@ hash_tree() {
         cut -d' ' -f1
 }
 
-# A SKILL.md is what makes a directory a skill, and the discriminator is
-# load-bearing: `skills/*-workspace` is gitignored eval scratch, so a bare
+# A SKILL.md is what makes a directory a skill, and the discriminator
+# matters. git ignores `skills/*-workspace` as eval scratch, so a bare
 # `skills/*/` glob would link a sandbox tree into the harness as a real skill.
 shopt -s nullglob
 for dir in "$HOME/.claude/skills" "$HOME/.config/opencode/skills"; do

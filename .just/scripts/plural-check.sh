@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/plural-check.sh — the body of the `lint::plural` recipe
+# .just/scripts/plural-check.sh: the body of the `lint::plural` recipe
 # (truth/tasks/print-counts-as-1-task-or-12-tasks-never-task-s.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #
@@ -14,15 +14,14 @@
 #     `'"'` and a call such as `width(s)` are not strings.
 #   - Test code is a file under `tests/` or `test_support/`, a test sibling
 #     (`*_tests*.rs`, `tests_*.rs`, `tests.rs`), and everything from an inline
-#     `#[cfg(test)] mod name {` to the end of its file, since the inline test
-#     module closes a file by convention.
+#     `#[cfg(test)] mod name {` to the end of its file (the inline test module
+#     closes a file by convention).
 #
-# The fixture. A scan that reaches nothing passes for the wrong reason, so the
-# scan runs first over a synthesized tree in a temp dir, holding strings it
-# must refuse and every shape it must let through, and only then over
-# `crates/`. The temp dir is for size-fixture-check.sh's reason: `just check`
-# runs its arms in parallel, and a stray file in the tracked tree would fail
-# the arms scanning it.
+# The fixture. A scan that reaches nothing passes for the wrong reason. The scan runs first
+# over a synthesized tree in a temp dir, holding strings it must refuse and every shape it
+# must let through, and only then over `crates/`. The temp dir is for size-fixture-check.sh's
+# reason: `just check` runs its arms in parallel, and a stray file in the tracked tree would
+# fail the arms scanning it.
 set -eo pipefail
 
 # scan <dir>: print `file:line: message` for each `(s)` in a string under <dir>.

@@ -1,52 +1,45 @@
 #!/usr/bin/env bash
-# www/generate-examples.sh — slice the checked example projects into facts the
+# www/generate-examples.sh: slice the checked example projects into facts the
 # docs pages quote verbatim, the way www/generate-facts.sh slices the README
 # task. Called by www/generate.sh with the repo root and the generated/
 # directory, inside the lock that script already holds, so this one takes none
 # of its own.
 #
-# One artifact per fixture: examples/links/ -> links.json (the `links:` field),
-# examples/recurring/ -> recurring.json (the `recur:` field),
-# examples/statuses/ -> statuses.json (the `status:` field), examples/dsl/ ->
-# dsl.json (the task sketch AGENTS.md and /dsl/ show), examples/self-validating/ ->
-# self-validating.json (a project's own check function), examples/priority/ ->
-# priority.json (a framework call), examples/estimates/ -> estimates.json (a
-# query-backed estimate), examples/api-service/ -> api-service.json
-# (the task README.md opens with), examples/task-files/ -> task-files.json (the
-# valid and broken fields /task-files/ pairs). The pages that quote
-# them read only the slices, and `mt check` runs on each fixture, so a helper
-# whose shape changes fails that check before a page can show it.
+# Each fixture lands one artifact. examples/links/ -> links.json (the `links:` field). examples/recurring/ -> recurring.json (the `recur:` field).
+# examples/statuses/ -> statuses.json (the `status:` field). examples/dsl/ -> dsl.json (the task sketch AGENTS.md and /dsl/ show).
+# examples/self-validating/ -> self-validating.json (a project's own check function). examples/priority/ -> priority.json (a framework call).
+# examples/estimates/ -> estimates.json (a query-backed estimate). examples/api-service/ -> api-service.json (the task README.md opens with).
+# examples/task-files/ -> task-files.json (the valid and broken fields /task-files/ pairs). The pages that quote them read only the slices,
+# and `mt check` runs on each fixture, so a helper whose shape changes fails that check before a page can show it.
 #
-# The marker convention, so a fixture stays a readable project and not a doc
+# The marker convention keeps a fixture a readable project and not a doc
 # fragment: any .typ file in the fixture marks the lines worth quoting with
 #
 #   // docs:slice <id>
 #   ...code...
 #   // docs:end
 #
-# `<id>` is the JSON key the page reads. Markers may repeat across files, the
-# code keeps its own indentation, and an unterminated slice is a hard error
-# rather than a silently empty block. A slice id a page declares but the
-# fixture does not carry fails that page's render (`<id>` missing from the
-# fact); a slice no page quotes is invisible, so pages assert the whole key set
-# instead of only probing the ones they read.
+# `<id>` is the JSON key the page reads. Markers may repeat across files, the code
+# keeps its own indentation, and an unterminated slice is a hard error rather than a
+# silently empty block. A slice id a page declares but the fixture does not carry fails
+# that page's render (`<id>` missing from the fact). A slice that pages don't quote is
+# invisible, so pages assert the whole key set instead of only probing the ones they read.
 #
-# The second half slices config rather than task markers — a `toml` key or a
+# The second half slices config rather than task markers, a `toml` key or a
 # whole section out of a project's `.mindtape/config.toml`, under the same
 # discipline in TOML's comment syntax:
 #
 #   # docs:slice <fact>/<id>
 #   ...toml...
-#   # docs:end
+#   `# docs:end`
 #
-# The fact name rides in the marker here because one config file feeds several
-# pages — the repo's own carries /hooks/'s run-less gate and /packs/'s
-# adopt block — where a task-slice fixture is one project per page and can take its
-# name from the directory. Each fact lands at <fact>-config.json, shaped like a
-# task fact minus `root`: one fact's slices may come from two projects, so the
-# `file` field is repo-relative on its own. Suffix, not prefix: www/generate.sh
-# already writes `config-schema.json` (the `mt config schema` capture), and a
-# fact named for the /schema/ page would have overwritten it silently.
+# The fact name rides in the marker here because one config file feeds multiple pages.
+# The repo's own carries /hooks/'s run-less gate and /packs/'s adopt block. A task-slice
+# fixture is one project per page and can take its name from the directory. Each fact
+# lands at <fact>-config.json, shaped like a task fact minus `root`: one fact's slices
+# may come from two projects, so the `file` field is repo-relative on its own. Suffix,
+# not prefix: www/generate.sh already writes `config-schema.json` (the `mt config schema`
+# capture), and a fact named for the /schema/ page would have overwritten it silently.
 set -eo pipefail
 
 REPO="$1"
@@ -56,7 +49,7 @@ if [ -z "$REPO" ] || [ -z "$OUT" ]; then
   exit 1
 fi
 
-# Same temp-file-plus-atomic-mv discipline as generate-facts.sh's emit(): a
+# Same temp-file-plus-atomic-mv discipline as generate-facts.sh's emit(). A
 # reader mid-render sees the previous complete file or the next, never a
 # truncated one, and a producer that dies leaves the old artifact in place.
 emit() {
@@ -73,11 +66,11 @@ emit() {
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-# One record per `docs:slice` block: which file it came from, and the code as
-# written (indentation kept — the page shows it inside `task.with(...)`, so
-# dedenting would be the first lie). The awk pass writes each slice to its own
-# temp file so jq reads the code with `--rawfile`; building JSON inside awk
-# would put the escaping rules in the wrong program.
+# One record per `docs:slice` block: which file it came from, and the code as written
+# (indentation kept: the page shows it inside `task.with(...)`, so dedenting would be the
+# first lie). The awk pass writes each slice to its own temp file so jq reads the code
+# with `--rawfile`. Building JSON inside awk would put the escaping rules in the wrong
+# program.
 slice_fixture() {
   local name="$1"
   local root="$REPO/examples/$name"
@@ -148,8 +141,8 @@ slice_fixture task-files | emit task-files.json
 
 # Every config file scanned for config markers, repo-relative. A project not
 # listed here is simply not read, so a marker added to one is inert until its
-# path arrives — the same explicitness the `examples` mmz scope holds the
-# checked fixtures to, for the same reason.
+# path arrives. That is the same explicitness the `examples` mmz scope holds
+# the checked fixtures to, for the same reason.
 CONFIG_SOURCES=(
   ".mindtape/config.toml"
   "examples/api-service/.mindtape/config.toml"
@@ -167,18 +160,17 @@ CONFIG_SOURCES=(
   "crates/mindtape/src/packs/flow.toml"
 )
 
-# Every fact a page opens. Declared rather than derived from the markers
-# because a mistyped fact name would otherwise emit a file no page ever reads —
-# invisible, and the one drift the per-page key-set assertion in
-# www/utils/slices.typ structurally cannot see from inside a single page.
-# `api-service` holds the recipe slices. The Recipes pages render them
-# through www/utils/recipes.typ, and generate-api-service.sh reads the same
-# markers to require a session for each.
+# Every fact a page opens. Declared rather than derived from the markers because a
+# mistyped fact name would otherwise emit a file pages never read. Such a file is
+# invisible. It is the one drift the per-page key-set assertion in www/utils/slices.typ
+# structurally cannot see from inside a single page. `api-service` holds the recipe
+# slices. The Recipes pages render them through www/utils/recipes.typ, and
+# generate-api-service.sh reads the same markers to require a session for each.
 CONFIG_FACTS=(across-projects api-service commit-rules config derived-tags estimates hooks links named-sets priority packs rules self-validating shipped-board statuses)
 
-# Same two-pass shape as slice_fixture: awk writes each slice to its own temp
-# file and one index row per slice, then jq builds the JSON with --rawfile so
-# no escaping rule lives in awk.
+# Same two-pass shape as `slice_fixture`: awk writes each slice to its own temp file
+# and one index row per slice. Then jq builds the JSON with `--rawfile` so no escaping
+# rule lives in awk.
 slice_configs() {
   local dir="$tmp/config"
   mkdir -p "$dir"

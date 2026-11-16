@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/crap-baseline-merge.sh — the git merge driver for
+# .just/scripts/crap-baseline-merge.sh: the git merge driver for
 # .config/crap-baseline.json (truth/tasks/merge-the-crap-baseline-and-same-key-
 # outdatty-conflicts.typ). `.gitattributes` assigns it as `merge=crap-baseline`,
 # and `just install-hooks` registers it as
@@ -8,15 +8,15 @@
 #
 # Git runs it with the base, ours and theirs blobs in three temp files and
 # expects the result in %A. Exit 0 is a clean merge. During a rebase "ours" is
-# the upstream being rebased onto.
+# the upstream you rebase onto.
 #
-# Why a driver. Every entry carries the `line` of its function, so two
+# Why a driver. Every entry carries the `line` of its function. Two
 # branches that each edit one file shift the lines of every function below the
 # edit, and git's text merge conflicts on entries neither branch re-scored.
 #
-# The key is the ratchet's. _crap-ratchet-lib.sh pairs a baseline entry with a
-# function by file, name and position among the same-named functions of that
-# file, in line order, and never by line. So the driver keys entries the same
+# The key is the ratchet's. `_crap-ratchet-lib.sh` pairs a baseline entry with
+# a function by file, name and position among the same-named functions of
+# that file, in line order. It never pairs by line. So the driver keys entries the same
 # way and merges each key three ways, its scores (`cyclomatic`, `coverage`,
 # `crap`, `crate`) as one value and its `line` as another. A value only one
 # side changed takes that side.
@@ -26,20 +26,20 @@
 # scores a third value neither side measured, and the ratchet fails a function
 # that scores above its entry. The stricter entry can only make that fail on
 # the merged tree, where a human re-mints. The looser one could hide a rise the
-# other branch's mint would have caught. The driver names each such key on
+# other branch's mint would have caught. The driver lists each such key on
 # stderr. A key one side dropped stays if the other side re-scored it, since a
 # stale entry is harmless and a missing one fails as unlisted. A key the other
 # side only moved goes.
 #
 # Lines cannot be right for a merged file, and nothing reads them but the
 # ratchet's ordering. A line both sides moved takes ours. Within one file's
-# same-named functions each line is kept above the one before, so the ratchet
-# still pairs them in the same order. The output is sorted by file, function
-# and line, as `just crap::baseline` writes it, and `just crap::check` on the merged
-# tree decides the rest.
+# same-named functions, each line stays above the one before. The ratchet
+# then still pairs them in the same order. The output sorts by file, function
+# and line, as `just crap::baseline` writes it, and `just crap::check` on the
+# merged tree settles the rest.
 #
 # Without `jq` on PATH, or with a side that does not parse as a baseline, it
-# falls back to git's text merge, which is what the repo had before the driver.
+# falls back to git's text merge. The repo had that fallback before the driver.
 set -eo pipefail
 
 base=$1 ours=$2 theirs=$3 path=${4:-.config/crap-baseline.json}
@@ -54,8 +54,8 @@ text_merge() {
 command -v jq >/dev/null || text_merge "jq is not on PATH (the dev shell provides it)"
 
 # baseline_json <side> <out>: the side as one JSON value. An empty side is a
-# baseline that does not exist there, as in an add/add merge. The baseline is
-# passed through files, since a thousand entries overflow an argument list.
+# baseline that does not exist there, as in an add/add merge. The script
+# passes the baseline through files, since a thousand entries overflow an argument list.
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 baseline_json() {

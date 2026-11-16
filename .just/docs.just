@@ -74,7 +74,7 @@ prose:
     ./target/debug/mt _cli --json > target/cli.help
     status=0
     vale --no-global --config=.config/vale-plain.ini --output=line skills/mindtape/references/*.md skills/mindtape/evals/README.md schema/config.schema.json schema/at.schema.json target/cli.help || status=1
-    git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.just' '*.yaml' '*.yml' Justfile '*/Justfile' | xargs -0 -r vale --no-global --config=.config/vale-plain.ini --output=line || status=1
+    git ls-files -z --cached --others --exclude-standard -- '*.just' '*.yaml' '*.yml' Justfile '*/Justfile' | xargs -0 -r vale --no-global --config=.config/vale-plain.ini --output=line || status=1
     exit $status
 
 [doc("Lint Typst prose with the full Vale style")]

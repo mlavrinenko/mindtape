@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# www/generate-config-runs.sh — capture the writes /statuses/ and /rules/
-# show, each in a copy of its checked fixture: examples/statuses/ for the
-# transition, note and unblocked guards, examples/rules/ for a rule breach, a
-# required field and a warning. It also draws the moves of the
+# www/generate-config-runs.sh: capture the writes /statuses/ and /rules/
+# show, each in a copy of its checked fixture. examples/statuses/ covers the
+# transition, note and unblocked guards. examples/rules/ covers a rule breach,
+# a required field and a warning. It also draws the moves of the
 # examples/statuses/ legend, from its `mt config show --json`.
 #
 # Called by www/generate.sh with the repo root and the generated/ directory,
 # inside the lock that script already holds, so this one takes none of its
-# own. generate.sh exports MINDTAPE_NOW, so every run sees the same date.
+# own. generate.sh exports MINDTAPE_NOW. Every run sees the same date.
 #
-# Each capture is a record (www/capture.sh), so the page prints the command
-# from the run. Most of these commands are refused, which is the point of the
-# capture, so each records the exit code it must return. A refusal that
-# starts passing fails the build.
+# Each capture is a record (www/capture.sh). The page prints the command from
+# the run. `mt` refuses most of these commands, which is the point of the
+# capture. Each records the exit code it must return. A refusal that starts
+# passing fails the build.
 set -eo pipefail
 
 REPO="$1"
@@ -37,7 +37,7 @@ capture --exit 1 --expect 'requires an unblocked task' statuses-unblocked "$S" '
   | jq -r -f "$REPO/www/status-moves.jq" | render_dot statuses-moves
 
 capture_copy R examples/rules
-# The ast-grep collector reads a git working tree, so the copy needs one even
+# The ast-grep collector reads a git working tree. The copy needs one even
 # though no task here writes a Rust file.
 git -C "$R" init -q
 capture --exit 1 --expect 'rules\.one-task-in-flight' rules-wip-cap "$R" 'mt flip wip add-csv-export'
@@ -45,7 +45,7 @@ capture --exit 1 --expect 'rules\.bugs-outrank-the-low-band' rules-assert "$R" '
 capture --exit 1 --expect 'required field is missing' rules-required "$R" 'mt set add-csv-export kind=bug'
 # A paragraph with two em dashes breaks one-dash-per-paragraph, whose message
 # takes the line while the check's own words follow on a note. The file goes
-# back after, so the captures below see the fixture as it is.
+# back after. The captures below see the fixture as it is.
 cp "$R/tasks/add-csv-export.typ" "$R/add-csv-export.typ.orig"
 printf '\nThe export runs on the server — not in the browser — so it scales.\n' >>"$R/tasks/add-csv-export.typ"
 capture --exit 1 --expect 'note: section .Notes. paragraph 2' rules-content-detail "$R" 'mt check'
@@ -59,6 +59,6 @@ mkdir -p "$F/.mindtape"
 : >"$F/.mindtape/config.toml"
 "$MT" -w "$F" config show --json | jq '.config.tasks.status' >"$OUT/floor-legend.json"
 
-# Copied so the page can read() it: the site builds under --root www, and
+# Copied so the page can read() it: the site builds under `--root www`, and
 # Typst refuses a read outside the root.
 cp "$REPO/examples/rules/lib.typ" "$OUT/rules-lib.typ"

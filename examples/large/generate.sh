@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# examples/large/generate.sh [N] — deterministically (re)generate N benchmark
-# task files under examples/large/tasks/. Every varying value is derived from
+# examples/large/generate.sh [N]: deterministically (re)generate N benchmark
+# task files under examples/large/tasks/. Every varying value derives from
 # the file index, so re-running with the same N reproduces byte-identical
 # output. Statuses stay non-terminal (proposed/accepted/wip) so strict-ICE
-# priority (required = "!terminal") is always satisfied, and roughly every
-# third task (i > 1) gets a `depends-on` edge to the previous task, building a
+# priority (required = "!terminal") is always satisfied. Roughly every third
+# task (i > 1) gets a `depends-on` edge to the previous task, building a
 # linear, acyclic dependency chain whose target always already exists.
 set -eo pipefail
 

@@ -1,39 +1,39 @@
 #!/usr/bin/env bash
-# .just/scripts/_script-graph-control.sh — the control fixture for
-# .just/scripts/_script-graph.sh, run by script-scope-check.sh immediately
-# before its arm two (truth/tasks/follow-script-to-script-calls-in-the-scope-
-# derivation.typ).
+# .just/scripts/_script-graph-control.sh: the control fixture for
+# the .just/scripts/_script-graph.sh walk. script-scope-check.sh runs it
+# immediately before its arm two (truth/tasks/follow-script-to-script-
+# calls-in-the-scope-derivation.typ has the background).
 #
 # It exists because the thing it guards fails green, in both directions, and
 # they are opposite failures with the same printout. A derivation that quietly
-# stopped following an edge reports every rule covered — which is what a correct
-# manifest reports — and puts back exactly the silent stale hit the transitive
-# walk was written to remove. A derivation that reads one word too many demands
-# a scope for a body no rule runs, and that direction is worse: it fails a
-# correct manifest, and the obvious repair is to add the input rather than to
-# fix the reader, so the wrong edge becomes permanent the first time someone is
-# in a hurry. Neither can be seen from the real tree, where the answer and the
-# bug are the same sentence.
+# stopped following an edge reports every rule covered, which is what a correct
+# manifest reports. It also puts back exactly the silent stale hit the
+# transitive walk set out to remove. A derivation that reads one word too many
+# demands a scope for a body the rules never run, and that direction is worse.
+# It fails a correct manifest, and the obvious repair is to add the input
+# rather than to fix the reader. The wrong edge becomes permanent the first
+# time someone is in a hurry. Neither shows up in the real tree, where the
+# answer and the bug are the same sentence.
 #
 # A separate file rather than a `--control` arm inside the walk, because a
-# self-test is its own subject, and the
-# walk it drives is already the longest reasoning in that directory. No `just`
-# recipe of its own either — it asserts nothing a reader would run on purpose,
-# and `just meta::script-scope` running it first is what makes arm two
-# trustworthy. This costs no hand-wiring: the walk
-# reads script-scope-check.sh naming both files and derives them, which is the
-# feature demonstrating itself.
+# self-test is its own subject. The walk it drives is already the longest
+# reasoning in that directory. No `just` recipe of its own either: it asserts
+# nothing a reader would run on purpose, and `just meta::script-scope` running
+# it first is what makes arm two trustworthy. This costs no hand-wiring: the
+# walk reads script-scope-check.sh, which references both files, and derives
+# them. That is the feature demonstrating itself.
 #
 # A synthetic tree, never the real one. The shapes below have to sit next to
-# each other in one pass — a real script carries one or two of them — and three
-# of the five cannot exist in the tracked tree at all, because two of them are
-# gate failures and the third is a path to a file that does not exist.
+# each other in one pass (a real script carries one or two of them). Three of
+# the five cannot exist in the tracked tree at all. Two of them are gate
+# failures, and the third is a path to a file that does not exist.
 #
 # Five cases on three runs, four loud and one silent, because each can rot
-# without touching another: the script-to-script hop, the nested-`just` hop, the
-# unclassified flag, the unreadable target, and — the silent one — every
-# not-a-call shape staying out of the graph. The last is not decoration. It is
-# the property that keeps a script that merely names another out of the graph.
+# without touching another. The loud ones are the script-to-script hop, the
+# nested-`just` hop, the unclassified flag, and the unreadable target. The
+# silent one is every not-a-call shape staying out of the graph. The last is
+# not decoration. It is the property that keeps a script that merely names
+# another out of the graph.
 set -eo pipefail
 
 graph=".just/scripts/_script-graph.sh"
@@ -48,8 +48,8 @@ trap 'rm -rf "$ctl"' EXIT
 mkdir -p "$ctl/.just/scripts"
 
 # `alpha` runs a.sh, which reaches b.sh script-to-script and c.sh through a
-# nested `just`. Nothing here names b.sh or c.sh from a recipe body, so a walk
-# that follows only direct invocation finds neither.
+# nested `just`. No recipe body names b.sh or c.sh, so a walk that follows
+# only direct invocation finds neither.
 cat >"$ctl/dump.json" <<'EOF'
 {
   "recipes": {
@@ -65,9 +65,9 @@ bash .just/scripts/b.sh
 reason=$(just nested)
 EOF
 
-# Every not-a-call shape at once. The `just lonely` mentions are the ones that
-# matter most: a hint in an error message is how every script in the real tree
-# spells a recipe name it does not run, and reading one as an edge would demand
+# Every not-a-call shape at once. The `just lonely` mentions matter most,
+# because a hint in an error message is how every script in the real tree
+# spells a recipe name it does not run. Reading one as an edge would demand
 # `script-lonely` on a rule that never touches it.
 cat >"$ctl/.just/scripts/b.sh" <<'EOF'
 # bash .just/scripts/commented.sh
@@ -82,7 +82,7 @@ EOF
 : >"$ctl/.just/scripts/lonely.sh"
 : >"$ctl/.just/scripts/commented.sh"
 
-# Indent every line of stdin, so a quoted output reads as one block.
+# Indent every line of stdin. A quoted output reads as one block.
 indent() { sed 's/^/  /'; }
 
 # `bash "$graph"`: nothing under .just/scripts/ carries an exec bit.
@@ -102,10 +102,10 @@ for want in \
     fi
 done
 
-# The silent case. commented.sh is named on a comment line and inside an error
-# message, absent.sh is assigned to a variable and does not exist, and
-# lonely.sh is reachable only by reading b.sh's `just lonely` hints as calls —
-# so it is checked against alpha's rows rather than the whole output, `lonely`
+# The silent case. commented.sh appears on a comment line and inside an error
+# message. A variable holds absent.sh, and the file does not exist. lonely.sh
+# is reachable only by reading b.sh's `just lonely` hints as calls. The check
+# looks for lonely.sh in alpha's rows rather than the whole output, `lonely`
 # being a real recipe of its own that legitimately reaches it.
 for unwanted in 'commented.sh' 'absent.sh'; do
     if grep -qF -- "$unwanted" <<<"$out"; then
@@ -121,8 +121,8 @@ if grep '^alpha	' <<<"$out" | grep -qF -- 'lonely.sh'; then
 fi
 
 # A flag nobody has classified, and a target no static read can resolve. Both
-# must be loud: skipping either is how a real call stops being followed without
-# anything saying so.
+# must be loud: if the walk skips either, it silently stops following a real
+# call.
 assert_refuses() {
     local case=$1 body=$2 want=$3 out
     printf '%s\n' "$body" >"$ctl/.just/scripts/a.sh"

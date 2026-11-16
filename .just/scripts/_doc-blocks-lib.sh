@@ -1,13 +1,13 @@
-# .just/scripts/_doc-blocks-lib.sh — the doc sources' shared reader. It holds
+# .just/scripts/_doc-blocks-lib.sh: the doc sources' shared reader. It holds
 # the scanner `just docs::blocks` runs, the extractor that check-doc-spans and
 # check-doc-recipes read, and the source manifest. Sourced by those gates and
 # by the blocks control. Runs from the repo root.
 #
 # The scanner reads Typst's own parse tree (`typstyle --ast`, the formatter the
-# dev shell already pins) instead of matching text, so a fence inside a
+# dev shell already pins) instead of matching text. A fence inside a
 # comment, a string or another raw span is never mistaken for a block.
-# doc_blocks_scan prints one TSV row per finding: file, line, kind, detail.
-# Kind `block` is an unmarked hand-typed block; kind `marker` is a broken
+# `doc_blocks_scan` prints one TSV row per finding: file, line, kind, detail.
+# Kind `block` is an unmarked hand-typed block. Kind `marker` is a broken
 # `// docs:hand-typed` marker.
 
 # The typstyle dump as JSON: {"f": file, "n": tree}. Inner nodes carry `c`
@@ -59,8 +59,8 @@ doc_blocks_ast() { # <file>
     '
 }
 
-# The source manifest: the files every doc gate reads, one glob per line.
-# docs/src/lib.typ is a helper module and joins the list; the extractor yields
+# The source manifest holds the files every doc gate reads, one glob per line.
+# docs/src/lib.typ is a helper module and joins the list. The extractor yields
 # its comments apart from its prose, so no gate mistakes a comment for a page.
 DOC_SOURCE_GLOBS=(
     'docs/src/**/*.typ'
@@ -68,8 +68,8 @@ DOC_SOURCE_GLOBS=(
     'www/utils/*.typ'
 )
 
-# doc_sources_load fills DOC_SOURCES from the manifest. A glob that matches no
-# file fails, because a gate that reads nothing reports a clean tree.
+# `doc_sources_load` fills DOC_SOURCES from the manifest. A glob that matches
+# no file fails, because a gate with nothing to read reports a clean tree.
 doc_sources_load() {
     local g f found
     DOC_SOURCES=()
@@ -98,7 +98,7 @@ doc_sources_load() {
 #   prose    one source line of rendered text: what the markup says outside
 #            raw, comments and code. Each raw or code expression leaves one
 #            space, and a double quote stays a `"`.
-# A fence written inside a string is code, so it opens no block.
+# A fence written inside a string is code, so it doesn't open a block.
 # shellcheck disable=SC2016
 DOC_EXTRACT_JQ='
 def markup_container: IN("Strong","Emph","Heading","ListItem","EnumItem","TermItem");
@@ -164,15 +164,15 @@ doc_extract() { # <file>...
 }
 
 # The tree rules. A block is hand-typed when a three-backtick raw spans a line
-# break, or when a block-producing call gets text written in place: a string or
-# raw literal outside any call's arguments, or a `let` bound to one. A call is
-# block-producing when it is `raw(..., block:)` with anything but `false`, or a
-# helper: a function whose own parameter reaches such a call, followed through
-# `let`s, method targets and plain calls. Loaders (`read`, `json`, ...) and
-# method arguments end that path, so `terminal(read(...))` and
-# `framework-call(fw, "ice")` pass. Helpers are collected across every scanned
-# file first, because pages call the ones www/utils defines. A `let` bound to a
-# literal is followed within its own file only.
+# break, or when a block-producing call gets text written in place. That text is
+# a string or raw literal outside any call's arguments, or a `let` bound to
+# one. A call is block-producing when it is `raw(..., block:)` with anything
+# but `false`, or a helper. A helper is a function whose own parameter reaches
+# such a call, followed through `let`s, method targets and plain calls. Loaders
+# (`read`, `json`, ...) and method arguments end that path, so
+# `terminal(read(...))` and `framework-call(fw, "ice")` pass. The rules collect
+# helpers across every scanned file first (pages call the ones www/utils
+# defines) and track a `let` bound to a literal only within its own file.
 # shellcheck disable=SC2016
 DOC_BLOCKS_JQ='
 def trivia: IN("Space","LineComment","BlockComment","Comma","LeftParen","RightParen","Colon","Semicolon","Hash","Shebang");
@@ -255,8 +255,8 @@ doc_blocks_scan() { # <file>...
     done | jq -nr "$DOC_BLOCKS_JQ" | sort -t$'\t' -k1,1 -k2,2n
 }
 
-# The list rule over a scan: an unlisted file with a block fails, a listed file
-# without one fails, and a broken marker fails anywhere. Prints why on stderr.
+# The list rule judges a scan: unlisted files with a block fail, listed files
+# without one fail, and a broken marker fails anywhere. Prints why on stderr.
 doc_blocks_judge() { # <scan-tsv-file> <pending-file>...
     local scan=$1 f fail=0
     shift

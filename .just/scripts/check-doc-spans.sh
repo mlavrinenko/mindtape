@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# .just/scripts/check-doc-spans.sh — the body of the `docs::spans` recipe.
+# .just/scripts/check-doc-spans.sh: the body of the `docs::spans` recipe.
 # Runs from the repo root, like the recipe that invokes it.
 #
-# Stops prose that names an `mt` subcommand, flag or config key that does not
-# exist. Inline code in the docs names these by hand, so a rename in
+# Stops prose that cites an `mt` subcommand, flag or config key that does not
+# exist. Inline code in the docs lists these by hand, so a rename in
 # crates/mindtape-cli or in the config structs leaves the old name in the
 # prose. This gate fails on it, naming file, line and the closest valid name.
 #
@@ -11,24 +11,24 @@
 # sources the manifest in _doc-blocks-lib.sh names. Fenced blocks and comments
 # are not spans. Two checks read each span:
 #
-#   - An `mt` command line: the span is split at `|`, `&&` and `;`, and each
-#     piece that starts with `mt`, after a `$ ` prompt or `VAR=value` words, goes
-#     to `mt _cli --check-argv`. That is the parser that runs the command, so
-#     the gate holds no copy of its grammar. The status verbs the project and
-#     the examples declare are passed along, because each project names its own.
-#   - check-doc-spans.jq reads the config shapes. `[a.b]` or `[[a.b]]`,
-#     optionally followed by a key: the path exists in
-#     schema/config.schema.json or schema/at.schema.json, and `[[...]]` is used
-#     exactly for an array of tables. `a.b.c`: the key path exists in the schema.
+#   - An `mt` command line: the span splits at `|`, `&&` and `;`, and each piece that starts
+#     with `mt`, after a `$ ` prompt or `VAR=value` words, goes to `mt _cli --check-argv`. That
+#     is the parser that runs the command. The gate doesn't hold a copy of its grammar. The
+#     gate passes along the status verbs the project and the examples declare, because each
+#     project declares its own.
+#   - check-doc-spans.jq reads the config shapes. `[a.b]` or `[[a.b]]`, optionally followed by
+#     a key: the path exists in schema/config.schema.json or schema/at.schema.json, and
+#     `[[...]]` is exactly the array-of-tables spelling. `a.b.c`: the key path exists in the
+#     schema.
 #
 # A span is config-shaped only when its first segment is a top-level key of
 # either schema. That leaves Cargo tables and just attributes alone. A dotted span that
 # is a tracked file's name, such as `typst.toml`, is a file name.
 #
-# A control runs first. It checks a synthetic page holding each known-bad
-# shape beside the good ones and asserts the exact findings, because a scanner
-# that matched nothing also prints no findings. Its bad flags are ones no
-# command will ever take, so a new flag on `mt ls` cannot fail it.
+# A control runs first. It checks a synthetic page holding each known-bad shape beside the
+# good ones and asserts the exact findings. A scanner that doesn't match anything also
+# doesn't print findings. Its bad flags are ones no command will ever take, so a new
+# flag on `mt ls` cannot fail it.
 set -eo pipefail
 # shellcheck source=.just/scripts/_doc-blocks-lib.sh
 source .just/scripts/_doc-blocks-lib.sh
@@ -56,7 +56,7 @@ spans() {
 
 # Prints `<file>\t<line>\t<span>\t<command line>` for every `mt` command
 # line in a span: each piece between the words `|`, `||`, `&&` and `;`
-# that starts with `mt`, once a leading `$ ` and `VAR=value` words are dropped. The program writes the single quote as
+# that starts with `mt`, after dropping a leading `$ ` and `VAR=value` words. The program writes the single quote as
 # \u0027 because it sits inside a single-quoted shell string.
 # shellcheck disable=SC2016
 ARGV_JQ='split("\t") as [$file, $line, $span]

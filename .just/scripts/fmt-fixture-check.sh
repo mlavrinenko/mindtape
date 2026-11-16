@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# .just/scripts/fmt-fixture-check.sh — the body of the `meta::fmt-fixture`
-# recipe, extracted under truth/tasks/extract-the-long-gate-recipe-bodies-into-
-# scripts.typ. Runs from the repo root, like the recipe that invokes it.
+# .just/scripts/fmt-fixture-check.sh: the body of the `meta::fmt-fixture`
+# recipe, split out under `truth/tasks/extract-the-long-gate-recipe-bodies-into-
+# scripts.typ`. Runs from the repo root, like the recipe that invokes it.
 #
 # Lock the formatter gates: synthesize a deliberately-mis-formatted TOML,
 # Typst and just-module fixture in a temp dir, then assert `tombi format
@@ -10,7 +10,7 @@
 # config + docs + justfile tree, so the same formatters must reject the
 # mis-formatted fixture (and accept a re-formatted one). A formatter that
 # silently accepts drift would let `just fmt-check` pass on an out-of-sync
-# editor save — exactly the bug this gate was added to prevent.
+# editor save, exactly the bug this gate exists to prevent.
 set -eo pipefail
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -28,16 +28,16 @@ if typstyle --check "$bad_typ" >/dev/null 2>&1; then
     echo "fmt-fixture-check: typstyle accepted the mis-formatted Typst — gate is broken" >&2
     exit 1
 fi
-# The just arm is spelled with the same `--justfile <file> --fmt --check`
-# invocation `fmt-check` runs over JUST_FMT_PATHS, because the bug it locks is
-# not "the formatter is broken" but "the invocation shape misses the file": a
-# bare `just --fmt` skips module files entirely, so a fixture checked the wrong
-# way would pass while the real gate saw nothing
+# The just arm uses the same `--justfile <file> --fmt --check` invocation
+# `fmt-check` runs over JUST_FMT_PATHS, because the bug it locks is not
+# "the formatter is broken" but "the invocation shape misses the file". A bare
+# `just --fmt` skips module files entirely. A fixture checked the wrong way
+# would pass while the real gate saw nothing
 # (truth/tasks/gate-formatting-of-just-module-files.typ). The fixture carries
-# `set unstable := true` for the same reason every listed module file must —
-# `--fmt` is refused without it, and a refusal is a non-zero exit that would
-# pass this assertion for the wrong reason, so the arm asserts the success case
-# too: the same file, reformatted, must be accepted.
+# `set unstable := true` for the same reason every listed module file must:
+# just refuses to run `--fmt` without it. A refusal is a non-zero exit that
+# would pass this assertion for the wrong reason. The arm asserts the success
+# case too: the formatter accepts the same file, reformatted.
 if just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
     echo "fmt-fixture-check: just accepted the mis-formatted module file — gate is broken" >&2
     exit 1
@@ -47,11 +47,11 @@ if ! just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
     echo "fmt-fixture-check: just rejected its OWN formatting of the module file — the failure above was not about drift" >&2
     exit 1
 fi
-# The loop over the module files has its own bug class: a `for` whose body ends
-# in `diff` leaves only the last file's status as the recipe's status, so a
-# drifted module that sorts before a clean one passed. Run the real recipe
-# over bad, bad, clean: it must fail and name both bad files, never the clean
-# one. The clean file goes through `--fmt` first, so it is a fixed point.
+# The loop over the module files has its own bug class. A `for` whose body
+# ends in `diff` leaves only the last file's status as the recipe's status,
+# so a drifted module that sorts before a clean one passed. Run the real
+# recipe over bad, bad, clean: it must fail and list both bad files, never
+# the clean one. The clean file goes through `--fmt` first, so it is a fixed point.
 bad_a="$tmp/bad-a.just"
 bad_b="$tmp/bad-b.just"
 clean="$tmp/clean.just"

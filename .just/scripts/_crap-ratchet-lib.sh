@@ -1,37 +1,37 @@
 #!/usr/bin/env bash
-# .just/scripts/_crap-ratchet-lib.sh — the ratchet arm of `just crap::check`, sourced
+# .just/scripts/_crap-ratchet-lib.sh: the ratchet arm of `just crap::check`, sourced
 # by crap.sh and pinned by its control (_crap-ratchet-control.sh).
 #
-# Why the baseline is aligned before cargo-crap reads it
+# The ratchet aligns the baseline before cargo-crap reads it
 # (truth/tasks/stop-the-crap-ratchet-flagging-untouched-same-named-functions.typ).
 # cargo-crap 0.3.1 pairs a current function with its baseline entry in three
-# passes (src/delta.rs): exact `(file, function, line)`; then same name, by the
-# longest unique common path suffix; then same name, when exactly one of each
-# is left. The committed baseline holds root-relative paths
-# (crap-baseline-check.sh says why) and the live scan reports absolute ones, so
-# the exact pass never fires and the suffix pass carries every pairing. Two
-# functions of one name in one file tie on their suffix, so the suffix pass
-# skips them, and the name pass skips them too. Each such function then reports
-# as new and its baseline entry as removed: it is never compared, a rise in it
-# never fails, and its new row sorts into the regression table above the real
-# regressions — where a reader takes it for the one that failed.
+# passes (src/delta.rs): exact `(file, function, line)`. Then same name, by the
+# longest unique common path suffix. Then same name, when exactly one of each
+# remains. The committed baseline holds root-relative paths
+# (crap-baseline-check.sh says why) and the live scan reports absolute ones.
+# The exact pass never fires, and the suffix pass carries every pairing. Two
+# functions of one name in one file tie on their suffix. The suffix pass
+# skips them, and the name pass skips them too. Each such function then
+# reports as new and its baseline entry as removed. It is never compared, a
+# rise in it never fails. Its new row sorts into the regression table above
+# the real regressions, where a reader takes it for the one that failed.
 #
 # So before the comparison the baseline gets the scan's own root and, within
 # each `(file, function)` group taken in line order, the line of the current
 # function at the same position. That makes the exact pass key on
 # `(file, function, ordinal)`, which a line shift leaves alone. A baseline
-# entry with no counterpart at its position gets line 0, which no function has,
-# so it can only pair through the name passes, never with a stranger's line.
+# entry with no counterpart at its position gets line 0, which no function has.
+# It can only pair through the name passes, never with a stranger's line.
 # Inserting a same-named function above another in the same file still
-# re-pairs the ones below; that file was touched, and the failure names it.
+# re-pairs the ones below. The edit touched that file, and the failure names it.
 #
 # A scored function with no baseline entry fails too
 # (truth/tasks/hold-a-new-function-to-the-crap-ratchet-from-the-commit-that-adds-it.typ).
-# cargo-crap reports it as new and compares it with nothing, so until the next
+# cargo-crap reports it as new and compares it with nothing. Until the next
 # re-mint nothing held it, and that re-mint then carried every function added
 # since, burying the one real rise among them.
 
-# crap_ratchet <root> <baseline> <cargo-crap scan args>...
+# `crap_ratchet` <root> <baseline> <cargo-crap scan args>...
 crap_ratchet() {
     local root=$1 baseline=$2 cur aligned delta new rc=0
     shift 2

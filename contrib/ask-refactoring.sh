@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# ask-refactoring.sh — turn advisory quality signals into backlog tasks.
+# ask-refactoring.sh: turn advisory quality signals into backlog tasks.
 #
 # Run it as `just ask-refactoring` (dry) or `just ask-refactoring --write`.
 #
 # Mechanical refactoring work recurs, and a human notices it only when it
-# blocks something else. The tools that predict it are machine-readable; this
+# blocks something else. The tools that predict it are machine-readable. This
 # reads them into the backlog. Three rules the design turns on:
 #
 #   Only advisory signals qualify. A signal that already blocks a commit, such
@@ -16,7 +16,7 @@
 #   One task per finding, never one per sweep: each goes to its own agent.
 #
 #   Idempotency comes from the signal, not a ledger. A closed task whose
-#   condition still holds is noticed again, because the work did not happen.
+#   condition still holds shows up again, because the work did not happen.
 #   The one suppression is an override with a written reason in the signal's
 #   own config: .config/linecop.yaml for sizes, an `--exclude` in the
 #   `just crap::check` recipe for coverage.
@@ -27,11 +27,11 @@
 # Each signal is one file under `contrib/ask-refactoring/`, named in `ARMS`.
 # `signal_<arm>` prints TSV rows on stdout and `emit_<arm>` turns a row into a
 # task, so a signal that shells out to a producer sends that output to stderr
-# (see `ensure_lcov_fresh`). The tags and the guard need no change for a new arm.
+# (see `ensure_lcov_fresh`). The tags and the guard don't need changes for a new arm.
 #
-# Not memoized with mmz: the point is to re-observe the tree every run. Only
-# `just mmz cover` inside the undertested arm is cached, and the lcov it reads
-# is still checked for freshness every sweep.
+# Not memoized with mmz: the point is to re-observe the tree every run. mmz
+# caches only `just mmz cover` inside the undertested arm, and every sweep
+# still checks the lcov it reads for freshness.
 set -eo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -39,8 +39,8 @@ cd "$repo"
 
 # ── the thresholds ──────────────────────────────────────────────────────────
 #
-# All six are required and none is defaulted here. The defaults live only in
-# the recipe's `[arg(...)]` attributes, which `just --usage`, the generated
+# This layer requires all six and supplies no default. The defaults live only
+# in the recipe's `[arg(...)]` attributes, which `just --usage`, the generated
 # sweep-flags.json and docs/contributing/signal-sweep.md all read. A fallback
 # here would be a second copy that fails silently at a threshold nobody chose.
 #
@@ -131,9 +131,9 @@ fi
 
 # A stem from the finding, not the title: stable across runs, so `--dedup
 # skip` knows a finding again, and prefixed by the arm (`$1`) so arms cannot
-# collide. `$2` is the finding. Operators are spelled out first, or
+# collide. `$2` is the finding. The stem spells operators out first, or
 # `replace > with >=` and `replace > with <` fold to one stem and the second
-# is dropped as already filed.
+# drops out as already filed.
 stem_for() {
     local encoded
     encoded="$(printf '%s' "$2" \
@@ -146,17 +146,17 @@ stem_for() {
     printf '%s-%s\n' "$1" "$(printf '%s' "$encoded" | tr -c 'A-Za-z0-9' '-' | tr -s '-' | sed 's/^-//; s/-$//')"
 }
 
-# File one finding, or print what would be filed. `$1` is the arm, `$2` the
-# stem, `$3` a one-line summary for the dry run, `$4` the arm's advice for a
-# skipped finding (one line per newline: why the stem is taken and which
-# override clears it), and the rest the `mt` args (`add` and on). Shared, so an
-# arm's emit only builds its args and words its own advice. Every arm uses it.
+# File one finding, or print what a write would file. `$1` is the arm, `$2` the
+# stem, `$3` a one-line summary for the dry run. `$4` the arm's advice for a
+# skipped finding (one line per newline: why an earlier task holds the stem and
+# which override clears it). The rest are the `mt` args (`add` and on). Shared, so
+# an arm's emit only builds its args and words its own advice. Every arm uses it.
 file_finding() {
     local arm="$1" stem="$2" summary="$3" advice="$4"
     shift 4
     # The `swept` tag is the whole destination: the repo's `[[on.add]]` hook
     # files a swept task in `truth/tasks/swept/`, so one batch stays one
-    # removable folder and the script names no path.
+    # removable folder and the script specifies no path.
     if [ "$WRITE" -eq 1 ]; then
         local out outcome dest
         out="$("$MT" "$@" --dedup skip --format json)"
@@ -171,7 +171,7 @@ file_finding() {
             *) echo "$outcome $dest" ;;
         esac
     else
-        # Dry: queue the finding under its ICE score; `report_arm` renders
+        # Dry: queue the finding under its ICE score. `report_arm` renders
         # only the top ones, since `mt add --print` costs a second apiece.
         local score
         score="$(printf '%s\n' "$@" | awk -F= '
@@ -184,8 +184,8 @@ file_finding() {
 }
 
 # Dry run: print an arm's count and its top findings by ICE score, and write
-# those findings' bodies under `$preview`, where they are read before
-# `--write` files them. `$1` is the arm, `$2` its finding count.
+# those findings' bodies under `$preview` for you to read before `--write`
+# files them. `$1` is the arm, `$2` its finding count.
 report_arm() {
     local arm="$1" count="$2" score n stem summary
     if [ -e "$queue/$arm.skipped" ]; then
@@ -202,8 +202,8 @@ report_arm() {
     done < <(sort -t$'\t' -k1,1nr -k3,3 "$queue/$arm.tsv" | head -n "$TOP")
 }
 
-# An arm that cannot measure calls this after saying why on stderr, so the
-# dry run reports it skipped rather than clean.
+# An arm that cannot measure calls this after saying why on stderr. The dry
+# run then reports it skipped rather than clean.
 skip_arm() {
     : >"$queue/$1.skipped"
 }
@@ -220,11 +220,11 @@ for arm in "${ARMS[@]}"; do
     . "$repo/contrib/ask-refactoring/$arm.sh"
 done
 
-# Each signal's rows are captured with `$(...)`, not read off `< <(...)`:
+# Each signal's rows come from `$(...)`, not from `< <(...)`:
 # only the command substitution carries a signal's `exit 1` through `set -e`.
 # Through a process substitution a refusing signal would read as zero rows.
 #
-# How many findings a dry run shows per arm; it counts the rest.
+# How many findings a dry run shows per arm. It counts the rest.
 TOP=3
 queue="$(mktemp -d)"
 trap 'rm -rf "$queue"' EXIT

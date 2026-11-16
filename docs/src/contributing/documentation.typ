@@ -161,8 +161,8 @@ the code does and why, in as few lines as it takes.
 #just.docs-vale-prose() reads a Typst source through `.config/vale.ini`:
 `docs/src`, `www/content`, `www/utils` and the hand-written `www/templates`
 files. #just.docs-prose() reads every other prose source through
-`.config/vale-plain.ini`: the skill's Markdown, every tracked shell, Justfile
-and YAML comment, both schema descriptions and the `mt _cli --json` help
+`.config/vale-plain.ini`: the skill's Markdown, every tracked Justfile and
+YAML comment, both schema descriptions and the `mt _cli --json` help
 strings. Its `Plain` style extends `Prose.History`, `Prose.Shouting` and
 `Prose.EmDash`. A word list lives in one file.
 
@@ -313,13 +313,16 @@ five or more `-`, `=`, `*`, `_`, `~` or `#` characters. Delete the run and keep
 any label it frames. The dev shell exports the pinned grammars from
 `nix/dev/vale-grammars.nix`, and the gate runs offline.
 
-#just.lint-vale-code() holds a Rust doc comment to every rule in the table
-above, at `error`. `.config/vale-code.ini` gives `crates/` to Vale with the
-`RustDoc` View, a tree-sitter query that keeps `///` and `//!` and drops an
-inline `//` comment. `[formats] rs = md` parses each comment body as Markdown,
-so a code span and a doc test stay out. A doc comment has no `#mindtape` to
-render, so `Prose.ProductName` wants the name in a code span. `Prose.Spelling`
-reads `Prose/words.txt` and splits at an apostrophe. A possessive goes in a code span.
+#just.lint-vale-code() holds a Rust doc comment and a shell `#` comment to
+every rule in the table above, at `error`. `.config/vale-code.ini` gives
+`crates/` to Vale with the `RustDoc` View, a tree-sitter query that keeps `///`
+and `//!` and drops an inline `//` comment. `[formats] rs = md` parses each
+comment body as Markdown, so a code span and a doc test stay out. A shell
+comment reads through the bash grammar too, and the `Comments` View drops a
+shebang, a heredoc body and a `shellcheck` directive. A doc comment has no
+`#mindtape` to render, so `Prose.ProductName` wants the name in a code span.
+`Prose.Spelling` reads `Prose/words.txt` and splits at an apostrophe. A
+possessive goes in a code span.
 
 == Prose gate coverage
 

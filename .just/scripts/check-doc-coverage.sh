@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# .just/scripts/check-doc-coverage.sh — the body of the `docs::coverage`
+# .just/scripts/check-doc-coverage.sh: the body of the `docs::coverage`
 # recipe. Every path below is repo-root-relative, because the recipe runs at
 # the repo root.
 #
 # Every visible top-level `mt` command needs a www/utils/cli-notes.typ entry
 # and a page at www/content/cli/<command>.typ, and every page there needs a
-# command. Without the gate a new command ships with no prose and no page, and
+# command. Without the gate a new command arrives without prose or page, and
 # only a reviewer would notice. Each arm is a set difference against the names
 # `mt _cli --json` reflects, the same dump the CLI pages render.
 set -eo pipefail
@@ -14,13 +14,13 @@ set -eo pipefail
 # mid-run (docs/contributing/gates.md, "One mt binary, one feature set").
 cargo build -p mindtape-cli --tests -q
 # cli/tree_json.rs drops every `hide = true` command and clap's `help` before they
-# reach this JSON, so the gate needs no skip list of its own.
+# reach this JSON. The gate doesn't need a skip list of its own.
 visible=$(./target/debug/mt _cli --json | jq -r '.commands[].name' | sort)
 
 # cli-notes.typ imports www/utils/site.typ, which reads www/generated/ at
 # module top level. The docs arms of `just check` rewrite that directory in
-# parallel with this one, so the query waits on the lock they hold while they
-# write. This script writes nothing there.
+# parallel with this one. The query waits on the lock they hold while they
+# write. This script doesn't write anything there.
 mkdir -p target
 exec 9>target/www-generated.lock
 flock 9

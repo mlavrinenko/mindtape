@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# .just/scripts/mutants.sh — the body of the `mutants::sweep` recipe, extracted under
-# truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
+# .just/scripts/mutants.sh: the body of the `mutants::sweep` recipe, extracted under
+# `truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ`.
 # Runs from the repo root, like the recipe that invokes it. The timeout caveat,
 # how to bound a loop a mutant can hang, and why there is deliberately no CI
-# mutation job are argued in docs/contributing/mutation-testing.md. The file
-# set, the excludes and the `mutants` profile come from .config/mutants.toml;
-# extra args pass through ("$@").
+# mutation job. docs/contributing/mutation-testing.md argues all three. The
+# file set, the excludes and the `mutants` profile come from .config/mutants.toml.
+# Extra args pass through ("$@").
 #
 # CARGO_MUTANTS_JOBS/RUSTFLAGS come from _mutants-env.sh, shared with
-# mutants-diff.sh — argued there for why both stay script-local rather than a
+# mutants-diff.sh, argued there for why both stay script-local rather than a
 # Justfile-level `export`.
 set -eo pipefail
 # shellcheck source=_mutants-env.sh
@@ -17,11 +17,11 @@ set -eo pipefail
 
 # A run that selects a subset rewrites its output directory's mutant list and
 # outcomes, which would destroy the `--iterate` cache a full sweep keeps in
-# `mutants.out`: the 2026-09-30 full sweep found only 46 of 4240 mutants to
+# `mutants.out`. The 2026-09-30 full sweep found only 46 of 4240 mutants to
 # skip because earlier scoped runs had overwritten it, and re-tested the rest
 # cold (15h). Route scoped runs to the scratch dir under `target/` unless the
-# caller passed an output of their own; only a no-subset full sweep — the one
-# `--iterate` reads — touches `mutants.out`.
+# caller passed an output of their own. Only a no-subset full sweep (the one
+# `--iterate` reads) touches `mutants.out`.
 has_output=""
 has_subset=""
 for arg in "$@"; do

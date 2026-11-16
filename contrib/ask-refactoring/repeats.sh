@@ -1,14 +1,14 @@
-# ask-refactoring: the repeats arm — short snippets pasted many times.
+# ask-refactoring: the repeats arm, short snippets pasted many times.
 #
-# Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
+# Sourced by `contrib/ask-refactoring.sh`. Not executable on its own. It reads
 # that script's globals (`$repo`, `$MT`, `$WRITE`, `$REPEAT_GAIN`) and calls its
 # `stem_for` and `file_finding`. It owns three functions the driver looks up by
-# name — `score_repeats`, `signal_repeats`, `emit_repeats` — reading jscpd's
+# name (`score_repeats`, `signal_repeats`, `emit_repeats`), reading jscpd's
 # json report.
 #
 # `just lint::dry` gates clones of 50 tokens and up, because below that jscpd's
-# pairs are too many to gate one by one. What it cannot see is a 15-token line
-# pasted 400 times, which this arm reports.
+# pairs are too many to gate one by one. A 15-token line pasted 400 times
+# escapes that gate, and this arm reports it.
 #
 # The reasoning behind this arm's numbers lives here with the code that applies
 # them, deliberately: a doc it lived in instead would drift from the constants.
@@ -16,9 +16,9 @@
 # ── signal: jscpd at 15 tokens, grouped ─────────────────────────────────────
 #
 # Why 15 tokens: it catches a one-line setup such as
-# `let dir = tempfile::tempdir().unwrap();`, the most repeated snippet in the
-# tree it was chosen on (395 copies, a 17-token window with its neighbours),
-# and one line is the smallest thing worth a helper.
+# `let dir = tempfile::tempdir().unwrap();`. That is the most repeated snippet
+# in the tree that set the number (395 copies, a 17-token window with its
+# neighbours). One line is the smallest thing worth a helper.
 #
 # Exact tokens, not `--ignore-identifiers`: renamed copies of 50 tokens and up
 # are the gate's job.
@@ -27,8 +27,8 @@
 # once, a copy being a file and the lines it spans. A window that starts a
 # line later is another class, which is what the overlap fold below absorbs.
 #
-# Noise: a fragment of nothing but `use`, `mod`, attribute and bracket lines is
-# dropped, and so is one with under 30 characters left once those lines go.
+# Noise: this arm drops a fragment of nothing but `use`, `mod`, attribute and
+# bracket lines, and one with under 30 characters left once those lines go.
 # Those are the shape of a Rust file, not a pasted idea.
 #
 # Scoring, the tokens an extraction removes, net of what it adds:
@@ -37,19 +37,19 @@
 #
 #   Every copy but one goes. Each leaves a call of about 5 tokens, and the
 #   helper's own signature costs about 10. So a big block clears the bar with
-#   two copies and a one-liner only once it is everywhere, and a common short
+#   two copies, and a one-liner only once it is everywhere. A common short
 #   call such as `foo.bar()` never does, since its gain stays near zero.
 #
-#   --repeat-gain is the bar, 300 by default: 12 groups on the tree it was
-#   chosen on, after the fold. 200 filed 25 and 100 filed 102, a batch nobody
-#   empties before the next sweep.
+#   `--repeat-gain` is the bar, 300 by default: 12 groups on the tree that set
+#   it, after the fold. 200 filed 25 and 100 filed 102, a batch nobody empties
+#   before the next sweep.
 #
-# Fold: classes are taken by gain, highest first, and one whose copies mostly
-# (half or more) fall on lines a kept class already holds is dropped.
-# Without it one setup line files a task per window that starts on it.
+# Fold: gain orders the classes, highest first, and the fold drops one whose
+# copies (half or more) fall on lines a kept class already holds. Without it
+# one setup line files a task per window that starts on it.
 #
 #   impact = 3 + round(log2(gain / 100)), clamped 1..10
-#     Gain spans 300 to several thousand, and doubling it is worth one point.
+#     Gain spans 300 to a few thousand, and doubling it is worth one point.
 #
 #   confidence = 0.7
 #     jscpd measures the repetition, but a repeated shape can be a coincidence,

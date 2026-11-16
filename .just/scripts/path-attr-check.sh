@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# .just/scripts/path-attr-check.sh — the body of the `lint::path-attr` recipe
+# .just/scripts/path-attr-check.sh: the body of the `lint::path-attr` recipe
 # (truth/tasks/hold-the-folder-per-area-layout-with-a-lint-and-a-path-check.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #
 # A module's path is its file path: an area is a folder whose `mod.rs` lists
 # its files, and `#[path = "..."]` names only a test sibling (`*_tests*.rs`,
 # `tests_*.rs`, `tests.rs`). `self_named_module_files` in the workspace lints
-# refuses `foo.rs` beside `foo/`; it cannot see a `#[path]`, and the line cap
+# refuses `foo.rs` beside `foo/`. It cannot see a `#[path]`, and the line cap
 # pushes a split straight back to a flat `#[path]` file at the crate root. This
 # is the other half. It prints `file:line: <message>` for each offender.
 #
 # The fixture. A check that scans an empty or unreachable tree passes for the
-# wrong reason, so the scan runs first over a synthesized tree in a temp dir —
-# stray `#[path]` attributes that must be refused, and every allowed shape that
-# must not — and only then over `crates/`. The fixture lives in a temp dir for
-# size-fixture-check.sh's reason: `just check` runs its arms in parallel, and a
-# stray file in the tracked tree would fail the arms scanning it.
+# wrong reason. The scan runs first over a synthesized tree in a temp dir:
+# stray `#[path]` attributes it must refuse, and every allowed shape it must
+# accept. Only then does it scan `crates/`. The fixture lives in a temp dir
+# for size-fixture-check.sh's reason. `just check` runs its arms in parallel,
+# and a stray file in the tracked tree would fail the arms scanning it.
 set -eo pipefail
 
 # scan <dir>: print `file:line: message` for each refused `#[path]` under <dir>.

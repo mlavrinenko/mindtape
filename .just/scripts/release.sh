@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Body of `just release VERSION`; DRY_RUN comes from the recipe's --dry-run.
+# Body of `just release VERSION`. DRY_RUN comes from the recipe's `--dry-run`.
 # cargo-release (.config/release.toml) bumps, dates CHANGELOG.md, runs
 # release-hook.sh, commits and pushes main. Then this waits for ci.yml on that
 # commit and tags only if it is green. A red run leaves main pushed and no tag,

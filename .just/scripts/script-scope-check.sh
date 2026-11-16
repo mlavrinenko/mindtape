@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# .just/scripts/script-scope-check.sh — the body of the `meta::script-scope`
+# .just/scripts/script-scope-check.sh: the body of the `meta::script-scope`
 # recipe (truth/tasks/split-gates-meta-into-per-script-scopes.typ). Runs from
 # the repo root, like the recipe that invokes it.
 #
 # What it costs. A shared `.just/scripts/**` glob covers a body extracted out
-# of the Justfile by arriving, never by someone remembering to wire it up, but
-# it makes editing one script re-run every rule in the manifest — clippy, the
-# full test suite and the docs build included — for a change to one gate's
-# body. One scope per script avoids that and gives up the arriving-is-enough
+# of the Justfile by arriving, never by someone remembering to wire it up. It
+# makes editing one script re-run every rule in the manifest (clippy, the full
+# test suite and the docs build included) for a change to one gate's body. One scope per script avoids that and gives up the arriving-is-enough
 # property, so the split is a net loss unless something closes it. This script
 # is that something: both halves of what the glob guarantees, asserted instead
 # of assumed.
@@ -15,60 +14,60 @@
 # The four arms answer four different questions, and none implies another:
 #
 #   1. Is every script named at all? A set difference between the files on disk
-#      and the literal paths the scopes list. A script no scope names is
-#      invisible to mmz — the rule that runs it serves a stale cache hit
-#      against a body it never hashed, which is the false-fresh every comment
-#      in .mmz/config.yaml argues against.
+#      and the literal paths the scopes list. If no scope lists a script, it is
+#      invisible to mmz. The rule that runs it serves a stale cache hit against
+#      a body it never hashed. That is the false-fresh every comment in
+#      .mmz/config.yaml argues against.
 #   2. Is it named by the right rule? Arm one passes for a script listed in a
-#      scope no rule reads, or read by some unrelated rule, and the stale hit
-#      survives both. So the call graph from each rule's recipe body is walked
-#      (.just/scripts/_script-graph.sh) and the rule's declared inputs must
-#      cover every script that body reaches — through another script and
+#      scope no rule will read, or read by some unrelated rule, and the stale
+#      hit survives both. So .just/scripts/_script-graph.sh walks the call
+#      graph from each rule's recipe body. The rule's declared inputs must
+#      cover every script that body reaches, through another script and
 #      through a nested `just`, not only the ones it names itself.
 #   3. Is it coupled to the docs it can rot, or placed on purpose where none
 #      does? Same enumeration problem, one file over: `.config/outdatty.yaml`
 #      lists these scripts one by one in groups, and outdatty reacts only to
-#      files it lists, so a script never added is coupled to no dependent and
-#      reported by nothing (truth/tasks/fail-a-half-wired-gate-arm-at-the-
+#      files it lists. A script never added couples to no dependent and
+#      nothing reports it (truth/tasks/fail-a-half-wired-gate-arm-at-the-
 #      wiring-it-is-missing.typ). Membership is all this arm claims: which dependents a
 #      script owes is outdatty's own subject, and it answers that well once the
-#      file is listed at all.
+#      file appears there at all.
 #   4. Does the `just outdatty::check` rule hash every file
-#      .config/outdatty.yaml lists, source or dependent? outdatty compares them to the lock, but mmz
-#      serves the rule from cache unless a declared input changed, so a listed
-#      file outside the rule's scopes (06a0492f's .config/wt.toml) goes
-#      false-fresh. Arm three covers scripts only; this covers every path.
+#      .config/outdatty.yaml lists, source or dependent? outdatty compares them to the lock,
+#      but mmz serves the rule from cache unless a declared input changed. A
+#      listed file outside the rule's scopes (06a0492f's .config/wt.toml) goes
+#      false-fresh. Arm three covers scripts only. This covers every path.
 #
 # Arm three demands a decision, not a particular group, and the difference is
 # the whole design. A script belongs to the group of the doc that restates it,
-# so editing it flags that doc and no other. A script no doc restates belongs
-# to the source-only group, which has no dependents, so listing it flags
-# nothing. Either way somebody chose, and a new script is in neither, so the
-# file nobody decided about is the file that fails.
+# so editing it flags that doc and no other. When no doc restates a script, it
+# belongs to the source-only group, which has no dependents, so listing it
+# doesn't flag anything. Either way somebody chose, and a new script is in
+# neither, so the file nobody decided about is the file that fails.
 #
-# Only wildcard-free paths count as naming a script in arm one, and that is
-# load-bearing rather than tidy. The obvious way to make a failure here go
-# away is to put `.just/scripts/**` back into some scope; if a glob counted,
-# that would satisfy this gate while restoring exactly the shared-scope churn
-# the split removed. It does not count, so the only way to green is to name the
-# file. The one glob that remains over this directory (`scripts-all`) therefore
-# names nothing here — it exists for the three rules whose subject is the whole
-# directory, this one included: a check that has to notice a script arriving
-# cannot take an enumeration as its input, because the file it must react to is
-# by definition the one nobody listed.
+# Only wildcard-free paths count as naming a script in arm one, and that
+# restriction is essential, not cosmetic. The obvious way to make a failure
+# here go away is to put `.just/scripts/**` back into some scope. If a glob
+# counted, that would satisfy this gate while restoring exactly the
+# shared-scope churn the split removed. It does not count, so the only way to
+# green is to name the file. The one glob that remains over this directory
+# (`scripts-all`) names nothing here. It exists for the three rules whose
+# subject is the whole directory, this one included. A check that has to
+# notice a script arriving cannot take an enumeration as its input. The file
+# it must react to is by definition the one nobody listed.
 #
 # Arm two is transitive. A body reached one hop further than the scripts a
 # recipe body names itself is still checked, so no caller's rule has to name
 # that scope by hand. The walk lives in .just/scripts/_script-graph.sh,
-# which argues in place what it reads as a call and what it refuses to guess at;
-# this file only asks it which scripts a rule reaches and compares that to the
-# scopes the rule declares. .just/scripts/_script-graph-control.sh runs first,
-# for the reason check-secrets.sh gives for its own control pair: a derivation
-# that quietly stopped following an edge would report every rule covered, which
-# is exactly what a correct manifest reports.
+# which argues in place what it reads as a call and what it refuses to guess
+# at. This script puts one question to it, which scripts a rule reaches, and
+# compares that to the scopes the rule declares. .just/scripts/_script-graph-control.sh
+# runs first, for the reason check-secrets.sh gives for its own control pair.
+# A derivation that quietly stopped following an edge would report every rule
+# covered, which is exactly what a correct manifest reports.
 #
 # Static, like check-doc-recipes.sh and positional-args-check.sh: it reads the
-# manifest, the directory listing and the just dump. No recipe body runs.
+# manifest, the directory listing and the just dump. It never runs a recipe body.
 set -eo pipefail
 
 manifest=".mmz/config.yaml"
@@ -83,7 +82,7 @@ fi
 
 # scope<TAB>glob, every entry of every scope. A scope's value is either a bare
 # list of globs or a `{gitignore, globs}` dict (the `lcov` scope is the second
-# shape), so both are unwrapped here rather than one being assumed.
+# shape), so this script unwraps both shapes instead of assuming one.
 # shellcheck disable=SC2016 # a yq program, whose $names are yq's
 entries=$(yq -r '
     .scopes // {} | to_entries[]
@@ -107,7 +106,7 @@ trap 'rm -f "$dump"' EXIT
 just --dump --dump-format json >"$dump"
 reachable=$(bash .just/scripts/_script-graph.sh "$dump")
 
-# Arm one: every script on disk is named by some scope, as a literal path.
+# Arm one: some scope lists every script on disk, as a literal path.
 for script in "${scripts[@]}"; do
     if ! awk -F'\t' -v p="$script" '
         $2 == p && $2 !~ /[][*?]/ { found = 1 } END { exit !found }
@@ -118,10 +117,10 @@ for script in "${scripts[@]}"; do
     fi
 done
 
-# The same difference the other way: a scope naming a script that does not
-# exists. Harmless to mmz (a glob matching nothing is legal), and exactly the
-# line a rename leaves behind pointing at the old name while the rule it feeds
-# quietly stops hashing anything.
+# The same difference the other way, a scope listing a script that does not
+# exist. Harmless to mmz (a glob that matches no files is legal). It is
+# exactly the line a rename leaves behind pointing at the old name while the
+# rule it feeds quietly stops hashing anything.
 while IFS=$'\t' read -r scope path; do
     [ -n "$path" ] || continue
     case "$path" in
@@ -136,8 +135,8 @@ while IFS=$'\t' read -r scope path; do
 done <<<"$entries"
 
 # Arm two: a rule whose recipe body reaches a script must declare a scope
-# covering it. A glob input counts here — unlike arm one, the question is only
-# whether the body is hashed at all, and `scripts-all` hashes it.
+# covering it. A glob input counts here. Unlike arm one, the question is only
+# whether the body gets hashed at all, and `scripts-all` hashes it.
 checked=0
 while IFS=$'\t' read -r recipe script chain; do
     [ -n "$recipe" ] || continue
@@ -164,8 +163,8 @@ done <<<"$reachable"
 
 # Arm three: every script is a source of some .config/outdatty.yaml group. Read
 # from the manifest rather than .config/outdatty.lock, because the lock records
-# what was confirmed, so a script listed in neither is missing from both and
-# the lock agrees with itself.
+# what it confirmed. A script listed in neither is missing from both, and the
+# lock agrees with itself.
 group_sources=$(yq -r '.groups // [] | .[] | (.source // [])[]' .config/outdatty.yaml)
 
 if [ -z "$group_sources" ]; then
@@ -183,13 +182,13 @@ for script in "${scripts[@]}"; do
     fi
 done
 
-# Arm four: every file .config/outdatty.yaml lists, as a source or a dependent,
-# is hashed by the `just outdatty::check` rule. outdatty-check compares each
-# listed file to .config/outdatty.lock, so a listed file that none of the
-# rule's input scopes holds can change and leave the gate recorded fresh, which
-# let a .config/wt.toml edit land on a red main. A glob entry is expanded over the files git lists, so
-# a dependent glob is judged file by file. Patterns match as in arm two, and
-# the rule's own scopes are the only thing read: no scope is named here.
+# Arm four: the `just outdatty::check` rule hashes every file .config/outdatty.yaml
+# lists, as a source or a dependent. outdatty-check compares each listed file to
+# .config/outdatty.lock. A listed file that none of the rule's input scopes holds
+# can change and leave the gate recorded fresh. That let a .config/wt.toml edit
+# land on a red main. A glob entry expands over the files git lists. The arm
+# judges a dependent glob file by file. Patterns match as in arm two, and the
+# rule's own scopes are the only thing read. This arm cites no scope by name.
 outdatty_rule="just outdatty::check"
 rule_patterns=$(awk -F'\t' -v r="$outdatty_rule" '$1 == r { print $2 }' <<<"$rule_inputs" |
     while IFS= read -r scope; do

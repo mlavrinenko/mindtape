@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Use this flake the way an adopter does: lock examples/nix-adopter against the
-# working tree, cap the nodes Mindtape adds to that lock, then run `mt` from the
-# fixture's dev shell on a `$HOME` that never ran `mt install`, and `nix run` this
-# flake.
+# Use this flake the way an adopter does. Lock examples/nix-adopter against
+# the working tree, cap the nodes `Mindtape` adds to that lock. Then run `mt`
+# from the fixture's dev shell on a `$HOME` that never ran `mt install`, and
+# `nix run` this flake.
 set -euo pipefail
 
 # mindtape, nixpkgs, naersk and flake-parts: what `packages.default` builds
@@ -10,7 +10,7 @@ set -euo pipefail
 MAX_NODES=4
 
 root=$(git rev-parse --show-toplevel)
-# A git flake sees only files git knows, so new ones are marked intent-to-add.
+# A git flake sees only files git knows. This script marks new ones intent-to-add.
 git -C "$root" ls-files -z --others --exclude-standard | xargs -0 -r git -C "$root" add --intent-to-add --
 
 work=$(mktemp -d)

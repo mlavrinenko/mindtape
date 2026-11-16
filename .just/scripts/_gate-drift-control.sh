@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .just/scripts/_gate-drift-control.sh — the control `just meta::gate-drift`
+# .just/scripts/_gate-drift-control.sh: the control `just meta::gate-drift`
 # runs before it reads the real tree (see check-gate-drift.sh for why a control
 # at all). Runs from the repo root. Builds synthetic trees in a temp dir, never
 # the working tree: `just check` runs its arms in parallel, so a probe in the
@@ -21,9 +21,9 @@ fail_control() {
     exit 1
 }
 
-# One run, asserting exit status and that every needle is named in its output
-# and no `forbid` is.
-expect() { # <label> <want: 0|1> <output-file> <rc> <needle>... ; `NOT:x` forbids
+# One run, asserting the exit status, that the output carries every needle,
+# and that no `forbid` appears.
+expect() { # <label> <want: 0|1> <output-file> <rc> <needle>..., where `NOT:x` forbids
     local label=$1 want=$2 file=$3 rc=$4 needle
     shift 4
     [ "$rc" -eq "$want" ] || fail_control "$label: exit $rc, want $want: $(head -c 700 "$file")"
@@ -48,7 +48,7 @@ control_toml() {
     git -C "$d" add a.toml sub/b.toml Justfile .gitignore
     toml_drift "$d" 2>"$d/out" || rc=$?
     expect "toml positive control" 0 "$d/out" "$rc"
-    # Staged-but-unlisted, new-and-unadded, and listed-but-gone, together; the
+    # Staged-but-unlisted, new-and-unadded, and listed-but-gone, together. The
     # ignored file must stay unreported.
     : >"$d/staged.toml"
     git -C "$d" add staged.toml

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# .just/scripts/docs-md-check.sh — the body of the `md-check` recipe in
+# .just/scripts/docs-md-check.sh: the body of the `md-check` recipe in
 # .just/docs.just (invoked as `just docs::md-check`, mangled to `docs-md-check`
-# everywhere the docs name it), extracted under truth/tasks/extract-the-long-
-# gate-recipe-bodies-into-scripts.typ. Every path below is repo-root-relative:
+# everywhere the docs name it). `truth/tasks/extract-the-long-gate-recipe-
+# bodies-into-scripts.typ` moved it out. Every path below is repo-root-relative:
 # that module file carries `set working-directory := '..'` precisely so its
 # recipes run at the repo root rather than in .just/. The prose arguing why the
 # regenerate goes to a temp directory stays above that recipe.
@@ -21,8 +21,8 @@ done < <(find "$tmp" -type f -print0)
 # Lint: fail on typlite output that GitHub renders broken, which the diff above
 # passes because a broken render matches its own committed copy. It checks each
 # fresh render outside fenced code and scans docs/src for a `;` glued to a
-# `#link(...)[...]`. Each hit prints `file:line: why`; the traps are listed in
-# docs/contributing/generated-docs.md.
+# `#link(...)[...]`. Each hit prints `file:line: why`.
+# docs/contributing/generated-docs.md lists the traps.
 read -r -d '' lint_md <<'AWK' || true
 function bad(why) { printf "%s:%d: %s\n", name, FNR, why; hits++ }
 function bare_pipe(s,   i) {

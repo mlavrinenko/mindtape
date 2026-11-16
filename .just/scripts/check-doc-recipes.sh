@@ -1,31 +1,31 @@
 #!/usr/bin/env bash
-# .just/scripts/check-doc-recipes.sh — the body of the `docs::recipes`
-# recipe, extracted under truth/tasks/extract-the-long-gate-recipe-bodies-into-
-# scripts.typ. Every path below is repo-root-relative, because the recipe that
-# invokes it runs at the repo root.
+# .just/scripts/check-doc-recipes.sh: the body of the `docs::recipes` recipe,
+# extracted under `truth/tasks/extract-the-long-gate-recipe-bodies-into-scripts.typ`.
+# Every path below is repo-root-relative, because the recipe that invokes it
+# runs at the repo root.
 #
 # The gate for what www/generated/just.typ cannot reach: a fenced code block
-# cannot call a function, and typst's own "module does not contain" error at
-# render time is the gate for everything else — a doc source that writes
+# cannot call a function. Typst's own "module does not contain" error at
+# render time is the gate for everything else. A doc source that writes
 # `#just.<name>()` already fails `just docs::md` loudly the moment `<name>`
 # stops resolving (see truth/tasks/render-just-recipe-names-through-a-
-# generated-typst-module.typ). What is left uncovered is a hand-typed
-# mention that never went through the helper at all.
+# generated-typst-module.typ). A hand-typed mention that never went through
+# the helper at all stays uncovered.
 #
-# Ordinary English "just" (an adverb, or a config value's own `#` shell
-# comment mid-line) matches none of the three shapes below and is never
-# touched — verified against every non-recipe "just" already in the docs tree.
+# Ordinary English "just" (an adverb, or a config value's `#` shell comment
+# mid-line) matches none of the three shapes below, and the gate never touches
+# it. Verified against every non-recipe "just" already in the docs tree.
 #
 # A control runs first, on a synthetic page, so an extractor that misreads the
 # fences cannot pass by finding nothing.
 set -eo pipefail
-# The same recipe/alias names www/generated/just.typ's own producer
-# reads — never a second source of truth for "is this a real recipe".
-# Module recipes (truth/tasks/split-the-justfile-into-modules.typ) are
-# walked recursively and resolvable two ways: the module's own name alone
-# (a hand-typed "just docs ..." example's captured word is only ever the
-# first token after "just", so a module invocation resolves to its bare
-# name here) and the fully-qualified "module::recipe" path.
+# The same recipe/alias names www/generated/just.typ's own producer reads:
+# never a second source of truth for "is this a real recipe". This script
+# walks module recipes (truth/tasks/split-the-justfile-into-modules.typ)
+# recursively. Each is resolvable two ways: the module's own name alone, and
+# the fully-qualified "module::recipe" path. (A hand-typed "just docs ..."
+# example's captured word is only ever the first token after "just". A module
+# invocation resolves to its bare name here.)
 names=$(just --dump --dump-format json | jq -r '
     def rec_names(prefix):
       (.recipes // {} | keys[] | prefix + .),
@@ -45,9 +45,9 @@ fail=0
 
 # Prints findings for the given doc sources to stderr and sets `fail`. The
 # extractor (_doc-blocks-lib.sh) has already split each source into spans,
-# block lines and prose, so a fence written inside a string hides nothing and
+# block lines and prose. A fence written inside a string hides nothing and
 # a `//` comment line is never a row. The three shapes of literal mention
-# follow, and are matched independently on each row:
+# follow. The scan matches each shape independently on each row:
 #
 #   - a quoted `"just <name>"` substring in a span, a block line or prose: a
 #     literal value, not a live reference (an example `.mindtape/config.toml`
@@ -56,9 +56,9 @@ fail=0
 #     which has no recipe to resolve.
 #   - `just <name>` opening a line inside a block: a shell-command example. A
 #     block cannot call the helper, so this is legal as prose, but the name
-#     still has to resolve. A flag such as `just --list` names no recipe.
+#     still has to resolve. A flag such as `just --list` has no recipe.
 #   - a span opening with `just`: the hand-typed mention the generated module
-#     exists to replace. It always fails, whether or not the name resolves,
+#     exists to replace. It always fails, whether the name resolves,
 #     because it has to become `#just.<name>(...)`. A bare `just` is exempt
 #     (`just` with no args lists the recipes, and that sentence stays
 #     literal). A just flag such as `just --fmt` is no recipe either, so it
@@ -107,17 +107,17 @@ scan_sources() {
     ' <<<"$rows" || fail=1
 }
 
-# The sources come from the manifest in _doc-blocks-lib.sh. www/utils is
-# scanned too: gate-notes.typ's prose renders straight into CONTRIBUTING.md,
-# so a recipe name hand-typed there rots like one in a docs/src source.
+# Sources come from the manifest in _doc-blocks-lib.sh, and this script scans
+# www/utils too. A recipe name hand-typed there rots like one in a docs/src
+# source, because gate-notes.typ's prose renders straight into CONTRIBUTING.md.
 doc_sources_load
 sources=("${DOC_SOURCES[@]}")
 
-# A scan that finds nothing looks the same as a scanner that reads nothing, so
-# a synthetic page holding each shape runs first and its exact findings are
-# asserted. Each line number names its line: the block opened mid-line (line 2)
-# must hide its content, and the prose after its close (line 5) must be
-# checked.
+# A scan that finds nothing looks the same as a scanner that doesn't read
+# anything. A synthetic page holding each shape runs first, and this script
+# asserts its exact findings. Each line number references its line: the block
+# opened mid-line (line 2) must hide its content, and the scan must check the
+# prose after its close (line 5).
 control() {
     local tmp page want got
     tmp=$(mktemp -d)

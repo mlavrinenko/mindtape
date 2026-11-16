@@ -1,41 +1,41 @@
 #!/usr/bin/env bash
-# .just/scripts/outdatty-review-trailer.sh <msg-file> — the fourth check of
+# .just/scripts/outdatty-review-trailer.sh <msg-file>: the fourth check of
 # .githooks/commit-msg (truth/tasks/require-a-docs-unaffected-trailer-when-an-
 # outdatty-re-record-edits-no-dependent.typ). Runs from the repo root, as git
-# runs a hook. Reads the index, HEAD and the message, and writes nothing.
+# runs a hook. Reads the index, HEAD and the message, and doesn't write anything.
 # .just/scripts/outdatty-review-trailer-fixture-check.sh holds its cases.
 #
 # A re-record (`just outdatty::update <group>`) moves the group's source hashes
-# in .config/outdatty.lock and says someone read the group's dependents. When the
-# commit edits one of them, the diff shows the review. When it edits none, the
-# lock alone can't tell a review that found nothing from one nobody did, and
-# the dependents' hashes the re-record carried along don't help either. So such
-# a commit names each group it read and left as is:
+# in .config/outdatty.lock and says someone read the group's dependents. When
+# the commit edits one of them, the diff shows the review. When it edits none,
+# the lock diff is identical whether the review found nothing or nobody did
+# it. The dependents' hashes the re-record carried along don't help either. So
+# such a commit lists each group it read and left as is:
 #
 #   Docs-Unaffected: cli-ls-docs
 #
 # A group "moved" when a source path in the staged lock is new or has another
-# hash than at the base. A source dropped from a group owes no review. A group
-# the base lock lacks is skipped: the commit that declares a group is the one
-# that chose its dependents. So is a group with no dependents. A dependent
-# counts only when the commit changes the file itself.
+# hash than at the base. A source dropped from a group owes no review. The
+# script skips a group the base lock lacks: the commit that declares a group
+# is the one that chose its dependents. So is a group with no dependents. A
+# dependent counts only when the commit changes the file itself.
 #
 # Why a script and not a `[[commits.rules]]` entry. A commit rule reads the
-# commit's `files`, `subject` and `trailers`, never a file's content, so it
+# commit's `files`, `subject` and `trailers`, never a file's content. It
 # can't see which group a lock hunk belongs to or pair that group with its
-# dependents. Teaching the filter language to parse outdatty's YAML would put
-# one dev tool's format into Mindtape. A coarse rule ("the lock changed, no doc
-# did, so want any Docs-Unaffected") would refuse a dependent-only record and
-# accept a trailer naming the wrong group.
+# dependents. Making the filter language parse outdatty's YAML would put
+# one dev tool's format into `Mindtape`. A coarse rule ("the lock changed, no
+# doc did, so want any Docs-Unaffected") would refuse a dependent-only record
+# and accept a trailer that cites the wrong group.
 #
 # The base is HEAD, or HEAD^ under `git commit --amend`, found the way
-# crates/mindtape/src/commit/amend.rs finds it: git tells a hook neither, so
-# walk up to the `git commit` process and look for the flag. A merge commit
-# passes: its diff against the first parent is the other branch's work, whose
-# commits carried their own reviews. A rebase pick runs no commit-msg hook, so
-# `just land` passes through, and the review a zeroed hash asks for after it
-# (`outdatty merge-lock`, the lock's merge driver) is a new commit that names
-# the group.
+# crates/mindtape/src/commit/amend.rs finds it. git gives a hook neither
+# answer, so walk up to the `git commit` process and look for the flag. A
+# merge commit passes because its diff against the first parent is the other
+# branch's work, whose commits carried their own reviews. A rebase pick
+# doesn't run a commit-msg hook, so `just land` passes through. The review a
+# zeroed hash still owes after it (`outdatty merge-lock`, the lock's merge
+# driver) is a new commit that lists the group.
 set -eo pipefail
 
 msg_file=$1

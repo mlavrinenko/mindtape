@@ -1,11 +1,11 @@
-# .just/scripts/_gate-drift-lib.sh — the two readers behind `just
+# .just/scripts/_gate-drift-lib.sh: the two readers behind `just
 # check-gate-drift`, sourced by check-gate-drift.sh and by the control that
-# pins them (_gate-drift-control.sh). Why each reads what it reads is argued in
-# check-gate-drift.sh. Both take a root and read only under it, so the control
+# pins them (_gate-drift-control.sh). check-gate-drift.sh argues why each
+# reads what it reads. Both take a root and read only under it, so the control
 # can aim them at a synthetic tree and the gate at the real one.
 #
-# What a `check` arm reaches is not decided here: _script-reach.sh walks it with
-# the graph script-scope-check uses, and a second walker would learn the next
+# What a `check` arm reaches comes from _script-reach.sh, which walks the
+# graph script-scope-check uses. A second walker here would learn the next
 # shell form one at a time. This file keeps the two arm-specific parts.
 
 reach_sh=$PWD/.just/scripts/_script-reach.sh
@@ -30,7 +30,7 @@ toml_drift() {
 # arm 2
 
 # Stdin `where<TAB>line` -> one `where<TAB>reason<TAB>line` per cargo
-# build/run of mindtape-cli that would write target/debug/mt without --tests.
+# build/run of mindtape-cli that would write target/debug/mt without `--tests`.
 find_plain_builds() {
     awk -F'\t' '
         function verdict(where, text,    n, i, w, sub_, tests, exempt, ws, pkgs, mt, tok, nt) {
@@ -86,7 +86,7 @@ find_plain_builds() {
     '
 }
 
-# build_drift <root>: judge every code line `check` reaches under <root>.
+# `build_drift` <root>: judge every code line `check` reaches under <root>.
 build_drift() {
     local root=$1 out
     out=$(cd "$root" && bash "$reach_sh" --also 'www/*.sh' --also 'docs/*.sh' \

@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
-# .just/scripts/release-hook.sh — the `pre-release-hook` of .config/release.toml,
-# which `just release VERSION` runs through cargo-release. cargo-release itself
-# refuses a dirty tree and a branch other than main; this refuses the rest. Every
-# refusal guards a way a release has gone wrong, and prints one `error:` and at
-# most two `hint:` lines. v0.2.0's crates were published by hand before its tag
-# was pushed, so every run of the tag's workflow failed at `cargo publish` and
-# no GitHub release was made: a version already on crates.io is refused here,
-# and the tag push stays the only publish path.
+# .just/scripts/release-hook.sh: the `pre-release-hook` of .config/release.toml, which
+# `just release VERSION` runs through cargo-release. cargo-release itself refuses a dirty
+# tree and a branch other than main. This refuses the rest. Every refusal guards a way a
+# release has gone wrong, and prints one `error:` and at most two `hint:` lines. v0.2.0's
+# crates landed on crates.io by hand before the tag push. Every run of the tag's workflow
+# then failed at `cargo publish`, and GitHub never saw a release. This script refuses a
+# version already on crates.io, and the tag push stays the only publish path.
 #
-# cargo-release runs this after the bump and the changelog replacement, and also
-# in a dry run (DRY_RUN=true), where it sees the tree unchanged. It reads the
-# NEW_VERSION, DRY_RUN and WORKSPACE_ROOT variables cargo-release sets. The
-# release commit's subject comes from `pre-release-commit-message` in
-# .config/release.toml, so the commit-msg hook judges it only after the push;
-# this runs the same check before the dry run can call the release good.
+# cargo-release runs this after the bump and the changelog replacement, and also in a dry
+# run (DRY_RUN=true), where it sees the tree unchanged. It reads the NEW_VERSION, DRY_RUN
+# and WORKSPACE_ROOT variables cargo-release sets. The release commit's subject comes from
+# `pre-release-commit-message` in .config/release.toml. The commit-msg hook judges it only
+# after the push. This runs the same check before the dry run can call the release good.
 set -euo pipefail
 cd "$WORKSPACE_ROOT"
 version="$NEW_VERSION"
@@ -49,10 +47,10 @@ for crate in mindtape mindtape-cli; do
         *) refuse "crates.io answered HTTP '${status:-nothing}' for '$crate $version'" "retry once crates.io is reachable" ;;
     esac
 done
-# A yanked crate keeps an existing Cargo.lock buildable but is refused to new
-# installs, and `cargo publish --dry-run` only warns about it. `--deny yanked`
-# would make the advisories this tree carries fatal too, so read the JSON report
-# and fail on the yanked list alone.
+# A yanked crate keeps an existing Cargo.lock buildable but new installs can't use
+# it, and `cargo publish --dry-run` only warns about it. `--deny yanked` would make
+# the advisories this tree carries fatal too, so read the JSON report and fail on
+# the yanked list alone.
 audit_err=$(mktemp) \
     || refuse "can't make a temp file for the dependency audit" "check \$TMPDIR, then re-run"
 trap 'rm -f "$audit_err"' EXIT
@@ -66,7 +64,7 @@ if [ "$yanked" -ne 0 ]; then
     jq -r '.warnings.yanked[] | "  \(.package.name) \(.package.version)"' <<<"$audit" >&2
     refuse "Cargo.lock pins $yanked yanked crate(s)" "run cargo update, then re-run"
 fi
-# The replacement dates [Unreleased] under the new version; a dry run, or a re-run
+# The replacement dates [Unreleased] under the new version. A dry run, or a re-run
 # after it, finds the entries under whichever heading holds them.
 heading="Unreleased"
 grep -Eq "^## \[${version//./\\.}\] - " CHANGELOG.md && heading="$version"
@@ -86,10 +84,10 @@ printf '%s\n' "${subject//\{\{version\}\}/$version}" >"$msg" \
     || refuse "can't write the release commit message to a temp file" "check \$TMPDIR, then re-run"
 cargo run -q -p mindtape-cli --bin mt --target-dir target/mt-dev -- check --commit-msg "$msg" \
     || refuse "the release commit message breaks the commit rules" "fix what mt reports above, then re-run"
-# The bump moves the version in the Cargo manifests, the sources of the
-# `release-notes` and `cli-name` groups. The release commit is their review:
-# it dates CHANGELOG.md, and the other dependents name the crate, not its
-# version. A dry run sees the tree unbumped and records nothing.
+# The bump moves the version in the Cargo manifests, the sources of the `release-notes`
+# and `cli-name` groups. The release commit is their review: it dates CHANGELOG.md, and
+# the other dependents reference the crate, not its version. A dry run sees the tree
+# unbumped and doesn't record the groups.
 if [ "$DRY_RUN" != true ]; then
     for group in release-notes cli-name; do
         just outdatty::update "$group" >/dev/null \
@@ -98,9 +96,9 @@ if [ "$DRY_RUN" != true ]; then
 fi
 just check || refuse "just check failed on this tree" "fix what it reports above, then commit"
 just nix-build || refuse "the flake doesn't build in a clean sandbox" "fix what just nix-build reports above"
-# A dry run leaves the manifests at the old version, so a verifier would build
-# the new CLI against the published `mindtape` at that old version, which may
-# lack its new API. It verifies a throwaway copy bumped to $version instead.
+# A dry run leaves the manifests at the old version. A verifier would then build the
+# new CLI against the published `mindtape` at that old version, which may lack its
+# new API. It verifies a throwaway copy bumped to $version instead.
 publish_check() {
     local current target_dir
     current=$(sed -n 's/^version = "\([0-9][0-9.]*\)"/\1/p' Cargo.toml | head -1)
@@ -108,7 +106,7 @@ publish_check() {
         || refuse "can't read the workspace version" "restore Cargo.toml, then re-run"
     target_dir="$PWD/target"
     if [ "$current" = "$version" ]; then
-        # --allow-dirty: on a real run the bump is not committed yet.
+        # `--allow-dirty`: on a real run the bump is not committed yet.
         cargo publish --dry-run --locked --allow-dirty --workspace --quiet
         return
     fi

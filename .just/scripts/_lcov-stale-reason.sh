@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# .just/scripts/_lcov-stale-reason.sh — why the lcov is stale, or nothing if
+# .just/scripts/_lcov-stale-reason.sh: why the lcov is stale, or nothing if
 # it is fresh. crap.sh and the sweep's undertested arm ask it. Runs from the
 # repo root.
 #
 # `crap::check` treats a reason printed here as a hard error, so it never scores
 # functions against an lcov that predates their source.
 #
-# It reports through STDOUT and always exits 0 — an empty stdout means fresh,
+# It reports through STDOUT and always exits 0: an empty stdout means fresh,
 # any other line names why the lcov is unusable. The caller decides what a
 # reason means, and prints it beside the recipe that refreshes the lcov.
 set -eo pipefail
