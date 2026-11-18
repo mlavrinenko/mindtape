@@ -1,9 +1,9 @@
 //! `mt explain` prints the project's policy listings behind one command.
 //!
 //! Bare prints an index of every listing: the rules grouped by section, the
-//! derived fields, and the tags, views and dictionaries the project declares.
-//! A listing prints one of them in full, unchanged from the command it
-//! replaces.
+//! derived fields, and the tags, views, dictionaries and templates the project
+//! declares. A listing prints one of them in full, unchanged from the command
+//! it replaces.
 
 use serde::Serialize;
 

@@ -10,7 +10,7 @@ use mindtape::test_support::write_file;
 
 use crate::support;
 
-use support::{json, mt, run_text, scaffold_project, stdout};
+use support::{json, run_text, scaffold_project, stdout};
 
 /// A pack holding a task rule the project overrides, one it disables, a body
 /// rule and a commit rule.
@@ -86,59 +86,6 @@ fn project() -> tempfile::TempDir {
     dir
 }
 
-/// The bare index opens on the project's shape. It carries the roots with
-/// their tags, the legend split by `terminal`, the `rm` filter, the scales,
-/// the vocabularies and the commit trailer. `absent` names each key the config
-/// leaves open.
-#[test]
-fn bare_opens_on_the_projects_shape() {
-    let dir = project();
-    let text = stdout(dir.path(), &["explain"]);
-    let expected = "project:
-  roots: tasks (tag: tasks)
-  statuses:
-    open: proposed, accepted, wip
-    terminal: done, cancelled, failed
-  rm: terminal only
-task:
-  priority: 0-9
-  difficulty: 0-9
-  links: depends-on, parent, recurred-from, supersedes, duplicates, related
-  templates: task (default: task)
-commits:
-  trailer: Refs
-absent: actors, estimate, kinds, comments, extensions
-rules:
-";
-    assert!(text.starts_with(expected), "{text}");
-}
-
-/// A gate the user has not allowed prints in `refusals:` with the section that
-/// declares it, and `mt allow` clears the block. The JSON carries the same
-/// list.
-#[test]
-fn refusals_lists_only_the_gates_the_user_has_not_allowed() {
-    let dir = scaffold_project(
-        "[tasks]\nroots = [\"tasks\"]\n\n\
-         [[tasks.waits]]\nname = \"locked\"\nrun = \"scripts/locked {id}\"\n\n\
-         [[on.flip]]\nwhen = 'into(\"done\")'\n\
-         actions = [{ run = \"scripts/test\", gate = true }]\n",
-    );
-    let text = stdout(dir.path(), &["explain"]);
-    let expected = "refusals:
-  waits: scripts/locked {id} (not allowed; ask the user to run `mt allow`)
-  on.flip: scripts/test (not allowed; ask the user to run `mt allow`)
-";
-    assert!(text.contains(expected), "{text}");
-
-    let allowed = mt(dir.path()).arg("allow").output().unwrap();
-    assert!(allowed.status.success(), "{allowed:?}");
-    let text = stdout(dir.path(), &["explain"]);
-    assert!(!text.contains("refusals:"), "{text}");
-    let value = json(dir.path(), &["explain", "--json"]);
-    assert_eq!(value["refusals"], serde_json::json!([]));
-}
-
 /// The bare index lists every listing, grouped, and puts `default` first in
 /// the view list although the config declares it last.
 #[test]
@@ -172,7 +119,7 @@ fn bare_ends_on_the_next_command() {
     let dir = project();
     let text = stdout(dir.path(), &["explain"]);
     assert!(
-        text.ends_with("\nnext: mt explain [<add|rules|tags|views|dicts>] [--json]\n"),
+        text.ends_with("\nnext: mt explain [<add|rules|tags|views|dicts|templates>] [--json]\n"),
         "{text}"
     );
     let value = json(dir.path(), &["explain", "--json"]);

@@ -168,7 +168,7 @@
       `derived`, `tags`, `views` and `dicts`.
       A blank line separates the index from a `next:` line naming the optional
       category and JSON flag:
-      `mt explain [<add|rules|tags|views|dicts>] [--json]`.],
+      `mt explain [<add|rules|tags|views|dicts|templates>] [--json]`.],
     outputs: ("explain",),
   ),
   "explain.add": (:),

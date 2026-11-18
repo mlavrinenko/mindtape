@@ -60,6 +60,7 @@ mod eval_e2e;
 mod eval_fixture_e2e;
 mod explain_add_e2e;
 mod explain_e2e;
+mod explain_shape_e2e;
 mod find_e2e;
 mod first_run_errors;
 mod fix_e2e;

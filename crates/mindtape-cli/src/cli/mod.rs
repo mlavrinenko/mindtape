@@ -179,12 +179,12 @@ enum Command {
     /// copies under `schema/output/`, and `--check` fails when one differs.
     /// It works outside a project.
     Schema(schema::SchemaArgs),
-    /// List the project's rules, tags, views and dictionaries, or one in full.
+    /// List the project's rules, tags, views, dictionaries and templates.
     ///
     /// Bare prints an index: the rules grouped by section, the derived fields,
-    /// and the tags, views and dictionaries this project declares. A listing
-    /// prints one in full, with `--for` on the rules and tags and `--json` on
-    /// every one.
+    /// and the tags, views, dictionaries and templates this project declares.
+    /// A listing prints one in full, with `--for` on the rules and tags and
+    /// `--json` on every one.
     Explain(explain::ExplainArgs),
     /// Trust the commands your config runs in this repo.
     ///

@@ -28,7 +28,7 @@ Under the shape, the index prints every rule grouped by its config section, the
 derived fields, and the tags, views and dictionaries the project declares. A
 dictionary shows its entry count, and `default` comes first in the view and tag
 lists when it exists. A blank line separates the index from a `next:` line
-naming the optional category and the JSON flag: `mt explain [<add|rules|tags|views|dicts>] [--json]`.
+naming the optional category and the JSON flag: `mt explain [<add|rules|tags|views|dicts|templates>] [--json]`.
 
 #cli-command("explain")
 

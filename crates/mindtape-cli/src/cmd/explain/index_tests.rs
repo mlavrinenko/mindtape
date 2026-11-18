@@ -9,7 +9,7 @@ use mindtape::RuleSection;
 
 use super::{bare_name, collect, default_first, document, list_line, render};
 
-const NEXT: &str = "next: mt explain [<add|rules|tags|views|dicts>] [--json]";
+const NEXT: &str = "next: mt explain [<add|rules|tags|views|dicts|templates>] [--json]";
 
 /// A config with every shape block populated. It declares a three-value
 /// legend, two actors, an estimate unit, a forbidden comment policy, an

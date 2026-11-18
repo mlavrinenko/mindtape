@@ -191,7 +191,7 @@ fn render(index: &Index, width: usize) -> String {
     labelled(&mut out, "dicts", &dicts, width, "  ");
     out.push('\n');
     out.push_str(&next_line(format!(
-        "{} [<add|rules|tags|views|dicts>] [--json]",
+        "{} [<add|rules|tags|views|dicts|templates>] [--json]",
         Command::mt().word("explain")
     )));
     out.push('\n');
