@@ -12,7 +12,7 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
 
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task DSL.
 - `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
-- `truth/tasks/`: Mindtape’s own backlog, a folder per month plus a `swept/` inbox, read with the in-tree `lib/`. Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and run `mt explain` for the rules, tags, views and dictionaries this repo declares. Edit the file by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
+- `truth/tasks/`: Mindtape’s own backlog, a folder per month plus a `swept/` inbox, read with the in-tree `lib/`.
 - `truth/goals.typ` and `truth/process-goals.typ`: the product and process goals. Each open task rates every goal in `x-goals`. The `give-every-goal-verdict` rule checks that.
 - `www/content/*.typ`: the docs site, built with tola.
 - `docs/src/*.typ`: the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the `docs/contributing/*.md` deep dives.
@@ -20,7 +20,7 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
 - `examples/`: fixture projects backing one docs page each.
   - `api-service`: a sample backend backlog that feeds the docs and the skill’s evals.
   - `minimal`: the smallest config.
-  - `dsl`: the task quoted below.
+  - `dsl`: the task quoted on the DSL page.
   - `large`: a 2000-task benchmark whose gitignored tasks `just bench gen` writes.
   - `nix-adopter`: a flake that takes `mt` into its dev shell, which `just smoke-flake` locks against the working tree.
 
@@ -53,23 +53,7 @@ The Typst plumbing comes from seven crates.io dependencies, under `~/.cargo/regi
 
 ## Task definition language (lib/prelude.typ)
 
-```typ
-#import "@local/mindtape:0.4.0": *
-#show: task.with(
-  title: "Fix the login redirect",
-  status: wip(2026, 6, 14)[reproduced on staging], // the status, the date it was set, and a note
-  priority: ice(impact: 8, confidence: 0.7, ease: 6), // a framework call or a number; difficulty too
-  estimate: (days: 1, hours: 2), // units the project allows
-  assignee: "ada", // who is working on it
-  links: depends-on("add-a-session-store.typ"), // typed edges; a target is a path from this file
-  tags: ("backend",),
-  x-speconaut: (spec: "login-flow"), // a tool's own field; mt passes it through
-)
-```
-
-`task` declares each core field as a named parameter, and its `..meta` sink takes only `x-<ns>` slots. A misspelled field fails.
-
-A field value is plain data that Rust interprets. `ice(...)` and the other framework helpers build a `(framework, inputs)` dict, `every(...)` and `rrule(...)` build a recurrence dict, and `depends-on("a.typ") + related("b.typ")[why]` builds typed edges. Rust does all math and date arithmetic.
+`mt add` writes a task file, and `mt` commands change it, as `skills/mindtape/SKILL.md` says. Run `mt explain` for the shape this repo declares, `mt explain templates` for the templates `mt add` files from, and `mt explain rules --for <moment>` for what an add, commit or flip checks. Edit a task by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
 
 ### Mechanism, not policy
 

@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 17),
+  status: wip(2026, 11, 19),
   links: parent("make-mt-explain-the-session-brief.typ"),
 )
 

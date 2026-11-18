@@ -6,7 +6,7 @@
 # of its own.
 #
 # Each fixture lands one artifact. examples/links/ -> links.json (the `links:` field). examples/recurring/ -> recurring.json (the `recur:` field).
-# examples/statuses/ -> statuses.json (the `status:` field). examples/dsl/ -> dsl.json (the task sketch AGENTS.md and /dsl/ show).
+# examples/statuses/ -> statuses.json (the `status:` field). examples/dsl/ -> dsl.json (the task sketch /dsl/ shows).
 # examples/self-validating/ -> self-validating.json (a project's own check function). examples/priority/ -> priority.json (a framework call).
 # examples/estimates/ -> estimates.json (a query-backed estimate). examples/api-service/ -> api-service.json (the task README.md opens with).
 # examples/task-files/ -> task-files.json (the valid and broken fields /task-files/ pairs). The pages that quote them read only the slices,

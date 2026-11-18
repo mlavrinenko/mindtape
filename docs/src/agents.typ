@@ -1,13 +1,12 @@
 // Source for the repo-root AGENTS.md (CLAUDE.md is a symlink), rendered by
 // docs/generate-md.sh with typlite. Every agent session loads it, so it says
 // what the project is and where its parts live, and leaves how work is done to
-// CONTRIBUTING.md.
+// CONTRIBUTING.md. The task shape lives in `mt explain`, so this file points
+// there instead of repeating it.
 //
-// Crate names come from www/generated/crate-map.json, and the DSL block is a
-// slice of examples/dsl/, which `just check-examples` validates. The render
-// fails on a crate with no role, an unknown dependency or a missing page.
+// Crate names come from www/generated/crate-map.json. The render fails on a
+// crate with no role, an unknown dependency or a missing page.
 #import "lib.typ": doc-title, fact, just, mindtape, num-word
-#import "/www/utils/slices.typ": checked-slices
 
 #metadata((
   output: "AGENTS.md",
@@ -55,10 +54,6 @@ unchanged files.
   prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
 - `truth/tasks/`: #mindtape's own backlog, a folder per month plus a
   `swept/` inbox, read with the in-tree `lib/`.
-  Change a task with `mt` commands, as `skills/mindtape/SKILL.md` says, and
-  run `mt explain` for the rules, tags, views and dictionaries this repo
-  declares. Edit the file by hand only for the body, a framework priority,
-  `estimate` and `x-goals`, then run `mt check`.
 - `truth/goals.typ` and `truth/process-goals.typ`: the product and process
   goals. Each open task rates every goal in `x-goals`. The
   `give-every-goal-verdict` rule checks that.
@@ -71,7 +66,7 @@ unchanged files.
   - `api-service`: a sample backend backlog that feeds the docs and the
     skill's evals.
   - `minimal`: the smallest config.
-  - `dsl`: the task quoted below.
+  - `dsl`: the task quoted on the DSL page.
   - `large`: a 2000-task benchmark whose gitignored tasks #just.bench-gen()
     writes.
   - `nix-adopter`: a flake that takes `mt` into its dev shell, which
@@ -137,17 +132,12 @@ version and run `mt schema --write`. `mt schema --check` runs in the gates.
 
 = Task definition language (lib/prelude.typ)
 
-#let dsl = checked-slices(fact("dsl"), "dsl", ("task",))
-#raw(dsl.task.code, lang: "typ", block: true)
-
-`task` declares each core field as a named parameter, and its `..meta` sink
-takes only `x-<ns>` slots. A misspelled field fails.
-
-A field value is plain data that Rust interprets. `ice(...)` and the other
-framework helpers build a `(framework, inputs)` dict, `every(...)` and
-`rrule(...)` build a recurrence dict, and
-`depends-on("a.typ") + related("b.typ")[why]` builds typed edges. Rust does
-all math and date arithmetic.
+`mt add` writes a task file, and `mt` commands change it, as
+`skills/mindtape/SKILL.md` says. Run `mt explain` for the shape this repo
+declares, `mt explain templates` for the templates `mt add` files from, and
+`mt explain rules --for <moment>` for what an add, commit or flip checks. Edit
+a task by hand only for the body, a framework priority, `estimate` and
+`x-goals`, then run `mt check`.
 
 == Mechanism, not policy
 
