@@ -94,7 +94,7 @@ fence's line included, and ignores the language tag.
 
 = Check the templates
 
-`mt check` checks every template that `mt add --list` lists. So if a config
+`mt check` checks every template `mt add` accepts. So if a config
 change breaks a template, you find out from `mt check` right away, not at the
 next `mt add`.
 

@@ -114,20 +114,21 @@ fn describe_json_emits_slot_schema() {
     );
 }
 
-/// `mt add --list` prints the template stems and stops. It never resolves a
-/// template, never fills a slot, and never writes a file.
+/// `mt add --list` prints the `mt explain templates` listing and a note naming
+/// that command, then stops. It never fills a slot and never writes a file.
 #[test]
-fn list_prints_template_stems_and_stops() {
+fn list_prints_the_templates_listing_and_a_note() {
     let dir = support::scaffold();
 
-    let output = support::mt(dir.path())
+    let out = support::mt(dir.path())
         .args(["add", "--list"])
-        .assert()
-        .success()
-        .get_output()
-        .clone();
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.lines().any(|line| line == "task"), "{stdout}");
+        .output()
+        .unwrap();
+    let (code, stdout, stderr) = support::parts_of(&out);
+    assert_eq!(code, Some(0), "{stderr}");
+    assert!(stdout.contains("task  kind: any"), "{stdout}");
+    assert!(stdout.contains("default"), "{stdout}");
+    assert_eq!(stderr, "note: use mt explain templates\n");
     assert!(
         std::fs::read_dir(dir.path().join("tasks"))
             .unwrap()
@@ -167,7 +168,10 @@ fn a_directory_pack_ships_its_templates_beneath_the_projects_own() {
         .assert()
         .success();
     let stdout = String::from_utf8_lossy(&listed.get_output().stdout).into_owned();
-    let names: Vec<&str> = stdout.lines().collect();
+    let names: Vec<&str> = stdout
+        .lines()
+        .filter_map(|line| line.split_whitespace().next())
+        .collect();
     assert_eq!(names, ["feat", "shared", "task"], "{stdout}");
 
     let printed = |name: &str| {

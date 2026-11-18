@@ -1,7 +1,7 @@
 //! A directory pack's templates. After every layer and pack has merged,
 //! [`append_template_dirs`] adds each directory pack's `templates/` to
 //! `templates.dirs`, behind the project's own dirs. A project template with a
-//! pack template's name then wins, and `mt add --list` lists both.
+//! pack template's name then wins, and `mt explain templates` lists both.
 //!
 //! Template lookup takes the first dir holding a name. The dirs go in
 //! precedence order: the pack of the latest layer, and the last one in its

@@ -1,4 +1,4 @@
-//! `mt check` files every template `mt add --list` lists with each slot's
+//! `mt check` files every template `mt add` accepts with each slot's
 //! `example`, else its `default`, and reports every breach of the result at
 //! the template's file and line. A slot with neither leaves nothing to fill.
 //! The check then reports a template error with the slot name.

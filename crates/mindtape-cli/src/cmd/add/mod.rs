@@ -36,8 +36,8 @@ use mindtape::{Config, FieldOp, RawValue, SlotKind, SlotSpec, discover_slots, es
 
 use self::output::Format;
 use crate::cmd::add::dedup::DedupArg;
-use crate::cmd::add::values::{DescribeFormat, describe_for, list_templates, resolve_template};
-use crate::diag::{Diag, Hint, Note};
+use crate::cmd::add::values::{DescribeFormat, describe_for, resolve_template};
+use crate::diag::{Diag, Hint, Note, emit_note};
 use crate::task_edit::filing_status;
 use crate::util;
 
@@ -67,7 +67,8 @@ pub struct AddArgs {
 
     /// The template to fill.
     ///
-    /// Defaults to your project's default template.
+    /// Defaults to your project's default template. `mt explain templates`
+    /// lists them.
     #[arg(long = "template", short = 't', value_name = "TEMPLATE")]
     pub template: Option<String>,
 
@@ -160,8 +161,8 @@ pub struct AddArgs {
     #[arg(long, value_name = "FORMAT", num_args = 0..=1, require_equals = true, default_missing_value = "text")]
     pub describe: Option<String>,
 
-    /// List the templates and exit.
-    #[arg(long)]
+    /// Removed in the next minor. Use `mt explain templates`.
+    #[arg(long, hide = true)]
     pub list: bool,
 
     /// Print the filled task instead of writing it.
@@ -207,11 +208,16 @@ fn explicit_sets(ops: &[(String, FieldOp)]) -> BTreeSet<String> {
         .collect()
 }
 
-/// `mt add --list`: every template stem, one per line.
-fn print_templates(config: &Config, root: &Path) {
-    for name in list_templates(config, root) {
-        println!("{name}");
-    }
+/// `mt add --list`: the `mt explain templates` listing, then a note that points
+/// at the command replacing it. The flag retires in the next minor, and the
+/// note is the only thing this alias adds.
+///
+/// # Errors
+/// Returns an error when a template file fails to read.
+fn print_templates(config: &Config, root: &Path) -> Result<()> {
+    crate::cmd::explain::templates::print(config, root, false)?;
+    emit_note(&Note::new("use mt explain templates"));
+    Ok(())
 }
 
 /// `mt add --describe`: the template's slots and the project's add hooks.
@@ -242,8 +248,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let config = &project.config;
 
     if args.list {
-        print_templates(config, &project.root);
-        return Ok(());
+        return print_templates(config, &project.root);
     }
 
     let template_name = args

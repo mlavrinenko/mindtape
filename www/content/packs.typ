@@ -164,7 +164,7 @@ A pack with files needs a folder. Name the folder in `extends`, and
 `mt` reads `pack.toml` inside it. The folder's `templates/` joins
 `[templates] dirs` behind your own directories, so `mt add -t feat` finds a
 template the pack provides, and a template of yours with the same name wins.
-`mt add --list` lists both:
+`mt explain templates` lists both:
 
 #terminal("packs-dir")
 

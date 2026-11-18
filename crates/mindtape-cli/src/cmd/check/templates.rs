@@ -1,5 +1,5 @@
-//! `mt check`'s template pass files every template `mt add --list` lists the
-//! way `mt add` files it: config-required slots spliced, the status stamped.
+//! `mt check`'s template pass files every template `mt add` accepts the way
+//! `mt add` files it: config-required slots spliced, the status stamped.
 //! Each slot takes its `example`, else its `default`. Under
 //! `[templates] check-defaults` it also takes its `default`, else its example.
 //! The pass validates each result as a candidate at the path `mt add` would

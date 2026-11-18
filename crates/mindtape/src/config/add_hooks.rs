@@ -184,8 +184,8 @@ impl DirValue {
 }
 
 /// Every template `mt add` accepts: the built-in `task` plus every `*.typ`
-/// stem under `config.templates.dirs`. The CLI's `mt add --list` reads this
-/// same list, so the two cannot drift.
+/// stem under `config.templates.dirs`. The CLI's `mt explain templates` reads
+/// this same list, so the two cannot drift.
 #[must_use]
 pub fn template_names(config: &Config, root: &Path) -> Vec<String> {
     let mut names = BTreeSet::new();

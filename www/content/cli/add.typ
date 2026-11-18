@@ -25,4 +25,9 @@ explicit `=` value (a `--set`, a positional title or an `--edit` change) or an
 explicit `--dir` wins. An explicit `+=` appends and does not block a hook
 `set`, and `--no-hooks` skips the hook list.
 
+`mt add --list` is a deprecated alias for
+#link(u("/cli/explain/#templates"))[`mt explain templates`]: it prints that
+listing and a note that points at the command. The next minor removes the
+flag, so reach for `mt explain templates` instead.
+
 #cli-command("add")

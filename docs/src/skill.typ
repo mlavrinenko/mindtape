@@ -32,7 +32,8 @@ project's rules, tags, views and dicts. `mt <cmd> --help` lists every flag, and
 `mt explain rules --for <step>` or `mt explain tags --for <step>` lists what an
 add, flip or commit checks, and `mt explain add` lists the `[[on.add]]` hooks
 that fill a new task or choose its folder. `mt explain templates` lists the
-templates `mt add` files from, with the `kind` each sets and its slot count.
+templates `mt add` files from, with the `kind` each sets, its slot count and
+which one is the default.
 
 = Commands the config runs
 

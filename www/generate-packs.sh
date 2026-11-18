@@ -47,7 +47,7 @@ capture packs-merge "$merge" \
   "mt config show --json | jq -c '.config.tasks.priority | {framework, \"allow-manual\", min, max}'"
 
 # A directory pack is its `pack.toml`, and the template beside it reaches
-# `mt add --list`.
+# `mt explain templates`.
 dirpack=
 capture_scratch dirpack
 mkdir -p "$dirpack/.mindtape" "$dirpack/team/templates"
@@ -55,7 +55,7 @@ printf 'extends = ["./team"]\n' >"$dirpack/.mindtape/config.toml"
 : >"$dirpack/team/pack.toml"
 cp "$REPO/examples/api-service/.mindtape/templates/task.typ" "$dirpack/team/templates/feat.typ"
 capture packs-dir "$dirpack" 'find team -type f'
-capture packs-dir "$dirpack" 'mt add --list'
+capture packs-dir "$dirpack" 'mt explain templates'
 
 # A pack's param() call, written in with the project's `with` value.
 params=

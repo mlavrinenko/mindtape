@@ -43,6 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `default view (!terminal && (miss(start) || start <= now())) · 2 of 1013 tasks`.
   A filter you typed still reads `your filter`, and the line wraps at the
   terminal width. `--json` keeps `applied.facets.filter.value` unchanged.
+- **`mt add --list` retires in favor of `mt explain templates`.** The flag is
+  hidden from `mt add --help` and prints the `mt explain templates` listing
+  plus a `note: use mt explain templates` on stderr. The next minor removes
+  it. `--template`'s help and the unknown-template error point at the listing
+  too, and the shell completion keeps reading the library template list.
 - **Goal verdicts are written one per line again.** The task corpus and the
   templates no longer call `verdicts`; the helper stays exported for now and
   will be deprecated in a later release.
