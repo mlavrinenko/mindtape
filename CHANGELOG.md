@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`[[on.rm]]` runs actions when `mt rm` removes a task.** It takes the same
+  `when` and `actions` as `[[on.flip]]`: an action prints a message, lists tasks
+  or runs a command, and a command with `gate = true` refuses the removal before
+  any file is deleted. The hook merges across packs and layers by `name` like
+  `[[on.flip]]`, `mt explain rules --for rm` lists it, and the `refusals:` block
+  names a gate the user has not allowed. `[rm] default-filter` and
+  `[rm] strategy` stay the command's own config.
 - **`mt explain` opens on the project's shape.** Bare, it prints a `project:`
   block (the task roots, the status legend split into `open` and `terminal`,
   the actors, the `[rm]` filter), a `task:` block (the priority and difficulty

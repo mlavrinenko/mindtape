@@ -22,11 +22,11 @@ A project holds `.mindtape/config.toml`. Run `mt` at or below that directory, or
 3. `mt add --describe` lists the template’s slots and the `[[on.add]]` hooks that fill a new task or choose its folder. `mt explain templates` lists the templates and the `kind` each sets.
 4. `mt add` files the task.
 5. `mt check` checks every task against the project’s rules.
-6. Before a write, `mt explain rules --for <moment>` lists what that moment checks, and `mt explain tags --for <moment>` lists the tags those rules read. The moments are `add`, `commit` and `flip`.
+6. Before a write, `mt explain rules --for <moment>` lists what that moment checks, and `mt explain tags --for <moment>` lists the tags those rules read. The moments are `add`, `commit`, `flip` and `rm`.
 
 ## Commands the config runs
 
-`mt` runs nothing from the config until the user allows it: not a `[[tasks.waits]]` checker, an `[[on.flip]]` `run`, or a `[go]` or `[add]` editor. Until then, a wait reads `unknown: not allowed`, a flip gate refuses with `gate not allowed`, and an editor falls back to `$VISUAL`, then `$EDITOR`. `mt` also prints one warning that lists the commands it did not run. Never run `mt allow`, and never pass `--force` past that refusal or a failing gate: those commands run with the user’s rights. `--force` also waives a failing `[[on.flip]]` gate, so use it only to fix a mistake. Pass that warning to the user.
+`mt` runs nothing from the config until the user allows it: not a `[[tasks.waits]]` checker, an `[[on.flip]]` or `[[on.rm]]` `run`, or a `[go]` or `[add]` editor. Until then, a wait reads `unknown: not allowed`, a flip gate refuses with `gate not allowed`, and an editor falls back to `$VISUAL`, then `$EDITOR`. `mt` also prints one warning that lists the commands it did not run. Never run `mt allow`, and never pass `--force` past that refusal or a failing gate: those commands run with the user’s rights. `--force` also waives a failing `[[on.flip]]` gate, so use it only to fix a mistake. Pass that warning to the user.
 
 ## References
 

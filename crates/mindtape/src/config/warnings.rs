@@ -50,5 +50,13 @@ fn filters(config: &Config) -> Vec<(String, String)> {
             crate::config::hooks::desugar_into(&hook.when, ""),
         )
     }));
+    out.extend(
+        config
+            .on
+            .rm
+            .iter()
+            .enumerate()
+            .map(|(index, hook)| (format!("on.rm[{index}].when"), hook.when.clone())),
+    );
     out
 }

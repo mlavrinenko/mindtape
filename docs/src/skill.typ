@@ -40,13 +40,13 @@ or pass `-w <path>`. `mt <cmd> --help` lists every flag.
 5. `mt check` checks every task against the project's rules.
 6. Before a write, `mt explain rules --for <moment>` lists what that moment
   checks, and `mt explain tags --for <moment>` lists the tags those rules
-  read. The moments are `add`, `commit` and `flip`.
+  read. The moments are `add`, `commit`, `flip` and `rm`.
 
 = Commands the config runs
 
 `mt` runs nothing from the config until the user allows it: not a
-`[[tasks.waits]]` checker, an `[[on.flip]]` `run`, or a `[go]` or `[add]`
-editor. Until then, a wait reads `unknown: not allowed`, a flip gate refuses
+`[[tasks.waits]]` checker, an `[[on.flip]]` or `[[on.rm]]` `run`, or a `[go]`
+or `[add]` editor. Until then, a wait reads `unknown: not allowed`, a flip gate refuses
 with `gate not allowed`, and an editor falls back to `$VISUAL`, then
 `$EDITOR`. `mt` also prints one warning that lists the commands it did not
 run. Never run `mt allow`, and never pass `--force` past

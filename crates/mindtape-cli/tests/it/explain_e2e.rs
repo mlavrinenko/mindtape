@@ -277,7 +277,7 @@ fn rules_refuses_an_unknown_moment() {
     let (ok, text) = run_text(dir.path(), &["explain", "rules", "--for", "push"]);
     assert!(!ok, "{text}");
     assert!(
-        text.contains("possible values: add, commit, flip"),
+        text.contains("possible values: add, commit, flip, rm"),
         "{text}"
     );
 }

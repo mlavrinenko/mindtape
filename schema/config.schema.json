@@ -1170,11 +1170,11 @@
     },
     "FlipAction": {
       "additionalProperties": false,
-      "description": "One action of an `[[on.flip]]` entry. Set exactly one of `show`, `list`\nand `run`, or set `gate = true` with no `run`.",
+      "description": "One action of an `[[on.flip]]` or `[[on.rm]]` entry. Set exactly one of\n`show`, `list` and `run`, or set `gate = true` with no `run`.",
       "properties": {
         "gate": {
           "default": false,
-          "description": "Whether a non-zero exit from `run` refuses the flip. With no `run`, the\ngate refuses every flip the entry's `when` matches. Applies to a `run`\naction or a gate with no `run`.",
+          "description": "Whether a non-zero exit from `run` refuses the write. With no `run`, the\ngate refuses every write the entry's `when` matches. Applies to a `run`\naction or a gate with no `run`.",
           "type": "boolean"
         },
         "list": {
@@ -1188,7 +1188,7 @@
         },
         "message": {
           "default": null,
-          "description": "Explanation printed when `run` exits non-zero, or when a gate with no\n`run` refuses the flip.",
+          "description": "Explanation printed when `run` exits non-zero, or when a gate with no\n`run` refuses the write.",
           "type": [
             "string",
             "null"
@@ -1203,7 +1203,7 @@
               "type": "null"
             }
           ],
-          "description": "Run a command with `{ run = \"command\" }`, through the platform shell\n(`sh -c`, or `cmd /C` on Windows), or with `{ run = [\"program\", \"arg\"] }`,\ndirectly with no shell. A gating action may omit it, and then the gate\nrefuses the flip whenever the entry's `when` matches."
+          "description": "Run a command with `{ run = \"command\" }`, through the platform shell\n(`sh -c`, or `cmd /C` on Windows), or with `{ run = [\"program\", \"arg\"] }`,\ndirectly with no shell. A gating action may omit it, and then the gate\nrefuses the write whenever the entry's `when` matches."
         },
         "show": {
           "default": null,
@@ -1948,6 +1948,13 @@
             "$ref": "#/$defs/FlipHook"
           },
           "type": "array"
+        },
+        "rm": {
+          "description": "`[[on.rm]]` entries, in declaration order. Their shape and validation\nlive in the rm-hook config module.",
+          "items": {
+            "$ref": "#/$defs/RmHook"
+          },
+          "type": "array"
         }
       },
       "type": "object"
@@ -2314,6 +2321,34 @@
             }
           ],
           "description": "How the code handles inbound references to a removed task. Defaults to\n`\"git-tombstone\"` in a git repository, `\"reject\"` without one."
+        }
+      },
+      "type": "object"
+    },
+    "RmHook": {
+      "additionalProperties": false,
+      "description": "One `[[on.rm]]` entry: which removals it fires on, and what it does.",
+      "properties": {
+        "actions": {
+          "description": "Actions to run, in declaration order.",
+          "items": {
+            "$ref": "#/$defs/FlipAction"
+          },
+          "type": "array"
+        },
+        "name": {
+          "default": null,
+          "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt explain rules` and `mt config show --origin` print.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "when": {
+          "default": "",
+          "description": "Filter over the task the removal acts on. Empty fires on every removal.",
+          "type": "string",
+          "x-expression": "filter"
         }
       },
       "type": "object"
@@ -2841,7 +2876,7 @@
     },
     "on": {
       "$ref": "#/$defs/OnConfig",
-      "description": "Hooks keyed by event: `[[on.flip]]` on a status change and `[[on.add]]` on a new task."
+      "description": "Hooks keyed by event: `[[on.flip]]`, `[[on.add]]` and `[[on.rm]]`."
     },
     "pack-sources": {
       "additionalProperties": {

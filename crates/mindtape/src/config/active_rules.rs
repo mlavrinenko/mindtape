@@ -1,11 +1,11 @@
 //! [`active_rules`]: every rule a loaded config applies, one [`ActiveRule`]
 //! each, for `mt explain rules`.
 //!
-//! It reads the typed [`Config`], whose four rule arrays already hold what
+//! It reads the typed [`Config`], whose rule arrays already hold what
 //! [`crate::config::packs`] left after packs, same-name overrides and
 //! `disable`. The listing then doesn't need a merge of its own. The
-//! `[[on.flip]]` actions that gate a flip or carry a `message` join them, since
-//! a gate refuses the way a rule does.
+//! `[[on.flip]]` and `[[on.rm]]` actions that gate a write or carry a `message`
+//! join them, since a gate refuses the way a rule does.
 
 use serde::{Serialize, Serializer};
 
@@ -13,7 +13,7 @@ use crate::body::BODY_RULE_SEVERITY;
 use crate::body::headers::rule_label;
 use crate::config::Config;
 use crate::config::commits::CommitRuleSpec;
-use crate::config::hooks::{FlipAction, FlipHook};
+use crate::config::hooks::{FlipAction, HookFields};
 use crate::filter::Filter;
 use crate::rules::{CheckSpec, RuleSpec};
 use crate::validate::severity::Severity;
@@ -31,6 +31,8 @@ pub enum RuleSection {
     CommitsRules,
     /// `[[on.flip]]`, one entry per action.
     OnFlip,
+    /// `[[on.rm]]`, one entry per action.
+    OnRm,
 }
 
 impl RuleSection {
@@ -43,6 +45,7 @@ impl RuleSection {
             Self::BodyContent => "tasks.body.content.rules",
             Self::CommitsRules => "commits.rules",
             Self::OnFlip => "on.flip",
+            Self::OnRm => "on.rm",
         }
     }
 }
@@ -61,7 +64,7 @@ pub struct ActiveRule {
     pub section: RuleSection,
     /// The dotted name `mt config show --origin` prints, such as
     /// `tasks.rules.start-title-with-verb` or `tasks.rules[3]` for an unnamed
-    /// rule. A flip action takes its hook's, followed by its slot, so it
+    /// rule. A hook action takes its hook's, followed by its slot, so it
     /// reads `on.flip.review-stale-task-before-starting.actions[1]`, or
     /// `on.flip[0].actions[1]` for an unnamed hook.
     pub name: String,
@@ -72,9 +75,10 @@ pub struct ActiveRule {
     /// `assert` rule the engine's `must satisfy` advice. `None` when each
     /// breach words its own. A `check` rule prints what its function returns,
     /// and a body rule with no `message` prints its gate's text for the heading
-    /// at fault. A flip gate with none leaves the advice to `mt flip`.
+    /// at fault. A hook gate with none leaves the advice to `mt flip` or
+    /// `mt rm`.
     pub message: Option<String>,
-    /// The filter gating which tasks, commits or flips the rule applies to.
+    /// The filter gating which tasks, commits or writes the rule applies to.
     pub when: Option<String>,
     /// The `assert` expression of a `[[tasks.rules]]` or `[[commits.rules]]`
     /// entry.
@@ -172,8 +176,8 @@ fn readers_of(config: &Config, name: &str) -> Vec<String> {
 
 /// Every rule `config` applies, in the order `mt config show --origin` lists
 /// them: `[[tasks.rules]]`, the header and content body rules and
-/// `[[commits.rules]]`, then each `[[on.flip]]` action that gates a flip or
-/// carries a `message`.
+/// `[[commits.rules]]`, then each `[[on.flip]]` and `[[on.rm]]` action that
+/// gates a write or carries a `message`.
 #[must_use]
 pub fn active_rules(config: &Config) -> Vec<ActiveRule> {
     let mut out: Vec<ActiveRule> = config
@@ -216,7 +220,14 @@ pub fn active_rules(config: &Config) -> Vec<ActiveRule> {
             .enumerate()
             .map(|(index, rule)| commit_rule(index, rule)),
     );
-    out.extend(flip_actions(config));
+    out.extend(hook_actions(
+        RuleSection::OnFlip,
+        config.on.flip.iter().map(HookFields::parts),
+    ));
+    out.extend(hook_actions(
+        RuleSection::OnRm,
+        config.on.rm.iter().map(HookFields::parts),
+    ));
     out
 }
 
@@ -268,24 +279,29 @@ fn body_rule(section: RuleSection, index: usize, parts: BodyParts<'_>) -> Active
     }
 }
 
-/// Each `[[on.flip]]` action that gates a flip or carries a `message`. A gate
-/// refuses even with no message. `mt flip` refuses on it and only warns on a
-/// plain `run` (`cmd/flip/hooks.rs` in the CLI), so a gate is an error and a
-/// `run` a warning.
-fn flip_actions(config: &Config) -> Vec<ActiveRule> {
+/// Each action of `hooks` that gates a write or carries a `message`, under
+/// `section`. A gate refuses even with no message. `mt flip` and `mt rm` refuse
+/// on it and only warn on a plain `run` (`cmd/flip/hooks.rs` and
+/// `cmd/rm/mod.rs` in the CLI), so a gate is an error and a `run` a warning.
+fn hook_actions<'a>(
+    section: RuleSection,
+    hooks: impl Iterator<Item = (Option<&'a str>, &'a str, &'a [FlipAction])>,
+) -> Vec<ActiveRule> {
     let mut out = Vec::new();
-    for (index, hook) in config.on.flip.iter().enumerate() {
-        let when = Some(hook.when.clone()).filter(|when| !when.is_empty());
-        for (slot, action) in hook
-            .actions
+    for (index, (name, when, actions)) in hooks.enumerate() {
+        let when = Some(when.to_owned()).filter(|when| !when.is_empty());
+        for (slot, action) in actions
             .iter()
             .enumerate()
             .filter(|(_, action)| action.gate || action.message.is_some())
         {
             out.push(ActiveRule {
-                section: RuleSection::OnFlip,
-                name: format!("{}.actions[{slot}]", hook_label(hook, index)),
-                severity: flip_severity(action),
+                section,
+                name: format!(
+                    "{}.actions[{slot}]",
+                    rule_label(name, section.path(), index)
+                ),
+                severity: hook_severity(action),
                 message: action.message.clone(),
                 when: when.clone(),
                 assertion: None,
@@ -296,13 +312,7 @@ fn flip_actions(config: &Config) -> Vec<ActiveRule> {
     out
 }
 
-/// How `mt config show --origin` labels a hook: `on.flip.<name>`, or
-/// `on.flip[<index>]` when it has no name.
-fn hook_label(hook: &FlipHook, index: usize) -> String {
-    rule_label(hook.name.as_deref(), "on.flip", index)
-}
-
-const fn flip_severity(action: &FlipAction) -> Severity {
+const fn hook_severity(action: &FlipAction) -> Severity {
     if action.gate {
         Severity::Error
     } else {

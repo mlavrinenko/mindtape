@@ -300,6 +300,94 @@ fn rm_batch_removing_every_referrer_needs_no_strategy_without_git() {
     assert!(!dir.path().join("tasks/live.typ").exists());
 }
 
+/// A project holding one terminal task and the `[[on.rm]]` hook `actions`,
+/// firing on `when`.
+fn scaffold_hook(when: &str, actions: &str) -> tempfile::TempDir {
+    scaffold_config(
+        &format!(
+            "[tasks]\nroots = [\"tasks\"]\n\n[[on.rm]]\nwhen = '{when}'\nactions = [{actions}]\n"
+        ),
+        &[("gone.typ", GONE)],
+    )
+}
+
+/// `mt rm -y gone` in `dir`, asserting it fails with `error` and `hint`.
+fn assert_refused(dir: &Path, error: &str, hint: &str) {
+    mt(dir)
+        .args(["rm", "-y", "gone"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains(error))
+        .stderr(predicates::str::contains(hint));
+}
+
+/// A run-less `[[on.rm]]` gate refuses the removal before the file goes. It
+/// runs nothing, so it doesn't need `mt allow`.
+#[test]
+fn a_runless_on_rm_gate_refuses_before_the_file_goes() {
+    let dir = scaffold_hook(
+        "terminal",
+        r#"{ gate = true, message = "clean the worktree first" }"#,
+    );
+
+    assert_refused(
+        dir.path(),
+        "error: gate refused\n",
+        "hint: clean the worktree first\n",
+    );
+
+    assert!(dir.path().join("tasks/gone.typ").exists());
+}
+
+/// A `when` that matches no removed task leaves the removal alone.
+#[test]
+fn an_on_rm_gate_whose_when_misses_does_not_refuse() {
+    let dir = scaffold_hook(
+        r#"has_tag("chore")"#,
+        r#"{ gate = true, message = "clean the worktree first" }"#,
+    );
+
+    support::run_ok(dir.path(), &["rm", "-y", "gone"]);
+
+    assert!(!dir.path().join("tasks/gone.typ").exists());
+}
+
+/// A failing `run` gate refuses the removal, and the file stays. The command
+/// runs only once the user allows it.
+#[test]
+fn a_failing_on_rm_run_gate_refuses_before_the_file_goes() {
+    let dir = scaffold_hook(
+        "terminal",
+        r#"{ run = "exit 1", gate = true, message = "clean the worktree first" }"#,
+    );
+    support::run_ok(dir.path(), &["allow"]);
+
+    assert_refused(
+        dir.path(),
+        "error: gate failed: 'exit 1': exit 1\n",
+        "hint: clean the worktree first\n",
+    );
+
+    assert!(dir.path().join("tasks/gone.typ").exists());
+}
+
+/// A `run` without `gate` only warns when it fails, and the removal goes on.
+#[test]
+fn a_failing_on_rm_run_without_gate_only_warns() {
+    let dir = scaffold_hook("terminal", r#"{ run = "exit 1" }"#);
+    support::run_ok(dir.path(), &["allow"]);
+
+    mt(dir.path())
+        .args(["rm", "-y", "gone"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains(
+            "warning: exit 1 (exit 1) — fix it, then run mt rm again\n",
+        ));
+
+    assert!(!dir.path().join("tasks/gone.typ").exists());
+}
+
 /// An expected message, each task path in it in the separator `mt` shows.
 fn shown(text: &str) -> String {
     support::native_in(text, &["tasks/live.typ"])

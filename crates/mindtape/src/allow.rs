@@ -1,11 +1,11 @@
 //! Which config commands the user has allowed to run in a repository.
 //!
 //! A clone's `.mindtape/config.toml` can name commands that `mt` runs: a
-//! `[[tasks.waits]]` checker, which read commands run, an `[[on.flip]]` `run`
-//! action, which `mt flip` runs, and the `[go] editor` and `[add] editor`
-//! programs, which `mt go` and `mt add` spawn. `mt` runs none of them until the
-//! user reads them and runs `mt allow`, which records a digest of every such
-//! command ([`commands`]) for the repository. An editor that the user's own
+//! `[[tasks.waits]]` checker, which read commands run, an `[[on.flip]]` or
+//! `[[on.rm]]` `run` action, which `mt flip` and `mt rm` run, and the
+//! `[go] editor` and `[add] editor` programs, which `mt go` and `mt add` spawn.
+//! `mt` runs none of them until the user reads them and runs `mt allow`, which
+//! records a digest of every such command ([`commands`]) for the repository. An editor that the user's own
 //! `<config home>/mindtape/defaults.toml` sets belongs to the user, and skips
 //! approval ([`UserCommands`]). [`runnable_editor`] decides. A changed command
 //! changes the digest, so it asks again. A caller that skips a command because
@@ -28,6 +28,7 @@ use std::sync::{Mutex, PoisonError};
 use sha1::{Digest, Sha1};
 
 use crate::config::Config;
+use crate::config::hooks::HookFields;
 use crate::config::layers::{Layer, LayerSource};
 use crate::fs_atomic::write_atomic;
 use crate::shell::ConfigCommand;
@@ -53,33 +54,38 @@ pub fn commands(config: &Config) -> Vec<ConfigCommand> {
 /// One command a gate in the config runs, with the gate that declares it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GateCommand {
-    /// The config section that declares the gate: `on.flip` or `waits`.
+    /// The config section that declares the gate: `on.flip`, `on.rm` or
+    /// `waits`.
     pub gate: &'static str,
     /// The command as it shows.
     pub command: ConfigCommand,
 }
 
 /// Every command a gate runs, in declaration order: each `[[tasks.waits]]`
-/// checker, then each `[[on.flip]]` action's `run`. A caller falls back to
-/// `$VISUAL` for an editor rather than refusing. The editors stay out of this
-/// list. A new gate joins here, and [`commands`] picks it up for approval too.
+/// checker, then each `[[on.flip]]` action's `run`, then each `[[on.rm]]`
+/// action's. A caller falls back to `$VISUAL` for an editor rather than
+/// refusing. The editors stay out of this list. A new gate joins here, and
+/// [`commands`] picks it up for approval too.
 #[must_use]
 pub fn gate_commands(config: &Config) -> Vec<GateCommand> {
     let checkers = config.tasks.waits.iter().map(|checker| GateCommand {
         gate: "waits",
         command: checker.run.clone(),
     });
-    let actions = config
-        .on
-        .flip
+    let flips = hook_commands("on.flip", &config.on.flip);
+    let removals = hook_commands("on.rm", &config.on.rm);
+    checkers.chain(flips).chain(removals).collect()
+}
+
+/// The `run` commands of one hook array, each labelled with the `gate` that
+/// declares it.
+fn hook_commands(gate: &'static str, hooks: &[impl HookFields]) -> Vec<GateCommand> {
+    hooks
         .iter()
-        .flat_map(|hook| &hook.actions)
+        .flat_map(|hook| hook.parts().2)
         .filter_map(|action| action.run.clone())
-        .map(|command| GateCommand {
-            gate: "on.flip",
-            command,
-        });
-    checkers.chain(actions).collect()
+        .map(|command| GateCommand { gate, command })
+        .collect()
 }
 
 /// The gate commands the user has not allowed for the repository holding

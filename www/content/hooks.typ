@@ -7,7 +7,7 @@
   route: "/hooks/",
   label: "Hooks",
   title: "Hooks",
-  summary: "`[[on.flip]]` hooks gate or report a status change, and `[[on.add]]` hooks fill fields and choose where a new task lands.",
+  summary: "`[[on.flip]]` and `[[on.rm]]` hooks gate or report a write, and `[[on.add]]` hooks fill and file a new task.",
 )
 #metadata(meta) <page-meta>
 
@@ -20,18 +20,20 @@
   ("stale-gate",),
 )
 
-`[[on.flip]]` runs actions when `mt flip` changes a task's status. An action
-prints a message, lists tasks or runs a command. A command marked as a
-gate can refuse the flip. `[[on.add]]` runs actions when `mt add` files a
-task. Add hooks below covers it.
+`[[on.flip]]` runs actions when `mt flip` changes a task's status, and
+`[[on.rm]]` runs them when `mt rm` removes a task. An action prints a message,
+lists tasks or runs a command. A command marked as a gate can refuse the write.
+`[[on.add]]` runs actions when `mt add` files a task. Add hooks below covers
+it.
 
 = Hook timing
 
 `when` is a #link(u("/filters/"))[filter expression] over the task as it
 stands before the write, so `status == "wip"` matches a task leaving `wip`.
 `into("name")` matches a flip that stamps the status `name`. An empty `when`
-matches every flip. `mt` checks each `into()` against the
-#link(u("/statuses/"))[status legend] when it loads the config.
+matches every write. `mt` checks each `into()` against the
+#link(u("/statuses/"))[status legend] when it loads the config. A removal
+stamps no status, so `into()` is a config error in an `[[on.rm]]` `when`.
 
 = Hook names
 
@@ -40,11 +42,13 @@ above it and the #link(u("/packs/"))[packs] it adopts. A nearer layer can
 change a hook that has a name. A later hook with the same `name`
 replaces the earlier one at that position, and `disable = ["<name>"]` drops it.
 A hook with no `name` always joins the list and nothing replaces it.
-`mt config show --origin` labels a named hook `on.flip.<name>` or
-`on.add.<name>`, and the others `on.flip[<index>]` or `on.add[<index>]`.
-#link(u("/cli/explain/#rules"))[`mt explain rules`] lists flip hooks, and
+`mt config show --origin` labels a named hook `on.flip.<name>`,
+`on.rm.<name>` or `on.add.<name>`, and the others `on.flip[<index>]`,
+`on.rm[<index>]` or `on.add[<index>]`.
+#link(u("/cli/explain/#rules"))[`mt explain rules`] lists flip and rm hooks, and
 #link(u("/cli/explain/#add-hooks"))[`mt explain add`] lists add hooks. Two flip
-hooks in one file can't share a name, and neither can two add hooks.
+hooks in one file can't share a name, and neither can two rm hooks or two add
+hooks.
 
 = Actions
 
@@ -58,15 +62,15 @@ hooks in one file can't share a name, and neither can two add hooks.
   [Prints the matching tasks as a table under `title`. A bare `@view` also applies that #link(u("/named-sets/#views"))[view]'s sort.],
 
   [`{ run = "command" }`],
-  [Runs the command. If it fails, `mt` prints its output and a warning, and the flip goes ahead.],
+  [Runs the command. If it fails, `mt` prints its output and a warning, and the write goes ahead.],
 
   [`{ run = "command", gate = true }`],
-  [Runs the command. A non-zero exit refuses the flip.],
+  [Runs the command. A non-zero exit refuses the write.],
 
   [`{ run = ["cargo", "test"] }`],
   [Runs the program with those arguments and no shell. It takes `gate` and `message` like a string `run`.],
 
-  [`{ gate = true }`], [Refuses every flip the hook's `when` matches.],
+  [`{ gate = true }`], [Refuses every write the hook's `when` matches.],
 )
 
 `message` replaces the advice `mt` prints when a gate refuses or a command
@@ -76,7 +80,8 @@ it, and `mt` writes nothing for that task.
 
 `show`, `list` and the output of a passing command print only when stdout is a
 terminal and `--quiet` isn't set. A scripted flip then prints only the flip. A
-failing command prints its output either way.
+failing command prints its output either way. `mt rm` has no `--quiet`, so its
+hooks print only to a terminal.
 
 = Gates
 
@@ -96,7 +101,9 @@ reviewed or moved in 30 days, the default of its `days` parameter:
 
 `--force` takes a flip past a failing gate, with or without `run`, and
 records that in the status note: the command, or the `message` of a gate with
-no `run`. So the task file shows which check `mt` skipped.
+no `run`. So the task file shows which check `mt` skipped. `mt rm` has no
+`--force`: a gate that refuses a removal is final, and every file stays where
+it was.
 
 A `run` command, gate or not, runs from the project root with these
 variables set:
@@ -108,9 +115,11 @@ variables set:
   [`MINDTAPE_TASK_STEM`],
   [The task's `id` is its file stem, unless `id:` sets one.],
 
-  [`MINDTAPE_TASK_STATUS`], [The status `mt` is stamping.],
+  [`MINDTAPE_TASK_STATUS`],
+  [The status `mt` is stamping. A removal stamps none, so it is unset.],
+
   [`MINDTAPE_FLIP_CHAIN`],
-  [The flips in progress, this one last, one per line. `mt` reads it, so leave it be.],
+  [The flips in progress, this one last, one per line. `mt` reads it, so leave it be. A removal sets none.],
 )
 
 An array doesn't get a shell, so `$MINDTAPE_TASK_FILE` in one of its items stays
@@ -132,6 +141,24 @@ the outer flip too, and `--force` doesn't lift the refusal on the inner one.
 
 A chain also stops at 16 nested flips, which catches a hook that keeps adding
 fresh tasks and flipping them.
+
+= Removal hooks
+
+`[[on.rm]]` runs actions when `mt rm` removes a task. It takes the same `when`
+and `actions` as `[[on.flip]]`, and its `when` reads the task as it stands
+before the file goes:
+
+// docs:hand-typed the shape is the example, not a run: no fixture removes a task
+```toml
+[[on.rm]]
+when = 'has_tag("chore")'
+actions = [{ run = "just check", gate = true }]
+```
+
+A gate refuses the whole removal, not one task of a batch: `mt rm` runs every
+matching hook before it writes anything. A refusal then leaves every file where
+it was. `mt rm --dry-run` doesn't run a hook. `[rm] default-filter` and
+`[rm] strategy` stay the command's own config, not a hook.
 
 = Add hooks
 
@@ -219,7 +246,7 @@ It refuses every field the draft cannot answer, including `id`, `path`, `dir`,
 = Trust and portability
 
 #callout("warn")[
-  A flip hook's `run` command is as trusted as a `Justfile` recipe or a git
+  A hook's `run` command is as trusted as a `Justfile` recipe or a git
   hook. It comes from the project's config and runs with your permissions. A
   string runs through `sh -c`, or `cmd /C` on Windows, and an array runs its
   program directly. It runs without a sandbox. So `mt` runs none until you
@@ -227,8 +254,8 @@ It refuses every field the draft cannot answer, including `id`, `path`, `dir`,
   the repo.
 ]
 
-Until then a gate with `run` refuses the flip and names `mt allow`, and
-`--force` takes the flip past it as it would a failing gate. `mt` skips a `run`
+Until then a gate with `run` refuses the write and names `mt allow`, and
+`--force` takes a flip past it as it would a failing gate. `mt` skips a `run`
 without `gate`, and prints that it did. Either way `mt` warns once and
 lists the commands it did not run. A gate with no `run` runs nothing, so it needs
 no approval.
@@ -241,9 +268,10 @@ platform. The program has to be one the platform can start: an executable on
 array as written, and turning a string into an array, or back, asks again.
 
 A flip hook's actions run only when `mt flip` or one of its status commands,
-such as `mt done`, changes a status. An add hook's actions run only on
-`mt add`. `mt check`, `mt ls` and the other read commands run neither. They
-run one command: a #link(u("/wait-on-upstream/"))[`waits-on` checker]. A flip
-hook whose `when` doesn't parse, whose `into()` doesn't specify a status, or whose
-action doesn't set a kind is a config error. Every command then fails until
-you fix it.
+such as `mt done`, changes a status. An rm hook's actions run only when
+`mt rm` removes a task, and a dry run runs none. An add hook's actions run only
+on `mt add`. `mt check`, `mt ls` and the other read commands run none of them.
+They run one command: a #link(u("/wait-on-upstream/"))[`waits-on` checker]. A
+hook whose `when` doesn't parse, whose `into()` doesn't specify a status, or
+whose action doesn't set a kind is a config error. Every command then fails
+until you fix it.

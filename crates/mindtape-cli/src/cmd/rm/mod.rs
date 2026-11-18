@@ -20,6 +20,11 @@
 //! rewrite in memory, and every byte waits there until [`apply`] runs on a
 //! complete plan. `rm` does not commit: the user reviews the diff and commits.
 //!
+//! `[[on.rm]]` runs before any of that: [`Hooks`] walks the tasks this run
+//! removes and runs each matching hook's actions. A gate then refuses the
+//! removal while every file is still there. `[rm] default-filter` and
+//! `[rm] strategy` stay the command's own config, not a hook.
+//!
 //! `rm` gates git on need, not presence. [`run`] scans the survivors for
 //! inbound references before touching the repository. It deletes an
 //! unreferenced task directly ([`typst_cleanup::delete_plan`]), with no
@@ -37,6 +42,7 @@
 //! # Files
 //!
 //! - `gitless/`: the strategies when no git repository pins a tombstone.
+//! - `hooks.rs`: the `[[on.rm]]` action runner.
 //! - `report.rs`: the delete-style plan's report and confirm helpers.
 //! - `select.rs`: resolves the `target` argument into task ids.
 
@@ -59,6 +65,9 @@ pub(crate) use gitless::{
     report_retire_applied, report_retire_plan, resolve_strategy, retarget_raw, retire_apply,
     retire_plan, retire_prompt_lines, unlink_plan,
 };
+
+mod hooks;
+use hooks::Hooks;
 
 mod select;
 use select::select_targets;
@@ -151,6 +160,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
     }
 
     let root = canonical(&project.root)?;
+    let hooks = Hooks::new(&project, &eligible, &readiness);
 
     // A task nothing references needs no tombstone, so no git at all. Only when
     // a survivor points at an eligible task is the strategy consulted.
@@ -158,7 +168,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
     let referrers = typst_cleanup::referrers(&retire, &survivors, &TaskLinks)?;
     if referrers.is_empty() {
         let plan = typst_cleanup::delete_plan(&retire);
-        return finalize(&Removal::Delete(plan), args, None, &root);
+        return finalize(&Removal::Delete(plan), args, None, &root, &hooks);
     }
 
     let (git_root, git_error) = match git::toplevel(&root) {
@@ -171,16 +181,22 @@ pub fn run(args: &RmArgs) -> Result<()> {
                 return Err(no_repository(git_error.as_ref(), &root));
             };
             let plan = typst_cleanup::plan(&retire, &survivors, &git_root, &TaskLinks)?;
-            finalize(&Removal::Delete(plan), args, Some("git-tombstone"), &root)
+            finalize(
+                &Removal::Delete(plan),
+                args,
+                Some("git-tombstone"),
+                &root,
+                &hooks,
+            )
         }
         RmStrategy::Reject => Err(reject_diag(&referrers)),
         RmStrategy::Unlink => {
             let plan = unlink_plan(&project.outcome.tasks, &eligible, &root)?;
-            finalize(&Removal::Delete(plan), args, Some("unlink"), &root)
+            finalize(&Removal::Delete(plan), args, Some("unlink"), &root, &hooks)
         }
         RmStrategy::Retire => {
             let plan = retire_plan(&project.outcome.tasks, &eligible, &root, &project.config)?;
-            finalize(&Removal::Retire(plan), args, Some("retire"), &root)
+            finalize(&Removal::Retire(plan), args, Some("retire"), &root, &hooks)
         }
     }
 }
@@ -244,15 +260,23 @@ fn ensure_confirmed(answered_yes: bool) -> Result<()> {
     Err(Diag::failed("aborted by user"))
 }
 
-/// The tail shared by every removal path: strategy dry-run reporting,
-/// confirmation, and the atomic apply + summary. Writes nothing on
-/// `--dry-run`. `root` gates the applied report's commit hint, which prints only
-/// inside a git repository.
+/// The tail shared by every removal path: strategy dry-run reporting, the
+/// `[[on.rm]]` actions, confirmation, and the atomic apply + summary. Writes
+/// nothing on `--dry-run`, which doesn't run a hook either: a dry run doesn't
+/// change anything, and a gate command may. `root` gates the applied report's commit
+/// hint, which prints only inside a git repository.
 ///
 /// # Errors
-/// Without a terminal and without `--yes` it refuses. A declined prompt aborts
-/// with `aborted by user`. The apply propagates its write failures.
-fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>, root: &Path) -> Result<()> {
+/// A gate that refuses stops the removal before anything reaches disk. Without
+/// a terminal and without `--yes` it refuses. A declined prompt aborts with
+/// `aborted by user`. The apply propagates its write failures.
+fn finalize(
+    removal: &Removal,
+    args: &RmArgs,
+    strategy: Option<&str>,
+    root: &Path,
+    hooks: &Hooks<'_>,
+) -> Result<()> {
     if args.dry_run {
         if let Some(name) = strategy {
             println!("strategy: {name}");
@@ -265,6 +289,7 @@ fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>, root: &Pat
         return Ok(());
     }
 
+    hooks.run()?;
     if !args.yes {
         ask_to_proceed(removal)?;
     }

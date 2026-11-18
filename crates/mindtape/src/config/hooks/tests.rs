@@ -1,8 +1,9 @@
 #![allow(clippy::unwrap_used)]
 
+use super::into::copy_in_string;
 use super::{
-    ALWAYS, ActionKind, FlipAction, NEVER, copy_in_string, desugar_into, into_targets,
-    matching_flip_hooks, validate_flip_hooks,
+    ALWAYS, ActionKind, FlipAction, NEVER, desugar_into, into_targets, matching_flip_hooks,
+    validate_flip_hooks,
 };
 use crate::config::{Config, parse_config};
 use crate::filter::Filter;

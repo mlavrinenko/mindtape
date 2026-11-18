@@ -13,4 +13,8 @@ and `mt rm` retires every task inside it too, as if you had listed each file.
 Try `mt rm tasks/sw1 --dry-run` to see the list first. `mt rm` refuses a folder
 outside every root.
 
+A #link(u("/hooks/#removal-hooks"))[`[[on.rm]]`] hook runs before the removal
+writes anything. A gate then refuses it while every file is still there. A dry
+run doesn't run a hook.
+
 #cli-command("rm")

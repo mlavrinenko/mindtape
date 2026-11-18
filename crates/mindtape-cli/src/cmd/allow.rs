@@ -1,6 +1,7 @@
 //! `mt allow`: let the commands the project's config runs, its
-//! `[[tasks.waits]]` checkers, `[[on.flip]]` `run` actions and `[go]` and
-//! `[add]` editors, run in this repository. See [`mindtape::allow`].
+//! `[[tasks.waits]]` checkers, `[[on.flip]]` and `[[on.rm]]` `run` actions and
+//! `[go]` and `[add]` editors, run in this repository. See
+//! [`mindtape::allow`].
 
 use crate::diag::Result;
 

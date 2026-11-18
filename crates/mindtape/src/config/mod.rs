@@ -21,7 +21,7 @@
 //! - `expression_keys.rs`: every expression key, read from the config schema.
 //! - `format.rs`: `[format]`, whether `mt` reformats what it writes.
 //! - `go.rs`: `[go]`, the editor `mt go` opens.
-//! - `hooks.rs`: `[[on.flip]]`, actions bound to a status change.
+//! - `hooks/`: `[[on.flip]]` and `[[on.rm]]`, actions bound to a write.
 //! - `layers.rs`: multi-file config layer discovery and merge.
 //! - `links_validate.rs`: per-kind link-target validators.
 //! - `ls.rs`: `[ls]` rendering defaults.
@@ -240,7 +240,7 @@ pub struct Config {
     /// The commit trailer, its external refs, and the rules
     /// `mt check --commit-msg` checks a commit against.
     pub commits: crate::config::commits::CommitsConfig,
-    /// Hooks keyed by event: `[[on.flip]]` on a status change and `[[on.add]]` on a new task.
+    /// Hooks keyed by event: `[[on.flip]]`, `[[on.add]]` and `[[on.rm]]`.
     pub on: crate::config::hooks::OnConfig,
     /// The project's actor registry (`[[actors]]`): named workers (people and
     /// language models) that `assignee:` values may reference.

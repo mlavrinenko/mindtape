@@ -48,8 +48,8 @@
 
 A filter is a boolean expression over task fields. You pass
 one to `mt ls` and `mt rm`, and write one in config for
-#link(u("/named-sets/#views"))[views], `[[tasks.rules]]`, `[[on.flip]]` and
-`[[on.add]]` hooks. The examples on this page ran in `examples/api-service`, a
+#link(u("/named-sets/#views"))[views], `[[tasks.rules]]`, `[[on.flip]]`,
+`[[on.rm]]` and `[[on.add]]` hooks. The examples on this page ran in `examples/api-service`, a
 sample backend project's backlog:
 
 #terminal-ansi("filters-open")
@@ -245,7 +245,7 @@ appears in a comparison. It counts every loaded task, whatever the rest of
 the filter selects, so a rule such as a
 #link(u("/rules/"))[work-in-progress cap] can compare it on every task.
 `count()` works where `mt` loads the full set: `mt ls`, `mt rm`, views,
-`[[tasks.rules]]` and `[[on.flip]]`. A `required` filter can't use it, and
+`[[tasks.rules]]`, `[[on.flip]]` and `[[on.rm]]`. A `required` filter can't use it, and
 `mt` refuses one that does when it loads the config.
 
 `topo` is a task's level in the dependency graph. A task with no dependency

@@ -19,12 +19,13 @@ use crate::util;
 
 /// The order the index prints rule groups in, the same order the config
 /// declares them and `mt explain rules` lists them.
-const SECTIONS: [RuleSection; 5] = [
+const SECTIONS: [RuleSection; 6] = [
     RuleSection::TasksRules,
     RuleSection::BodyHeaders,
     RuleSection::BodyContent,
     RuleSection::CommitsRules,
     RuleSection::OnFlip,
+    RuleSection::OnRm,
 ];
 
 /// The width to wrap at when the terminal does not report a size.
@@ -127,7 +128,7 @@ fn refusals(config: &Config, root: &Path) -> Vec<RefusalJson> {
 fn bare_name(section: RuleSection, name: &str) -> String {
     let rest = name.strip_prefix(section.path()).unwrap_or(name);
     let rest = rest.strip_prefix('.').unwrap_or(rest);
-    if section == RuleSection::OnFlip {
+    if matches!(section, RuleSection::OnFlip | RuleSection::OnRm) {
         rest.split(".actions[").next().unwrap_or(rest).to_owned()
     } else {
         rest.to_owned()

@@ -47,16 +47,16 @@ whole, so your `[[tasks.status]]` replaces the floor's
 #link(u("/statuses/"))[status legend]. An empty array removes the floor's
 value, so `[tasks] status = []` leaves the status field unconstrained.
 
-Seven arrays work differently. `[[tasks.rules]]`,
+Eight arrays work differently. `[[tasks.rules]]`,
 `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
-`[[commits.rules]]`, `[[on.flip]]`, `[[on.add]]` and `[[tasks.collectors]]`
-collect the entries of every layer and of every
+`[[commits.rules]]`, `[[on.flip]]`, `[[on.add]]`, `[[on.rm]]` and
+`[[tasks.collectors]]` collect the entries of every layer and of every
 #link(u("/packs/"))[pack] a layer adopts. An entry replaces a lower
 layer's entry with the same `name`, in its place, so you can change one
 inherited rule and keep the rest. Two entries with the same `name` in one
-layer's array are a config error that reports both. An `[[on.flip]]` or
-`[[on.add]]` entry with no `name` always appends. `extends` and `disable`,
-which adopt a pack and drop a rule, are on #link(u("/packs/"))[Packs].
+layer's array are a config error that reports both. An `[[on.flip]]`,
+`[[on.add]]` or `[[on.rm]]` entry with no `name` always appends. `extends` and
+`disable`, which adopt a pack and drop a rule, are on #link(u("/packs/"))[Packs].
 
 `[go] editor` and `[add] editor` name a program that `mt` runs, as a checker
 or a flip `run` does. They wait for #link(u("/cli/allow/"))[`mt allow`], so a
@@ -233,7 +233,7 @@ leaves out.
   ("retire", "[retire]"),
   ("views", "[views.<name>]"),
   ("dicts", "[dicts.<name>]"),
-  ("on", "[[on.flip]], [[on.add]]"),
+  ("on", "[[on.flip]], [[on.rm]], [[on.add]]"),
   ("templates", "[templates]"),
   ("add", "[add]"),
   ("go", "[go]"),
@@ -260,14 +260,16 @@ These sections have a page of their own:
 - `[tasks.recur]`: #link(u("/recurring/"))[Recurring tasks].
 - `[views.<name>]` and `[dicts.<name>]`:
   #link(u("/named-sets/"))[Views & dictionaries].
-- `[[on.flip]]` and `[[on.add]]`: #link(u("/hooks/"))[Hooks].
+- `[[on.flip]]`, `[[on.rm]]` and `[[on.add]]`: #link(u("/hooks/"))[Hooks].
 - `[[tasks.waits]]`: #link(u("/wait-on-upstream/"))[Wait on upstream].
 - `[templates]` and `[add]`: #link(u("/templates/"))[Templates & slots].
 - `extends`, `disable` and `[pack-sources.<name>]`:
   #link(u("/packs/"))[Packs].
 - `[commits]`: #link(u("/commit-rules/"))[Commit rules]. Its `external-refs`
   lists regexes for trailer values that name work outside the backlog.
-- `[ls]` and `[rm]` filters: #link(u("/filters/"))[Filter language].
+- `[ls]` and `[rm]` filters: #link(u("/filters/"))[Filter language]. `[rm]`
+  `strategy` is on #link(u("/cli/rm/"))[`mt rm`], and the `[[on.rm]]` hook that
+  runs on a removal is on #link(u("/hooks/#removal-hooks"))[Hooks].
 - `[[ls.rules]]`, `[ls.columns.<name>]` and `[ls] hyperlinks`:
   #link(u("/cli/ls/"))[`mt ls`].
 

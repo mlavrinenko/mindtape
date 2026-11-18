@@ -31,6 +31,8 @@ pub enum Moment {
     Commit,
     /// `mt flip`, which checks the task and runs its `[[on.flip]]` actions.
     Flip,
+    /// `mt rm`, which runs its `[[on.rm]]` actions before it deletes a file.
+    Rm,
 }
 
 impl Moment {
@@ -38,8 +40,9 @@ impl Moment {
     ///
     /// `mt add` and `mt flip` both check the task they write through
     /// `pre_write::check`, which runs `[[tasks.rules]]` and both body rule
-    /// arrays. Only `mt flip` runs `[[on.flip]]` (`cmd/flip/hooks.rs`), and
-    /// only `mt check --commit-msg` and `--commits` read `[[commits.rules]]`
+    /// arrays. Only `mt flip` runs `[[on.flip]]` (`cmd/flip/hooks.rs`), only
+    /// `mt rm` runs `[[on.rm]]` (`cmd/rm/mod.rs`), and only
+    /// `mt check --commit-msg` and `--commits` read `[[commits.rules]]`
     /// (`cmd/check/commit.rs`, `cmd/check/range.rs`).
     pub(crate) const fn enforces(self, section: RuleSection) -> bool {
         match section {
@@ -48,6 +51,7 @@ impl Moment {
             }
             RuleSection::CommitsRules => matches!(self, Self::Commit),
             RuleSection::OnFlip => matches!(self, Self::Flip),
+            RuleSection::OnRm => matches!(self, Self::Rm),
         }
     }
 

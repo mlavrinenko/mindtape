@@ -40,6 +40,28 @@ rules: none
 /// A gate the user has not allowed prints in `refusals:` with the section that
 /// declares it, and `mt allow` clears the block. The JSON carries the same
 /// list.
+/// A forbidden `[[on.rm]]` gate prints in `refusals:` with the section that
+/// declares it, and `mt explain rules --for rm` lists the hook it belongs to.
+#[test]
+fn a_forbidden_on_rm_gate_is_refused_and_listed_for_rm() {
+    let dir = scaffold_project(
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[on.rm]]\nname = \"clean\"\nwhen = 'terminal'\n\
+         actions = [{ run = \"scripts/clean\", gate = true, message = \"clean first\" }]\n",
+    );
+    let text = stdout(dir.path(), &["explain"]);
+    assert!(
+        text.contains("  on.rm: scripts/clean (not allowed; ask the user to run `mt allow`)\n"),
+        "{text}"
+    );
+    assert!(text.contains("  on.rm: clean\n"), "{text}");
+
+    let listed = stdout(dir.path(), &["explain", "rules", "--for", "rm"]);
+    assert_eq!(listed, "error  on.rm.clean.actions[0]  clean first\n");
+    let value = json(dir.path(), &["explain", "rules", "--for", "rm", "--json"]);
+    assert_eq!(value["rules"][0]["section"], "on.rm");
+}
+
 #[test]
 fn refusals_lists_only_the_gates_the_user_has_not_allowed() {
     let dir = scaffold_project(

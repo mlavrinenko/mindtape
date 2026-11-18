@@ -195,8 +195,8 @@ packs don't reference any files.
 = Drop a rule
 
 To turn off a rule you don't want, list its name in `disable`. It drops the
-rule or collector from any of the seven arrays, whichever pack or layer
-declared it, a named #link(u("/hooks/"))[flip or add hook] included. A name
+rule or collector from any of the eight arrays, whichever pack or layer
+declared it, a named #link(u("/hooks/"))[flip, add or rm hook] included. A name
 that matches no rule is a config error, so a typo can't leave a rule running:
 
 #terminal("packs-disable")
@@ -269,12 +269,12 @@ since the layer's value wins anyway. Equal values agree, so two packs can both s
 the same dictionary. Packs adopted by two different layers never clash: the
 higher layer wins.
 
-Seven arrays merge by name instead: `[[tasks.rules]]`, the two body rule
-arrays, `[[commits.rules]]`, `[[on.flip]]`, `[[on.add]]` and
+Eight arrays merge by name instead: `[[tasks.rules]]`, the two body rule
+arrays, `[[commits.rules]]`, `[[on.flip]]`, `[[on.add]]`, `[[on.rm]]` and
 `[[tasks.collectors]]`. Each takes the entries of the
 layer's packs in `extends` order, then the layer's own, and an entry replaces
-an earlier one with the same `name` in its place. A flip or add hook with no
-`name` appends and nothing can replace it, so a pack's hook that the project
+an earlier one with the same `name` in its place. A flip, add or rm hook with
+no `name` appends and nothing can replace it, so a pack's hook that the project
 should be able to change needs one. After every layer merges, `mt` drops the
 rules named in any layer's `disable`. `mt` drops a name listed in two layers
 once.

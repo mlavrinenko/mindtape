@@ -14,7 +14,7 @@ use super::{Command, Diag, Hint, Note};
 
 impl From<mindtape::config::hooks::HookError> for Diag {
     fn from(err: mindtape::config::hooks::HookError) -> Self {
-        filter(err.source, Some(&err.when)).rule(format!("on.flip[{}].when", err.index))
+        filter(*err.source, Some(&err.when)).rule(format!("{}[{}].when", err.section, err.index))
     }
 }
 

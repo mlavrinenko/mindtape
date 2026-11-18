@@ -44,6 +44,8 @@ fn the_schema_tags_every_expression_key_with_its_language() {
         ("on.add.*.when", true),
         ("on.flip.*.actions.*.list", true),
         ("on.flip.*.when", true),
+        ("on.rm.*.actions.*.list", true),
+        ("on.rm.*.when", true),
         ("rm.default-filter", true),
         ("tasks.assignee.required", true),
         ("tasks.assignee.values-when", true),

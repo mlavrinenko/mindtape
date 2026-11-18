@@ -1,7 +1,7 @@
-//! `[[on.flip]]` merges by name across packs and layers like a rule array. An
-//! ancestor's or a pack's gate fires beside the project's, and a later entry
-//! with the same `name` replaces an earlier one in place. `disable` drops one,
-//! and an unnamed entry appends, and nothing replaces it.
+//! `[[on.flip]]` and `[[on.rm]]` merge by name across packs and layers like a
+//! rule array. An ancestor's or a pack's gate fires beside the project's, and a
+//! later entry with the same `name` replaces an earlier one in place. `disable`
+//! drops one, and an unnamed entry appends, and nothing replaces it.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::config::Config;
@@ -209,6 +209,47 @@ fn a_packs_gate_applies_beside_the_projects_and_the_project_replaces_it_by_name(
             named("close", "close gate")
         ]
     );
+}
+
+/// `[[on.rm]]` merges by name the same way: an ancestor's hook fires beside
+/// the project's, a same-name entry replaces it in place, and `disable` drops
+/// it.
+#[test]
+fn an_on_rm_hook_merges_by_name_like_a_flip_hook() {
+    let rm_hook = |name: &str, message: &str| {
+        format!(
+            "[[on.rm]]\nname = \"{name}\"\nwhen = 'terminal'\n\
+             actions = [{{ gate = true, message = \"{message}\" }}]\n"
+        )
+    };
+    let (config, _) = load_with(
+        &rm_hook("clean", "from the ancestor"),
+        &format!(
+            "{}\n{}",
+            rm_hook("clean", "from the project"),
+            rm_hook("sweep", "sweep gate")
+        ),
+    );
+    let merged: Vec<(Option<String>, Option<String>)> = config
+        .unwrap()
+        .on
+        .rm
+        .iter()
+        .map(|hook| (hook.name.clone(), hook.actions[0].message.clone()))
+        .collect();
+    assert_eq!(
+        merged,
+        [
+            named("clean", "from the project"),
+            named("sweep", "sweep gate")
+        ]
+    );
+
+    let (config, _) = load_with(
+        &rm_hook("clean", "from the ancestor"),
+        "disable = [\"clean\"]\n",
+    );
+    assert!(config.unwrap().on.rm.is_empty());
 }
 
 /// The embedded packs of `Mindtape` carry no command, so a project that extends

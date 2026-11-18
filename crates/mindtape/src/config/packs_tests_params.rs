@@ -115,6 +115,10 @@ actions = [{ list = 'h == param("p")' }]
 when = 'z == param("p")'
 actions = [{ set = { kind = "x" } }]
 
+[[on.rm]]
+when = 'x == param("p")'
+actions = [{ list = 'y == param("p")' }]
+
 [views.mine]
 filter = 'i == param("p")'
 

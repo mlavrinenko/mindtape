@@ -52,16 +52,15 @@ impl Config {
         problems.extend(plain(crate::config::comments::validate_comments(self)));
         problems.extend(crate::config::actors::validate_actors(self));
         problems.extend(crate::config::hooks::validate_flip_hooks(self));
+        problems.extend(crate::config::hooks::validate_rm_hooks(self));
         // Two entries sharing a name can only come from one file: the merge
         // replaced any pair from different sources.
-        problems.extend(plain(crate::body::headers::duplicate_rule_names(
-            self.on.flip.iter().map(|hook| hook.name.as_deref()),
-            "on.flip",
-        )));
+        problems.extend(hook_names(&self.on.flip, "on.flip"));
         problems.extend(plain(crate::body::headers::duplicate_rule_names(
             self.on.add.iter().map(|hook| hook.name.as_deref()),
             "on.add",
         )));
+        problems.extend(hook_names(&self.on.rm, "on.rm"));
         problems.extend(plain(crate::waits::validate_checkers(self)));
         problems.extend(crate::estimate_queries::validate_config(self));
         problems.extend(validate_ls_rules_with(
@@ -88,6 +87,15 @@ impl Config {
             Err(Problem::join(problems))
         }
     }
+}
+
+/// The duplicate-name problems of one hook array.
+fn hook_names<H: crate::config::hooks::HookFields>(hooks: &[H], section: &str) -> Vec<Problem> {
+    plain(crate::body::headers::duplicate_rule_names(
+        hooks.iter().map(|hook| hook.parts().0),
+        section,
+    ))
+    .collect()
 }
 
 /// The first undeclared `derived.<name>` each saved task filter reads, one

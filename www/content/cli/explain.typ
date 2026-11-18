@@ -21,8 +21,8 @@ filter.
 A gate the user has not allowed prints in a `refusals:` block, one line per
 command: the section that declares it, the command, and the `mt allow` that
 records the approval. That is each `[[tasks.waits]]` checker and each
-`[[on.flip]]` `run`. A project with every command allowed doesn't print the
-block at all.
+`[[on.flip]]` or `[[on.rm]]` `run`. A project with every command allowed
+doesn't print the block at all.
 
 Under the shape, the index prints every rule grouped by its config section, the
 derived fields, and the tags, views and dictionaries the project declares. A
@@ -54,9 +54,9 @@ and the layer or pack that supplied it. A hook a nearer layer replaced or
 gives the rule's severity, its name as `mt config show --origin` prints it, and
 the message a breach prints. It lists what's left after packs, overrides and
 `disable`, so a project that extends a #link(u("/packs/"))[rule pack] sees the
-rules in effect. A flip gate shows up with or without a `message`, and
-any other flip action shows up only when it has one. Each takes its name from
-its place in `[[on.flip]]`.
+rules in effect. A flip or rm gate shows up with or without a `message`, and
+any other hook action shows up only when it has one. Each takes its name from
+its place in `[[on.flip]]` or `[[on.rm]]`.
 
 A rule with no `severity` shows the level `mt` applies to it. That's `warn`
 for `[[tasks.rules]]` and `[[commits.rules]]`, and `error` for a body rule. A
@@ -71,8 +71,9 @@ language, pattern and optional glob. `--for commit` omits that block, since a
 commit rule cannot read a derived field.
 
 `--for` keeps the rules one step checks. `add` lists what `mt add` checks
-before it writes, `flip` adds the flip actions to that, and `commit` lists
-your #link(u("/commit-rules/"))[commit rules]. `--json` names its schema in
+before it writes, `flip` adds the flip actions to that, `rm` lists the
+#link(u("/hooks/#removal-hooks"))[removal hooks], and `commit` lists your
+#link(u("/commit-rules/"))[commit rules]. `--json` names its schema in
 `$schema`, then adds each rule's section, `when` and `assert`.
 
 = Tags
@@ -89,8 +90,8 @@ a person reads, such as the area labels a project keeps for grouping.
 
 `--for` keeps only the tags one step reads, for the same steps
 `mt explain rules --for` uses. `add` keeps the tags read by the rules `mt add`
-checks before it writes, `flip` adds the flip actions, and `commit` keeps the
-commit rules. `--json` returns a `tags` map from each kept tag to its rules and
+checks before it writes, `flip` adds the flip actions, `rm` keeps the removal
+hooks, and `commit` keeps the commit rules. `--json` returns a `tags` map from each kept tag to its rules and
 their messages, with its own `$schema`.
 
 = Views
