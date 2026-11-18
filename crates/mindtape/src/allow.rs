@@ -33,28 +33,69 @@ use crate::fs_atomic::write_atomic;
 use crate::shell::ConfigCommand;
 
 /// Every command the config asks `mt` to run, sorted and deduplicated: what
-/// [`digest`] covers and what `mt allow` lists. That is each
-/// `[[tasks.waits]]` `run`, each `[[on.flip]]` action's `run`, and the
-/// `[go] editor` and `[add] editor` commands unless the user's own layer set
-/// them. Another kind of config command joins by adding its commands here,
-/// and every approval then asks again.
+/// [`digest`] covers and what `mt allow` lists. That is every [`gate_commands`]
+/// entry plus the `[go] editor` and `[add] editor` commands unless the user's
+/// own layer set them. Another kind of config command joins by adding its
+/// commands to [`gate_commands`] or here, and every approval then asks again.
 #[must_use]
 pub fn commands(config: &Config) -> Vec<ConfigCommand> {
-    let checkers = config.tasks.waits.iter().map(|checker| checker.run.clone());
+    let gates = gate_commands(config).into_iter().map(|gate| gate.command);
+    let editors = [&config.go.editor, &config.add.editor]
+        .into_iter()
+        .filter_map(|editor| untrusted_editor(config, editor.as_deref()))
+        .map(ConfigCommand::Line);
+    let mut commands: Vec<ConfigCommand> = gates.chain(editors).collect();
+    commands.sort();
+    commands.dedup();
+    commands
+}
+
+/// One command a gate in the config runs, with the gate that declares it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GateCommand {
+    /// The config section that declares the gate: `on.flip` or `waits`.
+    pub gate: &'static str,
+    /// The command as it shows.
+    pub command: ConfigCommand,
+}
+
+/// Every command a gate runs, in declaration order: each `[[tasks.waits]]`
+/// checker, then each `[[on.flip]]` action's `run`. A caller falls back to
+/// `$VISUAL` for an editor rather than refusing. The editors stay out of this
+/// list. A new gate joins here, and [`commands`] picks it up for approval too.
+#[must_use]
+pub fn gate_commands(config: &Config) -> Vec<GateCommand> {
+    let checkers = config.tasks.waits.iter().map(|checker| GateCommand {
+        gate: "waits",
+        command: checker.run.clone(),
+    });
     let actions = config
         .on
         .flip
         .iter()
         .flat_map(|hook| &hook.actions)
-        .filter_map(|action| action.run.clone());
-    let editors = [&config.go.editor, &config.add.editor]
-        .into_iter()
-        .filter_map(|editor| untrusted_editor(config, editor.as_deref()))
-        .map(ConfigCommand::Line);
-    let mut commands: Vec<ConfigCommand> = checkers.chain(actions).chain(editors).collect();
-    commands.sort();
-    commands.dedup();
-    commands
+        .filter_map(|action| action.run.clone())
+        .map(|command| GateCommand {
+            gate: "on.flip",
+            command,
+        });
+    checkers.chain(actions).collect()
+}
+
+/// The gate commands the user has not allowed for the repository holding
+/// `root`, in declaration order. Empty when the user allowed the config's
+/// commands, or the config runs none.
+#[must_use]
+pub fn refused_gates(root: &Path, config: &Config) -> Vec<GateCommand> {
+    refused_gates_in(crate::data_home().as_deref(), root, config)
+}
+
+/// [`refused_gates`] against the data home `home`.
+fn refused_gates_in(home: Option<&Path>, root: &Path, config: &Config) -> Vec<GateCommand> {
+    if allowed_in(home, root, &commands(config)) {
+        return Vec::new();
+    }
+    gate_commands(config)
 }
 
 /// The editor commands the user's own config layer sets, which run without

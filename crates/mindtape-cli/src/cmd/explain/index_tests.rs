@@ -36,7 +36,7 @@ fn config() -> mindtape::Config {
          [[commits.rules]]\nname = \"names-a-task\"\nassert = 'has(refs)'\n\
          [[on.flip]]\nname = \"review-stale-task-before-starting\"\nwhen = 'into(\"wip\")'\n\
          actions = [{ list = \"@wip\", message = \"already in flight\" }, \
-         { run = \"echo hi\", message = \"and this one too\" }]\n\
+         { show = \"hi\", message = \"and this one too\" }]\n\
          [[tasks.collectors]]\nname = \"changes\"\nreturns = [\"path\"]\n\
          query = { section = \"Changes\", pattern = \"`([^`]+)`\" }\n\
          [views.default]\nfilter = \"\"\n\
@@ -239,6 +239,40 @@ fn prints_a_framework_with_no_inputs_and_the_open_forms() {
     let required = parse_config("[tasks.estimate]\nunits = [\"days\"]\nrequired = true\n").unwrap();
     let text = render(&collect(&required, dir.path()), 100);
     assert!(text.contains("  estimate: days (required)\n"), "{text}");
+}
+
+/// A gate the user has not allowed prints in `refusals:` with the section that
+/// declares it, and the JSON carries the same list.
+#[test]
+fn refusals_lists_the_gates_the_user_has_not_allowed() {
+    let config = parse_config(
+        "[[tasks.waits]]\nname = \"locked\"\nrun = \"scripts/locked {id}\"\n\
+         [[on.flip]]\nwhen = 'into(\"done\")'\n\
+         actions = [{ run = \"scripts/test\", gate = true }]\n",
+    )
+    .unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let text = render(&collect(&config, dir.path()), 100);
+    assert!(text.contains("refusals:\n"), "{text}");
+    assert!(
+        text.contains(
+            "  waits: scripts/locked {id} (not allowed; ask the user to run `mt allow`)\n"
+        ),
+        "{text}"
+    );
+    assert!(
+        text.contains("  on.flip: scripts/test (not allowed; ask the user to run `mt allow`)\n"),
+        "{text}"
+    );
+
+    let value = serde_json::to_value(document(&collect(&config, dir.path()))).unwrap();
+    assert_eq!(
+        value["refusals"],
+        serde_json::json!([
+            {"gate": "waits", "command": "scripts/locked {id}"},
+            {"gate": "on.flip", "command": "scripts/test"},
+        ])
+    );
 }
 
 #[test]

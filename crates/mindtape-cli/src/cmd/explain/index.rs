@@ -14,7 +14,7 @@ use mindtape::{Config, RuleSection, active_derived, active_rules, load_config};
 use crate::cmd::schema::EXPLAIN;
 use crate::diag::{Command, Result, next_line};
 use crate::render::envelope::Envelope;
-use crate::render::objects::ExplainIndexPayload;
+use crate::render::objects::{ExplainIndexPayload, RefusalJson};
 use crate::util;
 
 /// The order the index prints rule groups in, the same order the config
@@ -33,6 +33,7 @@ const FALLBACK_WIDTH: usize = 100;
 /// Everything the index lists, in the order it prints.
 struct Index {
     shape: Shape,
+    refusals: Vec<RefusalJson>,
     rules: Vec<(RuleSection, Vec<String>)>,
     derived: Vec<String>,
     tags: Vec<String>,
@@ -61,6 +62,7 @@ pub fn run(as_json: bool) -> Result<()> {
 /// dictionary names.
 fn collect(config: &Config, root: &Path) -> Index {
     let shape = mindtape::explain::shape(config, root);
+    let refusals = refusals(config, root);
     let active = active_rules(config);
     let rules = SECTIONS
         .iter()
@@ -99,12 +101,25 @@ fn collect(config: &Config, root: &Path) -> Index {
     );
     Index {
         shape,
+        refusals,
         rules,
         derived,
         tags,
         views,
         dicts,
     }
+}
+
+/// The gate commands the user has not allowed, as the `refusals:` block and
+/// its JSON show them.
+fn refusals(config: &Config, root: &Path) -> Vec<RefusalJson> {
+    mindtape::allow::refused_gates(root, config)
+        .into_iter()
+        .map(|gate| RefusalJson {
+            gate: gate.gate.to_owned(),
+            command: gate.command.to_string(),
+        })
+        .collect()
 }
 
 /// The rule's name without the section path that leads it: `verb-title` for
@@ -151,6 +166,7 @@ fn render(index: &Index, width: usize) -> String {
     } else {
         labelled(&mut out, "absent", &index.shape.absent, width, "  ");
     }
+    render_refusals(&mut out, &index.refusals);
     if index.rules.is_empty() {
         out.push_str("rules: none\n");
     } else {
@@ -274,6 +290,23 @@ fn render_task(out: &mut String, task: &TaskShape, width: usize) {
     out.push('\n');
 }
 
+/// The `refusals:` block: one line per gate command the user has not allowed,
+/// each naming the command that records the approval.
+fn render_refusals(out: &mut String, refusals: &[RefusalJson]) {
+    if refusals.is_empty() {
+        return;
+    }
+    out.push_str("refusals:\n");
+    for refusal in refusals {
+        out.push_str(&format!(
+            "  {}: {} (not allowed; ask the user to run `{}`)\n",
+            refusal.gate,
+            refusal.command,
+            Command::mt().word("allow")
+        ));
+    }
+}
+
 /// A scale's bounds as `0-9`.
 fn bounds(min: f64, max: f64) -> String {
     format!("{min}-{max}")
@@ -329,6 +362,7 @@ fn document(index: &Index) -> Envelope<ExplainIndexPayload> {
             task: index.shape.task.clone(),
             commits: index.shape.commits.clone(),
             absent: index.shape.absent.clone(),
+            refusals: index.refusals.clone(),
             rules,
             derived: index.derived.clone(),
             tags: index.tags.clone(),

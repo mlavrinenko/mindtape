@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   plus an `absent:` line naming each key the project leaves open. Every line
   reads the config alone, so the index loads no task. `--json` carries the same
   blocks, and `schema/output/explain/2.schema.json` records them.
+- **`mt explain` names the gates the user has not allowed.** A `refusals:`
+  block lists each `[[tasks.waits]]` checker and each `[[on.flip]]` `run` that
+  `mt allow` has not recorded, with the command that records it. A project with
+  every command allowed prints no block, and `--json` carries the same list
+  under `refusals`.
 - **`mt explain templates` lists every template `mt add` accepts.** One line
   each gives the template's name, the `kind` it sets, its slot count and
   `default` on the one `mt add` picks. The `kind` column reads `any` for a

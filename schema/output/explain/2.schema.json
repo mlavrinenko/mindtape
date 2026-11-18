@@ -158,6 +158,24 @@
       ],
       "type": "object"
     },
+    "RefusalJson": {
+      "description": "One command a gate runs that the user has not allowed.",
+      "properties": {
+        "command": {
+          "description": "The command as it shows.",
+          "type": "string"
+        },
+        "gate": {
+          "description": "The config section that declares the gate: `on.flip` or `waits`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gate",
+        "command"
+      ],
+      "type": "object"
+    },
     "RootShape": {
       "description": "One task root.",
       "properties": {
@@ -346,6 +364,13 @@
       "$ref": "#/$defs/ProjectShape",
       "description": "The `project:` block: where tasks live, and who works them."
     },
+    "refusals": {
+      "description": "Each gate command the user has not allowed.",
+      "items": {
+        "$ref": "#/$defs/RefusalJson"
+      },
+      "type": "array"
+    },
     "rules": {
       "additionalProperties": {
         "items": {
@@ -381,6 +406,7 @@
     "task",
     "commits",
     "absent",
+    "refusals",
     "rules",
     "derived",
     "tags",

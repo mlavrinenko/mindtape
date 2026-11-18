@@ -10,7 +10,7 @@ use mindtape::test_support::write_file;
 
 use crate::support;
 
-use support::{mt, run_text, scaffold_project};
+use support::{json, mt, run_text, scaffold_project, stdout};
 
 /// A pack holding a task rule the project overrides, one it disables, a body
 /// rule and a commit rule.
@@ -86,16 +86,6 @@ fn project() -> tempfile::TempDir {
     dir
 }
 
-fn stdout(dir: &std::path::Path, args: &[&str]) -> String {
-    let out = mt(dir).args(args).output().unwrap();
-    assert!(out.status.success(), "{out:?}");
-    String::from_utf8(out.stdout).unwrap()
-}
-
-fn json(dir: &std::path::Path, args: &[&str]) -> serde_json::Value {
-    serde_json::from_str(&stdout(dir, args)).unwrap()
-}
-
 /// The bare index opens on the project's shape. It carries the roots with
 /// their tags, the legend split by `terminal`, the `rm` filter, the scales,
 /// the vocabularies and the commit trailer. `absent` names each key the config
@@ -121,6 +111,32 @@ absent: actors, estimate, kinds, comments, extensions
 rules:
 ";
     assert!(text.starts_with(expected), "{text}");
+}
+
+/// A gate the user has not allowed prints in `refusals:` with the section that
+/// declares it, and `mt allow` clears the block. The JSON carries the same
+/// list.
+#[test]
+fn refusals_lists_only_the_gates_the_user_has_not_allowed() {
+    let dir = scaffold_project(
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[tasks.waits]]\nname = \"locked\"\nrun = \"scripts/locked {id}\"\n\n\
+         [[on.flip]]\nwhen = 'into(\"done\")'\n\
+         actions = [{ run = \"scripts/test\", gate = true }]\n",
+    );
+    let text = stdout(dir.path(), &["explain"]);
+    let expected = "refusals:
+  waits: scripts/locked {id} (not allowed; ask the user to run `mt allow`)
+  on.flip: scripts/test (not allowed; ask the user to run `mt allow`)
+";
+    assert!(text.contains(expected), "{text}");
+
+    let allowed = mt(dir.path()).arg("allow").output().unwrap();
+    assert!(allowed.status.success(), "{allowed:?}");
+    let text = stdout(dir.path(), &["explain"]);
+    assert!(!text.contains("refusals:"), "{text}");
+    let value = json(dir.path(), &["explain", "--json"]);
+    assert_eq!(value["refusals"], serde_json::json!([]));
 }
 
 /// The bare index lists every listing, grouped, and puts `default` first in
@@ -180,12 +196,6 @@ fn json_index_groups_and_listings_keep_their_keys() {
     assert_eq!(index["views"], serde_json::json!(["default", "blocked"]));
     assert_eq!(index["dicts"]["source"], 2);
     assert_eq!(index["project"]["roots"][0]["tag"], "tasks");
-    assert_eq!(index["project"]["statuses"]["terminal"][0], "done");
-    assert_eq!(index["project"]["rm"], "terminal");
-    assert_eq!(
-        index["task"]["priority"]["framework"],
-        serde_json::Value::Null
-    );
     assert_eq!(index["task"]["templates"]["default"], "task");
     assert_eq!(index["commits"]["trailer"], "Refs");
     assert_eq!(

@@ -18,6 +18,12 @@ so `absent: none` says the project constrains every one. Every line reads the
 config alone. The index doesn't load a task, count anything or evaluate a
 filter.
 
+A gate the user has not allowed prints in a `refusals:` block, one line per
+command: the section that declares it, the command, and the `mt allow` that
+records the approval. That is each `[[tasks.waits]]` checker and each
+`[[on.flip]]` `run`. A project with every command allowed doesn't print the
+block at all.
+
 Under the shape, the index prints every rule grouped by its config section, the
 derived fields, and the tags, views and dictionaries the project declares. A
 dictionary shows its entry count, and `default` comes first in the view and tag
@@ -28,9 +34,9 @@ naming the optional category and the JSON flag: `mt explain [<add|rules|tags|vie
 
 `--json` prints the index as one object whose first key is `$schema`, the URL
 of the schema for that object. The shape sits under `project`, `task` and
-`commits`, the keys it leaves out under `absent`, and the listings under
-`rules`, `derived`, `tags`, `views` and `dicts`. The sections below say what
-they contain.
+`commits`, the keys it leaves out under `absent`, the refused gates under
+`refusals`, and the listings under `rules`, `derived`, `tags`, `views` and
+`dicts`. The sections below say what they contain.
 
 = Add hooks
 

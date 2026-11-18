@@ -4,8 +4,8 @@ use crate::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use super::{
-    AllowError, allowed_in, commands, digest, held_back, hold, record_in, record_path, repo_key,
-    runnable_editor_in, take_held,
+    AllowError, GateCommand, allowed_in, commands, digest, gate_commands, held_back, hold,
+    record_in, record_path, refused_gates_in, repo_key, runnable_editor_in, take_held,
 };
 use crate::config::Config;
 use crate::shell::ConfigCommand;
@@ -38,8 +38,12 @@ fn argv(args: &[&str]) -> ConfigCommand {
 fn the_commands_are_every_run_line_sorted_once() {
     assert_eq!(commands(&config(&["b", "a", "b"])), lines(&["a", "b"]));
     assert!(commands(&Config::default()).is_empty());
+    assert!(gate_commands(&Config::default()).is_empty());
 }
 
+/// Each gate command keeps the section that declares it, in declaration order,
+/// so a block built over this list covers a new gate without knowing which one
+/// it is.
 #[test]
 fn the_commands_take_each_flip_run_line_beside_the_checkers() {
     let config = crate::parse_config(
@@ -50,6 +54,37 @@ fn the_commands_take_each_flip_run_line_beside_the_checkers() {
     .unwrap();
 
     assert_eq!(commands(&config), lines(&["a", "b", "c"]));
+    let gates: Vec<(&str, String)> = gate_commands(&config)
+        .into_iter()
+        .map(|gate| (gate.gate, gate.command.to_string()))
+        .collect();
+    assert_eq!(
+        gates,
+        [
+            ("waits", "b".to_owned()),
+            ("on.flip", "c".to_owned()),
+            ("on.flip", "b".to_owned()),
+            ("on.flip", "a".to_owned()),
+        ]
+    );
+}
+
+/// A gate the user allowed doesn't print, and one they did not prints with its
+/// section.
+#[test]
+fn only_a_gate_the_user_has_not_allowed_is_refused() {
+    let (_dir, home, root) = data_home_and_root();
+    let config = config(&["b"]);
+    assert_eq!(
+        refused_gates_in(Some(&home), &root, &config),
+        [GateCommand {
+            gate: "waits",
+            command: ConfigCommand::Line("b".to_owned()),
+        }]
+    );
+
+    record_in(Some(&home), &root, &commands(&config)).unwrap();
+    assert!(refused_gates_in(Some(&home), &root, &config).is_empty());
 }
 
 #[test]
