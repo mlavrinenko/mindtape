@@ -128,6 +128,7 @@ fn apply_explicit_filter(
     } else {
         applied.filter_from = MANUAL.to_owned();
         applied.filter_value = expr.to_owned();
+        applied.filter_description = None;
     }
     Ok((bundle_of(&applied), applied))
 }
@@ -165,6 +166,7 @@ fn view_bundle(name: &str, view: &ViewSpec) -> (Bundle, Applied) {
     let applied = Applied {
         filter_from: name.to_owned(),
         filter_value: bundle.filter.clone(),
+        filter_description: view.description.clone(),
         sort_from: source_if_nonempty(name, &bundle.sort),
         sort_value: bundle.sort.clone(),
         columns_from: source_if_nonempty(name, &bundle.columns),
@@ -256,6 +258,7 @@ fn compose_rule(config: &Config, rule: &LsRule) -> Result<(Bundle, Applied)> {
     if let Some(filter) = &rule.filter {
         applied.filter_from = label.clone();
         applied.filter_value = filter.clone();
+        applied.filter_description = None;
     }
     if !rule.sort.is_empty() {
         applied.sort_from = label.clone();
@@ -279,6 +282,7 @@ fn apply_import_entry(applied: &mut Applied, facets: &[Facet], view_name: &str, 
             Facet::Filter => {
                 applied.filter_from = view_name.to_owned();
                 applied.filter_value = view.filter.clone();
+                applied.filter_description = view.description.clone();
             }
             Facet::Sort if !view.sort.is_empty() => {
                 applied.sort_from = view_name.to_owned();

@@ -176,18 +176,22 @@ comparison may be a value or a literal, as in `weekday() >= 6` or
 `"review" == env("MODE")`. You can't compare `true` or `false`.
 
 The line under a table says where the rows came from and how many of the
-project's tasks it shows, as in `default view · 3 of 12 tasks`. When a rule
-sets the sort, its name follows, as in `inbox view · release sort · 3 of 12 tasks`.
-A filter you typed reads `your filter · 1 of 4 tasks`, and `mt ls --json`
-says where each facet came from. An empty listing adds a `hint:`
-line. It names `mt ls ''` for every task and `mt explain views` for a saved
-view. In `examples/api-service` no rule matches, so a bare `mt ls` applies the
-default view:
+project's tasks it shows. A view or a narrowing `[[ls.rules]]` entry names the
+filter it applied, as in
+`default view (!terminal && (miss(start) || start <= now())) · 3 of 12 tasks`.
+The footer shows a view's `description` in place of the filter, as in
+`agent view (Open tasks an agent can take) · 3 of 12 tasks`. When a rule sets
+the sort, its name follows, as in `inbox view · release sort · 3 of 12 tasks`.
+A filter you typed reads `your filter · 1 of 4 tasks`, and `mt ls --json` says
+where each facet came from. The line wraps at the terminal width. An empty
+listing adds a `hint:` line. It names `mt ls ''` for every task and
+`mt explain views` for a saved view. In `examples/api-service` no rule matches,
+so a bare `mt ls` applies the default view:
 
 #terminal("ls")
 
 A task file that fails to load gets a warning naming it, and the line under
-the table counts it last, as in `default view · 1 of 2 tasks · 1 broken`.
+the table counts it last, as in `your filter · 1 of 2 tasks · 1 broken`.
 `mt ls` still lists the rest and exits 0. `mt check` fails on a broken file.
 A Typst warning repeated in the same message prints once, with its count and
 files. `-v` lists every site.

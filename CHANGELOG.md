@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The `mt ls` footer names the filter it applied.** A view or a narrowing
+  `[[ls.rules]]` entry shows its filter, or the view's `description` when it
+  has one, as in
+  `default view (!terminal && (miss(start) || start <= now())) · 2 of 1013 tasks`.
+  A filter you typed still reads `your filter`, and the line wraps at the
+  terminal width. `--json` keeps `applied.facets.filter.value` unchanged.
 - **Goal verdicts are written one per line again.** The task corpus and the
   templates no longer call `verdicts`; the helper stays exported for now and
   will be deprecated in a later release.

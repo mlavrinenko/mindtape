@@ -54,6 +54,7 @@ fn json_with_applied_wraps_tasks_in_envelope() {
         rule_superseded: false,
         filter_from: "inbox".to_owned(),
         filter_value: "priority > 5".to_owned(),
+        filter_description: None,
         sort_from: "release".to_owned(),
         sort_value: vec!["priority:desc".to_owned()],
         columns_from: "inbox".to_owned(),

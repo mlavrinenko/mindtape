@@ -179,6 +179,7 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
         listing.tasks.len(),
         listing.project_total,
         listing.broken,
+        terminal_width(),
     );
     let empty = (args.flags.skip.unwrap_or(0) == 0 && listing.truncated.is_none())
         .then(|| rules_applied::empty_hint(listing.tasks.len(), listing.project_total))
@@ -190,6 +191,11 @@ fn print_footer(args: &LsArgs, listing: &Listing) {
     for line in lines {
         println!("{}", painter.paint(&line, dim));
     }
+}
+
+/// The width the footer wraps at, or `None` when stdout is not a terminal.
+fn terminal_width() -> Option<usize> {
+    terminal_size::terminal_size().map(|(width, _)| usize::from(width.0))
 }
 
 /// The command that fetches the next page after a truncated listing. It holds

@@ -206,15 +206,15 @@ groups:
       www/utils/cli-notes.typ: 48bb8cd575c63ee49666392cc35b555b5954ec6084823f289dc5f51906334a4b
   cli-ls-docs:
     source:
-      crates/mindtape-cli/src/cmd/ls/mod.rs: dddec30960bd199965d885b5b047f4e3117ea6d0509c82fe3f0d5337ee220727
-      crates/mindtape-cli/src/cmd/ls/rules.rs: 6ba7545a087fa2560593e7e3aa59498b22cba3f89834d2f2857ebeb790bdb305
+      crates/mindtape-cli/src/cmd/ls/mod.rs: fa67b854d5cb5774d30f8b09bd84d3feadd90c621806436be27e540a93d37e06
+      crates/mindtape-cli/src/cmd/ls/rules.rs: a1285a180dce5956982fe9d831c6f74a172768968482a6f69cbdf85e6db0f906
     dependents:
       docs/src/skill.typ: 40c0030d30809cb8e5fae560ccdc7e8f0c579a08c67afedaacd35bf649167c71
       skills/mindtape/evals/README.md: 8be464ec631e0c2a77b593c0434f49da536365d324143646597590db27ff4888
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
-      skills/mindtape/references/filters.md: 43d6f5fcc57e35c865027e9bfb7af67291e9922c80f3155331b495a207443168
+      skills/mindtape/references/filters.md: 758ed2ac1d6ade5e9ed00202034e5682e302e18a0a1124026f5450ea52a16e9c
       www/content/agents.typ: 6b56e7fc0f4e54308818d3a593bd4d18ce414372cbcf7f87912c13394e43343f
-      www/content/cli/ls.typ: 078a49870b81b7049922f4ee4b86240472fa447287fae31d34257fb2a16ed489
+      www/content/cli/ls.typ: 87ebc0c29c9e5d961ce069e7c78b887397e6106dec3d6f9c8c6f9529e1f7c936
       www/content/filters.typ: a61b65daa6287bd263dba3be7bdab9784ea8f643b6bdd3b267dba3523c4033db
       www/content/named-sets.typ: 21e84bbc2c9646acd20af88a1ed3effd8b5182bdbb9a55867ed100f384264d3a
       www/content/schema.typ: 624c1c33191085d2fab9ecfe84d350b5527a526d3bcd4ba228945901d8ef1309
