@@ -1,8 +1,8 @@
 // Source for skills/mindtape/SKILL.md, rendered by docs/generate-md.sh with
 // typlite. An agent loads SKILL.md whole whenever the skill triggers, so it
-// keeps only what no command prints: which project it applies to, the safety
-// rules around what the config runs, and where the references live. Steps live
-// in `mt <cmd> --help` and `mt explain`, detail in
+// opens with the recipe and keeps only what no command prints: which project
+// it applies to, the safety rules around what the config runs, and where the
+// references live. Steps live in `mt <cmd> --help` and `mt explain`, detail in
 // skills/mindtape/references/, which this file links.
 // `frontmatter` stays a plain string, because typlite cannot emit YAML and the
 // generator writes it with `yq`. The title's backticks come from a string, not
@@ -24,16 +24,23 @@
 Change tasks with `mt` commands, not by hand. `references/hand-editing.md`
 covers the few fields that need a manual edit.
 
-= A #mindtape project
+A project holds `.mindtape/config.toml`. Run `mt` at or below that directory,
+or pass `-w <path>`. `mt <cmd> --help` lists every flag.
 
-It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory
-that holds it, or pass `-w <path>`. Run `mt explain` first: it lists this
-project's rules, tags, views and dicts. `mt <cmd> --help` lists every flag, and
-`mt explain rules --for <step>` or `mt explain tags --for <step>` lists what an
-add, flip or commit checks, and `mt explain add` lists the `[[on.add]]` hooks
-that fill a new task or choose its folder. `mt explain templates` lists the
-templates `mt add` files from, with the `kind` each sets, its slot count and
-which one is the default.
+= The recipe
+
+1. `mt explain` prints the project's shape: its roots, statuses, templates and
+  rules, and the fields a task takes.
+2. `mt ls` lists what the default view picks and names the filter it applied.
+  `mt find <words>` lists the tasks that contain every word.
+3. `mt add --describe` lists the template's slots and the `[[on.add]]` hooks
+  that fill a new task or choose its folder. `mt explain templates` lists the
+  templates and the `kind` each sets.
+4. `mt add` files the task.
+5. `mt check` checks every task against the project's rules.
+6. Before a write, `mt explain rules --for <moment>` lists what that moment
+  checks, and `mt explain tags --for <moment>` lists the tags those rules
+  read. The moments are `add`, `commit` and `flip`.
 
 = Commands the config runs
 

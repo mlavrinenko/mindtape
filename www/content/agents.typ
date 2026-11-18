@@ -24,8 +24,13 @@ examples below run against `examples/api-service/`, a sample backend project.
 
 The #mindtape repository includes an agent skill in
 #link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. Its `SKILL.md`
-tells an agent to use `mt --help`, `mt explain` and the files in `references/`
-instead of repeating what the CLI says. The skill uses the
+opens with the recipe an agent runs: `mt explain` for the project's shape,
+`mt ls` and `mt find <words>` to pick a task, `mt add --describe` and `mt add`
+to file one, `mt check` to validate, and `mt explain rules --for <moment>`
+before a write. The moments are `add`, `commit` and `flip`.
+
+The rest of the skill points at `mt <cmd> --help` and the files in
+`references/` instead of repeating what the CLI says. It uses the
 #link("https://agentskills.io")[Agent Skills] format, so any agent that
 supports the format can load it.
 
