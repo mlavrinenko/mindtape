@@ -100,6 +100,21 @@ pub(crate) fn hint_line(text: impl fmt::Display) -> String {
     format!("hint: {text}")
 }
 
+/// The refusal for a name the project does not declare: the nearest known name
+/// when one is close, else the `mt explain` listing that shows them all.
+pub(crate) fn unknown_name(
+    kind: &'static str,
+    name: &str,
+    known: &[&str],
+    listing: &'static str,
+    purpose: &'static str,
+) -> Diag {
+    let hint = Hint::run(Command::mt().word("explain").word(listing), purpose);
+    Diag::usage(kind)
+        .value(name)
+        .did_you_mean_or(name, known, hint)
+}
+
 /// A command's result, or the [`Diag`] `main` prints.
 pub(crate) type Result<T, E = Diag> = std::result::Result<T, E>;
 

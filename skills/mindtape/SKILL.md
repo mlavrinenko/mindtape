@@ -15,7 +15,7 @@ Change tasks with `mt` commands, not by hand. `references/hand-editing.md` cover
 
 ## A Mindtape project
 
-It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory that holds it, or pass `-w <path>`. Run `mt explain` first: it lists this project’s rules, tags, views and dicts. `mt <cmd> --help` lists every flag, and `mt explain rules --for <step>` or `mt explain tags --for <step>` lists what an add, flip or commit checks, and `mt explain add` lists the `[[on.add]]` hooks that fill a new task or choose its folder.
+It is when `.mindtape/config.toml` exists. Run `mt` at or below the directory that holds it, or pass `-w <path>`. Run `mt explain` first: it lists this project’s rules, tags, views and dicts. `mt <cmd> --help` lists every flag, and `mt explain rules --for <step>` or `mt explain tags --for <step>` lists what an add, flip or commit checks, and `mt explain add` lists the `[[on.add]]` hooks that fill a new task or choose its folder. `mt explain templates` lists the templates `mt add` files from, with the `kind` each sets and its slot count.
 
 ## Commands the config runs
 

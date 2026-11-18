@@ -56,7 +56,7 @@ fn byte_compared_goldens_are_pinned_to_lf() {
 }
 
 /// Every registered output, in `mt schema` order.
-const NAMES: [&str; 24] = [
+const NAMES: [&str; 25] = [
     "ls",
     "task",
     "add",
@@ -66,6 +66,7 @@ const NAMES: [&str; 24] = [
     "preset-ls",
     "explain-add",
     "explain",
+    "explain-templates",
     "rules",
     "tags",
     "eval",
@@ -204,6 +205,7 @@ fn live_object_outputs_validate_against_their_recorded_schemas() {
             ("check", &["check", "--json"][..]),
             ("preset-ls", &["preset", "ls", "--json"][..]),
             ("explain", &["explain", "--json"][..]),
+            ("explain-templates", &["explain", "templates", "--json"][..]),
             ("rules", &["explain", "rules", "--json"][..]),
             ("tags", &["explain", "tags", "--json"][..]),
             ("eval", &["eval", "a", "--json"][..]),

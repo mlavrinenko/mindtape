@@ -5,13 +5,18 @@
 //! A listing prints one of them in full, unchanged from the command it
 //! replaces.
 
+use serde::Serialize;
+
+use crate::cmd::schema::SchemaId;
 use crate::diag::Result;
+use crate::render::envelope::Envelope;
 
 pub(crate) mod add;
 pub(crate) mod dicts;
 pub(crate) mod index;
 pub(crate) mod rules;
 pub(crate) mod tags;
+pub(crate) mod templates;
 pub(crate) mod views;
 
 /// Arguments for `explain`.
@@ -48,6 +53,11 @@ pub enum Listing {
     Views(views::ViewsArgs),
     /// List your dictionaries, or the entries of one.
     Dicts(dicts::DictsArgs),
+    /// List the templates `mt add` accepts, one line each.
+    ///
+    /// Each line gives the template's name, the `kind` it sets, its slot
+    /// count, and `default` on the one `mt add` picks.
+    Templates,
 }
 
 /// Run `mt explain`.
@@ -62,5 +72,28 @@ pub fn run(args: &ExplainArgs) -> Result<()> {
         Some(Listing::Tags(tags)) => tags::run(tags, args.json),
         Some(Listing::Views(views)) => views::run(views, args.json),
         Some(Listing::Dicts(dicts)) => dicts::run(dicts, args.json),
+        Some(Listing::Templates) => templates::run(args.json),
     }
+}
+
+/// Print one listing: `payload` inside its `$schema` envelope under `--json`,
+/// else the text `render` builds.
+///
+/// # Errors
+/// Returns an error when the payload fails to serialize.
+pub(crate) fn emit<T: Serialize>(
+    as_json: bool,
+    id: SchemaId,
+    payload: T,
+    render: impl FnOnce() -> String,
+) -> Result<()> {
+    if as_json {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&Envelope::new(id, payload))?
+        );
+    } else {
+        print!("{}", render());
+    }
+    Ok(())
 }

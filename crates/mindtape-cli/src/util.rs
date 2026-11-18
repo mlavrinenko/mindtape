@@ -14,7 +14,7 @@ use mindtape::{
 use crate::cmd::install::hint::{
     RegionHints, names_prelude_package, prelude_diag, unsupported_prelude_diag,
 };
-use crate::diag::{Command, Diag, Hint, Kind, Note, emit};
+use crate::diag::{Command, Diag, Hint, Kind, Note, emit, unknown_name};
 use crate::render::link::HyperlinkChoice;
 
 pub use crate::project_set::open_set_warned;
@@ -483,15 +483,7 @@ pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
 /// site (`cmd/ls/rules.rs`, `cmd/views.rs`).
 pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> Diag {
     let known: Vec<&str> = views.keys().map(String::as_str).collect();
-    let diag = Diag::usage("unknown view").value(name);
-    diag.did_you_mean_or(
-        name,
-        &known,
-        Hint::run(
-            Command::mt().word("explain").word("views"),
-            "to see the views",
-        ),
-    )
+    unknown_name("unknown view", name, &known, "views", "to see the views")
 }
 
 #[cfg(test)]

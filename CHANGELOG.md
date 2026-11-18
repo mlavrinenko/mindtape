@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt explain templates` lists every template `mt add` accepts.** One line
+  each gives the template's name, the `kind` it sets, its slot count and
+  `default` on the one `mt add` picks. The `kind` column reads `any` for a
+  template that leaves the field to a slot, and there is no status column
+  because `mt add` stamps the status itself. `--json` wraps the list in
+  `templates` under `$schema`. The listing reads the same template files
+  `mt add` reads, so a template added to a configured directory appears
+  without a config change, and the unknown-template error now points at it.
 - **`mt check` can run a project's own message check.** `[commits] run` names
   a command that `mt check --commit-msg` and `mt check --commits` run once per
   message, from the project root, with the message on stdin. A non-zero exit

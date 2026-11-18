@@ -77,6 +77,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("explain tags", Class::Read(Reach::One)),
     ("explain views", Class::Read(Reach::One)),
     ("explain dicts", Class::Read(Reach::One)),
+    ("explain templates", Class::Read(Reach::One)),
     ("preset save", Class::Write),
     ("preset ls", Class::Read(Reach::One)),
     ("init", Class::Write),

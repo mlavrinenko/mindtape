@@ -8,9 +8,9 @@ use mindtape::{ActiveAddHook, active_add, load_config_layered};
 use serde::Serialize;
 
 use crate::cmd::add::values::action_summary;
+use crate::cmd::explain::emit;
 use crate::cmd::schema::EXPLAIN_ADD;
 use crate::diag::Result;
-use crate::render::envelope::Envelope;
 use crate::render::widest;
 use crate::util;
 
@@ -44,18 +44,10 @@ pub fn run(as_json: bool) -> Result<()> {
     let root = util::resolve_root()?;
     let (config, _, origins) = load_config_layered(&root)?;
     let hooks = active_add(&config, &origins);
-    if as_json {
-        let payload = AddPayload {
-            hooks: hooks.iter().map(|hook| hook_json(hook)).collect(),
-        };
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&Envelope::new(EXPLAIN_ADD, payload))?
-        );
-    } else {
-        print!("{}", render(&hooks));
-    }
-    Ok(())
+    let payload = AddPayload {
+        hooks: hooks.iter().map(|hook| hook_json(hook)).collect(),
+    };
+    emit(as_json, EXPLAIN_ADD, payload, || render(&hooks))
 }
 
 fn hook_json(hook: &ActiveAddHook<'_>) -> AddHookJson {

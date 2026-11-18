@@ -1,0 +1,56 @@
+{
+  "$defs": {
+    "TemplateJson": {
+      "description": "The JSON shape of one listed template.",
+      "properties": {
+        "default": {
+          "description": "Whether `mt add` picks it when the caller names none.",
+          "type": "boolean"
+        },
+        "kind": {
+          "description": "The `kind` it sets, or `any` when it leaves the field to its caller.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The template's stem, as `mt add -t` takes it.",
+          "type": "string"
+        },
+        "slots": {
+          "description": "How many `slot(...)` calls it declares.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "slots",
+        "default"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/explain-templates/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt explain templates --json` prints: every template `mt add` accepts, with the kind it sets, its slot count and whether it is the default.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "templates": {
+      "description": "Every template, in name order.",
+      "items": {
+        "$ref": "#/$defs/TemplateJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "templates"
+  ],
+  "title": "Mindtape templates",
+  "type": "object"
+}

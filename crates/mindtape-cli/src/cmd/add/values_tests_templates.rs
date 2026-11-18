@@ -168,7 +168,7 @@ fn an_unknown_template_hints_where_to_list_them() {
     let err = resolve_template(&Config::default(), dir.path(), "bug").unwrap_err();
     crate::diag::assert_plain(
         &err,
-        "error: unknown template: 'bug'\nhint: run mt add --list to see the templates\n",
+        "error: unknown template: 'bug'\nhint: run mt explain templates to see the templates\n",
     );
     let near = resolve_template(&Config::default(), dir.path(), "tsk").unwrap_err();
     assert_eq!(

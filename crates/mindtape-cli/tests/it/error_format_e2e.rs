@@ -229,7 +229,7 @@ fn an_unknown_template_is_a_usage_error_with_a_hint() {
     let stderr = failure(&["add", "-t", "nope", "Gamma"], Some(2));
     assert_eq!(
         stderr,
-        "error: unknown template: 'nope'\nhint: run mt add --list to see the templates\n"
+        "error: unknown template: 'nope'\nhint: run mt explain templates to see the templates\n"
     );
 }
 

@@ -87,3 +87,18 @@ entries by name. `--json` wraps the list in `dicts`, each with its `case` and
 That's the list a rule reading the dictionary accepts. To declare a
 dictionary, or to see how its entries merge, read
 #link(u("/named-sets/#dictionaries"))[Views and dictionaries].
+
+= Templates
+
+`mt explain templates` lists every template `mt add` accepts, one line each:
+the template's name, the `kind` it sets, how many slots it declares, and
+`default` on the one `mt add` picks when you name none. The `kind` column reads
+`any` for a template that leaves the field to a slot, as the built-in `task`
+does. The listing has no status column, because `mt add` stamps the status
+itself.
+
+The listing reads the same template files `mt add` reads, so a template added
+to a directory in `[templates] dirs` appears without a config change. `--json`
+wraps the list in `templates` under `$schema`, each with its `name`, `kind`,
+`slots` and `default`. To see what one template's slots are, run
+`mt add -t <name> --describe`.

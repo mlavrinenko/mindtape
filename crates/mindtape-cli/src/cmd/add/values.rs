@@ -10,7 +10,7 @@ use serde::Serialize;
 use crate::cmd::add::yaml_values;
 use crate::cmd::add::yaml_values::LinkFields;
 use crate::cmd::schema::DESCRIBE;
-use crate::diag::{Command, Diag, Hint};
+use crate::diag::{Diag, Hint};
 use crate::render::envelope::Envelope;
 
 pub use super::values_ops::{Collected, collect_values, reject_unknown_keys};
@@ -66,14 +66,12 @@ pub fn resolve_template(config: &Config, root: &Path, name: &str) -> Result<Stri
 fn unknown_template(config: &Config, root: &Path, name: &str) -> Diag {
     let names = list_templates(config, root);
     let known: Vec<&str> = names.iter().map(String::as_str).collect();
-    let diag = Diag::usage("unknown template").value(name);
-    diag.did_you_mean_or(
+    crate::diag::unknown_name(
+        "unknown template",
         name,
         &known,
-        Hint::run(
-            Command::mt().word("add").word("--list"),
-            "to see the templates",
-        ),
+        "templates",
+        "to see the templates",
     )
 }
 
@@ -87,8 +85,9 @@ pub fn template_path(config: &Config, root: &Path, name: &str) -> Option<std::pa
 }
 
 /// Available template stems: every `*.typ` under the configured dirs plus the
-/// built-in `task`, deduplicated and sorted. Delegates to the library list the
-/// `[[on.add]]` validator reads, so the two cannot drift.
+/// built-in `task`, deduplicated and sorted. `mt explain templates` lists them,
+/// and the function delegates to the library list the `[[on.add]]` validator
+/// reads, so the two cannot drift.
 #[must_use]
 pub fn list_templates(config: &Config, root: &Path) -> Vec<String> {
     mindtape::config::add_hooks::template_names(config, root)
