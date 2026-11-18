@@ -1,7 +1,14 @@
-//! The bare `mt explain` index: the rules grouped by section, the derived
-//! fields, and the tags, views and dictionaries this project declares, with no
-//! messages or descriptions.
+//! The bare `mt explain` index: the project's shape, the rules grouped by
+//! section, the derived fields, and the tags, views and dictionaries this
+//! project declares, with no messages or descriptions.
+//!
+//! The shape blocks read the merged config alone. The index doesn't load a
+//! task, count anything or evaluate a filter. It costs one config load and one
+//! template-directory scan.
 
+use std::path::Path;
+
+use mindtape::explain::{ProjectShape, Shape, TaskShape};
 use mindtape::{Config, RuleSection, active_derived, active_rules, load_config};
 
 use crate::cmd::schema::EXPLAIN;
@@ -24,8 +31,8 @@ const SECTIONS: [RuleSection; 5] = [
 const FALLBACK_WIDTH: usize = 100;
 
 /// Everything the index lists, in the order it prints.
-#[derive(Debug, PartialEq, Eq)]
 struct Index {
+    shape: Shape,
     rules: Vec<(RuleSection, Vec<String>)>,
     derived: Vec<String>,
     tags: Vec<String>,
@@ -38,8 +45,9 @@ struct Index {
 /// # Errors
 /// Returns an error if the project root does not resolve or its config fails to load.
 pub fn run(as_json: bool) -> Result<()> {
-    let config = load_config(&util::resolve_root()?)?;
-    let index = collect(&config);
+    let root = util::resolve_root()?;
+    let config = load_config(&root)?;
+    let index = collect(&config, &root);
     if as_json {
         println!("{}", serde_json::to_string_pretty(&document(&index))?);
     } else {
@@ -48,9 +56,11 @@ pub fn run(as_json: bool) -> Result<()> {
     Ok(())
 }
 
-/// Read the index off the merged config: every active rule grouped by its
-/// section, every derived field, and the tag, view and dictionary names.
-fn collect(config: &Config) -> Index {
+/// Read the index off the merged config: the project's shape, every active
+/// rule grouped by its section, every derived field, and the tag, view and
+/// dictionary names.
+fn collect(config: &Config, root: &Path) -> Index {
+    let shape = mindtape::explain::shape(config, root);
     let active = active_rules(config);
     let rules = SECTIONS
         .iter()
@@ -88,6 +98,7 @@ fn collect(config: &Config) -> Index {
         |(name, _)| name,
     );
     Index {
+        shape,
         rules,
         derived,
         tags,
@@ -125,6 +136,21 @@ fn width() -> usize {
 /// The index as text, one group per line and comma lists wrapped at `width`.
 fn render(index: &Index, width: usize) -> String {
     let mut out = String::new();
+    render_project(&mut out, &index.shape.project, width);
+    render_task(&mut out, &index.shape.task, width);
+    out.push_str("commits:\n");
+    labelled(
+        &mut out,
+        "  trailer",
+        std::slice::from_ref(&index.shape.commits.trailer),
+        width,
+        "    ",
+    );
+    if index.shape.absent.is_empty() {
+        out.push_str("absent: none\n");
+    } else {
+        labelled(&mut out, "absent", &index.shape.absent, width, "  ");
+    }
     if index.rules.is_empty() {
         out.push_str("rules: none\n");
     } else {
@@ -156,17 +182,112 @@ fn render(index: &Index, width: usize) -> String {
     out
 }
 
+/// The `project:` block: one line per key, and the status legend's two groups
+/// under it.
+fn render_project(out: &mut String, project: &ProjectShape, width: usize) {
+    out.push_str("project:\n");
+    let roots: Vec<String> = project
+        .roots
+        .iter()
+        .map(|root| format!("{} (tag: {})", root.path, root.tag))
+        .collect();
+    labelled(out, "  roots", &roots, width, "    ");
+    if let Some(statuses) = &project.statuses {
+        out.push_str("  statuses:\n");
+        labelled(out, "    open", &statuses.open, width, "      ");
+        labelled(out, "    terminal", &statuses.terminal, width, "      ");
+    }
+    if !project.actors.is_empty() {
+        let actors: Vec<String> = project
+            .actors
+            .iter()
+            .map(|actor| {
+                let mut parts = vec![actor.kind.clone()];
+                parts.extend(actor.roles.iter().cloned());
+                format!("{} ({})", actor.name, parts.join(", "))
+            })
+            .collect();
+        labelled(out, "  actors", &actors, width, "    ");
+    }
+    if let Some(rm) = &project.rm {
+        labelled(out, "  rm", &[format!("{rm} only")], width, "    ");
+    }
+}
+
+/// The `task:` block: one line per field, and the templates' default last.
+fn render_task(out: &mut String, task: &TaskShape, width: usize) {
+    out.push_str("task:\n");
+    let priority = match &task.priority.framework {
+        Some(name) if !task.priority.inputs.is_empty() => {
+            format!("{name} ({})", task.priority.inputs.join(", "))
+        }
+        Some(name) => name.clone(),
+        None => bounds(task.priority.min, task.priority.max),
+    };
+    labelled(out, "  priority", &[priority], width, "    ");
+    labelled(
+        out,
+        "  difficulty",
+        &[bounds(task.difficulty.min, task.difficulty.max)],
+        width,
+        "    ",
+    );
+    if let Some(estimate) = &task.estimate {
+        let required = match estimate.required.as_str() {
+            "false" => "optional".to_owned(),
+            "true" => "required".to_owned(),
+            expr => format!("required: {expr}"),
+        };
+        let units = format!("{} ({required})", estimate.units.join(", "));
+        labelled(out, "  estimate", &[units], width, "    ");
+    }
+    if !task.kinds.is_empty() {
+        labelled(out, "  kinds", &task.kinds, width, "    ");
+    }
+    labelled(out, "  links", &task.links, width, "    ");
+    if let Some(comments) = &task.comments {
+        labelled(
+            out,
+            "  comments",
+            std::slice::from_ref(comments),
+            width,
+            "    ",
+        );
+    }
+    if !task.extensions.is_empty() {
+        let extensions: Vec<String> = task
+            .extensions
+            .iter()
+            .map(|extension| {
+                if extension.rules.is_empty() {
+                    extension.name.clone()
+                } else {
+                    format!("{} ({})", extension.name, extension.rules.join(", "))
+                }
+            })
+            .collect();
+        labelled(out, "  extensions", &extensions, width, "    ");
+    }
+    let mut templates = list_line("  templates", &task.templates.names, width, "    ");
+    templates.push_str(&format!(" (default: {})", task.templates.default));
+    out.push_str(&templates);
+    out.push('\n');
+}
+
+/// A scale's bounds as `0-9`.
+fn bounds(min: f64, max: f64) -> String {
+    format!("{min}-{max}")
+}
+
 /// `<label>: a, b, c`, breaking after a comma and indenting the rest by
 /// `continuation` when the next entry would pass `width`. An empty list prints
 /// `<label>: none`.
-fn labelled(out: &mut String, label: &str, items: &[String], width: usize, continuation: &str) {
+fn list_line(label: &str, items: &[String], width: usize, continuation: &str) -> String {
     if items.is_empty() {
-        out.push_str(&format!("{label}: none\n"));
-        return;
+        return format!("{label}: none");
     }
-    let prefix = format!("{label}: ");
-    out.push_str(&prefix);
-    let mut column = prefix.chars().count();
+    let mut out = format!("{label}: ");
+    let mut column = out.chars().count();
     for (index, item) in items.iter().enumerate() {
         let piece = if index == 0 {
             item.clone()
@@ -184,6 +305,12 @@ fn labelled(out: &mut String, label: &str, items: &[String], width: usize, conti
             column += piece_width;
         }
     }
+    out
+}
+
+/// [`list_line`] with its newline.
+fn labelled(out: &mut String, label: &str, items: &[String], width: usize, continuation: &str) {
+    out.push_str(&list_line(label, items, width, continuation));
     out.push('\n');
 }
 
@@ -198,6 +325,10 @@ fn document(index: &Index) -> Envelope<ExplainIndexPayload> {
     Envelope::new(
         EXPLAIN,
         ExplainIndexPayload {
+            project: index.shape.project.clone(),
+            task: index.shape.task.clone(),
+            commits: index.shape.commits.clone(),
+            absent: index.shape.absent.clone(),
             rules,
             derived: index.derived.clone(),
             tags: index.tags.clone(),
@@ -208,165 +339,5 @@ fn document(index: &Index) -> Envelope<ExplainIndexPayload> {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
-mod tests {
-    use mindtape::parse_config;
-
-    use mindtape::RuleSection;
-
-    use super::{Index, bare_name, collect, default_first, document, render};
-
-    const NEXT: &str = "next: mt explain [<add|rules|tags|views|dicts>] [--json]";
-
-    fn config() -> mindtape::Config {
-        parse_config(
-            "[tasks.tags]\nallowed = [\"cli\", \"default\", \"mt\"]\n\
-             [[tasks.rules]]\nname = \"verb-title\"\nassert = 'has(title)'\n\
-             [[tasks.rules]]\nassert = 'has(title)'\n\
-             [[tasks.body.content.rules]]\nname = \"as-is\"\npath = [\"AS-IS\"]\nassert = \"non-empty\"\n\
-             [[commits.rules]]\nname = \"names-a-task\"\nassert = 'has(refs)'\n\
-             [[on.flip]]\nname = \"review-stale-task-before-starting\"\nwhen = 'into(\"wip\")'\n\
-             actions = [{ list = \"@wip\", message = \"already in flight\" }, \
-             { run = \"echo hi\", message = \"and this one too\" }]\n\
-             [[tasks.collectors]]\nname = \"changes\"\nreturns = [\"path\"]\n\
-             query = { section = \"Changes\", pattern = \"`([^`]+)`\" }\n\
-             [views.default]\nfilter = \"\"\n\
-             [views.blocked]\nfilter = \"blocked\"\n\
-             [dicts.source]\nvalues = [\"a\", \"b\"]\n",
-        )
-        .unwrap()
-    }
-
-    #[test]
-    fn groups_rules_by_section_and_drops_a_section_with_none() {
-        let index = collect(&config());
-        let sections: Vec<&str> = index.rules.iter().map(|(s, _)| s.path()).collect();
-        assert_eq!(
-            sections,
-            [
-                "tasks.rules",
-                "tasks.body.content.rules",
-                "commits.rules",
-                "on.flip"
-            ]
-        );
-        assert_eq!(index.rules[0].1, ["verb-title", "[1]"]);
-        assert_eq!(index.rules[3].1, ["review-stale-task-before-starting"]);
-    }
-
-    #[test]
-    fn bare_name_drops_the_section_and_an_action_slot() {
-        assert_eq!(
-            bare_name(RuleSection::TasksRules, "tasks.rules.verb-title"),
-            "verb-title"
-        );
-        assert_eq!(bare_name(RuleSection::TasksRules, "tasks.rules[2]"), "[2]");
-        assert_eq!(
-            bare_name(
-                RuleSection::OnFlip,
-                "on.flip.review-stale-task-before-starting.actions[1]"
-            ),
-            "review-stale-task-before-starting"
-        );
-        assert_eq!(
-            bare_name(RuleSection::OnFlip, "on.flip[0].actions[0]"),
-            "[0]"
-        );
-    }
-
-    #[test]
-    fn lists_derived_fields_without_the_prefix() {
-        assert_eq!(collect(&config()).derived, ["changes"]);
-    }
-
-    #[test]
-    fn puts_default_first_and_keeps_the_rest_in_order() {
-        let index = collect(&config());
-        assert_eq!(index.tags, ["default", "cli", "mt"]);
-        assert_eq!(index.views, ["default", "blocked"]);
-        assert_eq!(index.dicts[0].0, "mindtape-dev-verbs");
-        assert!(index.dicts[0].1 > 0);
-        assert_eq!(index.dicts[1].0, "mindtape-verbs");
-        assert_eq!(index.dicts[2], ("source".to_owned(), 2));
-        assert_eq!(
-            default_first(vec!["b", "default", "a"], |s| s),
-            ["default", "b", "a"]
-        );
-    }
-
-    #[test]
-    fn renders_every_group_and_wraps_a_long_list() {
-        let index = Index {
-            rules: vec![(
-                RuleSection::OnFlip,
-                vec!["review-stale-task-before-starting".to_owned()],
-            )],
-            derived: vec!["changes".to_owned()],
-            tags: vec!["cli".to_owned(), "default".to_owned(), "mt".to_owned()],
-            views: vec!["default".to_owned()],
-            dicts: vec![("source".to_owned(), 16)],
-        };
-        let text = render(&index, 24);
-        assert_eq!(
-            text,
-            format!(
-                "\
-rules:
-  on.flip: review-stale-task-before-starting
-derived fields: changes
-tags: cli, default, mt
-views: default
-dicts: source (16)
-
-{NEXT}
-"
-            )
-        );
-    }
-
-    #[test]
-    fn wraps_after_a_comma_when_the_next_entry_passes_the_width() {
-        let index = Index {
-            rules: Vec::new(),
-            derived: Vec::new(),
-            tags: vec!["alpha".to_owned(), "beta".to_owned(), "gamma".to_owned()],
-            views: Vec::new(),
-            dicts: Vec::new(),
-        };
-        assert_eq!(
-            render(&index, 18),
-            format!(
-                "\
-rules: none
-derived fields: none
-tags: alpha, beta,
-  gamma
-views: none
-dicts: none
-
-{NEXT}
-"
-            )
-        );
-    }
-
-    #[test]
-    fn the_index_ends_on_the_command_to_run_next() {
-        let text = render(&collect(&config()), 100);
-        assert!(text.ends_with(&format!("\n{NEXT}\n")), "{text}");
-    }
-
-    #[test]
-    fn json_carries_the_same_grouping() {
-        let value = serde_json::to_value(document(&collect(&config()))).unwrap();
-        mindtape::test_support::assert_schema(&value, "explain");
-        assert_eq!(
-            value["rules"]["tasks.rules"],
-            serde_json::json!(["verb-title", "[1]"])
-        );
-        assert_eq!(value["derived"], serde_json::json!(["changes"]));
-        assert_eq!(value["tags"], serde_json::json!(["default", "cli", "mt"]));
-        assert_eq!(value["views"], serde_json::json!(["default", "blocked"]));
-        assert_eq!(value["dicts"]["source"], 2);
-    }
-}
+#[path = "index_tests.rs"]
+mod tests;

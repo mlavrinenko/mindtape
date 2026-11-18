@@ -38,9 +38,20 @@ use std::collections::BTreeMap;
 /// test fixture bug.
 #[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 pub fn assert_schema(value: &serde_json::Value, name: &str) {
+    assert_schema_at(value, name, 1);
+}
+
+/// [`assert_schema`] for an output whose shape version is past its first.
+///
+/// # Panics
+/// Panics when `value` is not such an object or carries no `$schema` string, a
+/// test fixture bug.
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
+pub fn assert_schema_at(value: &serde_json::Value, name: &str, version: u32) {
     assert_eq!(value.as_object().unwrap().keys().next().unwrap(), "$schema");
     let url = value["$schema"].as_str().unwrap();
-    assert!(url.ends_with(&format!("/{name}/1.schema.json")), "{url}");
+    let suffix = format!("/{name}/{version}.schema.json");
+    assert!(url.ends_with(&suffix), "{url}");
 }
 
 /// Typst source opening with the `@local/mindtape` import line, then

@@ -151,13 +151,21 @@
 
   // ── Explain ─────────────────────────────────────────────────────────────────
   "explain": (
-    prose: [Bare, it prints the project's index: the rules grouped by config
-      section, the derived fields, the tags, views and dictionaries, and each
+    prose: [Bare, it opens on the project's shape. The `project:` block gives
+      the task roots, the status legend split into `open` and `terminal`, the
+      actors and the `[rm]` filter. The `task:` block gives the priority and
+      difficulty scales, the estimate units, the kinds, the link kinds, the
+      comment policy, the `x-` extensions and the templates. The `commits:`
+      block gives the trailer. `absent:` names each key the project leaves
+      open, once. Under the shape it prints the rules grouped by config
+      section,
+      the derived fields, the tags, views and dictionaries, and each
       dictionary's entry count. `default` leads the view and tag lists when the
-      project declares it. `--json` leads with `$schema`: the rules, tags and
-      index keep their keys, and views and dicts sit under `views` and
-      `dicts`. A blank line separates the index from a `next:` line naming the
-      optional category and JSON flag:
+      project declares it. `--json` leads with `$schema`: the shape sits under
+      `project`, `task` and `commits`, the keys it leaves out under `absent`,
+      and the listings under `rules`, `derived`, `tags`, `views` and `dicts`.
+      A blank line separates the index from a `next:` line naming the optional
+      category and JSON flag:
       `mt explain [<add|rules|tags|views|dicts>] [--json]`.],
     outputs: ("explain",),
   ),

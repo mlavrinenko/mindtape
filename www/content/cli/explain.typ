@@ -3,19 +3,34 @@
 
 #show: cli-page.with("explain")
 
-`mt explain` answers what this project enforces. Bare, it prints an index:
-every rule grouped by its config section, the derived fields, and the tags,
-views and dictionaries the project declares. A dictionary shows its entry
-count, and `default` comes first in the view and tag lists when it exists. A blank line
-separates the index from a `next:` line naming the optional category and the
-JSON flag: `mt explain [<add|rules|tags|views|dicts>] [--json]`.
+`mt explain` answers what this project is and what it enforces. Bare, it opens
+on the project's shape, in three blocks. The `project:` block lists the task
+roots with the tag each emits, the status legend split into `open` and
+`terminal`, the actors with their kind and roles, and the `[rm] default-filter`.
+The `task:` block lists the priority scale and the framework that scores it,
+the difficulty scale, the estimate units, the `kind` values and the link kinds.
+It also lists the `[tasks.comments] policy`, the `x-` extensions with the rule
+that reads each, and the templates with the one `mt add` picks. The `commits:`
+block lists the trailer.
+
+The index drops a key the project leaves open, and names it once in `absent:`,
+so `absent: none` says the project constrains every one. Every line reads the
+config alone. The index doesn't load a task, count anything or evaluate a
+filter.
+
+Under the shape, the index prints every rule grouped by its config section, the
+derived fields, and the tags, views and dictionaries the project declares. A
+dictionary shows its entry count, and `default` comes first in the view and tag
+lists when it exists. A blank line separates the index from a `next:` line
+naming the optional category and the JSON flag: `mt explain [<add|rules|tags|views|dicts>] [--json]`.
 
 #cli-command("explain")
 
 `--json` prints the index as one object whose first key is `$schema`, the URL
-of the schema for that object. It keeps the fields each listing printed under
-its old command. Views and dicts sit under `views` and `dicts`. The sections
-below say what they contain.
+of the schema for that object. The shape sits under `project`, `task` and
+`commits`, the keys it leaves out under `absent`, and the listings under
+`rules`, `derived`, `tags`, `views` and `dicts`. The sections below say what
+they contain.
 
 = Add hooks
 

@@ -96,6 +96,33 @@ fn json(dir: &std::path::Path, args: &[&str]) -> serde_json::Value {
     serde_json::from_str(&stdout(dir, args)).unwrap()
 }
 
+/// The bare index opens on the project's shape. It carries the roots with
+/// their tags, the legend split by `terminal`, the `rm` filter, the scales,
+/// the vocabularies and the commit trailer. `absent` names each key the config
+/// leaves open.
+#[test]
+fn bare_opens_on_the_projects_shape() {
+    let dir = project();
+    let text = stdout(dir.path(), &["explain"]);
+    let expected = "project:
+  roots: tasks (tag: tasks)
+  statuses:
+    open: proposed, accepted, wip
+    terminal: done, cancelled, failed
+  rm: terminal only
+task:
+  priority: 0-9
+  difficulty: 0-9
+  links: depends-on, parent, recurred-from, supersedes, duplicates, related
+  templates: task (default: task)
+commits:
+  trailer: Refs
+absent: actors, estimate, kinds, comments, extensions
+rules:
+";
+    assert!(text.starts_with(expected), "{text}");
+}
+
 /// The bare index lists every listing, grouped, and puts `default` first in
 /// the view list although the config declares it last.
 #[test]
@@ -142,7 +169,7 @@ fn bare_ends_on_the_next_command() {
 fn json_index_groups_and_listings_keep_their_keys() {
     let dir = project();
     let index = json(dir.path(), &["explain", "--json"]);
-    mindtape::test_support::assert_schema(&index, "explain");
+    mindtape::test_support::assert_schema_at(&index, "explain", 2);
     assert_eq!(
         index["rules"]["tasks.rules"],
         serde_json::json!(["verb-title", "[1]"])
@@ -152,6 +179,19 @@ fn json_index_groups_and_listings_keep_their_keys() {
     assert_eq!(index["tags"], serde_json::json!(["default", "cli", "mt"]));
     assert_eq!(index["views"], serde_json::json!(["default", "blocked"]));
     assert_eq!(index["dicts"]["source"], 2);
+    assert_eq!(index["project"]["roots"][0]["tag"], "tasks");
+    assert_eq!(index["project"]["statuses"]["terminal"][0], "done");
+    assert_eq!(index["project"]["rm"], "terminal");
+    assert_eq!(
+        index["task"]["priority"]["framework"],
+        serde_json::Value::Null
+    );
+    assert_eq!(index["task"]["templates"]["default"], "task");
+    assert_eq!(index["commits"]["trailer"], "Refs");
+    assert_eq!(
+        index["absent"],
+        serde_json::json!(["actors", "estimate", "kinds", "comments", "extensions"])
+    );
 
     let rules = json(dir.path(), &["explain", "rules", "--json"]);
     mindtape::test_support::assert_schema(&rules, "rules");

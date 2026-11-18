@@ -8,6 +8,7 @@
 
 use std::collections::BTreeMap;
 
+use mindtape::explain::{CommitsShape, ProjectShape, TaskShape};
 use mindtape::{ActiveRule, DerivedField};
 use serde::Serialize;
 
@@ -117,6 +118,14 @@ pub struct PresetJson {
 /// The document `mt explain --json` prints.
 #[derive(Debug, Clone, Serialize, schemars::JsonSchema)]
 pub struct ExplainIndexPayload {
+    /// The `project:` block: where tasks live, and who works them.
+    pub project: ProjectShape,
+    /// The `task:` block: the fields a task carries.
+    pub task: TaskShape,
+    /// The `commits:` block: how a commit references its task.
+    pub commits: CommitsShape,
+    /// The keys the blocks leave out, because the project leaves them open.
+    pub absent: Vec<String>,
     /// Each config section's rule names, by section path.
     pub rules: BTreeMap<String, Vec<String>>,
     /// Every derived field's name, without the `derived.` prefix.

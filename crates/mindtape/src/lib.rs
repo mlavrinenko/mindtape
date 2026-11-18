@@ -24,6 +24,7 @@ mod date;
 pub mod emit;
 pub mod error_text;
 pub mod estimate_queries;
+pub mod explain;
 pub mod filter;
 pub mod format;
 pub mod framework;

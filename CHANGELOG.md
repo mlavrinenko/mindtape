@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt explain` opens on the project's shape.** Bare, it prints a `project:`
+  block (the task roots, the status legend split into `open` and `terminal`,
+  the actors, the `[rm]` filter), a `task:` block (the priority and difficulty
+  scales, the estimate units, the kinds, the link kinds, the comment policy,
+  the `x-` extensions and the templates) and a `commits:` block (the trailer),
+  plus an `absent:` line naming each key the project leaves open. Every line
+  reads the config alone, so the index loads no task. `--json` carries the same
+  blocks, and `schema/output/explain/2.schema.json` records them.
 - **`mt explain templates` lists every template `mt add` accepts.** One line
   each gives the template's name, the `kind` it sets, its slot count and
   `default` on the one `mt add` picks. The `kind` column reads `any` for a
