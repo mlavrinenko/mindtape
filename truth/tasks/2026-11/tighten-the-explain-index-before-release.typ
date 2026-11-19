@@ -54,9 +54,10 @@ rules:
 == TO-BE
 
 - 🟢 Each priority input carries what it accepts, and the score's scale follows an arrow.
+- 🟢 Each block carries the rules that check it, so no rule appears twice.
 - 🟢 A section prints one line per severity it holds, `error` before `warn`.
 - 🟢 A wrapped list continues under its label, indented past it.
-- 🟢 The `[rm] default-filter` prints as `rm filter:`.
+- 🟢 A key the project leaves open prints what its absence permits: `any`, `none`, or the policy word.
 - 🟢 The index ends on a `more:` line naming the listings that go deeper.
 
 ```text
@@ -64,15 +65,22 @@ $ mt explain
 project:
   roots: truth/tasks (tag: mt)
   ...
-  rm filter: terminal
 task:
   priority: ice (confidence 0-1, ease 1-10, impact 1-10) -> 0-9
   ...
-rules:
-  tasks.rules (error): tag-task-stateful-or-stateless, start-title-with-verb,
+  rules (error): tag-task-stateful-or-stateless, start-title-with-verb,
     keep-one-milestone-in-progress, keep-one-task-in-progress,
-  tasks.rules (warn): keep-work-inside-changes-plan
-  ...
+  rules (warn): keep-work-inside-changes-plan
+  body.headers (error): allow-only-declared-sections, ...
+commits:
+  trailer: Refs
+  rules (error): name-task-in-refs-trailer, ...
+add:
+  hooks: file-by-month, sweeps
+flip:
+  hooks (error): review-stale-task-before-starting, close-only-on-fresh-gate
+rm:
+  filter: terminal
 
 more: mt explain <add|rules|tags|views|dicts|templates>
 ```
@@ -80,13 +88,13 @@ more: mt explain <add|rules|tags|views|dicts|templates>
 == Changes
 
 - `crates/mindtape/src/explain.rs`: `PriorityShape.inputs` carries an `InputShape` per input, with its `kind`, `min`, `max` and `values`.
-- `crates/mindtape-cli/src/cmd/explain/index.rs`: the severity split, the input line, the derived continuation, the `rm filter:` label and the `more:` line.
+- `crates/mindtape-cli/src/cmd/explain/index.rs`: the per-block rules, the severity split, the input line, the derived continuation, the inline consequences and the `more:` line.
 - `crates/mindtape-cli/src/cmd/explain/index_tests.rs`: the red tests first, one per shape.
 - `crates/mindtape-cli/src/diag/mod.rs`: `more_line`, beside `next_line`.
-- `crates/mindtape-cli/src/render/objects.rs`: `rules` nests a severity map under each section.
-- `crates/mindtape-cli/src/cmd/schema/registry.rs`: `explain` moves to version 3.
-- `schema/output/explain/3.schema.json`: the new shape, beside versions 1 and 2.
-- `www/content/cli/explain.typ`: the shape, the severity split and the `more:` line.
+- `crates/mindtape-cli/src/render/objects.rs`: `rules` nests a severity map under each section, and `add` carries the hook names.
+- `crates/mindtape-cli/src/cmd/schema/registry.rs`: `explain` moves to version 4.
+- `schema/output/explain/4.schema.json`: the new shape, beside the earlier versions.
+- `www/content/cli/explain.typ`: the blocks, the severity split and the `more:` line.
 - `CHANGELOG.md`: the entry under `[Unreleased]`.
 
 == Alternatives
@@ -96,11 +104,12 @@ more: mt explain <add|rules|tags|views|dicts|templates>
 - `must:` and `should:` for the severities: a third vocabulary beside the `error` and `warn` that `mt explain rules` and `mt check` print.
 - A nested `rules: {section: {severity: [...]}}` in the text: three lines per section where the inline label takes two.
 - `next:` kept: the command already answered. The line offers detail rather than a way out.
+- `kinds: any kind` and `actors: any actors`: the noun repeats the key. `any` alone says it, and `none` covers an empty registry.
 
 == Out of scope
 
-- Regrouping the rules by command. `tasks.rules` runs at add and flip, and a moment grouping repeats it.
-- What each absent key permits. `say-what-an-absent-key-leaves-open` owns it.
+- Grouping the rules by the moment they run. `tasks.rules` runs at add and flip, and a moment grouping repeats it. The block each rule lives in is the one axis where it appears once.
+- The `absent` key in the JSON. It stays, and a consumer reads the explicit list.
 - The `absent:` line itself. `omit-the-absent-line-when-nothing-is-absent` owns it.
 
 == Dogfood

@@ -130,6 +130,8 @@ pub struct ExplainIndexPayload {
     pub refusals: Vec<RefusalJson>,
     /// Each config section's rule names, by severity, strictest first.
     pub rules: BTreeMap<String, BTreeMap<String, Vec<String>>>,
+    /// Each `[[on.add]]` hook's name, in the order `mt add` runs them.
+    pub add: Vec<String>,
     /// Every derived field's name, without the `derived.` prefix.
     pub derived: Vec<String>,
     /// The allowed tags, `default` first.

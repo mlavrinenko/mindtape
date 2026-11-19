@@ -8,7 +8,8 @@ use mindtape::test_support::write_file;
 use mindtape::explain::InputShape;
 use mindtape::{RuleSection, Severity};
 
-use super::{bare_name, collect, default_first, document, input_line, list_line, render};
+use super::render::{input_line, list_line, render};
+use super::{Index, bare_name, collect, default_first, document};
 
 const MORE: &str = "more: mt explain <add|rules|tags|views|dicts|templates>";
 
@@ -40,11 +41,20 @@ fn config() -> mindtape::Config {
          { show = \"hi\", message = \"and this one too\" }]\n\
          [[tasks.collectors]]\nname = \"changes\"\nreturns = [\"path\"]\n\
          query = { section = \"Changes\", pattern = \"`([^`]+)`\" }\n\
+         [[on.add]]\nname = \"file-by-month\"\nwhen = '!has_tag(\"swept\")'\n\
+         actions = [{ dir = \"tasks/{date:YYYY}-{date:MM}\" }]\n\
          [views.default]\nfilter = \"\"\n\
          [views.blocked]\nfilter = \"blocked\"\n\
          [dicts.source]\nvalues = [\"a\", \"b\"]\n",
     )
     .unwrap()
+}
+
+/// The index for `config`, read against an empty project directory.
+fn index_of(config: &str) -> Index {
+    let dir = tempfile::tempdir().unwrap();
+    let config = parse_config(config).unwrap();
+    collect(&config, &[], dir.path())
 }
 
 /// [`config`] with a root holding one template beside the built-in `task`.
@@ -57,7 +67,7 @@ fn project() -> (tempfile::TempDir, mindtape::Config) {
 #[test]
 fn groups_rules_by_section_and_drops_a_section_with_none() {
     let (dir, config) = project();
-    let index = collect(&config, dir.path());
+    let index = collect(&config, &[], dir.path());
     let sections: Vec<&str> = index.rules.iter().map(|(s, _)| s.path()).collect();
     assert_eq!(
         sections,
@@ -107,13 +117,13 @@ fn bare_name_drops_the_section_and_an_action_slot() {
 #[test]
 fn lists_derived_fields_without_the_prefix() {
     let (dir, config) = project();
-    assert_eq!(collect(&config, dir.path()).derived, ["changes"]);
+    assert_eq!(collect(&config, &[], dir.path()).derived, ["changes"]);
 }
 
 #[test]
 fn puts_default_first_and_keeps_the_rest_in_order() {
     let (dir, config) = project();
-    let index = collect(&config, dir.path());
+    let index = collect(&config, &[], dir.path());
     assert_eq!(index.tags, ["default", "cli", "mt"]);
     assert_eq!(index.views, ["default", "blocked"]);
     assert_eq!(index.dicts[0].0, "mindtape-dev-verbs");
@@ -128,20 +138,20 @@ fn puts_default_first_and_keeps_the_rest_in_order() {
 
 /// The shape blocks lead the index, and every line is a config value. The
 /// `project:` block carries the roots with their tags, the legend split by
-/// `terminal`, the actors with their kind and roles, and the `rm` filter. The
-/// `task:` block carries the scales, the vocabularies, the extension with the
-/// rule that reads it, and the templates with the default.
+/// `terminal`, and the actors with their kind and roles. The `task:` block
+/// carries the scales, the vocabularies, the extension with the rule that reads
+/// it, the templates with the default, and the rules that check a task. The
+/// `commits:`, `flip:` and `rm:` blocks carry their own.
 #[test]
 fn renders_the_shape_blocks_before_the_listings() {
     let (dir, config) = project();
-    let text = render(&collect(&config, dir.path()), 100);
+    let text = render(&collect(&config, &[], dir.path()), 100);
     let expected = "project:
   roots: tasks (tag: tasks)
   statuses:
     open: proposed, wip
     terminal: done
   actors: max (human, maintainer), agent (llm)
-  rm filter: terminal
 task:
   priority: ice (confidence 0-1, ease 1-10, impact 1-10) -> 0-9
   difficulty: 0-9
@@ -151,11 +161,18 @@ task:
   comments: forbidden
   extensions: x-goals (goals)
   templates: decision, task (default: task)
+  rules (error): verb-title
+  rules (warn): [1], goals
+  body.content (error): as-is
 commits:
   trailer: Refs
-rules:
-  tasks.rules (error): verb-title
-  tasks.rules (warn): [1], goals
+  rules (warn): names-a-task
+add:
+  hooks: file-by-month
+flip:
+  hooks (warn): review-stale-task-before-starting
+rm:
+  filter: terminal
 ";
     assert!(text.starts_with(expected), "{text}");
 }
@@ -165,21 +182,23 @@ rules:
 #[test]
 fn a_project_that_constrains_every_key_prints_no_absent_line() {
     let (dir, config) = project();
-    let index = collect(&config, dir.path());
+    let index = collect(&config, &[], dir.path());
     assert!(index.shape.absent.is_empty());
     let text = render(&index, 100);
     assert!(!text.contains("absent"), "{text}");
     let value = serde_json::to_value(document(&index)).unwrap();
     assert_eq!(value["absent"], serde_json::json!([]));
+    assert_eq!(value["add"], serde_json::json!(["file-by-month"]));
 }
 
-/// A key the project leaves open stays out of its block, and `absent` names it
-/// once. The reader then sees what the defaults fill in.
+/// A key the project leaves open prints what its absence permits: `any` for a
+/// free vocabulary, `none` for an empty registry, and the policy word for
+/// comments. The JSON keeps the explicit list under `absent`.
 #[test]
-fn a_project_that_leaves_keys_open_names_them_in_absent() {
+fn a_project_that_leaves_keys_open_prints_what_each_absence_permits() {
     let config = parse_config("[tasks]\nroots = [\"tasks\"]\nstatus = []\n").unwrap();
     let dir = tempfile::tempdir().unwrap();
-    let index = collect(&config, dir.path());
+    let index = collect(&config, &[], dir.path());
     assert_eq!(
         index.shape.absent,
         [
@@ -192,19 +211,17 @@ fn a_project_that_leaves_keys_open_names_them_in_absent() {
         ]
     );
     let text = render(&index, 100);
-    assert!(
-        text.contains("absent: statuses, actors, estimate, kinds, comments, extensions\n"),
-        "{text}"
-    );
-    for key in [
-        "  statuses:",
-        "  actors:",
-        "  estimate:",
-        "  kinds:",
-        "  extensions:",
+    for line in [
+        "  statuses: any\n",
+        "  actors: none\n",
+        "  estimate: any\n",
+        "  kinds: any\n",
+        "  comments: allowed\n",
+        "  extensions: none\n",
     ] {
-        assert!(!text.contains(key), "{key} in:\n{text}");
+        assert!(text.contains(line), "missing {line:?} in:\n{text}");
     }
+    assert!(!text.contains("absent"), "{text}");
 }
 
 /// An `x-` field a `check` rule reads is an extension even when
@@ -220,7 +237,7 @@ fn extensions_name_the_x_fields_and_the_rules_that_read_them() {
     )
     .unwrap();
     let dir = tempfile::tempdir().unwrap();
-    let extensions = collect(&config, dir.path()).shape.task.extensions;
+    let extensions = collect(&config, &[], dir.path()).shape.task.extensions;
     let names: Vec<(&str, Vec<&str>)> = extensions
         .iter()
         .map(|extension| {
@@ -253,7 +270,7 @@ fn prints_a_framework_with_no_inputs_and_the_open_forms() {
     )
     .unwrap();
     let dir = tempfile::tempdir().unwrap();
-    let text = render(&collect(&config, dir.path()), 100);
+    let text = render(&collect(&config, &[], dir.path()), 100);
     for line in [
         "  priority: flat\n",
         "  estimate: days (required: !terminal)\n",
@@ -264,8 +281,22 @@ fn prints_a_framework_with_no_inputs_and_the_open_forms() {
     }
 
     let required = parse_config("[tasks.estimate]\nunits = [\"days\"]\nrequired = true\n").unwrap();
-    let text = render(&collect(&required, dir.path()), 100);
+    let text = render(&collect(&required, &[], dir.path()), 100);
     assert!(text.contains("  estimate: days (required)\n"), "{text}");
+}
+
+/// An unnamed add hook prints its `on.add[<index>]` label. The index still
+/// names it.
+#[test]
+fn an_unnamed_add_hook_prints_its_index() {
+    let index = index_of(
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[on.add]]\nwhen = '!has_tag(\"swept\")'\n\
+         actions = [{ dir = \"tasks/swept\" }]\n",
+    );
+    assert_eq!(index.add, ["[0]"]);
+    let text = render(&index, 100);
+    assert!(text.contains("add:\n  hooks: [0]\n"), "{text}");
 }
 
 /// A framework's inputs print what each accepts: a number its own range, a
@@ -290,7 +321,7 @@ fn prints_each_framework_input_with_what_it_accepts() {
     ] {
         let config =
             parse_config(&format!("[tasks.priority]\nframework = \"{framework}\"\n")).unwrap();
-        let text = render(&collect(&config, dir.path()), 100);
+        let text = render(&collect(&config, &[], dir.path()), 100);
         assert!(text.contains(expected), "missing {expected:?} in:\n{text}");
     }
 }
@@ -322,7 +353,7 @@ fn refusals_lists_the_gates_the_user_has_not_allowed() {
     )
     .unwrap();
     let dir = tempfile::tempdir().unwrap();
-    let text = render(&collect(&config, dir.path()), 100);
+    let text = render(&collect(&config, &[], dir.path()), 100);
     assert!(text.contains("refusals:\n"), "{text}");
     assert!(
         text.contains(
@@ -335,7 +366,7 @@ fn refusals_lists_the_gates_the_user_has_not_allowed() {
         "{text}"
     );
 
-    let value = serde_json::to_value(document(&collect(&config, dir.path()))).unwrap();
+    let value = serde_json::to_value(document(&collect(&config, &[], dir.path()))).unwrap();
     assert_eq!(
         value["refusals"],
         serde_json::json!([
@@ -355,15 +386,15 @@ fn wraps_after_a_comma_when_the_next_entry_passes_the_width() {
 #[test]
 fn the_index_ends_on_the_listings_that_go_deeper() {
     let (dir, config) = project();
-    let text = render(&collect(&config, dir.path()), 100);
+    let text = render(&collect(&config, &[], dir.path()), 100);
     assert!(text.ends_with(&format!("\n{MORE}\n")), "{text}");
 }
 
 #[test]
 fn json_carries_the_same_shape_and_grouping() {
     let (dir, config) = project();
-    let value = serde_json::to_value(document(&collect(&config, dir.path()))).unwrap();
-    mindtape::test_support::assert_schema_at(&value, "explain", 3);
+    let value = serde_json::to_value(document(&collect(&config, &[], dir.path()))).unwrap();
+    mindtape::test_support::assert_schema_at(&value, "explain", 4);
     assert_eq!(
         value["project"],
         serde_json::json!({
@@ -402,6 +433,7 @@ fn json_carries_the_same_shape_and_grouping() {
     );
     assert_eq!(value["commits"], serde_json::json!({"trailer": "Refs"}));
     assert_eq!(value["absent"], serde_json::json!([]));
+    assert_eq!(value["add"], serde_json::json!(["file-by-month"]));
     assert_eq!(
         value["rules"],
         serde_json::json!({

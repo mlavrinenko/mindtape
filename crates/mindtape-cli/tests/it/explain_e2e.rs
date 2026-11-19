@@ -93,12 +93,13 @@ fn bare_lists_every_listing_grouped() {
     let dir = project();
     let text = stdout(dir.path(), &["explain"]);
     for part in [
-        "rules:\n",
-        "  tasks.rules (error): verb-title\n",
-        "  tasks.rules (warn): [1]\n",
-        "  tasks.body.headers.rules (error): one-problem\n",
-        "  commits.rules (warn): names-a-task\n",
-        "  on.flip (error): [0]\n",
+        "task:\n",
+        "  rules (error): verb-title\n",
+        "  rules (warn): [1]\n",
+        "  body.headers (error): one-problem\n",
+        "commits:\n  trailer: Refs\n  rules (warn): names-a-task\n",
+        "flip:\n  hooks (error): [0]\n",
+        "rm:\n  filter: terminal\n",
         "derived fields: changes\n",
         "tags: default, cli, mt\n",
         "views: default, blocked\n",
@@ -108,7 +109,7 @@ fn bare_lists_every_listing_grouped() {
         assert!(text.contains(part), "missing {part:?} in:\n{text}");
     }
     assert!(
-        !text.contains("tasks.body.content.rules:"),
+        !text.contains("body.content"),
         "a section with no rule is dropped:\n{text}"
     );
 }
@@ -133,7 +134,7 @@ fn bare_ends_on_the_listings_that_go_deeper() {
 fn json_index_groups_and_listings_keep_their_keys() {
     let dir = project();
     let index = json(dir.path(), &["explain", "--json"]);
-    mindtape::test_support::assert_schema_at(&index, "explain", 3);
+    mindtape::test_support::assert_schema_at(&index, "explain", 4);
     assert_eq!(
         index["rules"]["tasks.rules"],
         serde_json::json!({"error": ["verb-title"], "warn": ["[1]"]})

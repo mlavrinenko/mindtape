@@ -18,16 +18,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `[rm] strategy` stay the command's own config.
 - **`mt explain` opens on the project's shape.** Bare, it prints a `project:`
   block (the task roots, the status legend split into `open` and `terminal`,
-  the actors, the `[rm]` filter as `rm filter:`), a `task:` block (the priority
-  framework with each input's own bounds and the scale its score lands on, the
-  difficulty scale, the estimate units, the kinds, the link kinds, the comment
-  policy, the `x-` extensions and the templates) and a `commits:` block (the
-  trailer), plus an `absent:` line naming each key the project leaves open,
-  which a project that constrains every key does not print. Every line reads
-  the config alone, so the index loads no task. The rules split by severity,
-  `error` before `warn`, and the index ends on a `more:` line naming the
-  listings that go deeper. `--json` carries the same blocks, and
-  `schema/output/explain/3.schema.json` records them.
+  the actors), a `task:` block (the priority framework with each input's own
+  bounds and the scale its score lands on, the difficulty scale, the estimate
+  units, the kinds, the link kinds, the comment policy, the `x-` extensions and
+  the templates) and a `commits:` block (the trailer). Each block carries the
+  rules that check it: `task:` holds `rules`, `body.headers` and `body.content`,
+  `commits:` holds `rules`, and `add:`, `flip:` and `rm:` hold the hooks each
+  command runs. `rm:` also holds the `[rm]` filter as `filter:`. A section
+  splits by severity, `error` before `warn`, and a key the project leaves open
+  prints what its absence permits: `any`, `none`, or the policy word. Every
+  line reads the config alone, so the index loads no task. The index ends on a
+  `more:` line naming the listings that go deeper. `--json` carries the same
+  blocks, and `schema/output/explain/4.schema.json` records them.
 - **`mt explain` names the gates the user has not allowed.** A `refusals:`
   block lists each `[[tasks.waits]]` checker and each `[[on.flip]]` `run` that
   `mt allow` has not recorded, with the command that records it. A project with

@@ -33,15 +33,15 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 19),
+  status: done(2026, 11, 19),
 )
 
 == AS-IS
 
-+ Reviewing the bare `mt explain` index while removing its `absent: none` line
-+ 🔴 #raw("crates/mindtape-cli/src/cmd/explain/index.rs"): `absent:` lists the keys a project leaves open without saying what each absence permits, while `tags: any` states the consequence inline
++ Run `mt explain` in `examples/minimal`.
++ 🔴 The index lists each key the project leaves open without saying what its absence permits, while `tags: any` states the consequence inline.
 
-```
+```text
 $ cd examples/minimal && mt explain
 ...
 commits:
@@ -52,33 +52,44 @@ derived fields: none
 tags: any
 ```
 
-`tags: any` says what an empty `[tasks.tags] allowed` permits. `absent: kinds` says only that the key is unset, so a reader has to open `www/content/config.typ` to learn that any kind is legal.
+`tags: any` says what an empty `[tasks.tags] allowed` permits. `absent: kinds` says only that the key is unset, so a reader has to open `www/content/config.typ` to learn that any kind is legal. The index carries two vocabularies for "unset", and only one of them states the consequence.
 
 == TO-BE
 
-- 🟢 Each absent key carries what its absence permits, as `tags: any` already does.
-- 🟢 An unset `kinds` accepts any kind, and the index says so.
+- 🟢 Each open key prints in its own block, with what its absence permits.
+- 🟢 `any` for a free vocabulary, `none` for an empty registry, and the policy word for comments.
+- 🟢 `any` reads as the key's own domain, and `kinds: any` already says kind.
+- 🟢 `absent:` leaves the text. The JSON keeps the array.
 
 ```text
 $ cd examples/minimal && mt explain
-...
-commits:
-  trailer: Refs
-absent: actors (none declared), estimate (any unit), kinds (any kind),
-  comments (allowed), extensions (none)
+project:
+  ...
+  actors: none
+task:
+  ...
+  estimate: any
+  kinds: any
+  comments: allowed
+  extensions: none
+  ...
+tags: any
 ```
+
+A second `absent:` block carrying `kinds (any kind)` would repeat the key in the noun, and `any kind` says kind twice.
 
 == Changes
 
-- `crates/mindtape/src/explain.rs`: pair each absent key with the consequence its default carries.
-- `crates/mindtape-cli/src/cmd/explain/index.rs`: print the pair.
-- `www/content/cli/explain.typ`: the parenthetical each absent key carries.
+- `crates/mindtape-cli/src/cmd/explain/index/render.rs`: print each open key in its block with its consequence, and drop the `absent:` line.
+- `crates/mindtape-cli/src/cmd/explain/index_tests.rs`: a project that leaves every key open prints `statuses: any`, `actors: none`, `estimate: any`, `kinds: any`, `comments: allowed` and `extensions: none`.
+- `www/content/cli/explain.typ`: the inline consequence each open key carries.
+- `CHANGELOG.md`: the entry under `[Unreleased]`.
 
 == Out of scope
 
-- The JSON. `absent` stays a list of key names. A consumer keeps reading the same array.
+- The JSON. `absent` stays a list of key names, empty when nothing is open.
 - The `refusals:` block. It already states its consequence.
 
 == Dogfood
 
-This repo constrains every key, so it doesn't print an `absent:` line. `examples/minimal` shows the pairs.
+This repo constrains every key, and nothing prints `any`. `examples/minimal` shows the six lines.

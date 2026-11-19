@@ -5,11 +5,15 @@
 //! declares. A listing prints one of them in full, unchanged from the command
 //! it replaces.
 
+use std::path::PathBuf;
+
+use mindtape::{Config, RuleOriginEntry, load_config_layered};
 use serde::Serialize;
 
 use crate::cmd::schema::SchemaId;
 use crate::diag::Result;
 use crate::render::envelope::Envelope;
+use crate::util;
 
 pub(crate) mod add;
 pub(crate) mod dicts;
@@ -74,6 +78,17 @@ pub fn run(args: &ExplainArgs) -> Result<()> {
         Some(Listing::Dicts(dicts)) => dicts::run(dicts, args.json),
         Some(Listing::Templates) => templates::run(args.json),
     }
+}
+
+/// The project root, its merged config and the rule origins, for a listing
+/// that reads all three.
+///
+/// # Errors
+/// Returns an error if the project root does not resolve or its config fails to load.
+pub(crate) fn load() -> Result<(PathBuf, Config, Vec<RuleOriginEntry>)> {
+    let root = util::resolve_root()?;
+    let (config, _, origins) = load_config_layered(&root)?;
+    Ok((root, config, origins))
 }
 
 /// Print one listing: `payload` inside its `$schema` envelope under `--json`,

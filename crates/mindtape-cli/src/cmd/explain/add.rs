@@ -4,7 +4,7 @@
 //! A hook a nearer layer replaced or `disable` dropped is absent, because the
 //! listing reads the same merged config `mt add` does.
 
-use mindtape::{ActiveAddHook, active_add, load_config_layered};
+use mindtape::{ActiveAddHook, active_add};
 use serde::Serialize;
 
 use crate::cmd::add::values::action_summary;
@@ -12,7 +12,6 @@ use crate::cmd::explain::emit;
 use crate::cmd::schema::EXPLAIN_ADD;
 use crate::diag::Result;
 use crate::render::widest;
-use crate::util;
 
 /// The JSON shape of one listed hook.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
@@ -41,8 +40,7 @@ pub struct AddPayload {
 /// # Errors
 /// Returns an error if the project root does not resolve or its config fails to load.
 pub fn run(as_json: bool) -> Result<()> {
-    let root = util::resolve_root()?;
-    let (config, _, origins) = load_config_layered(&root)?;
+    let (_, config, origins) = super::load()?;
     let hooks = active_add(&config, &origins);
     let payload = AddPayload {
         hooks: hooks.iter().map(|hook| hook_json(hook)).collect(),

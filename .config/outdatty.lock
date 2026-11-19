@@ -115,12 +115,11 @@ groups:
       www/content/schema.typ: 2d009ca8a861a81d353ec2dfd1cc6dcdb0f8aec324cbc02219702f6a38c2c8f4
   cli-explain-index-docs:
     source:
-      crates/mindtape-cli/src/cmd/explain/index.rs: 1d82ee747675bdaf81fd4c58626ba6d57592101aa22c99f93483b3c6aafec5da
-      crates/mindtape-cli/src/cmd/explain/mod.rs: a2c801ad581d63c816da6933614d0de533e3ed5b13806822cc9125417faed84b
+      crates/mindtape-cli/src/cmd/explain/mod.rs: 8dea9002f9eecf37f6d68ac76b07ba348da64b2ddc4449a4b69e369fd5619ad6
     dependents:
       docs/src/skill.typ: c979ac413782e44ecf6f0eb8cc2a9eb99f3e81d16e552f1454c80b3d4143fc61
       www/content/agents.typ: e97e63c25a17a0ced65d04db5397a38b602865e31abbc0ebe55a15a99d796881
-      www/content/cli/explain.typ: 8d3f4e0f54819f273717629da58c660c85e145585d09810216ef72292584e99c
+      www/content/cli/explain.typ: 8453b566ac5333fda393ca5a53307d7218e0c6fa48435c1a4b23abdf8be437b8
   cli-find-docs:
     source:
       crates/mindtape-cli/src/cmd/find.rs: 7ea2290ecd946599226764481fc69e7c2a46435d491a30acc8eb6f9a7412b786
@@ -282,12 +281,12 @@ groups:
   cli-schema-docs:
     source:
       crates/mindtape-cli/src/cmd/schema/mod.rs: 4073a73452a8858dc6fe673f2c9d2c49f53c8ec9bb0ab015b04a9bc4e2e31712
-      crates/mindtape-cli/src/cmd/schema/registry.rs: 407a118365b3f25b823f2e0d74cae46ae57f0c463caf5ff1af10ca38be91d4c1
+      crates/mindtape-cli/src/cmd/schema/registry.rs: 9b714381d80fd1b31cb0245cb3a0791a04541975f7601e8054a2a2566733e6da
       crates/mindtape-cli/src/render/envelope.rs: b2e40e62f1b6a3c6718c5f3eee733b07f5c6a3263fa15b09e5b649a5a2037225
     dependents:
       www/content/cli/schema.typ: 785e80631c633b5c2ee687b2f4843b339f20b61d351a932aeb0779dbea7f39d2
       www/content/schema.typ: 2d009ca8a861a81d353ec2dfd1cc6dcdb0f8aec324cbc02219702f6a38c2c8f4
-      www/utils/cli-notes.typ: 74d2ecb074083f3499fb15f85b72af54598c7dd4d2f6922381779a292f35fff9
+      www/utils/cli-notes.typ: bd8fbee20e2a4f33c38f9eb4b22ee2a0ad60c6559d6743d884366d16425be80b
   cli-set-docs:
     source:
       crates/mindtape-cli/src/cmd/set.rs: 793745be2b23361b51c73f902b17bc094e1ebf652e9a366929f1133bc1448eed

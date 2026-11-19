@@ -152,22 +152,24 @@
   // ── Explain ─────────────────────────────────────────────────────────────────
   "explain": (
     prose: [Bare, it opens on the project's shape. The `project:` block gives
-      the task roots, the status legend split into `open` and `terminal`, the
-      actors and the `[rm]` filter as `rm filter:`. The `task:` block gives the
-      priority framework with each input's bounds and the scale its score lands
-      on. It also gives the difficulty scale, the estimate units, the kinds,
-      the link kinds, the comment policy, the `x-` extensions and the
-      templates. The `commits:`
-      block gives the trailer. `absent:` names each key the project leaves
-      open, once. `refusals:` names each gate command the user has not allowed,
-      with the `mt allow` that records the approval. Under the shape it prints
-      the rules grouped by config section and split by severity, `error` before
-      `warn`, the derived fields, the tags, views and dictionaries, and each
-      dictionary's entry count. `default` leads the view and tag lists when the
-      project declares it. `--json` leads with `$schema`: the shape sits under
-      `project`, `task` and `commits`, the keys it leaves out under `absent`,
-      the refused gates under `refusals`, and the listings under `rules`,
-      `derived`, `tags`, `views` and `dicts`.
+      the task roots, the status legend split into `open` and `terminal`, and
+      the actors. The `task:` block gives the priority framework with each
+      input's bounds and the scale its score lands on. It also gives the
+      difficulty scale, the estimate units, the kinds, the link kinds, the
+      comment policy, the `x-` extensions and the templates. Each block carries
+      the rules that check it: `task:` holds `rules`, `body.headers` and
+      `body.content`, `commits:` holds `rules`, and `add:`, `flip:` and `rm:`
+      hold the hooks each command runs. `rm:` also holds the `[rm]` filter as
+      `filter:`. A section prints one line per severity, `error` before `warn`.
+      A key the project leaves open prints what its absence permits: `any`,
+      `none`, or the policy word. `refusals:` names each gate command the user
+      has not allowed, with the `mt allow` that records the approval. Under the
+      blocks it prints the derived fields, the tags, views and dictionaries,
+      and each dictionary's entry count. `default` leads the view and tag lists
+      when the project declares it. `--json` leads with `$schema`: the shape
+      sits under `project`, `task` and `commits`, the keys it leaves out under
+      `absent`, the refused gates under `refusals`, the add hooks under `add`,
+      and the listings under `rules`, `derived`, `tags`, `views` and `dicts`.
       A blank line separates the index from a `more:` line naming the listings
       that go deeper: `mt explain <add|rules|tags|views|dicts|templates>`.],
     outputs: ("explain",),

@@ -23,16 +23,20 @@ fn bare_opens_on_the_projects_shape() {
   statuses:
     open: proposed, accepted, wip
     terminal: done, cancelled, failed
-  rm filter: terminal
+  actors: none
 task:
   priority: 0-9
   difficulty: 0-9
+  estimate: any
+  kinds: any
   links: depends-on, parent, recurred-from, supersedes, duplicates, related
+  comments: allowed
+  extensions: none
   templates: task (default: task)
 commits:
   trailer: Refs
-absent: actors, estimate, kinds, comments, extensions
-rules: none
+rm:
+  filter: terminal
 ";
     assert!(text.starts_with(expected), "{text}");
 }
@@ -51,7 +55,10 @@ fn a_forbidden_on_rm_gate_is_refused_and_listed_for_rm() {
         text.contains("  on.rm: scripts/clean (not allowed; ask the user to run `mt allow`)\n"),
         "{text}"
     );
-    assert!(text.contains("  on.rm (error): clean\n"), "{text}");
+    assert!(
+        text.contains("rm:\n  filter: terminal\n  hooks (error): clean\n"),
+        "{text}"
+    );
 
     let listed = stdout(dir.path(), &["explain", "rules", "--for", "rm"]);
     assert_eq!(listed, "error  on.rm.clean.actions[0]  clean first\n");
