@@ -13,6 +13,7 @@ use super::{Rejected, changed_keys, parse_buffer, rejected_buffer, strip_error_l
 use crate::cmd::add::scaffold::scaffold;
 use crate::cmd::add::scaffold::tests::specs;
 use crate::diag::Diag;
+use crate::pre_write::Problem;
 
 #[test]
 fn parse_back_yields_typed_values() {
@@ -86,10 +87,10 @@ fn changed_keys_counts_a_value_that_differs_from_the_scaffold() {
 
 #[test]
 fn a_rejected_buffer_carries_its_error_above_the_values() {
-    let rejected = Rejected {
-        buffer: "title: \"Sort tasks without a due date last\"\nimpact: five".to_owned(),
-        error: Diag::usage("slot has the wrong type").value("impact"),
-    };
+    let rejected = Rejected::from_error(
+        "title: \"Sort tasks without a due date last\"\nimpact: five".to_owned(),
+        &Diag::usage("slot has the wrong type").value("impact"),
+    );
     assert_eq!(
         rejected_buffer(&rejected),
         "# error: slot has the wrong type: 'impact'\n\
@@ -101,10 +102,10 @@ fn a_rejected_buffer_carries_its_error_above_the_values() {
 #[test]
 fn a_buffer_that_comes_back_twice_carries_one_error() {
     // The editor saved the previous round's error line back with the values.
-    let rejected = Rejected {
-        buffer: "# error: the first refusal\ntitle: \"Kept\"\n".to_owned(),
-        error: Diag::usage("the second refusal"),
-    };
+    let rejected = Rejected::from_error(
+        "# error: the first refusal\ntitle: \"Kept\"\n".to_owned(),
+        &Diag::usage("the second refusal"),
+    );
     assert_eq!(
         rejected_buffer(&rejected),
         "# error: the second refusal\ntitle: \"Kept\"\n"
@@ -112,9 +113,55 @@ fn a_buffer_that_comes_back_twice_carries_one_error() {
 }
 
 #[test]
+fn a_rejected_buffer_carries_every_breach_above_the_values() {
+    let problems = [
+        Problem {
+            line:
+                "<new task from template 'task'>:33: body.content.rules.mark-defect-step-with-red: \
+                   open the step that shows the defect with 🔴"
+                    .to_owned(),
+            detail: Some("section `AS-IS` must match `(?m)^\\s*(\\+|\\d+\\.)\\s+🔴`".to_owned()),
+        },
+        Problem {
+            line:
+                "<new task from template 'task'>:40: body.content.rules.add-fenced-repro-to-as-is: \
+                   quote what it printed"
+                    .to_owned(),
+            detail: None,
+        },
+    ];
+    let rejected = Rejected::from_problems("title: \"Kept\"\n".to_owned(), &problems);
+
+    assert_eq!(
+        rejected_buffer(&rejected),
+        "# error: <new task from template 'task'>:33: \
+         body.content.rules.mark-defect-step-with-red: open the step that shows the defect with 🔴\n\
+         # note: section `AS-IS` must match `(?m)^\\s*(\\+|\\d+\\.)\\s+🔴`\n\
+         # error: <new task from template 'task'>:40: \
+         body.content.rules.add-fenced-repro-to-as-is: quote what it printed\n\
+         title: \"Kept\"\n"
+    );
+}
+
+#[test]
+fn a_blank_refusal_line_stays_a_comment() {
+    let rejected = Rejected {
+        buffer: "title: \"Kept\"\n".to_owned(),
+        lines: vec![String::new()],
+    };
+    assert_eq!(rejected_buffer(&rejected), "#\ntitle: \"Kept\"\n");
+}
+
+#[test]
 fn strip_error_lines_keeps_a_comment_that_is_not_ours() {
     let buffer = "# my own note\n# error: ours\ntitle: \"Kept\"\n";
     assert_eq!(strip_error_lines(buffer), buffer);
+}
+
+#[test]
+fn strip_error_lines_drops_a_whole_refusal_block() {
+    let buffer = "# error: ours\n# note: ours too\n# hint: ours as well\ntitle: \"Kept\"\n";
+    assert_eq!(strip_error_lines(buffer), "title: \"Kept\"\n");
 }
 
 // ── parse_buffer: an explicit null parses to the unset value ──

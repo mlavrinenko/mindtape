@@ -455,7 +455,7 @@ fn routing_fills_an_aliased_slot_by_its_core_name() {
             FieldOp::Set(RawValue::Str("Fix it".to_owned())),
         ),
     ];
-    super::pipeline::route_ops(&mut ops, &aliases);
+    super::seed::route_ops(&mut ops, &aliases);
     let names: Vec<&str> = ops.iter().map(|(name, _)| name.as_str()).collect();
     assert_eq!(names, ["type", "headline"]);
 }

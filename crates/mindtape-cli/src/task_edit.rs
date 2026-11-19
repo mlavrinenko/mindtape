@@ -218,16 +218,10 @@ pub fn verify_candidate(
     source: &str,
     template: &str,
 ) -> Result<bool> {
-    let pending = [Pending { file, source }];
-    let mut verdict = crate::pre_write::check(project, &project.outcome.tasks, &pending)?
-        .into_iter()
-        .next()
-        // One verdict per pending write, and exactly one was asked about.
-        .unwrap_or_else(unchecked_fallback);
+    let verdict = candidate_verdict(project, file, source, template)?;
     if !verdict.checked {
         return Ok(false);
     }
-    name_template(&mut verdict, template);
     let labels = [Location::filled_label(Some(template))];
     // A warning says its piece whether or not the write is refused, and never
     // decides that it is.
@@ -238,6 +232,53 @@ pub fn verify_candidate(
         return Err(diag);
     }
     Err(diag.reading(verdict.reads()))
+}
+
+/// Every problem that refuses a candidate, without printing anything: each
+/// fatal breach as its own line, or the load failure. `None` when the
+/// candidate passes, or when the destination lies outside the project root and
+/// the check never ran.
+///
+/// [`verify_candidate`] reports the last problem and prints the rest, which is
+/// right for a command that stops at the first refusal. The interactive add
+/// loop shows every problem at once. The buffer then carries every breach the
+/// task breaks, not one per round.
+///
+/// # Errors
+/// Returns an error if the project's body rules do not compile.
+pub fn candidate_problems(
+    project: &Project,
+    file: &Path,
+    source: &str,
+    template: &str,
+) -> Result<Option<Vec<crate::pre_write::Problem>>> {
+    let verdict = candidate_verdict(project, file, source, template)?;
+    if !verdict.checked {
+        return Ok(None);
+    }
+    let problems = verdict.problems();
+    Ok((!problems.is_empty()).then_some(problems))
+}
+
+/// The project's answer for one candidate, with `template` named on each place
+/// that is a line of the new task.
+///
+/// # Errors
+/// Returns an error if the project's body rules do not compile.
+fn candidate_verdict(
+    project: &Project,
+    file: &Path,
+    source: &str,
+    template: &str,
+) -> Result<crate::pre_write::Verdict> {
+    let pending = [Pending { file, source }];
+    let mut verdict = crate::pre_write::check(project, &project.outcome.tasks, &pending)?
+        .into_iter()
+        .next()
+        // One verdict per pending write, and exactly one was asked about.
+        .unwrap_or_else(unchecked_fallback);
+    name_template(&mut verdict, template);
+    Ok(verdict)
 }
 
 /// Name `template` on each place in `verdict` that is a line of the new task.

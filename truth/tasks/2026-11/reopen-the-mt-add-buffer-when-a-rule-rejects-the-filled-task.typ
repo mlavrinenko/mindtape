@@ -34,7 +34,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 20),
+  status: done(2026, 11, 20),
 )
 
 == AS-IS
@@ -68,10 +68,13 @@ as-is: |-
 
 == Changes
 
-- `crates/mindtape-cli/src/cmd/add/pipeline.rs`: the loop returns the filled source, and the candidate check runs inside it.
-- `crates/mindtape-cli/src/cmd/add/mod.rs`: `pre_verify` moves into the loop, so a rule breach re-opens instead of parking.
-- `crates/mindtape-cli/src/cmd/add/interactive.rs`: the error comment carries a multi-line breach, one `#` per line.
-- `crates/mindtape-cli/src/cmd/add/pipeline_tests.rs`: the red test first, a buffer whose `AS-IS` has no 🔴 coming back with the breach.
+- `crates/mindtape-cli/src/cmd/add/pipeline.rs`: the loop renders the filled task, runs the candidate check, and stops on an unchanged buffer or the round bound.
+- `crates/mindtape-cli/src/cmd/add/seed.rs`: the value seeding split out of `pipeline.rs`. The render loop then fits the file cap.
+- `crates/mindtape-cli/src/cmd/add/mod.rs`: the candidate check moves into the loop, so a rule breach re-opens instead of parking.
+- `crates/mindtape-cli/src/cmd/add/interactive.rs`: the error comment carries every breach, one `#` per line.
+- `crates/mindtape-cli/src/cmd/add/pipeline_tests.rs`: the red test first, a buffer whose `AS-IS` has no 🔴 coming back with the breach. Also the unchanged-buffer and round-bound stops.
+- `crates/mindtape-cli/tests/it/add_edit_rule_e2e.rs`: the same loop end to end, under a pseudo-terminal.
+- `crates/mindtape-cli/src/task_edit.rs`: `candidate_problems` returns every fatal breach without printing, for the loop.
 - `www/content/templates.typ`, `CHANGELOG.md`: the loop covers a rule breach.
 
 == Out of scope

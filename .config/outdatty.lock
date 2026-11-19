@@ -46,7 +46,7 @@ groups:
       www/content/wait-on-upstream.typ: 7ca6183faaa31d78c2885276ac4c27ad15dba8336a59e4d74c122cd41e6f0d8e
   cli-add-docs:
     source:
-      crates/mindtape-cli/src/cmd/add/mod.rs: 2a170d9777dc9a93f794b09fe5237c1b554f039ff5eef09280dbd30f9d5662ad
+      crates/mindtape-cli/src/cmd/add/mod.rs: 1a1f8e9323fdaa84d4eeab4ecfb4873370cd33e0e0fae51cc17510dbea31d726
     dependents:
       docs/src/skill.typ: c979ac413782e44ecf6f0eb8cc2a9eb99f3e81d16e552f1454c80b3d4143fc61
       skills/mindtape/evals/README.md: 8be464ec631e0c2a77b593c0434f49da536365d324143646597590db27ff4888
@@ -55,7 +55,7 @@ groups:
       www/content/agents.typ: e97e63c25a17a0ced65d04db5397a38b602865e31abbc0ebe55a15a99d796881
       www/content/config.typ: fb94bd07a459e7bba60150b341086016e501ad44e06abc5bbc781c8474297ada
       www/content/quickstart.typ: b76d49b8880baa90d19717c5ff230ba51838948a622cc5e06e8bec7ded6f4786
-      www/content/templates.typ: bfd134561e1e70149534091bfe649d6a227ad0590039d68fe3dd162ea2760430
+      www/content/templates.typ: 75c691648e9d6b106c64a3525181bfc631735a4dad44298311fb811041566eda
       www/utils/cli-notes.typ: cee6a5cf8731161effaf896f336af33f687b1eb3a37308ac4e74b96d1dcd9068
   cli-allow-docs:
     source:

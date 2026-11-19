@@ -5,19 +5,23 @@
 //! non-slot field needs a draft task the hook's `when` can read. So the
 //! pipeline fills the explicit slot values first, stamps status and id once,
 //! and leaves the rest of the slots as `slot(...)` calls until the final fill.
+//!
+//! An interactive add renders inside a loop. A rule that refuses the filled
+//! task re-opens the buffer with every breach above the values. The answers
+//! survive a rejection the same way they survive a typo.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::io::IsTerminal;
 
-use mindtape::model::writable::{self, FieldOp, WritableField};
+use mindtape::model::writable::{self, WritableField};
 use mindtape::{AddConfig, RawValue, SlotSpec, discover_slots};
 
-use crate::diag::{Diag, Hint, Result};
+use crate::diag::{Diag, Result};
+use crate::pre_write::Problem;
 use crate::task_edit::task_with;
 use crate::util::Project;
 
-use super::title::{fill_title_from_args_in, fill_title_from_stdin_in, split_positional};
-use super::values::{Collected, collect_values, layer_env, reject_unknown_keys};
+use super::seed::seed;
+use super::values::Collected;
 use super::{draft, field_values, hooks, inject_header, interactive, markup_safe, target};
 
 /// What one render leaves the caller. It holds the filled source, the values
@@ -34,185 +38,181 @@ pub(super) struct Ready {
     pub(super) interactive: bool,
 }
 
-/// Collect the caller's values, run the interactive fill, then [`render`].
+/// What one `mt add` render fills: the template's name and source, the status
+/// to stamp, and the check a rule breach re-opens on.
+pub(super) struct Request<'a> {
+    pub(super) template: &'a str,
+    pub(super) source: &'a str,
+    pub(super) status: Option<&'a str>,
+    pub(super) check: &'a dyn Fn(&Ready) -> Result<Option<Vec<Problem>>>,
+}
+
+/// What one interactive round renders: the template, the caller's values and
+/// the fields they set. The loop owns the fields, since each round adds the
+/// keys the editor changed.
+struct Session<'a> {
+    args: &'a super::AddArgs,
+    project: &'a Project,
+    template: &'a str,
+    source: &'a str,
+    specs: &'a [SlotSpec],
+    collected: &'a Collected,
+    aliases: &'a BTreeMap<String, String>,
+    seed: &'a BTreeMap<String, RawValue>,
+    explicit: BTreeSet<String>,
+    env_keys: BTreeSet<String>,
+    status: Option<&'a str>,
+}
+
+impl Session<'_> {
+    /// Render the task from `values`, with the fields the caller set so far.
+    fn render(&self, values: &BTreeMap<String, RawValue>, interactive: bool) -> Result<Ready> {
+        let input = Input {
+            args: self.args,
+            project: self.project,
+            template: self.template,
+            source: self.source,
+            specs: self.specs,
+            collected: self.collected,
+            values,
+            explicit: &self.explicit,
+            status: self.status,
+        };
+        render_ready(&input, self.env_keys.clone(), interactive)
+    }
+}
+
+/// Collect the caller's values, run the interactive fill, then [`render`]. An
+/// interactive add renders inside the loop, so a rule that refuses the filled
+/// task re-opens the buffer instead of parking it.
 pub(super) fn collect_and_render(
     args: &super::AddArgs,
     project: &Project,
-    template: &str,
-    source: &str,
-    status: Option<&str>,
+    request: &Request<'_>,
+    tty: bool,
 ) -> Result<Ready> {
     let config = &project.config;
-    let specs = discover_slots(source);
-    let aliases = field_aliases(source);
+    let specs = discover_slots(request.source);
+    let aliases = field_aliases(request.source);
     let title_slot = title_slot(&aliases);
-    let (title_words, tags) = split_positional(args, &specs);
-    let mut collected = collect_values(&args.values, &args.set, &args.tokens)?;
-    let tag_ops = tags
-        .into_iter()
-        .map(|tag| ("tags".to_owned(), FieldOp::Append(tag)));
-    collected.ops.splice(0..0, tag_ops);
-    let flags = flag_ops(args);
-    refuse_flag_and_set(args, &flags, &aliases)?;
-    route_ops(&mut collected.ops, &aliases);
-    let mut flags = flags;
-    route_ops(&mut flags, &aliases);
-    collected.ops.extend(flags);
-    let mut explicit = super::explicit_sets(&collected.ops);
-    reject_unknown_keys(&collected.ops, &specs)?;
-    let mut values = collected.slot_values(&specs)?;
-    if let Some(slot) = fill_title_from_args_in(&mut values, &title_words, &title_slot) {
-        explicit.insert("title".to_owned());
-        explicit.insert(slot);
-    }
-    let before_env: BTreeSet<String> = values.keys().cloned().collect();
-    layer_env(&mut values, &specs, |key| std::env::var(key).ok());
-    let env_keys: BTreeSet<String> = values
-        .keys()
-        .filter(|key| !before_env.contains(*key))
-        .cloned()
-        .collect();
-    if let Some(slot) = fill_title_from_stdin_in(&mut values, args, &title_slot)? {
-        explicit.insert("title".to_owned());
-        explicit.insert(slot);
-    }
-    let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
-    let interactive = interactive::should_open(args.edit, &config.add, &specs, &values, tty)?;
-    if interactive {
-        let editor =
-            mindtape::allow::runnable_editor(&project.root, config, config.add.editor.as_deref());
-        let edited = fill_until_it_fills(&config.add, editor.as_deref(), &specs, source, &values)?;
-        explicit.extend(edited.changed);
-        values = edited.values;
-    }
-    ensure_title_value(&mut values, &aliases);
-    let input = Input {
+    let seeded = seed(args, &specs, &aliases, &title_slot)?;
+    let interactive =
+        interactive::should_open(args.edit, &config.add, &specs, &seeded.values, tty)?;
+    let mut session = Session {
         args,
         project,
-        template,
-        source,
+        template: request.template,
+        source: request.source,
         specs: &specs,
-        collected: &collected,
-        values: &values,
-        explicit: &explicit,
-        status,
+        collected: &seeded.collected,
+        aliases: &aliases,
+        seed: &seeded.values,
+        explicit: seeded.explicit,
+        env_keys: seeded.env_keys,
+        status: request.status,
     };
-    let rendered = render(&input)?;
-    super::notes::report_escaped_spans(&values, &specs);
+    if !interactive {
+        let mut values = seeded.values.clone();
+        ensure_title_value(&mut values, &aliases);
+        let ready = session.render(&values, false)?;
+        super::notes::report_escaped_spans(&values, &specs);
+        return Ok(ready);
+    }
+    let editor =
+        mindtape::allow::runnable_editor(&project.root, config, config.add.editor.as_deref());
+    fill_until_it_passes(&mut session, &config.add, editor.as_deref(), request.check)
+}
+
+/// The most rounds the editor loop runs before it gives up and lets the final
+/// check park the task. A real session fixes a breach in one or two rounds.
+/// The bound only stops an editor that keeps changing the buffer without
+/// fixing it from spinning forever.
+const MAX_ROUNDS: usize = 20;
+
+/// Open the editor until the buffer it saves parses, fills and passes the
+/// candidate check. A refusal re-opens the same buffer with every breach above
+/// the values. The answers survive a rule the task breaks.
+///
+/// # Errors
+/// Returns an error when the editor fails to spawn or exits without saving, or
+/// when the check itself fails.
+fn fill_until_it_passes(
+    session: &mut Session<'_>,
+    config: &AddConfig,
+    editor: Option<&str>,
+    check: &dyn Fn(&Ready) -> Result<Option<Vec<Problem>>>,
+) -> Result<Ready> {
+    let fill = interactive::Fill {
+        specs: session.specs,
+        source: session.source,
+        seed: session.seed,
+    };
+    let mut retry: Option<interactive::Rejected> = None;
+    let mut previous: Option<String> = None;
+    let mut rounds = 0;
+    loop {
+        rounds += 1;
+        let edited = interactive::fill_until_it_fills(config, editor, &fill, retry.take())?;
+        let mut values = edited.values;
+        session.explicit.extend(edited.changed);
+        ensure_title_value(&mut values, session.aliases);
+        let ready = session.render(&values, true)?;
+        match check(&ready)? {
+            None => {
+                super::notes::report_escaped_spans(&values, session.specs);
+                return Ok(ready);
+            }
+            Some(problems) => {
+                // An editor that hands back the same buffer cannot fix the
+                // breach by re-opening it. Stop, so the final check parks the
+                // task and reports the breach instead of spinning. The round
+                // bound is the same stop for an editor that keeps changing the
+                // buffer without fixing it.
+                if previous.as_deref() == Some(edited.buffer.as_str()) || rounds >= MAX_ROUNDS {
+                    super::notes::report_escaped_spans(&values, session.specs);
+                    return Ok(ready);
+                }
+                previous = Some(edited.buffer.clone());
+                retry = Some(interactive::Rejected::from_problems(
+                    edited.buffer,
+                    &problems,
+                ));
+            }
+        }
+    }
+}
+
+/// Render one round and canonicalize its source, so the check and the write
+/// see the same bytes.
+fn render_ready(input: &Input<'_>, env_keys: BTreeSet<String>, interactive: bool) -> Result<Ready> {
+    let rendered = render(input)?;
     Ok(Ready {
-        filled: rendered.source,
+        filled: crate::util::canonical_source(&input.project.config, rendered.source),
         values: rendered.values,
         dir: rendered.dir,
-        explicit,
+        explicit: input.explicit.clone(),
         env_keys,
         touched: rendered.touched,
         interactive,
     })
 }
 
-/// Open the editor until the buffer it saves parses and fills. A refusal
-/// re-opens the same buffer with the error above the values. The answers
-/// survive a typo instead of starting over from the scaffold.
-///
-/// The fill here is the one [`render`] runs again, so a buffer that passes it
-/// cannot fail the fill later.
-///
-/// # Errors
-/// Returns an error when the editor fails to spawn or exits without saving.
-fn fill_until_it_fills(
-    config: &AddConfig,
-    editor: Option<&str>,
-    specs: &[SlotSpec],
-    source: &str,
-    seed: &BTreeMap<String, RawValue>,
-) -> Result<interactive::Edited> {
-    let mut retry: Option<interactive::Rejected> = None;
-    loop {
-        let edited = match interactive::run(config, editor, specs, seed, retry.as_ref())? {
-            interactive::Session::Filled(edited) => edited,
-            interactive::Session::Unparsed(rejected) => {
-                retry = Some(rejected);
-                continue;
-            }
-        };
-        match refuse_buffer(&edited.values, specs, source) {
-            Ok(()) => return Ok(edited),
-            Err(error) => {
-                retry = Some(interactive::Rejected {
-                    buffer: edited.buffer,
-                    error,
-                });
-            }
-        }
-    }
-}
-
-/// Refuse a buffer whose keys the template does not declare, or whose values
-/// the fill rejects. The fill runs here, before the hooks, so a bad value
-/// re-opens the editor instead of failing the add.
-fn refuse_buffer(
-    values: &BTreeMap<String, RawValue>,
-    specs: &[SlotSpec],
-    source: &str,
-) -> Result<()> {
-    // The unknown-key refusal takes the `--set` shape, so a buffer typo gets
-    // the same message, did-you-mean and hints as a `--set` typo.
-    let ops: Vec<(String, FieldOp)> = values
-        .iter()
-        .map(|(name, value)| (name.clone(), FieldOp::Set(value.clone())))
-        .collect();
-    reject_unknown_keys(&ops, specs)?;
-    mindtape::fill(source, &markup_safe(values, specs)).map_err(Diag::from)?;
-    Ok(())
-}
-
-/// Every scalar `mt add` flag as an ordered field write, in the same shape
-/// `--set field=value` builds.
-fn flag_ops(args: &super::AddArgs) -> Vec<(String, FieldOp)> {
-    [
-        ("priority", &args.priority),
-        ("difficulty", &args.difficulty),
-        ("kind", &args.kind),
-        ("assignee", &args.assignee),
-        ("due", &args.due),
-        ("start", &args.start),
-    ]
-    .into_iter()
-    .filter_map(|(name, value)| {
-        value
-            .as_ref()
-            .map(|value| (name.to_owned(), FieldOp::Set(RawValue::Str(value.clone()))))
-    })
-    .collect()
-}
-
-/// Refuse a scalar flag and a `--set`/after-`--` token naming the same field:
-/// two spellings of one value is a caller mistake, not a precedence rule. A
-/// slot name and its core field (`type` and `kind`) are one field here.
-fn refuse_flag_and_set(
+/// The candidate check the interactive loop re-opens on: the problems that
+/// refuse the rendered task at the path it would land at, or `None` when it
+/// passes. `--no-verify` skips it, as it skips the final check.
+pub(super) fn check_candidate(
     args: &super::AddArgs,
-    flags: &[(String, FieldOp)],
-    aliases: &BTreeMap<String, String>,
-) -> Result<()> {
-    for (name, _) in flags {
-        let repeated = args.set.iter().chain(&args.tokens).any(|token| {
-            super::tokens::token_name(token).is_ok_and(|token| {
-                canonical_field(token, aliases) == canonical_field(name, aliases)
-            })
-        });
-        if repeated {
-            return Err(Diag::usage("the same field is set twice")
-                .value(name.clone())
-                .hint(Hint::new("pass the value once, as a flag or as --set")));
-        }
+    project: &Project,
+    template: &str,
+    ready: &Ready,
+) -> Result<Option<Vec<Problem>>> {
+    if args.no_verify {
+        return Ok(None);
     }
-    Ok(())
-}
-
-/// The core field that a name addresses. A slot alias maps back to the field it
-/// fills, and a core name maps to itself.
-fn canonical_field<'a>(name: &'a str, aliases: &'a BTreeMap<String, String>) -> &'a str {
-    aliases.get(name).map_or(name, String::as_str)
+    let dest = target::resolve_dir(args, project, ready.dir.as_deref())?;
+    let stem = target::output_stem(args, &ready.values, &project.config)?;
+    let file = dest.join(format!("{stem}.typ"));
+    crate::task_edit::candidate_problems(project, &file, &ready.filled, template)
 }
 
 /// The template's whole-value slot for a core field, keyed by the slot name:
@@ -240,21 +240,6 @@ pub(super) fn field_aliases(source: &str) -> BTreeMap<String, String> {
         }
     }
     aliases
-}
-
-/// Rewrite a core field name to the slot that fills it. `--kind feat` against
-/// `kind: slot("type")` becomes a write of `type`. The slot then keeps its
-/// value, and the field writer does not replace the whole argument.
-pub(super) fn route_ops(ops: &mut [(String, FieldOp)], aliases: &BTreeMap<String, String>) {
-    let by_field: BTreeMap<&str, &str> = aliases
-        .iter()
-        .map(|(slot, field)| (field.as_str(), slot.as_str()))
-        .collect();
-    for (name, _) in ops {
-        if let Some(slot) = by_field.get(name.as_str()) {
-            *name = (*slot).to_owned();
-        }
-    }
 }
 
 /// The slot a template uses for the core `title` field, or `title` itself when

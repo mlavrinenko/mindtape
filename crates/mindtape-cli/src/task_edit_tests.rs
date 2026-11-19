@@ -256,3 +256,23 @@ fn filing_status_falls_back_to_the_initial_status() {
         assert_eq!(filing(&template, None), initial, "{status}");
     }
 }
+
+/// A destination outside the project root has no project-relative path to
+/// evaluate the candidate at. The check never runs. It doesn't report a
+/// problem.
+#[test]
+fn candidate_problems_skips_a_destination_outside_the_root() {
+    let (_root, project) = crate::test_util::make_project(&[], mindtape::parse_config("").unwrap());
+    let outside = tempfile::tempdir().unwrap();
+    let file = outside.path().join("outside.typ");
+
+    let problems = super::candidate_problems(
+        &project,
+        &file,
+        "#show: task.with(title: \"Outside\")\n",
+        "task",
+    )
+    .unwrap();
+
+    assert!(problems.is_none());
+}

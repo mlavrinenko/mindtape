@@ -285,8 +285,11 @@ entry. A slot you leave untouched keeps its default.
 A buffer `mt add` can't use comes back in the same editor, with the error as a
 `#` comment above the values. A typo then costs one correction instead of the
 whole form. That covers a buffer that isn't a YAML mapping, a value the slot's
-kind refuses, and a key the template doesn't declare. An editor that exits
-non-zero ends the loop and keeps the buffer, naming the file it kept.
+kind refuses, and a key the template doesn't declare. It also covers a rule
+that refuses the filled task. Every breach gets its own `#` line. An editor
+that exits non-zero ends the loop and keeps the buffer, naming the file it
+kept. An editor that saves the same buffer again ends it too. `mt` parks the
+task and prints the file's path.
 
 The editor is `[add] editor`, else `$VISUAL`, else `$EDITOR`, else `vi`
 (`notepad` on Windows). A project's `[add] editor` runs only after

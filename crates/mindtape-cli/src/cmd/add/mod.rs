@@ -9,8 +9,9 @@
 //! - `values.rs`, `values_ops.rs`, `tokens.rs`, `field_values.rs`,
 //!   `yaml_values.rs`, `templates/`: value sources, ordered `--set` operations,
 //!   non-slot field writes, YAML.
-//! - `draft.rs`, `hooks.rs`, `pipeline.rs`: the partially filled task,
-//!   `[[on.add]]` execution and the render order.
+//! - `draft.rs`, `hooks.rs`, `pipeline.rs`, `seed.rs`: the partially filled
+//!   task, `[[on.add]]` execution, the render order and the values the editor
+//!   starts from.
 //! - `interactive.rs`, `scaffold.rs`, `hint.rs`, `notes.rs`, `title.rs`: the
 //!   editor session and the scaffold it opens, refusal hint, fill note, title
 //!   from words or stdin.
@@ -22,6 +23,7 @@ pub(crate) mod interactive;
 pub(crate) mod output;
 mod pipeline;
 mod scaffold;
+mod seed;
 pub(crate) mod tokens;
 pub(crate) mod values;
 mod values_ops;
@@ -29,7 +31,7 @@ pub(crate) mod yaml_values;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
-use std::io::Write as _;
+use std::io::{IsTerminal as _, Write as _};
 use std::path::Path;
 
 use crate::diag::Result;
@@ -59,7 +61,7 @@ use target::{output_stem, resolve_dir, resolve_outcome};
 /// Arguments for `mt add`.
 // A clap flag struct: each `--flag` is an independent boolean toggle.
 #[allow(clippy::struct_excessive_bools)]
-#[derive(Debug, Args)]
+#[derive(Debug, Default, Args)]
 pub struct AddArgs {
     /// The task's title.
     ///
@@ -266,9 +268,17 @@ pub fn run(args: &AddArgs) -> Result<()> {
         return Ok(());
     }
 
-    let ready =
-        pipeline::collect_and_render(args, &project, &template_name, &source, status.as_deref())?;
-    let filled = util::canonical_source(config, ready.filled);
+    let check =
+        |ready: &pipeline::Ready| pipeline::check_candidate(args, &project, &template_name, ready);
+    let request = pipeline::Request {
+        template: &template_name,
+        source: &source,
+        status: status.as_deref(),
+        check: &check,
+    };
+    let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
+    let ready = pipeline::collect_and_render(args, &project, &request, tty)?;
+    let filled = ready.filled;
     report_injected(
         &filled,
         &injected,

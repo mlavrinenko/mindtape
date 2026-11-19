@@ -247,8 +247,7 @@ fn a_buffer_that_does_not_parse_comes_back_with_its_error() {
         panic!("a sequence buffer must not parse");
     };
     assert_eq!(rejected.buffer, "- not a mapping\n");
-    let text = crate::diag::plain(&rejected.error);
-    assert!(text.starts_with("error: "), "{text}");
+    assert_eq!(rejected.lines, ["error: values must be a YAML mapping"]);
 }
 
 /// [`run`] on an editor that writes `line` into the buffer it receives.

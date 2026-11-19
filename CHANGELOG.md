@@ -99,6 +99,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt add --edit` re-opens the buffer when a rule refuses the filled task.**
+  A rule breach now comes back in the same editor with every breach as a `#`
+  comment above the values, so the answers survive a rejection instead of being
+  parked and lost. An editor that saves the same buffer again ends the loop and
+  parks the task, naming the file it kept.
 - **`mt add --edit` keeps the buffer when the fill refuses it.** A buffer that
   isn't a YAML mapping, a value the slot's kind refuses, or a key the template
   doesn't declare re-opens in the same editor with the error as a `#` comment

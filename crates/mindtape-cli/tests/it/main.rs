@@ -8,6 +8,7 @@ mod add_config_scaffold_e2e;
 mod add_dedup_e2e;
 mod add_describe_title_e2e;
 mod add_e2e;
+mod add_edit_rule_e2e;
 mod add_fields_e2e;
 mod add_file_operator_e2e;
 mod add_flags_e2e;
