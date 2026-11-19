@@ -17,6 +17,7 @@
       readable-tasks: neutral,
       implementable-tasks: neutral,
       enforced-practice: neutral,
+      config-over-code: neutral,
       cheap-adoption: neutral,
       typst-over-markdown: neutral,
       plain-files: neutral,
