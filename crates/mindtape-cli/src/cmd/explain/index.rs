@@ -8,11 +8,11 @@
 
 use std::path::Path;
 
-use mindtape::explain::{ProjectShape, Shape, TaskShape};
-use mindtape::{Config, RuleSection, active_derived, active_rules, load_config};
+use mindtape::explain::{InputShape, ProjectShape, Shape, TaskShape};
+use mindtape::{Config, RuleSection, Severity, active_derived, active_rules, load_config};
 
 use crate::cmd::schema::EXPLAIN;
-use crate::diag::{Command, Result, next_line};
+use crate::diag::{Command, Result, more_line};
 use crate::render::envelope::Envelope;
 use crate::render::objects::{ExplainIndexPayload, RefusalJson};
 use crate::util;
@@ -28,6 +28,13 @@ const SECTIONS: [RuleSection; 6] = [
     RuleSection::OnRm,
 ];
 
+/// The severities a section splits into, strictest first. A reader meets what
+/// refuses the work before what only warns.
+const SEVERITIES: [Severity; 2] = [Severity::Error, Severity::Warn];
+
+/// One section's rule names, split by severity, strictest first.
+type RuleGroups = Vec<(Severity, Vec<String>)>;
+
 /// The width to wrap at when the terminal does not report a size.
 const FALLBACK_WIDTH: usize = 100;
 
@@ -35,7 +42,7 @@ const FALLBACK_WIDTH: usize = 100;
 struct Index {
     shape: Shape,
     refusals: Vec<RefusalJson>,
-    rules: Vec<(RuleSection, Vec<String>)>,
+    rules: Vec<(RuleSection, RuleGroups)>,
     derived: Vec<String>,
     tags: Vec<String>,
     views: Vec<String>,
@@ -68,17 +75,24 @@ fn collect(config: &Config, root: &Path) -> Index {
     let rules = SECTIONS
         .iter()
         .map(|&section| {
-            let mut names: Vec<String> = active
+            let groups: RuleGroups = SEVERITIES
                 .iter()
-                .filter(|rule| rule.section == section)
-                .map(|rule| bare_name(section, &rule.name))
+                .filter_map(|&severity| {
+                    let mut names: Vec<String> = active
+                        .iter()
+                        .filter(|rule| rule.section == section && rule.severity == severity)
+                        .map(|rule| bare_name(section, &rule.name))
+                        .collect();
+                    // A hook with several listed actions is still one hook in
+                    // the index; `mt explain rules` is where its actions stay
+                    // distinct.
+                    names.dedup();
+                    (!names.is_empty()).then_some((severity, names))
+                })
                 .collect();
-            // A hook with several listed actions is still one hook in the
-            // index; `mt explain rules` is where its actions stay distinct.
-            names.dedup();
-            (section, names)
+            (section, groups)
         })
-        .filter(|(_, names): &(RuleSection, Vec<String>)| !names.is_empty())
+        .filter(|(_, groups): &(RuleSection, RuleGroups)| !groups.is_empty())
         .collect();
     let derived = active_derived(config)
         .into_iter()
@@ -160,37 +174,38 @@ fn render(index: &Index, width: usize) -> String {
         "  trailer",
         std::slice::from_ref(&index.shape.commits.trailer),
         width,
-        "    ",
     );
     if !index.shape.absent.is_empty() {
-        labelled(&mut out, "absent", &index.shape.absent, width, "  ");
+        labelled(&mut out, "absent", &index.shape.absent, width);
     }
     render_refusals(&mut out, &index.refusals);
     if index.rules.is_empty() {
         out.push_str("rules: none\n");
     } else {
         out.push_str("rules:\n");
-        for (section, names) in &index.rules {
-            let label = format!("  {}", section.path());
-            labelled(&mut out, &label, names, width, "  ");
+        for (section, groups) in &index.rules {
+            for (severity, names) in groups {
+                let label = format!("  {} ({})", section.path(), severity.label());
+                labelled(&mut out, &label, names, width);
+            }
         }
     }
-    labelled(&mut out, "derived fields", &index.derived, width, "  ");
+    labelled(&mut out, "derived fields", &index.derived, width);
     if index.tags.is_empty() {
         out.push_str("tags: any\n");
     } else {
-        labelled(&mut out, "tags", &index.tags, width, "  ");
+        labelled(&mut out, "tags", &index.tags, width);
     }
-    labelled(&mut out, "views", &index.views, width, "  ");
+    labelled(&mut out, "views", &index.views, width);
     let dicts: Vec<String> = index
         .dicts
         .iter()
         .map(|(name, count)| format!("{name} ({count})"))
         .collect();
-    labelled(&mut out, "dicts", &dicts, width, "  ");
+    labelled(&mut out, "dicts", &dicts, width);
     out.push('\n');
-    out.push_str(&next_line(format!(
-        "{} [<add|rules|tags|views|dicts|templates>] [--json]",
+    out.push_str(&more_line(format!(
+        "{} <add|rules|tags|views|dicts|templates>",
         Command::mt().word("explain")
     )));
     out.push('\n');
@@ -206,11 +221,11 @@ fn render_project(out: &mut String, project: &ProjectShape, width: usize) {
         .iter()
         .map(|root| format!("{} (tag: {})", root.path, root.tag))
         .collect();
-    labelled(out, "  roots", &roots, width, "    ");
+    labelled(out, "  roots", &roots, width);
     if let Some(statuses) = &project.statuses {
         out.push_str("  statuses:\n");
-        labelled(out, "    open", &statuses.open, width, "      ");
-        labelled(out, "    terminal", &statuses.terminal, width, "      ");
+        labelled(out, "    open", &statuses.open, width);
+        labelled(out, "    terminal", &statuses.terminal, width);
     }
     if !project.actors.is_empty() {
         let actors: Vec<String> = project
@@ -222,10 +237,10 @@ fn render_project(out: &mut String, project: &ProjectShape, width: usize) {
                 format!("{} ({})", actor.name, parts.join(", "))
             })
             .collect();
-        labelled(out, "  actors", &actors, width, "    ");
+        labelled(out, "  actors", &actors, width);
     }
     if let Some(rm) = &project.rm {
-        labelled(out, "  rm", &[format!("{rm} only")], width, "    ");
+        labelled(out, "  rm filter", std::slice::from_ref(rm), width);
     }
 }
 
@@ -234,18 +249,22 @@ fn render_task(out: &mut String, task: &TaskShape, width: usize) {
     out.push_str("task:\n");
     let priority = match &task.priority.framework {
         Some(name) if !task.priority.inputs.is_empty() => {
-            format!("{name} ({})", task.priority.inputs.join(", "))
+            let inputs: Vec<String> = task.priority.inputs.iter().map(input_line).collect();
+            format!(
+                "{name} ({}) -> {}",
+                inputs.join(", "),
+                bounds(task.priority.min, task.priority.max)
+            )
         }
         Some(name) => name.clone(),
         None => bounds(task.priority.min, task.priority.max),
     };
-    labelled(out, "  priority", &[priority], width, "    ");
+    labelled(out, "  priority", &[priority], width);
     labelled(
         out,
         "  difficulty",
         &[bounds(task.difficulty.min, task.difficulty.max)],
         width,
-        "    ",
     );
     if let Some(estimate) = &task.estimate {
         let required = match estimate.required.as_str() {
@@ -254,20 +273,14 @@ fn render_task(out: &mut String, task: &TaskShape, width: usize) {
             expr => format!("required: {expr}"),
         };
         let units = format!("{} ({required})", estimate.units.join(", "));
-        labelled(out, "  estimate", &[units], width, "    ");
+        labelled(out, "  estimate", &[units], width);
     }
     if !task.kinds.is_empty() {
-        labelled(out, "  kinds", &task.kinds, width, "    ");
+        labelled(out, "  kinds", &task.kinds, width);
     }
-    labelled(out, "  links", &task.links, width, "    ");
+    labelled(out, "  links", &task.links, width);
     if let Some(comments) = &task.comments {
-        labelled(
-            out,
-            "  comments",
-            std::slice::from_ref(comments),
-            width,
-            "    ",
-        );
+        labelled(out, "  comments", std::slice::from_ref(comments), width);
     }
     if !task.extensions.is_empty() {
         let extensions: Vec<String> = task
@@ -281,9 +294,9 @@ fn render_task(out: &mut String, task: &TaskShape, width: usize) {
                 }
             })
             .collect();
-        labelled(out, "  extensions", &extensions, width, "    ");
+        labelled(out, "  extensions", &extensions, width);
     }
-    let mut templates = list_line("  templates", &task.templates.names, width, "    ");
+    let mut templates = list_line("  templates", &task.templates.names, width);
     templates.push_str(&format!(" (default: {})", task.templates.default));
     out.push_str(&templates);
     out.push('\n');
@@ -311,13 +324,35 @@ fn bounds(min: f64, max: f64) -> String {
     format!("{min}-{max}")
 }
 
-/// `<label>: a, b, c`, breaking after a comma and indenting the rest by
-/// `continuation` when the next entry would pass `width`. An empty list prints
+/// One framework input: `impact 1-10` for a number, `urgent` for a bool, and
+/// `level: must|should` for an enum. The pipe keeps an enum's values out of the
+/// comma list that separates the inputs.
+fn input_line(input: &InputShape) -> String {
+    match input.kind.as_str() {
+        "number" => match (input.min, input.max) {
+            (Some(min), Some(max)) => format!("{} {}", input.name, bounds(min, max)),
+            _ => input.name.clone(),
+        },
+        "enum" => format!("{}: {}", input.name, input.values.join("|")),
+        _ => input.name.clone(),
+    }
+}
+
+/// The indent a wrapped entry continues at: the label's own indent plus two.
+/// A continuation never lands in the column of a section label.
+fn continuation(label: &str) -> String {
+    let indent = label.chars().take_while(|ch| *ch == ' ').count();
+    " ".repeat(indent + 2)
+}
+
+/// `<label>: a, b, c`, breaking after a comma and indenting the rest under the
+/// label when the next entry would pass `width`. An empty list prints
 /// `<label>: none`.
-fn list_line(label: &str, items: &[String], width: usize, continuation: &str) -> String {
+fn list_line(label: &str, items: &[String], width: usize) -> String {
     if items.is_empty() {
         return format!("{label}: none");
     }
+    let continuation = continuation(label);
     let mut out = format!("{label}: ");
     let mut column = out.chars().count();
     for (index, item) in items.iter().enumerate() {
@@ -329,7 +364,7 @@ fn list_line(label: &str, items: &[String], width: usize, continuation: &str) ->
         let piece_width = piece.chars().count();
         if index > 0 && column + piece_width > width {
             out.push_str(",\n");
-            out.push_str(continuation);
+            out.push_str(&continuation);
             out.push_str(item);
             column = continuation.chars().count() + item.chars().count();
         } else {
@@ -341,8 +376,8 @@ fn list_line(label: &str, items: &[String], width: usize, continuation: &str) ->
 }
 
 /// [`list_line`] with its newline.
-fn labelled(out: &mut String, label: &str, items: &[String], width: usize, continuation: &str) {
-    out.push_str(&list_line(label, items, width, continuation));
+fn labelled(out: &mut String, label: &str, items: &[String], width: usize) {
+    out.push_str(&list_line(label, items, width));
     out.push('\n');
 }
 
@@ -351,7 +386,13 @@ fn document(index: &Index) -> Envelope<ExplainIndexPayload> {
     let rules = index
         .rules
         .iter()
-        .map(|(section, names)| (section.path().to_owned(), names.clone()))
+        .map(|(section, groups)| {
+            let groups = groups
+                .iter()
+                .map(|(severity, names)| (severity.label().to_owned(), names.clone()))
+                .collect();
+            (section.path().to_owned(), groups)
+        })
         .collect();
     let dicts = index.dicts.iter().cloned().collect();
     Envelope::new(

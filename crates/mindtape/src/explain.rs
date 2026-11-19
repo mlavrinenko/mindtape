@@ -14,7 +14,7 @@ use serde::Serialize;
 use crate::config::Requirement;
 use crate::config::add_hooks::template_names;
 use crate::link::kind_names;
-use crate::{ActorKind, CommentsPolicy, Config, NumericField};
+use crate::{ActorKind, CommentsPolicy, Config, Input, InputKind, NumericField};
 
 /// The `project:`, `task:` and `commits:` blocks, and the keys they leave out.
 #[derive(Debug, Clone, PartialEq)]
@@ -98,12 +98,27 @@ pub struct TaskShape {
 pub struct PriorityShape {
     /// The framework that computes priority, or `null` for a raw number.
     pub framework: Option<String>,
-    /// The framework's input names, empty for a raw number.
-    pub inputs: Vec<String>,
+    /// The framework's inputs, empty for a raw number.
+    pub inputs: Vec<InputShape>,
     /// The scale's inclusive minimum.
     pub min: f64,
     /// The scale's inclusive maximum.
     pub max: f64,
+}
+
+/// One input a framework scores from, with what it accepts.
+#[derive(Debug, Clone, PartialEq, Serialize, schemars::JsonSchema)]
+pub struct InputShape {
+    /// The input's name, as `score` and each category's `when` refer to it.
+    pub name: String,
+    /// `number`, `bool` or `enum`.
+    pub kind: String,
+    /// The inclusive lower bound of a `number` input, `null` otherwise.
+    pub min: Option<f64>,
+    /// The inclusive upper bound of a `number` input, `null` otherwise.
+    pub max: Option<f64>,
+    /// The allowed values of an `enum` input, empty otherwise.
+    pub values: Vec<String>,
 }
 
 /// A numeric scale's inclusive bounds.
@@ -221,7 +236,13 @@ fn task_shape(config: &Config, root: &Path) -> TaskShape {
         priority: PriorityShape {
             framework: priority.framework.clone(),
             inputs: framework
-                .map(|framework| framework.inputs.keys().cloned().collect())
+                .map(|framework| {
+                    framework
+                        .inputs
+                        .iter()
+                        .map(|(name, input)| input_shape(name, input))
+                        .collect()
+                })
                 .unwrap_or_default(),
             min: priority.field.min,
             max: priority.field.max,
@@ -252,6 +273,22 @@ fn scale(field: &NumericField) -> ScaleShape {
     ScaleShape {
         min: field.min,
         max: field.max,
+    }
+}
+
+/// One framework input, with the bounds or values it accepts.
+fn input_shape(name: &str, input: &Input) -> InputShape {
+    InputShape {
+        name: name.to_owned(),
+        kind: match input.kind {
+            InputKind::Number => "number",
+            InputKind::Bool => "bool",
+            InputKind::Enum => "enum",
+        }
+        .to_owned(),
+        min: input.min,
+        max: input.max,
+        values: input.values.clone(),
     }
 }
 

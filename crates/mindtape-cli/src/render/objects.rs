@@ -128,8 +128,8 @@ pub struct ExplainIndexPayload {
     pub absent: Vec<String>,
     /// Each gate command the user has not allowed.
     pub refusals: Vec<RefusalJson>,
-    /// Each config section's rule names, by section path.
-    pub rules: BTreeMap<String, Vec<String>>,
+    /// Each config section's rule names, by severity, strictest first.
+    pub rules: BTreeMap<String, BTreeMap<String, Vec<String>>>,
     /// Every derived field's name, without the `derived.` prefix.
     pub derived: Vec<String>,
     /// The allowed tags, `default` first.

@@ -94,10 +94,11 @@ fn bare_lists_every_listing_grouped() {
     let text = stdout(dir.path(), &["explain"]);
     for part in [
         "rules:\n",
-        "  tasks.rules: verb-title, [1]\n",
-        "  tasks.body.headers.rules: one-problem\n",
-        "  commits.rules: names-a-task\n",
-        "  on.flip: [0]\n",
+        "  tasks.rules (error): verb-title\n",
+        "  tasks.rules (warn): [1]\n",
+        "  tasks.body.headers.rules (error): one-problem\n",
+        "  commits.rules (warn): names-a-task\n",
+        "  on.flip (error): [0]\n",
         "derived fields: changes\n",
         "tags: default, cli, mt\n",
         "views: default, blocked\n",
@@ -112,18 +113,18 @@ fn bare_lists_every_listing_grouped() {
     );
 }
 
-/// The index ends on the first command to run, and the JSON envelope carries
-/// no prose line.
+/// The index ends on the listings that go deeper, and the JSON envelope
+/// carries no prose line.
 #[test]
-fn bare_ends_on_the_next_command() {
+fn bare_ends_on_the_listings_that_go_deeper() {
     let dir = project();
     let text = stdout(dir.path(), &["explain"]);
     assert!(
-        text.ends_with("\nnext: mt explain [<add|rules|tags|views|dicts|templates>] [--json]\n"),
+        text.ends_with("\nmore: mt explain <add|rules|tags|views|dicts|templates>\n"),
         "{text}"
     );
     let value = json(dir.path(), &["explain", "--json"]);
-    assert!(value.get("next").is_none(), "{value}");
+    assert!(value.get("more").is_none(), "{value}");
 }
 
 /// The index JSON carries the same groups inside its `$schema` envelope, while
@@ -132,12 +133,15 @@ fn bare_ends_on_the_next_command() {
 fn json_index_groups_and_listings_keep_their_keys() {
     let dir = project();
     let index = json(dir.path(), &["explain", "--json"]);
-    mindtape::test_support::assert_schema_at(&index, "explain", 2);
+    mindtape::test_support::assert_schema_at(&index, "explain", 3);
     assert_eq!(
         index["rules"]["tasks.rules"],
-        serde_json::json!(["verb-title", "[1]"])
+        serde_json::json!({"error": ["verb-title"], "warn": ["[1]"]})
     );
-    assert_eq!(index["rules"]["on.flip"], serde_json::json!(["[0]"]));
+    assert_eq!(
+        index["rules"]["on.flip"],
+        serde_json::json!({"error": ["[0]"]})
+    );
     assert_eq!(index["derived"], serde_json::json!(["changes"]));
     assert_eq!(index["tags"], serde_json::json!(["default", "cli", "mt"]));
     assert_eq!(index["views"], serde_json::json!(["default", "blocked"]));

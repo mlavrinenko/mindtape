@@ -94,6 +94,13 @@ pub(crate) fn next_line(text: impl fmt::Display) -> String {
     format!("next: {text}")
 }
 
+/// The `more:` line a read command prints on stdout when it points at the
+/// listings that go deeper, as `mt explain` does. Unlike [`next_line`], the
+/// command already answered, and this line offers the detail behind it.
+pub(crate) fn more_line(text: impl fmt::Display) -> String {
+    format!("more: {text}")
+}
+
 /// The `hint:` line a read command prints on stdout at a dead end, quoting a
 /// command the same way a refusal's hint does.
 pub(crate) fn hint_line(text: impl fmt::Display) -> String {

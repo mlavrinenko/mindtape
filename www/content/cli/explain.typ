@@ -6,12 +6,13 @@
 `mt explain` answers what this project is and what it enforces. Bare, it opens
 on the project's shape, in three blocks. The `project:` block lists the task
 roots with the tag each emits, the status legend split into `open` and
-`terminal`, the actors with their kind and roles, and the `[rm] default-filter`.
-The `task:` block lists the priority scale and the framework that scores it,
-the difficulty scale, the estimate units, the `kind` values and the link kinds.
-It also lists the `[tasks.comments] policy`, the `x-` extensions with the rule
-that reads each, and the templates with the one `mt add` picks. The `commits:`
-block lists the trailer.
+`terminal`, the actors with their kind and roles, and the `[rm] default-filter`
+as `rm filter:`. The `task:` block lists the priority scale and the framework
+that scores it, each input with its own bounds and the scale the score lands
+on. It also lists the difficulty scale, the estimate units, the `kind` values
+and the link kinds. Then come the `[tasks.comments] policy`, the `x-` extensions
+with the rule that reads each, and the templates with the one `mt add` picks.
+The `commits:` block lists the trailer.
 
 The index drops a key the project leaves open, and names it once in `absent:`.
 A project that constrains every key prints no `absent:` line at all, as a
@@ -25,11 +26,13 @@ records the approval. That is each `[[tasks.waits]]` checker and each
 `[[on.flip]]` or `[[on.rm]]` `run`. A project with every command allowed
 doesn't print the block at all.
 
-Under the shape, the index prints every rule grouped by its config section, the
-derived fields, and the tags, views and dictionaries the project declares. A
-dictionary shows its entry count, and `default` comes first in the view and tag
-lists when it exists. A blank line separates the index from a `next:` line
-naming the optional category and the JSON flag: `mt explain [<add|rules|tags|views|dicts|templates>] [--json]`.
+Under the shape, the index prints every rule grouped by its config section and
+split by severity, the derived fields, and the tags, views and dictionaries the
+project declares. A section prints one line per severity it holds, `error`
+before `warn`. A reader meets what refuses the work first. A dictionary shows
+its entry count, and `default` comes first in the view and tag lists when it
+exists. A blank line separates the index from a `more:` line naming the
+listings that go deeper: `mt explain <add|rules|tags|views|dicts|templates>`.
 
 #cli-command("explain")
 
@@ -37,7 +40,9 @@ naming the optional category and the JSON flag: `mt explain [<add|rules|tags|vie
 of the schema for that object. The shape sits under `project`, `task` and
 `commits`, the keys it leaves out under `absent`, the refused gates under
 `refusals`, and the listings under `rules`, `derived`, `tags`, `views` and
-`dicts`. The sections below say what they contain.
+`dicts`. Each section under `rules` maps a severity to its rule names, and each
+entry under `task.priority.inputs` carries its `kind`, `min`, `max` and
+`values`. The sections below say what they contain.
 
 = Add hooks
 

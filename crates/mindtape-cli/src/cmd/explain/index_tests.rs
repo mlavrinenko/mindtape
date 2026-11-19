@@ -5,11 +5,12 @@
 use mindtape::parse_config;
 use mindtape::test_support::write_file;
 
-use mindtape::RuleSection;
+use mindtape::explain::InputShape;
+use mindtape::{RuleSection, Severity};
 
-use super::{bare_name, collect, default_first, document, list_line, render};
+use super::{bare_name, collect, default_first, document, input_line, list_line, render};
 
-const NEXT: &str = "next: mt explain [<add|rules|tags|views|dicts|templates>] [--json]";
+const MORE: &str = "more: mt explain <add|rules|tags|views|dicts|templates>";
 
 /// A config with every shape block populated. It declares a three-value
 /// legend, two actors, an estimate unit, a forbidden comment policy, an
@@ -28,7 +29,7 @@ fn config() -> mindtape::Config {
          [tasks.estimate]\nunits = [\"src-files\"]\n\
          [tasks.comments]\npolicy = \"forbid\"\n\
          [tasks.fields.kind]\nvalues = [\"feat\", \"fix\"]\n\
-         [[tasks.rules]]\nname = \"verb-title\"\nassert = 'has(title)'\n\
+         [[tasks.rules]]\nname = \"verb-title\"\nassert = 'has(title)'\nseverity = \"error\"\n\
          [[tasks.rules]]\nassert = 'has(title)'\n\
          [[tasks.rules]]\nname = \"goals\"\n\
          check = { typst = \"goals.typ\", function = \"check-goals\", field = \"x-goals\" }\n\
@@ -67,8 +68,20 @@ fn groups_rules_by_section_and_drops_a_section_with_none() {
             "on.flip"
         ]
     );
-    assert_eq!(index.rules[0].1, ["verb-title", "[1]", "goals"]);
-    assert_eq!(index.rules[3].1, ["review-stale-task-before-starting"]);
+    assert_eq!(
+        index.rules[0].1,
+        [
+            (Severity::Error, vec!["verb-title".to_owned()]),
+            (Severity::Warn, vec!["[1]".to_owned(), "goals".to_owned()]),
+        ]
+    );
+    assert_eq!(
+        index.rules[3].1,
+        [(
+            Severity::Warn,
+            vec!["review-stale-task-before-starting".to_owned()]
+        )]
+    );
 }
 
 #[test]
@@ -128,9 +141,9 @@ fn renders_the_shape_blocks_before_the_listings() {
     open: proposed, wip
     terminal: done
   actors: max (human, maintainer), agent (llm)
-  rm: terminal only
+  rm filter: terminal
 task:
-  priority: ice (confidence, ease, impact)
+  priority: ice (confidence 0-1, ease 1-10, impact 1-10) -> 0-9
   difficulty: 0-9
   estimate: src-files (optional)
   kinds: feat, fix
@@ -141,6 +154,8 @@ task:
 commits:
   trailer: Refs
 rules:
+  tasks.rules (error): verb-title
+  tasks.rules (warn): [1], goals
 ";
     assert!(text.starts_with(expected), "{text}");
 }
@@ -253,6 +268,49 @@ fn prints_a_framework_with_no_inputs_and_the_open_forms() {
     assert!(text.contains("  estimate: days (required)\n"), "{text}");
 }
 
+/// A framework's inputs print what each accepts: a number its own range, a
+/// bool its name, and an enum its values behind a pipe. The score's scale
+/// follows the arrow.
+#[test]
+fn prints_each_framework_input_with_what_it_accepts() {
+    let dir = tempfile::tempdir().unwrap();
+    for (framework, expected) in [
+        (
+            "ice",
+            "  priority: ice (confidence 0-1, ease 1-10, impact 1-10) -> 0-9\n",
+        ),
+        (
+            "eisenhower",
+            "  priority: eisenhower (important, urgent) -> 0-9\n",
+        ),
+        (
+            "moscow",
+            "  priority: moscow (level: must|should|could|wont) -> 0-9\n",
+        ),
+    ] {
+        let config =
+            parse_config(&format!("[tasks.priority]\nframework = \"{framework}\"\n")).unwrap();
+        let text = render(&collect(&config, dir.path()), 100);
+        assert!(text.contains(expected), "missing {expected:?} in:\n{text}");
+    }
+}
+
+/// A number input with no bounds prints its name alone, and so does a kind the
+/// renderer does not know.
+#[test]
+fn prints_an_input_with_no_bounds_by_its_name() {
+    let mut input = InputShape {
+        name: "impact".to_owned(),
+        kind: "number".to_owned(),
+        min: None,
+        max: None,
+        values: Vec::new(),
+    };
+    assert_eq!(input_line(&input), "impact");
+    input.kind = "text".to_owned();
+    assert_eq!(input_line(&input), "impact");
+}
+
 /// A gate the user has not allowed prints in `refusals:` with the section that
 /// declares it, and the JSON carries the same list.
 #[test]
@@ -290,25 +348,22 @@ fn refusals_lists_the_gates_the_user_has_not_allowed() {
 #[test]
 fn wraps_after_a_comma_when_the_next_entry_passes_the_width() {
     let items = ["alpha".to_owned(), "beta".to_owned(), "gamma".to_owned()];
-    assert_eq!(
-        list_line("tags", &items, 18, "  "),
-        "tags: alpha, beta,\n  gamma"
-    );
-    assert_eq!(list_line("tags", &[], 18, "  "), "tags: none");
+    assert_eq!(list_line("tags", &items, 18), "tags: alpha, beta,\n  gamma");
+    assert_eq!(list_line("tags", &[], 18), "tags: none");
 }
 
 #[test]
-fn the_index_ends_on_the_command_to_run_next() {
+fn the_index_ends_on_the_listings_that_go_deeper() {
     let (dir, config) = project();
     let text = render(&collect(&config, dir.path()), 100);
-    assert!(text.ends_with(&format!("\n{NEXT}\n")), "{text}");
+    assert!(text.ends_with(&format!("\n{MORE}\n")), "{text}");
 }
 
 #[test]
 fn json_carries_the_same_shape_and_grouping() {
     let (dir, config) = project();
     let value = serde_json::to_value(document(&collect(&config, dir.path()))).unwrap();
-    mindtape::test_support::assert_schema_at(&value, "explain", 2);
+    mindtape::test_support::assert_schema_at(&value, "explain", 3);
     assert_eq!(
         value["project"],
         serde_json::json!({
@@ -326,7 +381,11 @@ fn json_carries_the_same_shape_and_grouping() {
         serde_json::json!({
             "priority": {
                 "framework": "ice",
-                "inputs": ["confidence", "ease", "impact"],
+                "inputs": [
+                    {"name": "confidence", "kind": "number", "min": 0.0, "max": 1.0, "values": []},
+                    {"name": "ease", "kind": "number", "min": 1.0, "max": 10.0, "values": []},
+                    {"name": "impact", "kind": "number", "min": 1.0, "max": 10.0, "values": []},
+                ],
                 "min": 0.0,
                 "max": 9.0,
             },
@@ -346,10 +405,10 @@ fn json_carries_the_same_shape_and_grouping() {
     assert_eq!(
         value["rules"],
         serde_json::json!({
-            "tasks.rules": ["verb-title", "[1]", "goals"],
-            "tasks.body.content.rules": ["as-is"],
-            "commits.rules": ["names-a-task"],
-            "on.flip": ["review-stale-task-before-starting"],
+            "tasks.rules": {"error": ["verb-title"], "warn": ["[1]", "goals"]},
+            "tasks.body.content.rules": {"error": ["as-is"]},
+            "commits.rules": {"warn": ["names-a-task"]},
+            "on.flip": {"warn": ["review-stale-task-before-starting"]},
         })
     );
     assert_eq!(value["derived"], serde_json::json!(["changes"]));

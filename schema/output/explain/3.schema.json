@@ -1,0 +1,463 @@
+{
+  "$defs": {
+    "ActorShape": {
+      "description": "One actor in the registry.",
+      "properties": {
+        "kind": {
+          "description": "`human` or `llm`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The actor's name.",
+          "type": "string"
+        },
+        "roles": {
+          "description": "The roles the actor holds.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "roles"
+      ],
+      "type": "object"
+    },
+    "CommitsShape": {
+      "description": "The `commits:` block of the index.",
+      "properties": {
+        "trailer": {
+          "description": "The trailer key whose values reference tasks.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trailer"
+      ],
+      "type": "object"
+    },
+    "EstimateShape": {
+      "description": "The estimate units, and whether a task must carry one.",
+      "properties": {
+        "required": {
+          "description": "The `required` filter: `false`, `true`, or an expression.",
+          "type": "string"
+        },
+        "units": {
+          "description": "The legal units.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "units",
+        "required"
+      ],
+      "type": "object"
+    },
+    "ExtensionShape": {
+      "description": "One `x-` field, and the rules that read it.",
+      "properties": {
+        "name": {
+          "description": "The field's name, such as `x-goals`.",
+          "type": "string"
+        },
+        "rules": {
+          "description": "The rules that read it, by name.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "rules"
+      ],
+      "type": "object"
+    },
+    "InputShape": {
+      "description": "One input a framework scores from, with what it accepts.",
+      "properties": {
+        "kind": {
+          "description": "`number`, `bool` or `enum`.",
+          "type": "string"
+        },
+        "max": {
+          "description": "The inclusive upper bound of a `number` input, `null` otherwise.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "min": {
+          "description": "The inclusive lower bound of a `number` input, `null` otherwise.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "name": {
+          "description": "The input's name, as `score` and each category's `when` refer to it.",
+          "type": "string"
+        },
+        "values": {
+          "description": "The allowed values of an `enum` input, empty otherwise.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "values"
+      ],
+      "type": "object"
+    },
+    "PriorityShape": {
+      "description": "The priority scale, and the framework that computes a score on it.",
+      "properties": {
+        "framework": {
+          "description": "The framework that computes priority, or `null` for a raw number.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "description": "The framework's inputs, empty for a raw number.",
+          "items": {
+            "$ref": "#/$defs/InputShape"
+          },
+          "type": "array"
+        },
+        "max": {
+          "description": "The scale's inclusive maximum.",
+          "format": "double",
+          "type": "number"
+        },
+        "min": {
+          "description": "The scale's inclusive minimum.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "inputs",
+        "min",
+        "max"
+      ],
+      "type": "object"
+    },
+    "ProjectShape": {
+      "description": "The `project:` block of the index: where tasks live, and who works them.",
+      "properties": {
+        "actors": {
+          "description": "The actor registry, in declaration order.",
+          "items": {
+            "$ref": "#/$defs/ActorShape"
+          },
+          "type": "array"
+        },
+        "rm": {
+          "description": "The `[rm] default-filter`, or `null` when unset.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "roots": {
+          "description": "Each task root, with the tag it emits.",
+          "items": {
+            "$ref": "#/$defs/RootShape"
+          },
+          "type": "array"
+        },
+        "statuses": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StatusShape"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The status legend grouped by `terminal`, or `null` when the project\nclears it."
+        }
+      },
+      "required": [
+        "roots",
+        "actors"
+      ],
+      "type": "object"
+    },
+    "RefusalJson": {
+      "description": "One command a gate runs that the user has not allowed.",
+      "properties": {
+        "command": {
+          "description": "The command as it shows.",
+          "type": "string"
+        },
+        "gate": {
+          "description": "The config section that declares the gate: `on.flip` or `waits`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gate",
+        "command"
+      ],
+      "type": "object"
+    },
+    "RootShape": {
+      "description": "One task root.",
+      "properties": {
+        "path": {
+          "description": "The root directory, relative to the project root.",
+          "type": "string"
+        },
+        "tag": {
+          "description": "The tag the root emits.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "tag"
+      ],
+      "type": "object"
+    },
+    "ScaleShape": {
+      "description": "A numeric scale's inclusive bounds.",
+      "properties": {
+        "max": {
+          "description": "The scale's inclusive maximum.",
+          "format": "double",
+          "type": "number"
+        },
+        "min": {
+          "description": "The scale's inclusive minimum.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "type": "object"
+    },
+    "StatusShape": {
+      "description": "The status legend, grouped by whether a status ends a task.",
+      "properties": {
+        "open": {
+          "description": "The statuses that leave a task open, in legend order.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "terminal": {
+          "description": "The statuses that end a task, in legend order.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "open",
+        "terminal"
+      ],
+      "type": "object"
+    },
+    "TaskShape": {
+      "description": "The `task:` block of the index: the fields a task carries.",
+      "properties": {
+        "comments": {
+          "description": "The `[tasks.comments] policy`, or `null` when it allows comments.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "difficulty": {
+          "$ref": "#/$defs/ScaleShape",
+          "description": "The difficulty scale."
+        },
+        "estimate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EstimateShape"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The estimate units, or `null` when any unit is legal."
+        },
+        "extensions": {
+          "description": "Each `x-` field the config declares or a rule reads.",
+          "items": {
+            "$ref": "#/$defs/ExtensionShape"
+          },
+          "type": "array"
+        },
+        "kinds": {
+          "description": "The allowed `kind` values, empty when any is legal.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "links": {
+          "description": "Every link kind the project accepts.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "priority": {
+          "$ref": "#/$defs/PriorityShape",
+          "description": "The priority scale, and the framework that computes it."
+        },
+        "templates": {
+          "$ref": "#/$defs/TemplateShape",
+          "description": "Every template `mt add` accepts, and the default."
+        }
+      },
+      "required": [
+        "priority",
+        "difficulty",
+        "kinds",
+        "links",
+        "extensions",
+        "templates"
+      ],
+      "type": "object"
+    },
+    "TemplateShape": {
+      "description": "Every template `mt add` accepts, and the one it picks by default.",
+      "properties": {
+        "default": {
+          "description": "The template `mt add` uses when the caller gives none.",
+          "type": "string"
+        },
+        "names": {
+          "description": "The template stems, sorted.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "names",
+        "default"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/explain/3.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt explain --json` prints: the project, task and commit shape, the keys it leaves open, the rules by section and severity, the derived fields, and the tag, view and dictionary names.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "absent": {
+      "description": "The keys the blocks leave out, because the project leaves them open.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "commits": {
+      "$ref": "#/$defs/CommitsShape",
+      "description": "The `commits:` block: how a commit references its task."
+    },
+    "derived": {
+      "description": "Every derived field's name, without the `derived.` prefix.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "dicts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "description": "Each dictionary's entry count, `default` first.",
+      "type": "object"
+    },
+    "project": {
+      "$ref": "#/$defs/ProjectShape",
+      "description": "The `project:` block: where tasks live, and who works them."
+    },
+    "refusals": {
+      "description": "Each gate command the user has not allowed.",
+      "items": {
+        "$ref": "#/$defs/RefusalJson"
+      },
+      "type": "array"
+    },
+    "rules": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "type": "object"
+      },
+      "description": "Each config section's rule names, by severity, strictest first.",
+      "type": "object"
+    },
+    "tags": {
+      "description": "The allowed tags, `default` first.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "task": {
+      "$ref": "#/$defs/TaskShape",
+      "description": "The `task:` block: the fields a task carries."
+    },
+    "views": {
+      "description": "The declared views, `default` first.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "project",
+    "task",
+    "commits",
+    "absent",
+    "refusals",
+    "rules",
+    "derived",
+    "tags",
+    "views",
+    "dicts"
+  ],
+  "title": "Mindtape explain index",
+  "type": "object"
+}

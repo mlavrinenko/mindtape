@@ -70,7 +70,7 @@ pub const EXPLAIN_ADD: SchemaId = SchemaId {
 
 pub const EXPLAIN: SchemaId = SchemaId {
     name: "explain",
-    version: 2,
+    version: 3,
 };
 
 /// `mt explain templates --json`.
@@ -196,7 +196,7 @@ const PRESET_LS_DESCRIPTION: &str = "The object `mt preset ls --json` prints: ev
 const EXPLAIN_ADD_TITLE: &str = "Mindtape add hooks";
 const EXPLAIN_ADD_DESCRIPTION: &str = "The object `mt explain add --json` prints: every merged `[[on.add]]` hook, its `when`, its actions and its origin.";
 const EXPLAIN_TITLE: &str = "Mindtape explain index";
-const EXPLAIN_DESCRIPTION: &str = "The object `mt explain --json` prints: the project, task and commit shape, the keys it leaves open, the rules by section, the derived fields, and the tag, view and dictionary names.";
+const EXPLAIN_DESCRIPTION: &str = "The object `mt explain --json` prints: the project, task and commit shape, the keys it leaves open, the rules by section and severity, the derived fields, and the tag, view and dictionary names.";
 const EXPLAIN_TEMPLATES_TITLE: &str = "Mindtape templates";
 const EXPLAIN_TEMPLATES_DESCRIPTION: &str = "The object `mt explain templates --json` prints: every template `mt add` accepts, with the kind it sets, its slot count and whether it is the default.";
 const RULES_TITLE: &str = "Mindtape rules";
