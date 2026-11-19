@@ -282,7 +282,15 @@ declares them. A `date` slot spells `YYYY-MM-DD` with a sample, so a wrong
 format doesn't read as a valid answer, and a `date` default pre-fills the
 entry. A slot you leave untouched keeps its default.
 
+A buffer `mt add` can't use comes back in the same editor, with the error as a
+`#` comment above the values. A typo then costs one correction instead of the
+whole form. That covers a buffer that isn't a YAML mapping, a value the slot's
+kind refuses, and a key the template doesn't declare. An editor that exits
+non-zero ends the loop and keeps the buffer, naming the file it kept.
+
 The editor is `[add] editor`, else `$VISUAL`, else `$EDITOR`, else `vi`
 (`notepad` on Windows). A project's `[add] editor` runs only after
 #link(u("/cli/allow/"))[`mt allow`]. `[add] header` replaces the instructions at the top of
-the file, and `[add] comments = false` leaves out every comment.
+the file, and `[add] comments = false` leaves out every scaffold comment. A
+refused buffer still carries its error, because that line is the refusal, not
+an instruction.

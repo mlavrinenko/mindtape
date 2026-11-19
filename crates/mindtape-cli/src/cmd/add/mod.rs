@@ -11,8 +11,9 @@
 //!   non-slot field writes, YAML.
 //! - `draft.rs`, `hooks.rs`, `pipeline.rs`: the partially filled task,
 //!   `[[on.add]]` execution and the render order.
-//! - `interactive.rs`, `hint.rs`, `notes.rs`, `title.rs`: editor fill, refusal
-//!   hint, fill note, title from words or stdin.
+//! - `interactive.rs`, `scaffold.rs`, `hint.rs`, `notes.rs`, `title.rs`: the
+//!   editor session and the scaffold it opens, refusal hint, fill note, title
+//!   from words or stdin.
 
 pub(crate) mod dedup;
 mod draft;
@@ -20,6 +21,7 @@ mod hooks;
 pub(crate) mod interactive;
 pub(crate) mod output;
 mod pipeline;
+mod scaffold;
 pub(crate) mod tokens;
 pub(crate) mod values;
 mod values_ops;

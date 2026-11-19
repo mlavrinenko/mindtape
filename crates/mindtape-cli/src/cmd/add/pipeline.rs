@@ -10,7 +10,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::IsTerminal;
 
 use mindtape::model::writable::{self, FieldOp, WritableField};
-use mindtape::{RawValue, SlotSpec, discover_slots};
+use mindtape::{AddConfig, RawValue, SlotSpec, discover_slots};
 
 use crate::diag::{Diag, Hint, Result};
 use crate::task_edit::task_with;
@@ -81,7 +81,7 @@ pub(super) fn collect_and_render(
     if interactive {
         let editor =
             mindtape::allow::runnable_editor(&project.root, config, config.add.editor.as_deref());
-        let edited = interactive::run(&config.add, editor.as_deref(), &specs, &values)?;
+        let edited = fill_until_it_fills(&config.add, editor.as_deref(), &specs, source, &values)?;
         explicit.extend(edited.changed);
         values = edited.values;
     }
@@ -108,6 +108,62 @@ pub(super) fn collect_and_render(
         touched: rendered.touched,
         interactive,
     })
+}
+
+/// Open the editor until the buffer it saves parses and fills. A refusal
+/// re-opens the same buffer with the error above the values. The answers
+/// survive a typo instead of starting over from the scaffold.
+///
+/// The fill here is the one [`render`] runs again, so a buffer that passes it
+/// cannot fail the fill later.
+///
+/// # Errors
+/// Returns an error when the editor fails to spawn or exits without saving.
+fn fill_until_it_fills(
+    config: &AddConfig,
+    editor: Option<&str>,
+    specs: &[SlotSpec],
+    source: &str,
+    seed: &BTreeMap<String, RawValue>,
+) -> Result<interactive::Edited> {
+    let mut retry: Option<interactive::Rejected> = None;
+    loop {
+        let edited = match interactive::run(config, editor, specs, seed, retry.as_ref())? {
+            interactive::Session::Filled(edited) => edited,
+            interactive::Session::Unparsed(rejected) => {
+                retry = Some(rejected);
+                continue;
+            }
+        };
+        match refuse_buffer(&edited.values, specs, source) {
+            Ok(()) => return Ok(edited),
+            Err(error) => {
+                retry = Some(interactive::Rejected {
+                    buffer: edited.buffer,
+                    error,
+                });
+            }
+        }
+    }
+}
+
+/// Refuse a buffer whose keys the template does not declare, or whose values
+/// the fill rejects. The fill runs here, before the hooks, so a bad value
+/// re-opens the editor instead of failing the add.
+fn refuse_buffer(
+    values: &BTreeMap<String, RawValue>,
+    specs: &[SlotSpec],
+    source: &str,
+) -> Result<()> {
+    // The unknown-key refusal takes the `--set` shape, so a buffer typo gets
+    // the same message, did-you-mean and hints as a `--set` typo.
+    let ops: Vec<(String, FieldOp)> = values
+        .iter()
+        .map(|(name, value)| (name.clone(), FieldOp::Set(value.clone())))
+        .collect();
+    reject_unknown_keys(&ops, specs)?;
+    mindtape::fill(source, &markup_safe(values, specs)).map_err(Diag::from)?;
+    Ok(())
 }
 
 /// Every scalar `mt add` flag as an ordered field write, in the same shape
@@ -379,3 +435,7 @@ fn field_names(
     );
     names
 }
+
+#[cfg(test)]
+#[path = "pipeline_tests.rs"]
+mod tests;

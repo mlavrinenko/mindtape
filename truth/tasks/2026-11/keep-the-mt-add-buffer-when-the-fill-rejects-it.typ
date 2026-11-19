@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 19),
+  status: done(2026, 11, 20),
 )
 
 == AS-IS

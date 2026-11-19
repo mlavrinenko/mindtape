@@ -1,8 +1,8 @@
 //! Tests for the editor session: spawning the configured editor, tty/mode
 //! gating (`should_open`, `has_unfilled_required`), and `run`'s parse of the
-//! edited buffer. Scaffold rendering and parse-back live in
-//! `cmd/add/interactive_tests.rs`. This module shares its `specs()`/`TEMPLATE`
-//! fixture.
+//! edited buffer. Scaffold rendering lives in `cmd/add/scaffold_tests.rs`, and
+//! the buffer's parse-back in `cmd/add/interactive_tests.rs`. This module
+//! shares the scaffold tests' `specs()` fixture.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::tempdir;
@@ -10,8 +10,8 @@ use std::collections::BTreeMap;
 
 use mindtape::{AddConfig, InteractiveMode, RawValue, discover_slots};
 
-use super::tests::specs;
-use super::{editor_command, open_in_editor, run, should_open};
+use super::{Session, editor_command, open_in_editor, run, should_open};
+use crate::cmd::add::scaffold::tests::specs;
 
 #[test]
 fn editor_command_prefers_override() {
@@ -134,13 +134,24 @@ fn failing_editor() -> &'static str {
 }
 
 #[test]
-fn an_editor_that_exits_non_zero_discards_the_buffer() {
+fn an_editor_that_exits_non_zero_keeps_the_buffer() {
     let command = failing_editor();
-    let err = open_in_editor(command, "title:\n").unwrap_err();
-    crate::diag::assert_plain(
-        &err,
-        &format!("error: editor exited without saving: '{command}'\n"),
+    let err = open_in_editor(command, "title: \"Kept\"\n").unwrap_err();
+    let text = crate::diag::plain(&err);
+    assert!(
+        text.starts_with(&format!(
+            "error: editor exited without saving: '{command}'\n"
+        )),
+        "{text}"
     );
+    // The note names the file the answers are in, and the file still holds them.
+    let kept = text
+        .lines()
+        .find_map(|line| line.strip_prefix("note: the buffer is kept: "))
+        .unwrap_or_else(|| panic!("the note must name the kept buffer: {text}"));
+    let path = kept.trim_matches('\'');
+    assert_eq!(std::fs::read_to_string(path).unwrap(), "title: \"Kept\"\n");
+    std::fs::remove_file(path).unwrap();
 }
 
 #[test]
@@ -224,17 +235,40 @@ fn non_required_slot_not_unfilled() {
 
 #[test]
 fn run_parses_editor_output() {
-    let dir = tempdir();
-    let editor = editor_script(dir.path(), "x: \"ParsedTitle\"");
-    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
-    let edited = run(
-        &AddConfig::default(),
-        Some(&editor),
-        &specs,
-        &BTreeMap::new(),
-    )
-    .unwrap();
+    let Session::Filled(edited) = run_on("x: \"ParsedTitle\"") else {
+        panic!("a mapping buffer must parse");
+    };
     assert_eq!(edited.values["x"], RawValue::Str("ParsedTitle".to_owned()));
+}
+
+#[test]
+fn a_buffer_that_does_not_parse_comes_back_with_its_error() {
+    let Session::Unparsed(rejected) = run_on("- not a mapping") else {
+        panic!("a sequence buffer must not parse");
+    };
+    assert_eq!(rejected.buffer, "- not a mapping\n");
+    let text = crate::diag::plain(&rejected.error);
+    assert!(text.starts_with("error: "), "{text}");
+}
+
+/// [`run`] on an editor that writes `line` into the buffer it receives.
+fn run_on(line: &str) -> Session {
+    let dir = tempdir();
+    let editor = editor_script(dir.path(), line);
+    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    run_fresh(&editor, &specs)
+}
+
+/// [`run`] on `editor`, with no seed values and no previous buffer.
+fn run_fresh(editor: &str, specs: &[mindtape::SlotSpec]) -> Session {
+    run(
+        &AddConfig::default(),
+        Some(editor),
+        specs,
+        &BTreeMap::new(),
+        None,
+    )
+    .unwrap()
 }
 
 /// An editor command that overwrites the file it receives with `line`.

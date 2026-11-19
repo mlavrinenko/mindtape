@@ -99,6 +99,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt add --edit` keeps the buffer when the fill refuses it.** A buffer that
+  isn't a YAML mapping, a value the slot's kind refuses, or a key the template
+  doesn't declare re-opens in the same editor with the error as a `#` comment
+  above the values, so the answers survive a typo instead of starting over from
+  the scaffold. An editor that exits non-zero ends the loop and keeps the
+  buffer, naming the file it kept.
 - **A template no longer warns about its `task.with` call.** A file under a
   `[templates] dirs` entry is a template, not a task saved in the wrong place,
   so `mt ls` stops printing `task.with` call in a reserved path` for it. A
