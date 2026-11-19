@@ -161,6 +161,8 @@
       `body.content`, `commits:` holds `rules`, and `add:`, `flip:` and `rm:`
       hold the hooks each command runs. `rm:` also holds the `[rm]` filter as
       `filter:`. A section prints one line per severity, `error` before `warn`.
+      A hook prints its name, or for an unnamed hook the command it runs, else
+      the message it carries, else its `on.<moment>[<index>]` label.
       A key the project leaves open prints what its absence permits: `any`,
       `none`, or the policy word. `refusals:` names each gate command the user
       has not allowed, with the `mt allow` that records the approval. Under the

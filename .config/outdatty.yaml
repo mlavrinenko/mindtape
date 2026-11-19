@@ -399,7 +399,8 @@ groups:
   - name: cli-explain-index-docs
     source:
       - crates/mindtape-cli/src/cmd/explain/mod.rs
-      - crates/mindtape-cli/src/cmd/explain/index.rs
+      - crates/mindtape-cli/src/cmd/explain/index/mod.rs
+      - crates/mindtape-cli/src/cmd/explain/index/render.rs
     dependents:
       - www/content/cli/explain.typ
       - www/content/agents.typ

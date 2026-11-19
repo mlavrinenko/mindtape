@@ -18,6 +18,8 @@ Each block carries the rules that check it. `task:` holds `rules`, and
 `add:`, `flip:` and `rm:` hold the hooks each command runs. `rm:` also holds
 the `[rm] default-filter` as `filter:`. A section prints one line per severity
 it holds, `error` before `warn`. A reader meets what refuses the work first.
+A hook prints its name. An unnamed hook prints the command it runs, else the
+message it carries, else its `on.<moment>[<index>]` label.
 
 A key the project leaves open prints what its absence permits: `any` for a
 free vocabulary, `none` for an empty registry, and the policy word for

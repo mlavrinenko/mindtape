@@ -82,7 +82,7 @@ pub const EXPLAIN_TEMPLATES: SchemaId = SchemaId {
 /// `mt explain rules --json`.
 pub const RULES: SchemaId = SchemaId {
     name: "rules",
-    version: 1,
+    version: 2,
 };
 
 /// `mt explain tags --json`.

@@ -86,6 +86,10 @@ pub struct ActiveRule {
     pub assertion: Option<String>,
     /// The Typst function a `check` rule calls.
     pub check: Option<CheckSpec>,
+    /// The command a hook action runs, as its config spells it. `None` for a
+    /// rule that runs nothing, and for a gate that refuses on its `when`
+    /// alone.
+    pub run: Option<String>,
 }
 
 /// One derived field a project declares, as `mt explain rules` prints it.
@@ -245,6 +249,7 @@ fn commit_rule(index: usize, rule: &CommitRuleSpec) -> ActiveRule {
         when: rule.when.clone(),
         assertion: Some(rule.assertion.clone()),
         check: None,
+        run: None,
     }
 }
 
@@ -259,6 +264,7 @@ fn task_rule(index: usize, rule: &RuleSpec) -> ActiveRule {
         when: rule.when.clone(),
         assertion: rule.assertion.clone(),
         check: rule.check.clone(),
+        run: None,
     }
 }
 
@@ -276,6 +282,7 @@ fn body_rule(section: RuleSection, index: usize, parts: BodyParts<'_>) -> Active
         when: when.clone(),
         assertion: None,
         check: None,
+        run: None,
     }
 }
 
@@ -306,6 +313,7 @@ fn hook_actions<'a>(
                 when: when.clone(),
                 assertion: None,
                 check: None,
+                run: action.run.as_ref().map(ToString::to_string),
             });
         }
     }

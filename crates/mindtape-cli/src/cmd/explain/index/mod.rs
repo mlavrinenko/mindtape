@@ -10,8 +10,8 @@ use std::path::Path;
 
 use mindtape::explain::Shape;
 use mindtape::{
-    ActiveAddHook, Config, RuleOriginEntry, RuleSection, Severity, active_add, active_derived,
-    active_rules,
+    ActiveAddHook, ActiveRule, Config, RuleOriginEntry, RuleSection, Severity, active_add,
+    active_derived, active_rules,
 };
 
 use crate::cmd::schema::EXPLAIN;
@@ -87,7 +87,7 @@ fn collect(config: &Config, origins: &[RuleOriginEntry], root: &Path) -> Index {
                     let mut names: Vec<String> = active
                         .iter()
                         .filter(|rule| rule.section == section && rule.severity == severity)
-                        .map(|rule| bare_name(section, &rule.name))
+                        .map(|rule| bare_name(section, rule))
                         .collect();
                     // A hook with several listed actions is still one hook in
                     // the index; `mt explain rules` is where its actions stay
@@ -143,27 +143,37 @@ fn refusals(config: &Config, root: &Path) -> Vec<RefusalJson> {
         .collect()
 }
 
-/// The hook's name, or its `on.add[<index>]` label when unnamed.
+/// The hook's name, or for an unnamed hook the directory it files into, or
+/// its `on.add[<index>]` label when it files nowhere.
 fn add_name(hook: &ActiveAddHook<'_>) -> String {
-    hook.hook.name.clone().unwrap_or_else(|| {
-        hook.label
-            .strip_prefix("on.add")
-            .unwrap_or(&hook.label)
-            .trim_start_matches('.')
-            .to_owned()
-    })
+    if let Some(name) = &hook.hook.name {
+        return name.clone();
+    }
+    hook.hook
+        .actions
+        .iter()
+        .find_map(|action| action.dir.as_ref().and_then(|dir| dir.template()))
+        .map_or_else(|| hook.label.clone(), str::to_owned)
 }
 
 /// The rule's name without the section path that leads it: `verb-title` for
-/// `tasks.rules.verb-title`, and the hook's name for one of its actions.
-fn bare_name(section: RuleSection, name: &str) -> String {
-    let rest = name.strip_prefix(section.path()).unwrap_or(name);
+/// `tasks.rules.verb-title`, and the hook's name for one of its actions. An
+/// unnamed hook has no name to print. Its action prints what it runs, else
+/// the message it carries, else its `on.flip[<index>]` label.
+fn bare_name(section: RuleSection, rule: &ActiveRule) -> String {
+    let rest = rule.name.strip_prefix(section.path()).unwrap_or(&rule.name);
     let rest = rest.strip_prefix('.').unwrap_or(rest);
-    if matches!(section, RuleSection::OnFlip | RuleSection::OnRm) {
-        rest.split(".actions[").next().unwrap_or(rest).to_owned()
-    } else {
-        rest.to_owned()
+    if !matches!(section, RuleSection::OnFlip | RuleSection::OnRm) {
+        return rest.to_owned();
     }
+    let hook = rest.split(".actions[").next().unwrap_or(rest);
+    if !hook.starts_with('[') {
+        return hook.to_owned();
+    }
+    rule.run
+        .clone()
+        .or_else(|| rule.message.clone())
+        .unwrap_or_else(|| format!("{}{hook}", section.path()))
 }
 
 /// `items` with any entry called `default` moved to the front. The default

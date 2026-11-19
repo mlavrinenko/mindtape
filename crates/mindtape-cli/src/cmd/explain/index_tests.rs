@@ -6,7 +6,7 @@ use mindtape::parse_config;
 use mindtape::test_support::write_file;
 
 use mindtape::explain::InputShape;
-use mindtape::{RuleSection, Severity};
+use mindtape::{ActiveRule, RuleSection, Severity};
 
 use super::render::{input_line, list_line, render};
 use super::{Index, bare_name, collect, default_first, document};
@@ -94,24 +94,66 @@ fn groups_rules_by_section_and_drops_a_section_with_none() {
     );
 }
 
+/// An `ActiveRule` carrying only the fields `bare_name` reads.
+fn rule(section: RuleSection, name: &str, run: Option<&str>, message: Option<&str>) -> ActiveRule {
+    ActiveRule {
+        section,
+        name: name.to_owned(),
+        severity: Severity::Error,
+        message: message.map(str::to_owned),
+        when: None,
+        assertion: None,
+        check: None,
+        run: run.map(str::to_owned),
+    }
+}
+
+/// A rule prints its name without the section path. An unnamed hook has no
+/// name, so it prints what it runs, else its message, else its own label.
 #[test]
 fn bare_name_drops_the_section_and_an_action_slot() {
-    assert_eq!(
-        bare_name(RuleSection::TasksRules, "tasks.rules.verb-title"),
-        "verb-title"
-    );
-    assert_eq!(bare_name(RuleSection::TasksRules, "tasks.rules[2]"), "[2]");
-    assert_eq!(
-        bare_name(
-            RuleSection::OnFlip,
-            "on.flip.review-stale-task-before-starting.actions[1]"
+    let cases = [
+        (
+            RuleSection::TasksRules,
+            "tasks.rules.verb-title",
+            None,
+            None,
+            "verb-title",
         ),
-        "review-stale-task-before-starting"
-    );
-    assert_eq!(
-        bare_name(RuleSection::OnFlip, "on.flip[0].actions[0]"),
-        "[0]"
-    );
+        (RuleSection::TasksRules, "tasks.rules[2]", None, None, "[2]"),
+        (
+            RuleSection::OnFlip,
+            "on.flip.review-stale-task-before-starting.actions[1]",
+            None,
+            None,
+            "review-stale-task-before-starting",
+        ),
+        (
+            RuleSection::OnFlip,
+            "on.flip[0].actions[0]",
+            Some("scripts/test"),
+            None,
+            "scripts/test",
+        ),
+        (
+            RuleSection::OnFlip,
+            "on.flip[0].actions[0]",
+            None,
+            Some("not yet"),
+            "not yet",
+        ),
+        (
+            RuleSection::OnFlip,
+            "on.flip[0].actions[0]",
+            None,
+            None,
+            "on.flip[0]",
+        ),
+    ];
+    for (section, name, run, message, expected) in cases {
+        let rule = rule(section, name, run, message);
+        assert_eq!(bare_name(section, &rule), expected, "{name}");
+    }
 }
 
 #[test]
@@ -285,18 +327,25 @@ fn prints_a_framework_with_no_inputs_and_the_open_forms() {
     assert!(text.contains("  estimate: days (required)\n"), "{text}");
 }
 
-/// An unnamed add hook prints its `on.add[<index>]` label. The index still
-/// names it.
+/// An unnamed add hook prints the directory it files into, and its
+/// `on.add[<index>]` label when it files nowhere.
 #[test]
-fn an_unnamed_add_hook_prints_its_index() {
+fn an_unnamed_add_hook_prints_the_directory_it_files_into() {
     let index = index_of(
         "[tasks]\nroots = [\"tasks\"]\n\n\
          [[on.add]]\nwhen = '!has_tag(\"swept\")'\n\
          actions = [{ dir = \"tasks/swept\" }]\n",
     );
-    assert_eq!(index.add, ["[0]"]);
+    assert_eq!(index.add, ["tasks/swept"]);
     let text = render(&index, 100);
-    assert!(text.contains("add:\n  hooks: [0]\n"), "{text}");
+    assert!(text.contains("add:\n  hooks: tasks/swept\n"), "{text}");
+
+    let index = index_of(
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[on.add]]\nwhen = ''\n\
+         actions = [{ set = { kind = \"fix\" } }]\n",
+    );
+    assert_eq!(index.add, ["on.add[0]"]);
 }
 
 /// A framework's inputs print what each accepts: a number its own range, a

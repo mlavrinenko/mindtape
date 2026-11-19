@@ -34,6 +34,7 @@ fn a_check_rule_lists_its_function_and_no_message() {
                 field: Some("x-goals".to_owned()),
                 root: None,
             }),
+            run: None,
         }]
     );
 }
@@ -52,6 +53,7 @@ fn an_unnamed_commit_rule_warns_with_the_engine_advice() {
             when: Some("!tasks_only".to_owned()),
             assertion: Some("has(refs)".to_owned()),
             check: None,
+            run: None,
         }]
     );
 }
@@ -166,6 +168,11 @@ fn flip_actions_list_gates_and_message_carriers_by_their_path() {
         listed
             .iter()
             .all(|rule| rule.section == RuleSection::OnFlip && rule.check.is_none())
+    );
+    let runs: Vec<_> = listed.iter().map(|rule| rule.run.as_deref()).collect();
+    assert_eq!(
+        runs,
+        [Some("make"), None, None, Some("check"), Some("lint")]
     );
 }
 

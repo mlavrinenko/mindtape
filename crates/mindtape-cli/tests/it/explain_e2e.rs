@@ -98,7 +98,7 @@ fn bare_lists_every_listing_grouped() {
         "  rules (warn): [1]\n",
         "  body.headers (error): one-problem\n",
         "commits:\n  trailer: Refs\n  rules (warn): names-a-task\n",
-        "flip:\n  hooks (error): [0]\n",
+        "flip:\n  hooks (error): run the tests, then flip again\n",
         "rm:\n  filter: terminal\n",
         "derived fields: changes\n",
         "tags: default, cli, mt\n",
@@ -141,7 +141,7 @@ fn json_index_groups_and_listings_keep_their_keys() {
     );
     assert_eq!(
         index["rules"]["on.flip"],
-        serde_json::json!({"error": ["[0]"]})
+        serde_json::json!({"error": ["run the tests, then flip again"]})
     );
     assert_eq!(index["derived"], serde_json::json!(["changes"]));
     assert_eq!(index["tags"], serde_json::json!(["default", "cli", "mt"]));
@@ -156,7 +156,7 @@ fn json_index_groups_and_listings_keep_their_keys() {
     );
 
     let rules = json(dir.path(), &["explain", "rules", "--json"]);
-    mindtape::test_support::assert_schema(&rules, "rules");
+    mindtape::test_support::assert_schema_at(&rules, "rules", 2);
     assert!(rules["rules"].is_array() && rules["derived"].is_array());
     let tags = json(dir.path(), &["explain", "tags", "--json"]);
     mindtape::test_support::assert_schema(&tags, "tags");
@@ -249,7 +249,7 @@ fn rules_for_keeps_the_rules_that_moment_checks() {
 fn rules_json_carries_the_section_when_and_assert() {
     let dir = project();
     let value = json(dir.path(), &["explain", "rules", "--json"]);
-    mindtape::test_support::assert_schema(&value, "rules");
+    mindtape::test_support::assert_schema_at(&value, "rules", 2);
     let rules = value["rules"].as_array().unwrap();
     assert_eq!(rules.len(), 5, "{value}");
     assert_eq!(
@@ -262,6 +262,7 @@ fn rules_json_carries_the_section_when_and_assert() {
             "when": "!terminal",
             "assert": "has(title)",
             "check": null,
+            "run": null,
         })
     );
     assert_eq!(rules[4]["name"], "on.flip[0].actions[0]");

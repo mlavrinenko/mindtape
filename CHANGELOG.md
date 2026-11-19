@@ -26,10 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `commits:` holds `rules`, and `add:`, `flip:` and `rm:` hold the hooks each
   command runs. `rm:` also holds the `[rm]` filter as `filter:`. A section
   splits by severity, `error` before `warn`, and a key the project leaves open
-  prints what its absence permits: `any`, `none`, or the policy word. Every
+  prints what its absence permits: `any`, `none`, or the policy word. A hook
+  prints its name, or for an unnamed hook the command it runs, else the message
+  it carries, else its `on.<moment>[<index>]` label. Every
   line reads the config alone, so the index loads no task. The index ends on a
   `more:` line naming the listings that go deeper. `--json` carries the same
   blocks, and `schema/output/explain/4.schema.json` records them.
+- **`mt explain rules --json` carries the command a hook action runs.** Each
+  rule gains `run`, the command as its config spells it, or `null` for a rule
+  that runs nothing. `schema/output/rules/2.schema.json` records it.
 - **`mt explain` names the gates the user has not allowed.** A `refusals:`
   block lists each `[[tasks.waits]]` checker and each `[[on.flip]]` `run` that
   `mt allow` has not recorded, with the command that records it. A project with
