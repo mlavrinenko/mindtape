@@ -55,7 +55,7 @@ groups:
       www/content/agents.typ: 6b56e7fc0f4e54308818d3a593bd4d18ce414372cbcf7f87912c13394e43343f
       www/content/config.typ: af9095edf5e1f36b2155998fb3e0a853988810e0c3b44f18f3a3448c2f3c0653
       www/content/quickstart.typ: b76d49b8880baa90d19717c5ff230ba51838948a622cc5e06e8bec7ded6f4786
-      www/content/templates.typ: a534f25d0ae260bf9852e6683cca2e6450390e44a36b2b02aa0603e103f02dd0
+      www/content/templates.typ: a4647599b45b6a4242a27b06e092cb0c9ce76af4bfa709437fc5f55a215986a1
       www/utils/cli-notes.typ: 48bb8cd575c63ee49666392cc35b555b5954ec6084823f289dc5f51906334a4b
   cli-allow-docs:
     source:

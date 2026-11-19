@@ -64,7 +64,7 @@ arguments:
 
   [`default`], [The value used when nothing fills the slot.],
   [`example`],
-  [A sample value that `--describe` shows and `mt check` fills. `mt add` never files it.],
+  [A sample value that `--describe` and the editor scaffold show, and `mt check` fills. `mt add` never files it.],
 
   [`required`],
   [`false` lets the slot stay empty. A slot with a `default` is never required.],
@@ -275,6 +275,12 @@ still empty. Set `[add] interactive` to `always` or `never` to change that.
 Without a terminal on stdin and stdout, `mt add` doesn't open an editor, and a
 required slot left empty fails the add with the slot's name. That's the case
 for a script or an agent.
+
+Above each entry, a comment gives the slot's prompt, its kind and whether it's
+required, then its `choices`, its `default` and its `example` where the slot
+declares them. A `date` slot spells `YYYY-MM-DD` with a sample, so a wrong
+format doesn't read as a valid answer, and a `date` default pre-fills the
+entry. A slot you leave untouched keeps its default.
 
 The editor is `[add] editor`, else `$VISUAL`, else `$EDITOR`, else `vi`
 (`notepad` on Windows). A project's `[add] editor` runs only after

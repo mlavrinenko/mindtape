@@ -8,8 +8,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 use std::process::Command;
 
-use mindtape::{AddConfig, InteractiveMode, LinkValue, RawValue, SlotKind, SlotSpec};
+use mindtape::{AddConfig, InteractiveMode, LinkValue, RawValue, SlotKind, SlotSpec, parse_ymd};
 
+use crate::cmd::add::values::example_of;
 use crate::cmd::add::yaml_values::parse_mapping;
 use crate::diag::{Diag, Hint};
 
@@ -256,6 +257,38 @@ fn push_comment(out: &mut String, spec: &SlotSpec) {
     if let Some(default) = &spec.default {
         out.push_str(&format!("# default: {default}\n"));
     }
+    push_shape(out, spec);
+}
+
+/// The sample a `date` slot shows when it doesn't declare an `example:`.
+const DATE_SAMPLE: &str = "2026-11-17";
+
+/// The format a `date` slot's value takes.
+const DATE_FORMAT: &str = "YYYY-MM-DD";
+
+/// The line that shows what a good answer looks like. A `date` slot spells its
+/// format, because a wrong one reads as valid until the fill rejects it. Every
+/// other kind prints its `example:`, which the template author wrote for it.
+fn push_shape(out: &mut String, spec: &SlotSpec) {
+    let example = example_of(spec);
+    if spec.kind == SlotKind::Date {
+        let sample = example.unwrap_or(DATE_SAMPLE);
+        push_comment_lines(out, &format!("{DATE_FORMAT}, e.g. {sample}"));
+    } else if let Some(example) = example {
+        push_comment_lines(out, &format!("e.g. {example}"));
+    }
+}
+
+/// Push `text` as `#`-prefixed lines. A multi-line example then stays a
+/// comment, and the buffer stays a YAML mapping.
+fn push_comment_lines(out: &mut String, text: &str) {
+    for line in text.lines() {
+        if line.is_empty() {
+            out.push_str("#\n");
+        } else {
+            out.push_str(&format!("# {line}\n"));
+        }
+    }
 }
 
 /// One scaffold value, shaped by the slot's kind.
@@ -310,9 +343,11 @@ fn seed_entry(kind: SlotKind, raw: &RawValue) -> Entry {
 
 /// Pre-fill from a non-`text` slot's default. String and choice defaults come
 /// from the unescaped `default_string`. Numeric and bool defaults pass through
-/// the raw literal. An empty or absent list default renders as an explicit `[]`
-/// so the list kind is visible. A dated default and a non-empty list default
-/// stay blank, and the comment shows the default.
+/// the raw literal. A `date` default pre-fills when it is a `YYYY-MM-DD`
+/// literal, the one spelling the fill reads back. The editor then shows the
+/// shape. An empty or absent list default renders as an explicit `[]` so the
+/// list kind is visible. A non-empty list default, and a date default in any
+/// other spelling, stay blank, and the comment shows the default.
 fn default_entry(spec: &SlotSpec) -> Option<Entry> {
     if let Some(text) = &spec.default_string {
         return Some(Entry::Scalar(quote(text)));
@@ -321,6 +356,12 @@ fn default_entry(spec: &SlotSpec) -> Option<Entry> {
         SlotKind::Int | SlotKind::Float | SlotKind::Real | SlotKind::Bool => {
             spec.default.clone().map(Entry::Scalar)
         }
+        SlotKind::Date => spec
+            .default
+            .as_deref()
+            .filter(|source| parse_ymd(source).is_some())
+            .map(ToOwned::to_owned)
+            .map(Entry::Scalar),
         SlotKind::List | SlotKind::MultiChoice if is_empty_list_default(spec) => {
             Some(Entry::List(Vec::new()))
         }

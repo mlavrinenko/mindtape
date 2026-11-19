@@ -386,8 +386,9 @@ fn derive_summary(derive: &mindtape::config::add_hooks::DeriveAction) -> String 
 }
 
 /// A slot's example as a caller would type it: a string's or raw block's
-/// text, else the literal's source.
-fn example_of(spec: &SlotSpec) -> Option<&str> {
+/// text, else the literal's source. `--describe` and the editor scaffold both
+/// read it here, so the two show one example.
+pub(crate) fn example_of(spec: &SlotSpec) -> Option<&str> {
     spec.example_string.as_deref().or(spec.example.as_deref())
 }
 

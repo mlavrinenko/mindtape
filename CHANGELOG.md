@@ -74,6 +74,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mt add` refuses an unrated task. On, a default that a rule refuses fails
   `mt check` even when the example beside it passes, so a goal added to a
   project's goal list fails every template that has not rated it yet.
+- **The `mt add` editor scaffold shows each slot's example and a `date` slot's
+  format.** With `[add] comments = true`, the comment above an entry carries the
+  slot's `example`, and a `date` slot spells `YYYY-MM-DD` with a sample, so
+  `17.11.2026` no longer reads as a valid answer. A `date` slot with a default
+  pre-fills it, and an entry you leave untouched keeps that default.
 
 ### Changed
 

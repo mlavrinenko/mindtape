@@ -27,6 +27,15 @@ pub(super) fn specs() -> Vec<mindtape::SlotSpec> {
     discover_slots(TEMPLATE)
 }
 
+/// The scaffold a template source renders, with no seed values.
+fn scaffold_of(source: &str) -> String {
+    scaffold(
+        &AddConfig::default(),
+        &discover_slots(source),
+        &BTreeMap::new(),
+    )
+}
+
 #[test]
 fn scaffold_emits_one_entry_per_slot_with_comments() {
     let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
@@ -312,6 +321,79 @@ fn non_required_slot_label_is_optional() {
     let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
     // spec.required=false, default.is_none()=true → real: "optional", mutant: "required"
     assert!(buffer.contains("[string, optional]"), "{buffer}");
+}
+
+// ── push_comment: the shape line shows what a good answer looks like ──
+
+#[test]
+fn scaffold_prints_a_slots_example_under_its_prompt() {
+    let buffer = scaffold_of(
+        r#"#show: task.with(title: slot("title", prompt: "Task title", example: "Sort tasks without a due date last"))"#,
+    );
+    assert!(
+        buffer.contains(
+            "# Task title [string, required]\n# e.g. Sort tasks without a due date last\ntitle: "
+        ),
+        "{buffer}"
+    );
+}
+
+#[test]
+fn scaffold_prints_a_date_slots_format_and_sample() {
+    let buffer =
+        scaffold_of(r#"#show: task.with(due: slot("due", kind: "date", required: false))"#);
+    assert!(
+        buffer.contains("# due [date, optional]\n# YYYY-MM-DD, e.g. 2026-11-17\ndue: "),
+        "{buffer}"
+    );
+}
+
+#[test]
+fn a_date_slots_example_replaces_the_sample() {
+    let buffer = scaffold_of(
+        r#"#show: task.with(due: slot("due", kind: "date", required: false, example: "2027-01-05"))"#,
+    );
+    assert!(buffer.contains("# YYYY-MM-DD, e.g. 2027-01-05"), "{buffer}");
+    assert!(!buffer.contains("2026-11-17"), "{buffer}");
+}
+
+#[test]
+fn a_multiline_example_stays_a_comment() {
+    let buffer = scaffold_of(
+        "#show: task.with(as-is: slot(\"as-is\", kind: \"raw\", example: `+ Run the command.\n\n+ 🔴 It prints nothing.`))",
+    );
+    assert!(
+        buffer.contains("# e.g. + Run the command.\n#\n# + 🔴 It prints nothing.\n"),
+        "{buffer}"
+    );
+    // Every line stays a comment, so the buffer is still a YAML mapping.
+    parse_buffer(&buffer).unwrap();
+}
+
+// ── default_entry: a date default pre-fills so the editor shows the shape ──
+
+#[test]
+fn scaffold_prefills_a_date_default() {
+    let buffer = scaffold_of(
+        r#"#show: task.with(due: slot("due", kind: "date", required: false, default: 2026-11-17))"#,
+    );
+    assert!(buffer.contains("due: 2026-11-17"), "{buffer}");
+    // Left untouched, it parses back to the same date, so the default survives.
+    assert_eq!(
+        parse_buffer(&buffer).unwrap()["due"],
+        RawValue::Str("2026-11-17".to_owned())
+    );
+}
+
+#[test]
+fn a_date_default_that_is_not_a_ymd_literal_stays_blank() {
+    // `on(2026, 11, 17)` is a valid Typst default but not a value the fill
+    // accepts, so the scaffold leaves the slot blank and the comment shows it.
+    let buffer = scaffold_of(
+        r#"#show: task.with(due: slot("due", kind: "date", required: false, default: on(2026, 11, 17)))"#,
+    );
+    assert!(buffer.ends_with("due: "), "left blank: {buffer:?}");
+    assert!(buffer.contains("# default: on(2026, 11, 17)"), "{buffer}");
 }
 
 // ── seed_entry: the guard selecting the block-scalar form ──
