@@ -162,9 +162,7 @@ fn render(index: &Index, width: usize) -> String {
         width,
         "    ",
     );
-    if index.shape.absent.is_empty() {
-        out.push_str("absent: none\n");
-    } else {
+    if !index.shape.absent.is_empty() {
         labelled(&mut out, "absent", &index.shape.absent, width, "  ");
     }
     render_refusals(&mut out, &index.refusals);

@@ -140,10 +140,22 @@ task:
   templates: decision, task (default: task)
 commits:
   trailer: Refs
-absent: none
 rules:
 ";
     assert!(text.starts_with(expected), "{text}");
+}
+
+/// A project that constrains every key prints no `absent:` line, because the
+/// line has nothing to list. The JSON keeps the key as an empty array.
+#[test]
+fn a_project_that_constrains_every_key_prints_no_absent_line() {
+    let (dir, config) = project();
+    let index = collect(&config, dir.path());
+    assert!(index.shape.absent.is_empty());
+    let text = render(&index, 100);
+    assert!(!text.contains("absent"), "{text}");
+    let value = serde_json::to_value(document(&index)).unwrap();
+    assert_eq!(value["absent"], serde_json::json!([]));
 }
 
 /// A key the project leaves open stays out of its block, and `absent` names it

@@ -13,9 +13,10 @@ It also lists the `[tasks.comments] policy`, the `x-` extensions with the rule
 that reads each, and the templates with the one `mt add` picks. The `commits:`
 block lists the trailer.
 
-The index drops a key the project leaves open, and names it once in `absent:`,
-so `absent: none` says the project constrains every one. Every line reads the
-config alone. The index doesn't load a task, count anything or evaluate a
+The index drops a key the project leaves open, and names it once in `absent:`.
+A project that constrains every key prints no `absent:` line at all, as a
+project with every gate allowed prints no `refusals:` block. Every line reads
+the config alone. The index doesn't load a task, count anything or evaluate a
 filter.
 
 A gate the user has not allowed prints in a `refusals:` block, one line per
