@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 11, 19),
+  status: done(2026, 11, 19),
   links: related(
     "show-only-the-forbidden-gates-in-mt-explain.typ",
   )[the refusals block lists the gate],

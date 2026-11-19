@@ -16,6 +16,8 @@
 //! - `allow.rs`, `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`,
 //!   `preset.rs`, `review.rs`, `schema.rs`, `set.rs`, `at.rs`, `board.rs`:
 //!   one file each.
+//! - `hooks.rs`: the `show` / `list` presentation `mt flip` and `mt rm` share
+//!   before they run a hook's `run` action.
 //! - `write_guard.rs`: the destination guard `mt add`, `mt import` and
 //!   `mt recur` share before they create a file.
 
@@ -32,6 +34,7 @@ pub(crate) mod fix;
 pub(crate) mod flip;
 pub(crate) mod go;
 pub(crate) mod graph;
+pub(crate) mod hooks;
 pub(crate) mod import;
 pub(crate) mod init;
 pub(crate) mod install;

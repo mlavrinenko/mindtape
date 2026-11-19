@@ -20,16 +20,16 @@
 //! it had failed. A non-gating `run` skips with a line saying so. Either way the
 //! command joins the held-back list that `main` warns about once.
 
+use std::cell::OnceCell;
 use std::collections::HashSet;
-use std::io::IsTerminal;
+use std::io::Write;
 
-use mindtape::config::hooks::{ActionKind, FlipAction, matching_rm_hooks};
+use mindtape::config::hooks::{FlipAction, matching_rm_hooks};
 use mindtape::shell::ConfigCommand;
-use mindtape::{Filter, Readiness, Task, select};
+use mindtape::{Readiness, Task};
 
-use crate::diag::{Diag, Hint, Kind, Result};
-use crate::render::RenderCtx;
-use crate::render::output::{OutputFormat, render};
+use crate::cmd::hooks::{Presenter, RunAction, present};
+use crate::diag::{Diag, Hint, Result};
 use crate::util::Project;
 
 /// The `[[on.rm]]` runner for one `mt rm` invocation.
@@ -43,17 +43,11 @@ pub(super) struct Hooks<'a> {
     /// The ids of the tasks this run removes.
     eligible: &'a HashSet<String>,
     readiness: &'a Readiness,
-}
-
-/// The `run` action's fields, grouped so the executor stays inside the
-/// argument-count lint.
-#[derive(Clone, Copy)]
-struct Run<'a> {
-    /// The command, or `None` for a run-less gate. `kind()` only ever pairs
-    /// that with `gate: true`.
-    command: Option<&'a ConfigCommand>,
-    gate: bool,
-    message: Option<&'a str>,
+    /// Whether the runner renders `show` / `list` output at all.
+    show: bool,
+    /// Whether the user allowed the config's commands, asked on the first
+    /// `run` only, since the answer costs a `git` call.
+    allowed: OnceCell<bool>,
 }
 
 /// What a `run` action that fails without gating says when it doesn't declare
@@ -68,42 +62,48 @@ const ENV_STEM: &str = "MINDTAPE_TASK_STEM";
 
 impl<'a> Hooks<'a> {
     /// Build the runner for one removal: the project, the ids of the tasks it
-    /// removes, and the readiness their `when` filters read.
+    /// removes, the readiness their `when` filters read, and whether to render
+    /// `show` / `list` output. A gate runs either way.
     pub(super) fn new(
         project: &'a Project,
         eligible: &'a HashSet<String>,
         readiness: &'a Readiness,
+        show: bool,
     ) -> Self {
         Self {
             project,
             eligible,
             readiness,
+            show,
+            allowed: OnceCell::new(),
         }
     }
 
+    /// Whether the user allowed the commands the project's config runs.
+    fn allowed(&self) -> bool {
+        *self.allowed.get_or_init(|| {
+            let config = &self.project.config;
+            mindtape::allow::is_allowed(&self.project.root, &mindtape::allow::commands(config))
+        })
+    }
+
     /// Run every action of every hook matching a removed task.
-    ///
-    /// A `show` or `list` action prints only when stdout is a terminal. It is
-    /// presentation, and a scripted removal prints neither. A gate runs either
-    /// way.
     ///
     /// # Errors
     /// Returns an error when a `when` or `list` expression fails to evaluate,
     /// an action doesn't declare a single kind, a command fails to spawn, or a
     /// gate refuses the removal.
-    pub(super) fn run(&self) -> Result<()> {
+    pub(super) fn run(&self, out: &mut dyn Write) -> Result<()> {
         if self.project.config.on.rm.is_empty() {
             return Ok(());
         }
-        let show = std::io::stdout().is_terminal();
-        let mut allowed = None;
         for task in &self.project.outcome.tasks {
             if !self.eligible.contains(&task.id) {
                 continue;
             }
             for hook in matching_rm_hooks(&self.project.config, task, self.readiness)? {
                 for action in &hook.actions {
-                    self.act(task, action, show, &mut allowed)?;
+                    self.act(task, action, out)?;
                 }
             }
         }
@@ -112,105 +112,26 @@ impl<'a> Hooks<'a> {
 
     /// Run one action. A gate that fails returns the refusal, which stops the
     /// walk and the removal.
-    fn act(
-        &self,
-        task: &Task,
-        action: &FlipAction,
-        show: bool,
-        allowed: &mut Option<bool>,
-    ) -> Result<()> {
-        match action
-            .kind()
-            .map_err(|message| Diag::verbatim(Kind::Failed, format!("on.rm action: {message}")))?
-        {
-            ActionKind::Show(text) => {
-                if show {
-                    println!("{text}");
-                }
-                Ok(())
-            }
-            ActionKind::List { filter, title } => self.list(filter, title, show),
-            ActionKind::Run {
-                command,
-                gate,
-                message,
-            } => self.exec(
-                task,
-                Run {
-                    command,
-                    gate,
-                    message,
-                },
-                show,
-                allowed,
-            ),
+    fn act(&self, task: &Task, action: &FlipAction, out: &mut dyn Write) -> Result<()> {
+        let presenter = Presenter::new(self.project, self.readiness, self.show);
+        match present(action, "on.rm", &presenter, out)? {
+            None => Ok(()),
+            Some(run) => self.exec(task, run, out),
         }
-    }
-
-    /// Print the tasks matching `spec` (a filter expression or `@view`) as a
-    /// table, under `title`. A bare `@view` also picks up that view's sort.
-    fn list(&self, spec: &str, title: Option<&str>, show: bool) -> Result<()> {
-        if !show {
-            return Ok(());
-        }
-        let project = self.project;
-        let config = &project.config;
-        let mut tasks = select(
-            project.outcome.tasks.clone(),
-            Some(&Filter::parse(spec)?),
-            config,
-            self.readiness,
-        )?;
-        let sort = spec
-            .strip_prefix('@')
-            .and_then(|name| config.views.get(name))
-            .map(|view| view.sort.clone())
-            .unwrap_or_default();
-        crate::cmd::ls::sort_tasks(&mut tasks, &sort, config, self.readiness)?;
-        if let Some(title) = title {
-            println!("{title}");
-        }
-        if tasks.is_empty() {
-            println!("  (no matching tasks)");
-            return Ok(());
-        }
-        let hashes = crate::util::stem_hashes(&project.outcome.tasks, config);
-        let env = crate::cmd::ls::rules::build_env(project, "table");
-        let ctx = RenderCtx {
-            config,
-            readiness: self.readiness,
-            env: &env,
-            hashes: &hashes,
-            root: &project.root,
-            hyperlinks: project.hyperlinks,
-            project: None,
-        };
-        println!("{}", render(&tasks, OutputFormat::Table, ctx, None)?);
-        Ok(())
     }
 
     /// Execute a `run` action and judge the result, or, with no command at all,
     /// refuse outright: a run-less gate has nothing to run, so `when` matching
     /// is the whole verdict.
-    fn exec(
-        &self,
-        task: &Task,
-        run: Run<'_>,
-        show: bool,
-        allowed: &mut Option<bool>,
-    ) -> Result<()> {
+    fn exec(&self, task: &Task, run: RunAction<'_>, out: &mut dyn Write) -> Result<()> {
         let Some(spec) = run.command else {
             return Err(refused(run.message));
         };
         let command = spec.to_string();
-        let allowed = *allowed.get_or_insert_with(|| {
-            let config = &self.project.config;
-            mindtape::allow::is_allowed(&self.project.root, &mindtape::allow::commands(config))
-        });
-        if !allowed {
+        if !self.allowed() {
             let project = self.project;
             mindtape::allow::hold(&project.root, &mindtape::allow::commands(&project.config));
-            println!("skipped: {command} (not allowed)");
+            writeln!(out, "skipped: {command} (not allowed)")?;
             return if run.gate {
                 Err(Diag::refused("gate not allowed")
                     .value(&command)
@@ -224,21 +145,18 @@ impl<'a> Hooks<'a> {
         if output.code == Some(0) {
             // A successful non-gate run's output is informational, suppressed
             // on the same terms as `show` and `list`.
-            if !run.gate && show {
-                write_output(&command, &text);
+            if !run.gate && self.show {
+                write_output(out, &command, &text)?;
             }
             return Ok(());
         }
         // A failure always surfaces, quiet or not: it is either the evidence a
         // refusal rests on, or a command the project asked to be told about.
-        write_output(&command, &text);
+        write_output(out, &command, &text)?;
         if !run.gate {
             let advice = run.message.unwrap_or(DEFAULT_ADVICE);
-            let verdict = output.code.map_or_else(
-                || "terminated by signal".to_owned(),
-                |code| format!("exit {code}"),
-            );
-            println!("warning: {command} ({verdict}) — {advice}");
+            let verdict = verdict(output.code);
+            writeln!(out, "warning: {command} ({verdict}) — {advice}")?;
             return Ok(());
         }
         let refusal = Diag::refused("gate failed")
@@ -249,6 +167,14 @@ impl<'a> Hooks<'a> {
             None => refusal,
         })
     }
+}
+
+/// The run's outcome for a message: an exit code, or a signal.
+fn verdict(code: Option<i32>) -> String {
+    code.map_or_else(
+        || "terminated by signal".to_owned(),
+        |code| format!("exit {code}"),
+    )
 }
 
 /// A run-less gate refuses unconditionally. `when` already matched, so there is
@@ -284,9 +210,14 @@ fn run_command(
 }
 
 /// Print a command's combined output under a header naming it.
-fn write_output(command: &str, output: &str) {
-    println!("$ {command}");
+fn write_output(out: &mut dyn Write, command: &str, output: &str) -> Result<()> {
+    writeln!(out, "$ {command}")?;
     for line in output.lines() {
-        println!("  {line}");
+        writeln!(out, "  {line}")?;
     }
+    Ok(())
 }
+
+#[cfg(test)]
+#[path = "hooks_tests.rs"]
+mod tests;

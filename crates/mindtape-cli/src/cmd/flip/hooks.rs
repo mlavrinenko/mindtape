@@ -29,15 +29,13 @@ use std::io::Write;
 use std::path::Path;
 
 use crate::diag::Result;
-use mindtape::config::hooks::{ActionKind, FlipAction, matching_flip_hooks};
-use mindtape::shell::ConfigCommand;
-use mindtape::{ConditionEnv, Filter, Readiness, Task, select};
+use mindtape::config::hooks::{FlipAction, matching_flip_hooks};
+use mindtape::{Readiness, Task};
 
 use crate::cmd::flip::chain::Chain;
 use crate::cmd::flip::hooks_cmd::{CommandReport, RunCtx, run_command};
-use crate::diag::{Diag, Hint, Kind};
-use crate::render::RenderCtx;
-use crate::render::output::{OutputFormat, render};
+use crate::cmd::hooks::{Presenter, RunAction, present};
+use crate::diag::{Diag, Hint};
 use crate::util::Project;
 
 /// Advice attached to a gate refusal when the action doesn't declare a `message`.
@@ -76,27 +74,12 @@ struct Gate {
     refusal: Diag,
 }
 
-/// The `run` action's fields, grouped so the executor stays inside the
-/// argument-count lint.
-#[derive(Clone, Copy)]
-struct RunSpec<'a> {
-    /// The command, or `None` for a run-less gate. `kind()` only ever pairs
-    /// that with `gate: true`.
-    command: Option<&'a ConfigCommand>,
-    gate: bool,
-    message: Option<&'a str>,
-}
-
 /// The `[[on.flip]]` runner for one `mt flip` invocation.
 pub(crate) struct Hooks<'a> {
     project: &'a Project,
     readiness: Readiness,
     /// Whether the runner renders `show` / `list` output at all.
     show: bool,
-    /// The environment a `list` table's column visibility resolves against,
-    /// built exactly as `mt ls` builds it, so a `[ls.columns.<name>] when`
-    /// expression means the same thing in both surfaces.
-    env: ConditionEnv,
     /// Whether the user allowed the config's commands, asked on the first
     /// `run` only, since the answer costs a `git` call.
     allowed: OnceCell<bool>,
@@ -122,7 +105,6 @@ impl<'a> Hooks<'a> {
             project,
             readiness,
             show,
-            env: crate::cmd::ls::rules::build_env(project, "table"),
             allowed: OnceCell::new(),
             chain: Chain::inherited(),
         }
@@ -174,76 +156,11 @@ impl<'a> Hooks<'a> {
         at: &Transition<'_>,
         out: &mut dyn Write,
     ) -> Result<Option<Gate>> {
-        match action
-            .kind()
-            .map_err(|message| Diag::verbatim(Kind::Failed, format!("on.flip action: {message}")))?
-        {
-            ActionKind::Show(text) => {
-                if self.show {
-                    writeln!(out, "{text}")?;
-                }
-                Ok(None)
-            }
-            ActionKind::List { filter, title } => {
-                self.list(filter, title, out)?;
-                Ok(None)
-            }
-            ActionKind::Run {
-                command,
-                gate,
-                message,
-            } => self.exec(
-                RunSpec {
-                    command,
-                    gate,
-                    message,
-                },
-                at,
-                out,
-            ),
+        let presenter = Presenter::new(self.project, &self.readiness, self.show);
+        match present(action, "on.flip", &presenter, out)? {
+            None => Ok(None),
+            Some(run) => self.exec(run, at, out),
         }
-    }
-
-    /// Print the tasks matching `spec` (a filter expression or `@view`) as a
-    /// table, under `title`. A bare `@view` also picks up that view's sort.
-    fn list(&self, spec: &str, title: Option<&str>, out: &mut dyn Write) -> Result<()> {
-        if !self.show {
-            return Ok(());
-        }
-        let config = &self.project.config;
-        let filter = Filter::parse(spec)?;
-        let mut tasks = select(
-            self.project.outcome.tasks.clone(),
-            Some(&filter),
-            config,
-            &self.readiness,
-        )?;
-        crate::cmd::ls::sort_tasks(
-            &mut tasks,
-            &view_sort(self.project, spec),
-            config,
-            &self.readiness,
-        )?;
-        if let Some(title) = title {
-            writeln!(out, "{title}")?;
-        }
-        if tasks.is_empty() {
-            writeln!(out, "  (no matching tasks)")?;
-            return Ok(());
-        }
-        let hashes = crate::util::stem_hashes(&self.project.outcome.tasks, &self.project.config);
-        let ctx = RenderCtx {
-            config,
-            readiness: &self.readiness,
-            env: &self.env,
-            hashes: &hashes,
-            root: &self.project.root,
-            hyperlinks: self.project.hyperlinks,
-            project: None,
-        };
-        let table = render(&tasks, OutputFormat::Table, ctx, None)?;
-        writeln!(out, "{table}")?;
-        Ok(())
     }
 
     /// Execute a `run` action and judge the result, or, with no command at all,
@@ -251,7 +168,7 @@ impl<'a> Hooks<'a> {
     /// is the whole verdict.
     fn exec(
         &self,
-        run: RunSpec<'_>,
+        run: RunAction<'_>,
         at: &Transition<'_>,
         out: &mut dyn Write,
     ) -> Result<Option<Gate>> {
@@ -318,15 +235,6 @@ fn held_back(command: &str, gate: bool, out: &mut dyn Write) -> Result<Option<Ga
         command: command.to_owned(),
         refusal,
     }))
-}
-
-/// The sort chain a `list` spec inherits. A bare `@view` reference brings its
-/// view's sort, and anything else takes the default order.
-fn view_sort(project: &Project, spec: &str) -> Vec<String> {
-    spec.strip_prefix('@')
-        .and_then(|name| project.config.views.get(name))
-        .map(|view| view.sort.clone())
-        .unwrap_or_default()
 }
 
 /// A run-less gate refuses unconditionally. `when` already matched, so there is

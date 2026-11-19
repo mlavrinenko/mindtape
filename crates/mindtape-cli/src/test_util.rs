@@ -90,3 +90,23 @@ pub fn native_in(text: &str, paths: &[&str]) -> String {
 pub fn assert_count(text: &str, needle: &str, expected: usize) {
     assert_eq!(text.matches(needle).count(), expected, "{text}");
 }
+
+/// A task file in the `#metadata` form, which lets a fixture skip the Typst
+/// package.
+pub fn hook_task_src(title: &str, status: &str) -> String {
+    format!(
+        "#metadata((\n  marker: \"mindtape.task\",\n  fields: (\n    \
+         title: \"{title}\",\n    \
+         status: (name: \"{status}\", date: datetime(year: 2026, month: 6, day: 1), note: none),\n  \
+         ),\n  extras: (:),\n))\n"
+    )
+}
+
+/// Two tasks, `alpha` (wip) and `beta` (proposed), under `config_text`, for the
+/// `[[on.flip]]` and `[[on.rm]]` runners' tests.
+pub fn hook_project(dir: &Path, config_text: &str) -> Project {
+    let config = parse_config(config_text).unwrap();
+    let alpha = hook_task_src("Alpha", "wip");
+    let beta = hook_task_src("Beta", "proposed");
+    make_project_in(dir, &[("alpha.typ", &alpha), ("beta.typ", &beta)], config)
+}

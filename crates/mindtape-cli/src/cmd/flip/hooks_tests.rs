@@ -7,28 +7,8 @@ use std::path::Path;
 
 use mindtape::parse_config;
 
-use super::{HookOutcome, Hooks, Transition, view_sort};
+use super::{HookOutcome, Hooks, Transition};
 use crate::diag::plain;
-use crate::util::Project;
-
-/// A task file in the `#metadata` form, which lets a fixture skip the Typst
-/// package.
-fn task_src(title: &str, status: &str) -> String {
-    format!(
-        "#metadata((\n  marker: \"mindtape.task\",\n  fields: (\n    \
-         title: \"{title}\",\n    \
-         status: (name: \"{status}\", date: datetime(year: 2026, month: 6, day: 1), note: none),\n  \
-         ),\n  extras: (:),\n))\n"
-    )
-}
-
-/// Two tasks, `alpha` (wip) and `beta` (proposed), under `config_text`.
-fn project(dir: &Path, config_text: &str) -> Project {
-    let config = parse_config(config_text).unwrap();
-    let alpha = task_src("Alpha", "wip");
-    let beta = task_src("Beta", "proposed");
-    crate::test_util::make_project_in(dir, &[("alpha.typ", &alpha), ("beta.typ", &beta)], config)
-}
 
 /// The mode a test runs the hooks in. It records whether `show`/`list` print,
 /// whether `--force` is on, and whether the user allowed the config's commands.
@@ -69,7 +49,7 @@ pub(super) fn run_in(
         force,
         allowed,
     } = mode;
-    let project = project(dir, config_text);
+    let project = crate::test_util::hook_project(dir, config_text);
     let hooks = Hooks::new(&project, show);
     hooks.allowed.set(allowed).unwrap();
     let task = project
@@ -161,16 +141,6 @@ fn list_is_silent_when_suppressed() {
     let dir = tempdir();
     let (_, out) = run(dir.path(), LIST_HOOK, "wip", false, false);
     assert_eq!(out, "");
-}
-
-#[test]
-fn view_sort_follows_a_bare_view_reference() {
-    let dir = tempdir();
-    let config = "[views.hot]\nfilter = ''\nsort = [\"priority:desc\"]\n";
-    let project = project(dir.path(), config);
-    assert_eq!(view_sort(&project, "@hot"), vec!["priority:desc"]);
-    assert!(view_sort(&project, "@ghost").is_empty());
-    assert!(view_sort(&project, "status == \"wip\"").is_empty());
 }
 
 // run and gates
@@ -371,7 +341,7 @@ fn no_hooks_means_no_output_and_no_refusal() {
 #[test]
 fn an_unresolvable_action_errors() {
     let config = parse_config("[[on.flip]]\nwhen = ''\nactions = [{ title = \"x\" }]\n").unwrap();
-    let alpha = task_src("Alpha", "wip");
+    let alpha = crate::test_util::hook_task_src("Alpha", "wip");
     let (dir, project) = crate::test_util::make_project(&[("alpha.typ", &alpha)], config);
     let hooks = Hooks::new(&project, true);
     let task = project.outcome.tasks.first().unwrap().clone();

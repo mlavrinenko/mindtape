@@ -160,7 +160,8 @@ pub fn run(args: &RmArgs) -> Result<()> {
     }
 
     let root = canonical(&project.root)?;
-    let hooks = Hooks::new(&project, &eligible, &readiness);
+    let show = std::io::stdout().is_terminal();
+    let hooks = Hooks::new(&project, &eligible, &readiness, show);
 
     // A task nothing references needs no tombstone, so no git at all. Only when
     // a survivor points at an eligible task is the strategy consulted.
@@ -289,7 +290,7 @@ fn finalize(
         return Ok(());
     }
 
-    hooks.run()?;
+    hooks.run(&mut std::io::stdout())?;
     if !args.yes {
         ask_to_proceed(removal)?;
     }

@@ -15,6 +15,21 @@ fn plain(diag: &Diag) -> String {
     render(diag, false)
 }
 
+/// A hook whose `when` fails at run time names the array and the entry it sits
+/// in, so a reader can find it in the config.
+#[test]
+fn a_hook_error_names_its_section_and_index() {
+    let err = mindtape::config::hooks::HookError {
+        section: "on.rm",
+        index: 2,
+        when: "no_such_field == 1".to_owned(),
+        source: Box::new(FilterError::UnknownField("no_such_field".to_owned())),
+    };
+    let diag: Diag = err.into();
+    assert_eq!(diag.kind(), Kind::Usage);
+    assert!(plain(&diag).contains("on.rm[2].when"), "{}", plain(&diag));
+}
+
 #[test]
 fn a_condition_error_is_a_failure_with_a_next_step() {
     let task_field: Diag = ConditionError::TaskField("priority".to_owned()).into();

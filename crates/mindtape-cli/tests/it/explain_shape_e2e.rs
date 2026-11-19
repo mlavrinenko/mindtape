@@ -37,9 +37,6 @@ rules: none
     assert!(text.starts_with(expected), "{text}");
 }
 
-/// A gate the user has not allowed prints in `refusals:` with the section that
-/// declares it, and `mt allow` clears the block. The JSON carries the same
-/// list.
 /// A forbidden `[[on.rm]]` gate prints in `refusals:` with the section that
 /// declares it, and `mt explain rules --for rm` lists the hook it belongs to.
 #[test]
@@ -62,6 +59,9 @@ fn a_forbidden_on_rm_gate_is_refused_and_listed_for_rm() {
     assert_eq!(value["rules"][0]["section"], "on.rm");
 }
 
+/// A gate the user has not allowed prints in `refusals:` with the section that
+/// declares it, and `mt allow` clears the block. The JSON carries the same
+/// list.
 #[test]
 fn refusals_lists_only_the_gates_the_user_has_not_allowed() {
     let dir = scaffold_project(

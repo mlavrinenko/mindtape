@@ -348,6 +348,59 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
     })
 }
 
+/// Print the tasks matching `spec` (a filter expression or `@view`) as a table,
+/// under `title`. A bare `@view` also picks up that view's sort. The flip and
+/// rm hooks' `list` actions both use it.
+///
+/// # Errors
+/// Returns an error when the filter does not parse or evaluate, or the table
+/// does not render.
+pub(crate) fn print_matching(
+    project: &util::Project,
+    readiness: &Readiness,
+    spec: &str,
+    title: Option<&str>,
+    out: &mut dyn std::io::Write,
+) -> Result<()> {
+    let config = &project.config;
+    let mut tasks = select(
+        project.outcome.tasks.clone(),
+        Some(&Filter::parse(spec)?),
+        config,
+        readiness,
+    )?;
+    sort_tasks(&mut tasks, &view_sort(project, spec), config, readiness)?;
+    if let Some(title) = title {
+        writeln!(out, "{title}")?;
+    }
+    if tasks.is_empty() {
+        writeln!(out, "  (no matching tasks)")?;
+        return Ok(());
+    }
+    let hashes = crate::util::stem_hashes(&project.outcome.tasks, config);
+    let env = rules::build_env(project, "table");
+    let ctx = RenderCtx {
+        config,
+        readiness,
+        env: &env,
+        hashes: &hashes,
+        root: &project.root,
+        hyperlinks: project.hyperlinks,
+        project: None,
+    };
+    writeln!(out, "{}", render(&tasks, OutputFormat::Table, ctx, None)?)?;
+    Ok(())
+}
+
+/// The sort chain a `list` spec inherits. A bare `@view` reference brings its
+/// view's sort, and anything else takes the default order.
+pub(crate) fn view_sort(project: &util::Project, spec: &str) -> Vec<String> {
+    spec.strip_prefix('@')
+        .and_then(|name| project.config.views.get(name))
+        .map(|view| view.sort.clone())
+        .unwrap_or_default()
+}
+
 /// Apply `specs` (empty means the built-in default order). The `ls` render path
 /// and the flip hooks' listings both use it.
 pub(crate) fn sort_tasks(

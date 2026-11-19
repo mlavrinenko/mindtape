@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::into::copy_in_string;
+use super::into::{copy_in_string, scan_expression};
 use super::{
     ALWAYS, ActionKind, FlipAction, NEVER, desugar_into, into_targets, matching_flip_hooks,
     validate_flip_hooks,
@@ -50,6 +50,18 @@ fn into_atoms_are_constant() {
             "NEVER must match no task"
         );
     }
+}
+
+/// A rewrite that reports more bytes than it consumed ends the scan rather
+/// than reading past the expression.
+#[test]
+fn a_rewrite_that_overshoots_ends_the_scan() {
+    let mut out = String::new();
+    scan_expression(r#"into("done")"#, &mut out, &mut |rest, out| {
+        out.push('!');
+        Some(rest.len().saturating_add(1))
+    });
+    assert_eq!(out, "!");
 }
 
 #[test]

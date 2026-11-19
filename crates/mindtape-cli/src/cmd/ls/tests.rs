@@ -6,8 +6,21 @@ use mindtape::{Config, Readiness, Task};
 
 use mindtape::sort::sort_by_specs;
 
-use super::{LsArgs, next_command_hint, resolve_and_select, run_with};
+use super::{LsArgs, next_command_hint, resolve_and_select, run_with, view_sort};
 use crate::render::output::OutputFormat;
+
+/// A bare `@view` reference brings its view's sort, and anything else takes the
+/// default order.
+#[test]
+fn view_sort_follows_a_bare_view_reference() {
+    let dir = tempfile::tempdir().unwrap();
+    let config =
+        mindtape::parse_config("[views.hot]\nfilter = ''\nsort = [\"priority:desc\"]\n").unwrap();
+    let project = crate::test_util::make_project_in(dir.path(), &[], config);
+    assert_eq!(view_sort(&project, "@hot"), vec!["priority:desc"]);
+    assert!(view_sort(&project, "@ghost").is_empty());
+    assert!(view_sort(&project, "status == \"wip\"").is_empty());
+}
 
 fn task(id: &str, priority: f64) -> Task {
     let mut t = bare_task(id);
