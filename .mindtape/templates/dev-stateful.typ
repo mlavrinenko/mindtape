@@ -37,6 +37,11 @@
         kind: "raw",
         default: "neutral",
       ),
+      config-over-code: slot(
+        "config-over-code",
+        kind: "raw",
+        default: "neutral",
+      ),
       cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
       typst-over-markdown: slot(
         "typst-over-markdown",

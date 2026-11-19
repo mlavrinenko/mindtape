@@ -20,6 +20,13 @@
       `mt flip` runs the project's own checks before a status move lands; no
       rule depends on someone remembering it.],
   ),
+  config-over-code: (
+    title: "Policy lives in config, not code",
+    acid-test: [Every rule, status, tag, path and threshold `mt` enforces is a
+      config key. A project changes one by editing `.mindtape/config.toml`, and
+      no Rust change is needed. A behavior only a Rust change can alter fails
+      this goal.],
+  ),
   cheap-adoption: (
     title: "Best practice adopts in one line",
     acid-test: [A repo takes the flagship's practice with one config line,
@@ -33,7 +40,7 @@
   plain-files: (
     title: "Plain files, no infrastructure",
     acid-test: [`mt` binary is the whole setup: no daemon, no database,
-      no index,and nothing outside the repo to lose.],
+      no index, and nothing outside the repo to lose.],
   ),
   self-describing: (
     title: "The CLI explains itself",

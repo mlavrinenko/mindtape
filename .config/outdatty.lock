@@ -568,12 +568,12 @@ groups:
       docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: 94be6d37ffc3ba4958f182ee76623788e7d2929ee2ca9ace96b343d32718f802
+      .mindtape/templates/sweep-size.typ: 67ede5a3868611b7794054eb2aa1ed35e14e9f317a9478ab7a272666399a37ef
     dependents:
-      .mindtape/templates/sweep-dry.typ: 18ecc6474b6c3c7f5f7f5b0d3b28b5a278ee8ff110e87c339ad27f9dffc20d3f
-      .mindtape/templates/sweep-mutants.typ: 99763faa06e73890ee34fbe637c9ab6870d390cfa57c22d43eb9a1da500b7dd7
-      .mindtape/templates/sweep-repeats.typ: 330394a5902d95b8bf86ef72589b807a379b39613adb2e22df5b877a2ea39111
-      .mindtape/templates/sweep-undertested.typ: 1340f1e82bd69f29ee99d68d6d6af08ce2132900e980431e7379d22084d1a5c8
+      .mindtape/templates/sweep-dry.typ: e0c0c565af3e94c2d8694758a758d5725aa41ed63d48947b0f81ffb4ebcd79fe
+      .mindtape/templates/sweep-mutants.typ: d21a0c873b2697f720d64d28c82ca5f865d2af0f6f5c317a13ee970ab6eb618e
+      .mindtape/templates/sweep-repeats.typ: 3f01e11f7679386ec8996dc708b58006daa76c3581907a02845f9ed813583a1c
+      .mindtape/templates/sweep-undertested.typ: c8e815aa0e94f9b683d2b018f7cc93375bc318a02a998080589c243b51dabaff
       contrib/ask-refactoring/dry.sh: 28d93c1435268f84913f9daca86e4e6b23cfcc830f210e63b56a8c164aef36dd
       contrib/ask-refactoring/mutants.sh: 8d366293e6cfa7e37c9afc364442e487f8608f378c0caa35ec839855d1fdb403
       contrib/ask-refactoring/repeats.sh: e7643ce9a120000138856b44dc4ebb815b3250bc7c96d7c886c8cce20254c022
@@ -581,16 +581,16 @@ groups:
       contrib/ask-refactoring/undertested.sh: 56982936cf27f940bfa7906ff5edbe3c37e197d136a4085d5858a5d1a2363636
   task-templates:
     source:
-      .mindtape/templates/task.typ: 0df668a6aec28e04c719b68f69ec81cd0548ae7418d78b6f8ef983949724d828
+      .mindtape/templates/task.typ: c4bb9fe073c0ed8c24bf856dde9407ade390e66dfc7bb53d647c17664cfab655
     dependents:
-      .mindtape/templates/decision.typ: bbfccf178f600dda46e504f66f215a16e1a3cb81704646cdbe9933a88d1b63c1
-      .mindtape/templates/dev-stateful.typ: 204ec3f7ac24faa74321ed6ce080cc8c833adb7393ad6af13590da895094a290
-      .mindtape/templates/dev.typ: 20ff5bdf8be87f01ce80aa31c0e65bb9612e93615ec96f0e2315cce1933621ed
-      .mindtape/templates/docs.typ: c3596f1a0296df027ff419387bec01b945bab71edf78f0f173c4905aca8183e6
-      .mindtape/templates/feat-stateful.typ: c11b1aa40f27d5d95a5c12809707cc3014ab1720a9233bd76de2ea062c674505
-      .mindtape/templates/feat.typ: ca1bff6ea8e4b332402d489caa85cd7dc92e5796e7dd969bd9268abdf1a347be
-      .mindtape/templates/fix-stateful.typ: d30eb5eae109cc52413c4166b6db8937eb126dbfb5e27cf2bc06bea662fc819e
-      .mindtape/templates/fix.typ: d679365f22f545cce1c086ab3d285fc79e76cfcd6f0ce56ba290ae3fa6566734
+      .mindtape/templates/decision.typ: 4cb2a7b9af417480c60f82998df658353de50c779ccef004ad237556e098b782
+      .mindtape/templates/dev-stateful.typ: 5490a0d9d2e3b0630ad6aed281a269c16af0f0ed400bb40be90addfd055d21ba
+      .mindtape/templates/dev.typ: 3384c6926eca70e9cee954e1cd40ac2a636be7dbad52e3bf43a856aa6282862c
+      .mindtape/templates/docs.typ: 74bf9626fb81b0a4691433ab03414a32604b82fb2dfdb8f6a4829c4ea66f1dc3
+      .mindtape/templates/feat-stateful.typ: 7fec133b73f5fbed5d78612cb3dbb52f8e9cf3bfce39411afd265cf0b2cd7b55
+      .mindtape/templates/feat.typ: b8beedf196eb7154dba694adad0929985057adb9e96e8c1529208962af1d1f15
+      .mindtape/templates/fix-stateful.typ: 114c0336e8e175bb7a992e24dd4d0ea35a3af3ccb7fe857a9f6519c8ec178388
+      .mindtape/templates/fix.typ: 55e76aae8569a3b56c487d6566d616c6bc430d20c70d2667b1528adc4b6f1043
   typst-pkg-version:
     source:
       lib/typst.toml: 2a5837c51f4f9ed4b670d79dd7a1860301db050368a12b7b8a6bfabe1726bc68

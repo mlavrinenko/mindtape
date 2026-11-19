@@ -7,6 +7,8 @@
 // Crate names come from www/generated/crate-map.json. The render fails on a
 // crate with no role, an unknown dependency or a missing page.
 #import "lib.typ": doc-title, fact, just, mindtape, num-word
+#import "/truth/goals.typ": goals as product-goals
+#import "/truth/process-goals.typ": goals as process-goals
 
 #metadata((
   output: "AGENTS.md",
@@ -46,6 +48,15 @@ evaluates the task files under its roots through the Typst compiler crates,
 with no daemon or database. A content-hash cache in `.mindtape/cache/` skips
 unchanged files.
 
+= Goals
+
+#for (_, goal) in product-goals [
+  - #goal.title: #goal.acid-test
+]
+#for (_, goal) in process-goals [
+  - #goal.title: #goal.acid-test
+]
+
 = Repo map
 
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task
@@ -54,23 +65,16 @@ unchanged files.
   prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
 - `truth/tasks/`: #mindtape's own backlog, a folder per month plus a
   `swept/` inbox, read with the in-tree `lib/`.
-- `truth/goals.typ` and `truth/process-goals.typ`: the product and process
-  goals. Each open task rates every goal in `x-goals`. The
-  `give-every-goal-verdict` rule checks that.
+- `truth/goals.typ` and `truth/process-goals.typ`: the goals above.
 - `www/content/*.typ`: the docs site, built with tola.
 - `docs/src/*.typ`: the sources of README.md, AGENTS.md, CONTRIBUTING.md,
   SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/`: the agent skill for driving `mt`, with its references
   and evals.
-- `examples/`: fixture projects backing one docs page each.
-  - `api-service`: a sample backend backlog that feeds the docs and the
-    skill's evals.
-  - `minimal`: the smallest config.
-  - `dsl`: the task quoted on the DSL page.
-  - `large`: a 2000-task benchmark whose gitignored tasks #just.bench-gen()
-    writes.
-  - `nix-adopter`: a flake that takes `mt` into its dev shell, which
-    #just.smoke-flake() locks against the working tree.
+- `examples/`: fixture projects backing one docs page each. `api-service` is a
+  sample backend backlog. `minimal` is the smallest config. `dsl` is the task
+  quoted on the DSL page. `large` is a 2000-task benchmark. `nix-adopter` is a
+  flake that takes `mt` into its dev shell.
 
 Before writing about a feature, read its `www/content/` page:
 #page-src("dsl") for task fields, edge kinds and `recur`,
@@ -108,9 +112,8 @@ The cargo workspace has a virtual root manifest and
 )
 
 The Typst plumbing comes from #num-word(crate-map.at("substrate").len()) crates.io
-dependencies, under `~/.cargo/registry/src/` at the versions `Cargo.lock`
-pins. `HVal`, the value every task field passes through, is
-`typst_world::value::HVal`.
+dependencies at the versions `Cargo.lock` pins. `HVal`, the value every task
+field passes through, is `typst_world::value::HVal`.
 
 #for c in crate-map.at("substrate") [
   - #raw(c.name): #substrate-roles.at(c.name)
@@ -138,14 +141,3 @@ declares, `mt explain templates` for the templates `mt add` files from, and
 `mt explain rules --for <moment>` for what an add, commit or flip checks. Edit
 a task by hand only for the body, a framework priority, `estimate` and
 `x-goals`, then run `mt check`.
-
-== Mechanism, not policy
-
-Rust provides mechanisms, and projects write policy as config. Rust code
-doesn't state an estimate unit, status, tag, path or threshold. Write a new
-check as a `[[tasks.rules]]` entry. When the filter language cannot express
-it, extend the language with a field, predicate, aggregate or git state, never
-a config table or checker of its own. Put built-in defaults in the rule packs
-under `crates/mindtape/src/packs/`, where a project overrides a rule by
-name. `docs/contributing/validation-seam.md` says which layer a new check
-belongs in.

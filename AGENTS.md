@@ -8,21 +8,29 @@
 
 Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task.with(...)`), named by its filename stem. Every `mt` command evaluates the task files under its roots through the Typst compiler crates, with no daemon or database. A content-hash cache in `.mindtape/cache/` skips unchanged files.
 
+## Goals
+
+- Tasks read at a glance: Anyone opening an open task file can say within 30 seconds what is broken, why it matters, and how it should work instead.
+- Tasks guide the implementer: An implementer in a fresh session, given only the task file, lands the change without asking where to start or what done looks like.
+- Checks run where work happens: `mt add` refuses a task that breaks the project’s rules, and `mt flip` runs the project’s own checks before a status move lands; no rule depends on someone remembering it.
+- Policy lives in config, not code: Every rule, status, tag, path and threshold `mt` enforces is a config key. A project changes one by editing `.mindtape/config.toml`, and no Rust change is needed. A behavior only a Rust change can alter fails this goal.
+- Best practice adopts in one line: A repo takes the flagship’s practice with one config line, overrides what it disagrees with, and gets later fixes without copying.
+- Typst beats Markdown with frontmatter: A software engineer reading the docs’ first screen sees a task that Markdown plus YAML plus scripts cannot express as briefly.
+- Plain files, no infrastructure: `mt` binary is the whole setup: no daemon, no database, no index, and nothing outside the repo to lose.
+- The CLI explains itself: A newcomer in a fresh session, given a project and `mt` but no external documentation, can list, file and flip a task, and every refusal names the command that fixes it.
+- Changes stay safe: A change that breaks documented behavior fails `just check` before it can be committed, and every file fits its size cap.
+- Docs match the code: Every doc claim about the CLI, the config or the task DSL is generated from its source, or fails a gate once the two drift.
+
 ## Repo map
 
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task DSL.
 - `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
 - `truth/tasks/`: Mindtape’s own backlog, a folder per month plus a `swept/` inbox, read with the in-tree `lib/`.
-- `truth/goals.typ` and `truth/process-goals.typ`: the product and process goals. Each open task rates every goal in `x-goals`. The `give-every-goal-verdict` rule checks that.
+- `truth/goals.typ` and `truth/process-goals.typ`: the goals above.
 - `www/content/*.typ`: the docs site, built with tola.
 - `docs/src/*.typ`: the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/`: the agent skill for driving `mt`, with its references and evals.
-- `examples/`: fixture projects backing one docs page each.
-  - `api-service`: a sample backend backlog that feeds the docs and the skill’s evals.
-  - `minimal`: the smallest config.
-  - `dsl`: the task quoted on the DSL page.
-  - `large`: a 2000-task benchmark whose gitignored tasks `just bench gen` writes.
-  - `nix-adopter`: a flake that takes `mt` into its dev shell, which `just smoke-flake` locks against the working tree.
+- `examples/`: fixture projects backing one docs page each. `api-service` is a sample backend backlog. `minimal` is the smallest config. `dsl` is the task quoted on the DSL page. `large` is a 2000-task benchmark. `nix-adopter` is a flake that takes `mt` into its dev shell.
 
 Before writing about a feature, read its `www/content/` page: `dsl.typ` for task fields, edge kinds and `recur`, `templates.typ` for `mt add` and slots, `hooks.typ` for hooks, `derived-tags.typ`, `priority.typ`, `filters.typ`, and `config.typ` for every config key.
 
@@ -33,7 +41,7 @@ The cargo workspace has a virtual root manifest and two crates:
 - `crates/mindtape`: the domain library: config, task model, filter language, validation and project loader, which speconaut and other tools depend on.
 - `crates/mindtape-cli`: the thin `mt` binary, built on clap.
 
-The Typst plumbing comes from seven crates.io dependencies, under `~/.cargo/registry/src/` at the versions `Cargo.lock` pins. `HVal`, the value every task field passes through, is `typst_world::value::HVal`.
+The Typst plumbing comes from seven crates.io dependencies at the versions `Cargo.lock` pins. `HVal`, the value every task field passes through, is `typst_world::value::HVal`.
 
 - `artifact-gate`: the rule engine behind `mt check`’s body header rules.
 - `swhid-mint`: mints the SWHID a tombstone records.
@@ -54,7 +62,3 @@ The Typst plumbing comes from seven crates.io dependencies, under `~/.cargo/regi
 ## Task definition language (lib/prelude.typ)
 
 `mt add` writes a task file, and `mt` commands change it, as `skills/mindtape/SKILL.md` says. Run `mt explain` for the shape this repo declares, `mt explain templates` for the templates `mt add` files from, and `mt explain rules --for <moment>` for what an add, commit or flip checks. Edit a task by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
-
-### Mechanism, not policy
-
-Rust provides mechanisms, and projects write policy as config. Rust code doesn’t state an estimate unit, status, tag, path or threshold. Write a new check as a `[[tasks.rules]]` entry. When the filter language cannot express it, extend the language with a field, predicate, aggregate or git state, never a config table or checker of its own. Put built-in defaults in the rule packs under `crates/mindtape/src/packs/`, where a project overrides a rule by name. `docs/contributing/validation-seam.md` says which layer a new check belongs in.
