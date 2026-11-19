@@ -275,7 +275,9 @@ These sections have a page of their own:
 
 A `[tasks] roots` entry names where task sources are.
 #link(u("/concepts/#which-files-count-as-tasks"))[Which files count as tasks]
-says which files under a root `mt` reads.
+says which files under a root `mt` reads. A root's `exclude` lists globs,
+relative to the root, whose matches it does not cover. Another root can still
+admit them.
 
 The sections below have no other page.
 

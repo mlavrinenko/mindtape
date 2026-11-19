@@ -18,6 +18,22 @@ fn project(config: &str) -> (tempfile::TempDir, TaskSource) {
     (dir, source)
 }
 
+/// Whether `rel` is a source under `config`, with the file written.
+fn is_source(config: &str, rel: &str) -> bool {
+    let (dir, source) = project(config);
+    write_file(dir.path(), rel, "");
+    source.is_source(&source.task_path(Path::new(rel)))
+}
+
+/// The warning `rel` earns under `config`, with `body` written there.
+fn warning(config: &str, rel: &str, body: &str) -> Option<crate::loader::LoadWarning> {
+    let (dir, source) = project(config);
+    write_file(dir.path(), rel, body);
+    let path = source.task_path(Path::new(rel));
+    let text = std::fs::read_to_string(path.abs()).unwrap();
+    source.reserved_warning(&path, &text)
+}
+
 #[test]
 fn a_relative_path_carries_normalized_project_relative_and_absolute_forms() {
     let (dir, source) = project("[tasks]\nroots = [\".\"]\n");
@@ -74,32 +90,21 @@ fn a_regular_file_a_symlink_and_a_missing_path_have_distinct_kinds() {
 
 #[test]
 fn a_regular_typ_file_under_a_root_is_a_source() {
-    let (dir, source) = project("[tasks]\nroots = [\"tasks\"]\n");
-    write_file(dir.path(), "tasks/build.typ", "");
-
-    let path = source.task_path(Path::new("tasks/build.typ"));
-    assert!(source.is_source(&path));
-    assert!(!source.is_reserved(&path));
+    assert!(is_source(
+        "[tasks]\nroots = [\"tasks\"]\n",
+        "tasks/build.typ"
+    ));
 }
 
 #[test]
-fn a_non_typ_file_is_not_a_source() {
-    let (dir, source) = project("[tasks]\nroots = [\"tasks\"]\n");
-    write_file(dir.path(), "tasks/notes.md", "");
-
-    let path = source.task_path(Path::new("tasks/notes.md"));
-    assert!(!source.is_source(&path));
-    assert!(!source.is_reserved(&path));
-}
-
-#[test]
-fn a_typ_file_outside_every_root_is_not_a_source() {
-    let (dir, source) = project("[tasks]\nroots = [\"tasks\"]\n");
-    write_file(dir.path(), "elsewhere/build.typ", "");
-
-    let path = source.task_path(Path::new("elsewhere/build.typ"));
-    assert!(!source.is_source(&path));
-    assert!(!source.is_reserved(&path));
+fn a_non_typ_file_and_a_file_outside_every_root_are_not_sources() {
+    for rel in ["tasks/notes.md", "elsewhere/build.typ"] {
+        let (dir, source) = project("[tasks]\nroots = [\"tasks\"]\n");
+        write_file(dir.path(), rel, "");
+        let path = source.task_path(Path::new(rel));
+        assert!(!source.is_source(&path), "{rel}");
+        assert!(!source.is_reserved(&path), "{rel}");
+    }
 }
 
 #[test]
@@ -130,6 +135,7 @@ fn a_reserved_metadata_component_excludes_a_source_case_insensitively() {
         let path = source.task_path(Path::new(reserved));
         assert!(!source.is_source(&path), "{reserved}");
         assert!(source.is_reserved(&path), "{reserved}");
+        assert!(source.is_misfiled(&path), "{reserved}");
     }
 }
 
@@ -142,6 +148,7 @@ fn a_path_below_a_configured_template_dir_is_reserved() {
     let template = source.task_path(Path::new("templates/bug.typ"));
     assert!(!source.is_source(&template));
     assert!(source.is_reserved(&template));
+    assert!(!source.is_misfiled(&template));
 
     let task = source.task_path(Path::new("tasks/build.typ"));
     assert!(source.is_source(&task));
@@ -161,6 +168,37 @@ fn a_sibling_with_a_longer_name_is_not_inside_the_dir() {
 }
 
 #[test]
+fn an_excluded_path_is_not_a_source() {
+    let config = "[[tasks.roots]]\npath = \".\"\nexclude = [\"docs/**\"]\n";
+    assert!(!is_source(config, "docs/example.typ"));
+    assert!(is_source(config, "tasks/build.typ"));
+}
+
+/// An exclude narrows one root. A narrower root still admits the path, and
+/// the file is a source through it.
+#[test]
+fn a_second_root_still_admits_an_excluded_path() {
+    let config = "[[tasks.roots]]\npath = \".\"\nexclude = [\"docs/**\"]\n\n\
+                  [[tasks.roots]]\npath = \"docs/tasks\"\n";
+    assert!(is_source(config, "docs/tasks/build.typ"));
+}
+
+#[test]
+fn a_root_the_policy_does_not_hold_admits_nothing() {
+    let (dir, source) = project("[tasks]\nroots = [\"tasks\"]\n");
+    let path = source.task_path(Path::new("tasks/build.typ"));
+
+    assert!(!source.admits_in(&dir.path().join("elsewhere"), &path));
+}
+
+#[test]
+fn an_exclude_glob_is_relative_to_its_root() {
+    let config = "[[tasks.roots]]\npath = \"tasks\"\nexclude = [\"archive/**\"]\n";
+    assert!(!is_source(config, "tasks/archive/old.typ"));
+    assert!(is_source(config, "tasks/current.typ"));
+}
+
+#[test]
 fn a_configured_root_below_the_project_is_the_only_source_scope() {
     let (dir, source) = project("[tasks]\nroots = [\"backlog/nested\"]\n");
     write_file(dir.path(), "backlog/nested/build.typ", "");
@@ -171,30 +209,42 @@ fn a_configured_root_below_the_project_is_the_only_source_scope() {
 }
 
 #[test]
-fn a_reserved_typ_with_a_task_call_warns_at_the_call_line() {
-    let (dir, source) = project("[tasks]\nroots = [\".\"]\n");
-    write_file(
-        dir.path(),
-        ".mindtape/templates/task.typ",
-        "#import \"@local/mindtape:0.4.0\": *\n\n#show: task.with(title: \"Template\")\n",
-    );
-    let path = source.task_path(Path::new(".mindtape/templates/task.typ"));
-    let text = std::fs::read_to_string(path.abs()).unwrap();
-
-    let warning = source.reserved_warning(&path, &text).unwrap();
-    assert_eq!(warning.file, Path::new(".mindtape/templates/task.typ"));
+fn a_misfiled_typ_with_a_task_call_warns_at_the_call_line() {
+    let warning = warning(
+        "[tasks]\nroots = [\".\"]\n",
+        ".mindtape/task.typ",
+        "#import \"@local/mindtape:0.4.0\": *\n\n#show: task.with(title: \"Misfiled\")\n",
+    )
+    .unwrap();
+    assert_eq!(warning.file, Path::new(".mindtape/task.typ"));
     assert_eq!(warning.line, Some(3));
     assert!(warning.message.contains("task.with"), "{}", warning.message);
 }
 
 #[test]
-fn a_reserved_typ_with_no_task_call_does_not_warn() {
-    let (dir, source) = project("[tasks]\nroots = [\".\"]\n");
-    write_file(dir.path(), ".mindtape/templates/notes.typ", "= Notes\n");
-    let path = source.task_path(Path::new(".mindtape/templates/notes.typ"));
-    let text = std::fs::read_to_string(path.abs()).unwrap();
+fn a_misfiled_typ_with_no_task_call_does_not_warn() {
+    assert!(
+        warning(
+            "[tasks]\nroots = [\".\"]\n",
+            ".mindtape/notes.typ",
+            "= Notes\n"
+        )
+        .is_none()
+    );
+}
 
-    assert!(source.reserved_warning(&path, &text).is_none());
+/// A template counts as reserved, but its `task.with` call is what the
+/// directory is for, so it earns no warning.
+#[test]
+fn a_template_with_a_task_call_does_not_warn() {
+    assert!(
+        warning(
+            "[tasks]\nroots = [\".\"]\n",
+            ".mindtape/templates/task.typ",
+            "#show: task.with(title: \"Template\")\n",
+        )
+        .is_none()
+    );
 }
 
 #[test]

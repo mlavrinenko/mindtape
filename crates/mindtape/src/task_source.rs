@@ -14,6 +14,8 @@
 use std::ffi::OsStr;
 use std::path::{Component, Path, PathBuf};
 
+use globset::{Glob, GlobSet, GlobSetBuilder};
+
 use crate::config::Config;
 use crate::config::roots::normalize_path;
 use crate::loader::LoadWarning;
@@ -102,12 +104,14 @@ impl TaskPath {
 /// The policy holds the configured roots and template directories in separate,
 /// normalized absolute forms. [`crate::config::RootSpec::dir`] keeps its
 /// string match-key semantics for commit and tag derivation.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct TaskSource {
     /// The project root the relative forms resolve against, normalized.
     root: PathBuf,
     /// Every `[[tasks.roots]]` entry, normalized and absolute.
     roots: Vec<PathBuf>,
+    /// Each root's compiled `exclude` globs, in the same order as `roots`.
+    excludes: Vec<GlobSet>,
     /// Every `[templates] dirs` entry, normalized and absolute.
     templates: Vec<PathBuf>,
 }
@@ -124,12 +128,16 @@ impl TaskSource {
         let roots = (config.tasks.roots.iter())
             .map(|spec| anchored(&root, &spec.normalized()))
             .collect();
+        let excludes = (config.tasks.roots.iter())
+            .map(|spec| compile_excludes(spec.excludes()))
+            .collect();
         let templates = (config.templates.normalized_dirs().iter())
             .map(|dir| anchored(&root, dir))
             .collect();
         Self {
             root,
             roots,
+            excludes,
             templates,
         }
     }
@@ -175,7 +183,7 @@ impl TaskSource {
     #[must_use]
     pub fn would_be_source(&self, path: &TaskPath) -> bool {
         is_typ(&path.abs)
-            && self.under_root(path)
+            && self.admits(path)
             && !has_reserved_component(&path.rel)
             && !self.under_template(path)
     }
@@ -184,23 +192,39 @@ impl TaskSource {
     /// configured root, but a reserved `.mindtape`/`.git` component or a
     /// configured template dir excludes it.
     ///
-    /// The loader uses this to explain a task call it deliberately does not
-    /// load. A file outside the roots is not reserved, it is simply elsewhere.
+    /// A file outside the roots is not reserved, it is simply elsewhere.
     #[must_use]
     pub fn is_reserved(&self, path: &TaskPath) -> bool {
         path.kind == TaskPathKind::Regular
             && is_typ(&path.abs)
             && self.under_root(path)
-            && (has_reserved_component(&path.rel) || self.under_template(path))
+            && self.is_reserved_path(path)
     }
 
-    /// The warning a reserved `.typ` file earns when `source` holds a
+    /// Whether `path` is a reserved `.typ` file that a `task.with` call would
+    /// make a misfiled task: a task saved where no root can load it.
+    ///
+    /// A template counts as reserved but not misfiled, because a `task.with`
+    /// call is what its directory is for. The loader warns about a misfiled
+    /// task and reads a template only through `mt check`'s own pass.
+    #[must_use]
+    pub fn is_misfiled(&self, path: &TaskPath) -> bool {
+        self.is_reserved(path) && !self.under_template(path)
+    }
+
+    /// Whether a reserved component or a template dir excludes `path`,
+    /// whatever the kind of entry there.
+    pub(crate) fn is_reserved_path(&self, path: &TaskPath) -> bool {
+        has_reserved_component(&path.rel) || self.under_template(path)
+    }
+
+    /// The warning a misfiled `.typ` file earns when `source` holds a
     /// `task.with(…)` call. The warning reports a task call at a path the
-    /// loader does not load. `None` when `path` is not reserved or has no such
+    /// loader does not load. `None` when `path` is not misfiled or has no such
     /// call.
     #[must_use]
     pub fn reserved_warning(&self, path: &TaskPath, source: &str) -> Option<LoadWarning> {
-        if !self.is_reserved(path) {
+        if !self.is_misfiled(path) {
             return None;
         }
         let line = TaskCallSpans::parse(source).call_line()?;
@@ -214,9 +238,9 @@ impl TaskSource {
     }
 
     /// [`Self::reserved_warning`] read from the file at `path`. `None` when the
-    /// path is not reserved, the read fails, or the file has no task call.
+    /// path is not misfiled, the read fails, or the file has no task call.
     pub(crate) fn reserved_warning_for_file(&self, path: &TaskPath) -> Option<LoadWarning> {
-        if !self.is_reserved(path) {
+        if !self.is_misfiled(path) {
             return None;
         }
         let source = std::fs::read_to_string(&path.abs).ok()?;
@@ -255,14 +279,19 @@ impl TaskSource {
 
     /// Whether a directory walk should descend into `dir`.
     ///
-    /// The walk skips a reserved directory, except one on the way to a
-    /// configured template dir or inside one. It reads those files only to warn
-    /// about a task call, never to load a task.
+    /// The walk skips a template directory, which doesn't hold a source and
+    /// earns no warning. It also skips a reserved directory, except one that
+    /// contains a template directory. A task filed beside the templates still
+    /// earns its warning.
     pub(crate) fn descends_into(&self, dir: &Path) -> bool {
         let abs = self.absolute(dir);
-        let template_side = (self.templates.iter())
-            .any(|template| template.starts_with(&abs) || abs.starts_with(template));
-        template_side || !has_reserved_component(&relative(&self.root, &abs))
+        if self.under_template_abs(&abs) {
+            return false;
+        }
+        if !has_reserved_component(&relative(&self.root, &abs)) {
+            return true;
+        }
+        (self.templates.iter()).any(|template| template.starts_with(&abs))
     }
 
     /// `path`, project-relative or absolute, as a normalized absolute path.
@@ -278,10 +307,38 @@ impl TaskSource {
         self.roots.iter().any(|root| path.abs.starts_with(root))
     }
 
+    /// Whether a configured root covers `path` and does not exclude it.
+    fn admits(&self, path: &TaskPath) -> bool {
+        self.roots
+            .iter()
+            .zip(&self.excludes)
+            .any(|(root, excludes)| {
+                path.abs
+                    .strip_prefix(root)
+                    .is_ok_and(|rel| !excludes.is_match(rel))
+            })
+    }
+
+    /// Whether the root at `dir` covers `path` and does not exclude it.
+    pub(crate) fn admits_in(&self, dir: &Path, path: &TaskPath) -> bool {
+        let Some(index) = self.roots.iter().position(|root| root.as_path() == dir) else {
+            return false;
+        };
+        self.excludes.get(index).is_some_and(|excludes| {
+            path.abs
+                .strip_prefix(dir)
+                .is_ok_and(|rel| !excludes.is_match(rel))
+        })
+    }
+
     fn under_template(&self, path: &TaskPath) -> bool {
+        self.under_template_abs(&path.abs)
+    }
+
+    fn under_template_abs(&self, abs: &Path) -> bool {
         self.templates
             .iter()
-            .any(|template| path.abs.starts_with(template))
+            .any(|template| abs.starts_with(template))
     }
 }
 
@@ -299,6 +356,18 @@ fn anchored(root: &Path, dir: &Path) -> PathBuf {
     } else {
         normalize_path(&root.join(dir))
     }
+}
+
+/// The compiled `exclude` globs of one root. The code drops an invalid glob:
+/// [`crate::config::roots::validate_task_sources`] refuses it at config load.
+fn compile_excludes(globs: &[String]) -> GlobSet {
+    let mut builder = GlobSetBuilder::new();
+    for glob in globs {
+        if let Ok(compiled) = Glob::new(glob) {
+            builder.add(compiled);
+        }
+    }
+    builder.build().unwrap_or_else(|_| GlobSet::empty())
 }
 
 /// `path` relative to the normalized absolute `root`, lexically.

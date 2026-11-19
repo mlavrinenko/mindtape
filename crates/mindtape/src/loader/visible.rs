@@ -42,6 +42,9 @@ pub enum NotVisible {
     /// The path lies under a reserved `.mindtape`/`.git` component or a
     /// configured `[templates] dirs` entry.
     Reserved,
+    /// The path lies under a configured root, but that root's `exclude` globs
+    /// drop it.
+    Excluded,
     /// The path is a symbolic link, and a task source is never a symlink.
     Symlink,
     /// A directory, or another non-file entry, already sits at the path.
@@ -55,15 +58,17 @@ pub enum NotVisible {
 
 impl std::fmt::Display for NotVisible {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::OutsideRoots => f.write_str("outside every configured task root"),
-            Self::NotTyp => f.write_str("not a `.typ` file"),
-            Self::Reserved => f.write_str("under reserved metadata or a template directory"),
-            Self::Symlink => f.write_str("a symbolic link, which is never a task source"),
-            Self::NotAFile => f.write_str("a directory, not a file"),
-            Self::Ignored => f.write_str("ignored by git and not tracked"),
-            Self::Git(reason) => f.write_str(reason),
-        }
+        let text = match self {
+            Self::OutsideRoots => "outside every configured task root",
+            Self::NotTyp => "not a `.typ` file",
+            Self::Reserved => "under reserved metadata or a template directory",
+            Self::Excluded => "excluded by the task root's `exclude` globs",
+            Self::Symlink => "a symbolic link, which is never a task source",
+            Self::NotAFile => "a directory, not a file",
+            Self::Ignored => "ignored by git and not tracked",
+            Self::Git(reason) => reason,
+        };
+        f.write_str(text)
     }
 }
 
@@ -202,7 +207,7 @@ impl RootView {
         let candidates = (source.typ_files(dir).into_iter())
             .filter_map(|file| {
                 let path = source.task_path(&file);
-                is_candidate(source, &path).then(|| path.abs().to_path_buf())
+                is_candidate(source, dir, &path).then(|| path.abs().to_path_buf())
             })
             .collect();
         Self {
@@ -269,10 +274,13 @@ impl RootView {
     }
 }
 
-/// Whether `path` is a candidate the loader must read: a source, or a reserved
-/// `.typ` file a `task.with` call would explain, inside the walked area.
-fn is_candidate(source: &TaskSource, path: &TaskPath) -> bool {
-    (source.is_source(path) || source.is_reserved(path))
+/// Whether `path` is a candidate the loader must read under the root at `dir`:
+/// a source, or a misfiled `.typ` file a `task.with` call would explain, inside
+/// the walked area. A template is neither, and a path the root excludes is not
+/// this root's candidate even when another root admits it.
+fn is_candidate(source: &TaskSource, dir: &Path, path: &TaskPath) -> bool {
+    source.admits_in(dir, path)
+        && (source.is_source(path) || source.is_misfiled(path))
         && path
             .abs()
             .parent()
@@ -290,7 +298,7 @@ fn git_candidates(
         .filter_map(|path| {
             let rel = path.strip_prefix(prefix).ok()?;
             let path = source.task_path(&dir.join(rel));
-            is_candidate(source, &path).then(|| path.abs().to_path_buf())
+            is_candidate(source, dir, &path).then(|| path.abs().to_path_buf())
         })
         .collect()
 }
@@ -360,7 +368,11 @@ fn destination(source: &TaskSource, path: &TaskPath) -> Result<(), NotVisible> {
         return Err(NotVisible::NotTyp);
     }
     if !source.would_be_source(path) {
-        return Err(NotVisible::Reserved);
+        return Err(if source.is_reserved_path(path) {
+            NotVisible::Reserved
+        } else {
+            NotVisible::Excluded
+        });
     }
     if path.abs().is_dir() {
         return Err(NotVisible::NotAFile);

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A task root can exclude paths.** `[[tasks.roots]] exclude` takes globs,
+  relative to the root, whose matches are not task sources under it. Another
+  root can still admit them, so a root of `.` excludes `docs/**` while a
+  `docs/tasks` root keeps loading. `mt add` refuses a destination the root
+  excludes, and an invalid glob is refused at config load.
 - **`[[on.rm]]` runs actions when `mt rm` removes a task.** It takes the same
   `when` and `actions` as `[[on.flip]]`: an action prints a message, lists tasks
   or runs a command, and a command with `gate = true` refuses the removal before
@@ -86,6 +91,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Goal verdicts are written one per line again.** The task corpus and the
   templates no longer call `verdicts`; the helper stays exported for now and
   will be deprecated in a later release.
+
+### Fixed
+
+- **A template no longer warns about its `task.with` call.** A file under a
+  `[templates] dirs` entry is a template, not a task saved in the wrong place,
+  so `mt ls` stops printing `task.with` call in a reserved path` for it. A
+  `.typ` file with a `task.with` call directly under `.mindtape` or `.git`
+  still warns, because no root can load it.
 
 ## [0.6.0] - 2026-11-12
 

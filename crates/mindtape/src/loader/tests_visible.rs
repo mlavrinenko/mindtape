@@ -113,11 +113,17 @@ fn an_ignored_root_lists_only_tracked_files_and_warns_once() {
 }
 
 /// Git's listing still includes the reserved files the policy deliberately
-/// skips, so the task-1 warning survives the change from a walk to Git.
+/// skips, so a misfiled task's warning survives the change from a walk to Git.
+/// A template beside it earns none.
 #[test]
-fn git_discovery_keeps_the_reserved_template_warning() {
+fn git_discovery_keeps_the_misfiled_task_warning() {
     let dir = git_repo();
     let config = parse_config("[tasks]\nroots = [\".\"]\n").unwrap();
+    write_file(
+        dir.path(),
+        ".mindtape/task.typ",
+        "#show: task.with(title: \"Misfiled\")\n",
+    );
     write_file(
         dir.path(),
         ".mindtape/templates/task.typ",
@@ -130,7 +136,7 @@ fn git_discovery_keeps_the_reserved_template_warning() {
     assert_eq!(outcome.warnings.len(), 1, "{:?}", outcome.warnings);
     assert_eq!(
         outcome.warnings.first().unwrap().file,
-        Path::new(".mindtape/templates/task.typ")
+        Path::new(".mindtape/task.typ")
     );
 }
 
@@ -203,4 +209,26 @@ fn a_non_utf8_git_path_is_preserved_in_the_load_error() {
     let outcome = load_project(dir.path(), &Config::default());
     assert_eq!(outcome.errors.len(), 1);
     assert_eq!(outcome.errors.first().unwrap().file, rel);
+}
+
+/// A root of `.` excludes `docs`, and a narrower root still loads a task
+/// there. The narrower root's tag wins.
+#[test]
+fn a_root_excludes_docs_and_a_narrower_root_loads_it() {
+    let dir = setup();
+    let config = parse_config(
+        "[[tasks.roots]]\npath = \".\"\nname = \"home\"\nexclude = [\"docs/**\"]\n\n\
+         [[tasks.roots]]\npath = \"docs/tasks\"\nname = \"docs\"\nderive-tags = true\n",
+    )
+    .unwrap();
+    write_file(dir.path(), "docs/example.typ", TASK_BODY);
+    write_file(dir.path(), "docs/tasks/real.typ", TASK_BODY);
+    write_file(dir.path(), "tasks/other.typ", TASK_BODY);
+
+    let outcome = load_project(dir.path(), &config);
+    assert!(outcome.errors.is_empty(), "{:?}", outcome.errors);
+    assert_eq!(outcome.tasks.len(), 2, "{:?}", outcome.tasks);
+    let real = &outcome.tasks[1];
+    assert_eq!(real.id, "real");
+    assert_eq!(real.derived_tags, ["docs"]);
 }

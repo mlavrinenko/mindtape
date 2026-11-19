@@ -324,19 +324,16 @@ fn item_at(root: &Path, config: &Config, rel: &Path) -> LoadItem {
 
 /// The folder-derived tags and nesting depth [`item_at`] would give a file at
 /// project-relative `rel`. They come from the first configured root that
-/// contains it, with the root path normalized, or neither when no root does.
+/// admits it, with the root path normalized, or neither when no root does. A
+/// root admits a file under its directory that its `exclude` globs do not
+/// match.
 pub(crate) fn derivation(config: &Config, rel: &Path) -> (Vec<String>, u8) {
     config
         .tasks
         .roots
         .iter()
         .find_map(|spec| {
-            let dir = spec.dir();
-            let rel_within = if dir.is_empty() {
-                rel
-            } else {
-                rel.strip_prefix(&dir).ok()?
-            };
+            let rel_within = spec.admits(rel)?;
             let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
             Some((
                 deriver.tags_for(rel_within),

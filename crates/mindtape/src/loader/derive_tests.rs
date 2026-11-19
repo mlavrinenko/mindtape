@@ -18,6 +18,7 @@ fn root(name: &str) -> RootSpec {
         path: "tasks".to_owned(),
         name: Some(name.to_owned()),
         derive_tags: None,
+        exclude: Vec::new(),
     })
 }
 
@@ -116,6 +117,7 @@ fn per_root_glob_gates_files() {
         path: "tasks".to_owned(),
         name: Some("mt".to_owned()),
         derive_tags: Some(crate::config::DeriveTags::Glob("backend/**".to_owned())),
+        exclude: Vec::new(),
     });
     let deriver = RootDeriver::new(&spec, &global);
     assert_eq!(
@@ -132,6 +134,7 @@ fn per_root_false_overrides_global_enable() {
         path: "tasks".to_owned(),
         name: Some("mt".to_owned()),
         derive_tags: Some(crate::config::DeriveTags::Enabled(false)),
+        exclude: Vec::new(),
     });
     let deriver = RootDeriver::new(&spec, &global);
     assert!(deriver.tags_for(Path::new("backend/x.typ")).is_empty());
@@ -144,44 +147,26 @@ fn slugify_avoids_leading_dash() {
 }
 
 #[test]
-fn validate_root_globs_reports_invalid_single_glob() {
-    let config = Config {
-        tasks: TasksConfig {
-            roots: vec![RootSpec::Full(RootConfig {
-                path: "tasks".to_owned(),
-                name: None,
-                derive_tags: Some(DeriveTags::Glob("[invalid".to_owned())),
-            })],
-            ..TasksConfig::default()
-        },
-        ..Config::default()
-    };
-    let problems = validate_root_globs(&config);
-    assert!(
-        !problems.is_empty(),
-        "expected invalid single glob to be reported"
-    );
-}
-
-#[test]
-fn validate_root_globs_reports_invalid_globs_list() {
-    let config = Config {
-        tasks: TasksConfig {
-            roots: vec![RootSpec::Full(RootConfig {
-                path: "tasks".to_owned(),
-                name: None,
-                derive_tags: Some(DeriveTags::Globs(vec![
-                    "valid".to_owned(),
-                    "[invalid".to_owned(),
-                ])),
-            })],
-            ..TasksConfig::default()
-        },
-        ..Config::default()
-    };
-    let problems = validate_root_globs(&config);
-    assert!(
-        !problems.is_empty(),
-        "expected invalid glob in Globs list to be reported"
-    );
+fn validate_root_globs_reports_an_invalid_glob() {
+    for derive_tags in [
+        DeriveTags::Glob("[invalid".to_owned()),
+        DeriveTags::Globs(vec!["valid".to_owned(), "[invalid".to_owned()]),
+    ] {
+        let config = Config {
+            tasks: TasksConfig {
+                roots: vec![RootSpec::Full(RootConfig {
+                    path: "tasks".to_owned(),
+                    name: None,
+                    derive_tags: Some(derive_tags),
+                    exclude: Vec::new(),
+                })],
+                ..TasksConfig::default()
+            },
+            ..Config::default()
+        };
+        assert!(
+            !validate_root_globs(&config).is_empty(),
+            "expected an invalid glob to be reported"
+        );
+    }
 }

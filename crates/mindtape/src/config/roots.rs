@@ -14,6 +14,7 @@
 
 use std::path::{Component, Path, PathBuf};
 
+use globset::Glob;
 use serde::Deserialize;
 
 use crate::config::layers::LayerSource;
@@ -50,6 +51,9 @@ pub struct RootConfig {
     pub name: Option<String>,
     /// Tag derivation for this root. Absent takes `[tasks.derive-tags] enabled`.
     pub derive_tags: Option<DeriveTags>,
+    /// Globs, relative to the root, whose matches are not task sources under
+    /// it. Another root can still admit a path this one excludes.
+    pub exclude: Vec<String>,
 }
 
 /// Per-root tag derivation: a bool, a file glob, or a list of globs. `true` or
@@ -168,6 +172,33 @@ impl RootSpec {
         }
     }
 
+    /// The per-root `exclude` globs, relative to the root. Empty for the path
+    /// shorthand.
+    #[must_use]
+    pub fn excludes(&self) -> &[String] {
+        match self {
+            Self::Full(cfg) => &cfg.exclude,
+            Self::Short(_) => &[],
+        }
+    }
+
+    /// `rel`, project-relative, as a path under this root when the root admits
+    /// it: under the root's directory and not matching an `exclude` glob.
+    ///
+    /// The globs are relative to the root, the same base `derive-tags` uses.
+    /// [`crate::task_source::TaskSource`] compiles them once for the hot path.
+    /// This reads them per call, for the few callers that have no policy.
+    #[must_use]
+    pub fn admits<'a>(&self, rel: &'a Path) -> Option<&'a Path> {
+        let dir = self.dir();
+        let within = if dir.is_empty() {
+            rel
+        } else {
+            rel.strip_prefix(&dir).ok()?
+        };
+        (!excluded(self.excludes(), within)).then_some(within)
+    }
+
     /// [`Self::path`] as a normalized [`PathBuf`]. The normalization drops `.`
     /// components and resolves interior `..` lexically, without touching the
     /// filesystem. An absolute path stays absolute.
@@ -207,6 +238,14 @@ fn last_segment(path: &str) -> String {
         .map_or_else(|| path.to_owned(), |s| s.to_string_lossy().into_owned())
 }
 
+/// Whether `rel_within` matches any of `globs`. An invalid glob doesn't match
+/// anything: [`validate_task_sources`] refuses one before a policy reads it.
+fn excluded(globs: &[String], rel_within: &Path) -> bool {
+    (globs.iter()).any(|glob| {
+        Glob::new(glob).is_ok_and(|compiled| compiled.compile_matcher().is_match(rel_within))
+    })
+}
+
 /// Refuse a working-tree config whose task roots or template dirs contradict
 /// the task-source policy.
 ///
@@ -221,6 +260,11 @@ fn last_segment(path: &str) -> String {
 /// source.
 pub(crate) fn validate_task_sources(config: &Config, root: &Path) -> Result<(), ConfigError> {
     let source = TaskSource::new(root, config);
+    for spec in &config.tasks.roots {
+        if let Some(message) = exclude_problem(spec) {
+            return Err(refuse(config, root, ROOTS_KEY, message));
+        }
+    }
     for (spec, dir) in config.tasks.roots.iter().zip(source.roots()) {
         let task_path = source.task_path(dir);
         if let Some(component) = reserved_component(task_path.rel()) {
@@ -234,6 +278,17 @@ pub(crate) fn validate_task_sources(config: &Config, root: &Path) -> Result<(), 
         }
     }
     Ok(())
+}
+
+/// The error text for the first `exclude` glob of `spec` that does not
+/// compile, else `None`.
+fn exclude_problem(spec: &RootSpec) -> Option<String> {
+    let (glob, error) = (spec.excludes().iter())
+        .find_map(|glob| Glob::new(glob).err().map(|error| (glob, error)))?;
+    Some(format!(
+        "{ROOTS_KEY}: `{}` has an invalid `exclude` glob `{glob}`: {error}",
+        spec.path()
+    ))
 }
 
 /// The `.mindtape` or `.git` component of `path`, in the case its message

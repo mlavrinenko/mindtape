@@ -102,6 +102,51 @@ fn reserved_and_template_destinations_are_refused() {
 }
 
 #[test]
+fn every_refusal_names_its_reason() {
+    for (reason, text) in [
+        (
+            NotVisible::OutsideRoots,
+            "outside every configured task root",
+        ),
+        (NotVisible::NotTyp, "not a `.typ` file"),
+        (
+            NotVisible::Reserved,
+            "under reserved metadata or a template directory",
+        ),
+        (
+            NotVisible::Excluded,
+            "excluded by the task root's `exclude` globs",
+        ),
+        (
+            NotVisible::Symlink,
+            "a symbolic link, which is never a task source",
+        ),
+        (NotVisible::NotAFile, "a directory, not a file"),
+        (NotVisible::Ignored, "ignored by git and not tracked"),
+        (NotVisible::Git("git failed".to_owned()), "git failed"),
+    ] {
+        assert_eq!(reason.to_string(), text);
+    }
+}
+
+#[test]
+fn an_excluded_destination_is_refused() {
+    let dir = tempdir();
+    let config = config("[[tasks.roots]]\npath = \".\"\nexclude = [\"docs/**\"]\n");
+
+    for (rel, expected) in [
+        ("docs/new.typ", Err(NotVisible::Excluded)),
+        ("tasks/new.typ", Ok(())),
+    ] {
+        assert_eq!(
+            would_be_visible(dir.path(), &config, &abs(dir.path(), rel)),
+            expected,
+            "{rel}"
+        );
+    }
+}
+
+#[test]
 fn dot_dot_resolves_before_the_policy_answers() {
     let dir = tempdir();
     std::fs::create_dir_all(dir.path().join("tasks")).unwrap();

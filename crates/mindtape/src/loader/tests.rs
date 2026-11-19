@@ -85,54 +85,39 @@ fn loads_tasks_and_skips_non_tasks() {
     assert_eq!(task.priority, Some(NumValue::Num(8.0)));
 }
 
-/// A root of `.` covers the whole project, templates included. The template
-/// is not a task, and one warning explains its `task.with` call.
+/// A root of `.` covers the whole project, templates included. A template is
+/// not a task, and its `task.with` call earns no warning: a template is what
+/// its directory is for. A configured template dir outside `.mindtape` works
+/// the same, and overlapping roots still visit it once.
 #[test]
-fn root_dot_skips_a_template_and_warns_once() {
-    let dir = setup();
-    let config = parse_config("[tasks]\nroots = [\".\"]\n").unwrap();
-    write_file(dir.path(), "dev/real-task.typ", TASK_BODY);
-    write_file(
-        dir.path(),
-        ".mindtape/templates/task.typ",
-        "#show: task.with(title: \"Template\")\n",
-    );
+fn a_template_is_not_a_task_and_earns_no_warning() {
+    for (config, task, template) in [
+        (
+            "[tasks]\nroots = [\".\"]\n",
+            "dev/real-task.typ",
+            ".mindtape/templates/task.typ",
+        ),
+        (
+            "[tasks]\nroots = [\".\", \"tmpl\"]\n[templates]\ndirs = [\"tmpl\"]\n",
+            "tasks/real-task.typ",
+            "tmpl/bug.typ",
+        ),
+    ] {
+        let dir = setup();
+        let config = parse_config(config).unwrap();
+        write_file(dir.path(), task, TASK_BODY);
+        write_file(
+            dir.path(),
+            template,
+            "#show: task.with(title: \"Template\")\n",
+        );
 
-    let outcome = load_project(dir.path(), &config);
-    assert_eq!(outcome.errors, Vec::new());
-    let ids: Vec<&str> = outcome.tasks.iter().map(|task| task.id.as_str()).collect();
-    assert_eq!(ids, ["real-task"]);
-    assert_eq!(outcome.warnings.len(), 1);
-    let warning = outcome.warnings.first().unwrap();
-    assert_eq!(warning.file, Path::new(".mindtape/templates/task.typ"));
-    assert_eq!(warning.line, Some(1));
-    assert!(warning.message.contains("task.with"), "{}", warning.message);
-}
-
-/// A template dir named by config excludes its files even outside `.mindtape`,
-/// and overlapping roots still visit it once.
-#[test]
-fn a_configured_template_dir_is_not_a_task_and_warns_once() {
-    let dir = setup();
-    let config =
-        parse_config("[tasks]\nroots = [\".\", \"tmpl\"]\n[templates]\ndirs = [\"tmpl\"]\n")
-            .unwrap();
-    write_file(dir.path(), "tasks/real-task.typ", TASK_BODY);
-    write_file(
-        dir.path(),
-        "tmpl/bug.typ",
-        "#show: task.with(title: \"Template\")\n",
-    );
-
-    let outcome = load_project(dir.path(), &config);
-    assert_eq!(outcome.errors, Vec::new());
-    let ids: Vec<&str> = outcome.tasks.iter().map(|task| task.id.as_str()).collect();
-    assert_eq!(ids, ["real-task"]);
-    assert_eq!(outcome.warnings.len(), 1);
-    assert_eq!(
-        outcome.warnings.first().unwrap().file,
-        Path::new("tmpl/bug.typ")
-    );
+        let outcome = load_project(dir.path(), &config);
+        assert_eq!(outcome.errors, Vec::new());
+        let ids: Vec<&str> = outcome.tasks.iter().map(|task| task.id.as_str()).collect();
+        assert_eq!(ids, ["real-task"], "{template}");
+        assert!(outcome.warnings.is_empty(), "{:?}", outcome.warnings);
+    }
 }
 
 /// The policy deliberately stops treating a symlink as a source.

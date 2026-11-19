@@ -2407,6 +2407,14 @@
           ],
           "description": "Tag derivation for this root. Absent takes `[tasks.derive-tags] enabled`."
         },
+        "exclude": {
+          "default": [],
+          "description": "Globs, relative to the root, whose matches are not task sources under\nit. Another root can still admit a path this one excludes.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "name": {
           "default": null,
           "description": "Tag emitted for the root itself. Defaults to the path's last segment.",

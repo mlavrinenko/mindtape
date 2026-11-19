@@ -47,14 +47,20 @@ depends only on its resolved path. These rules narrow that base:
   project's metadata directory never contains a task.
 - A file under a `[templates] dirs` entry is a template, not a task. A
   #link(u("/templates/"))[template] is a `.typ` file with `slot(...)` calls,
-  and `mt check` checks it on its own.
+  and `mt check` checks it on its own. Its `task.with` call earns no warning:
+  a template is what its directory is for, not a task saved in the wrong
+  place.
+- A path matching a root's `exclude` glob is not a task under that root. The
+  globs are relative to the root, the same base `derive-tags` uses, and
+  another root can still admit the path.
 - The entry at the path must be a regular file. A symlink is never a task
   source, even one whose target is a regular `.typ` file. The scan doesn't
   follow a directory symlink.
 
 `mt` refuses a working-tree config when it loads the config. A config whose
-root is under `.mindtape` or `.git`, or whose template directory contains a
-root or the project root, could never yield a task.
+root is under `.mindtape` or `.git`, whose template directory contains a root
+or the project root, or whose `exclude` glob does not compile, could never
+yield a task.
 
 In a Git work tree, `mt` asks Git which paths are in the working tree: every
 tracked regular file and every untracked file Git does not ignore. That keeps

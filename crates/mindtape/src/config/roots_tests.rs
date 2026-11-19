@@ -1,5 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use std::path::Path;
+
 use super::validate_task_sources;
 use crate::config::parse_config;
 use crate::test_support::{home_and_project, tempdir};
@@ -116,6 +118,34 @@ fn a_historical_state_config_skips_the_reserved_root_check() {
         crate::config::layers::load_config_with_project_in(&project, text, Some(&home), None, None)
             .unwrap();
     assert_eq!(config.tasks.roots[0].path(), ".mindtape/templates");
+}
+
+#[test]
+fn an_invalid_exclude_glob_is_refused() {
+    let message = refused("[[tasks.roots]]\npath = \"tasks\"\nexclude = [\"[invalid\"]\n");
+    assert!(
+        message.contains("tasks.roots: `tasks` has an invalid `exclude` glob `[invalid`"),
+        "{message}"
+    );
+}
+
+#[test]
+fn a_valid_exclude_glob_is_accepted() {
+    accepts("[[tasks.roots]]\npath = \".\"\nexclude = [\"docs/**\", \"examples/**\"]\n");
+}
+
+#[test]
+fn a_root_admits_a_path_it_does_not_exclude() {
+    let config =
+        parse_config("[[tasks.roots]]\npath = \"tasks\"\nexclude = [\"archive/**\"]\n").unwrap();
+    let spec = &config.tasks.roots[0];
+
+    assert_eq!(
+        spec.admits(Path::new("tasks/current.typ")),
+        Some(Path::new("current.typ"))
+    );
+    assert_eq!(spec.admits(Path::new("tasks/archive/old.typ")), None);
+    assert_eq!(spec.admits(Path::new("elsewhere/x.typ")), None);
 }
 
 #[test]
