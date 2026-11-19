@@ -1,4 +1,4 @@
-//! End-to-end tests for the shape blocks and the `refusals:` block the bare
+//! End-to-end tests for the shape blocks and the `not allowed` label the bare
 //! `mt explain` index opens on.
 //!
 //! `truth/tasks/2026-11/show-the-projects-shape-in-mt-explain.typ` and
@@ -41,8 +41,8 @@ rm:
     assert!(text.starts_with(expected), "{text}");
 }
 
-/// A forbidden `[[on.rm]]` gate prints in `refusals:` with the section that
-/// declares it, and `mt explain rules --for rm` lists the hook it belongs to.
+/// A forbidden `[[on.rm]]` gate prints under `not allowed` in the block it
+/// belongs to, and `mt explain rules --for rm` lists the hook it belongs to.
 #[test]
 fn a_forbidden_on_rm_gate_is_refused_and_listed_for_rm() {
     let dir = scaffold_project(
@@ -52,11 +52,7 @@ fn a_forbidden_on_rm_gate_is_refused_and_listed_for_rm() {
     );
     let text = stdout(dir.path(), &["explain"]);
     assert!(
-        text.contains("  on.rm: scripts/clean (not allowed; ask the user to run `mt allow`)\n"),
-        "{text}"
-    );
-    assert!(
-        text.contains("rm:\n  filter: terminal\n  hooks (error): clean\n"),
+        text.contains("rm:\n  filter: terminal\n  hooks (not allowed): clean\n"),
         "{text}"
     );
 
@@ -66,11 +62,11 @@ fn a_forbidden_on_rm_gate_is_refused_and_listed_for_rm() {
     assert_eq!(value["rules"][0]["section"], "on.rm");
 }
 
-/// A gate the user has not allowed prints in `refusals:` with the section that
-/// declares it, and `mt allow` clears the block. The JSON carries the same
-/// list.
+/// A command the user has not allowed prints under `not allowed` in the block
+/// it belongs to, and `mt allow` restores its severity. The JSON carries the
+/// same label.
 #[test]
-fn refusals_lists_only_the_gates_the_user_has_not_allowed() {
+fn a_command_the_user_has_not_allowed_prints_under_not_allowed() {
     let dir = scaffold_project(
         "[tasks]\nroots = [\"tasks\"]\n\n\
          [[tasks.waits]]\nname = \"locked\"\nrun = \"scripts/locked {id}\"\n\n\
@@ -78,16 +74,26 @@ fn refusals_lists_only_the_gates_the_user_has_not_allowed() {
          actions = [{ run = \"scripts/test\", gate = true }]\n",
     );
     let text = stdout(dir.path(), &["explain"]);
-    let expected = "refusals:
-  waits: scripts/locked {id} (not allowed; ask the user to run `mt allow`)
-  on.flip: scripts/test (not allowed; ask the user to run `mt allow`)
-";
-    assert!(text.contains(expected), "{text}");
+    for line in [
+        "  waits (not allowed): scripts/locked {id}\n",
+        "flip:\n  hooks (not allowed): scripts/test\n",
+        "allow: mt allow records the approval for each command marked not allowed\n",
+    ] {
+        assert!(text.contains(line), "missing {line:?} in:\n{text}");
+    }
 
     let allowed = mt(dir.path()).arg("allow").output().unwrap();
     assert!(allowed.status.success(), "{allowed:?}");
     let text = stdout(dir.path(), &["explain"]);
-    assert!(!text.contains("refusals:"), "{text}");
+    assert!(text.contains("  waits: scripts/locked {id}\n"), "{text}");
+    assert!(
+        text.contains("flip:\n  hooks (error): scripts/test\n"),
+        "{text}"
+    );
+    assert!(!text.contains("allow:"), "{text}");
     let value = json(dir.path(), &["explain", "--json"]);
-    assert_eq!(value["refusals"], serde_json::json!([]));
+    assert_eq!(
+        value["rules"]["on.flip"],
+        serde_json::json!({"error": ["scripts/test"]})
+    );
 }

@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `when` and `actions` as `[[on.flip]]`: an action prints a message, lists tasks
   or runs a command, and a command with `gate = true` refuses the removal before
   any file is deleted. The hook merges across packs and layers by `name` like
-  `[[on.flip]]`, `mt explain rules --for rm` lists it, and the `refusals:` block
-  names a gate the user has not allowed. `[rm] default-filter` and
+  `[[on.flip]]`, `mt explain rules --for rm` lists it, and `mt explain` marks a
+  gate the user has not allowed. `[rm] default-filter` and
   `[rm] strategy` stay the command's own config.
 - **`mt explain` opens on the project's shape.** Bare, it prints a `project:`
   block (the task roots, the status legend split into `open` and `terminal`,
@@ -24,22 +24,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the templates) and a `commits:` block (the trailer). Each block carries the
   rules that check it: `task:` holds `rules`, `body.headers` and `body.content`,
   `commits:` holds `rules`, and `add:`, `flip:` and `rm:` hold the hooks each
-  command runs. `rm:` also holds the `[rm]` filter as `filter:`. A section
-  splits by severity, `error` before `warn`, and a key the project leaves open
-  prints what its absence permits: `any`, `none`, or the policy word. A hook
-  prints its name, or for an unnamed hook the command it runs, else the message
-  it carries, else its `on.<moment>[<index>]` label. Every
-  line reads the config alone, so the index loads no task. The index ends on a
-  `more:` line naming the listings that go deeper. `--json` carries the same
-  blocks, and `schema/output/explain/4.schema.json` records them.
+  command runs. `rm:` also holds the `[rm]` filter as `filter:`, and `task:`
+  ends on the `[[tasks.waits]]` checkers as `waits:`. A section prints one line
+  per label, `error` before `warn`, and a key the project leaves open prints
+  what its absence permits: `any`, `none`, or the policy word. A hook prints
+  its name, or for an unnamed hook the command it runs, else the message it
+  carries, else its `on.<moment>[<index>]` label. Every line reads the config
+  alone, so the index loads no task. The index ends on a `more:` line naming
+  the listings that go deeper. `--json` carries the same blocks, and
+  `schema/output/explain/5.schema.json` records them.
 - **`mt explain rules --json` carries the command a hook action runs.** Each
   rule gains `run`, the command as its config spells it, or `null` for a rule
   that runs nothing. `schema/output/rules/2.schema.json` records it.
-- **`mt explain` names the gates the user has not allowed.** A `refusals:`
-  block lists each `[[tasks.waits]]` checker and each `[[on.flip]]` `run` that
-  `mt allow` has not recorded, with the command that records it. A project with
-  every command allowed prints no block, and `--json` carries the same list
-  under `refusals`.
+- **`mt explain` marks the commands the user has not allowed.** A command
+  `mt allow` has not recorded prints under a `not allowed` label in the block
+  it belongs to, in place of its severity: `hooks (not allowed): scripts/test`,
+  and `waits (not allowed): scripts/locked {id}`. The label answers one
+  question, what the line does to the write, so a line carries one word. The
+  index ends on an `allow:` line naming the `mt allow` that records the
+  approval. A project with every command allowed prints neither, and `--json`
+  carries the same label under `rules` and the checkers under `waits`.
 - **`mt explain templates` lists every template `mt add` accepts.** One line
   each gives the template's name, the `kind` it sets, its slot count and
   `default` on the one `mt add` picks. The `kind` column reads `any` for a

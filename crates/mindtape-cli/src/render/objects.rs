@@ -126,9 +126,9 @@ pub struct ExplainIndexPayload {
     pub commits: CommitsShape,
     /// The keys the blocks leave out, because the project leaves them open.
     pub absent: Vec<String>,
-    /// Each gate command the user has not allowed.
-    pub refusals: Vec<RefusalJson>,
-    /// Each config section's rule names, by severity, strictest first.
+    /// Each `[[tasks.waits]]` checker's command, in declaration order.
+    pub waits: Vec<String>,
+    /// Each config section's rule names, by label, strictest first.
     pub rules: BTreeMap<String, BTreeMap<String, Vec<String>>>,
     /// Each `[[on.add]]` hook's name, in the order `mt add` runs them.
     pub add: Vec<String>,
@@ -140,15 +140,6 @@ pub struct ExplainIndexPayload {
     pub views: Vec<String>,
     /// Each dictionary's entry count, `default` first.
     pub dicts: BTreeMap<String, usize>,
-}
-
-/// One command a gate runs that the user has not allowed.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema)]
-pub struct RefusalJson {
-    /// The config section that declares the gate: `on.flip` or `waits`.
-    pub gate: String,
-    /// The command as it shows.
-    pub command: String,
 }
 
 /// The document `mt explain rules --json` prints.

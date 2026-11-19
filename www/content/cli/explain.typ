@@ -19,18 +19,21 @@ Each block carries the rules that check it. `task:` holds `rules`, and
 the `[rm] default-filter` as `filter:`. A section prints one line per severity
 it holds, `error` before `warn`. A reader meets what refuses the work first.
 A hook prints its name. An unnamed hook prints the command it runs, else the
-message it carries, else its `on.<moment>[<index>]` label.
+message it carries, else its `on.<moment>[<index>]` label. The `task:` block
+ends on the `[[tasks.waits]]` checkers as `waits:`.
 
 A key the project leaves open prints what its absence permits: `any` for a
 free vocabulary, `none` for an empty registry, and the policy word for
 comments. Every line reads the config alone. The index doesn't load a task,
 count anything or evaluate a filter.
 
-A gate the user has not allowed prints in a `refusals:` block, one line per
-command: the section that declares it, the command, and the `mt allow` that
-records the approval. That is each `[[tasks.waits]]` checker and each
-`[[on.flip]]` or `[[on.rm]]` `run`. A project with every command allowed
-doesn't print the block at all.
+A command the user has not allowed prints under a `not allowed` label in the
+block it belongs to, in place of its severity: `hooks (not allowed):
+scripts/test`, and `waits (not allowed): scripts/locked {id}`. Each label
+answers what the line does to the write, and a line carries one word: `error`,
+`warn` or `not allowed`. The index ends on an `allow:` line
+naming the `mt allow` that records the approval. A project with every command
+allowed prints neither.
 
 Under the blocks, the index prints the derived fields and the tags, views and
 dictionaries the project declares. A dictionary shows its entry count, and
@@ -42,10 +45,10 @@ separates the index from a `more:` line naming the listings that go deeper:
 
 `--json` prints the index as one object whose first key is `$schema`, the URL
 of the schema for that object. The shape sits under `project`, `task` and
-`commits`, the keys it leaves out under `absent`, the refused gates under
-`refusals`, the add hooks under `add`, and the listings under `rules`,
-`derived`, `tags`, `views` and `dicts`. Each section under `rules` keeps its
-config path and maps a severity to its rule names, and each entry under
+`commits`, the keys it leaves out under `absent`, the `[[tasks.waits]]`
+checkers under `waits`, the add hooks under `add`, and the listings under
+`rules`, `derived`, `tags`, `views` and `dicts`. Each section under `rules`
+keeps its config path and maps a label to its rule names, and each entry under
 `task.priority.inputs` carries its `kind`, `min`, `max` and `values`. The
 sections below say what they contain.
 

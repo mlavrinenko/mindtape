@@ -9,7 +9,7 @@ use mindtape::explain::InputShape;
 use mindtape::{ActiveRule, RuleSection, Severity};
 
 use super::render::{input_line, list_line, render};
-use super::{Index, bare_name, collect, default_first, document};
+use super::{Index, Label, bare_name, collect, default_first, document};
 
 const MORE: &str = "more: mt explain <add|rules|tags|views|dicts|templates>";
 
@@ -81,14 +81,14 @@ fn groups_rules_by_section_and_drops_a_section_with_none() {
     assert_eq!(
         index.rules[0].1,
         [
-            (Severity::Error, vec!["verb-title".to_owned()]),
-            (Severity::Warn, vec!["[1]".to_owned(), "goals".to_owned()]),
+            (Label::Error, vec!["verb-title".to_owned()]),
+            (Label::Warn, vec!["[1]".to_owned(), "goals".to_owned()]),
         ]
     );
     assert_eq!(
         index.rules[3].1,
         [(
-            Severity::Warn,
+            Label::Warn,
             vec!["review-stale-task-before-starting".to_owned()]
         )]
     );
@@ -230,6 +230,7 @@ fn a_project_that_constrains_every_key_prints_no_absent_line() {
     assert!(!text.contains("absent"), "{text}");
     let value = serde_json::to_value(document(&index)).unwrap();
     assert_eq!(value["absent"], serde_json::json!([]));
+    assert_eq!(value["waits"], serde_json::json!([]));
     assert_eq!(value["add"], serde_json::json!(["file-by-month"]));
 }
 
@@ -391,10 +392,11 @@ fn prints_an_input_with_no_bounds_by_its_name() {
     assert_eq!(input_line(&input), "impact");
 }
 
-/// A gate the user has not allowed prints in `refusals:` with the section that
-/// declares it, and the JSON carries the same list.
+/// A command the user has not allowed prints under `not allowed` instead of
+/// its severity, and the `allow:` line says how to record the approval. The
+/// JSON carries the same label.
 #[test]
-fn refusals_lists_the_gates_the_user_has_not_allowed() {
+fn a_command_the_user_has_not_allowed_prints_under_not_allowed() {
     let config = parse_config(
         "[[tasks.waits]]\nname = \"locked\"\nrun = \"scripts/locked {id}\"\n\
          [[on.flip]]\nwhen = 'into(\"done\")'\n\
@@ -402,26 +404,27 @@ fn refusals_lists_the_gates_the_user_has_not_allowed() {
     )
     .unwrap();
     let dir = tempfile::tempdir().unwrap();
-    let text = render(&collect(&config, &[], dir.path()), 100);
-    assert!(text.contains("refusals:\n"), "{text}");
+    let index = collect(&config, &[], dir.path());
+    let text = render(&index, 100);
+    for line in [
+        "  waits (not allowed): scripts/locked {id}\n",
+        "flip:\n  hooks (not allowed): scripts/test\n",
+    ] {
+        assert!(text.contains(line), "missing {line:?} in:\n{text}");
+    }
+    assert!(!text.contains("refusals:"), "{text}");
     assert!(
-        text.contains(
-            "  waits: scripts/locked {id} (not allowed; ask the user to run `mt allow`)\n"
+        text.ends_with(
+            "allow: mt allow records the approval for each command marked not allowed\n"
         ),
         "{text}"
     );
-    assert!(
-        text.contains("  on.flip: scripts/test (not allowed; ask the user to run `mt allow`)\n"),
-        "{text}"
-    );
 
-    let value = serde_json::to_value(document(&collect(&config, &[], dir.path()))).unwrap();
+    let value = serde_json::to_value(document(&index)).unwrap();
+    assert_eq!(value["waits"], serde_json::json!(["scripts/locked {id}"]));
     assert_eq!(
-        value["refusals"],
-        serde_json::json!([
-            {"gate": "waits", "command": "scripts/locked {id}"},
-            {"gate": "on.flip", "command": "scripts/test"},
-        ])
+        value["rules"]["on.flip"],
+        serde_json::json!({"not allowed": ["scripts/test"]})
     );
 }
 
@@ -443,7 +446,7 @@ fn the_index_ends_on_the_listings_that_go_deeper() {
 fn json_carries_the_same_shape_and_grouping() {
     let (dir, config) = project();
     let value = serde_json::to_value(document(&collect(&config, &[], dir.path()))).unwrap();
-    mindtape::test_support::assert_schema_at(&value, "explain", 4);
+    mindtape::test_support::assert_schema_at(&value, "explain", 5);
     assert_eq!(
         value["project"],
         serde_json::json!({
@@ -482,6 +485,7 @@ fn json_carries_the_same_shape_and_grouping() {
     );
     assert_eq!(value["commits"], serde_json::json!({"trailer": "Refs"}));
     assert_eq!(value["absent"], serde_json::json!([]));
+    assert_eq!(value["waits"], serde_json::json!([]));
     assert_eq!(value["add"], serde_json::json!(["file-by-month"]));
     assert_eq!(
         value["rules"],

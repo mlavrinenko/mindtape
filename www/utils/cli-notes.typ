@@ -160,18 +160,21 @@
       the rules that check it: `task:` holds `rules`, `body.headers` and
       `body.content`, `commits:` holds `rules`, and `add:`, `flip:` and `rm:`
       hold the hooks each command runs. `rm:` also holds the `[rm]` filter as
-      `filter:`. A section prints one line per severity, `error` before `warn`.
+      `filter:`. A section prints one line per label, `error` before `warn`.
       A hook prints its name, or for an unnamed hook the command it runs, else
-      the message it carries, else its `on.<moment>[<index>]` label.
-      A key the project leaves open prints what its absence permits: `any`,
-      `none`, or the policy word. `refusals:` names each gate command the user
-      has not allowed, with the `mt allow` that records the approval. Under the
+      the message it carries, else its `on.<moment>[<index>]` label. The
+      `task:` block ends on the `[[tasks.waits]]` checkers as `waits:`. A
+      command the user has not allowed prints under `not allowed` in place of
+      its severity, and an `allow:` line names the `mt allow` that records the
+      approval. A key the project leaves open prints what its absence permits:
+      `any`, `none`, or the policy word. Under the
       blocks it prints the derived fields, the tags, views and dictionaries,
       and each dictionary's entry count. `default` leads the view and tag lists
       when the project declares it. `--json` leads with `$schema`: the shape
       sits under `project`, `task` and `commits`, the keys it leaves out under
-      `absent`, the refused gates under `refusals`, the add hooks under `add`,
-      and the listings under `rules`, `derived`, `tags`, `views` and `dicts`.
+      `absent`, the `[[tasks.waits]]` checkers under `waits`, the add hooks
+      under `add`, and the listings under `rules`, `derived`, `tags`, `views`
+      and `dicts`.
       A blank line separates the index from a `more:` line naming the listings
       that go deeper: `mt explain <add|rules|tags|views|dicts|templates>`.],
     outputs: ("explain",),

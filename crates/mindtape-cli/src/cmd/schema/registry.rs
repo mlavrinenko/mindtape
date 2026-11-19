@@ -70,7 +70,7 @@ pub const EXPLAIN_ADD: SchemaId = SchemaId {
 
 pub const EXPLAIN: SchemaId = SchemaId {
     name: "explain",
-    version: 4,
+    version: 5,
 };
 
 /// `mt explain templates --json`.

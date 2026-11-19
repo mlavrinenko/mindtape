@@ -1,22 +1,20 @@
 //! The bare `mt explain` index as text: one block per scope, one line per
 //! group, and comma lists wrapped at the terminal's width.
 
+use mindtape::RuleSection;
 use mindtape::explain::{CommitsShape, InputShape, ProjectShape, TaskShape};
-use mindtape::{RuleSection, Severity};
 
 use crate::diag::{Command, more_line};
-use crate::render::objects::RefusalJson;
 
-use super::{Index, RuleGroups};
+use super::{Index, Label, RuleGroups};
 
 /// The index as text, one group per line and comma lists wrapped at `width`.
 pub(super) fn render(index: &Index, width: usize) -> String {
     let mut out = String::new();
     render_project(&mut out, &index.shape.project, width);
-    render_task(&mut out, &index.shape.task, &index.rules, width);
+    render_task(&mut out, index, width);
     render_commits(&mut out, &index.shape.commits, &index.rules, width);
     render_hooks(&mut out, index, width);
-    render_refusals(&mut out, &index.refusals);
     labelled(&mut out, "derived fields", &index.derived, width);
     if index.tags.is_empty() {
         out.push_str("tags: any\n");
@@ -36,7 +34,20 @@ pub(super) fn render(index: &Index, width: usize) -> String {
         Command::mt().word("explain")
     )));
     out.push('\n');
+    if !index.blocked.is_empty() {
+        out.push_str(&allow_line());
+        out.push('\n');
+    }
     out
+}
+
+/// The line that says how to record the approval a `not allowed` label asks
+/// for. It prints once, under the `more:` line, so no block repeats it.
+fn allow_line() -> String {
+    format!(
+        "allow: {} records the approval for each command marked not allowed",
+        Command::mt().word("allow")
+    )
 }
 
 /// The `project:` block: one line per key, and the status legend's two groups
@@ -69,16 +80,12 @@ fn render_project(out: &mut String, project: &ProjectShape, width: usize) {
     labelled_or(out, "  actors", &actors, "none", width);
 }
 
-/// The `task:` block: one line per field, the templates' default last, and the
-/// rules that check a task under them.
-fn render_task(
-    out: &mut String,
-    task: &TaskShape,
-    rules: &[(RuleSection, RuleGroups)],
-    width: usize,
-) {
+/// The `task:` block: one line per field, the templates' default last, the
+/// rules that check a task under them, and the `[[tasks.waits]]` checkers.
+fn render_task(out: &mut String, index: &Index, width: usize) {
     out.push_str("task:\n");
-    render_task_fields(out, task, width);
+    render_task_fields(out, &index.shape.task, width);
+    let rules = &index.rules;
     render_section(out, rules, RuleSection::TasksRules, "  rules", width);
     render_section(
         out,
@@ -94,6 +101,17 @@ fn render_task(
         "  body.content",
         width,
     );
+    let (blocked, allowed): (Vec<String>, Vec<String>) = index
+        .waits
+        .iter()
+        .cloned()
+        .partition(|wait| index.blocked.contains(wait));
+    if !allowed.is_empty() {
+        labelled(out, "  waits", &allowed, width);
+    }
+    if !blocked.is_empty() {
+        labelled(out, "  waits (not allowed)", &blocked, width);
+    }
 }
 
 /// The `task:` block's field lines, from the priority scale to the templates.
@@ -200,35 +218,18 @@ fn render_section(
     label: &str,
     width: usize,
 ) {
-    for (severity, names) in groups(rules, section) {
-        let line = format!("{label} ({})", severity.label());
+    for (meaning, names) in groups(rules, section) {
+        let line = format!("{label} ({})", meaning.text());
         labelled(out, &line, names, width);
     }
 }
 
-/// The severity groups one section holds, empty when it holds none.
-fn groups(rules: &[(RuleSection, RuleGroups)], section: RuleSection) -> &[(Severity, Vec<String>)] {
+/// The label groups one section holds, empty when it holds none.
+fn groups(rules: &[(RuleSection, RuleGroups)], section: RuleSection) -> &[(Label, Vec<String>)] {
     rules
         .iter()
         .find(|(held, _)| *held == section)
         .map_or(&[], |(_, groups)| groups.as_slice())
-}
-
-/// The `refusals:` block: one line per gate command the user has not allowed,
-/// each naming the command that records the approval.
-fn render_refusals(out: &mut String, refusals: &[RefusalJson]) {
-    if refusals.is_empty() {
-        return;
-    }
-    out.push_str("refusals:\n");
-    for refusal in refusals {
-        out.push_str(&format!(
-            "  {}: {} (not allowed; ask the user to run `{}`)\n",
-            refusal.gate,
-            refusal.command,
-            Command::mt().word("allow")
-        ));
-    }
 }
 
 /// A scale's bounds as `0-9`.

@@ -134,7 +134,7 @@ fn bare_ends_on_the_listings_that_go_deeper() {
 fn json_index_groups_and_listings_keep_their_keys() {
     let dir = project();
     let index = json(dir.path(), &["explain", "--json"]);
-    mindtape::test_support::assert_schema_at(&index, "explain", 4);
+    mindtape::test_support::assert_schema_at(&index, "explain", 5);
     assert_eq!(
         index["rules"]["tasks.rules"],
         serde_json::json!({"error": ["verb-title"], "warn": ["[1]"]})

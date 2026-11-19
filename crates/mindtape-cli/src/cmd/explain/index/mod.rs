@@ -6,6 +6,7 @@
 //! task, count anything or evaluate a filter. It costs one config load and one
 //! template-directory scan.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use mindtape::explain::Shape;
@@ -17,7 +18,7 @@ use mindtape::{
 use crate::cmd::schema::EXPLAIN;
 use crate::diag::Result;
 use crate::render::envelope::Envelope;
-use crate::render::objects::{ExplainIndexPayload, RefusalJson};
+use crate::render::objects::ExplainIndexPayload;
 
 mod render;
 
@@ -34,12 +35,41 @@ const SECTIONS: [RuleSection; 6] = [
     RuleSection::OnRm,
 ];
 
-/// The severities a section splits into, strictest first. A reader meets what
-/// refuses the work before what only warns.
-const SEVERITIES: [Severity; 2] = [Severity::Error, Severity::Warn];
+/// The one word a rule line carries. `error` refuses the write when the check
+/// fails, `warn` prints and lets the write through, and `not allowed` means
+/// the command does not run until the user allows it. The three are exclusive.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum Label {
+    /// A failing check refuses the write.
+    Error,
+    /// A failing check prints and the write goes through.
+    Warn,
+    /// The command does not run, and the write fails until the user allows
+    /// it.
+    NotAllowed,
+}
 
-/// One section's rule names, split by severity, strictest first.
-type RuleGroups = Vec<(Severity, Vec<String>)>;
+impl Label {
+    /// The word the line prints.
+    const fn text(self) -> &'static str {
+        match self {
+            Self::Error => "error",
+            Self::Warn => "warn",
+            Self::NotAllowed => "not allowed",
+        }
+    }
+
+    /// The label a rule carries while its command runs.
+    const fn of(severity: Severity) -> Self {
+        match severity {
+            Severity::Error => Self::Error,
+            Severity::Warn => Self::Warn,
+        }
+    }
+}
+
+/// One section's rule names, bucketed by label, strictest first.
+type RuleGroups = Vec<(Label, Vec<String>)>;
 
 /// The width to wrap at when the terminal does not report a size.
 const FALLBACK_WIDTH: usize = 100;
@@ -47,7 +77,8 @@ const FALLBACK_WIDTH: usize = 100;
 /// Everything the index lists, in the order it prints.
 struct Index {
     shape: Shape,
-    refusals: Vec<RefusalJson>,
+    waits: Vec<String>,
+    blocked: BTreeSet<String>,
     rules: Vec<(RuleSection, RuleGroups)>,
     add: Vec<String>,
     derived: Vec<String>,
@@ -76,28 +107,20 @@ pub fn run(as_json: bool) -> Result<()> {
 /// derived field, and the tag, view and dictionary names.
 fn collect(config: &Config, origins: &[RuleOriginEntry], root: &Path) -> Index {
     let shape = mindtape::explain::shape(config, root);
-    let refusals = refusals(config, root);
+    let blocked: BTreeSet<String> = mindtape::allow::refused_gates(root, config)
+        .into_iter()
+        .map(|gate| gate.command.to_string())
+        .collect();
+    let waits = config
+        .tasks
+        .waits
+        .iter()
+        .map(|checker| checker.run.to_string())
+        .collect();
     let active = active_rules(config);
     let rules = SECTIONS
         .iter()
-        .map(|&section| {
-            let groups: RuleGroups = SEVERITIES
-                .iter()
-                .filter_map(|&severity| {
-                    let mut names: Vec<String> = active
-                        .iter()
-                        .filter(|rule| rule.section == section && rule.severity == severity)
-                        .map(|rule| bare_name(section, rule))
-                        .collect();
-                    // A hook with several listed actions is still one hook in
-                    // the index; `mt explain rules` is where its actions stay
-                    // distinct.
-                    names.dedup();
-                    (!names.is_empty()).then_some((severity, names))
-                })
-                .collect();
-            (section, groups)
-        })
+        .map(|&section| (section, groups(section, &active, &blocked)))
         .filter(|(_, groups): &(RuleSection, RuleGroups)| !groups.is_empty())
         .collect();
     let add = active_add(config, origins).iter().map(add_name).collect();
@@ -121,7 +144,8 @@ fn collect(config: &Config, origins: &[RuleOriginEntry], root: &Path) -> Index {
     let dicts = default_first(dicts, |(name, _)| name);
     Index {
         shape,
-        refusals,
+        waits,
+        blocked,
         rules,
         add,
         derived,
@@ -131,16 +155,26 @@ fn collect(config: &Config, origins: &[RuleOriginEntry], root: &Path) -> Index {
     }
 }
 
-/// The gate commands the user has not allowed, as the `refusals:` block and
-/// its JSON show them.
-fn refusals(config: &Config, root: &Path) -> Vec<RefusalJson> {
-    mindtape::allow::refused_gates(root, config)
-        .into_iter()
-        .map(|gate| RefusalJson {
-            gate: gate.gate.to_owned(),
-            command: gate.command.to_string(),
-        })
-        .collect()
+/// One section's rule names, bucketed by what the line means for the write.
+/// A hook whose command the user has not allowed prints under `not allowed`
+/// instead of its severity: the command does not run, so the severity is not
+/// yet a fact.
+fn groups(section: RuleSection, active: &[ActiveRule], blocked: &BTreeSet<String>) -> RuleGroups {
+    let mut buckets: BTreeMap<Label, Vec<String>> = BTreeMap::new();
+    for rule in active.iter().filter(|rule| rule.section == section) {
+        let label = match &rule.run {
+            Some(run) if blocked.contains(run) => Label::NotAllowed,
+            _ => Label::of(rule.severity),
+        };
+        let names = buckets.entry(label).or_default();
+        let name = bare_name(section, rule);
+        // A hook with several listed actions is still one hook in the index;
+        // `mt explain rules` is where its actions stay distinct.
+        if names.last() != Some(&name) {
+            names.push(name);
+        }
+    }
+    buckets.into_iter().collect()
 }
 
 /// The hook's name, or for an unnamed hook the directory it files into, or
@@ -198,7 +232,7 @@ fn document(index: &Index) -> Envelope<ExplainIndexPayload> {
         .map(|(section, groups)| {
             let groups = groups
                 .iter()
-                .map(|(severity, names)| (severity.label().to_owned(), names.clone()))
+                .map(|(label, names)| (label.text().to_owned(), names.clone()))
                 .collect();
             (section.path().to_owned(), groups)
         })
@@ -211,7 +245,7 @@ fn document(index: &Index) -> Envelope<ExplainIndexPayload> {
             task: index.shape.task.clone(),
             commits: index.shape.commits.clone(),
             absent: index.shape.absent.clone(),
-            refusals: index.refusals.clone(),
+            waits: index.waits.clone(),
             rules,
             add: index.add.clone(),
             derived: index.derived.clone(),
