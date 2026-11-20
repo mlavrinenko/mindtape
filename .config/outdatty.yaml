@@ -935,6 +935,15 @@ groups:
     dependents:
       - docs/src/contributing.typ
 
+  # The skill-eval harness and the `.env` schema it reads. The evals README
+  # restates the recipe, the two variables and the results layout.
+  - name: skill-evals-docs
+    source:
+      - .just/scripts/skill-evals.sh
+      - .env.schema
+    dependents:
+      - skills/mindtape/evals/README.md
+
   # The scripts no doc restates: editing one flags nothing. Each entry says why.
   - name: scripts-no-doc
     source:

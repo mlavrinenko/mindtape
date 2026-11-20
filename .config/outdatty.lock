@@ -35,7 +35,7 @@ groups:
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: 5edd783761d8c71e6a68ff9975234dde517eb8803f07b4be7d75caf5df4ed573
       www/generate-api-service.sh: 3ee9616c4cb42ba9fdc1e4e9980a94668b83328fd6e770af909cd4d98efd7e64
     dependents:
-      skills/mindtape/evals/README.md: 8be464ec631e0c2a77b593c0434f49da536365d324143646597590db27ff4888
+      skills/mindtape/evals/README.md: 9b0640b6d7ca0a4cd408489aefd16dff5d98f2f454b3368bc23dd9f6dc4ddc67
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
       www/content/limit-work-in-progress.typ: e14c77087b126e2e76d391aaeb8eb3a2d235bf41803c64ae24c4a32c014b2f87
       www/content/require-a-task-shape.typ: c8f91f398aa4ea67a8df7802f74c2fc0bab6f473ce05209bf10931db501db0c7
@@ -49,7 +49,7 @@ groups:
       crates/mindtape-cli/src/cmd/add/mod.rs: 4e243d363e82db8bcb030a00a8896577bda3df24bb6b9dd404377acdc5893922
     dependents:
       docs/src/skill.typ: c979ac413782e44ecf6f0eb8cc2a9eb99f3e81d16e552f1454c80b3d4143fc61
-      skills/mindtape/evals/README.md: 8be464ec631e0c2a77b593c0434f49da536365d324143646597590db27ff4888
+      skills/mindtape/evals/README.md: 9b0640b6d7ca0a4cd408489aefd16dff5d98f2f454b3368bc23dd9f6dc4ddc67
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
       skills/mindtape/references/add-slots.md: 4e41cf5256ef673f180e24d9e2c4257105e2594b530f2d660abe8594291812ab
       www/content/agents.typ: e97e63c25a17a0ced65d04db5397a38b602865e31abbc0ebe55a15a99d796881
@@ -63,7 +63,7 @@ groups:
       crates/mindtape/src/allow.rs: 5fa1234362f89696e9ee58bd5dff13a737753d2c991cf7ecebb62f63b95433a8
     dependents:
       docs/src/skill.typ: a202bd91265f0357263b879af10018e425154bbabfe6826f581ba3ed28c40787
-      skills/mindtape/evals/README.md: 8be464ec631e0c2a77b593c0434f49da536365d324143646597590db27ff4888
+      skills/mindtape/evals/README.md: 9b0640b6d7ca0a4cd408489aefd16dff5d98f2f454b3368bc23dd9f6dc4ddc67
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
       www/content/cli/allow.typ: 279a2a02a6aa6baec375fad28eecf4ea4ae7ab9a7075c585882695371116314a
       www/content/hooks.typ: 4d67a254a1b432e33637dced252a767f2592f2bb3f1ae35a2667f9da8e786ef9
@@ -211,7 +211,7 @@ groups:
       crates/mindtape-cli/src/cmd/ls/rules.rs: a1285a180dce5956982fe9d831c6f74a172768968482a6f69cbdf85e6db0f906
     dependents:
       docs/src/skill.typ: a202bd91265f0357263b879af10018e425154bbabfe6826f581ba3ed28c40787
-      skills/mindtape/evals/README.md: 8be464ec631e0c2a77b593c0434f49da536365d324143646597590db27ff4888
+      skills/mindtape/evals/README.md: 9b0640b6d7ca0a4cd408489aefd16dff5d98f2f454b3368bc23dd9f6dc4ddc67
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
       skills/mindtape/references/filters.md: 758ed2ac1d6ade5e9ed00202034e5682e302e18a0a1124026f5450ea52a16e9c
       www/content/agents.typ: 6b56e7fc0f4e54308818d3a593bd4d18ce414372cbcf7f87912c13394e43343f
@@ -360,15 +360,15 @@ groups:
       .just/scripts/check-examples.sh: eca8ba0bcc674cb6dcece4000c512662296b514857d2f7f5dd8acf9655780372
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: 97a4ef31a342a808c516133529368b33c6f976f8fb0cf5c573902ff4d0229d28
-      Justfile: c2fdcc8a46040053b822c50e8168760587c84ba7abc12d36256a48b28e4ddfe3
+      Justfile: 5d5c264109f8184af4f3cc10d82bee85691a5a31f72312d922b46f9967a52560
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 0307091b3825c70025cbb4676e7477429a4eb054b9756462488db445466d9316
+      nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
     dependents:
-      docs/src/agents.typ: 56cf68acbfa93c542dcd149dfc618c7e1759e79374aec8e01ab03b9b95ed4d4c
+      docs/src/agents.typ: cd3e7c409644b14fe5196ab29d273e4df5f97af9e640dbf986e319ac1a02db64
       docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
       docs/src/contributing/coverage-crap.typ: dfd3234c064a7403e05bac07755428caa51e21d49d084eff17a9a2eee6d93243
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
@@ -560,6 +560,12 @@ groups:
       docs/src/contributing/docs-site-build.typ: 6dee8629cb4d56d1eebb8b47f07c33859d4a00f1f6855f2f067383e0fd61d918
       docs/src/skill.typ: f4ba635341662e23ac85eb9107589b7101c96db8ddee2adf59063516705d63e2
       www/content/agents.typ: 6b56e7fc0f4e54308818d3a593bd4d18ce414372cbcf7f87912c13394e43343f
+  skill-evals-docs:
+    source:
+      .env.schema: 57ecd84e0d075beb3c0bfb192ffbc716242182ae21245d759f625da07c1c396b
+      .just/scripts/skill-evals.sh: 2e5aea9c852b9b2e015fda3c63ff281e48445bc810ea018875f3ec9d869e4300
+    dependents:
+      skills/mindtape/evals/README.md: 9b0640b6d7ca0a4cd408489aefd16dff5d98f2f454b3368bc23dd9f6dc4ddc67
   skill-install-docs:
     source:
       .just/scripts/check-skill-drift.sh: e21c2215156dad5c92d6a13b1253ec3d67f6c7378fa3df6958f2011533e6fde6
@@ -681,7 +687,7 @@ groups:
       .just/scripts/check-vale-levels.sh: 1556070fa5376083821b9c081dda93ee5d76a90491e1cdb69181462460ac6067
       nix/dev/flake.lock: fd22c22f17ee7d0f926de24231a428d89f821025de4177a0348e84050aace0d5
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 0307091b3825c70025cbb4676e7477429a4eb054b9756462488db445466d9316
+      nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale-styles.nix: 067f8733c68801bd50fec716d70b954bde36f225ae1350bae874c794c4b35bd4
     dependents:

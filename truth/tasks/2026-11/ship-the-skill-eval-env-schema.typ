@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 20),
+  status: done(2026, 11, 20),
   links: related(
     "pick-an-isolated-harness-for-the-skill-evals.typ",
   )[the decision requires the model to come from .env],

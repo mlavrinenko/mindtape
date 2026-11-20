@@ -1,6 +1,5 @@
 # Each module file repeats these settings, since a module inherits none, and
-# adds `working-directory := '..'`, since a module recipe runs in its own
-# file's directory.
+# adds `working-directory := '..'`, since a module recipe runs in its own file's directory.
 
 set quiet := true
 set unstable := true
@@ -71,9 +70,7 @@ mmz *ARGS:
 
 # worktrunk takes no merge defaults from project config, so they live here.
 # `--no-squash` keeps each commit's `Refs:` footer and `--no-commit` refuses a
-# dirty tree. A recipe cannot move its caller's shell, so neither one cds. The
-# cd directive goes to a throwaway file, so wt has a real file to write it to
-# and prints no "shell integration not installed" warning.
+# dirty tree. Neither recipe cds; the cd directive goes to a throwaway file.
 
 [doc("Fork a sibling worktree on a new branch, with its dev mt built")]
 [group("workflow")]
@@ -97,16 +94,14 @@ land *args:
 build *args:
     cargo build --workspace -q "$@"
 
-# Its own target dir keeps it off the lock `just check` holds on target/, and
-# off target/debug/mt, which the test arm links with test features.
+# Its own target dir keeps it off the lock `just check` holds on target/, and off target/debug/mt.
 
 [doc("Build the dev shell's mt")]
 [group("dev")]
 build-mt:
     cargo build -q -p mindtape-cli --bin mt --target-dir target/mt-dev
 
-# nextest runs no doctests: the first doctest needs a `cargo test --doc` pass.
-# A second `--cargo-quiet` would hide build errors too.
+# nextest runs no doctests; a second `--cargo-quiet` would hide build errors too.
 
 [doc("Run tests only")]
 [group("dev")]
@@ -182,6 +177,14 @@ check-examples:
 [group("gate")]
 skill-evals-check:
     bash .just/scripts/skill-evals-check.sh
+
+[arg('arm', long='arm', pattern='no-docs|with-skill|both', help='arm to run (no-docs, with-skill, both); both when none')]
+[arg('eval', long='eval', pattern='[0-9]*', help='one eval id to run; all six when none')]
+[doc("Run the skill evals in a sandbox and grade each trace")]
+[group("dev")]
+[no-exit-message]
+skill-evals arm='both' eval='':
+    bash .just/scripts/skill-evals.sh {{ arm }} {{ eval }}
 
 [doc("Fail when an installed skill differs from its source stamp")]
 [group("gate")]

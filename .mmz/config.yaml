@@ -319,6 +319,9 @@ scopes:
     - ".githooks/local-paths"
     - ".githooks/pre-commit"
     - ".config/release.toml"
+    # The skill-eval env schema, a source of the group that owns the harness
+    # README. No other scope holds a root dotfile.
+    - ".env.schema"
 
   # The manifest itself, for the one rule that reads it as data
   # (`just meta::script-scope`, below). No other rule names it: mmz already
@@ -485,6 +488,10 @@ scopes:
     - ".just/scripts/check-examples.sh"
   script-skill-evals-check:
     - ".just/scripts/skill-evals-check.sh"
+  # The harness itself. No rule names it: a model run is not memoized, and
+  # `just skill-evals` stays out of `commands` for that reason.
+  script-skill-evals:
+    - ".just/scripts/skill-evals.sh"
   script-check-skill-drift:
     - ".just/scripts/check-skill-drift.sh"
   script-clippy:

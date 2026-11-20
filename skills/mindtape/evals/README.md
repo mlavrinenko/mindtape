@@ -1,11 +1,11 @@
 # mindtape skill evals
 
-Six evals in `evals.json`, run through skill-creator's loop: spawn an executor
-subagent per eval twice, once with the skill and once with no external
-documentation, then grade each run against its own block. `assertions` grades
-the arm with the skill. `without.assertions` grades a consumer given only the
-prompt and `mt`. The difference between the arms shows what the skill adds. A
-no-docs failure identifies a fact the CLI does not yet expose.
+Six evals in `evals.json`, each run twice: once with the skill and once with no
+external documentation. `assertions` grades the arm with the skill.
+`without.assertions` grades a consumer given only the prompt and `mt`. The
+difference between the arms shows what the skill adds. A no-docs failure
+identifies a fact the CLI does not yet expose. `just skill-evals` runs both
+arms in sandboxes and grades each trace.
 
 ## Fixtures
 
@@ -37,31 +37,65 @@ writer and inserts `priority: 8` after the slots.
 them stale. An unvalidated fixture can drift through several config changes and
 make every eval fail at config load without any check reporting it.
 
-## Running one
+## Running
 
-Copy the fixture to a scratch directory and run there. Do not run in place.
-These are tracked, gated fixtures; `mt add` writes files and `mt flip` restamps,
-so a stray write fails `just check` in a later commit.
-
-The fixture's config points `@local/mindtape` at `../../lib`, so the copy has
-to sit two levels below the repo root. `target/` is the gitignored place that
-depth allows; a copy under `/tmp` breaks the path at config load.
+Copy `.env.schema` to `.env` and fill in both values. `.env` is gitignored, so
+a real key stays out of the repository.
 
 ```sh
-mkdir -p target
-work=$(mktemp -d -p target)
-cp -a examples/api-service/. "$work/"
-# hand the subagent "$work" as its cwd
+cp .env.schema .env
+$EDITOR .env
 ```
 
-Set `MINDTAPE_NOW=2026-10-01` for `examples/api-service`, the clock
-`www/capture.sh` declares and the evals and their e2e test read. Otherwise a
-due date or a start date moves against the wall clock and the expected output
-stops matching.
+`SKILL_EVALS_MODEL_ID` names the model in `provider/model` form, and
+`SKILL_EVALS_API_KEY` holds its key. The provider must be one opencode knows,
+because the sandbox carries no config of its own beyond that key. The harness
+refuses a placeholder before it starts.
 
-Symlinking the fixture instead does not work: `cp` without `-L` leaves a
-dangling link in the sandbox, and following it lets the eval write into the
-tracked example.
+```sh
+just skill-evals --arm no-docs
+just skill-evals --arm with-skill --eval 3
+just skill-evals --arm both
+```
+
+`--arm` picks `no-docs`, `with-skill` or `both` (the default). `--eval` runs
+one id from `evals.json`; without it, all six run.
+
+Each eval and arm gets its own `bwrap` sandbox. The harness copies the fixture
+outside the repo, installs the prelude into the sandbox home with `mt install`,
+drops the fixture's `../../lib` override, and puts one `mt` on `PATH`. The
+executor is `opencode run --standalone --format json`, with `HOME` and the four
+XDG dirs under the run directory, so no skill, session or checkout of this repo
+is visible. The with-skill arm copies `skills/mindtape` into the sandbox's
+skill directory, without `evals/`: the assertions and the baseline are the
+answer key, not the skill.
+
+A second sandbox grades the trace against the eval's assertions and writes
+`verdict.json`. The grader sees the trace and the assertions, not the repo.
+
+Results land in `target/skill-evals/<run-id>/eval-<n>/<arm>/`:
+
+| File | What it holds |
+|------|---------------|
+| `run.json` | the model, the `opencode` and `mt` versions, `MINDTAPE_NOW` and the commit |
+| `trace.jsonl` | the executor's `--format json` event stream |
+| `executor.log` | the executor's stderr |
+| `assertions.json` | the assertions the grader read |
+| `verdict.json` | one pass or fail per assertion, with its reason |
+| `grader.log` | the grader's stderr |
+
+The run prints one line per eval and the run directory:
+
+```
+$ just skill-evals --arm no-docs
+eval 0  pass   7/7
+eval 1  pass   4/4
+run: target/skill-evals/2026-11-20T17-10Z
+```
+
+The harness reads `MINDTAPE_NOW` from `www/capture.sh`, the one clock the
+fixture and its e2e test share, so a due date does not move against the wall
+clock.
 
 `evals.json` has a `fixture` key per eval with the repo-relative path. The
 schema's own `files` array is for input documents relative to the skill root,
@@ -74,8 +108,8 @@ nowhere.
 The with-skill arm loads `skills/mindtape/` and grades `assertions`. The
 no-docs arm gets the prompt, the scratch copy and `mt`, and grades
 `without.assertions`; it reads no skill, no page under `docs/`, and nothing
-from the `www/` site. Record each arm's pass and fail, and file a task for a
-failed no-docs assertion naming the CLI fact it needed.
+from the `www/` site. File a task for a failed no-docs assertion naming the CLI
+fact it needed.
 
 `just skill-evals-check` validates that every eval has both blocks and that
 every fixture path exists. It reads the manifest and the filesystem, so it runs
@@ -83,16 +117,16 @@ in `just check` without a model.
 
 ## Model
 
-Run both subagents on a mid-tier model. These evals check whether the skill
-supplies a fact the agent would otherwise lack (that `--all` does not exist,
-that an unknown `--set` key is refused by name, that a legend may have no
-`blocked`). They do not test reasoning depth. A stronger model partly masks the
-gap by recovering from the error message, which makes the with-skill and
+Run both arms on a mid-tier model, set in `.env`. These evals check whether the
+skill supplies a fact the agent would otherwise lack (that `--all` does not
+exist, that an unknown `--set` key is refused by name, that a legend may have
+no `blocked`). They do not test reasoning depth. A stronger model partly masks
+the gap by recovering from the error message, which makes the with-skill and
 no-docs runs converge and the eval less discriminating. A mid-tier model also
 keeps a six-eval double run affordable enough to repeat.
 
-Grade on the same model for both arms of a comparison, or the delta measures
-the grader instead of the skill.
+The grader runs on the same model as the executor. Grade both arms of a
+comparison on one model, or the delta measures the grader instead of the skill.
 
 ## Baseline
 

@@ -114,6 +114,10 @@
             # diagraph would make the docs build depend on packages.typst.org.
             graphviz
             hyperfine
+            # `just skill-evals` runs each eval in its own sandbox. bwrap is
+            # the boundary that keeps the repo, the home and the installed
+            # skill out of the executor.
+            bubblewrap
             # `ps`: commit/amend.rs falls back to it where /proc is absent,
             # and its test calls it on Linux too. A bare host may lack it.
             procps
