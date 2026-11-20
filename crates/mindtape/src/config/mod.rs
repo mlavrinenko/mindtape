@@ -182,7 +182,7 @@ pub struct Config {
     pub retire: RetireConfig,
     /// `add` (task creation) template discovery.
     pub templates: TemplatesConfig,
-    /// `add` interactive-fill settings (editor, when it opens).
+    /// `add` settings for `mt add`: the editor fill and whether it verifies.
     pub add: AddConfig,
     /// `go` (open in editor) settings.
     pub go: GoConfig,

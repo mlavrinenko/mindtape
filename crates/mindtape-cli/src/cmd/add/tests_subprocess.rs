@@ -202,6 +202,15 @@ const BAD_TEMPLATE: &str = mindtape::typst_task!(
 "#
 );
 
+/// Enter the project the outer half of a `run()` test wrote, and return its
+/// root. The inner half runs in a child process, so it re-enters the fixture
+/// from the environment variable that names it.
+fn enter_fixture(var: &str) -> std::path::PathBuf {
+    let root = std::env::var(var).unwrap();
+    std::env::set_current_dir(&root).unwrap();
+    std::path::PathBuf::from(root)
+}
+
 /// Pins delete ! in `if !args.no_verify`.
 ///
 /// Original:  `if !args.no_verify { verify_written(...)? }`
@@ -213,35 +222,12 @@ const BAD_TEMPLATE: &str = mindtape::typst_task!(
 #[test]
 fn run_with_no_verify_skips_validation() {
     if std::env::var(RUN_NO_VERIFY_INNER).is_ok() {
-        let root_dir = std::env::var(RUN_NO_VERIFY_INNER).unwrap();
-        let root = Path::new(&root_dir);
-        std::env::set_current_dir(root).unwrap();
+        enter_fixture(RUN_NO_VERIFY_INNER);
         let args = AddArgs {
-            title: vec![],
-            template: None,
-            values: vec![],
             set: vec!["title=Test".to_owned()],
-            tokens: vec![],
-            dir: None,
-            into: None,
-            to: None,
             name: Some("no-verify-test".to_owned()),
-            status: None,
-            priority: None,
-            difficulty: None,
-            kind: None,
-            assignee: None,
-            due: None,
-            start: None,
-            edit: false,
-            describe: None,
-            list: false,
-            print: false,
             no_verify: true,
-            no_hooks: false,
-            dedup: None,
-            format: Format::Text,
-            json: false,
+            ..super::bare_args()
         };
         let result = run(&args);
         assert!(
@@ -286,35 +272,10 @@ const ENV_TEMPLATE: &str = mindtape::typst_task!(
 #[test]
 fn run_fills_slot_from_declared_env() {
     if std::env::var(ENV_FILL_INNER).is_ok() {
-        let root_dir = std::env::var(ENV_FILL_INNER).unwrap();
-        let root = Path::new(&root_dir);
-        std::env::set_current_dir(root).unwrap();
+        let root = enter_fixture(ENV_FILL_INNER);
         let args = AddArgs {
-            title: vec![],
-            template: None,
-            values: vec![],
-            set: vec![],
-            tokens: vec![],
-            dir: None,
-            into: None,
-            to: None,
             name: Some("env-fill-test".to_owned()),
-            status: None,
-            priority: None,
-            difficulty: None,
-            kind: None,
-            assignee: None,
-            due: None,
-            start: None,
-            edit: false,
-            describe: None,
-            list: false,
-            print: false,
-            no_verify: false,
-            no_hooks: false,
-            dedup: None,
-            format: Format::Text,
-            json: false,
+            ..super::bare_args()
         };
         run(&args).expect("run should fill the slot from its declared env");
         let written =

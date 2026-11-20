@@ -36,6 +36,7 @@ fn listed() -> Vec<(String, bool)> {
 #[test]
 fn the_schema_tags_every_expression_key_with_its_language() {
     let expected = [
+        ("add.verify-when", false),
         ("commits.rules.*.assert", true),
         ("commits.rules.*.when", true),
         ("ls.columns.*.when", false),

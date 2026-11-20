@@ -91,7 +91,7 @@
     },
     "AddConfig": {
       "additionalProperties": false,
-      "description": "Settings for the interactive editor fill of `mt add`.",
+      "description": "Settings for `mt add`: the interactive editor fill, and whether a run\nverifies the task it files.",
       "properties": {
         "comments": {
           "default": true,
@@ -117,6 +117,15 @@
         "interactive": {
           "$ref": "#/$defs/InteractiveMode",
           "description": "When the interactive editor opens."
+        },
+        "verify-when": {
+          "default": null,
+          "description": "Whether `mt add` verifies the task it files, as a condition over the\ninvocation's ambient facts: `tty()`, `env(\"NAME\")`, `on_branch(\"glob\")`,\n`now()` and `weekday()`. Absent verifies always, so a project that says\nnothing keeps the refusal. `!tty()` verifies only a run without a\nterminal, which files an incomplete task from a terminal and still\nrefuses one from an agent. `--verify` and `--no-verify` override it for\none call.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-expression": "condition"
         }
       },
       "type": "object"
@@ -689,7 +698,7 @@
         },
         "add": {
           "$ref": "#/$defs/AddConfig",
-          "description": "`add` interactive-fill settings (editor, when it opens)."
+          "description": "`add` settings for `mt add`: the editor fill and whether it verifies."
         },
         "commits": {
           "$ref": "#/$defs/CommitsConfig",

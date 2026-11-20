@@ -157,6 +157,9 @@ when = 'w == param("p")'
 
 [rm]
 default-filter = 'x == param("p")'
+
+[add]
+verify-when = 'z == param("p")'
 "#;
 
 #[test]

@@ -54,6 +54,16 @@ pub(super) fn report_injected(
     }
 }
 
+/// Say that the task filed without a check, and point at the command that
+/// lists what it is missing. A run that skips verification leaves an unfilled
+/// required slot as its `slot(...)` call, so the file is on disk and
+/// incomplete. Goes to stderr, so `--format json` stays machine-clean.
+pub(super) fn report_unverified() {
+    emit_note(&Note::new(
+        "filed without verification; `mt check` lists what is missing",
+    ));
+}
+
 /// Whether `names` already supplied this field itself, by `--set`/`-f`/`--` or
 /// as a hook's field. A strict-framework priority has no scalar `priority=`
 /// key. Supplying any of its leaves counts as taking it over, and the note then

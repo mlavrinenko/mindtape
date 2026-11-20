@@ -171,3 +171,20 @@ fn parse_buffer_null_returns_empty() {
     let values = parse_buffer("~").unwrap();
     assert!(values.is_empty());
 }
+
+/// A run that skips verification accepts a buffer whose required slot is still
+/// empty, so the editor doesn't re-open the buffer the user just saved. The
+/// strict mode refuses the same buffer.
+#[test]
+fn a_skipped_verification_accepts_an_empty_required_slot() {
+    let source = "#f(a: slot(\"a\"), b: slot(\"b\", kind: \"int\"))";
+    let specs = mindtape::discover_slots(source);
+    let values = BTreeMap::from([("b".to_owned(), RawValue::Int(2))]);
+
+    assert!(super::refuse_buffer(&values, &specs, source, false).is_ok());
+    let refused = super::refuse_buffer(&values, &specs, source, true).unwrap_err();
+    assert!(
+        refused.to_string().contains("missing a required slot: 'a'"),
+        "{refused}"
+    );
+}

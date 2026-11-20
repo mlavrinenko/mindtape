@@ -34,6 +34,7 @@ fn every_error_displays_its_slot_and_remedy() {
             "slot \"n\" expects int, got string",
         ),
         (type_err(SlotKind::MultiChoice), "--set n+=value"),
+        (type_err(SlotKind::Links), "expects links"),
         (
             FillError::BadChoice {
                 slot: "k".to_owned(),

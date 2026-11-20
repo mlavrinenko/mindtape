@@ -9,7 +9,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::tempdir;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use mindtape::{Config, RawValue, SlotSpec};
@@ -52,6 +52,7 @@ fn bare_args() -> AddArgs {
         describe: None,
         list: false,
         print: false,
+        verify: false,
         no_verify: false,
         no_hooks: false,
         dedup: None,
@@ -399,11 +400,21 @@ fn outside_root_failure_names_the_file_kept_on_disk() {
     let project = project_with_root(root.path(), "tasks");
     let outcome = crate::cmd::add::output::Outcome::Wrote(file.clone());
 
+    let ready = super::pipeline::Ready {
+        filled: "#show: task.with(title: \"kept\")\n".to_owned(),
+        values: BTreeMap::new(),
+        dir: None,
+        explicit: BTreeSet::new(),
+        env_keys: BTreeSet::new(),
+        touched: BTreeSet::new(),
+        interactive: false,
+        verify: true,
+    };
     let err = super::commit(
         &bare_args(),
         &project,
         &outcome,
-        "#show: task.with(title: \"kept\")\n",
+        &ready,
         &super::Rescue::new("task", false),
     )
     .unwrap_err();

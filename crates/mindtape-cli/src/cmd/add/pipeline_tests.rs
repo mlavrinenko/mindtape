@@ -152,6 +152,7 @@ fn no_verify_skips_the_candidate_check() {
         env_keys: BTreeSet::new(),
         touched: BTreeSet::new(),
         interactive: true,
+        verify: false,
     };
 
     let problems = super::check_candidate(&args, &fixture.project, "task", &ready).unwrap();
@@ -217,6 +218,7 @@ impl Fixture {
             explicit: BTreeSet::new(),
             env_keys: BTreeSet::new(),
             status: None,
+            verify: true,
         }
     }
 }
@@ -238,6 +240,7 @@ fn fill_after(bad: &str) -> (Edited, String) {
         specs: &specs,
         source: TEMPLATE,
         seed: &BTreeMap::new(),
+        verify: true,
     };
     let edited = fill_until_it_fills(&AddConfig::default(), Some(&editor), &fill, None).unwrap();
     (edited, std::fs::read_to_string(&seen).unwrap())
@@ -363,4 +366,38 @@ fn changing_editor(dir: &Path, count: &Path) -> String {
     )
     .unwrap();
     format!("sh {}", script.display())
+}
+
+/// `--verify` and `--no-verify` win over `[add] verify-when`, and an absent
+/// key verifies always. The test process has no terminal, so `tty()` is false
+/// and `!tty()` is true.
+#[test]
+fn verify_reads_the_flags_then_the_config() {
+    let cases = [
+        (None, false, false, true),
+        (None, true, false, true),
+        (None, false, true, false),
+        (Some("false"), false, false, false),
+        (Some("false"), true, false, true),
+        (Some("!tty()"), false, false, true),
+        (Some("tty()"), false, false, false),
+    ];
+    for (expr, verify, no_verify, want) in cases {
+        let config = match expr {
+            Some(expr) => format!("[add]\nverify-when = \"{expr}\"\n"),
+            None => String::new(),
+        };
+        let (_root, project) = make_project(&[], parse_config(&config).unwrap());
+        let args = AddArgs {
+            verify,
+            no_verify,
+            ..AddArgs::default()
+        };
+
+        assert_eq!(
+            super::verify(&args, &project).unwrap(),
+            want,
+            "verify-when = {expr:?}, --verify = {verify}, --no-verify = {no_verify}"
+        );
+    }
 }

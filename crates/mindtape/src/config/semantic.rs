@@ -51,6 +51,7 @@ impl Config {
         problems.extend(plain(crate::body::content::validate_content_rules(self)));
         problems.extend(plain(crate::config::comments::validate_comments(self)));
         problems.extend(crate::config::actors::validate_actors(self));
+        problems.extend(crate::config::add::validate_add(&self.add));
         problems.extend(crate::config::hooks::validate_flip_hooks(self));
         problems.extend(crate::config::hooks::validate_rm_hooks(self));
         // Two entries sharing a name can only come from one file: the merge

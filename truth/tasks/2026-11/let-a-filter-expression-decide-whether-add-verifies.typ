@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 20),
+  status: done(2026, 11, 20),
 )
 
 == AS-IS
@@ -61,9 +61,10 @@ note: filed without verification; `mt check` lists what is missing
 == Changes
 
 - `crates/mindtape/src/config/add.rs`: `verify_when: Option<String>`, parsed with `Condition::parse` at load.
-- `crates/mindtape/src/template/fill/mod.rs`: a mode that leaves an unfilled required slot in place instead of `FillError::Missing`.
+- `crates/mindtape/src/template/fill/mod.rs`: a mode that leaves an unfilled required slot in place instead of `FillError::Missing`, with `FillError` moved to a sibling file to stay under the line cap.
 - `crates/mindtape-cli/src/cmd/add/pipeline.rs`: evaluate `verify-when` against a `ConditionEnv`, and skip `pre_verify` and the hooks when it says no.
-- `crates/mindtape-cli/src/cmd/add/mod.rs`: `--verify` and `--no-verify`.
+- `crates/mindtape-cli/src/cmd/add/mod.rs`: `--verify` and `--no-verify`, and the note a skipped run ends on.
+- `crates/mindtape-cli/src/cmd/add/interactive.rs`: the editor's buffer check follows the same mode, so a saved buffer with an empty required slot doesn't re-open.
 - `www/content/templates.typ`, `www/content/config.typ`, `CHANGELOG.md`: the key and what a skipped verification leaves behind.
 
 == Alternatives

@@ -9,11 +9,16 @@
 //! An interactive add renders inside a loop. A rule that refuses the filled
 //! task re-opens the buffer with every breach above the values. The answers
 //! survive a rejection the same way they survive a typo.
+//!
+//! The pipeline settles whether a run verifies once, before the first render,
+//! and carries the answer on [`Ready`]. A run that skips verification fills in
+//! [`FillMode::KeepMissing`] and doesn't run a hook. The task it writes is the
+//! one the caller asked for, incomplete slots and all.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use mindtape::model::writable::{self, WritableField};
-use mindtape::{AddConfig, RawValue, SlotSpec, discover_slots};
+use mindtape::{AddConfig, Condition, FillMode, RawValue, SlotSpec, discover_slots};
 
 use crate::diag::{Diag, Result};
 use crate::pre_write::Problem;
@@ -36,6 +41,10 @@ pub(super) struct Ready {
     pub(super) env_keys: BTreeSet<String>,
     pub(super) touched: BTreeSet<String>,
     pub(super) interactive: bool,
+    /// Whether this run verifies the task it files. A run that skips it leaves
+    /// an unfilled required slot as its `slot(...)` call, runs no `[[on.add]]`
+    /// hook, and writes without `pre_verify`.
+    pub(super) verify: bool,
 }
 
 /// What one `mt add` render fills: the template's name and source, the status
@@ -62,6 +71,7 @@ struct Session<'a> {
     explicit: BTreeSet<String>,
     env_keys: BTreeSet<String>,
     status: Option<&'a str>,
+    verify: bool,
 }
 
 impl Session<'_> {
@@ -77,6 +87,7 @@ impl Session<'_> {
             values,
             explicit: &self.explicit,
             status: self.status,
+            verify: self.verify,
         };
         render_ready(&input, self.env_keys.clone(), interactive)
     }
@@ -110,6 +121,7 @@ pub(super) fn collect_and_render(
         explicit: seeded.explicit,
         env_keys: seeded.env_keys,
         status: request.status,
+        verify: verify(args, project)?,
     };
     if !interactive {
         let mut values = seeded.values.clone();
@@ -146,6 +158,7 @@ fn fill_until_it_passes(
         specs: session.specs,
         source: session.source,
         seed: session.seed,
+        verify: session.verify,
     };
     let mut retry: Option<interactive::Rejected> = None;
     let mut previous: Option<String> = None;
@@ -194,25 +207,54 @@ fn render_ready(input: &Input<'_>, env_keys: BTreeSet<String>, interactive: bool
         env_keys,
         touched: rendered.touched,
         interactive,
+        verify: input.verify,
     })
 }
 
 /// The candidate check the interactive loop re-opens on: the problems that
 /// refuse the rendered task at the path it would land at, or `None` when it
-/// passes. `--no-verify` skips it, as it skips the final check.
+/// passes. A run that skips verification skips it, as it skips the final
+/// check.
 pub(super) fn check_candidate(
     args: &super::AddArgs,
     project: &Project,
     template: &str,
     ready: &Ready,
 ) -> Result<Option<Vec<Problem>>> {
-    if args.no_verify {
+    if !ready.verify {
         return Ok(None);
     }
     let dest = target::resolve_dir(args, project, ready.dir.as_deref())?;
     let stem = target::output_stem(args, &ready.values, &project.config)?;
     let file = dest.join(format!("{stem}.typ"));
     crate::task_edit::candidate_problems(project, &file, &ready.filled, template)
+}
+
+/// Whether this run verifies the task it files: `--verify` and `--no-verify`
+/// first, else `[add] verify-when` against the ambient facts, else always.
+///
+/// The facts come from the one builder `mt ls` uses, so `tty()` and the rest
+/// mean the same thing in either place. `format()` is empty: `mt add` writes a
+/// file rather than rendering a listing, and its `--format` names a report
+/// shape, not a listing one.
+///
+/// # Errors
+/// Returns an error when `verify-when` fails to parse or evaluate. Config load
+/// already refuses both, so this only recurs for a hand-built config.
+fn verify(args: &super::AddArgs, project: &Project) -> Result<bool> {
+    if args.verify {
+        return Ok(true);
+    }
+    if args.no_verify {
+        return Ok(false);
+    }
+    let Some(expr) = &project.config.add.verify_when else {
+        return Ok(true);
+    };
+    let env = crate::cmd::ls::rules::build_env(project, "");
+    Condition::parse(expr)
+        .and_then(|condition| condition.matches(&env))
+        .map_err(|err| Diag::from(err).context("in add.verify-when", expr))
 }
 
 /// The template's whole-value slot for a core field, keyed by the slot name:
@@ -292,9 +334,11 @@ pub(super) struct Input<'a> {
     pub(super) values: &'a BTreeMap<String, RawValue>,
     pub(super) explicit: &'a BTreeSet<String>,
     pub(super) status: Option<&'a str>,
+    pub(super) verify: bool,
 }
 
-/// Fill, hook and field-write one new task.
+/// Fill, hook and field-write one new task, in the fill mode `input.verify`
+/// implies.
 ///
 /// # Errors
 /// A value the template refuses, a draft that does not evaluate, or a hook that
@@ -311,11 +355,19 @@ pub(super) fn render(input: &Input<'_>) -> Result<Rendered> {
         values,
         explicit,
         status,
+        verify,
     } = *input;
     let fields = field_values::touched(collected, specs);
-    let hooks_on = !args.no_hooks && !project.config.on.add.is_empty();
+    // A run that skips verification runs no hook: a hook reads fields the fill
+    // has not written, and the task it would read is incomplete.
+    let hooks_on = verify && !args.no_hooks && !project.config.on.add.is_empty();
     if !hooks_on && fields.is_empty() {
-        let filled = mindtape::fill(source, &markup_safe(values, specs)).map_err(Diag::from)?;
+        let filled = mindtape::fill_with(
+            source,
+            &markup_safe(values, specs),
+            FillMode::for_verification(verify),
+        )
+        .map_err(Diag::from)?;
         let filled = inject_header(&filled, &project.config, status)?;
         return Ok(Rendered {
             source: filled,
@@ -344,7 +396,7 @@ pub(super) fn render(input: &Input<'_>) -> Result<Rendered> {
     };
 
     let touched = field_names(&fields, &outcome.touched);
-    finish(&task, specs, values, &touched, outcome.dir)
+    finish(&task, input, &touched, outcome.dir)
 }
 
 /// The explicit field names that a hook may not override. They are the
@@ -373,12 +425,12 @@ fn hook_explicit(source: &str, explicit: &BTreeSet<String>) -> BTreeSet<String> 
 /// refusal then cites the real problem.
 fn finish(
     task: &draft::Draft,
-    specs: &[SlotSpec],
-    values: &BTreeMap<String, RawValue>,
+    input: &Input<'_>,
     touched: &BTreeSet<String>,
     dir: Option<String>,
 ) -> Result<Rendered> {
-    let mut final_values = values.clone();
+    let specs = input.specs;
+    let mut final_values = input.values.clone();
     for name in touched {
         if let Some(field) = writable::get(name)
             && specs.iter().any(|spec| spec.name == *name)
@@ -392,7 +444,12 @@ fn finish(
         .filter_map(|name| writable::get(name))
         .collect();
     let source = field_values::upsert(&task.source, &upsert, &task.task)?;
-    let filled = mindtape::fill(&source, &markup_safe(&final_values, specs)).map_err(Diag::from)?;
+    let filled = mindtape::fill_with(
+        &source,
+        &markup_safe(&final_values, specs),
+        FillMode::for_verification(input.verify),
+    )
+    .map_err(Diag::from)?;
     if !final_values.contains_key("title") && !task.task.title.trim().is_empty() {
         final_values.insert("title".to_owned(), RawValue::Str(task.task.title.clone()));
     }

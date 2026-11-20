@@ -6,11 +6,15 @@
 //! Split from `template/mod.rs` along the module's own two verbs (see its doc
 //! comment). That file turns template source into [`super::SlotSpec`]s
 //! ("discover"), and this one turns `SlotSpec`s plus caller values into
-//! rewritten source ("fill"). [`fill()`] is the sole entry point the parent
-//! module re-exports.
+//! rewritten source ("fill"). [`fill()`] and [`fill_with()`] are the entry
+//! points the parent module re-exports.
+//!
+//! # Files
+//!
+//! - `error.rs`: [`FillError`], why a fill refused a value.
+//! - `markup.rs`: fill-time validation for `raw`-kind slots.
 
 use std::collections::BTreeMap;
-use std::fmt;
 use std::ops::Range;
 
 use typst_edit::{Edit, apply};
@@ -19,9 +23,39 @@ use crate::date::parse_ymd;
 
 use super::{SlotKind, SlotSpec, discover_slots};
 
+mod error;
+pub use error::FillError;
+
 /// Fill-time validation for `raw`-kind slots, split out to keep this file
 /// under its line budget. See [`markup::render_raw`].
 mod markup;
+
+/// Whether [`fill`] refuses an unfilled required slot or leaves its `slot(...)`
+/// call in place.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum FillMode {
+    /// Refuse a required slot with no value and no default, naming it in
+    /// [`FillError::Missing`].
+    #[default]
+    Strict,
+    /// Leave an unfilled required slot as its `slot(...)` call. The task then
+    /// files incomplete, and `mt check` names what is missing.
+    KeepMissing,
+}
+
+impl FillMode {
+    /// The mode a run's verification decision implies. A run that verifies
+    /// refuses an unfilled required slot, and one that skips verification
+    /// leaves the `slot(...)` call in place.
+    #[must_use]
+    pub fn for_verification(verify: bool) -> Self {
+        if verify {
+            Self::Strict
+        } else {
+            Self::KeepMissing
+        }
+    }
+}
 
 /// One edge in a [`RawValue::Links`] value. Mirrors the dict the prelude's
 /// `edge(...)` helper writes into `links:`: a target task path, a kind, and an
@@ -69,111 +103,6 @@ impl RawValue {
         }
     }
 }
-
-/// Why [`fill`] rejected a value.
-#[derive(Debug, Clone, PartialEq)]
-pub enum FillError {
-    /// Required slots with no value and no default, by name.
-    Missing(Vec<String>),
-    /// A value does not coerce to the slot's kind.
-    Type {
-        /// Slot name.
-        slot: String,
-        /// Expected kind.
-        want: SlotKind,
-        /// The supplied value's shape.
-        got: &'static str,
-    },
-    /// A `choice` value outside the declared `choices`.
-    BadChoice {
-        /// Slot name.
-        slot: String,
-        /// The rejected value.
-        value: String,
-        /// The allowed values.
-        choices: Vec<String>,
-    },
-    /// A `date` value that is not `YYYY-MM-DD`.
-    BadDate {
-        /// Slot name.
-        slot: String,
-        /// The rejected value.
-        value: String,
-    },
-    /// A slot declared a `kind:` that the code doesn't recognize.
-    UnknownKind {
-        /// Slot name.
-        slot: String,
-        /// The unrecognised spelling.
-        kind: String,
-    },
-    /// A `raw` slot's value failed to parse as Typst markup.
-    BadMarkup {
-        /// Slot name.
-        slot: String,
-        /// The message the parser gives for the first error.
-        message: String,
-    },
-    /// The rewrite changeset was invalid (overlap / bounds).
-    Edit(String),
-}
-
-impl fmt::Display for FillError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Missing(names) => write!(
-                f,
-                "missing required {}: {}",
-                crate::plural(names.len(), "slot"),
-                names.join(", ")
-            ),
-            Self::Type {
-                slot,
-                want: SlotKind::List | SlotKind::MultiChoice,
-                got,
-            } => write!(
-                f,
-                "slot {slot:?} expects a list; use --set {slot}+=value (repeatable) or \
-                 -f/--values with a JSON/YAML array, got {got}"
-            ),
-            Self::Type {
-                slot,
-                want: SlotKind::Links,
-                got,
-            } => write!(
-                f,
-                "slot {slot:?} expects links; use -f/--values with a list of \
-                 kind, task and note mappings, got {got}"
-            ),
-            Self::Type { slot, want, got } => {
-                write!(f, "slot {slot:?} expects {}, got {got}", want.as_str())
-            }
-            Self::BadChoice {
-                slot,
-                value,
-                choices,
-            } => write!(
-                f,
-                "slot {slot:?} value {value:?} is not one of: {}",
-                choices.join(", ")
-            ),
-            Self::BadDate { slot, value } => {
-                write!(f, "slot {slot:?} value {value:?} is not a YYYY-MM-DD date")
-            }
-            Self::UnknownKind { slot, kind } => write!(
-                f,
-                "slot {slot:?} declares unknown kind {kind:?}; expected one of: {}",
-                SlotKind::spellings()
-            ),
-            Self::BadMarkup { slot, message } => {
-                write!(f, "slot {slot:?} is not valid Typst markup: {message}")
-            }
-            Self::Edit(message) => write!(f, "rewrite failed: {message}"),
-        }
-    }
-}
-
-impl std::error::Error for FillError {}
 
 /// The replacement for an unfilled slot. A `text`/`raw` slot's string or
 /// raw-block default becomes unquoted body markup, and every other default
@@ -266,6 +195,21 @@ fn reject_unknown_kind(specs: &[SlotSpec]) -> Result<(), FillError> {
 /// Returns [`FillError`] when a value mismatches its slot kind, a required slot
 /// stays unfilled, or the resulting changeset is invalid.
 pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String, FillError> {
+    fill_with(source, values, FillMode::Strict)
+}
+
+/// [`fill`] in `mode`. [`FillMode::KeepMissing`] leaves an unfilled required
+/// slot as its `slot(...)` call, so a task that skips verification files
+/// incomplete instead of failing the fill.
+///
+/// # Errors
+/// As [`fill`], except that [`FillMode::KeepMissing`] never returns
+/// [`FillError::Missing`].
+pub fn fill_with(
+    source: &str,
+    values: &BTreeMap<String, RawValue>,
+    mode: FillMode,
+) -> Result<String, FillError> {
     let specs = discover_slots(source);
     // Before any value is coerced.
     reject_unknown_kind(&specs)?;
@@ -277,7 +221,9 @@ pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String,
             None => match default_replacement(spec) {
                 Some(text) => text,
                 None if spec.required => {
-                    missing.push(spec.name.clone());
+                    if mode == FillMode::Strict {
+                        missing.push(spec.name.clone());
+                    }
                     continue;
                 }
                 None => "none".to_owned(),

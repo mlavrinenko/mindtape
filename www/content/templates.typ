@@ -297,3 +297,26 @@ The editor is `[add] editor`, else `$VISUAL`, else `$EDITOR`, else `vi`
 the file, and `[add] comments = false` leaves out every scaffold comment. A
 refused buffer still carries its error, because that line is the refusal, not
 an instruction.
+
+= When `mt add` verifies
+
+`mt add` checks the task against your project's rules before it writes. A
+refused add doesn't write a file. `[add] verify-when` decides whether a run
+checks, as a #link(u("/cli/ls/#conditional-rules"))[condition] over the run's
+own facts: `tty()`, `env("NAME")`, `on_branch("glob")`, `now()` and
+`weekday()`. Absent, every run checks. A project that says nothing keeps the
+refusal.
+
+// docs:hand-typed the one-line policy a project copies, not a fixture
+```toml
+[add]
+verify-when = "!tty()"
+```
+
+`!tty()` checks only a run without a terminal. A person at a terminal files an
+incomplete task, and a script or an agent still gets the refusal. `--verify`
+and `--no-verify` override the expression for one call.
+
+A run that skips the check leaves an unfilled required slot as its `slot(...)`
+call, runs no `[[on.add]]` hook, and writes the file. It ends on a note naming
+`mt check`, which lists what the task is missing.

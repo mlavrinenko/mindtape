@@ -34,7 +34,8 @@
       report ends on `next: mt eval <slug>`, the command that reads the task it
       named. The other formats contain no prose. `mt`
       checks the task before it writes. A refused add doesn't write a file.
-      `--no-verify` skips the check.],
+      `--no-verify` skips the check, and `--verify` demands it, whatever
+      #link(u("/templates/#when-mt-add-verifies"))[`[add] verify-when`] says.],
     outputs: ("add",),
   ),
   "import": (

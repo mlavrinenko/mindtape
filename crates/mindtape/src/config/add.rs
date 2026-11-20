@@ -1,14 +1,20 @@
-//! `[add]` config: the interactive editor fill for `mt add`.
+//! `[add]` config: the interactive editor fill for `mt add`, and whether a
+//! run verifies the task it files.
 //!
-//! Shapes when the editor opens and which one to spawn. The fill machinery
-//! itself (scaffold, parse-back) lives in the CLI. This module holds config
-//! shape only, which keeps the library format-blind.
+//! Shapes when the editor opens and which one to spawn, and the condition that
+//! decides verification. The fill machinery itself (scaffold, parse-back) lives
+//! in the CLI. This module holds config shape only, which keeps the library
+//! format-blind.
 
 use serde::Deserialize;
 
-/// Settings for the interactive editor fill of `mt add`.
+use crate::filter::condition::Condition;
+use crate::problem::Problem;
+
+/// Settings for `mt add`: the interactive editor fill, and whether a run
+/// verifies the task it files.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct AddConfig {
     /// Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a
     /// built-in default. May carry arguments (split on whitespace).
@@ -24,6 +30,15 @@ pub struct AddConfig {
     /// default). `true` (default) keeps them. `false` strips every comment and
     /// leaves a bare mapping of slot names to values.
     pub comments: bool,
+    /// Whether `mt add` verifies the task it files, as a condition over the
+    /// invocation's ambient facts: `tty()`, `env("NAME")`, `on_branch("glob")`,
+    /// `now()` and `weekday()`. Absent verifies always, so a project that says
+    /// nothing keeps the refusal. `!tty()` verifies only a run without a
+    /// terminal, which files an incomplete task from a terminal and still
+    /// refuses one from an agent. `--verify` and `--no-verify` override it for
+    /// one call.
+    #[schemars(extend("x-expression" = "condition"))]
+    pub verify_when: Option<String>,
 }
 
 impl Default for AddConfig {
@@ -33,6 +48,7 @@ impl Default for AddConfig {
             interactive: InteractiveMode::default(),
             header: None,
             comments: true,
+            verify_when: None,
         }
     }
 }
@@ -49,3 +65,22 @@ pub enum InteractiveMode {
     /// Never open, and behave as the non-interactive pipeline.
     Never,
 }
+
+/// The `[add]` problems that go beyond TOML shape: a `verify-when` that does
+/// not parse as a condition. The parse dry-runs the tree against
+/// [`crate::ConditionEnv::probe`]. A typo then fails at config load rather
+/// than at the first `mt add`.
+#[must_use]
+pub(crate) fn validate_add(add: &AddConfig) -> Vec<Problem> {
+    let Some(expr) = &add.verify_when else {
+        return Vec::new();
+    };
+    match Condition::parse(expr) {
+        Ok(_) => Vec::new(),
+        Err(err) => vec![Problem::new(format!("add.verify-when: {err}"))],
+    }
+}
+
+#[cfg(test)]
+#[path = "add_tests.rs"]
+mod tests;

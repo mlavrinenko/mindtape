@@ -1,6 +1,7 @@
 //! `mt add`: file a new task from a Typst slot template. It fills the slots,
 //! validates, then writes (or prints under `--print`). A rejected add doesn't
-//! write a file.
+//! write a file. `[add] verify-when` decides whether a run validates, and a
+//! run that skips it files an incomplete task and says so.
 //!
 //! # Files
 //!
@@ -173,7 +174,15 @@ pub struct AddArgs {
     #[arg(long)]
     pub print: bool,
 
+    /// Check the new task against your project's rules.
+    ///
+    /// Whatever `[add] verify-when` says.
+    #[arg(long, conflicts_with = "no_verify")]
+    pub verify: bool,
+
     /// Don't check the new task against your project's rules.
+    ///
+    /// Whatever `[add] verify-when` says.
     #[arg(long = "no-verify")]
     pub no_verify: bool,
 
@@ -278,9 +287,8 @@ pub fn run(args: &AddArgs) -> Result<()> {
     };
     let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
     let ready = pipeline::collect_and_render(args, &project, &request, tty)?;
-    let filled = ready.filled;
     report_injected(
-        &filled,
+        &ready.filled,
         &injected,
         &ready.explicit,
         &ready.env_keys,
@@ -296,15 +304,15 @@ pub fn run(args: &AddArgs) -> Result<()> {
 
     let rescue = Rescue::new(&template_name, ready.interactive);
     let written = if args.print {
-        print_preview(args, &project, &file, &filled, &rescue)
+        print_preview(&project, &file, &ready, &rescue)
     } else {
-        write_task(args, &project, (&stem, &dest, file), &filled, &rescue)
+        write_task(args, &project, (&stem, &dest, file), &ready, &rescue)
     };
     let context = hint::RefusalContext {
         config,
         root: &project.root,
         template: &template_name,
-        sources: (&source, &filled),
+        sources: (&source, &ready.filled),
         explicit: &ready.explicit,
     };
     written.map_err(|err| context.decorate(err, rescue.parked.take()))
@@ -315,7 +323,7 @@ fn write_task(
     args: &AddArgs,
     project: &util::Project,
     (stem, dest, file): (&str, &Path, std::path::PathBuf),
-    filled: &str,
+    ready: &pipeline::Ready,
     rescue: &Rescue,
 ) -> Result<()> {
     let outcome = resolve_outcome(args, project, stem, dest, file)?;
@@ -323,24 +331,23 @@ fn write_task(
         // `--dedup skip` already reported the existing path; nothing to write.
         return Ok(());
     };
-    commit(args, project, &outcome, filled, rescue)
+    commit(args, project, &outcome, ready, rescue)
 }
 
 /// Print the preview, but only after the same pre-write check a write runs.
 /// A preview that exits 0 while the write it previews fails is how the sweep
-/// landed a retired estimate unit: the dry run green, `--write` dead.
-/// `--no-verify` opens both doors.
+/// landed a retired estimate unit: the dry run green, `--write` dead. A run
+/// that skips verification opens both doors.
 fn print_preview(
-    args: &AddArgs,
     project: &util::Project,
     file: &Path,
-    filled: &str,
+    ready: &pipeline::Ready,
     rescue: &Rescue,
 ) -> Result<()> {
-    if !args.no_verify {
-        pre_verify(project, file, filled, rescue)?;
+    if ready.verify {
+        pre_verify(project, file, &ready.filled, rescue)?;
     }
-    print!("{filled}");
+    print!("{}", ready.filled);
     Ok(())
 }
 
@@ -358,11 +365,11 @@ fn commit(
     args: &AddArgs,
     project: &util::Project,
     outcome: &output::Outcome,
-    filled: &str,
+    ready: &pipeline::Ready,
     rescue: &Rescue,
 ) -> Result<()> {
     let file = outcome.path();
-    let checked = args.no_verify || pre_verify(project, file, filled, rescue)?;
+    let checked = !ready.verify || pre_verify(project, file, &ready.filled, rescue)?;
 
     let dest = file.parent().unwrap_or(Path::new("."));
     std::fs::create_dir_all(dest).map_err(|err| Diag::cannot_write(dest, &err))?;
@@ -370,7 +377,7 @@ fn commit(
     // file was here a moment ago, and a plain create-or-truncate write would
     // silently clobber one that appeared since. `create_new` fails instead.
     File::create_new(file)
-        .and_then(|mut handle| handle.write_all(filled.as_bytes()))
+        .and_then(|mut handle| handle.write_all(ready.filled.as_bytes()))
         .map_err(|err| Diag::cannot_write(file, &err))?;
     warn_if_outside_roots(project, dest);
     output::emit(
@@ -378,6 +385,9 @@ fn commit(
         &output::handle(project, outcome),
         effective_format(args),
     );
+    if !ready.verify {
+        notes::report_unverified();
+    }
 
     if !checked {
         crate::task_edit::verify_written(&project.root, file).map_err(|err| kept(err, file))?;

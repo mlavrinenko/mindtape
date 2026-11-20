@@ -67,6 +67,11 @@ Windows). An editor in
 your own `mindtape/defaults.toml` doesn't need approval. An ancestor's
 `.mindtape/defaults.toml` does, since it can be inside a clone.
 
+`[add] verify-when` decides whether `mt add` checks the task it files, as a
+condition over the run's own facts. Absent, every run checks.
+#link(u("/templates/#when-mt-add-verifies"))[Templates & slots] says what a
+skipped check leaves behind.
+
 A `run` in `[[tasks.waits]]` or `[[on.flip]]` takes a string, which runs
 through `sh -c`, or `cmd /C` on Windows, or an array such as
 `["cargo", "test"]`, which runs its program with no shell.

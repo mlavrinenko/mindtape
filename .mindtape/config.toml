@@ -384,6 +384,12 @@ severity = "error"
 header = ""
 comments = false
 
+# A person at a terminal files an incomplete task and gets a note naming
+# `mt check`; an agent, whose run has no terminal, still gets the refusal. The
+# policy is one condition, so a project that wants the old behavior everywhere
+# deletes this line, and one that wants it nowhere writes `false`.
+verify-when = "!tty()"
+
 # The project's actors and roles: who works tasks, and under which hats.
 # Identity-only — a role carries no payload; what a role can do lives in each
 # harness's own config, keyed by role name by convention.

@@ -12,7 +12,7 @@ use std::collections::BTreeMap;
 use super::tests::wrap;
 use super::{FillError, LinkValue, RawValue, SlotKind, fill};
 
-fn values(pairs: &[(&str, RawValue)]) -> BTreeMap<String, RawValue> {
+pub(super) fn values(pairs: &[(&str, RawValue)]) -> BTreeMap<String, RawValue> {
     pairs
         .iter()
         .map(|(key, value)| ((*key).to_owned(), value.clone()))

@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 use std::process::Command;
 
-use mindtape::{AddConfig, FieldOp, InteractiveMode, RawValue, SlotSpec};
+use mindtape::{AddConfig, FieldOp, FillMode, InteractiveMode, RawValue, SlotSpec};
 
 use super::scaffold::{is_unfilled_required, scaffold};
 use super::values::reject_unknown_keys;
@@ -148,12 +148,13 @@ pub fn run(
     Ok(parse_session(edited, &baseline))
 }
 
-/// What one fill loop fills: the template's slots and source, and the values
-/// the editor starts from.
+/// What one fill loop fills: the template's slots and source, the values the
+/// editor starts from, and whether the run verifies the task it files.
 pub(super) struct Fill<'a> {
     pub(super) specs: &'a [SlotSpec],
     pub(super) source: &'a str,
     pub(super) seed: &'a BTreeMap<String, RawValue>,
+    pub(super) verify: bool,
 }
 
 /// Open the editor until the buffer it saves parses and fills. A refusal
@@ -180,7 +181,7 @@ pub(super) fn fill_until_it_fills(
                 continue;
             }
         };
-        match refuse_buffer(&edited.values, fill.specs, fill.source) {
+        match refuse_buffer(&edited.values, fill.specs, fill.source, fill.verify) {
             Ok(()) => return Ok(edited),
             Err(error) => retry = Some(Rejected::from_error(edited.buffer, &error)),
         }
@@ -189,11 +190,15 @@ pub(super) fn fill_until_it_fills(
 
 /// Refuse a buffer whose keys the template does not declare, or whose values
 /// the fill rejects. The fill runs here, before the hooks, so a bad value
-/// re-opens the editor instead of failing the add.
+/// re-opens the editor instead of failing the add. A run that skips
+/// verification fills in [`FillMode::KeepMissing`], so a required slot the
+/// editor left empty lands as its `slot(...)` call rather than re-opening the
+/// buffer the user just saved.
 fn refuse_buffer(
     values: &BTreeMap<String, RawValue>,
     specs: &[SlotSpec],
     source: &str,
+    verify: bool,
 ) -> Result<()> {
     // The unknown-key refusal takes the `--set` shape, so a buffer typo gets
     // the same message, did-you-mean and hints as a `--set` typo.
@@ -202,7 +207,8 @@ fn refuse_buffer(
         .map(|(name, value)| (name.clone(), FieldOp::Set(value.clone())))
         .collect();
     reject_unknown_keys(&ops, specs)?;
-    mindtape::fill(source, &markup_safe(values, specs)).map_err(Diag::from)?;
+    let mode = FillMode::for_verification(verify);
+    mindtape::fill_with(source, &markup_safe(values, specs), mode).map_err(Diag::from)?;
     Ok(())
 }
 

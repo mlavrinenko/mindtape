@@ -32,7 +32,10 @@ use typst_edit::{Call, find_calls};
 /// Coercion, rendering, and the source rewrite, split out to keep this file
 /// under its line budget. See [`fill()`].
 mod fill;
-pub use fill::{FillError, LinkValue, RawValue, fill, fill_defaults, fill_examples, fill_partial};
+pub use fill::{
+    FillError, FillMode, LinkValue, RawValue, fill, fill_defaults, fill_examples, fill_partial,
+    fill_with,
+};
 
 /// The kind of value a slot holds. It decides how a filled value renders to
 /// Typst.
@@ -308,3 +311,6 @@ mod tests_fill;
 
 #[cfg(test)]
 mod tests_fill_errors;
+
+#[cfg(test)]
+mod tests_fill_mode;

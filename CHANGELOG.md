@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A filter expression decides whether `mt add` verifies.** `[add]
+  verify-when` takes a condition over the run's own facts, so `!tty()` checks
+  only a run without a terminal: a person at a terminal files an incomplete
+  task, and a script or an agent still gets the refusal. Absent, every run
+  checks, so a project that says nothing keeps today's behavior. `--verify` and
+  `--no-verify` override the expression for one call. A run that skips the
+  check leaves an unfilled required slot as its `slot(...)` call, runs no
+  `[[on.add]]` hook, and ends on a note naming `mt check`, which lists what the
+  task is missing.
 - **A task root can exclude paths.** `[[tasks.roots]] exclude` takes globs,
   relative to the root, whose matches are not task sources under it. Another
   root can still admit them, so a root of `.` excludes `docs/**` while a
