@@ -169,7 +169,7 @@
   ("Recurring tasks", ("recur",)),
   (
     "Validate & inspect config",
-    ("check", "explain", "dicts", "config", "schema"),
+    ("check", "explain", "dicts", "templates", "config", "schema"),
   ),
   ("Retire", ("rm",)),
   ("Setup", ("init", "install", "fix", "packs", "allow", "at", "preset")),

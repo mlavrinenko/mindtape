@@ -20,7 +20,6 @@ pub(crate) mod add;
 pub(crate) mod index;
 pub(crate) mod rules;
 pub(crate) mod tags;
-pub(crate) mod templates;
 pub(crate) mod views;
 
 /// Arguments for `explain`.
@@ -58,12 +57,7 @@ pub enum Listing {
     /// List your dictionaries, or the entries of one.
     ///
     /// `mt dicts` is the command that owns this listing.
-    Dicts(DictsArgs),
-    /// List the templates `mt add` accepts, one line each.
-    ///
-    /// Each line gives the template's name, the `kind` it sets, its slot
-    /// count, and `default` on the one `mt add` picks.
-    Templates,
+    Dicts(crate::cmd::dicts::DictsArgs),
 }
 
 /// Arguments for `mt explain dicts`, whose listing `mt dicts` owns.
@@ -87,7 +81,6 @@ pub fn run(args: &ExplainArgs) -> Result<()> {
         Some(Listing::Dicts(listing)) => {
             crate::cmd::dicts::run_listing(listing.name.as_deref(), args.json)
         }
-        Some(Listing::Templates) => templates::run(args.json),
     }
 }
 

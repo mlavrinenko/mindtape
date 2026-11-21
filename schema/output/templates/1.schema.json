@@ -31,9 +31,9 @@
       "type": "object"
     }
   },
-  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/explain-templates/1.schema.json",
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/templates/1.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "The object `mt explain templates --json` prints: every template `mt add` accepts, with the kind it sets, its slot count and whether it is the default.",
+  "description": "The object `mt templates --json` prints: every template `mt add` accepts, with the kind it sets, its slot count and whether it is the default.",
   "properties": {
     "$schema": {
       "description": "The URL of the schema this object conforms to.",

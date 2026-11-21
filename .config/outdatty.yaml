@@ -446,6 +446,18 @@ groups:
       - skills/mindtape/references/blocking.md
       - skills/mindtape/evals/evals.json
 
+  # `mt templates`: the `kind` and slot count each line carries, the `default`
+  # marker, and the listing's JSON shape. The template files it walks belong to
+  # `mt add`, so this group holds no template fixture.
+  - name: cli-templates-docs
+    source:
+      - crates/mindtape-cli/src/cmd/templates.rs
+    dependents:
+      - www/content/cli/templates.typ
+      - www/utils/cli-notes.typ
+      - www/content/templates.typ
+      - www/content/packs.typ
+
   # `mt explain views`: the listing, and one view's description.
   - name: cli-views-docs
     source:

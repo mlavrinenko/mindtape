@@ -33,7 +33,7 @@ project.
 in `[templates] dirs`. It uses `task.typ` unless you pick another with
 `--template <name>`. To change that default name, set `[templates] default`.
 If the project has no such file, `mt add` uses a built-in template whose only
-slot is `title`. `mt explain templates` lists the templates it finds, with the
+slot is `title`. `mt templates` lists the templates it finds, with the
 `kind` each sets and its slot count. A
 #link(u("/packs/#a-pack-in-a-directory"))[directory pack] can include templates too. They
 come after your own directories, so a template of yours with the same name

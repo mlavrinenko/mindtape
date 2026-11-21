@@ -1,6 +1,6 @@
-//! `mt explain templates` lists every template `mt add` accepts, one line
-//! each: its name, the `kind` it sets, how many slots it declares, and which
-//! one `mt add` picks when the caller names none.
+//! `mt templates` lists every template `mt add` accepts, one line each: its
+//! name, the `kind` it sets, how many slots it declares, and which one `mt add`
+//! picks when the caller names none.
 //!
 //! The listing reads the same template files `mt add` reads, so a template
 //! added to a configured directory appears without a config change.
@@ -11,15 +11,23 @@ use mindtape::{Config, load_config};
 use serde::Serialize;
 
 use crate::cmd::add::values::{list_templates, resolve_template};
-use crate::cmd::explain::emit;
-use crate::cmd::schema::EXPLAIN_TEMPLATES;
+use crate::cmd::schema::TEMPLATES;
 use crate::diag::Result;
+use crate::render::envelope::Envelope;
 use crate::render::widest;
 use crate::task_edit::task_with;
 use crate::util;
 
 /// The `kind` a template shows when it leaves the field to its caller.
 const ANY_KIND: &str = "any";
+
+/// Arguments for `templates`.
+#[derive(Debug, clap::Args)]
+pub struct TemplatesArgs {
+    /// Print JSON: each template's name, kind, slots and default.
+    #[arg(long)]
+    pub json: bool,
+}
 
 /// One listed template.
 #[derive(Debug, PartialEq, Eq)]
@@ -47,34 +55,34 @@ pub struct TemplateJson {
     pub default: bool,
 }
 
-/// The JSON shape of `mt explain templates --json`.
+/// The JSON shape of `mt templates --json`.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 pub struct TemplatesPayload {
     /// Every template, in name order.
     pub templates: Vec<TemplateJson>,
 }
 
-/// Run `mt explain templates`.
+/// Run `mt templates`.
 ///
 /// # Errors
 /// Returns an error if the project root does not resolve, its config fails to
 /// load, or a template file fails to read.
-pub fn run(as_json: bool) -> Result<()> {
+pub fn run(args: &TemplatesArgs) -> Result<()> {
     let root = util::resolve_root()?;
     let config = load_config(&root)?;
-    print(&config, &root, as_json)
-}
-
-/// Print the listing for `config`'s templates, rooted at `root`.
-///
-/// # Errors
-/// Returns an error when a template file fails to read.
-pub(crate) fn print(config: &Config, root: &Path, as_json: bool) -> Result<()> {
-    let templates = collect(config, root)?;
+    let templates = collect(&config, &root)?;
     let payload = TemplatesPayload {
         templates: templates.iter().map(template_json).collect(),
     };
-    emit(as_json, EXPLAIN_TEMPLATES, payload, || render(&templates))
+    if args.json {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&Envelope::new(TEMPLATES, payload))?
+        );
+    } else {
+        print!("{}", render(&templates));
+    }
+    Ok(())
 }
 
 /// Every template `mt add` accepts, in name order, with the `kind` it sets and

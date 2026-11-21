@@ -123,7 +123,7 @@ pub(super) fn schema_names() -> Vec<CompletionCandidate> {
         .collect()
 }
 
-/// Template stems, exactly the set `mt explain templates` lists.
+/// Template stems, exactly the set `mt templates` lists.
 pub(super) fn templates() -> Vec<CompletionCandidate> {
     from_project(|project| {
         crate::cmd::add::values::list_templates(&project.config, &project.root)

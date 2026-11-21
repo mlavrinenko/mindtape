@@ -70,7 +70,7 @@ fn unknown_template(config: &Config, root: &Path, name: &str) -> Diag {
         "unknown template",
         name,
         &known,
-        "templates",
+        &["templates"],
         "to see the templates",
     )
 }
@@ -85,7 +85,7 @@ pub fn template_path(config: &Config, root: &Path, name: &str) -> Option<std::pa
 }
 
 /// Available template stems: every `*.typ` under the configured dirs plus the
-/// built-in `task`, deduplicated and sorted. `mt explain templates` lists them,
+/// built-in `task`, deduplicated and sorted. `mt templates` lists them,
 /// and the function delegates to the library list the `[[on.add]]` validator
 /// reads, so the two cannot drift.
 #[must_use]

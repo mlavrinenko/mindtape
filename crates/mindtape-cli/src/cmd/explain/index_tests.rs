@@ -11,7 +11,7 @@ use mindtape::{ActiveRule, RuleSection, Severity};
 use super::render::{input_line, list_line, render};
 use super::{Index, Label, bare_name, collect, default_first, document};
 
-const MORE: &str = "more: mt explain <add|rules|tags|views|dicts|templates>";
+const MORE: &str = "more: mt explain <add|rules|tags|views|dicts>";
 
 /// A config with every shape block populated. It declares a three-value
 /// legend, two actors, an estimate unit, a forbidden comment policy, an

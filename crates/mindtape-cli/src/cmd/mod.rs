@@ -14,7 +14,7 @@
 //!   their own.
 //! - `fix/`: `mt fix`, which rewrites an unsupported prelude import.
 //! - `allow.rs`, `config.rs`, `dicts.rs`, `eval.rs`, `find.rs`, `go.rs`,
-//!   `mv.rs`, `preset.rs`, `review.rs`, `schema.rs`, `set.rs`, `at.rs`,
+//!   `mv.rs`, `preset.rs`, `review.rs`, `schema.rs`, `set.rs`, `templates.rs`, `at.rs`,
 //!   `board.rs`: one file each.
 //! - `hooks.rs`: the `show` / `list` presentation `mt flip` and `mt rm` share
 //!   before they run a hook's `run` action.
@@ -49,4 +49,5 @@ pub(crate) mod review;
 pub(crate) mod rm;
 pub(crate) mod schema;
 pub(crate) mod set;
+pub(crate) mod templates;
 pub(crate) mod write_guard;

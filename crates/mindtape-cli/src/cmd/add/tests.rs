@@ -50,7 +50,6 @@ fn bare_args() -> AddArgs {
         start: None,
         edit: false,
         describe: None,
-        list: false,
         print: false,
         verify: false,
         no_verify: false,

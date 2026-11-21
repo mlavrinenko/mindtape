@@ -39,7 +39,7 @@ Under the blocks, the index prints the derived fields and the tags, views and
 dictionaries the project declares. A dictionary shows its entry count, and
 `default` comes first in the view and tag lists when it exists. A blank line
 separates the index from a `more:` line naming the listings that go deeper:
-`mt explain <add|rules|tags|views|dicts|templates>`.
+`mt explain <add|rules|tags|views|dicts>`.
 
 #cli-command("explain")
 
@@ -126,18 +126,3 @@ wraps the list in `dicts`, each with its `case`, `count`, `source` and
 `$schema`. That's the list a rule reading the dictionary accepts. To declare a
 dictionary, or to see how its entries merge, read
 #link(u("/named-sets/#dictionaries"))[Views & dictionaries].
-
-= Templates
-
-`mt explain templates` lists every template `mt add` accepts, one line each:
-the template's name, the `kind` it sets, how many slots it declares, and
-`default` on the one `mt add` picks when you name none. The `kind` column reads
-`any` for a template that leaves the field to a slot, as the built-in `task`
-does. The listing has no status column, because `mt add` stamps the status
-itself.
-
-The listing reads the same template files `mt add` reads, so a template added
-to a directory in `[templates] dirs` appears without a config change. `--json`
-wraps the list in `templates` under `$schema`, each with its `name`, `kind`,
-`slots` and `default`. To see what one template's slots are, run
-`mt add -t <name> --describe`.

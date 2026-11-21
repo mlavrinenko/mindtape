@@ -33,6 +33,7 @@ init_scratch() {
 capture version "$FIX" 'mt --version'
 capture ls "$FIX" 'mt ls'
 capture explain "$FIX" 'mt explain'
+capture templates "$FIX" 'mt templates'
 capture views "$FIX" 'mt explain views'
 capture dicts "$FIX" 'mt dicts'
 capture check "$FIX" 'mt check'

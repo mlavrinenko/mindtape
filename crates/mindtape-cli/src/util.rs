@@ -483,7 +483,13 @@ pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
 /// site (`cmd/ls/rules.rs`, `cmd/views.rs`).
 pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> Diag {
     let known: Vec<&str> = views.keys().map(String::as_str).collect();
-    unknown_name("unknown view", name, &known, "views", "to see the views")
+    unknown_name(
+        "unknown view",
+        name,
+        &known,
+        &["explain", "views"],
+        "to see the views",
+    )
 }
 
 #[cfg(test)]

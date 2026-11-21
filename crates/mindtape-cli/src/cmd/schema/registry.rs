@@ -10,9 +10,9 @@ use crate::cmd::board::BoardPayload;
 use crate::cmd::config::ConfigShowPayload;
 use crate::cmd::dicts::{DictDetailJson, DictsPayload};
 use crate::cmd::explain::add::AddPayload;
-use crate::cmd::explain::templates::TemplatesPayload;
 use crate::cmd::explain::views::ViewsPayload;
 use crate::cmd::packs::PacksPayload;
+use crate::cmd::templates::TemplatesPayload;
 use crate::render::envelope::Envelope;
 use crate::render::objects::{
     CheckPayload, CheckSetPayload, ExplainIndexPayload, GraphPayload, PresetsPayload, RulesPayload,
@@ -73,9 +73,9 @@ pub const EXPLAIN: SchemaId = SchemaId {
     version: 5,
 };
 
-/// `mt explain templates --json`.
-pub const EXPLAIN_TEMPLATES: SchemaId = SchemaId {
-    name: "explain-templates",
+/// `mt templates --json`.
+pub const TEMPLATES: SchemaId = SchemaId {
+    name: "templates",
     version: 1,
 };
 
@@ -197,8 +197,8 @@ const EXPLAIN_ADD_TITLE: &str = "Mindtape add hooks";
 const EXPLAIN_ADD_DESCRIPTION: &str = "The object `mt explain add --json` prints: every merged `[[on.add]]` hook, its `when`, its actions and its origin.";
 const EXPLAIN_TITLE: &str = "Mindtape explain index";
 const EXPLAIN_DESCRIPTION: &str = "The object `mt explain --json` prints: the project, task and commit shape, the keys it leaves open, the rules by section and severity, the add hooks, the derived fields, and the tag, view and dictionary names.";
-const EXPLAIN_TEMPLATES_TITLE: &str = "Mindtape templates";
-const EXPLAIN_TEMPLATES_DESCRIPTION: &str = "The object `mt explain templates --json` prints: every template `mt add` accepts, with the kind it sets, its slot count and whether it is the default.";
+const TEMPLATES_TITLE: &str = "Mindtape templates";
+const TEMPLATES_DESCRIPTION: &str = "The object `mt templates --json` prints: every template `mt add` accepts, with the kind it sets, its slot count and whether it is the default.";
 const RULES_TITLE: &str = "Mindtape rules";
 const RULES_DESCRIPTION: &str =
     "The object `mt explain rules --json` prints: the active rules and derived fields.";
@@ -321,9 +321,9 @@ pub const SCHEMAS: &[Schema] = &[
         schema: || schemars::schema_for!(Envelope<ExplainIndexPayload>),
     },
     Schema {
-        id: EXPLAIN_TEMPLATES,
-        title: EXPLAIN_TEMPLATES_TITLE,
-        description: EXPLAIN_TEMPLATES_DESCRIPTION,
+        id: TEMPLATES,
+        title: TEMPLATES_TITLE,
+        description: TEMPLATES_DESCRIPTION,
         schema: || schemars::schema_for!(Envelope<TemplatesPayload>),
     },
     Schema {

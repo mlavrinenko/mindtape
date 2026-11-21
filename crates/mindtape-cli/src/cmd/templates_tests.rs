@@ -1,4 +1,4 @@
-//! `mt explain templates`'s kind reading and text rendering.
+//! `mt templates`'s kind reading and text rendering.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::{tempdir, write_file};

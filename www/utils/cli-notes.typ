@@ -177,7 +177,7 @@
       under `add`, and the listings under `rules`, `derived`, `tags`, `views`
       and `dicts`.
       A blank line separates the index from a `more:` line naming the listings
-      that go deeper: `mt explain <add|rules|tags|views|dicts|templates>`.],
+      that go deeper: `mt explain <add|rules|tags|views|dicts>`.],
     outputs: ("explain",),
   ),
   "explain.add": (:),
@@ -222,6 +222,9 @@
 
   // ── Validate & inspect config ───────────────────────────────────────────────
   "check": (outputs: ("check",)),
+  "templates": (
+    outputs: ("templates",),
+  ),
   "schema": (
     prose: [`mt schema` prints the JSON Schema of a machine output. Bare, it
       lists each output, its version and the URL its `$schema` names.

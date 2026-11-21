@@ -120,6 +120,7 @@ mod status_note_paragraphs_e2e;
 mod stem_hash_e2e;
 mod support;
 mod tasks_pack_kind_e2e;
+mod templates_e2e;
 mod tty_e2e;
 mod typst_collector_e2e;
 mod waits_e2e;

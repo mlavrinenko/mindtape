@@ -30,7 +30,7 @@ pub(super) fn render(index: &Index, width: usize) -> String {
     labelled(&mut out, "dicts", &dicts, width);
     out.push('\n');
     out.push_str(&more_line(format!(
-        "{} <add|rules|tags|views|dicts|templates>",
+        "{} <add|rules|tags|views|dicts>",
         Command::mt().word("explain")
     )));
     out.push('\n');

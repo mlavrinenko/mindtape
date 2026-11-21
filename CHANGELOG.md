@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt templates` lists the templates `mt add` files from.** Each line gives
+  the template's name, the `kind` it sets, its slot count, and `default` on the
+  one `mt add` picks. It reads the same template files `mt add` reads, so a
+  template a directory pack supplies appears without a config change, and
+  `--json` carries the same list under
+  `schema/output/templates/1.schema.json`. The hidden `mt add --list` alias and
+  `mt explain templates` retire with it, so `mt templates` is the one spelling,
+  and `mt add --template` points at it.
 - **`mt dicts` lists the project's dictionaries.** Each line gives the
   dictionary's name, the entry count it resolved to, its case, and its source:
   `inline` for `values`, a `path` file or a built-in, or `include:` naming the

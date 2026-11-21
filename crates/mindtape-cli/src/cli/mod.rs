@@ -28,6 +28,7 @@ use crate::{
     cmd::eval, cmd::explain, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import,
     cmd::init, cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs,
     cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::schema, cmd::set,
+    cmd::templates,
 };
 
 /// `Mindtape` keeps your tasks as Typst files and checks them against your rules.
@@ -192,6 +193,11 @@ enum Command {
     /// fold case, and where its entries come from: written inline, or the
     /// dictionaries it includes, named after `include:`.
     Dicts(dicts::DictsArgs),
+    /// List the templates `mt add` accepts, with the kind each sets.
+    ///
+    /// Each line gives the template's name, the `kind` it sets, its slot
+    /// count, and `default` on the one `mt add` picks when you name none.
+    Templates(templates::TemplatesArgs),
     /// Trust the commands your config runs in this repo.
     ///
     /// Those are its `[[tasks.waits]]` checkers and `[[on.flip]]` `run`
@@ -271,6 +277,7 @@ fn dispatch(command: Command) -> Result<()> {
         Command::Schema(args) => schema::run(&args),
         Command::Explain(args) => explain::run(&args),
         Command::Dicts(args) => dicts::run(&args),
+        Command::Templates(args) => templates::run(&args),
         command => dispatch_more(command),
     }
 }

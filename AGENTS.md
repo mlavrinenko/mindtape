@@ -61,4 +61,4 @@ The Typst plumbing comes from seven crates.io dependencies at the versions `Carg
 
 ## Task definition language (lib/prelude.typ)
 
-`mt add` writes a task file, and `mt` commands change it, as `skills/mindtape/SKILL.md` says. Run `mt explain` for the shape this repo declares, `mt explain templates` for the templates `mt add` files from, and `mt explain rules --for <moment>` for what an add, commit or flip checks. Edit a task by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
+`mt add` writes a task file, and `mt` commands change it, as `skills/mindtape/SKILL.md` says. Run `mt explain` for the shape this repo declares, `mt templates` for the templates `mt add` files from, and `mt explain rules --for <moment>` for what an add, commit or flip checks. Edit a task by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
