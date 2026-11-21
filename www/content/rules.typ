@@ -105,6 +105,9 @@ a filter expression. Unlike `required`, it can test a field's value:
 
 #config-keys-table(schema, "tasks.rules")
 
+`severity` is `error` by default, and a breach refuses the write. Write
+`severity = "warn"` to make a rule advisory instead.
+
 An `error` breach refuses the write, and `mt` doesn't write the file:
 
 #terminal("rules-assert")

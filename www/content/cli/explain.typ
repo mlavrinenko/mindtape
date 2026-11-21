@@ -72,10 +72,11 @@ rules in effect. A flip or rm gate shows up with or without a `message`, and
 any other hook action shows up only when it has one. Each takes its name from
 its place in `[[on.flip]]` or `[[on.rm]]`.
 
-A rule with no `severity` shows the level `mt` applies to it. That's `warn`
-for `[[tasks.rules]]` and `[[commits.rules]]`, and `error` for a body rule. A
-rule with no `message` shows the text a breach prints instead, or names the
-source that supplies it.
+A rule with no `severity` shows the level `mt` applies to it. `[[tasks.rules]]`
+and `[[commits.rules]]` apply `error`, and a body rule applies `error` too. A
+breach fails the command, and a write refuses the file. Write
+`severity = "warn"` to make a rule advisory. A rule with no `message` shows the
+text a breach prints instead, or names the source that supplies it.
 
 Under the rules, `mt explain rules` lists every derived field a
 #link(u("/config/#derived-fields"))[collector] computes: its type, its
