@@ -16,7 +16,7 @@ set -eo pipefail
 REPO="$1"
 OUT="$2"
 MT="$REPO/target/debug/mt"
-JQ="$REPO/contrib/jq"
+JQ="$REPO/contrib/jq/import"
 
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
@@ -31,17 +31,17 @@ capture_one() { capture "$1" "$2" "$(cat)"; }
 # imports from other trackers
 capture_scratch P
 capture_prep "$P" 'mt init --no-input'
-mkdir -p "$P/contrib/jq"
-cp "$JQ"/*.jq "$P/contrib/jq/"
+mkdir -p "$P/contrib/jq/import"
+cp "$JQ"/*.jq "$P/contrib/jq/import/"
 cp "$JQ/fixtures/taskwarrior.in.json" "$P/taskwarrior.json"
 cp "$JQ/fixtures/github.in.json" "$P/issues.json"
 jq -r '.[]' "$JQ/fixtures/todo.txt.in.json" >"$P/todo.txt"
 
-capture import-taskwarrior "$P" 'jq -f contrib/jq/taskwarrior.jq taskwarrior.json | mt import'
-capture import-github "$P" 'jq -f contrib/jq/github.jq issues.json | mt import --dir tasks/github'
+capture import-taskwarrior "$P" 'jq -f contrib/jq/import/taskwarrior.jq taskwarrior.json | mt import'
+capture import-github "$P" 'jq -f contrib/jq/import/github.jq issues.json | mt import --dir tasks/github'
 capture_one import-todotxt "$P" <<'EOF'
 jq -R -s 'split("\n") | map(select(length > 0))' todo.txt \
-  | jq -f contrib/jq/todo.txt.jq | mt import
+  | jq -f contrib/jq/import/todo.txt.jq | mt import
 EOF
 
 # the round trip

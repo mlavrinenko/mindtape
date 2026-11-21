@@ -100,14 +100,14 @@ EOF
 # The imports run in a project `mt init --no-input` made, because the jq
 # adapters emit the default legend's status names.
 init_scratch P
-mkdir -p "$P/contrib/jq"
-cp "$REPO/contrib/jq/taskwarrior.jq" "$P/contrib/jq/"
-cp "$REPO/contrib/jq/fixtures/taskwarrior.in.json" "$P/task-export.json"
-cp "$REPO/contrib/jq/fixtures/taskwarrior.out.json" "$P/export.json"
+mkdir -p "$P/contrib/jq/import"
+cp "$REPO/contrib/jq/import/taskwarrior.jq" "$P/contrib/jq/import/"
+cp "$REPO/contrib/jq/import/fixtures/taskwarrior.in.json" "$P/task-export.json"
+cp "$REPO/contrib/jq/import/fixtures/taskwarrior.out.json" "$P/export.json"
 capture_lines import-examples "$P" <<'EOF'
 mt import export.json --dry-run   # from a file, preview only
 mt import < export.json           # canonical JSON from stdin
-jq -f contrib/jq/taskwarrior.jq task-export.json | mt import   # a Taskwarrior export
+jq -f contrib/jq/import/taskwarrior.jq task-export.json | mt import   # a Taskwarrior export
 EOF
 
 # `mt allow` records the fixture's checker. The session clears the harness's

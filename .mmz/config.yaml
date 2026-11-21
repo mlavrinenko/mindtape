@@ -214,6 +214,14 @@ scopes:
     # set, and this fixture is never meant to pass it.
     - "examples/self-validating/**"
 
+  # The reports over `mt config show --json --resolved` and the recorded
+  # config the gate runs each one against. The gate names both, and no other
+  # scope does: `docs` holds `contrib/**` for outdatty and the prose gates, but
+  # a report change should re-run the report gate, not the docs build.
+  jq-reports:
+    - "contrib/jq/reports/**"
+    - "contrib/jq/fixtures/**"
+
   # The coverage artifact `just crap::check` scores. This scope is what lets that
   # rule be memoized: the artifact is a build output under git-ignored
   # `target/`, in none of the scopes above, and a rule that cannot name its
@@ -466,6 +474,13 @@ scopes:
     - ".just/scripts/_gate-drift-control.sh"
   script-gate-drift-lib:
     - ".just/scripts/_gate-drift-lib.sh"
+  # The report gate's body, the readers it sources and the control it runs.
+  script-check-jq-reports:
+    - ".just/scripts/check-jq-reports.sh"
+  script-jq-reports-lib:
+    - ".just/scripts/_jq-reports-lib.sh"
+  script-jq-reports-control:
+    - ".just/scripts/_jq-reports-control.sh"
   script-check-secrets:
     - ".just/scripts/check-secrets.sh"
   script-cover:
@@ -1038,3 +1053,15 @@ commands:
   - name: just docs::pages-fixture
     tags: [gate]
     inputs: [rust, policy, examples, file-size-config, docs, gates-meta, script-site-pages-fixture-check, script-nav-diff]
+
+  # Each report in contrib/jq/reports/ runs over the recorded resolved config
+  # (`jq-reports`) and is diffed with its expected output, then checked against
+  # the config's top-level keys. `policy` carries the committed config-show
+  # schema, the one Rust-generated list of those keys, and `just test` holds
+  # the schema to the types. No `rust`: the gate reads a fixture, never a live
+  # `mt config show`, so the fast stage needs no built binary. `gates-meta` is
+  # the recipe module and the dev shell jq comes from; the three script scopes
+  # are the body, the readers it sources and the control it runs.
+  - name: just meta::jq-reports
+    tags: [gate]
+    inputs: [policy, jq-reports, gates-meta, script-check-jq-reports, script-jq-reports-lib, script-jq-reports-control]

@@ -1,0 +1,1569 @@
+{
+  "actors": [
+    {
+      "kind": "human",
+      "name": "max",
+      "roles": [
+        "maintainer"
+      ]
+    },
+    {
+      "kind": "llm",
+      "name": "agent",
+      "roles": []
+    }
+  ],
+  "add": {
+    "comments": false,
+    "header": "",
+    "interactive": "auto",
+    "verify-when": "!tty()"
+  },
+  "commits": {
+    "trailer": "Refs",
+    "run": [
+      "bash",
+      ".just/scripts/check-commit-prose.sh"
+    ],
+    "external-refs": [],
+    "rules": [
+      {
+        "assert": "has(refs)",
+        "message": "name the task this commit works on in a `Refs: <stem>` footer",
+        "name": "name-task-in-refs-trailer",
+        "scope": "commit",
+        "severity": "error",
+        "when": "!tasks_only && !matches(subject, \"^(fixup|squash|amend)! \") && !matches(subject, \"^chore\\\\(release\\\\): [0-9]+\\\\.[0-9]+\\\\.[0-9]+$\")",
+        "section": "commits.rules",
+        "label": "name-task-in-refs-trailer",
+        "moments": [
+          "commit"
+        ]
+      },
+      {
+        "assert": "!matches(subject, \"^(fixup|squash|amend)! \")",
+        "message": "squash this commit first: git rebase -i --autosquash <target>",
+        "name": "squash-every-autosquash-commit",
+        "scope": "commit",
+        "severity": "error",
+        "when": "in_range",
+        "section": "commits.rules",
+        "label": "squash-every-autosquash-commit",
+        "moments": [
+          "commit"
+        ]
+      },
+      {
+        "assert": "named && (!tasks_only || retires_other || staged(kind == \"decision\") || staged(kind == \"milestone\"))",
+        "message": "start or close a task in a commit that carries its work",
+        "name": "flip-task-with-its-work",
+        "scope": "task",
+        "severity": "error",
+        "when": "into(\"wip\") || into(\"done\")",
+        "section": "commits.rules",
+        "label": "flip-task-with-its-work",
+        "moments": [
+          "commit"
+        ]
+      },
+      {
+        "assert": "!(status == \"wip\")",
+        "message": "run `mt done <stem>` and commit it with the task's last work",
+        "name": "finish-named-task-at-tip",
+        "scope": "tip",
+        "severity": "error",
+        "section": "commits.rules",
+        "label": "finish-named-task-at-tip",
+        "moments": [
+          "commit"
+        ]
+      },
+      {
+        "assert": "count(files, \"@source\") <= 1",
+        "message": "file a planned task for the rest, since a tweak changes one source file",
+        "name": "keep-tweak-to-one-source-file",
+        "scope": "task",
+        "severity": "error",
+        "when": "into(\"done\") && staged(has_tag(\"tweak\"))",
+        "section": "commits.rules",
+        "label": "keep-tweak-to-one-source-file",
+        "moments": [
+          "commit"
+        ]
+      },
+      {
+        "assert": "matches(files, \"^CHANGELOG[.]md$\")",
+        "message": "add an entry under [Unreleased] in CHANGELOG.md, or add a `Changelog: none` trailer",
+        "name": "add-changelog-entry-for-product-change",
+        "scope": "commit",
+        "severity": "error",
+        "when": "count(files, \"@product\") >= 1 && !matches(subject, \"^(fixup|squash|amend)! \") && !matches(trailers, \"(?i)^Changelog: none$\")",
+        "section": "commits.rules",
+        "label": "add-changelog-entry-for-product-change",
+        "moments": [
+          "commit"
+        ]
+      },
+      {
+        "assert": "staged(status == \"wip\" || terminal)",
+        "message": "flip the task to wip in the first commit that names it (`mt wip <stem>`, staged with the work)",
+        "name": "start-named-task-in-its-commit",
+        "scope": "task",
+        "severity": "error",
+        "when": "named && staged(exists)",
+        "section": "commits.rules",
+        "label": "start-named-task-in-its-commit",
+        "moments": [
+          "commit"
+        ]
+      }
+    ]
+  },
+  "dicts": {
+    "product": {
+      "case": "exact",
+      "include": [],
+      "values": [
+        "crates/**",
+        "lib/**",
+        "!crates/*/tests/**",
+        "!**/*test*.rs"
+      ]
+    },
+    "source": {
+      "case": "exact",
+      "include": [],
+      "values": [
+        "!README.md",
+        "!CONTRIBUTING.md",
+        "!AGENTS.md",
+        "!skills/mindtape/SKILL.md",
+        "!docs/contributing/*.md",
+        "!www/generated/**",
+        "!.config/outdatty.lock",
+        "!docs/src/**",
+        "!www/content/**",
+        "!CHANGELOG.md",
+        "!truth/tasks/**",
+        "!crates/*/tests/**",
+        "!**/*test*.rs",
+        "!examples/**",
+        "!.config/crap-baseline.json",
+        "!.config/jscpd-baseline.json"
+      ]
+    },
+    "verbs": {
+      "case": "fold",
+      "include": [
+        "mindtape-verbs",
+        "mindtape-dev-verbs"
+      ],
+      "values": []
+    }
+  },
+  "go": {},
+  "on": {
+    "add": [
+      {
+        "actions": [
+          {
+            "append": {},
+            "dir": "truth/tasks/{date:YYYY}-{date:MM}",
+            "set": {}
+          }
+        ],
+        "name": "file-by-month",
+        "when": "!has_tag(\"swept\")",
+        "section": "on.add",
+        "label": "file-by-month",
+        "moments": [
+          "add"
+        ]
+      },
+      {
+        "actions": [
+          {
+            "append": {},
+            "dir": "truth/tasks/swept",
+            "set": {}
+          }
+        ],
+        "name": "sweeps",
+        "when": "has_tag(\"swept\")",
+        "section": "on.add",
+        "label": "sweeps",
+        "moments": [
+          "add"
+        ]
+      }
+    ],
+    "flip": [
+      {
+        "actions": [
+          {
+            "gate": true,
+            "message": "re-read the scope against today's code, fix what went stale, run `mt review`, then start again"
+          }
+        ],
+        "name": "review-stale-task-before-starting",
+        "when": "into(\"wip\") && stale(30)",
+        "section": "on.flip",
+        "label": "review-stale-task-before-starting",
+        "moments": [
+          "flip"
+        ]
+      },
+      {
+        "actions": [
+          {
+            "gate": true,
+            "message": "run `just check`, then flip again",
+            "run": "mmz --is-fresh --tag gate"
+          }
+        ],
+        "name": "close-only-on-fresh-gate",
+        "when": "into(\"done\") || into(\"cancelled\") || into(\"failed\")",
+        "section": "on.flip",
+        "label": "close-only-on-fresh-gate",
+        "moments": [
+          "flip"
+        ]
+      }
+    ],
+    "rm": []
+  },
+  "project": {},
+  "retire": {},
+  "rm": {
+    "default-filter": "terminal"
+  },
+  "roles": [
+    {
+      "name": "maintainer"
+    }
+  ],
+  "tasks": {
+    "roots": [
+      {
+        "path": "truth/tasks",
+        "tag": "mt",
+        "exclude": [],
+        "derive-tags": true
+      }
+    ],
+    "statuses": [
+      {
+        "color": "blue",
+        "glyph": "💡",
+        "note": "optional",
+        "terminal": false,
+        "to": [
+          "accepted",
+          "wip",
+          "cancelled"
+        ],
+        "unblocked": false,
+        "value": "proposed"
+      },
+      {
+        "color": "cyan",
+        "glyph": "📋",
+        "note": "optional",
+        "terminal": false,
+        "to": [
+          "wip",
+          "cancelled"
+        ],
+        "unblocked": false,
+        "value": "accepted"
+      },
+      {
+        "color": "yellow",
+        "glyph": "🔨",
+        "note": "optional",
+        "terminal": false,
+        "to": [
+          "done",
+          "failed",
+          "accepted"
+        ],
+        "unblocked": true,
+        "value": "wip"
+      },
+      {
+        "color": "green",
+        "glyph": "✅",
+        "note": "optional",
+        "terminal": true,
+        "to": [
+          "wip",
+          "cancelled",
+          "failed"
+        ],
+        "unblocked": true,
+        "value": "done"
+      },
+      {
+        "color": "magenta",
+        "glyph": "🚫",
+        "note": "optional",
+        "terminal": true,
+        "to": [],
+        "unblocked": false,
+        "value": "cancelled"
+      },
+      {
+        "color": "red",
+        "glyph": "❌",
+        "note": "optional",
+        "terminal": true,
+        "to": [
+          "wip"
+        ],
+        "unblocked": false,
+        "value": "failed"
+      }
+    ],
+    "assignee": {
+      "allowed": [
+        "max",
+        "agent"
+      ],
+      "example": "agent",
+      "required": "!terminal"
+    },
+    "priority": {
+      "framework": "ice",
+      "kind": "int",
+      "min": 0.0,
+      "max": 9.0,
+      "required": "!terminal",
+      "allow-manual": false,
+      "score": "round(impact * confidence * ease * 0.09)",
+      "inputs": {
+        "confidence": {
+          "max": 1.0,
+          "min": 0.0,
+          "type": "number",
+          "values": []
+        },
+        "ease": {
+          "max": 10.0,
+          "min": 1.0,
+          "type": "number",
+          "values": []
+        },
+        "impact": {
+          "max": 10.0,
+          "min": 1.0,
+          "type": "number",
+          "values": []
+        }
+      }
+    },
+    "difficulty": {
+      "anchors": [
+        {
+          "color": "green",
+          "glyph": "🟢",
+          "label": "junior",
+          "value": 0.0
+        },
+        {
+          "color": "cyan",
+          "glyph": "🔵",
+          "label": "mid",
+          "value": 3.0
+        },
+        {
+          "color": "yellow",
+          "glyph": "🟡",
+          "label": "senior",
+          "value": 6.0
+        },
+        {
+          "color": "red",
+          "glyph": "🔴",
+          "label": "staff",
+          "value": 9.0
+        }
+      ],
+      "bands": [],
+      "example": 3.0,
+      "kind": "int",
+      "max": 9.0,
+      "min": 0.0,
+      "required": "!terminal"
+    },
+    "estimate": {
+      "example": {
+        "src-files": 1.0
+      },
+      "queries": {},
+      "required": false,
+      "units": [
+        "src-files"
+      ]
+    },
+    "kinds": {
+      "example": "test",
+      "multiple": false,
+      "required": "!terminal",
+      "values": [
+        "feat",
+        "fix",
+        "refactor",
+        "docs",
+        "test",
+        "dev",
+        "decision",
+        "milestone"
+      ]
+    },
+    "link-kinds": [
+      {
+        "acyclic": true,
+        "blocking": false,
+        "max": 1,
+        "name": "surfaced-by",
+        "note": "optional",
+        "validate": "local-task-path"
+      }
+    ],
+    "comments": {
+      "policy": "forbid"
+    },
+    "extensions": [
+      {
+        "name": "x-goals",
+        "rules": [
+          "give-every-goal-verdict"
+        ]
+      }
+    ],
+    "tags": {
+      "allowed": [
+        "mt",
+        "substrate",
+        "speconaut",
+        "cli",
+        "tests",
+        "www",
+        "docs",
+        "tooling",
+        "gating",
+        "stateful",
+        "stateless",
+        "no-repro",
+        "no-ui-ux",
+        "swept",
+        "size",
+        "mutants",
+        "coverage",
+        "repeats",
+        "dry",
+        "found",
+        "tweak"
+      ]
+    },
+    "derive-tags": {
+      "breadcrumb-root": false,
+      "collect": [],
+      "enabled": false,
+      "separator": ":",
+      "slugify": true
+    },
+    "collectors": [
+      {
+        "name": "changes",
+        "query": {
+          "pattern": "(?m)^\\s*-\\s+`([^`]+)`",
+          "section": "Changes"
+        },
+        "returns": [
+          "path"
+        ],
+        "when": "!terminal"
+      }
+    ],
+    "waits": [],
+    "rules": [
+      {
+        "assert": "has_tag(\"stateful\") || has_tag(\"stateless\")",
+        "message": "tag the task `stateful` or `stateless`, so the Rollback rule knows which applies",
+        "name": "tag-task-stateful-or-stateless",
+        "severity": "error",
+        "when": "!terminal && true && kind != \"decision\"",
+        "section": "tasks.rules",
+        "label": "tag-task-stateful-or-stateless",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "in_dict(\"verbs\", word(title, 1))",
+        "message": "start the title with an imperative verb",
+        "name": "start-title-with-verb",
+        "severity": "error",
+        "when": "!terminal",
+        "section": "tasks.rules",
+        "label": "start-title-with-verb",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "count(status == \"wip\" && kind == \"milestone\") <= 1",
+        "message": "close or split the open milestone before opening another",
+        "name": "keep-one-milestone-in-progress",
+        "severity": "error",
+        "when": "status == \"wip\" && kind == \"milestone\"",
+        "section": "tasks.rules",
+        "label": "keep-one-milestone-in-progress",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "count(status == \"wip\" && kind != \"milestone\") <= 1",
+        "message": "finish the open task, or split off what is done and close that, before starting another",
+        "name": "keep-one-task-in-progress",
+        "severity": "error",
+        "when": "status == \"wip\" && kind != \"milestone\"",
+        "section": "tasks.rules",
+        "label": "keep-one-task-in-progress",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "count_paths(derived.changes, \"@source\") <= 5",
+        "message": "split the decision from the mechanical fan-out instead of widening the cap",
+        "name": "cap-judgment-work-at-max-source-files",
+        "severity": "error",
+        "when": "!terminal && kind != \"milestone\" && difficulty >= 3",
+        "section": "tasks.rules",
+        "label": "cap-judgment-work-at-max-source-files",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "changed(\"staged+worktree\", \"@source\") <= count_paths(derived.changes, \"@source\")",
+        "message": "move work not yet written into a new task; what is already written ships with this one, so closing it needs no split",
+        "name": "keep-work-inside-changes-plan",
+        "severity": "warn",
+        "when": "status == \"wip\"",
+        "section": "tasks.rules",
+        "label": "keep-work-inside-changes-plan",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "terminal",
+        "message": "file a tweak done, in the commit that makes the change: `mt add -t tweak`; plan anything bigger with another template",
+        "name": "file-tweak-done",
+        "severity": "error",
+        "when": "has_tag(\"tweak\")",
+        "section": "tasks.rules",
+        "label": "file-tweak-done",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "check": {
+          "field": "x-goals",
+          "function": "check-goals",
+          "typst": "truth/lib.typ"
+        },
+        "name": "give-every-goal-verdict",
+        "severity": "error",
+        "when": "!terminal",
+        "section": "tasks.rules",
+        "label": "give-every-goal-verdict",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "matches(dir, \"^truth/tasks/[0-9]{4}-[0-9]{2}$\")",
+        "message": "file a task in `truth/tasks/YYYY-MM/`, the month it was filed",
+        "name": "file-tasks-by-month",
+        "severity": "error",
+        "when": "!has_tag(\"swept\")",
+        "section": "tasks.rules",
+        "label": "file-tasks-by-month",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "dir == \"truth/tasks/swept\"",
+        "message": "file a swept task in `truth/tasks/swept/`",
+        "name": "sweeps-live-in-their-folder",
+        "severity": "error",
+        "when": "has_tag(\"swept\")",
+        "section": "tasks.rules",
+        "label": "sweeps-live-in-their-folder",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      },
+      {
+        "assert": "links(\"surfaced-by\")",
+        "message": "link the finding to the task that surfaced it with `mt link <finding> surfaced-by <task>`",
+        "name": "link-finding-to-what-surfaced-it",
+        "severity": "error",
+        "when": "!terminal && has_tag(\"found\")",
+        "section": "tasks.rules",
+        "label": "link-finding-to-what-surfaced-it",
+        "moments": [
+          "add",
+          "flip"
+        ]
+      }
+    ],
+    "body": {
+      "headers": [
+        {
+          "action": "allowlist",
+          "after": [],
+          "allowed": [
+            {
+              "match": "^(AS-IS|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$",
+              "recursive": false
+            }
+          ],
+          "before": [],
+          "message": "limit an open task to AS-IS, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section",
+          "name": "allow-only-declared-sections",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "allow-only-declared-sections",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "add one Environment section saying where the AS-IS reproduces",
+          "name": "require-environment-for-fix",
+          "path": [
+            "Environment"
+          ],
+          "scope": [],
+          "when": "!terminal && kind == \"fix\"",
+          "section": "tasks.body.headers",
+          "label": "require-environment-for-fix",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "add one Alternatives section naming the designs you rejected",
+          "name": "require-alternatives-for-design",
+          "path": [
+            "Alternatives"
+          ],
+          "scope": [],
+          "when": "!terminal && (kind == \"feat\" || kind == \"decision\")",
+          "section": "tasks.body.headers",
+          "label": "require-alternatives-for-design",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "add one Source of truth section naming what the prose must match",
+          "name": "require-source-of-truth-for-docs",
+          "path": [
+            "Source of truth"
+          ],
+          "scope": [],
+          "when": "!terminal && kind == \"docs\"",
+          "section": "tasks.body.headers",
+          "label": "require-source-of-truth-for-docs",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "add one Rollback section saying how to undo the change",
+          "name": "require-rollback-for-stateful-change",
+          "path": [
+            "Rollback"
+          ],
+          "scope": [],
+          "when": "!terminal && has_tag(\"stateful\")",
+          "section": "tasks.body.headers",
+          "label": "require-rollback-for-stateful-change",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "forbid",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "remove the Environment section; only fix tasks have one",
+          "name": "allow-environment-only-for-fix",
+          "path": [
+            "Environment"
+          ],
+          "scope": [],
+          "when": "!terminal && kind != \"fix\"",
+          "section": "tasks.body.headers",
+          "label": "allow-environment-only-for-fix",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "forbid",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "remove the Alternatives section; only feat and decision tasks have one",
+          "name": "allow-alternatives-only-for-design",
+          "path": [
+            "Alternatives"
+          ],
+          "scope": [],
+          "when": "!terminal && kind != \"feat\" && kind != \"decision\"",
+          "section": "tasks.body.headers",
+          "label": "allow-alternatives-only-for-design",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "forbid",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "remove the Source of truth section; only docs tasks have one",
+          "name": "allow-source-of-truth-only-for-docs",
+          "path": [
+            "Source of truth"
+          ],
+          "scope": [],
+          "when": "!terminal && kind != \"docs\"",
+          "section": "tasks.body.headers",
+          "label": "allow-source-of-truth-only-for-docs",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "forbid",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "remove the Rollback section; only a stateful task has one",
+          "name": "allow-rollback-only-for-stateful-change",
+          "path": [
+            "Rollback"
+          ],
+          "scope": [],
+          "when": "!terminal && !has_tag(\"stateful\")",
+          "section": "tasks.body.headers",
+          "label": "allow-rollback-only-for-stateful-change",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Environment"
+          ],
+          "allowed": [],
+          "before": [
+            "AS-IS"
+          ],
+          "message": "move Environment after AS-IS",
+          "name": "put-environment-after-as-is",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-environment-after-as-is",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "TO-BE"
+          ],
+          "allowed": [],
+          "before": [
+            "AS-IS"
+          ],
+          "message": "move TO-BE after AS-IS",
+          "name": "put-to-be-after-as-is",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-to-be-after-as-is",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Source of truth"
+          ],
+          "allowed": [],
+          "before": [
+            "TO-BE"
+          ],
+          "message": "move Source of truth after TO-BE",
+          "name": "put-source-of-truth-after-to-be",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-source-of-truth-after-to-be",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Changes"
+          ],
+          "allowed": [],
+          "before": [
+            "TO-BE"
+          ],
+          "message": "move Changes after TO-BE",
+          "name": "put-changes-after-to-be",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-changes-after-to-be",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Changes"
+          ],
+          "allowed": [],
+          "before": [
+            "Source of truth"
+          ],
+          "message": "move Changes after Source of truth",
+          "name": "put-changes-after-source-of-truth",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-changes-after-source-of-truth",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Alternatives"
+          ],
+          "allowed": [],
+          "before": [
+            "Changes"
+          ],
+          "message": "move Alternatives after Changes",
+          "name": "put-alternatives-after-changes",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-alternatives-after-changes",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Rollback"
+          ],
+          "allowed": [],
+          "before": [
+            "Changes"
+          ],
+          "message": "move Rollback after Changes",
+          "name": "put-rollback-after-changes",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-rollback-after-changes",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Out of scope"
+          ],
+          "allowed": [],
+          "before": [
+            "Changes"
+          ],
+          "message": "move Out of scope after Changes",
+          "name": "put-out-of-scope-after-changes",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-out-of-scope-after-changes",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Out of scope"
+          ],
+          "allowed": [],
+          "before": [
+            "Alternatives"
+          ],
+          "message": "move Out of scope after Alternatives",
+          "name": "put-out-of-scope-after-alternatives",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-out-of-scope-after-alternatives",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Out of scope"
+          ],
+          "allowed": [],
+          "before": [
+            "Rollback"
+          ],
+          "message": "move Out of scope after Rollback",
+          "name": "put-out-of-scope-after-rollback",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-out-of-scope-after-rollback",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "keep exactly one AS-IS section",
+          "name": "keep-one-as-is-section",
+          "path": [
+            "AS-IS"
+          ],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "keep-one-as-is-section",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "keep exactly one TO-BE section",
+          "name": "keep-one-to-be-section",
+          "path": [
+            "TO-BE"
+          ],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "keep-one-to-be-section",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "keep exactly one Changes section",
+          "name": "keep-one-changes-section",
+          "path": [
+            "Changes"
+          ],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "keep-one-changes-section",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "keep exactly one Out of scope section",
+          "name": "keep-one-out-of-scope-section",
+          "path": [
+            "Out of scope"
+          ],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "keep-one-out-of-scope-section",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "forbid",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "remove the subsections, or split the task; a section takes none",
+          "name": "keep-sections-flat",
+          "path": [
+            {
+              "match": ".*",
+              "recursive": false
+            },
+            {
+              "match": ".*",
+              "recursive": false
+            }
+          ],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "keep-sections-flat",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "unique",
+          "after": [],
+          "allowed": [],
+          "before": [],
+          "message": "add one Dogfood section saying how this repo will dogfood the task (\"Not applicable\" with a reason opts out)",
+          "name": "keep-one-dogfood-section",
+          "path": [
+            "Dogfood"
+          ],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "keep-one-dogfood-section",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "action": "order",
+          "after": [
+            "Dogfood"
+          ],
+          "allowed": [],
+          "before": [
+            "Out of scope"
+          ],
+          "message": "move Dogfood after Out of scope",
+          "name": "put-dogfood-after-out-of-scope",
+          "path": [],
+          "scope": [],
+          "when": "!terminal",
+          "section": "tasks.body.headers",
+          "label": "put-dogfood-after-out-of-scope",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        }
+      ],
+      "content": [
+        {
+          "assert": {
+            "must-match": "(?m)^\\s*(\\+|\\d+\\.)\\s"
+          },
+          "message": "write AS-IS as numbered steps anyone can follow",
+          "name": "write-as-is-as-numbered-steps",
+          "path": [
+            "AS-IS"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "write-as-is-as-numbered-steps",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "must-match": "(?m)^\\s*(\\+|\\d+\\.)\\s+🔴"
+          },
+          "message": "open the step that shows the defect with 🔴",
+          "name": "mark-defect-step-with-red",
+          "path": [
+            "AS-IS"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "mark-defect-step-with-red",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "must-match": "[`]{3}"
+          },
+          "message": "show the bug in one fenced block you can run, or tag the task `no-repro`",
+          "name": "add-fenced-repro-to-as-is",
+          "path": [
+            "AS-IS"
+          ],
+          "when": "!terminal && true && kind == \"fix\" && !has_tag(\"no-repro\")",
+          "section": "tasks.body.content",
+          "label": "add-fenced-repro-to-as-is",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "must-match": "(?m)^\\s*- 🟢"
+          },
+          "message": "say how it should work as bullets opening with 🟢",
+          "name": "open-to-be-bullet-with-green",
+          "path": [
+            "TO-BE"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "open-to-be-bullet-with-green",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "must-not-match": "(?m)^\\s*- [^🟢]"
+          },
+          "message": "open every TO-BE bullet with 🟢",
+          "name": "open-every-to-be-bullet-with-green",
+          "path": [
+            "TO-BE"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "open-every-to-be-bullet-with-green",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "must-match": "[`]{3}"
+          },
+          "message": "show the proposed shape in a fenced example, or tag the task `no-ui-ux`",
+          "name": "add-fenced-example-to-to-be",
+          "path": [
+            "TO-BE"
+          ],
+          "when": "!terminal && true && (kind == \"feat\" || kind == \"fix\" || kind == \"dev\") && !has_tag(\"no-ui-ux\")",
+          "section": "tasks.body.content",
+          "label": "add-fenced-example-to-to-be",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "must-match": "(?m)^[ \\t]*-[ \\t]+`[^`]+`"
+          },
+          "message": "list Changes as bullets naming the `path` each one touches",
+          "name": "name-path-in-changes",
+          "path": [
+            "Changes"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "name-path-in-changes",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "must-not-match": "(?m)^[ \\t]*-[ \\t]+[^`\\n]"
+          },
+          "message": "start every Changes bullet with one backticked path, then what changes there",
+          "name": "start-every-changes-bullet-with-path",
+          "path": [
+            "Changes"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "start-every-changes-bullet-with-path",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": "non-empty",
+          "message": "write the plan under Changes, one backticked path per bullet",
+          "name": "write-changes-plan",
+          "path": [
+            "Changes"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "write-changes-plan",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": "non-empty",
+          "message": "write what belongs under the heading, or why nothing does, or remove it",
+          "name": "leave-no-listed-section-empty",
+          "path": [
+            {
+              "match": "^(Out of scope|Environment|Source of truth|Alternatives|Rollback)$",
+              "recursive": false
+            }
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "leave-no-listed-section-empty",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": "non-empty",
+          "message": "write the state the change starts from, or remove the section",
+          "name": "write-as-is-section",
+          "path": [
+            "AS-IS"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "write-as-is-section",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "words": {
+              "max": 120
+            }
+          },
+          "message": "cut this section to under 120 words, or split the task in two",
+          "name": "cap-every-listed-section-at-120-words",
+          "path": [
+            {
+              "match": "^(Environment|TO-BE|Source of truth|Alternatives|Rollback|Out of scope)$",
+              "recursive": false
+            }
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "cap-every-listed-section-at-120-words",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "words": {
+              "max": 120
+            }
+          },
+          "message": "cut this section to under 120 words, or split the task in two",
+          "name": "cap-as-is-at-120-words",
+          "path": [
+            "AS-IS"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "cap-as-is-at-120-words",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "words": {
+              "max": 220
+            }
+          },
+          "message": "cut this section to under 220 words, or split the task in two",
+          "name": "cap-changes-at-220-words",
+          "path": [
+            "Changes"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "cap-changes-at-220-words",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "must-match": "[`]{3}"
+          },
+          "message": "show the proposed config shape in a block",
+          "name": "show-proposed-shape-when-gating",
+          "path": [
+            "TO-BE"
+          ],
+          "when": "has_tag(\"gating\") && !terminal",
+          "section": "tasks.body.content",
+          "label": "show-proposed-shape-when-gating",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "density": {
+              "max": 1,
+              "pattern": "—",
+              "per": "paragraph"
+            }
+          },
+          "message": "keep one em dash per paragraph at most; use a comma, a colon or a second sentence for the rest",
+          "name": "keep-at-most-one-em-dash-per-paragraph",
+          "path": [
+            {
+              "match": ".*",
+              "recursive": false
+            }
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "keep-at-most-one-em-dash-per-paragraph",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "density": {
+              "max": 0,
+              "pattern": "\\?(\\s|$)",
+              "per": "sentence"
+            }
+          },
+          "message": "ask the user and write the answer in, since a task leaves no question open",
+          "name": "leave-no-question-open",
+          "path": [
+            {
+              "match": "TO-BE|Changes|Out of scope|Dogfood",
+              "recursive": false
+            }
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "leave-no-question-open",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": "non-empty",
+          "message": "write how this repo uses the change under Dogfood, or \"Not applicable\" and why",
+          "name": "write-dogfood-section",
+          "path": [
+            "Dogfood"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "write-dogfood-section",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        },
+        {
+          "assert": {
+            "words": {
+              "max": 120
+            }
+          },
+          "message": "cut this section to under 120 words, or split the task in two",
+          "name": "cap-dogfood-at-120-words",
+          "path": [
+            "Dogfood"
+          ],
+          "when": "!terminal",
+          "section": "tasks.body.content",
+          "label": "cap-dogfood-at-120-words",
+          "moments": [
+            "add",
+            "flip"
+          ]
+        }
+      ],
+      "words": {
+        "count": "prose"
+      }
+    }
+  },
+  "templates": {
+    "check-defaults": false,
+    "default": "task",
+    "dirs": [
+      ".mindtape/templates"
+    ],
+    "fallback-severity": "warning"
+  },
+  "views": {
+    "agent": {
+      "columns": [],
+      "description": "Open tasks an agent can take",
+      "filter": "assignee == \"agent\" && !terminal",
+      "sort": [
+        "priority:desc"
+      ]
+    },
+    "ask-refactoring": {
+      "columns": [],
+      "description": "Open findings from the last `just ask-refactoring` sweep",
+      "filter": "has_tag(\"swept\") && !terminal",
+      "sort": [
+        "priority:desc"
+      ]
+    },
+    "blocked": {
+      "columns": [
+        "slug#",
+        "title",
+        "why"
+      ],
+      "description": "Blocked tasks and what each waits on",
+      "filter": "blocked",
+      "sort": [
+        "blocks:desc",
+        "priority:desc"
+      ]
+    },
+    "default": {
+      "columns": [],
+      "filter": "!terminal && (miss(start) || start <= now())",
+      "sort": []
+    },
+    "owner": {
+      "columns": [],
+      "description": "Open tasks waiting on the maintainer",
+      "filter": "assignee == \"max\" && !terminal",
+      "sort": [
+        "priority:desc"
+      ]
+    }
+  }
+}

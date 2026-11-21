@@ -42,3 +42,8 @@ fmt-fixture:
 [group("gate")]
 size-fixture:
     bash .just/scripts/size-fixture-check.sh
+
+[doc("Run each jq report against its fixture and check the config keys it drops")]
+[group("gate")]
+jq-reports:
+    bash .just/scripts/check-jq-reports.sh

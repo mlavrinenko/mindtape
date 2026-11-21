@@ -990,6 +990,20 @@ groups:
       - .just/scripts/_gate-drift-control.sh
       - .just/scripts/_doc-blocks-control.sh
 
+  # The essentials report, the gate that runs it and the fixture pair the gate
+  # diffs. www/content/cli/config.typ says what the report prints and where a
+  # project keeps its own, so every file here flags that page. The readers and
+  # the control are sources because the body runs them, and no second doc
+  # restates them.
+  - name: jq-reports-docs
+    source:
+      - contrib/jq/reports/essentials.jq
+      - .just/scripts/check-jq-reports.sh
+      - .just/scripts/_jq-reports-lib.sh
+      - .just/scripts/_jq-reports-control.sh
+    dependents:
+      - www/content/cli/config.typ
+
   # The six `just ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it
   # did" paragraph, and the same remedy-is-your-call Scope. A Typst `#import`

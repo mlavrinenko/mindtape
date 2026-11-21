@@ -368,13 +368,13 @@ groups:
       .just/docs.just: 82a3017127b223bd655b6cc9d43e8aa1b84dca3184823eebb4d75b703a71f493
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
       .just/lint.just: f6bcc42e508e2849ee74d17691888c2ff73216334740609c778657dabe78256d
-      .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
+      .just/meta.just: 50f81441c79a969597f3538652bcd95391806d272137b9bb5ac16388ca8a45fe
       .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
       .just/outdatty.just: fb95f90850c8179bb3fba01a8ae90e2fe703c1c551cb8181892bd24b03f95866
       .just/scripts/check-examples.sh: eca8ba0bcc674cb6dcece4000c512662296b514857d2f7f5dd8acf9655780372
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: 97a4ef31a342a808c516133529368b33c6f976f8fb0cf5c573902ff4d0229d28
-      Justfile: ada1321ba61546aaef4465b832730d5c2ffabd42ce79ccc9a5ce31027ff15ad2
+      Justfile: 73b65c41d6c938bc714a5af287e83bd45c82fca3e4d5df3d24fe273bf5baeea4
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
       nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
@@ -476,6 +476,14 @@ groups:
       docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
       docs/src/contributing/commit-messages.typ: fad91cf24ea6a0f21a4cb053989aef3e1135db045c1ae4d5baae652e984338d2
       docs/src/contributing/gates.typ: c2f44ddb83d885c8d587db03426578a521e79424bb702191ce96c0046114dbe4
+  jq-reports-docs:
+    source:
+      .just/scripts/_jq-reports-control.sh: 54495ee283bc41c8cfec869ba64bfece08e37023988bb8736e257ee7b491d9d0
+      .just/scripts/_jq-reports-lib.sh: 4f35e550b4c66b6d6bb4fa8e1ba6ef50ae008d184a3b111fc5e169d58dfe88bb
+      .just/scripts/check-jq-reports.sh: 4f6a80003437819388aec4ee9cdec5acc527b19098971f34da14158d2de7549e
+      contrib/jq/reports/essentials.jq: ff0acf3b8a557176d7e50ce9d371b7a0a252cd348c2ab29d4eb1100a3eb25762
+    dependents:
+      www/content/cli/config.typ: c45a2d4dcfb673235dadca3d0583efd2e74caca248c4d3220f26f7312774675f
   link-kinds-docs:
     source:
       crates/mindtape/src/link/mod.rs: 0932bb0d15207fef2cd14f983a55882c7797792ebdb19e86954ee070b348be93

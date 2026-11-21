@@ -258,7 +258,7 @@ fn path_format_matches_the_table_file_column_cell() {
 
 /// One value under `file` across both machine formats: CSV's cell is the
 /// root-relative path `--format json` carries, the value `mt import` reads
-/// back and `contrib/jq/*.jq` select on, never the table's cwd-relative
+/// back and `contrib/jq/import/*.jq` select on, never the table's cwd-relative
 /// display.
 #[test]
 fn csv_file_cell_equals_the_json_file_key() {

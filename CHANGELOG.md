@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`contrib/jq/` splits its adapters from its reports, starting with the
+  essentials report.** The three tracker adapters move to
+  `contrib/jq/import/`, unchanged, with their fixtures. `contrib/jq/reports/`
+  holds views over `mt config show --json --resolved`: `essentials.jq` prints
+  the project's roots and exclusions, statuses, actors and roles, the priority
+  framework with its bounds and inputs, difficulty, estimate, kinds, link
+  kinds, comments, extensions, templates, the commit trailer and run, the
+  hooks, the `[rm]` filter, the tags, the views, the dictionaries, the derived
+  fields, and each rule with the moments it fires at. A section the project
+  leaves empty prints empty. `just meta::jq-reports` runs each report against
+  `contrib/jq/fixtures/config.resolved.json` and fails on a top-level config
+  key the report neither prints nor lists in its `dropped` array.
+<<<<<<< HEAD
 - **A user-facing string can no longer name a repo-local `just` recipe.** A
   hint that says `just check` names a command a reader in another project
   cannot run, so `just lint::no-just-in-output` fails it, naming the file and
@@ -31,6 +44,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `schema/output/templates/1.schema.json`. The hidden `mt add --list` alias and
   `mt explain templates` retire with it, so `mt templates` is the one spelling,
   and `mt add --template` points at it.
+=======
+- **`contrib/jq/` splits its adapters from its reports, starting with the
+  essentials report.** The three tracker adapters move to
+  `contrib/jq/import/`, unchanged, with their fixtures. `contrib/jq/reports/`
+  holds views over `mt config show --json --resolved`: `essentials.jq` prints
+  the project's roots and exclusions, statuses, actors and roles, the priority
+  framework with its bounds and inputs, difficulty, estimate, kinds, link
+  kinds, comments, extensions, templates, the commit trailer and run, the
+  hooks, the `[rm]` filter, the tags, the views, the dictionaries, the derived
+  fields, and each rule with the moments it fires at. A section the project
+  leaves empty prints empty. `just meta::jq-reports` runs each report against
+  `contrib/jq/fixtures/config.resolved.json` and fails on a top-level config
+  key the report neither prints nor lists in its `dropped` array.
+>>>>>>> 338efaa3 (feat(jq): split the adapters and add the essentials report)
 - **`mt dicts` lists the project's dictionaries.** Each line gives the
   dictionary's name, the entry count it resolved to, its case, and its source:
   `inline` for `values`, a `path` file or a built-in, or `include:` naming the

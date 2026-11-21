@@ -41,7 +41,7 @@ directory instead of each record's `file`, resolved from the project root.
 for each record it would write and ends with `dry run: nothing
 written`. The #link(u("/cli/import/"))[`mt import` page] lists every flag.
 
-The adapters in `contrib/jq/` read only the tracker's own export, not your
+The adapters in `contrib/jq/import/` read only the tracker's own export, not your
 config. They emit the status names of the legend `mt init` writes by default:
 `proposed`, `done` and `cancelled`. If your legend differs, add `--map` to
 `mt import`, such as `--map proposed=todo`.
@@ -49,7 +49,7 @@ config. They emit the status names of the legend `mt init` writes by default:
 == From Taskwarrior
 
 `task export > taskwarrior.json` saves Taskwarrior's tasks.
-`contrib/jq/taskwarrior.jq` reshapes them:
+`contrib/jq/import/taskwarrior.jq` reshapes them:
 
 #terminal("import-taskwarrior")
 
@@ -65,7 +65,7 @@ dependencies go into the `x-tw` field.
 
 `gh issue list --state all --json number,title,body,state,labels,assignees,createdAt,url > issues.json`
 saves a repository's issues. `gh` fetches 30 unless you pass `--limit`.
-`contrib/jq/github.jq` reshapes them:
+`contrib/jq/import/github.jq` reshapes them:
 
 #terminal("import-github")
 
@@ -77,7 +77,7 @@ the project derives tags from folders, each task gets a `github` tag.
 == From todo.txt
 
 todo.txt is one task per line, so a first `jq` pass splits the file into a
-JSON array of lines. `contrib/jq/todo.txt.jq` reshapes the array:
+JSON array of lines. `contrib/jq/import/todo.txt.jq` reshapes the array:
 
 #terminal("import-todotxt")
 

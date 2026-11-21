@@ -1,4 +1,4 @@
-//! End-to-end tests for the jq source adapters (`contrib/jq/*.jq`,
+//! End-to-end tests for the jq source adapters (`contrib/jq/import/*.jq`,
 //! `truth/tasks/2026-07/jq-source-adapters.typ`). Each test shells `jq -f` on a
 //! fixture (real subprocess stdin/stdout, the same reasoning `import_e2e.rs`
 //! gives for shelling `mt` itself), then pipes the adapter's output into
@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 use crate::support;
 
 /// The repo root, derived from this crate's manifest dir
-/// (`crates/mindtape-cli` -> `../..`). The test finds `contrib/jq/*` from it
+/// (`crates/mindtape-cli` -> `../..`). The test finds `contrib/jq/import/*` from it
 /// regardless of the working directory `cargo test` runs from.
 fn repo_root() -> PathBuf {
     mindtape::canonical(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")).unwrap()
@@ -51,11 +51,11 @@ fn run_jq(script: &Path, input: &Path) -> String {
     String::from_utf8(output.stdout).expect("jq stdout is valid UTF-8")
 }
 
-/// Assert `jq -f contrib/jq/<source>.jq contrib/jq/fixtures/<source>.in.json`
+/// Assert `jq -f contrib/jq/import/<source>.jq contrib/jq/import/fixtures/<source>.in.json`
 /// is structurally equal (`serde_json::Value` equality: key order never
-/// matters) to `contrib/jq/fixtures/<source>.out.json`, the golden.
+/// matters) to `contrib/jq/import/fixtures/<source>.out.json`, the golden.
 fn assert_golden(source: &str) {
-    let jq_dir = repo_root().join("contrib/jq");
+    let jq_dir = repo_root().join("contrib/jq/import");
     let script = jq_dir.join(format!("{source}.jq"));
     let input = jq_dir.join("fixtures").join(format!("{source}.in.json"));
     let expected_path = jq_dir.join("fixtures").join(format!("{source}.out.json"));
@@ -89,7 +89,7 @@ fn scaffold() -> tempfile::TempDir {
 fn assert_e2e_import(source: &str) {
     let dir = scaffold();
 
-    let jq_dir = repo_root().join("contrib/jq");
+    let jq_dir = repo_root().join("contrib/jq/import");
     let script = jq_dir.join(format!("{source}.jq"));
     let input = jq_dir.join("fixtures").join(format!("{source}.in.json"));
     let canonical = run_jq(&script, &input);
