@@ -156,7 +156,7 @@ pub struct CommitRuleSpec {
     /// quotes the `assert` expression.
     #[serde(default)]
     pub message: Option<String>,
-    /// Whether a breach fails the check or only reports. Default `warn`.
+    /// Whether a breach fails the check or only reports. Default `error`.
     #[serde(default)]
     pub severity: Severity,
 }

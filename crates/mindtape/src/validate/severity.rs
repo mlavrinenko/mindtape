@@ -20,10 +20,11 @@ use serde::{Deserialize, Serialize};
 )]
 #[serde(rename_all = "lowercase")]
 pub enum Severity {
-    /// Print the breach, and the command still succeeds. The default.
-    #[default]
+    /// Print the breach, and the command still succeeds.
     Warn,
-    /// Print the breach and fail the command.
+    /// Print the breach and fail the command. This is the default, so a rule a
+    /// project writes refuses the write it exists to stop.
+    #[default]
     Error,
 }
 

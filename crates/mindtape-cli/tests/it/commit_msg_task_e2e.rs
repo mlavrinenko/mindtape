@@ -175,7 +175,7 @@ fn a_flip_left_unstaged_warns() {
          scope = \"task\"\n\
          when = 'worktree(status) != staged(status)'\n\
          assert = 'miss(refs)'\n\
-         message = \"stage the flip with its work\"\n";
+         message = \"stage the flip with its work\"\nseverity = \"warn\"\n";
     let dir = commit_repo(rules);
     stage_work(dir.path());
     write_parser(dir.path(), "done(2026, 6, 2)", "");

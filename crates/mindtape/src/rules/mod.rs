@@ -43,12 +43,12 @@
 //! error: tasks/rewrite-loader.typ:3: rules.start-title-with-verb: start the title with an imperative verb
 //! ```
 //!
-//! `warn` (the default) prints and lets the command through. `error` fails it,
-//! and on a write refuses it before anything lands. That distinction is the
-//! [`Severity`] every config-declared rule carries, and it travels out of the
-//! pass on [`crate::validate::Violation::severity`]. That field is the one
-//! place a violation's fatality is a project's choice rather than
-//! `Mindtape`'s.
+//! `error` (the default) fails the command, and on a write refuses it before
+//! anything lands. `warn` prints and lets the command through, the level an
+//! advisory rule declares. That distinction is the [`Severity`] every
+//! config-declared rule carries, and it travels out of the pass on
+//! [`crate::validate::Violation::severity`]. That field is the one place a
+//! violation's fatality is a project's choice rather than `Mindtape`'s.
 //!
 //! The config load dry-runs an `assert` rule's expression once
 //! ([`validate_rules`]), the way it does `required`, so a malformed one is one
@@ -173,7 +173,7 @@ pub struct RuleSpec {
     /// ignores it and prints each string its function returns.
     #[serde(default)]
     pub message: Option<String>,
-    /// Whether a breach fails the command or only reports. Default `warn`.
+    /// Whether a breach fails the command or only reports. Default `error`.
     #[serde(default)]
     pub severity: Severity,
 }

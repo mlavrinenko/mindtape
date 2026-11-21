@@ -33,7 +33,7 @@ fn pads_the_name_column_by_characters() {
 
     assert_eq!(
         render(&active_rules(&config), &[]),
-        "warn   tasks.rules.ñ   a\nwarn   tasks.rules.ab  b\n"
+        "error  tasks.rules.ñ   a\nerror  tasks.rules.ab  b\n"
     );
 }
 

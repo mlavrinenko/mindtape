@@ -32,7 +32,8 @@ fn config(rules: &str) -> String {
 const BUDGET: &str = "[[tasks.rules]]\nname = \"keep-work-inside-changes-plan\"\n\
      when = 'status == \"wip\"'\n\
      assert = 'changed(\"staged+worktree\", \"!gen/**\") <= estimate.src-files'\n\
-     message = \"split the remaining work into a new task\"\n";
+     message = \"split the remaining work into a new task\"\n\
+     severity = \"warn\"\n";
 
 /// The ceiling on a declared estimate, a validation error.
 const CAP: &str = "[[tasks.rules]]\nname = \"cap\"\n\

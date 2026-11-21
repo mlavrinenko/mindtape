@@ -87,6 +87,7 @@ severity = "error"
 name = "no-full-stop-in-titles"
 assert = '!matches(title, "\\.$")'
 message = "drop the full stop at the end of the title"
+severity = "warn"
 # docs:end
 
 # docs:slice rules/wip-cap

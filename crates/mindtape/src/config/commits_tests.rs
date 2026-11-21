@@ -67,6 +67,20 @@ fn has_task_rules_is_true_only_for_a_task_scope_rule() {
     );
 }
 
+/// The default severity is `error`, so a rule that leaves it out refuses the
+/// check. `warn` is the opt-in that makes a rule advisory.
+#[test]
+fn a_rule_with_no_severity_reports_at_error_and_warn_is_advisory() {
+    let ready = "[[commits.rules]]\nname = \"n\"\nassert = 'has(refs)'\n";
+    let defaulted = parse_config(ready).unwrap();
+    let breaches = check_commit(&record(&[], false), None, &defaulted);
+    assert_eq!(breaches[0].severity, Severity::Error);
+
+    let advisory = parse_config(&format!("{ready}severity = \"warn\"\n")).unwrap();
+    let breaches = check_commit(&record(&[], false), None, &advisory);
+    assert_eq!(breaches[0].severity, Severity::Warn);
+}
+
 #[test]
 fn a_breach_carries_the_label_message_and_severity() {
     let config = parse_config(RULE).unwrap();
@@ -74,7 +88,7 @@ fn a_breach_carries_the_label_message_and_severity() {
     assert_eq!(breaches.len(), 1);
     assert_eq!(breaches[0].label, "commits.rules.name-task-in-refs-trailer");
     assert_eq!(breaches[0].message, "name it");
-    assert_eq!(breaches[0].severity, Severity::Warn);
+    assert_eq!(breaches[0].severity, Severity::Error);
 }
 
 #[test]

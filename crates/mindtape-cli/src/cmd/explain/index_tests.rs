@@ -78,13 +78,8 @@ fn groups_rules_by_section_and_drops_a_section_with_none() {
             "on.flip"
         ]
     );
-    assert_eq!(
-        index.rules[0].1,
-        [
-            (Label::Error, vec!["verb-title".to_owned()]),
-            (Label::Warn, vec!["[1]".to_owned(), "goals".to_owned()]),
-        ]
-    );
+    let names = ["verb-title", "[1]", "goals"].map(str::to_owned);
+    assert_eq!(index.rules[0].1, [(Label::Error, names.into())]);
     assert_eq!(
         index.rules[3].1,
         [(
@@ -203,12 +198,11 @@ task:
   comments: forbidden
   extensions: x-goals (goals)
   templates: decision, task (default: task)
-  rules (error): verb-title
-  rules (warn): [1], goals
+  rules (error): verb-title, [1], goals
   body.content (error): as-is
 commits:
   trailer: Refs
-  rules (warn): names-a-task
+  rules (error): names-a-task
 add:
   hooks: file-by-month
 flip:
@@ -490,9 +484,9 @@ fn json_carries_the_same_shape_and_grouping() {
     assert_eq!(
         value["rules"],
         serde_json::json!({
-            "tasks.rules": {"error": ["verb-title"], "warn": ["[1]", "goals"]},
+            "tasks.rules": {"error": ["verb-title", "[1]", "goals"]},
             "tasks.body.content.rules": {"error": ["as-is"]},
-            "commits.rules": {"warn": ["names-a-task"]},
+            "commits.rules": {"error": ["names-a-task"]},
             "on.flip": {"warn": ["review-stale-task-before-starting"]},
         })
     );

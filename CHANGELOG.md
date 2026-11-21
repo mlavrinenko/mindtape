@@ -99,6 +99,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A rule's `severity` defaults to `error`.** A `[[tasks.rules]]` or
+  `[[commits.rules]]` entry that names no level now refuses the write, like one
+  that says `error`. A project that wants an advisory rule writes
+  `severity = "warn"`: the rule reports and the command succeeds. A project
+  that relied on the old default fixes it with one line per rule, as
+  `examples/rules` does for its one advisory title rule.
 - **The `mt ls` footer names the filter it applied.** A view or a narrowing
   `[[ls.rules]]` entry shows its filter, or the view's `description` when it
   has one, as in

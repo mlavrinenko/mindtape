@@ -98,15 +98,15 @@ fn a_warn_breach_prints_and_passes() {
     );
 }
 
+/// The default severity is `error`, so a rule that leaves it out refuses the
+/// write. A project writes `warn` to make the rule advisory.
 #[test]
-fn severity_defaults_to_warn() {
-    let rule = "[[tasks.rules]]\n\
-                name = \"start-title-with-verb\"\n\
-                assert = 'in_dict(\"mindtape-dev-verbs\", word(title, 1))'\n";
-    let dir = project(rule, "Loader refactoring");
-    let (ok, text) = check(dir.path());
-    assert!(ok, "an undeclared severity is `warn`: {text}");
-    assert!(text.contains("warning: "), "got: {text}");
+fn severity_defaults_to_error() {
+    let dir = project(
+        "[[tasks.rules]]\nassert = 'kind == \"bug\"'\n",
+        "Refactor the loader",
+    );
+    support::assert_check_fails(dir.path(), "error: tasks/subject.typ:3: rules[0]");
 }
 
 #[test]

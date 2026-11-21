@@ -76,12 +76,27 @@ fn a_breach_carries_the_label_message_location_and_severity() {
     assert_eq!(location.line(), 3);
 }
 
+/// The one breach a rule over a task that is not a bug raises at `severity`,
+/// an empty string leaving the field out.
+fn bug_rule_breach(severity: &str) -> Violation {
+    let toml = format!("[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n{severity}");
+    sole_breach(&[task("a", "T", "wip")], &config(&toml))
+}
+
 #[test]
 fn a_warn_breach_is_not_fatal() {
-    let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n";
-    let breach = sole_breach(&[task("a", "T", "wip")], &config(toml));
+    let breach = bug_rule_breach("severity = \"warn\"\n");
     assert_eq!(breach.severity, Severity::Warn);
     assert!(!breach.is_fatal(), "warn prints, it does not fail");
+}
+
+/// The default severity is `error`, so a rule that leaves it out refuses the
+/// write. A project writes `warn` to make the rule advisory.
+#[test]
+fn a_rule_with_no_severity_reports_at_error() {
+    let breach = bug_rule_breach("");
+    assert_eq!(breach.severity, Severity::Error);
+    assert!(breach.is_fatal(), "the default must refuse the write");
 }
 
 /// Every check `Mindtape` makes on its own is fatal and labelled `error`.

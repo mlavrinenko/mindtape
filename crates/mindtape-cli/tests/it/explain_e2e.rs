@@ -94,10 +94,9 @@ fn bare_lists_every_listing_grouped() {
     let text = stdout(dir.path(), &["explain"]);
     for part in [
         "task:\n",
-        "  rules (error): verb-title\n",
-        "  rules (warn): [1]\n",
+        "  rules (error): verb-title, [1]\n",
         "  body.headers (error): one-problem\n",
-        "commits:\n  trailer: Refs\n  rules (warn): names-a-task\n",
+        "commits:\n  trailer: Refs\n  rules (error): names-a-task\n",
         "flip:\n  hooks (error): run the tests, then flip again\n",
         "rm:\n  filter: terminal\n",
         "derived fields: changes\n",
@@ -137,7 +136,7 @@ fn json_index_groups_and_listings_keep_their_keys() {
     mindtape::test_support::assert_schema_at(&index, "explain", 5);
     assert_eq!(
         index["rules"]["tasks.rules"],
-        serde_json::json!({"error": ["verb-title"], "warn": ["[1]"]})
+        serde_json::json!({"error": ["verb-title", "[1]"]})
     );
     assert_eq!(
         index["rules"]["on.flip"],
@@ -175,12 +174,12 @@ fn json_flag_parses_before_and_after_the_listing() {
 /// The task and body rules, padded to the widest name of the full list.
 const TASK_LINES: &str = "\
 error  tasks.rules.verb-title                open the title with an imperative verb
-warn   tasks.rules[1]                        must satisfy `has(title)`
+error  tasks.rules[1]                        must satisfy `has(title)`
 error  tasks.body.headers.rules.one-problem  keep one Problem section
 ";
 
 const COMMIT_LINE: &str =
-    "warn   commits.rules.names-a-task            name the task in a Refs: footer\n";
+    "error  commits.rules.names-a-task            name the task in a Refs: footer\n";
 
 const FLIP_LINE: &str =
     "error  on.flip[0].actions[0]                 run the tests, then flip again\n";
@@ -237,7 +236,7 @@ fn rules_for_keeps_the_rules_that_moment_checks() {
         ("flip", format!("{TASK_LINES}{FLIP_LINE}")),
         (
             "commit",
-            "warn   commits.rules.names-a-task  name the task in a Refs: footer\n".to_owned(),
+            "error  commits.rules.names-a-task  name the task in a Refs: footer\n".to_owned(),
         ),
     ] {
         let text = stdout(dir.path(), &["explain", "rules", "--for", moment]);

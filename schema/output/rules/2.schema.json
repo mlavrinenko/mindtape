@@ -137,12 +137,12 @@
       "oneOf": [
         {
           "const": "warn",
-          "description": "Print the breach, and the command still succeeds. The default.",
+          "description": "Print the breach, and the command still succeeds.",
           "type": "string"
         },
         {
           "const": "error",
-          "description": "Print the breach and fail the command.",
+          "description": "Print the breach and fail the command. This is the default, so a rule a\nproject writes refuses the write it exists to stop.",
           "type": "string"
         }
       ]

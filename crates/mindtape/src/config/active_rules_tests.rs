@@ -40,7 +40,7 @@ fn a_check_rule_lists_its_function_and_no_message() {
 }
 
 #[test]
-fn an_unnamed_commit_rule_warns_with_the_engine_advice() {
+fn an_unnamed_commit_rule_reports_the_engine_advice() {
     let listed = rules("[[commits.rules]]\nassert = 'has(refs)'\nwhen = '!tasks_only'\n");
 
     assert_eq!(
@@ -48,7 +48,7 @@ fn an_unnamed_commit_rule_warns_with_the_engine_advice() {
         [ActiveRule {
             section: RuleSection::CommitsRules,
             name: "commits.rules[0]".to_owned(),
-            severity: Severity::Warn,
+            severity: Severity::Error,
             message: Some("must satisfy `has(refs)`".to_owned()),
             when: Some("!tasks_only".to_owned()),
             assertion: Some("has(refs)".to_owned()),
