@@ -6,7 +6,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use super::{
-    BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
+    BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSource, DictSpec, Dicts, builtin_dict_names,
+    compile_dicts,
 };
 use crate::config::parse_config;
 use crate::problem::Problem;
@@ -311,6 +312,24 @@ fn an_empty_section_compiles_to_the_builtins_alone() {
 #[test]
 fn is_empty_tracks_the_entry_set() {
     let entries = ["add".to_owned()].into_iter().collect();
-    assert!(!Dict::new(entries, DictCase::Fold).is_empty());
+    assert!(!Dict::new(entries, DictCase::Fold, DictSource::Inline).is_empty());
     assert!(Dict::default().is_empty());
+}
+
+/// A built-in and an inline project dictionary cite no include. One that unions
+/// others in names them, in declaration order.
+#[test]
+fn source_names_the_included_dictionaries() {
+    let dicts = compile_inline(
+        "[dicts.base]\nvalues = [\"ship\"]\n\n\
+         [dicts.all]\ninclude = [\"base\", \"mindtape-verbs\"]\n",
+    )
+    .unwrap();
+    for name in ["mindtape-verbs", "base"] {
+        assert_eq!(dicts.get(name).unwrap().source(), &DictSource::Inline);
+    }
+    assert_eq!(
+        dicts.get("all").unwrap().source(),
+        &DictSource::Include(vec!["base".to_owned(), "mindtape-verbs".to_owned()])
+    );
 }

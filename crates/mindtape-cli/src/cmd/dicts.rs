@@ -1,9 +1,9 @@
-//! `mt explain dicts`: list the project's dictionaries (`[dicts]` and the
-//! built-ins), or the entries of one, as `in_dict()` and `@<dict>` read them.
+//! `mt dicts`: list the project's dictionaries (`[dicts]` and the built-ins),
+//! or the entries of one, as `in_dict()` and `@<dict>` read them.
 
 use std::collections::BTreeMap;
 
-use mindtape::{Dict, Dicts, Unknown};
+use mindtape::{Dict, DictSource, Dicts, Unknown};
 use serde::Serialize;
 
 use crate::cmd::schema::{DICT, DICTS};
@@ -11,22 +11,35 @@ use crate::diag::{Diag, Result};
 use crate::render::envelope::Envelope;
 use crate::util;
 
-/// Arguments for `mt explain dicts`.
+/// Arguments for `mt dicts`.
 #[derive(Debug, clap::Args)]
 pub struct DictsArgs {
     /// List this dictionary's entries instead of the dictionaries.
     pub name: Option<String>,
+
+    /// Print JSON.
+    #[arg(long)]
+    pub json: bool,
 }
 
-/// Run `mt explain dicts`.
+/// Run `mt dicts`.
 ///
 /// # Errors
 /// Returns an error if the project fails to open or the named dictionary is
 /// unknown.
-pub fn run(args: &DictsArgs, as_json: bool) -> Result<()> {
+pub fn run(args: &DictsArgs) -> Result<()> {
+    run_listing(args.name.as_deref(), args.json)
+}
+
+/// The listing and the entry mode, which `mt explain dicts` still calls.
+///
+/// # Errors
+/// Returns an error if the project fails to open or the named dictionary is
+/// unknown.
+pub(crate) fn run_listing(name: Option<&str>, as_json: bool) -> Result<()> {
     let project = util::open()?;
     let dicts = project.config.compiled_dicts();
-    let Some(name) = &args.name else {
+    let Some(name) = name else {
         if as_json {
             let payload = list_json(dicts);
             println!(
@@ -50,39 +63,63 @@ pub fn run(args: &DictsArgs, as_json: bool) -> Result<()> {
     Ok(())
 }
 
-/// Each line holds a dictionary's name, padded, then its count and case.
+/// Each line holds a dictionary's name, padded, then its count, case and
+/// source.
 fn list(dicts: &Dicts) -> String {
-    let width = dicts.names().map(str::len).max().unwrap_or(0);
+    let name_width = dicts.names().map(str::len).max().unwrap_or(0);
+    let count_width = dicts
+        .iter()
+        .map(|(_, dict)| dict.len().to_string().len())
+        .max()
+        .unwrap_or(1);
+    let case_width = dicts
+        .iter()
+        .map(|(_, dict)| case(dict).len())
+        .max()
+        .unwrap_or(0);
     dicts
         .iter()
         .map(|(name, dict)| {
             format!(
-                "{name:<width$}  {}, case {}\n",
-                mindtape::count(dict.len(), "entry"),
-                case(dict)
+                "{name:<name_width$}  {count:<count_width$}  case {case:<case_width$}  {source}\n",
+                count = dict.len(),
+                case = case(dict),
+                source = source(dict),
             )
         })
         .collect()
 }
 
-/// The object `mt explain dicts --json` prints: every dictionary's case and
-/// entry count.
+/// The source column: `inline`, or the names it includes.
+fn source(dict: &Dict) -> String {
+    match dict.source() {
+        DictSource::Inline => "inline".to_owned(),
+        DictSource::Include(names) => format!("include: {}", names.join(", ")),
+    }
+}
+
+/// The object `mt dicts --json` prints: every dictionary's case, entry count
+/// and source.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 pub struct DictsPayload {
     /// Each dictionary's summary, by name.
     pub dicts: BTreeMap<String, DictSummaryJson>,
 }
 
-/// One dictionary's case and entry count.
+/// One dictionary's case, entry count and source.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 pub struct DictSummaryJson {
     /// `fold` or `exact`.
     pub case: String,
     /// How many entries it resolved to.
     pub count: usize,
+    /// `inline`, or `include` when it unions in other dictionaries.
+    pub source: String,
+    /// The dictionaries it unions in, empty for an `inline` one.
+    pub include: Vec<String>,
 }
 
-/// The object `mt explain dicts <name> --json` prints: one dictionary.
+/// The object `mt dicts <name> --json` prints: one dictionary.
 #[derive(Debug, Serialize, schemars::JsonSchema)]
 pub struct DictDetailJson {
     /// The dictionary's name.
@@ -95,7 +132,7 @@ pub struct DictDetailJson {
     pub entries: Vec<String>,
 }
 
-/// Each dictionary's name mapped to its case and entry count.
+/// Each dictionary's name mapped to its case, entry count and source.
 fn list_json(dicts: &Dicts) -> DictsPayload {
     DictsPayload {
         dicts: dicts
@@ -104,6 +141,8 @@ fn list_json(dicts: &Dicts) -> DictsPayload {
                 let summary = DictSummaryJson {
                     case: case(dict).to_owned(),
                     count: dict.len(),
+                    source: source_word(dict).to_owned(),
+                    include: includes(dict).to_owned(),
                 };
                 (name.to_owned(), summary)
             })
@@ -126,6 +165,22 @@ fn case(dict: &Dict) -> &'static str {
     match dict.case() {
         mindtape::DictCase::Fold => "fold",
         mindtape::DictCase::Exact => "exact",
+    }
+}
+
+/// The `source` value: `inline` or `include`.
+fn source_word(dict: &Dict) -> &'static str {
+    match dict.source() {
+        DictSource::Inline => "inline",
+        DictSource::Include(_) => "include",
+    }
+}
+
+/// The dictionaries this one includes, empty when the source is `inline`.
+fn includes(dict: &Dict) -> &[String] {
+    match dict.source() {
+        DictSource::Inline => &[],
+        DictSource::Include(names) => names,
     }
 }
 

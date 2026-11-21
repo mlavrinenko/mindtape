@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "DictSummaryJson": {
+      "description": "One dictionary's case, entry count and source.",
+      "properties": {
+        "case": {
+          "description": "`fold` or `exact`.",
+          "type": "string"
+        },
+        "count": {
+          "description": "How many entries it resolved to.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "include": {
+          "description": "The dictionaries it unions in, empty for an `inline` one.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "source": {
+          "description": "`inline`, or `include` when it unions in other dictionaries.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "case",
+        "count",
+        "source",
+        "include"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/dicts/2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt dicts --json` prints: each dictionary's case, entry count and source, by name.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "dicts": {
+      "additionalProperties": {
+        "$ref": "#/$defs/DictSummaryJson"
+      },
+      "description": "Each dictionary's summary, by name.",
+      "type": "object"
+    }
+  },
+  "required": [
+    "$schema",
+    "dicts"
+  ],
+  "title": "Mindtape dictionaries",
+  "type": "object"
+}

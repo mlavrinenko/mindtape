@@ -2,8 +2,9 @@
 //!
 //! Bare prints an index of every listing: the rules grouped by section, the
 //! derived fields, and the tags, views, dictionaries and templates the project
-//! declares. A listing prints one of them in full, unchanged from the command
-//! it replaces.
+//! declares. A listing prints one of them in full. `dicts` is the exception:
+//! `mt dicts` owns that listing, and the arm here dispatches to it until
+//! `mt explain` retires.
 
 use std::path::PathBuf;
 
@@ -16,7 +17,6 @@ use crate::render::envelope::Envelope;
 use crate::util;
 
 pub(crate) mod add;
-pub(crate) mod dicts;
 pub(crate) mod index;
 pub(crate) mod rules;
 pub(crate) mod tags;
@@ -56,12 +56,21 @@ pub enum Listing {
     /// List your saved views, or show one.
     Views(views::ViewsArgs),
     /// List your dictionaries, or the entries of one.
-    Dicts(dicts::DictsArgs),
+    ///
+    /// `mt dicts` is the command that owns this listing.
+    Dicts(DictsArgs),
     /// List the templates `mt add` accepts, one line each.
     ///
     /// Each line gives the template's name, the `kind` it sets, its slot
     /// count, and `default` on the one `mt add` picks.
     Templates,
+}
+
+/// Arguments for `mt explain dicts`, whose listing `mt dicts` owns.
+#[derive(Debug, clap::Args)]
+pub struct DictsArgs {
+    /// List this dictionary's entries instead of the dictionaries.
+    pub name: Option<String>,
 }
 
 /// Run `mt explain`.
@@ -75,7 +84,9 @@ pub fn run(args: &ExplainArgs) -> Result<()> {
         Some(Listing::Rules(rules)) => rules::run(rules, args.json),
         Some(Listing::Tags(tags)) => tags::run(tags, args.json),
         Some(Listing::Views(views)) => views::run(views, args.json),
-        Some(Listing::Dicts(dicts)) => dicts::run(dicts, args.json),
+        Some(Listing::Dicts(listing)) => {
+            crate::cmd::dicts::run_listing(listing.name.as_deref(), args.json)
+        }
         Some(Listing::Templates) => templates::run(args.json),
     }
 }

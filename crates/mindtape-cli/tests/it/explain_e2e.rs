@@ -342,9 +342,9 @@ fn views_lists_and_inspects_a_named_view() {
 }
 
 /// The map `mt explain <listing> --json` wraps in `$schema`.
-fn listed_map(dir: &std::path::Path, listing: &str) -> serde_json::Value {
+fn listed_map(dir: &std::path::Path, listing: &str, version: u32) -> serde_json::Value {
     let value = json(dir, &["explain", listing, "--json"]);
-    support::assert_schema(&value, listing);
+    mindtape::test_support::assert_schema_at(&value, listing, version);
     value[listing].clone()
 }
 
@@ -363,7 +363,7 @@ fn views_json_wraps_the_map_and_a_named_view_stays_flat() {
         "[tasks]\nroots = [\"tasks\"]\n\n\
          [views.hot]\nfilter = 'priority > 5'\nsort = ['priority:desc']\n",
     );
-    let hot = listed_map(dir.path(), "views");
+    let hot = listed_map(dir.path(), "views", 1);
     assert_eq!(
         hot["hot"],
         serde_json::json!({
@@ -394,57 +394,31 @@ fn views_unknown_name_suggests_the_near_miss() {
     );
 }
 
-/// The dictionary list, one dictionary's entries, and the refusal that reports
-/// the command which lists them.
+/// `mt explain dicts` still works as a thin alias for `mt dicts`, which owns
+/// the listing and the entry mode.
 #[test]
-fn dicts_lists_counts_and_entries() {
+fn explain_dicts_delegates_to_mt_dicts() {
     let dir = scaffold_project(
         "[tasks]\nroots = [\"tasks\"]\n\n\
-         [dicts.verbs]\nvalues = [\"vote\", \"Rose\", \"rotate\"]\n\n\
          [dicts.labels]\nvalues = [\"BILLING\", \"Auth\"]\ncase = \"exact\"\n",
     );
-    let listed = stdout(dir.path(), &["explain", "dicts"]);
-    assert!(listed.contains("labels"), "{listed}");
-    assert!(listed.contains("2 entries, case exact"), "{listed}");
-    assert!(listed.contains("3 entries, case fold"), "{listed}");
-
-    assert_eq!(
-        stdout(dir.path(), &["explain", "dicts", "labels"]),
-        "Auth\nBILLING\n"
-    );
-    let dicts = listed_map(dir.path(), "dicts");
-    assert_eq!(
-        dicts["labels"],
-        serde_json::json!({"case": "exact", "count": 2})
-    );
-    assert_eq!(
-        dicts["verbs"],
-        serde_json::json!({"case": "fold", "count": 3})
-    );
-    let value = json(dir.path(), &["explain", "dicts", "labels", "--json"]);
-    support::assert_schema(&value, "dict");
-    let value = support::without_schema(value);
-    assert_eq!(
-        value,
-        serde_json::json!({
-            "name": "labels", "case": "exact", "count": 2, "entries": ["Auth", "BILLING"],
-        })
-    );
-
-    let (ok, text) = run_text(dir.path(), &["explain", "dicts", "verbz"]);
-    assert!(!ok, "{text}");
-    assert!(text.contains("hint: did you mean verbs?"), "{text}");
-    assert!(
-        text.contains("hint: use one of: labels, mindtape-dev-verbs, mindtape-verbs, verbs"),
-        "{text}"
-    );
+    for args in [&["dicts"][..], &["dicts", "labels"]] {
+        let mut wrapped = vec!["explain"];
+        wrapped.extend_from_slice(args);
+        assert_eq!(
+            stdout(dir.path(), &wrapped),
+            stdout(dir.path(), args),
+            "mt explain {args:?}"
+        );
+    }
 }
 
-/// The replacement is whole: no old spelling survives as an alias.
+/// The replacement is whole: no old spelling survives as an alias. `dicts` is
+/// not one of them: it has a command of its own.
 #[test]
-fn the_four_old_commands_are_gone() {
+fn the_old_listing_commands_are_gone() {
     let dir = project();
-    for command in ["rules", "tags", "views", "dicts"] {
+    for command in ["rules", "tags", "views"] {
         let (ok, text) = run_text(dir.path(), &[command]);
         assert!(!ok, "`mt {command}` must not parse: {text}");
         assert!(text.contains("unknown command"), "{text}");

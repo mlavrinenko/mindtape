@@ -8,14 +8,14 @@
 //!
 //! - `add/`, `check/`, `flip/`, `init/`: `mt add`, `mt check`, `mt flip` (with
 //!   the status shortcut verbs) and `mt init` (with its wizard, presets, axes).
-//! - `explain/`: `mt explain` and its four listings, one file each.
+//! - `explain/`: `mt explain` and its listings, one file each.
 //! - `graph/`, `import/`, `install/`, `link/`, `ls/`, `packs/`, `recur/`,
 //!   `rm/`: the commands split over helper files, or with subcommands of
 //!   their own.
 //! - `fix/`: `mt fix`, which rewrites an unsupported prelude import.
-//! - `allow.rs`, `config.rs`, `eval.rs`, `find.rs`, `go.rs`, `mv.rs`,
-//!   `preset.rs`, `review.rs`, `schema.rs`, `set.rs`, `at.rs`, `board.rs`:
-//!   one file each.
+//! - `allow.rs`, `config.rs`, `dicts.rs`, `eval.rs`, `find.rs`, `go.rs`,
+//!   `mv.rs`, `preset.rs`, `review.rs`, `schema.rs`, `set.rs`, `at.rs`,
+//!   `board.rs`: one file each.
 //! - `hooks.rs`: the `show` / `list` presentation `mt flip` and `mt rm` share
 //!   before they run a hook's `run` action.
 //! - `write_guard.rs`: the destination guard `mt add`, `mt import` and
@@ -27,6 +27,7 @@ pub(crate) mod at;
 pub(crate) mod board;
 pub(crate) mod check;
 pub(crate) mod config;
+pub(crate) mod dicts;
 pub(crate) mod eval;
 pub(crate) mod explain;
 pub(crate) mod find;

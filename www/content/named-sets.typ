@@ -101,10 +101,11 @@ An included dictionary's entries compare under the including dictionary's
 Your own dictionary names can't start with `mindtape-`, because that prefix
 is for the built-ins.
 
-`mt explain dicts` lists every dictionary with its entry count and case, the
-built-ins included. `mt explain dicts <name>` prints one dictionary's entries, one per
-line, after `mt` merges `include`, `values` and `path`. That's the list a rule
-reading the dictionary accepts, and a `fold` dictionary prints it lowercase:
+`mt dicts` lists every dictionary with its entry count, case and source, the
+built-ins included. A dictionary built from `include` names the dictionaries it
+sums. `mt dicts <name>` prints one dictionary's entries, one per line, after
+`mt` merges `include`, `values` and `path`. That's the list a rule reading the
+dictionary accepts, and a `fold` dictionary prints it lowercase:
 
 #terminal("named-sets-dicts")
 
@@ -132,7 +133,7 @@ outside the list and exits #exit-code("named-sets-allowed"):
 When a rule refuses a task because `in_dict()` missed, the refusal says which
 word the dictionary lacks and names up to three of its nearest entries, as in
 #capture-line("start-titles-with-a-verb", "^hint: '"). A second hint runs
-`mt explain dicts` on that dictionary, so you can read every entry.
+`mt dicts` on that dictionary, so you can read every entry.
 
 `mt` checks every dictionary when it loads the config. Each must have a
 source and resolve to at least one entry. Each `path` must be readable. Each

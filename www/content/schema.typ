@@ -194,7 +194,7 @@ Every command output has its own file. The odd names map to their command:
 `explain-add` is `mt explain add --json`, `explain-templates` is
 `mt explain templates --json`, `config-show` is
 `mt config show --json`, `view` is `mt explain views <name> --json`, and `dict`
-is `mt explain dicts <name> --json`. The rest take their command's name: `ls`,
+is `mt dicts <name> --json`. The rest take their command's name: `ls`,
 `add`, `check`, `graph`, `explain`, `rules`, `tags`, `eval`, `board`, `at`,
 `packs`, `views` and `dicts`.
 

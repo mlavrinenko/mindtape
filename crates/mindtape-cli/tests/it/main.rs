@@ -55,6 +55,7 @@ mod config_warnings_e2e;
 mod crap_baseline_merge_e2e;
 mod date_pin_e2e;
 mod derived_fields_e2e;
+mod dicts_e2e;
 mod error_format_e2e;
 mod estimate_queries_e2e;
 mod estimate_rules_e2e;

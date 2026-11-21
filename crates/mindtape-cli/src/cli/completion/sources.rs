@@ -88,7 +88,7 @@ pub(super) fn view_names(prefix: &str) -> Vec<CompletionCandidate> {
     })
 }
 
-/// Dictionary names, exactly the set `mt explain dicts` lists.
+/// Dictionary names, exactly the set `mt dicts` lists.
 pub(super) fn dict_names() -> Vec<CompletionCandidate> {
     from_project(|project| {
         (project.config.compiled_dicts().names())

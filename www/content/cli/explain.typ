@@ -118,12 +118,14 @@ wraps the list in `views` under `$schema`. One named view prints flat under
 
 = Dictionaries
 
-`mt explain dicts` lists the project's dictionaries, or one dictionary's
-entries by name. `--json` wraps the list in `dicts`, each with its `case` and
-`count`, under `$schema`. One named dictionary prints flat under `$schema`.
-That's the list a rule reading the dictionary accepts. To declare a
+`mt explain dicts` is the older spelling of
+#link(u("/cli/dicts/"))[`mt dicts`], which lists every dictionary with its
+entry count, case and source, or one dictionary's entries by name. `--json`
+wraps the list in `dicts`, each with its `case`, `count`, `source` and
+`include` names, under `$schema`. One named dictionary prints flat under
+`$schema`. That's the list a rule reading the dictionary accepts. To declare a
 dictionary, or to see how its entries merge, read
-#link(u("/named-sets/#dictionaries"))[Views and dictionaries].
+#link(u("/named-sets/#dictionaries"))[Views & dictionaries].
 
 = Templates
 

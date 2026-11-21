@@ -8,8 +8,8 @@ use crate::cmd::add::values::DescribePayload;
 use crate::cmd::at::{AtListPayload, AtProjectJson, AtSetJson};
 use crate::cmd::board::BoardPayload;
 use crate::cmd::config::ConfigShowPayload;
+use crate::cmd::dicts::{DictDetailJson, DictsPayload};
 use crate::cmd::explain::add::AddPayload;
-use crate::cmd::explain::dicts::{DictDetailJson, DictsPayload};
 use crate::cmd::explain::templates::TemplatesPayload;
 use crate::cmd::explain::views::ViewsPayload;
 use crate::cmd::packs::PacksPayload;
@@ -157,13 +157,13 @@ pub const VIEW: SchemaId = SchemaId {
     version: 1,
 };
 
-/// `mt explain dicts --json`.
+/// `mt dicts --json`.
 pub const DICTS: SchemaId = SchemaId {
     name: "dicts",
-    version: 1,
+    version: 2,
 };
 
-/// `mt explain dicts <name> --json`.
+/// `mt dicts <name> --json`.
 pub const DICT: SchemaId = SchemaId {
     name: "dict",
     version: 1,
@@ -233,9 +233,10 @@ const VIEW_TITLE: &str = "Mindtape view";
 const VIEW_DESCRIPTION: &str = "The object `mt explain views <name> --json` prints: one view's filter, sort, columns and description.";
 const DICTS_TITLE: &str = "Mindtape dictionaries";
 const DICTS_DESCRIPTION: &str =
-    "The object `mt explain dicts --json` prints: each dictionary's case and entry count, by name.";
+    "The object `mt dicts --json` prints: each dictionary's case, entry count and source, by name.";
 const DICT_TITLE: &str = "Mindtape dictionary";
-const DICT_DESCRIPTION: &str = "The object `mt explain dicts <name> --json` prints: one dictionary's name, case, count and entries.";
+const DICT_DESCRIPTION: &str =
+    "The object `mt dicts <name> --json` prints: one dictionary's name, case, count and entries.";
 const CONFIG_SHOW_TITLE: &str = "Mindtape effective config";
 const CONFIG_SHOW_DESCRIPTION: &str = "The object `mt config show --json` prints: the merged config under `config`, shaped as `.mindtape/config.toml`.";
 // jscpd:ignore-end

@@ -255,8 +255,8 @@ fn live_collection_outputs_validate_against_their_schemas() {
             ("describe", &["add", "--describe=json"][..]),
             ("views", &["explain", "views", "--json"][..]),
             ("view", &["explain", "views", "hot", "--json"][..]),
-            ("dicts", &["explain", "dicts", "--json"][..]),
-            ("dict", &["explain", "dicts", "labels", "--json"][..]),
+            ("dicts", &["dicts", "--json"][..]),
+            ("dict", &["dicts", "labels", "--json"][..]),
             ("config-show", &["config", "show", "--json"][..]),
         ],
     );

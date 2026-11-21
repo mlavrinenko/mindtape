@@ -161,12 +161,13 @@ groups:
       - www/content/agents.typ
       - docs/src/skill.typ
 
-  # `mt explain dicts`: the listing's count and case, and one dictionary's merged
-  # entries.
+  # `mt dicts`: the listing's count, case and source, and one dictionary's
+  # merged entries.
   - name: cli-dicts-docs
     source:
-      - crates/mindtape-cli/src/cmd/explain/dicts.rs
+      - crates/mindtape-cli/src/cmd/dicts.rs
     dependents:
+      - www/content/cli/dicts.typ
       - www/content/cli/explain.typ
       - www/content/named-sets.typ
       - www/content/agents.typ
@@ -523,7 +524,7 @@ groups:
   # The two word lists `mt` ships as the `mindtape-verbs` and
   # `mindtape-dev-verbs` dictionaries. The pages restate them by hand: the
   # 500-verb count, sample words such as `refactor` and `rate-limit`, and the
-  # words ("Backport") that neither list holds. The `mt explain dicts` output they
+  # words ("Backport") that neither list holds. The `mt dicts` output they
   # capture is generated, so only this prose can drift.
   - name: dict-words-docs
     source:

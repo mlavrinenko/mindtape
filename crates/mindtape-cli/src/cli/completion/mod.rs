@@ -205,6 +205,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("find", "sort", Source::ViewRefs),
     ("find", "columns", Source::ViewRefs),
     ("graph", "filter", Source::ViewRefs),
+    ("dicts", "name", Source::Dicts),
     ("explain views", "name", Source::Views),
     ("explain dicts", "name", Source::Dicts),
     (

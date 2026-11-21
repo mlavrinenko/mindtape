@@ -125,6 +125,18 @@ fn ls_offers_view_references() {
     );
 }
 
+/// `mt dicts <TAB>` offers this project's dictionaries and the built-ins.
+#[test]
+fn dicts_offers_the_dictionary_names() {
+    let candidates = complete(&example("api-service"), &["mt", "dicts", ""]);
+    for name in ["services", "verbs", "mindtape-verbs"] {
+        assert!(
+            candidates.contains(&name.to_owned()),
+            "dicts: {candidates:?}"
+        );
+    }
+}
+
 /// `mt explain dicts <TAB>` offers this project's dictionaries and the
 /// built-ins.
 #[test]

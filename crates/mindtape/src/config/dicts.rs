@@ -90,23 +90,39 @@ pub enum DictCase {
     Exact,
 }
 
+/// Where a compiled dictionary's entries came from: written inline, or the
+/// dictionaries it unions in.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub enum DictSource {
+    /// `values`, a `path` file, or a built-in data file.
+    #[default]
+    Inline,
+    /// The dictionaries named by `include`, in declaration order.
+    Include(Vec<String>),
+}
+
 /// One compiled dictionary, holding the resolved entry set already normalised
 /// for the case policy, so a lookup is a set probe and nothing more.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Dict {
     entries: BTreeSet<String>,
     case: DictCase,
+    source: DictSource,
 }
 
 impl Dict {
     /// Compile `entries` under `case`, normalising them so [`Dict::contains`]
     /// never has to fold both sides.
-    fn new(entries: BTreeSet<String>, case: DictCase) -> Self {
+    fn new(entries: BTreeSet<String>, case: DictCase, source: DictSource) -> Self {
         let entries = match case {
             DictCase::Exact => entries,
             DictCase::Fold => entries.iter().map(|e| e.to_ascii_lowercase()).collect(),
         };
-        Self { entries, case }
+        Self {
+            entries,
+            case,
+            source,
+        }
     }
 
     /// `value` as this dictionary's entries store it: folded under `fold`.
@@ -137,6 +153,12 @@ impl Dict {
     #[must_use]
     pub fn case(&self) -> DictCase {
         self.case
+    }
+
+    /// Where its entries came from: inline, or the dictionaries it includes.
+    #[must_use]
+    pub fn source(&self) -> &DictSource {
+        &self.source
     }
 
     /// How many entries it resolved to.
@@ -202,7 +224,10 @@ fn builtin_dicts() -> Dicts {
             .iter()
             .map(|(name, text)| {
                 let entries = parse_entries(text).into_iter().collect();
-                ((*name).to_owned(), Dict::new(entries, DictCase::Fold))
+                (
+                    (*name).to_owned(),
+                    Dict::new(entries, DictCase::Fold, DictSource::Inline),
+                )
             })
             .collect(),
     )
@@ -415,7 +440,11 @@ fn compile_dicts_in(
             problems.push(Problem::new(format!("dicts.{name}: no entries")));
             continue;
         }
-        compiled.insert(name, Dict::new(entries, case));
+        let source = match includes.get(&name) {
+            Some(names) if !names.is_empty() => DictSource::Include(names.clone()),
+            _ => DictSource::Inline,
+        };
+        compiled.insert(name, Dict::new(entries, case, source));
     }
     if problems.is_empty() {
         Ok(Dicts(compiled))

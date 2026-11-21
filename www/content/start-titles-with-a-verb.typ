@@ -50,7 +50,7 @@ old done task with a noun for a title doesn't fail `mt check`.
 `include` pulls in the two word lists `mt` provides. `mindtape-verbs` contains the
 500 most frequent English verbs, and `mindtape-dev-verbs` adds the ones
 software work uses, like `refactor`, `deprecate` and `rate-limit`. Run
-`mt explain dicts verbs` to see every word the rule accepts, yours included.
+`mt dicts verbs` to see every word the rule accepts, yours included.
 
 To accept a word such as "dockerize" or "backport", put it in `values`. A
 longer list fits better in a file with one word per line, named by `path`.

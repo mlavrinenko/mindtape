@@ -122,8 +122,8 @@ pub use crate::config::collect::{
     RegexQuery, SectionSpec, TypstQuery, returns_of,
 };
 pub use crate::config::dicts::{
-    BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
-    validate_dicts,
+    BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSource, DictSpec, Dicts, builtin_dict_names,
+    compile_dicts, validate_dicts,
 };
 pub use crate::config::format::FormatConfig;
 pub use crate::config::go::GoConfig;

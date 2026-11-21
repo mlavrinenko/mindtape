@@ -187,7 +187,22 @@
   ),
   "explain.tags": (:),
   "explain.views": (outputs: ("views",)),
-  "explain.dicts": (outputs: ("dicts",)),
+  "explain.dicts": (:),
+
+  // ── Dictionaries ──────────────────────────────────────────────────────────
+  "dicts": (
+    prose: [`mt dicts` lists every dictionary the project can read: its
+      `[dicts.<name>]` sections and the built-ins `mt` provides. Each line gives
+      the name, the entry count it resolved to, whether a lookup folds case,
+      and where the entries come from. `inline` covers `values`, a `path` file
+      and a built-in. `include:` names the dictionaries it unions in, so a
+      dictionary built from both built-in word lists shows their count
+      together. `mt dicts <name>` prints one dictionary's entries, one per
+      line, after `mt` merges `include`, `values` and `path`. That's the list
+      a rule reading the dictionary accepts, and a `fold` dictionary prints it
+      lowercase.],
+    outputs: ("dicts",),
+  ),
 
   // ── Status ──────────────────────────────────────────────────────────────────
   "flip": (

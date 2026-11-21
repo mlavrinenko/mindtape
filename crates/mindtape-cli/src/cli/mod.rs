@@ -24,10 +24,10 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::eval,
-    cmd::explain, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init,
-    cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs, cmd::preset as preset_cmd,
-    cmd::recur, cmd::review, cmd::rm, cmd::schema, cmd::set,
+    cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::dicts,
+    cmd::eval, cmd::explain, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import,
+    cmd::init, cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs,
+    cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::schema, cmd::set,
 };
 
 /// `Mindtape` keeps your tasks as Typst files and checks them against your rules.
@@ -186,6 +186,12 @@ enum Command {
     /// A listing prints one in full, with `--for` on the rules and tags and
     /// `--json` on every one.
     Explain(explain::ExplainArgs),
+    /// List the project's dictionaries, or one dictionary's entries.
+    ///
+    /// A dictionary shows how many entries it resolved to, whether lookups
+    /// fold case, and where its entries come from: written inline, or the
+    /// dictionaries it includes, named after `include:`.
+    Dicts(dicts::DictsArgs),
     /// Trust the commands your config runs in this repo.
     ///
     /// Those are its `[[tasks.waits]]` checkers and `[[on.flip]]` `run`
@@ -264,6 +270,7 @@ fn dispatch(command: Command) -> Result<()> {
         Command::Config(args) => config_cmd::run(&args),
         Command::Schema(args) => schema::run(&args),
         Command::Explain(args) => explain::run(&args),
+        Command::Dicts(args) => dicts::run(&args),
         command => dispatch_more(command),
     }
 }

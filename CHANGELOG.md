@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt dicts` lists the project's dictionaries.** Each line gives the
+  dictionary's name, the entry count it resolved to, its case, and its source:
+  `inline` for `values`, a `path` file or a built-in, or `include:` naming the
+  dictionaries it unions in, so a dictionary built from the two shipped word
+  lists shows their count together. `mt dicts <name>` prints one dictionary's
+  entries, as `mt explain dicts <name>` does, and `--json` carries the same
+  list. `schema/output/dicts/2.schema.json` records the source, and `dicts/1`
+  stays for the shape `mt explain dicts` printed before.
 - **`mt config show --resolved` prints the config `mt` uses.** The default view
   prints what the layers set, so a rule with no `severity` shows no level at
   all. `--resolved` prints the loaded config instead, every default filled in,
