@@ -117,7 +117,7 @@ A problem about the backlog or the file's place doesn't count. That covers a
 `count()` cap, a rule on `ready`, `blocked`, `path` or `dir`, a link cycle, and
 a link to a task that isn't there.
 
-A slot with neither an `example` nor a `default` leaves nothing to fill.
+A slot with neither an `example` nor a `default` leaves the field empty.
 `mt check` then reports the slot and doesn't check anything else in that
 template. When
 `mt add` adds a slot for a required field, the slot's example comes from

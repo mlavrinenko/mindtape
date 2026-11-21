@@ -66,7 +66,7 @@ in a closing report no one rereads. Its home is
 
 == Out of scope
 
-- `path0`, which already prints nothing for no tasks.
+- `path0`, which already renders an empty body for a listing with no tasks.
 
 
 == Dogfood

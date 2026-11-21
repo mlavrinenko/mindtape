@@ -50,7 +50,7 @@ A passing #just.check() prints one line, such as
 `check: <n> gates passed (<ran> run, <cached> cached)`. An agent reads
 the output once the run ends, and every line costs it context. For a reader
 that only sees the final output, a gate's progress lines and clean-tree report
-add nothing to the pass summary. A failing run prints the full log of each failed gate, then a verdict
+stay out of the pass summary. A failing run prints the full log of each failed gate, then a verdict
 naming them, such as `check: 1 of <n> gates failed: just clippy`, and exits
 non-zero. The verdict ends with `(10 not run)` when a red stage stopped the run
 before later stages.

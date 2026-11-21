@@ -35,8 +35,8 @@ two tasks.
 
 If your project has goals, you can require every task to say how it serves
 each one. List the goals in a Typst module. Each task answers in an `x-goals`
-field. #mindtape keeps any field named `x-<name>` as written and checks nothing
-in it on its own.
+field. #mindtape keeps any field named `x-<name>` as written and leaves its
+meaning to the project.
 
 #raw(
   render-slices(code, (("goals", "the goals every task must address"),)),

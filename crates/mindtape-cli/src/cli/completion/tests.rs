@@ -55,8 +55,8 @@ fn every_source_entry_names_a_real_argument() {
 }
 
 /// `mt install` writes one hook per shell `clap_complete` can answer for. A
-/// shell the library gains and this table lacks would install nothing for the
-/// users on it, silently.
+/// shell the library gains and this table lacks would leave the users on it
+/// without a hook, silently.
 #[test]
 fn the_installed_hooks_cover_every_shell_the_engine_answers_for() {
     let mut engine: Vec<&str> = Shells::builtins().names().collect();

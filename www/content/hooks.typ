@@ -76,7 +76,7 @@ hooks.
 `message` replaces the advice `mt` prints when a gate refuses or a command
 fails. `title` goes with `list`, and `gate` and `message` go with `run`.
 Actions run in the order written. A gate that refuses stops the actions after
-it, and `mt` writes nothing for that task.
+it, and the task file stays untouched.
 
 When a command fails, `mt` adds a line saying what happened to the write. A
 gate that fails refuses the write, and the refusal prints the command it ran

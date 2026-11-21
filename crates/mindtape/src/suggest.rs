@@ -11,9 +11,9 @@ use strsim::normalized_damerau_levenshtein;
 
 /// Below this normalized Damerau-Levenshtein similarity, in which a swap of
 /// two letters is one edit, a candidate is not close enough to name. The
-/// scale runs from 0.0 for strings that share nothing to 1.0 for identical
-/// ones. The far-miss case falls back to the enumeration alone rather than
-/// pointing at an unrelated name. 0.5 clears a single-character typo or
+/// scale runs from 0.0 for two strings with no letters in common to 1.0 for
+/// identical ones. The far-miss case falls back to the enumeration alone rather
+/// than pointing at an unrelated name. 0.5 clears a single-character typo or
 /// transposition on a short name (`"fpo"` vs `"foo"` scores 0.67) while
 /// excluding names that merely share a substring (`"backlog"` vs `"blocked"`
 /// scores 0.43).

@@ -32,8 +32,8 @@
 //! - The [`Kind`] decides the exit code: 2 when the command line was wrong
 //!   ([`Diag::usage`]), 1 when the project refused the work or it failed
 //!   ([`Diag::refused`], [`Diag::failed`]). No command picks a number.
-//! - For a write command, `error:` means the command wrote nothing for that
-//!   task. A batch of many targets ends with one [`Diag::batch`] summary. A
+//! - For a write command, `error:` means the command left that task unchanged.
+//!   A batch of many targets ends with one [`Diag::batch`] summary. A
 //!   single target gets none.
 //! - Colour goes on the prefix only, when stderr is a terminal or `--color`
 //!   says so.

@@ -7,6 +7,7 @@
 # `dicts` holds the two verb dictionaries `mt` ships. The `Commits.Imperative`
 # rule embeds them, so a commit subject and a task title accept the same verbs.
 {
+  lib,
   runCommandLocal,
   yq-go,
   vale-ai-tells,
@@ -21,6 +22,12 @@ let
   google = "${vale-google}/Google";
   microsoft = "${vale-microsoft}/Microsoft";
   writeGood = "${vale-write-good}/write-good";
+
+  # The noun tail every token but `NegatedObject`'s finding verb ends with.
+  # Upstream stops that one at a single letter, so "finds no match" reports
+  # as "finds no m"; the edit below appends this tail so the span ends on the
+  # noun it names.
+  nounTail = "(?:['\"‘“`]?[a-z][-a-z]*\\b|\\*+)";
 in
 runCommandLocal "mindtape-vale-styles" { nativeBuildInputs = [ yq-go ]; } ''
   ai=${ai}
@@ -86,6 +93,31 @@ runCommandLocal "mindtape-vale-styles" { nativeBuildInputs = [ yq-go ]; } ''
   sed -i 's/^# NOTE:/# Note:/' "$out/Prose/AnthropomorphicJustification.yml"
   sed -i 's/the OO docs register/the object-oriented docs register/' \
     "$out/Prose/NegatedObject.yml"
+
+  # The finding verb reports one letter ("finds no m") and carries an idiom
+  # list of its own, so "finds no way" passes where "shows no way" fires. It
+  # takes the noun tail and the list every other token uses.
+  export NOUN_TAIL=${lib.escapeShellArg nounTail}
+  yq -i '
+    (.tokens[] | select(test("finds\\?\\|found"))) |= (
+      sub("\\[a-z\\]$"; strenv(NOUN_TAIL))
+      | sub("\\|doubt\\|way\\|point\\|reason\\|need\\|end"; "")
+    )
+  ' "$out/Prose/NegatedObject.yml"
+
+  # "Nothing" takes the object it negates, so the lookahead keeps the
+  # comparatives and idioms ("nothing but", "nothing more", "nothing less",
+  # "nothing else") and drops the prepositions, which open an object and not an
+  # idiom ("prints nothing to stdout", "writes nothing on disk"). Its verb list
+  # also repeats four verbs.
+  yq -i '
+    (.tokens[] | select(test(" nothing"))) |= (
+      sub("\\|to\\|"; "|")
+      | sub("\\|for\\|from\\|in\\|on\\|"; "|")
+      | (capture("^(?P<head>.*?\\(\\?:)(?P<verbs>[a-z?]+(?:\\|[a-z?]+)+)\\) nothing(?P<tail>.*)$") as $t
+         | $t.head + ($t.verbs | split("|") | unique | join("|")) + ") nothing" + $t.tail)
+    )
+  ' "$out/Prose/NegatedObject.yml"
 
   cp -r ${local}/Prose/. "$out/Prose/"
   cp -r ${local}/Sep/. "$out/Sep/"

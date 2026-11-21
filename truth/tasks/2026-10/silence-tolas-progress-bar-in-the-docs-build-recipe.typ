@@ -47,7 +47,7 @@ in a closing report no one rereads. Its home is
 
 == TO-BE
 
-- 🟢 A clean `just docs build` prints nothing from tola, and a failing one prints tola's whole report.
+- 🟢 A clean `just docs build` keeps tola quiet, and a failing one prints tola's whole report.
 
 
 == Changes

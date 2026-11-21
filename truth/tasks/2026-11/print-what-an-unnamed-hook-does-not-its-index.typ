@@ -74,7 +74,7 @@ rm:
 
 == Out of scope
 
-- `mt explain rules`. Its `(no message set)` column stays: a gate with no message prints nothing on a breach.
+- `mt explain rules`. Its `(no message set)` column stays: a gate with no message stays quiet on a breach.
 - The `refusals:` block. It already prints the command.
 
 == Dogfood

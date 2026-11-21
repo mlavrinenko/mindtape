@@ -1,6 +1,6 @@
 //! `mt check` files every template `mt add` accepts with each slot's
 //! `example`, else its `default`, and reports every breach of the result at
-//! the template's file and line. A slot with neither leaves nothing to fill.
+//! the template's file and line. A slot with neither leaves the field empty.
 //! The check then reports a template error with the slot name.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 

@@ -50,8 +50,8 @@ fn run_line(text: &str) -> CommandReport {
 }
 
 /// A shell that cannot start is an error, not a failed command. A missing
-/// project root leaves the spawn nothing to run in, so the caller must not read
-/// the absence of a verdict as a pass.
+/// project root leaves the spawn without a directory to run in, so the caller
+/// must not read the absence of a verdict as a pass.
 #[test]
 fn a_command_that_cannot_spawn_is_an_error_naming_it() {
     let dir = tempdir();

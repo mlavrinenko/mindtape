@@ -10,7 +10,7 @@
 //! This stage checks the kind, the note rule, and target resolution rather than
 //! leaving them to the post-write `mt check`. Those three make a written file
 //! invalid rather than merely different. Refusing them before the write means a
-//! rejected edge leaves nothing on disk to repair, the same discipline `mt add`'s
+//! rejected edge never reaches the disk, the same discipline `mt add`'s
 //! pre-write validation follows. A target resolves through [`Refs::target`], the
 //! reader every `<task>` argument shares.
 

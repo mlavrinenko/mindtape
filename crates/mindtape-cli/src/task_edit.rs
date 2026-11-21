@@ -194,7 +194,7 @@ fn report_issues(issues: &[Violation]) -> Result<()> {
 }
 
 /// Validate a rendered task *before* the write. A rejected write then leaves
-/// nothing on disk. The check reads `source` as if it already sat at `file`,
+/// the disk untouched. The check reads `source` as if it already sat at `file`,
 /// against the project's already-loaded tasks. It runs the same load and the
 /// same [`validate()`] pass as [`verify_written`], in the other order.
 ///

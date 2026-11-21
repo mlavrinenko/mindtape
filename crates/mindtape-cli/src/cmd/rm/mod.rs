@@ -262,8 +262,8 @@ fn ensure_confirmed(answered_yes: bool) -> Result<()> {
 }
 
 /// The tail shared by every removal path: strategy dry-run reporting, the
-/// `[[on.rm]]` actions, confirmation, and the atomic apply + summary. Writes
-/// nothing on `--dry-run`, which doesn't run a hook either: a dry run doesn't
+/// `[[on.rm]]` actions, confirmation, and the atomic apply + summary. Skips
+/// every write on `--dry-run`, which doesn't run a hook either: a dry run doesn't
 /// change anything, and a gate command may. `root` gates the applied report's commit
 /// hint, which prints only inside a git repository.
 ///

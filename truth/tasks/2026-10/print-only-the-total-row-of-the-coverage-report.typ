@@ -43,7 +43,7 @@
 
 == Changes
 
-- `.just/scripts/cover.sh`: keep the first and last line of the final `cargo llvm-cov report`. `--summary-only` drops nothing in text mode.
+- `.just/scripts/cover.sh`: keep the first and last line of the final `cargo llvm-cov report`. `--summary-only` still prints the per-file table in text mode.
 
 
 == Rollback

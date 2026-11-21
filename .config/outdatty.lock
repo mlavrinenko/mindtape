@@ -263,7 +263,7 @@ groups:
       www/content/recurring.typ: a3acefcde5abae54e98ea8408145b45260195fd5fc100e4824028eb16b9cb7d8
   cli-rm-docs:
     source:
-      crates/mindtape-cli/src/cmd/rm/mod.rs: 7b18f5fa610c58d4dd9617055508494880f8ec38eb80535f6f1873c3dfe32fb0
+      crates/mindtape-cli/src/cmd/rm/mod.rs: 409598df08161cdbb066e7b161b297bf64c63b805a80da47c8535b336fce6b52
     dependents:
       docs/src/skill.typ: c979ac413782e44ecf6f0eb8cc2a9eb99f3e81d16e552f1454c80b3d4143fc61
       www/content/cli/ls.typ: 87ebc0c29c9e5d961ce069e7c78b887397e6106dec3d6f9c8c6f9529e1f7c936
@@ -330,7 +330,7 @@ groups:
       www/content/templates.typ: a534f25d0ae260bf9852e6683cca2e6450390e44a36b2b02aa0603e103f02dd0
   coverage-test-re:
     source:
-      .just/scripts/cover.sh: d1f617cfa509e3423912c79ede9b40e3fe9444b5a89391f7c70633c8582b63b7
+      .just/scripts/cover.sh: 1081cf23989387c43c6d661c7520a08e7eb2538f9bac9674d54d3f6d057f23d4
     dependents:
       contrib/ask-refactoring/undertested.sh: 56982936cf27f940bfa7906ff5edbe3c37e197d136a4085d5858a5d1a2363636
   crap-scripts-docs:
@@ -338,7 +338,7 @@ groups:
       .just/scripts/_crap-ratchet-control.sh: 2a5e1fb290a23bb54980c9454c22901f426f4d2f9250511e6f2e4c6456e060c6
       .just/scripts/_crap-ratchet-lib.sh: 036f97530e29528b525bac18393fa81616cb2c64be2f67799bec4ba61ee03b96
       .just/scripts/_lcov-stale-reason.sh: 192149aef8f91a98d4712271b183ed848a55969c1f6fb6d6ea3eb9b37ff3074a
-      .just/scripts/cover.sh: d1f617cfa509e3423912c79ede9b40e3fe9444b5a89391f7c70633c8582b63b7
+      .just/scripts/cover.sh: 1081cf23989387c43c6d661c7520a08e7eb2538f9bac9674d54d3f6d057f23d4
       .just/scripts/crap-baseline-check.sh: 3fb60e3d18198f1c56fd93fd6c76db776c5f11df113a61a19187338add0a16a1
       .just/scripts/crap-baseline.sh: a37106b125ba298bf7db628a77eaa552393f28f6ef6b1dcf6991f5fbd939f175
       .just/scripts/crap.sh: 039a500468a1fbecfec6214212645739f99cc02fdf5e14aeec5af61b7d73e52f
@@ -689,11 +689,11 @@ groups:
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
       nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
-      nix/dev/vale-styles.nix: 067f8733c68801bd50fec716d70b954bde36f225ae1350bae874c794c4b35bd4
+      nix/dev/vale-styles.nix: 29e99a1a3a59dbb1d7629fe039249566a9f9da0641fdfb7b4bb7ff4faf7826d8
     dependents:
       docs/src/contributing/commit-messages.typ: fad91cf24ea6a0f21a4cb053989aef3e1135db045c1ae4d5baae652e984338d2
       docs/src/contributing/documentation.typ: 6f8898dfc7d4af6266a25dbe1d7c1e52dcb2cc51fd77b71121536b7ce531b402
-      docs/src/contributing/gates.typ: c2f44ddb83d885c8d587db03426578a521e79424bb702191ce96c0046114dbe4
+      docs/src/contributing/gates.typ: 910cbb2bf36604e03db362d3989a0de6b0216e767352124fb6e990b3b0638189
   waits-docs:
     source:
       crates/mindtape/src/graph/ready.rs: b02d11be964ac1cec517f42da76701721a0074e155add8286d145e01f36fa19e
