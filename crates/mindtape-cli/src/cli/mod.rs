@@ -6,12 +6,14 @@
 //!   way `mt` parses it.
 //! - `command_class.rs`: each command's read or write class.
 //! - `completion/`: shell completions answered by the binary.
+//! - `retired.rs`: the commands this binary retired, and what replaced them.
 //! - `task_ref.rs`: the `<task>` argument every single-task command shares.
 //! - `tree_json.rs`: `mt _cli`, the command tree as JSON for the docs.
 
 pub(crate) mod check_argv;
 pub(crate) mod command_class;
 pub(crate) mod completion;
+pub(crate) mod retired;
 pub(crate) mod task_ref;
 pub(crate) mod tree_json;
 
@@ -25,10 +27,9 @@ use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
     cmd::add, cmd::allow, cmd::at, cmd::board, cmd::check, cmd::config as config_cmd, cmd::dicts,
-    cmd::eval, cmd::explain, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import,
-    cmd::init, cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs,
-    cmd::preset as preset_cmd, cmd::recur, cmd::review, cmd::rm, cmd::schema, cmd::set,
-    cmd::templates,
+    cmd::eval, cmd::find, cmd::fix, cmd::flip, cmd::go, cmd::graph, cmd::import, cmd::init,
+    cmd::install, cmd::link as link_cmd, cmd::ls, cmd::mv, cmd::packs, cmd::preset as preset_cmd,
+    cmd::recur, cmd::review, cmd::rm, cmd::schema, cmd::set, cmd::templates,
 };
 
 /// `Mindtape` keeps your tasks as Typst files and checks them against your rules.
@@ -180,13 +181,6 @@ enum Command {
     /// copies under `schema/output/`, and `--check` fails when one differs.
     /// It works outside a project.
     Schema(schema::SchemaArgs),
-    /// List the project's rules, tags, views, dictionaries and templates.
-    ///
-    /// Bare prints an index: the rules grouped by section, the derived fields,
-    /// and the tags, views, dictionaries and templates this project declares.
-    /// A listing prints one in full, with `--for` on the rules and tags and
-    /// `--json` on every one.
-    Explain(explain::ExplainArgs),
     /// List the project's dictionaries, or one dictionary's entries.
     ///
     /// A dictionary shows how many entries it resolved to, whether lookups
@@ -254,6 +248,13 @@ impl Cli {
     /// # Errors
     /// Propagates the command's failure.
     pub fn run(self) -> Result<()> {
+        // A retired command reaches clap's status-verb fallback. Answer it
+        // with the commands that replaced it, before a project opens.
+        if let Command::Status(argv) = &self.command
+            && let Some(diag) = argv.first().and_then(|verb| retired::hint(verb))
+        {
+            return Err(diag);
+        }
         dispatch(self.command)
     }
 }
@@ -277,7 +278,6 @@ fn dispatch(command: Command) -> Result<()> {
         Command::Allow(args) => allow::run(&args),
         Command::Config(args) => config_cmd::run(&args),
         Command::Schema(args) => schema::run(&args),
-        Command::Explain(args) => explain::run(&args),
         Command::Dicts(args) => dicts::run(&args),
         Command::Templates(args) => templates::run(&args),
         command => dispatch_more(command),

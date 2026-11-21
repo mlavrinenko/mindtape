@@ -24,10 +24,9 @@ examples below run against `examples/api-service/`, a sample backend project.
 
 The #mindtape repository includes an agent skill in
 #link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. Its `SKILL.md`
-opens with the recipe an agent runs: `mt explain` for the project's shape,
-`mt ls` and `mt find <words>` to pick a task, `mt add --describe` and `mt add`
-to file one, `mt check` to validate, and `mt explain rules --for <moment>`
-before a write. The moments are `add`, `commit` and `flip`.
+opens with the recipe an agent runs: `mt config show --resolved` for the
+project's shape, `mt ls` and `mt find <words>` to pick a task,
+`mt add --describe` and `mt add` to file one, and `mt check` to validate.
 
 The rest of the skill points at `mt <cmd> --help` and the files in
 `references/` instead of repeating what the CLI says. It uses the
@@ -83,7 +82,7 @@ summary, so an agent can find the page it needs from one file.
 
 Every command that reports a list or an object prints it as JSON with
 `--json`: `mt ls`, `mt find`, `mt eval <task>`, `mt check`, `mt graph`,
-`mt board`, `mt at`, `mt explain`, `mt preset ls`, `mt config show`,
+`mt board`, `mt at`, `mt preset ls`, `mt config show`,
 `mt @set ls` and `mt packs install`. `mt add --describe=json` prints a
 template's slots, and `mt add --json` reports a write.
 `mt ls ready -n 1 --json` prints:

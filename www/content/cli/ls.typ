@@ -185,7 +185,8 @@ the sort, its name follows, as in `inbox view · release sort · 3 of 12 tasks`.
 A filter you typed reads `your filter · 1 of 4 tasks`, and `mt ls --json` says
 where each facet came from. The line wraps at the terminal width. An empty
 listing adds a `hint:` line. It names `mt ls ''` for every task and
-`mt explain views` for a saved view. In `examples/api-service` no rule matches,
+`mt config show --resolved` for a saved view. In `examples/api-service` no rule
+matches,
 so a bare `mt ls` applies the default view:
 
 #terminal("ls")

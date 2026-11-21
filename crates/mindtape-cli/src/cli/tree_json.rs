@@ -10,17 +10,17 @@
 //! classification from [`crate::cli::command_class`]. That way
 //! `www/generated/cli.json` carries the CQRS split for
 //! `docs/src/contributing.typ` and `tests/it/read_no_write_e2e.rs` to read,
-//! instead of either retyping it. A node with subcommands (`config`, `preset`)
-//! carries `class: null`: it is not a leaf, and only its children carry a
-//! class. A parent that runs itself carries its class and reach too: `explain`
-//! with no listing prints the index. A leaf, and a runnable parent the registry
-//! names, also carries `runs_on_set`, whether the registry marks it as running
-//! on a set. The docs then list the set commands from the table `main` refuses
-//! a set by. A node with subcommands and no class carries `runs_on_set: null`.
+//! instead of either retyping it. A container with subcommands (`config`,
+//! `preset`) carries `class: null`: it is not a leaf, and only its children
+//! carry a class. A parent that runs itself carries its class and reach too.
+//! A leaf, and a runnable parent the registry names, also carries
+//! `runs_on_set`, whether the registry marks it as running on a set. The docs
+//! then list the set commands from the table `main` refuses a set by. A node
+//! with subcommands and no class carries `runs_on_set: null`.
 //!
 //! The dump hoists a global argument once to the root. The exception is one a
-//! subcommand declares for its own subtree (`mt explain --json`), which rides
-//! on that node so the docs show the flag at the node that declares it.
+//! subcommand declares for its own subtree, which rides on that node so the
+//! docs show the flag at the node that declares it.
 //!
 //! Refs: `truth/tasks/2026-07/structured-cli-reference-from-command-dump.typ`,
 //! `truth/tasks/2026-08/gate-the-cqrs-split-against-the-command-tree.typ`.
@@ -183,7 +183,7 @@ fn command_json(cmd: &Command, prefix: &str, global_ids: &[clap::Id]) -> Value {
     let args: Vec<Value> = cmd
         .get_arguments()
         // A root global is shown once at the top; a global a subcommand
-        // declares (`mt explain --json`) belongs to that subtree.
+        // declares belongs to that subtree.
         .filter(|a| !(a.is_global_set() && global_ids.contains(a.get_id())))
         // clap's auto `-h/--help` and `-V/--version` are formatter artifacts,
         // not real args; the reference synthesizes its own affordances.
@@ -191,8 +191,8 @@ fn command_json(cmd: &Command, prefix: &str, global_ids: &[clap::Id]) -> Value {
         .map(|arg| arg_json(arg, &path))
         .collect();
     let subs = subcommands(cmd, &path, global_ids);
-    // A leaf is classified, and so is a parent that runs itself (`explain`
-    // with no listing). `config` and `preset` are containers and carry null.
+    // A leaf is classified, and so is a parent that runs itself. `config`
+    // and `preset` are containers and carry null.
     let runnable = !cmd.is_subcommand_required_set();
     let (class, runs_on_set) = if subs.is_empty() || (runnable && has_class(&path)) {
         (

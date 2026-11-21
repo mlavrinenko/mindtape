@@ -212,7 +212,7 @@ at 5 files and the project raises the cap to 8:
 #terminal("packs-params")
 
 `mt` writes each value into the pack's expressions when it loads the config,
-so `mt check`, `mt explain rules` and `mt config show` all see `8`. It works in
+so `mt check` and `mt config show` both see `8`. It works in
 every expression in the pack, from a rule's `when` and `assert` to a view's
 `filter`, an `[[on.flip]]` `when` or `list`, an `[[on.add]]` `when`, each
 `required` and the `[ls]` and `[rm]` filters. A `param()` inside a string
@@ -305,7 +305,7 @@ the tasks pack's allowlist. The `review-stale-task-before-starting` hook reads
 `project` because only the project declares them. Keys that aren't rules read
 the same way, such as `key tasks.status` for `pack mindtape:flow`. To read
 each rule's severity and message as well, run
-#link(u("/cli/explain/#rules"))[`mt explain rules`].
+#link(u("/cli/config/"))[`mt config show --resolved`].
 
 After the rules come the other keys a pack set, as `key <dotted path>:
 <origin>`, and the parameters packs declare, as `param <name> = <value>: <set

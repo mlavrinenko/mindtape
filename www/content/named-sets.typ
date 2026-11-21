@@ -52,7 +52,7 @@ you can ask for the listing by name:
 Every key is optional. `filter` is a filter expression, and an empty one
 matches every task. `sort` takes the same specs as `--sort`, and `columns` the
 same column names as `--columns`. The #link(u("/cli/ls/"))[`mt ls` page]
-lists both. `mt explain views <name>` prints the `description`.
+lists both. `mt config show --resolved` prints the `description`.
 
 `mt ls @name` applies the view's filter, sort and columns. Inside a larger
 expression, `@name` is just the view's filter, as in

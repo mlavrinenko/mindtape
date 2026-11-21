@@ -45,10 +45,9 @@ A hook with no `name` always joins the list and nothing replaces it.
 `mt config show --origin` labels a named hook `on.flip.<name>`,
 `on.rm.<name>` or `on.add.<name>`, and the others `on.flip[<index>]`,
 `on.rm[<index>]` or `on.add[<index>]`.
-#link(u("/cli/explain/#rules"))[`mt explain rules`] lists flip and rm hooks, and
-#link(u("/cli/explain/#add-hooks"))[`mt explain add`] lists add hooks. Two flip
-hooks in one file can't share a name, and neither can two rm hooks or two add
-hooks.
+#link(u("/cli/config/"))[`mt config show --resolved`] lists the flip, rm and add
+hooks in effect. Two flip hooks in one file can't share a name, and neither can
+two rm hooks or two add hooks.
 
 = Actions
 
@@ -204,8 +203,9 @@ explicit `--dir` outside every root when you enable hooks too.
 
 Add hooks merge across packs and layers like `[[on.flip]]`. A later hook with
 the same `name` replaces the earlier one in place, `disable` drops it by name,
-and an unnamed hook appends. #link(u("/cli/explain/#add-hooks"))[`mt explain add`]
-lists the hooks in effect, with the pack or layer that supplied each one.
+and an unnamed hook appends. #link(u("/cli/config/"))[`mt config show --resolved`]
+lists the hooks in effect. `mt config show --origin` names the pack or layer
+that supplied each one.
 
 Hooks run in declaration order, and each `when` sees the task as the earlier
 hooks left it. An explicit `--set field=…`, a positional title and a value

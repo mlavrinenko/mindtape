@@ -65,8 +65,6 @@ pub enum Source {
     Stems,
     /// The configured status legend (`[[tasks.status]]`).
     Statuses,
-    /// Named views (`[views]`), bare.
-    Views,
     /// Named views as the `@name` sugar filter, sort and column arguments take.
     ViewRefs,
     /// Dictionary names: `[dicts]` and the built-ins.
@@ -206,8 +204,6 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("find", "columns", Source::ViewRefs),
     ("graph", "filter", Source::ViewRefs),
     ("dicts", "name", Source::Dicts),
-    ("explain views", "name", Source::Views),
-    ("explain dicts", "name", Source::Dicts),
     (
         "at",
         "name",
@@ -280,7 +276,6 @@ impl Source {
         match self {
             Self::Stems => arg.add(ArgValueCandidates::new(stems)),
             Self::Statuses => arg.add(ArgValueCandidates::new(statuses)),
-            Self::Views => arg.add(ArgValueCandidates::new(|| view_names(""))),
             Self::ViewRefs => arg.add(ArgValueCandidates::new(|| view_names("@"))),
             Self::Dicts => arg.add(ArgValueCandidates::new(dict_names)),
             Self::Templates => arg.add(ArgValueCandidates::new(templates)),
@@ -306,7 +301,6 @@ impl Source {
         Some(match self {
             Self::Stems => "stems",
             Self::Statuses => "statuses",
-            Self::Views => "views",
             Self::ViewRefs => "view-refs",
             Self::Dicts => "dicts",
             Self::Templates => "templates",

@@ -1,5 +1,6 @@
 //! End-to-end tests for `[[tasks.collectors]]` and the derived fields they
-//! produce: `mt ls --json`, `mt eval --json`, `mt explain rules` and `mt import`.
+//! produce: `mt ls --json`, `mt eval --json`, the resolved config and
+//! `mt import`.
 #![allow(
     clippy::unwrap_used,
     clippy::indexing_slicing,
@@ -68,22 +69,15 @@ fn a_filter_may_count_a_derived_list() {
     assert!(none["tasks"].as_array().unwrap().is_empty(), "{none}");
 }
 
+/// A report reads the collector and the rule that reads it off the resolved
+/// config, so no second listing has to carry them.
 #[test]
-fn rules_lists_the_derived_field_and_its_reader() {
+fn the_resolved_config_carries_the_collector_and_its_reader() {
     let dir = project();
-    let text = stdout(dir.path(), &["explain", "rules"]);
-    assert!(text.contains("derived fields"), "{text}");
-    assert!(text.contains("derived.changes"), "{text}");
-    assert!(text.contains("regex"), "{text}");
-    assert!(text.contains("tasks.rules.has-changes"), "{text}");
-}
-
-#[test]
-fn rules_for_commit_hides_the_derived_block() {
-    let dir = project();
-    let text = stdout(dir.path(), &["explain", "rules", "--for", "commit"]);
-    assert!(!text.contains("derived fields"), "{text}");
-    assert_eq!(text, "no rules apply\n");
+    let text = stdout(dir.path(), &["config", "show", "--resolved"]);
+    for part in ["derived.changes", "has-changes"] {
+        assert!(text.contains(part), "{part}: {text}");
+    }
 }
 
 #[test]
@@ -167,8 +161,8 @@ message = "keep the fan-out small"
 severity = "error"
 "#,
     );
-    let text = stdout(dir.path(), &["explain", "rules"]);
-    for part in ["ast-grep", "derived.callers", "read by rules.small-fanout"] {
+    let text = stdout(dir.path(), &["config", "show", "--resolved"]);
+    for part in ["ast_grep", "derived.callers", "small-fanout"] {
         assert!(text.contains(part), "{part}: {text}");
     }
 }

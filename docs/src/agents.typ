@@ -1,8 +1,8 @@
 // Source for the repo-root AGENTS.md (CLAUDE.md is a symlink), rendered by
 // docs/generate-md.sh with typlite. Every agent session loads it, so it says
 // what the project is and where its parts live, and leaves how work is done to
-// CONTRIBUTING.md. The task shape lives in `mt explain`, so this file points
-// there instead of repeating it.
+// CONTRIBUTING.md. The task shape lives in `mt config show --resolved`, so this
+// file points there instead of repeating it.
 //
 // Crate names come from www/generated/crate-map.json. The render fails on a
 // crate with no role, an unknown dependency or a missing page.
@@ -136,8 +136,7 @@ version and run `mt schema --write`. `mt schema --check` runs in the gates.
 = Task definition language (lib/prelude.typ)
 
 `mt add` writes a task file, and `mt` commands change it, as
-`skills/mindtape/SKILL.md` says. Run `mt explain` for the shape this repo
-declares, `mt templates` for the templates `mt add` files from, and
-`mt explain rules --for <moment>` for what an add, commit or flip checks. Edit
-a task by hand only for the body, a framework priority, `estimate` and
+`skills/mindtape/SKILL.md` says. Run `mt config show --resolved` for the shape
+this repo declares and `mt templates` for the templates `mt add` files from.
+Edit a task by hand only for the body, a framework priority, `estimate` and
 `x-goals`, then run `mt check`.

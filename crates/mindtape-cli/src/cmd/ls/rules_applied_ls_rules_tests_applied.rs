@@ -260,7 +260,7 @@ fn empty_hint_widens_a_filter_that_matched_nothing() {
         empty_hint(0, 941).as_deref(),
         Some(
             "hint: no task matches; run mt ls '' for every task, \
-             or mt explain views for a saved view"
+             or mt config show --resolved for a saved view"
         )
     );
 }

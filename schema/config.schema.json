@@ -1221,7 +1221,7 @@
           "type": "array"
         },
         "name": {
-          "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt explain rules` and `mt config show --origin` print.",
+          "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt config show --origin` prints.",
           "type": [
             "string",
             "null"
@@ -2320,7 +2320,7 @@
           "type": "array"
         },
         "name": {
-          "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt explain rules` and `mt config show --origin` print.",
+          "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt config show --origin` prints.",
           "type": [
             "string",
             "null"
@@ -2871,7 +2871,7 @@
           "type": "array"
         },
         "description": {
-          "description": "Human description, shown by `mt explain views`.",
+          "description": "Human description, shown by `mt config show --resolved` and in a\nlisting's footer.",
           "type": [
             "string",
             "null"

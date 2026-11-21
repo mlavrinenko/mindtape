@@ -5,8 +5,7 @@
 
 use crate::support;
 
-const HINT: &str =
-    "\nhint: no task matches; run mt ls '' for every task, or mt explain views for a saved view\n";
+const HINT: &str = "\nhint: no task matches; run mt ls '' for every task, or mt config show --resolved for a saved view\n";
 
 /// One task, plus a view no filter below can match.
 fn project() -> tempfile::TempDir {

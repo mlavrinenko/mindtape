@@ -487,7 +487,7 @@ pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> Dia
         "unknown view",
         name,
         &known,
-        &["explain", "views"],
+        &["config", "show", "--resolved"],
         "to see the views",
     )
 }

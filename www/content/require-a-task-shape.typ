@@ -40,8 +40,8 @@ one sentence instead of steps, and `mt add` refuses it again:
 
 = Tags
 
-Four tags tune the shape. Run `mt explain tags --for add` to print them with the rule
-each one reads:
+Four tags tune the shape. `[tasks.tags] allowed` lists them, and
+`mt config show --resolved` shows the rules that read them:
 
 #table(
   columns: (auto, 1fr),

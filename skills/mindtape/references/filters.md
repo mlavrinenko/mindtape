@@ -12,7 +12,8 @@ the table says which one ran and the filter it applied, as in
 `default view (!terminal && (miss(start) || start <= now())) · 3 of 12 tasks`,
 or the view's `description` when it has one. A filter argument replaces only the
 filter; that rule's or view's sort and columns still apply. `-n N` keeps the
-first N rows after the sort, and `mt ls @view` uses one of `mt explain views`.
+first N rows after the sort, and `mt ls @view` uses one of the views that
+`mt config show --resolved` prints.
 
 ## Fields
 
@@ -104,7 +105,7 @@ sorts by legend position.
   string field, counting from 1, and works only as an argument here or in
   `matches`: `in_dict("verbs", word(title, 1))`. The `verbs` dictionary comes
   from the `mindtape:tasks` pack. Without the pack, use the built-in
-  `mindtape-verbs` or declare `[dicts.verbs]`. `mt explain dicts d` lists the entries
+  `mindtape-verbs` or declare `[dicts.verbs]`. `mt dicts d` lists the entries
   of `d`.
 - `len(f)` counts the items of a list field, and a missing field counts 0.
 - `touches("path")` matches the tasks named in the `Refs:` trailers of commits

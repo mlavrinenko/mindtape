@@ -41,10 +41,11 @@ run. They check each field against the config, such as a status against the
 on this page. Rules from an ancestor directory's defaults and from rule packs
 add to your project's own, as #link(u("/config/"))[Configuration] describes.
 To share one set of rules between projects, see
-#link(u("/packs/"))[Packs]. To list the rules your project ends up
-with, one line each, run #link(u("/cli/explain/#rules"))[`mt explain rules`]. To see which tags
-those rules read, and the message each prints, run
-#link(u("/cli/explain/#tags"))[`mt explain tags`].
+#link(u("/packs/"))[Packs]. To read the rules your project ends up
+with, run #link(u("/cli/config/"))[`mt config show --resolved`]. Its
+`[[tasks.rules]]`, `[[commits.rules]]` and `[[on.flip]]`/`[[on.rm]]` sections
+hold them, each rule with its `when`, `assert`, `severity` and `message`, and a
+`when` or `assert` shows every tag the rule reads.
 
 A new check on an added task is a config expression, not Rust code. Write a
 `[[tasks.rules]]` assertion to check a value, or an
@@ -216,12 +217,12 @@ cannot read. It calls a project function over the task, or over one field, and
 the rule reads the value it returns. A failed call is a `Collector` violation
 at `derived.<name>`, so it fails `mt check` like any other breach.
 
-`mt explain rules` lists the collectors under the rules, each with its origin, kind,
-type and readers. A Typst collector specifies its module and function. An
-ast-grep collector specifies its language, pattern and optional glob. `--for commit` omits
-them, since a commit rule cannot read a derived field in this version. A rule
-whose filter names an undeclared `derived.<name>` fails config load, so a
-renamed collector cannot leave a rule with nothing to read.
+#link(u("/cli/config/"))[`mt config show --resolved`] lists the collectors
+under `[[tasks.collectors]]`, each with its `query` and its `returns` type. A
+Typst collector specifies its module and function. An ast-grep collector
+specifies its language, pattern and optional glob. A rule whose filter names an
+undeclared `derived.<name>` fails config load, so a renamed collector cannot
+leave a rule with nothing to read.
 
 = Typst checks
 

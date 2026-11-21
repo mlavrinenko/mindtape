@@ -10,18 +10,13 @@ use crate::cmd::at::{AtListPayload, AtProjectJson, AtSetJson};
 use crate::cmd::board::BoardPayload;
 use crate::cmd::config::ConfigShowPayload;
 use crate::cmd::dicts::{DictDetailJson, DictsPayload};
-use crate::cmd::explain::add::AddPayload;
-use crate::cmd::explain::views::ViewsPayload;
 use crate::cmd::packs::PacksPayload;
 use crate::cmd::templates::TemplatesPayload;
 use crate::render::envelope::Envelope;
-use crate::render::objects::{
-    CheckPayload, CheckSetPayload, ExplainIndexPayload, GraphPayload, PresetsPayload, RulesPayload,
-    TagsPayload,
-};
+use crate::render::objects::{CheckPayload, CheckSetPayload, GraphPayload, PresetsPayload};
 use crate::render::output::SetLsPayload;
 use crate::render::payload::LsPayload;
-use mindtape::{CanonicalTask, ViewSpec};
+use mindtape::CanonicalTask;
 
 // jscpd:ignore-start
 // A registry of ids and generated schemas: one entry per output, with no
@@ -63,32 +58,9 @@ pub const PRESET_LS: SchemaId = SchemaId {
     version: 1,
 };
 
-/// `mt explain --json`.
-pub const EXPLAIN_ADD: SchemaId = SchemaId {
-    name: "explain-add",
-    version: 1,
-};
-
-pub const EXPLAIN: SchemaId = SchemaId {
-    name: "explain",
-    version: 5,
-};
-
 /// `mt templates --json`.
 pub const TEMPLATES: SchemaId = SchemaId {
     name: "templates",
-    version: 1,
-};
-
-/// `mt explain rules --json`.
-pub const RULES: SchemaId = SchemaId {
-    name: "rules",
-    version: 2,
-};
-
-/// `mt explain tags --json`.
-pub const TAGS: SchemaId = SchemaId {
-    name: "tags",
     version: 1,
 };
 
@@ -152,18 +124,6 @@ pub const DESCRIBE: SchemaId = SchemaId {
     version: 2,
 };
 
-/// `mt explain views --json`.
-pub const VIEWS: SchemaId = SchemaId {
-    name: "views",
-    version: 1,
-};
-
-/// `mt explain views <name> --json`.
-pub const VIEW: SchemaId = SchemaId {
-    name: "view",
-    version: 1,
-};
-
 /// `mt dicts --json`.
 pub const DICTS: SchemaId = SchemaId {
     name: "dicts",
@@ -200,18 +160,8 @@ const GRAPH_TITLE: &str = "Mindtape graph";
 const GRAPH_DESCRIPTION: &str = "The object `mt graph --json` prints: its task nodes, the typed edges between them, and the links whose kind points outside the backlog.";
 const PRESET_LS_TITLE: &str = "Mindtape presets";
 const PRESET_LS_DESCRIPTION: &str = "The object `mt preset ls --json` prints: every built-in and user preset, with the shadowing between them.";
-const EXPLAIN_ADD_TITLE: &str = "Mindtape add hooks";
-const EXPLAIN_ADD_DESCRIPTION: &str = "The object `mt explain add --json` prints: every merged `[[on.add]]` hook, its `when`, its actions and its origin.";
-const EXPLAIN_TITLE: &str = "Mindtape explain index";
-const EXPLAIN_DESCRIPTION: &str = "The object `mt explain --json` prints: the project, task and commit shape, the keys it leaves open, the rules by section and severity, the add hooks, the derived fields, and the tag, view and dictionary names.";
 const TEMPLATES_TITLE: &str = "Mindtape templates";
 const TEMPLATES_DESCRIPTION: &str = "The object `mt templates --json` prints: every template `mt add` accepts, with the kind it sets, its slot count and whether it is the default.";
-const RULES_TITLE: &str = "Mindtape rules";
-const RULES_DESCRIPTION: &str =
-    "The object `mt explain rules --json` prints: the active rules and derived fields.";
-const TAGS_TITLE: &str = "Mindtape tags";
-const TAGS_DESCRIPTION: &str =
-    "The object `mt explain tags --json` prints: each allowed tag and the rules that read it.";
 const EVAL_TITLE: &str = "Mindtape eval";
 const EVAL_DESCRIPTION: &str =
     "The object `mt eval --json` prints: one task record inside its `$schema` envelope.";
@@ -235,11 +185,6 @@ const PACKS_TITLE: &str = "Mindtape pack install";
 const PACKS_DESCRIPTION: &str = "The object `mt packs install --json` prints: each locked source, its commit and tree hash, and whether this run fetched it.";
 const DESCRIBE_TITLE: &str = "Mindtape template slots and add hooks";
 const DESCRIBE_DESCRIPTION: &str = "The object `mt add --describe=json` prints: the template's slots, each with its kind, default and choices, and the project's `[[on.add]]` hooks.";
-const VIEWS_TITLE: &str = "Mindtape views";
-const VIEWS_DESCRIPTION: &str =
-    "The object `mt explain views --json` prints: every named view's spec, by name.";
-const VIEW_TITLE: &str = "Mindtape view";
-const VIEW_DESCRIPTION: &str = "The object `mt explain views <name> --json` prints: one view's filter, sort, columns and description.";
 const DICTS_TITLE: &str = "Mindtape dictionaries";
 const DICTS_DESCRIPTION: &str =
     "The object `mt dicts --json` prints: each dictionary's case, entry count and source, by name.";
@@ -324,34 +269,10 @@ pub const SCHEMAS: &[Schema] = &[
         schema: || schemars::schema_for!(Envelope<PresetsPayload>),
     },
     Schema {
-        id: EXPLAIN_ADD,
-        title: EXPLAIN_ADD_TITLE,
-        description: EXPLAIN_ADD_DESCRIPTION,
-        schema: || schemars::schema_for!(Envelope<AddPayload>),
-    },
-    Schema {
-        id: EXPLAIN,
-        title: EXPLAIN_TITLE,
-        description: EXPLAIN_DESCRIPTION,
-        schema: || schemars::schema_for!(Envelope<ExplainIndexPayload>),
-    },
-    Schema {
         id: TEMPLATES,
         title: TEMPLATES_TITLE,
         description: TEMPLATES_DESCRIPTION,
         schema: || schemars::schema_for!(Envelope<TemplatesPayload>),
-    },
-    Schema {
-        id: RULES,
-        title: RULES_TITLE,
-        description: RULES_DESCRIPTION,
-        schema: || schemars::schema_for!(Envelope<RulesPayload>),
-    },
-    Schema {
-        id: TAGS,
-        title: TAGS_TITLE,
-        description: TAGS_DESCRIPTION,
-        schema: || schemars::schema_for!(Envelope<TagsPayload>),
     },
     Schema {
         id: EVAL,
@@ -400,18 +321,6 @@ pub const SCHEMAS: &[Schema] = &[
         title: DESCRIBE_TITLE,
         description: DESCRIBE_DESCRIPTION,
         schema: || schemars::schema_for!(Envelope<DescribePayload>),
-    },
-    Schema {
-        id: VIEWS,
-        title: VIEWS_TITLE,
-        description: VIEWS_DESCRIPTION,
-        schema: || schemars::schema_for!(Envelope<ViewsPayload>),
-    },
-    Schema {
-        id: VIEW,
-        title: VIEW_TITLE,
-        description: VIEW_DESCRIPTION,
-        schema: || schemars::schema_for!(Envelope<ViewSpec>),
     },
     Schema {
         id: DICTS,

@@ -48,7 +48,7 @@ fn json_wraps_the_rows_in_templates() {
 }
 
 /// The listing has one spelling. Neither the retired `mt add --list` flag nor
-/// the retired `mt explain templates` subcommand parses.
+/// the retired `mt explain` command parses.
 #[test]
 fn the_retired_spellings_are_gone() {
     let dir = scaffold_project("[tasks]\nroots = [\"tasks\"]\n");

@@ -188,6 +188,22 @@ fn an_unknown_command_is_a_usage_error() {
     );
 }
 
+/// A retired command lists the commands that replaced it. A reader with the old
+/// spelling then never meets the status-verb error.
+#[test]
+fn a_retired_command_names_its_replacements() {
+    for args in [&["explain"][..], &["explain", "rules"]] {
+        let stderr = failure(args, Some(2));
+        assert_eq!(
+            stderr,
+            "error: unrecognized subcommand 'explain'\n\
+             hint: run `mt config show --resolved` for the config, `mt templates` for the \
+             templates, or `mt allow --status` for the commands\n"
+        );
+        assert_prefixed(&stderr);
+    }
+}
+
 #[test]
 fn an_unknown_status_is_a_usage_error() {
     let stderr = failure(&["flip", "nostatus", "alpha"], Some(2));

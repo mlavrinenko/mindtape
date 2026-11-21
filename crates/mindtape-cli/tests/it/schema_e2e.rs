@@ -58,7 +58,7 @@ fn byte_compared_goldens_are_pinned_to_lf() {
 /// Every registered output, in `mt schema` order.
 // jscpd:ignore-start
 // One name per line is the data, not a pasted block. A new output adds a line.
-const NAMES: [&str; 26] = [
+const NAMES: [&str; 20] = [
     "ls",
     "task",
     "add",
@@ -67,11 +67,7 @@ const NAMES: [&str; 26] = [
     "set-check",
     "graph",
     "preset-ls",
-    "explain-add",
-    "explain",
     "templates",
-    "rules",
-    "tags",
     "eval",
     "board",
     "at",
@@ -80,8 +76,6 @@ const NAMES: [&str; 26] = [
     "set-ls",
     "packs",
     "describe",
-    "views",
-    "view",
     "dicts",
     "dict",
     "config-show",
@@ -208,10 +202,7 @@ fn live_object_outputs_validate_against_their_recorded_schemas() {
             ("ls", &["ls", "", "--json"][..]),
             ("check", &["check", "--json"][..]),
             ("preset-ls", &["preset", "ls", "--json"][..]),
-            ("explain", &["explain", "--json"][..]),
             ("templates", &["templates", "--json"][..]),
-            ("rules", &["explain", "rules", "--json"][..]),
-            ("tags", &["explain", "tags", "--json"][..]),
             ("eval", &["eval", "a", "--json"][..]),
         ],
     );
@@ -257,8 +248,6 @@ fn live_collection_outputs_validate_against_their_schemas() {
             ("board", &["board", "--json"][..]),
             ("at", &["at", "--json"][..]),
             ("describe", &["add", "--describe=json"][..]),
-            ("views", &["explain", "views", "--json"][..]),
-            ("view", &["explain", "views", "hot", "--json"][..]),
             ("dicts", &["dicts", "--json"][..]),
             ("dict", &["dicts", "labels", "--json"][..]),
             ("config-show", &["config", "show", "--json"][..]),

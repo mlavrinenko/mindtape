@@ -8,7 +8,7 @@
 //!
 //! # Files
 //!
-//! - `active_add.rs`/`active_rules.rs`: hooks and rules for `mt explain`.
+//! - `active_add.rs`/`active_rules.rs`: hooks and rules with the origin each came from.
 //! - `actors.rs`: `[[actors]]` and `[[roles]]`, the actor registry.
 //! - `add.rs`: `[add]`. `add_hooks*.rs`: `[[on.add]]` defaults, tests and destinations.
 //! - `assignee.rs`: `[tasks.assignee]` constraints.

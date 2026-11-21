@@ -17,12 +17,11 @@ A project holds `.mindtape/config.toml`. Run `mt` at or below that directory, or
 
 ## The recipe
 
-1. `mt explain` prints the project’s shape: its roots, statuses, templates and rules, and the fields a task takes.
+1. `mt config show --resolved` prints every key the project sets, with each default filled in: its roots, statuses, templates, rules, and the fields a task takes.
 2. `mt ls` lists what the default view picks and names the filter it applied. `mt find <words>` lists the tasks that contain every word.
 3. `mt add --describe` lists the template’s slots and the `[[on.add]]` hooks that fill a new task or choose its folder. `mt templates` lists the templates and the `kind` each sets.
 4. `mt add` files the task.
 5. `mt check` checks every task against the project’s rules.
-6. Before a write, `mt explain rules --for <moment>` lists what that moment checks, and `mt explain tags --for <moment>` lists the tags those rules read. The moments are `add`, `commit`, `flip` and `rm`.
 
 ## Commands the config runs
 

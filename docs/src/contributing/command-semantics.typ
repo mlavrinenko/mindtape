@@ -24,8 +24,8 @@ class, and the lists below read the same data.
   commands
     .map(c => {
       let name = if prefix == none { c.name } else { prefix + " " + c.name }
-      // A leaf is classified, and so is a parent that runs itself (`explain`
-      // with no listing). A container such as `config` carries no class.
+      // A leaf is classified, and so is a parent that runs itself. A container
+      // such as `config` carries no class.
       let classed = if c.subcommands.len() == 0 or c.class != none {
         ((name: name, class: c.class),)
       } else {

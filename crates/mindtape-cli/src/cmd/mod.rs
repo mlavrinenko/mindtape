@@ -8,7 +8,6 @@
 //!
 //! - `add/`, `check/`, `flip/`, `init/`: `mt add`, `mt check`, `mt flip` (with
 //!   the status shortcut verbs) and `mt init` (with its wizard, presets, axes).
-//! - `explain/`: `mt explain` and its listings, one file each.
 //! - `graph/`, `import/`, `install/`, `link/`, `ls/`, `packs/`, `recur/`,
 //!   `rm/`: the commands split over helper files, or with subcommands of
 //!   their own.
@@ -29,7 +28,6 @@ pub(crate) mod check;
 pub(crate) mod config;
 pub(crate) mod dicts;
 pub(crate) mod eval;
-pub(crate) mod explain;
 pub(crate) mod find;
 pub(crate) mod fix;
 pub(crate) mod flip;

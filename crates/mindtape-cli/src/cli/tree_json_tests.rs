@@ -199,36 +199,6 @@ fn a_leaf_carries_the_set_mark_and_a_parent_carries_none() {
     assert!(command(&t, "config").get("runs_on_set").unwrap().is_null());
 }
 
-/// `explain` runs bare, so it carries the same class and reach as its
-/// listings. `config` runs too, but has no entry of its own.
-#[test]
-fn a_runnable_parent_the_registry_names_carries_its_class_and_reach() {
-    let t = tree();
-    let explain = command(&t, "explain");
-    assert_eq!(field(explain.get("class").unwrap(), "kind"), "read");
-    assert_eq!(
-        explain.get("runs_on_set"),
-        Some(&Value::Bool(false)),
-        "explain refuses a set"
-    );
-    let rules = arr(explain, "subcommands")
-        .iter()
-        .find(|c| field(c, "name") == "rules")
-        .unwrap();
-    assert_eq!(field(rules.get("class").unwrap(), "kind"), "read");
-    assert!(command(&t, "config").get("class").unwrap().is_null());
-}
-
-/// A global flag a subcommand declares rides on that node, because it only
-/// applies under it. The root globals stay at the top.
-#[test]
-fn a_subcommand_global_flag_rides_on_its_own_node() {
-    let t = tree();
-    let explain = command(&t, "explain");
-    assert!(longs(arr(explain, "args")).contains(&"json"));
-    assert!(!longs(arr(command(&t, "ls"), "args")).contains(&"worktree"));
-}
-
 #[test]
 fn go_carries_an_exempt_class_with_a_reason() {
     let t = tree();
@@ -239,8 +209,8 @@ fn go_carries_an_exempt_class_with_a_reason() {
 }
 
 /// Every visible command's `(flattened path, class, is_leaf)` under
-/// `commands`, recursing into any node with subcommands (`config`, `preset`,
-/// `explain`). That is the same tree `www/generated/cli.json` carries, walked
+/// `commands`, recursing into any node with subcommands (`config`, `preset`).
+/// That is the same tree `www/generated/cli.json` carries, walked
 /// back for the exhaustiveness tests below rather than re-derived from
 /// `Cli::command()` a second, possibly-diverging way.
 fn visible_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value, bool)>) {

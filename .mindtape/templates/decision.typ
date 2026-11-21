@@ -60,7 +60,7 @@
   kind: "raw",
   prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
   example: ```typ
-  + Run `mt explain rules --for add` and read which kinds may carry Alternatives.
+  + Run `mt config show --resolved` and read which kinds may carry Alternatives.
   + 🔴 Only `feat` may carry Alternatives, so a decision is filed as a feature.
   ```,
 )

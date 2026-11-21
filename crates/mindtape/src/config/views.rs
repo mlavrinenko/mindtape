@@ -34,7 +34,8 @@ pub struct ViewSpec {
     /// Column set applied when this view drives columns (bundle mode or
     /// `--columns @name`). Empty means the default column set.
     pub columns: Vec<String>,
-    /// Human description, shown by `mt explain views`.
+    /// Human description, shown by `mt config show --resolved` and in a
+    /// listing's footer.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 }

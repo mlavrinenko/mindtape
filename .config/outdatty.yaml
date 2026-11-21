@@ -168,7 +168,6 @@ groups:
       - crates/mindtape-cli/src/cmd/dicts.rs
     dependents:
       - www/content/cli/dicts.typ
-      - www/content/cli/explain.typ
       - www/content/named-sets.typ
       - www/content/agents.typ
       - docs/src/skill.typ
@@ -395,43 +394,6 @@ groups:
       - www/content/cli/ls.typ
       - docs/src/skill.typ
 
-  # `mt explain`: the bare index's grouping, its default-first lists, and its
-  # JSON envelope. The four listings keep their own groups below.
-  - name: cli-explain-index-docs
-    source:
-      - crates/mindtape-cli/src/cmd/explain/mod.rs
-      - crates/mindtape-cli/src/cmd/explain/index/mod.rs
-      - crates/mindtape-cli/src/cmd/explain/index/render.rs
-    dependents:
-      - www/content/cli/explain.typ
-      - www/content/agents.typ
-      - docs/src/skill.typ
-
-  # `mt explain rules`: the line each rule prints, the severity and message it shows
-  # when a rule sets none, and which rules `--for` keeps.
-  - name: cli-rules-docs
-    source:
-      - crates/mindtape-cli/src/cmd/explain/rules.rs
-    dependents:
-      - www/content/cli/explain.typ
-      - www/content/rules.typ
-      - www/content/packs.typ
-      - www/content/agents.typ
-      - docs/src/skill.typ
-
-  # `mt explain tags`: the tag-to-rules scan, the message it shows, the `--for` filter
-  # and the area label a tag no rule reads prints.
-  - name: cli-tags-docs
-    source:
-      - crates/mindtape-cli/src/cmd/explain/tags.rs
-    dependents:
-      - www/content/cli/explain.typ
-      - www/content/rules.typ
-      - www/content/agents.typ
-      - www/utils/cli-notes.typ
-      - docs/src/agents.typ
-      - docs/src/skill.typ
-
   # `mt set`: the fields it refuses and the command each one names, the
   # fields it writes, and its re-run writing nothing.
   - name: cli-set-docs
@@ -457,15 +419,6 @@ groups:
       - www/utils/cli-notes.typ
       - www/content/templates.typ
       - www/content/packs.typ
-
-  # `mt explain views`: the listing, and one view's description.
-  - name: cli-views-docs
-    source:
-      - crates/mindtape-cli/src/cmd/explain/views.rs
-    dependents:
-      - www/content/cli/explain.typ
-      - www/content/named-sets.typ
-      - docs/src/skill.typ
 
   # The filter and `--sort` field vocabulary. /filters/ renders its field
   # table and sort exceptions from filter-fields.json, so the page isn't here.
@@ -580,7 +533,7 @@ groups:
   # AGENTS.md and skills/mindtape/SKILL.md are generated (typlite;
   # `just docs::md`), so the sources are the dependents to reconcile. AGENTS.md
   # names the prelude and the `#show: task.with(...)` call, and both leave the
-  # field shape to `mt explain`.
+  # field shape to `mt config show --resolved`.
   # `www/generated/dsl-fields.json` carries the field names, but this group is
   # about the full task DSL shape (field types, framework packagers, the
   # validation-layer split), which no fact file captures.

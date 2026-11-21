@@ -152,7 +152,7 @@ fn delegated<E: serde::de::Error>(err: &toml::de::Error) -> E {
 }
 
 impl CollectorQuery {
-    /// The query's kind, as `mt explain rules` prints it.
+    /// The query's kind: `regex`, `typst` or `ast-grep`.
     #[must_use]
     pub const fn kind(&self) -> &'static str {
         if matches!(self, Self::Regex(_)) {
@@ -244,7 +244,7 @@ impl SectionSpec {
     }
 }
 
-/// The type expression `mt explain rules` prints for one collector.
+/// The type expression a collector's `returns` spells.
 #[must_use]
 pub fn returns_of(spec: &CollectorSpec) -> String {
     spec.returns.describe()

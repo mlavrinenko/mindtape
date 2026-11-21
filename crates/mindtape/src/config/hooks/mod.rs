@@ -79,7 +79,7 @@ pub struct FlipHook {
     /// Optional name. A later entry with the same name, from a nearer layer
     /// or a pack, replaces an earlier one in place, and `disable` drops it by
     /// name. An unnamed entry always appends and is never replaced. Also the
-    /// label `mt explain rules` and `mt config show --origin` print.
+    /// label `mt config show --origin` prints.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Filter over the task the flip acts on, plus `into("status")` for the

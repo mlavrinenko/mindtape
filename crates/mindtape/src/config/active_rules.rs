@@ -1,5 +1,5 @@
 //! [`active_rules`]: every rule a loaded config applies, one [`ActiveRule`]
-//! each, for `mt explain rules`.
+//! each.
 //!
 //! It reads the typed [`Config`], whose rule arrays already hold what
 //! [`crate::config::packs`] left after packs, same-name overrides and
@@ -92,7 +92,7 @@ pub struct ActiveRule {
     pub run: Option<String>,
 }
 
-/// One derived field a project declares, as `mt explain rules` prints it.
+/// One derived field a project declares.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, schemars::JsonSchema)]
 pub struct DerivedField {
     /// The field's name, `derived.<name>`.

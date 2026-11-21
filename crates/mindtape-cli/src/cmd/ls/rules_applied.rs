@@ -137,7 +137,7 @@ pub fn empty_hint(shown: usize, total: usize) -> Option<String> {
         return None;
     }
     let every = Command::mt().word("ls").arg("");
-    let views = Command::mt().word("explain").word("views");
+    let views = Command::mt().word("config").word("show").word("--resolved");
     Some(hint_line(format!(
         "no task matches; run {every} for every task, or {views} for a saved view"
     )))

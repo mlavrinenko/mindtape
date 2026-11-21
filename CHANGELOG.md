@@ -31,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   leaves empty prints empty. `just meta::jq-reports` runs each report against
   `contrib/jq/fixtures/config.resolved.json` and fails on a top-level config
   key the report neither prints nor lists in its `dropped` array.
-<<<<<<< HEAD
 - **A user-facing string can no longer name a repo-local `just` recipe.** A
   hint that says `just check` names a command a reader in another project
   cannot run, so `just lint::no-just-in-output` fails it, naming the file and
@@ -51,31 +50,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one `mt add` picks. It reads the same template files `mt add` reads, so a
   template a directory pack supplies appears without a config change, and
   `--json` carries the same list under
-  `schema/output/templates/1.schema.json`. The hidden `mt add --list` alias and
-  `mt explain templates` retire with it, so `mt templates` is the one spelling,
-  and `mt add --template` points at it.
-=======
-- **`contrib/jq/` splits its adapters from its reports, starting with the
-  essentials report.** The three tracker adapters move to
-  `contrib/jq/import/`, unchanged, with their fixtures. `contrib/jq/reports/`
-  holds views over `mt config show --json --resolved`: `essentials.jq` prints
-  the project's roots and exclusions, statuses, actors and roles, the priority
-  framework with its bounds and inputs, difficulty, estimate, kinds, link
-  kinds, comments, extensions, templates, the commit trailer and run, the
-  hooks, the `[rm]` filter, the tags, the views, the dictionaries, the derived
-  fields, and each rule with the moments it fires at. A section the project
-  leaves empty prints empty. `just meta::jq-reports` runs each report against
-  `contrib/jq/fixtures/config.resolved.json` and fails on a top-level config
-  key the report neither prints nor lists in its `dropped` array.
->>>>>>> 338efaa3 (feat(jq): split the adapters and add the essentials report)
+  `schema/output/templates/1.schema.json`. The hidden `mt add --list` alias
+  retires with it, so `mt templates` is the one spelling, and
+  `mt add --template` points at it.
 - **`mt dicts` lists the project's dictionaries.** Each line gives the
   dictionary's name, the entry count it resolved to, its case, and its source:
   `inline` for `values`, a `path` file or a built-in, or `include:` naming the
   dictionaries it unions in, so a dictionary built from the two shipped word
   lists shows their count together. `mt dicts <name>` prints one dictionary's
-  entries, as `mt explain dicts <name>` does, and `--json` carries the same
-  list. `schema/output/dicts/2.schema.json` records the source, and `dicts/1`
-  stays for the shape `mt explain dicts` printed before.
+  entries, and `--json` carries the same list.
+  `schema/output/dicts/2.schema.json` records the source, and `dicts/1` stays
+  for the shape the listing printed before.
 - **`mt config show --resolved` prints the config `mt` uses.** The default view
   prints what the layers set, so a rule with no `severity` shows no level at
   all. `--resolved` prints the loaded config instead, every default filled in,
@@ -110,45 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `when` and `actions` as `[[on.flip]]`: an action prints a message, lists tasks
   or runs a command, and a command with `gate = true` refuses the removal before
   any file is deleted. The hook merges across packs and layers by `name` like
-  `[[on.flip]]`, `mt explain rules --for rm` lists it, and `mt explain` marks a
-  gate the user has not allowed. `[rm] default-filter` and
-  `[rm] strategy` stay the command's own config.
-- **`mt explain` opens on the project's shape.** Bare, it prints a `project:`
-  block (the task roots, the status legend split into `open` and `terminal`,
-  the actors), a `task:` block (the priority framework with each input's own
-  bounds and the scale its score lands on, the difficulty scale, the estimate
-  units, the kinds, the link kinds, the comment policy, the `x-` extensions and
-  the templates) and a `commits:` block (the trailer). Each block carries the
-  rules that check it: `task:` holds `rules`, `body.headers` and `body.content`,
-  `commits:` holds `rules`, and `add:`, `flip:` and `rm:` hold the hooks each
-  command runs. `rm:` also holds the `[rm]` filter as `filter:`, and `task:`
-  ends on the `[[tasks.waits]]` checkers as `waits:`. A section prints one line
-  per label, `error` before `warn`, and a key the project leaves open prints
-  what its absence permits: `any`, `none`, or the policy word. A hook prints
-  its name, or for an unnamed hook the command it runs, else the message it
-  carries, else its `on.<moment>[<index>]` label. Every line reads the config
-  alone, so the index loads no task. The index ends on a `more:` line naming
-  the listings that go deeper. `--json` carries the same blocks, and
-  `schema/output/explain/5.schema.json` records them.
-- **`mt explain rules --json` carries the command a hook action runs.** Each
-  rule gains `run`, the command as its config spells it, or `null` for a rule
-  that runs nothing. `schema/output/rules/2.schema.json` records it.
-- **`mt explain` marks the commands the user has not allowed.** A command
-  `mt allow` has not recorded prints under a `not allowed` label in the block
-  it belongs to, in place of its severity: `hooks (not allowed): scripts/test`,
-  and `waits (not allowed): scripts/locked {id}`. The label answers one
-  question, what the line does to the write, so a line carries one word. The
-  index ends on an `allow:` line naming the `mt allow` that records the
-  approval. A project with every command allowed prints neither, and `--json`
-  carries the same label under `rules` and the checkers under `waits`.
-- **`mt explain templates` lists every template `mt add` accepts.** One line
-  each gives the template's name, the `kind` it sets, its slot count and
-  `default` on the one `mt add` picks. The `kind` column reads `any` for a
-  template that leaves the field to a slot, and there is no status column
-  because `mt add` stamps the status itself. `--json` wraps the list in
-  `templates` under `$schema`. The listing reads the same template files
-  `mt add` reads, so a template added to a configured directory appears
-  without a config change, and the unknown-template error now points at it.
+  `[[on.flip]]`, and `mt config show --resolved` prints it.
+  `[rm] default-filter` and `[rm] strategy` stay the command's own config.
 - **`mt check` can run a project's own message check.** `[commits] run` names
   a command that `mt check --commit-msg` and `mt check --commits` run once per
   message, from the project root, with the message on stdin. A non-zero exit
@@ -196,14 +144,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `default view (!terminal && (miss(start) || start <= now())) · 2 of 1013 tasks`.
   A filter you typed still reads `your filter`, and the line wraps at the
   terminal width. `--json` keeps `applied.facets.filter.value` unchanged.
-- **`mt add --list` retires in favor of `mt explain templates`.** The flag is
-  hidden from `mt add --help` and prints the `mt explain templates` listing
-  plus a `note: use mt explain templates` on stderr. The next minor removes
-  it. `--template`'s help and the unknown-template error point at the listing
-  too, and the shell completion keeps reading the library template list.
+- **`mt add --list` retires in favor of `mt templates`.** The flag is hidden
+  from `mt add --help` and prints the `mt templates` listing plus a
+  `note: use mt templates` on stderr. The next minor removes it. `--template`'s
+  help and the unknown-template error point at the listing too, and the shell
+  completion keeps reading the library template list.
 - **Goal verdicts are written one per line again.** The task corpus and the
   templates no longer call `verdicts`; the helper stays exported for now and
   will be deprecated in a later release.
+
+### Removed
+
+- **`mt explain` and its listings retire.** `mt config show --resolved` prints
+  every key the project sets, `mt templates` the templates `mt add` files from,
+  `mt allow --status` the commands the config runs, and `mt dicts` the
+  dictionaries. `mt config show --json --resolved` carries every key, so
+  `contrib/jq/reports/essentials.jq` prints the project's shape from the config
+  rather than a second shape of it, each rule with the moments it fires at.
+  `mt explain` now names those commands, and its six JSON outputs leave
+  `schema/output/` with the page and the reference that documented them.
 
 ### Fixed
 

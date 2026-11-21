@@ -77,8 +77,6 @@ EOF
 
 # /named-sets/
 capture_lines named-sets-views "$SETS" <<'EOF'
-mt explain views
-mt explain views waiting
 mt ls @waiting
 EOF
 capture_lines named-sets-dicts "$SETS" <<'EOF'

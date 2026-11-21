@@ -346,8 +346,7 @@ fn add_value(value: &mindtape::config::add_hooks::AddValue) -> String {
     }
 }
 
-/// One hook action as the one-line description `--describe` and `mt explain
-/// add` print.
+/// One hook action as the one-line description `mt add --describe` prints.
 pub(crate) fn action_summary(action: &mindtape::config::add_hooks::AddAction) -> String {
     use mindtape::config::add_hooks::DirValue;
     let mut parts = Vec::new();

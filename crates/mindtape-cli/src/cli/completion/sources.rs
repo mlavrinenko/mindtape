@@ -72,8 +72,8 @@ pub(super) fn statuses() -> Vec<CompletionCandidate> {
     })
 }
 
-/// View names under `prefix`: empty for `mt explain views <name>`, `@` for every
-/// argument that takes the reference sugar.
+/// View names under `prefix`: `@` for every argument that takes the reference
+/// sugar, as `mt ls @<view>` and `--sort @<view>` do.
 pub(super) fn view_names(prefix: &str) -> Vec<CompletionCandidate> {
     from_project(|project| {
         project

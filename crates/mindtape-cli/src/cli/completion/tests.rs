@@ -132,7 +132,6 @@ fn source_labels_are_the_reflected_names() {
     let expected = [
         (Source::Stems, Some("stems")),
         (Source::Statuses, Some("statuses")),
-        (Source::Views, Some("views")),
         (Source::ViewRefs, Some("view-refs")),
         (Source::Dicts, Some("dicts")),
         (Source::Templates, Some("templates")),

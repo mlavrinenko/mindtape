@@ -146,7 +146,7 @@ fn a_project_lacking_the_view_fails_and_the_rest_still_list() {
     assert_eq!(rows(&stdout), expected, "{stdout}");
     assert!(stderr.contains("unknown view: 'mine'"), "{stderr}");
     let hint = format!(
-        "hint: run mt @{} explain views to see the views\n",
+        "hint: run mt @{} config show --resolved to see the views\n",
         set.beta()
     );
     assert!(stderr.contains(&hint), "{stderr}");

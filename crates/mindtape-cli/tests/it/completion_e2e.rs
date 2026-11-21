@@ -104,16 +104,6 @@ fn a_task_argument_offers_this_projects_stems() {
     );
 }
 
-/// `mt explain views <TAB>` offers the views this project declares.
-#[test]
-fn explain_views_offers_the_view_names() {
-    let candidates = complete(&example("api-service"), &["mt", "explain", "views", ""]);
-    assert!(
-        candidates.contains(&"stuck".to_owned()),
-        "views: {candidates:?}"
-    );
-}
-
 /// `mt ls @<TAB>` is the view half of the TO-BE: the `@name` sugar completes to
 /// the views this project declares.
 #[test]
@@ -129,19 +119,6 @@ fn ls_offers_view_references() {
 #[test]
 fn dicts_offers_the_dictionary_names() {
     let candidates = complete(&example("api-service"), &["mt", "dicts", ""]);
-    for name in ["services", "verbs", "mindtape-verbs"] {
-        assert!(
-            candidates.contains(&name.to_owned()),
-            "dicts: {candidates:?}"
-        );
-    }
-}
-
-/// `mt explain dicts <TAB>` offers this project's dictionaries and the
-/// built-ins.
-#[test]
-fn explain_dicts_offers_the_dictionary_names() {
-    let candidates = complete(&example("api-service"), &["mt", "explain", "dicts", ""]);
     for name in ["services", "verbs", "mindtape-verbs"] {
         assert!(
             candidates.contains(&name.to_owned()),

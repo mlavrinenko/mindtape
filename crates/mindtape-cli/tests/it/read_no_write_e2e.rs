@@ -201,18 +201,15 @@ fn graph_leaves_tree_untouched() {
 }
 
 #[test]
-fn views_leaves_tree_untouched() {
+fn templates_leaves_tree_untouched() {
     let dir = build_fixture();
-    assert_read_untouched(dir.path(), &["explain", "views"]);
+    assert_read_untouched(dir.path(), &["templates"]);
 }
 
 #[test]
 fn dicts_name_json_leaves_tree_untouched() {
     let dir = build_fixture();
-    assert_read_untouched(
-        dir.path(),
-        &["explain", "dicts", "mindtape-verbs", "--json"],
-    );
+    assert_read_untouched(dir.path(), &["dicts", "mindtape-verbs", "--json"]);
 }
 
 #[test]
@@ -244,9 +241,9 @@ pub(crate) fn read_leaves() -> Vec<(String, serde_json::Value)> {
     out
 }
 
-/// Recurse into a node with subcommands (`config`, `preset`, `explain`), and
-/// collect a node whose `class.kind` is `"read"`: a leaf, or a runnable parent
-/// like `explain`. The function flattens its path the same way
+/// Recurse into a node with subcommands (`config`, `preset`), and collect a
+/// node whose `class.kind` is `"read"`: a leaf, or a runnable parent the
+/// registry classifies. The function flattens its path the same way
 /// `cli/tree_json.rs`'s `flattened_name` does.
 fn collect_read_leaves(
     commands: &[serde_json::Value],

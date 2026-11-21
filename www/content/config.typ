@@ -364,8 +364,9 @@ A regex query returns `["string"]` or `["path"]`, and an ast-grep query returns
 
 Collectors merge by name across layers and packs, exactly as rules do, and
 `disable` drops one by name. Two collectors with the same name in one source
-are a config error. `mt explain rules` lists each one with its origin, kind, type and
-the rules that read it. A Typst collector specifies its module and function.
+are a config error. #link(u("/cli/config/"))[`mt config show --resolved`] prints
+each one's `query` and `returns` type, and `mt config show --origin` names the
+layer or pack it came from. A Typst collector specifies its module and function.
 An ast-grep collector specifies its language, pattern and optional glob.
 
 `mindtape:budget` includes a `changes` collector over a task's Changes section,

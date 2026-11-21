@@ -1,5 +1,5 @@
 //! [`active_add`]: every `[[on.add]]` hook a loaded config applies, with the
-//! layer or pack that supplied it, for `mt explain add`.
+//! layer or pack that supplied it.
 //!
 //! The typed [`Config::on`](crate::config::Config::on) already holds what the
 //! merge left after same-name replacement and `disable`. The rule-origin

@@ -1,15 +1,10 @@
 //! The payloads of the object JSON outputs other than `mt ls`: `mt check`,
-//! `mt @name check`, `mt graph`, `mt preset ls`, `mt explain` and the two
-//! explain listings.
+//! `mt @name check`, `mt graph` and `mt preset ls`.
 //!
 //! [`crate::render::envelope`] flattens each payload beside `$schema`, which
 //! keeps its keys at the top level. One schema comes from each type, so the
 //! recorded copy cannot drift from the bytes the binary prints.
 
-use std::collections::BTreeMap;
-
-use mindtape::explain::{CommitsShape, ProjectShape, TaskShape};
-use mindtape::{ActiveRule, DerivedField};
 use serde::Serialize;
 
 use crate::diag::ProblemJson;
@@ -113,56 +108,4 @@ pub struct PresetJson {
     /// Present on a built-in a user preset hides.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shadowed: Option<bool>,
-}
-
-/// The document `mt explain --json` prints.
-#[derive(Debug, Clone, Serialize, schemars::JsonSchema)]
-pub struct ExplainIndexPayload {
-    /// The `project:` block: where tasks live, and who works them.
-    pub project: ProjectShape,
-    /// The `task:` block: the fields a task carries.
-    pub task: TaskShape,
-    /// The `commits:` block: how a commit references its task.
-    pub commits: CommitsShape,
-    /// The keys the blocks leave out, because the project leaves them open.
-    pub absent: Vec<String>,
-    /// Each `[[tasks.waits]]` checker's command, in declaration order.
-    pub waits: Vec<String>,
-    /// Each config section's rule names, by label, strictest first.
-    pub rules: BTreeMap<String, BTreeMap<String, Vec<String>>>,
-    /// Each `[[on.add]]` hook's name, in the order `mt add` runs them.
-    pub add: Vec<String>,
-    /// Every derived field's name, without the `derived.` prefix.
-    pub derived: Vec<String>,
-    /// The allowed tags, `default` first.
-    pub tags: Vec<String>,
-    /// The declared views, `default` first.
-    pub views: Vec<String>,
-    /// Each dictionary's entry count, `default` first.
-    pub dicts: BTreeMap<String, usize>,
-}
-
-/// The document `mt explain rules --json` prints.
-#[derive(Debug, Clone, Serialize, schemars::JsonSchema)]
-pub struct RulesPayload {
-    /// The rules the config applies, in `mt config show --origin` order.
-    pub rules: Vec<ActiveRule>,
-    /// The derived fields the config declares.
-    pub derived: Vec<DerivedField>,
-}
-
-/// The document `mt explain tags --json` prints.
-#[derive(Debug, Clone, Serialize, schemars::JsonSchema)]
-pub struct TagsPayload {
-    /// Each allowed tag and the rules that read it.
-    pub tags: BTreeMap<String, Vec<TagRuleJson>>,
-}
-
-/// One rule that reads a tag.
-#[derive(Debug, Clone, Serialize, schemars::JsonSchema)]
-pub struct TagRuleJson {
-    /// The rule's name as `mt config show --origin` prints it.
-    pub rule: String,
-    /// The message a breach prints.
-    pub message: String,
 }

@@ -84,8 +84,8 @@ A project may declare `[[on.add]]` hooks that fill a field or choose the
 directory after your values are read. An explicit `=` value (a `--set`, a
 positional title or an `--edit` change) wins over a hook `set`, `--dir` wins
 over a hook `dir`, and `--no-hooks` skips them. An explicit `+=` appends and
-leaves a later hook `set` free to replace the list. Run `mt explain add` to see
-the hooks in effect.
+leaves a later hook `set` free to replace the list. Run
+`mt config show --resolved` to see the hooks in effect, under `[[on.add]]`.
 
 ## A `links` slot holds typed edges
 

@@ -7,12 +7,12 @@
 //! generates a per-command read test from the same JSON.
 //!
 //! A command's key is its bare top-level name (`"ls"`), or the space-joined
-//! path for a command under a parent with subcommands (`"explain rules"`,
-//! `"config show"`). That is the same flattening `cli/tree_json.rs` uses when
-//! it computes a node's path. A parent that runs itself with no listing carries
-//! an entry of its own (`"explain"`). `config` and `preset` carry none,
-//! because neither is a command in its own right and `preset`'s two children
-//! land in different classes.
+//! path for a command under a parent with subcommands (`"config show"`). That
+//! is the same flattening `cli/tree_json.rs` uses when it computes a node's
+//! path. A parent that runs itself with no listing carries an entry of its
+//! own, and no command does today. A container such as `config` or `preset`
+//! carries none. Neither is a command in its own right, and `preset`'s two
+//! children land in different classes.
 //!
 //! `cli/tree_json.rs`'s own tests assert exhaustiveness: every visible leaf
 //! classified, and no stale entry left behind by a removed command. That is
@@ -71,12 +71,6 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
         "schema",
         Class::Exempt("prints schemas; --write records the goldens"),
     ),
-    ("explain", Class::Read(Reach::One)),
-    ("explain add", Class::Read(Reach::One)),
-    ("explain rules", Class::Read(Reach::One)),
-    ("explain tags", Class::Read(Reach::One)),
-    ("explain views", Class::Read(Reach::One)),
-    ("explain dicts", Class::Read(Reach::One)),
     ("dicts", Class::Read(Reach::One)),
     ("templates", Class::Read(Reach::One)),
     ("preset save", Class::Write),

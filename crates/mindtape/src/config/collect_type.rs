@@ -74,7 +74,7 @@ impl CollectorAtom {
 }
 
 impl CollectorType {
-    /// The type as a config spells it, for `mt explain rules`.
+    /// The type as a config spells it, such as `["path"]`.
     #[must_use]
     pub fn describe(&self) -> String {
         match self {

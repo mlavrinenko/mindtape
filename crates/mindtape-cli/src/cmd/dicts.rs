@@ -28,18 +28,10 @@ pub struct DictsArgs {
 /// Returns an error if the project fails to open or the named dictionary is
 /// unknown.
 pub fn run(args: &DictsArgs) -> Result<()> {
-    run_listing(args.name.as_deref(), args.json)
-}
-
-/// The listing and the entry mode, which `mt explain dicts` still calls.
-///
-/// # Errors
-/// Returns an error if the project fails to open or the named dictionary is
-/// unknown.
-pub(crate) fn run_listing(name: Option<&str>, as_json: bool) -> Result<()> {
     let project = util::open()?;
     let dicts = project.config.compiled_dicts();
-    let Some(name) = name else {
+    let as_json = args.json;
+    let Some(name) = args.name.as_deref() else {
         if as_json {
             let payload = list_json(dicts);
             println!(
