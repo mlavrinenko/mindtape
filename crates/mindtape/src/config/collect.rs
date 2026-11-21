@@ -9,7 +9,7 @@
 use std::path::PathBuf;
 
 use regex::Regex;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::body::headers::HeaderPathSegment;
 use crate::config::Config;
@@ -29,7 +29,7 @@ impl PartialEq for CollectorOrigins {
 }
 
 /// One `[[tasks.collectors]]` entry.
-#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CollectorSpec {
     /// The derived field's name, read as `derived.<name>`.
@@ -37,6 +37,7 @@ pub struct CollectorSpec {
     /// Filter gating the collector. A task it excludes carries no field.
     #[serde(default)]
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub when: Option<String>,
     /// What the collector reads.
     pub query: CollectorQuery,
@@ -110,6 +111,16 @@ impl<'de> Deserialize<'de> for CollectorQuery {
     }
 }
 
+impl Serialize for CollectorQuery {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::Regex(query) => query.serialize(serializer),
+            Self::Typst(query) => query.serialize(serializer),
+            Self::AstGrep(query) => query.serialize(serializer),
+        }
+    }
+}
+
 /// One variant's struct read from the buffered table, with its error specifying
 /// the field at fault.
 fn parse_query<T, E>(
@@ -157,7 +168,7 @@ impl CollectorQuery {
 /// An ast-grep query: `{ ast_grep = { language, pattern, glob? } }`. The
 /// shared engine runs it over the files of its language that git lists,
 /// narrowed by the optional glob or path set the query names.
-#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AstGrepQuery {
     /// The language, pattern and optional glob the engine compiles.
@@ -165,7 +176,7 @@ pub struct AstGrepQuery {
 }
 
 /// The body of an `ast_grep` query.
-#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct AstGrepFields {
     /// The grammar to parse with: `rust` or its alias `rs` in this wave.
@@ -174,12 +185,13 @@ pub struct AstGrepFields {
     pub pattern: String,
     /// A glob or `@name` path set a matched file must also fall in.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub glob: Option<String>,
 }
 
 /// A Typst query: call a project function over the canonical task, or over
 /// one field of it, and return its value.
-#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TypstQuery {
     /// Path to the Typst module exporting `function`, relative to the project
@@ -190,12 +202,13 @@ pub struct TypstQuery {
     /// The field whose value the function receives. Absent means the whole
     /// task, in the shape `mt eval --json` prints.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub field: Option<String>,
 }
 
 /// A regex query takes the first capture group (or the whole match) of every
 /// match in every selected section's content.
-#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RegexQuery {
     /// The body section to read, as a heading path or one heading name.
@@ -205,12 +218,13 @@ pub struct RegexQuery {
     /// The capture group to take, counting from 0. Absent takes the first
     /// capture group when the pattern has one, else the whole match.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub group: Option<usize>,
 }
 
 /// A body section selector, either one heading name or a path through the
 /// heading tree.
-#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum SectionSpec {
     /// One exact heading name, matched as a direct child of the body root.

@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 
 use regex::Regex;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use typst_cst::{Comment, CommentKind, parse_comments};
 
@@ -25,18 +25,21 @@ use crate::validate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 /// Policy for review comments anywhere in a task's source file.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CommentsConfig {
     /// Whether a comment stays unconstrained, gets reported, or fails `mt check`.
     pub policy: CommentsPolicy,
     /// Regex that permits a deliberate comment form even under `warn` or
     /// `forbid`. It matches the comment's stripped, trimmed inner text.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_pattern: Option<String>,
 }
 
 /// How `mt check` treats a comment found in a task's source.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum CommentsPolicy {
     /// Comments stay unconstrained. The default.

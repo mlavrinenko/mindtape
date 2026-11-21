@@ -15,7 +15,7 @@
 use std::path::{Component, Path, PathBuf};
 
 use globset::Glob;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::layers::LayerSource;
 use crate::config::pack_registry::RuleOrigin;
@@ -32,7 +32,7 @@ const TEMPLATES_KEY: &str = "templates.dirs";
 /// tag name and a per-root tag derivation rule. A list may mix both forms.
 // `roots = ["tasks"]` and `[[tasks.roots]]` deserialize to the same
 // `Vec<RootSpec>`.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum RootSpec {
     /// Path shorthand, as in `"tasks"`.
@@ -42,14 +42,16 @@ pub enum RootSpec {
 }
 
 /// The table form of a task root.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RootConfig {
     /// Directory (relative to the project root) holding one task per file.
     pub path: String,
     /// Tag emitted for the root itself. Defaults to the path's last segment.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Tag derivation for this root. Absent takes `[tasks.derive-tags] enabled`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub derive_tags: Option<DeriveTags>,
     /// Globs, relative to the root, whose matches are not task sources under
     /// it. Another root can still admit a path this one excludes.
@@ -59,7 +61,7 @@ pub struct RootConfig {
 /// Per-root tag derivation: a bool, a file glob, or a list of globs. `true` or
 /// `false` turns derivation on or off for every file under the root. A glob
 /// turns it on only for files whose path, relative to the root, matches.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum DeriveTags {
     /// Enable or disable for every file under the root.
@@ -71,7 +73,7 @@ pub enum DeriveTags {
 }
 
 /// Project-wide policy for folder-derived tags.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct DeriveConfig {
     /// Default derivation switch for roots that don't set their own
@@ -102,7 +104,7 @@ impl Default for DeriveConfig {
 }
 
 /// A folder-derived-tag collector strategy.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum Collector {
     /// Each folder name as an independent flat tag (`backend`, `auth`).

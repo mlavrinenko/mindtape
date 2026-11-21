@@ -48,7 +48,7 @@
 //! - `rm.rs`: `[[on.rm]]`, actions bound to a removal.
 //! - `validate.rs`: the load-time checks both hook arrays share.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::config::Config;
@@ -59,7 +59,7 @@ use crate::model::Task;
 use crate::shell::ConfigCommand;
 
 /// Hooks keyed by the event that fires them.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct OnConfig {
     /// `[[on.flip]]` entries, in declaration order.
@@ -73,13 +73,14 @@ pub struct OnConfig {
 }
 
 /// One `[[on.flip]]` entry: which transitions it fires on, and what it does.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FlipHook {
     /// Optional name. A later entry with the same name, from a nearer layer
     /// or a pack, replaces an earlier one in place, and `disable` drops it by
     /// name. An unnamed entry always appends and is never replaced. Also the
     /// label `mt explain rules` and `mt config show --origin` print.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Filter over the task the flip acts on, plus `into("status")` for the
     /// status the flip stamps. Empty fires on every flip.
@@ -115,23 +116,28 @@ impl_hook_fields!(FlipHook);
 /// `show`, `list` and `run`, or set `gate = true` with no `run`.
 // The kinds share one flat TOML shape, so a mistyped or conflicting entry
 // fails as a config error naming the problem, rather than as a parse error.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FlipAction {
     /// Print a message with `{ show = "text" }`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub show: Option<String>,
     /// Print the matching tasks with `{ list = "filter or @view" }`.
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub list: Option<String>,
     /// Run a command with `{ run = "command" }`, through the platform shell
     /// (`sh -c`, or `cmd /C` on Windows), or with `{ run = ["program", "arg"] }`,
     /// directly with no shell. A gating action may omit it, and then the gate
     /// refuses the write whenever the entry's `when` matches.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub run: Option<ConfigCommand>,
     /// Heading printed above a `list`'s table.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     /// Explanation printed when `run` exits non-zero, or when a gate with no
     /// `run` refuses the write.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
     /// Whether a non-zero exit from `run` refuses the write. With no `run`, the
     /// gate refuses every write the entry's `when` matches. Applies to a `run`

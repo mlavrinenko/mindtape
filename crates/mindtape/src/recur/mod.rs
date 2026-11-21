@@ -26,7 +26,7 @@ pub(crate) mod rrule;
 mod canonical;
 mod policy;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use typst_harvest::HVal;
 
 pub use canonical::{CanonicalRecur, CanonicalRule};
@@ -122,7 +122,7 @@ impl PeriodUnit {
 
 /// Whether the config enables recurring tasks, and the values a `recur` field
 /// may take.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RecurConfig {
     /// Whether the config enables the recurrence feature. `false` rejects any

@@ -14,7 +14,7 @@
 //! compiles the whole set once ([`RequiredRules::compile`]) and asks it task by
 //! task.
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::config::Config;
 use crate::filter::Filter;
@@ -103,6 +103,16 @@ impl<'de> Deserialize<'de> for Requirement {
             }
         }
         deserializer.deserialize_any(ReqVisitor)
+    }
+}
+
+impl Serialize for Requirement {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::No => serializer.serialize_bool(false),
+            Self::Always => serializer.serialize_bool(true),
+            Self::Expr(expr) => serializer.serialize_str(expr),
+        }
     }
 }
 

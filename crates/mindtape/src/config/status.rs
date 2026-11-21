@@ -5,7 +5,7 @@
 
 use std::collections::{HashSet, VecDeque};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::link::NoteRule;
 use crate::problem::Problem;
@@ -16,7 +16,7 @@ use crate::suggest::Unknown;
 /// Each entry gives a value its glyph, color, label and `terminal` flag. An
 /// empty legend (`status = []`) accepts any status. Omitting
 /// `[[tasks.status]]` takes the default six-status legend.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(transparent)]
 pub struct Legend {
     /// Ordered entries, in lifecycle / display order.
@@ -24,16 +24,19 @@ pub struct Legend {
 }
 
 /// One `[[tasks.status]]` entry: a value plus its display attributes.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct LegendEntry {
     /// The status name, as written in a task's `status:` field.
     pub value: String,
     /// Optional decorative glyph (emoji or ASCII).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub glyph: Option<String>,
     /// Optional color: a named ANSI color or `#RRGGBB`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
     /// Optional display label, which falls back to `value`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     /// Whether this status ends a task. The `terminal` filter matches tasks in
     /// it, and `mt` does not check their tags or estimate units.

@@ -134,6 +134,7 @@ pub struct CheckSpec {
     /// it). Absent means the function receives the whole task, in the shape
     /// `mt eval --json` prints.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub field: Option<String>,
     /// The directory `typst` resolves from and the check evaluates in, when a
     /// pack declared the rule: the pack's own directory. `None` means the
@@ -147,31 +148,36 @@ pub struct CheckSpec {
 // `validate_rules` refuses both or neither at config load. A hand-built
 // `RuleSpec` (a test, or `parse_config` alone) can still carry either
 // combination, so `eval::CompiledRule::compile` checks it again.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RuleSpec {
     /// The name a report shows for the rule (`rules.<name>`). Optional: an
     /// unnamed rule reports by its position instead (`rules[0]`).
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Filter expression that must evaluate true for every task the rule
     /// applies to. The rule sets exactly one of this and `check`.
     #[serde(default, rename = "assert")]
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub assertion: Option<String>,
     /// A Typst function to call instead of an `assert` expression. The rule
     /// sets exactly one of this and `assert`.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub check: Option<CheckSpec>,
     /// Filter expression gating which tasks the rule applies to. Absent means
     /// every task.
     #[serde(default)]
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub when: Option<String>,
     /// What an `assert` breach tells the author to do, in place of the
     /// default advice that quotes the `assert` expression. A `check` rule
     /// ignores it and prints each string its function returns.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
     /// Whether a breach fails the command or only reports. Default `error`.
     #[serde(default)]

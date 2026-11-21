@@ -3,10 +3,13 @@
 
 use std::collections::HashMap;
 
-use serde::{Deserialize, Deserializer};
+use serde::ser::SerializeMap;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use crate::config::serialize_labels;
 
 /// Rules for the headings a task body must or must not have.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct HeadersConfig {
     /// Ordered list of heading gating rules.
@@ -20,7 +23,7 @@ pub struct HeadersConfig {
 /// - `order` makes `before` headings come ahead of `after` headings.
 /// - `allowlist` lets only the `allowed` headings appear under `scope` (the top
 ///   level when omitted).
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct HeaderRuleConfig {
     /// The name a report shows for the rule (`body.headers.rules.<name>`).
@@ -28,6 +31,7 @@ pub struct HeaderRuleConfig {
     /// (`body.headers.rules[0]`). Two rules in this array sharing a name is a
     /// config error that reports both.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Whether the target headings must exist, must not, or must be unique, or
     /// whether this is an `order`/`allowlist` rule.
@@ -50,8 +54,10 @@ pub struct HeaderRuleConfig {
     pub allowed: Vec<HeaderPathSegment>,
     /// Optional filter expression gating this rule to matching tasks only.
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub when: Option<String>,
     /// Override for the default violation message.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
 }
 
@@ -181,6 +187,20 @@ impl<'de> Deserialize<'de> for HeaderPathSegment {
     }
 }
 
+impl Serialize for HeaderPathSegment {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::Exact(text) => serializer.serialize_str(text),
+            Self::Pattern { pattern, recursive } => {
+                let mut map = serializer.serialize_map(Some(2))?;
+                map.serialize_entry("match", pattern)?;
+                map.serialize_entry("recursive", recursive)?;
+                map.end()
+            }
+        }
+    }
+}
+
 impl<'de> Deserialize<'de> for HeaderAction {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -200,6 +220,14 @@ impl<'de> Deserialize<'de> for HeaderAction {
         }
     }
 }
+
+serialize_labels!(HeaderAction {
+    Self::Require => "require",
+    Self::Forbid => "forbid",
+    Self::Unique => "unique",
+    Self::Order => "order",
+    Self::Allowlist => "allowlist",
+});
 
 /// Cross-check for `[[tasks.body.headers.rules]]`, folded into
 /// [`crate::config::Config::validate`]: no two entries share a `name`.

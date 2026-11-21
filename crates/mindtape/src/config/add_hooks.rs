@@ -42,7 +42,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 use crate::config::add_hooks_dir::validate_dir;
@@ -58,13 +58,14 @@ use crate::template::RawValue;
 pub const BUILTIN_TEMPLATE: &str = "task";
 
 /// One `[[on.add]]` entry: when it fires, and what it does.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct AddHook {
     /// Optional name. A later entry with the same name, from a nearer layer or
     /// a pack, replaces an earlier one in place, and `disable` drops it by
     /// name. An unnamed entry always appends. Also the label
     /// `mt config show --origin` prints.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Filter over the task the add creates, plus the two template tests. Empty
     /// fires on every add.
@@ -76,7 +77,7 @@ pub struct AddHook {
 
 /// One action of an `[[on.add]]` entry. Set at least one of `set`, `append`,
 /// `derive` and `dir`.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct AddAction {
     /// Fields to set, by writable name. `dir` is not a field, and the config
@@ -86,15 +87,17 @@ pub struct AddAction {
     pub append: BTreeMap<String, Vec<String>>,
     /// Where the task's file goes, as a project-root-relative template or a
     /// derived path.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dir: Option<DirValue>,
     /// A field to replace with a value a Typst function returns.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub derive: Option<DeriveAction>,
 }
 
 /// `derive = { typst, function, field }`: call `function` from the `typst`
 /// module and replace `field` with its value. A list field takes the whole
 /// returned array, which must hold only strings.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct DeriveAction {
     /// Path to the module exporting `function`, relative to the project root.
@@ -103,12 +106,13 @@ pub struct DeriveAction {
     pub function: String,
     /// The writable field the returned value replaces.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub field: Option<String>,
 }
 
 /// A value a hook sets, in one of the scalar shapes a TOML config writes
 /// naturally.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum AddValue {
     /// A string, including a date.
@@ -139,7 +143,7 @@ impl AddValue {
 
 /// A `dir` action's value: a static template, or a path a Typst function
 /// derives.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum DirValue {
     /// A project-root-relative template.
@@ -154,7 +158,7 @@ pub enum DirValue {
 /// `dir = { derive = { typst, function } }`: call `function` from the `typst`
 /// module and use the relative path it returns. It takes no `field`. The
 /// destination is the value.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct DerivedDir {
     /// Path to the module exporting `function`, relative to the project root.

@@ -17,6 +17,7 @@
 //! - `commits.rs`: `[commits]` and `[[commits.rules]]`.
 //! - `defaults.toml`: the embedded floor every config layers over.
 //! - `dicts.rs`: `[dicts.<name>]`, named string sets.
+//! - `error.rs`: `ConfigError`, what a layer that fails to load reports.
 //! - `estimate.rs`: `[tasks.estimate]` unit allow-list.
 //! - `expression_keys.rs`: every expression key, read from the config schema.
 //! - `format.rs`: `[format]`, whether `mt` reformats what it writes.
@@ -66,6 +67,7 @@ pub(crate) mod collect_type;
 pub mod comments;
 pub mod commits;
 pub(crate) mod dicts;
+pub mod error;
 pub(crate) mod estimate;
 pub(crate) mod expression_keys;
 pub(crate) mod format;
@@ -105,13 +107,10 @@ pub(crate) mod warnings;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
-use thiserror::Error;
+use serde::{Deserialize, Serialize};
 
 use crate::config::merge::deep_merge_tables;
 use crate::framework::merge_builtin_frameworks;
-use crate::problem::Problem;
-use crate::suggest::Unknown;
 
 pub use crate::body::content::{
     ContentAssert, ContentConfig, ContentRuleConfig, DensitySpec, DensityUnit,
@@ -167,7 +166,7 @@ pub fn embedded_defaults() -> &'static str {
 }
 
 /// Top-level project configuration.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
     /// Project-level settings (code, etc.).
@@ -265,10 +264,14 @@ pub struct Config {
     /// `param("name")`.
     // `crate::config::packs` resolves and consumes `extends` before this struct
     // is built, so the field reads back as whichever layer declared it last.
-    // No command reads it.
+    // No command reads it. Skipped by `mt config show --resolved`, which
+    // prints what the config does rather than how its layers combine.
+    #[serde(skip_serializing)]
     pub extends: Vec<PackEntry>,
     /// Rule names to drop once every pack and layer has added its rules. A
-    /// name that matches no rule is a config error.
+    /// name that matches no rule is a config error. The resolved view skips
+    /// it, as it skips `extends`.
+    #[serde(skip_serializing)]
     pub disable: Vec<String>,
     /// Git repositories the project takes packs from, each a
     /// `[pack-sources.<name>]` table of `git`, the repository, and `ref`, a
@@ -277,14 +280,16 @@ pub struct Config {
     /// source, and the embedded source already holds the name `mindtape`.
     /// `.mindtape/packs.lock` pins each source to a commit, and a config load
     /// refuses a source the lock doesn't pin from the `git` and `ref` here.
-    #[serde(rename = "pack-sources")]
+    // Skipped by the resolved view, for the reason `extends` gives.
+    #[serde(rename = "pack-sources", skip_serializing)]
     pub pack_sources: BTreeMap<String, crate::config::pack_sources::PackSource>,
 }
 /// Project-level settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct ProjectConfig {
     /// Short project qualifier. Falls back to the root directory name when absent.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
 }
 
@@ -301,72 +306,22 @@ pub fn effective_project_code(config: &Config, root: &std::path::Path) -> String
 
 pub use crate::config::actors::{Actor, ActorKind, Role, roles_of};
 pub use crate::config::assignee::AssigneeConfig;
+pub use crate::config::error::ConfigError;
 pub use crate::config::estimate::EstimateConfig;
 
-/// Errors from loading or locating a config file.
-#[derive(Debug, Error)]
-pub enum ConfigError {
-    /// The config file failed to read.
-    #[error("io error: {0}")]
-    Io(#[from] std::io::Error),
-    /// The config file contained invalid TOML. The TOML error is the message,
-    /// not a source, so a caller printing the chain prints it once.
-    #[error("parse error: {0}")]
-    Parse(toml::de::Error),
-    /// A config layer or pack other than the project's own contained invalid
-    /// TOML. `origin` names the file, or `pack <name>` for an embedded pack.
-    #[error("parse error in {origin}: {error}")]
-    ParseIn {
-        /// The file path, or `pack <name>`, the TOML error is in.
-        origin: String,
-        /// The TOML error, in the message rather than a `source` link, which
-        /// lets a chain print it once.
-        error: toml::de::Error,
-    },
-    /// The config parsed but failed a semantic check (such as band coverage).
-    #[error("invalid config: {message}")]
-    Invalid {
-        /// The problems, one per line, each led by the dotted key it is about.
-        message: String,
-        /// Where the first problem's key sits, when a config file declares it.
-        place: Option<ConfigPlace>,
-        /// What the first problem's unknown name could have been, if it has
-        /// one.
-        unknown: Option<Unknown>,
-        /// What to try next, when the first problem has an obvious next step.
-        hint: Option<&'static str>,
-    },
-}
-
-impl ConfigError {
-    /// A semantic failure not yet tied to a file.
-    #[must_use]
-    pub fn invalid(problem: impl Into<Problem>) -> Self {
-        let problem = problem.into();
-        Self::Invalid {
-            message: problem.text,
-            place: None,
-            unknown: problem.unknown,
-            hint: None,
+/// Write a config enum as the word its hand-written `Deserialize` reads. The
+/// two directions then sit side by side, rather than one deriving a Rust name
+/// the TOML never spells.
+macro_rules! serialize_labels {
+    ($ty:ty { $($variant:pat => $label:literal),+ $(,)? }) => {
+        impl Serialize for $ty {
+            fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                serializer.serialize_str(match self { $($variant => $label),+ })
+            }
         }
-    }
-
-    /// `self` with `next` as what to try next, when it is
-    /// [`ConfigError::Invalid`].
-    #[must_use]
-    pub fn with_hint(mut self, next: &'static str) -> Self {
-        if let Self::Invalid { hint, .. } = &mut self {
-            *hint = Some(next);
-        }
-        self
-    }
+    };
 }
-
-impl From<toml::de::Error> for ConfigError {
-    fn from(error: toml::de::Error) -> Self {
-        Self::Parse(error)
-    }
-}
+pub(crate) use serialize_labels;
 
 impl Config {
     /// What loads fine but is likely a mistake: a stored filter that references

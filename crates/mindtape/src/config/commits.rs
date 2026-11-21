@@ -51,7 +51,7 @@
 //! that references a task field is one config error rather than a hook that
 //! fails every commit.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::commit::CommitRecord;
 use crate::commit::expr::{CommitExpr, commit_expr_problem};
@@ -66,7 +66,7 @@ use crate::validate::severity::Severity;
 
 /// How commits reference the tasks they work on, or the work they track
 /// elsewhere, and the rules that check a commit.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct CommitsConfig {
     /// The trailer key whose values reference tasks by stem (`Refs: <stem>`) or
@@ -86,6 +86,7 @@ pub struct CommitsConfig {
     /// root, with the message on stdin. A non-zero exit fails the check, and
     /// the check reports each line the command prints as one problem. Absent
     /// means no external message check.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub run: Option<ConfigCommand>,
     /// Assertions every checked commit must satisfy.
     pub rules: Vec<CommitRuleSpec>,
@@ -113,7 +114,9 @@ impl CommitsConfig {
 }
 
 /// The input a commit rule reads.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum CommitScope {
     /// Once per commit, over its `subject`, `refs`, `files`, `trailers`,
@@ -132,13 +135,14 @@ pub enum CommitScope {
 }
 
 /// One assertion a checked commit must satisfy.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CommitRuleSpec {
     /// The name a report shows for the rule (`commits.rules.<name>`). The same
     /// name overrides or `disable`s the rule across packs. Optional: an
     /// unnamed rule reports by its position (`commits.rules[0]`).
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// The input the rule reads. Default `commit`.
     #[serde(default)]
@@ -151,10 +155,12 @@ pub struct CommitRuleSpec {
     /// means every commit.
     #[serde(default)]
     #[schemars(extend("x-expression" = "commit"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub when: Option<String>,
     /// What a breach tells the author, in place of the default advice that
     /// quotes the `assert` expression.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
     /// Whether a breach fails the check or only reports. Default `error`.
     #[serde(default)]

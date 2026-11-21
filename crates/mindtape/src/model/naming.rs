@@ -10,10 +10,11 @@
 //! candidate stem, and `disambiguate` decides, against the real (or faked)
 //! destination directory, whether that candidate is safe to use.
 
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use thiserror::Error;
 
+use crate::config::serialize_labels;
 use crate::date::format_iso;
-use serde::{Deserialize, Deserializer};
 
 /// The bare-slug template, which is the behaviour when `[tasks.naming] stem`
 /// is unset.
@@ -21,16 +22,18 @@ pub const DEFAULT_STEM_TEMPLATE: &str = "{slug}";
 
 /// How `mt add` and `mt recur` name a new task's file, and what `mt add` does
 /// when that name already exists (`dedup`).
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct NamingConfig {
     /// Filename stem template. Macros: `{slug}`, `{date}`, `{date:FMT}`,
     /// `{yy}`, `{mm}`, `{dd}`, `{n}` and `{n:0N}`. Unset means `{slug}`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stem: Option<String>,
     /// What `mt add` does when the stem already exists. `--dedup` overrides it
     /// for one run. Unset means `add-suffix` when `stem` has a value, else
     /// `fail`.
     // `NamingConfig::effective_dedup` holds that default.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dedup: Option<DedupMode>,
 }
 
@@ -93,6 +96,12 @@ impl<'de> Deserialize<'de> for DedupMode {
         }
     }
 }
+
+serialize_labels!(DedupMode {
+    Self::Fail => "fail",
+    Self::Skip => "skip",
+    Self::AddSuffix => "add-suffix",
+});
 
 /// Inputs to [`mint_stem`], supplied entirely by the caller: the expander
 /// itself never reads a clock or a counter. `mt add` passes today's date and

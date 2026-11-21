@@ -65,6 +65,7 @@ pub struct DictSpec {
     /// blank lines and lines whose first non-blank character is `#`, and trims
     /// each entry. May leave the root (`../shared/verbs.txt`), the same rule
     /// `[[typst.local-packages]] path` follows.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     /// Other dictionaries, project or built-in, whose entries the compiler
     /// unions in. The entries arrive raw, and this dictionary's own `case`

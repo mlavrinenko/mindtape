@@ -16,7 +16,6 @@
       "type": "array"
     },
     "description": {
-      "default": null,
       "description": "Human description, shown by `mt explain views`.",
       "type": [
         "string",

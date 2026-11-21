@@ -8,7 +8,7 @@
 
 use std::collections::BTreeMap;
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::config::CollectorSpec;
 use crate::config::ls_columns::{ColumnConfig, unknown_column};
@@ -39,13 +39,14 @@ pub const LS_COLUMNS: [&str; 11] = [
 ];
 
 /// Defaults for `mt ls`.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsConfig {
     /// Name of the view that drives the default `mt ls` listing when the
     /// caller passes no filter. It falls back to the `[views.default]` view
     /// when this is unset, and matches every task when the config declares
     /// neither. Validated at config load.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub default_view: Option<String>,
     /// Default sort chain for `mt ls` when the caller passes no `--sort`.
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
@@ -56,6 +57,7 @@ pub struct LsConfig {
     /// abbreviated month, `MM` zero-padded month, `M` bare month, `DD`
     /// zero-padded day, `D` bare day. Other characters print as written.
     /// Absent prints ISO `YYYY-MM-DD`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub date_format: Option<String>,
     /// Per-column display settings, keyed by column name. The built-in
     /// defaults set `when` on every column. A column with no `when` never
@@ -71,6 +73,7 @@ pub struct LsConfig {
     /// column. An unset key takes the built-in default.
     pub ready: ReadyConfig,
     /// Color for the overdue due-date accent. Defaults to `"red"`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub overdue_color: Option<String>,
     /// Ordered auto-activation rules applied to a bare `mt ls` (no CLI
     /// filter, no `@view`): the first rule whose condition holds (or that
@@ -86,6 +89,7 @@ pub struct LsConfig {
     /// shows. Both use `/` and percent-encode a space or any other character a
     /// URI can't hold. Defaults to `file://{abs}`. Point it at another scheme,
     /// such as an editor's URI handler, to open the task there.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub hyperlink_target: Option<String>,
     /// Fields that `contains()` searches when a call names none, in order.
     /// Takes any filter field name, plus `body`, `note` and `tags`. Empty (the
@@ -131,7 +135,9 @@ where
 // The CLI crate mirrors this enum one-to-one as
 // `crate::render::link::HyperlinkChoice`, because only that crate depends on
 // `clap`.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum HyperlinkChoice {
     /// Enable hyperlinks only when stdout is a TTY and `TERM` is not `dumb`.
@@ -151,16 +157,18 @@ pub enum HyperlinkChoice {
 /// then any manual `filter`, `sort` or `columns` override (highest
 /// precedence). All fields are optional. A rule with none of them still
 /// matches (by an absent `condition`) but contributes no facets.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsRule {
     /// Shown in the trailer and the JSON envelope's `applied.rule`. Falls
     /// back to the condition text when unset.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Condition expression over environment predicates such as
     /// `on_branch`, `env`, `weekday`, and `now`. Absent means the rule always
     /// matches.
     #[schemars(extend("x-expression" = "condition"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub condition: Option<String>,
     /// Ordered list of views to import facets from, composed left-to-right
     /// (later entries win on conflict). Each entry is a view name (`"view"`,
@@ -170,6 +178,7 @@ pub struct LsRule {
     /// Manual filter override. It has the highest precedence for the filter facet.
     /// Same grammar as `[views]`, and may use `@view` / `in_view`.
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<String>,
     /// Manual sort override. It has the highest precedence for the sort facet.
     /// Same spec grammar as `--sort`, and an entry may splice `@view`.
@@ -407,20 +416,26 @@ fn validate_view_spliced(
 // One block covers both states, outside `[ls.columns.ready]`, because
 // `ColumnConfig` carries only `when`. An omitted key falls back to the
 // embedded floor, then to the renderer's literal fallback.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ReadyConfig {
     /// Glyph shown for a ready (unblocked, non-terminal) task.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ready_glyph: Option<String>,
     /// Color for the ready state: a named ANSI color or `#RRGGBB`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ready_color: Option<String>,
     /// Display label for the ready state.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ready_label: Option<String>,
     /// Glyph shown for a blocked task.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_glyph: Option<String>,
     /// Color for the blocked state: a named ANSI color or `#RRGGBB`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_color: Option<String>,
     /// Display label for the blocked state.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_label: Option<String>,
 }
 

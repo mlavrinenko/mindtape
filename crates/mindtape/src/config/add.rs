@@ -6,24 +6,26 @@
 //! in the CLI. This module holds config shape only, which keeps the library
 //! format-blind.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::filter::condition::Condition;
 use crate::problem::Problem;
 
 /// Settings for `mt add`: the interactive editor fill, and whether a run
 /// verifies the task it files.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct AddConfig {
     /// Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a
     /// built-in default. May carry arguments (split on whitespace).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub editor: Option<String>,
     /// When the interactive editor opens.
     pub interactive: InteractiveMode,
     /// Scaffold header override. Absent uses the built-in instructions. An empty
     /// (or all-blank) string disables the header. Any other text replaces it,
     /// comment-prefixed so it stays valid YAML. Ignored when `comments = false`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub header: Option<String>,
     /// Whether the scaffold carries explanatory `#` comments. These are the header
     /// block and the per-slot annotations (kind, required/optional, choices,
@@ -38,6 +40,7 @@ pub struct AddConfig {
     /// refuses one from an agent. `--verify` and `--no-verify` override it for
     /// one call.
     #[schemars(extend("x-expression" = "condition"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub verify_when: Option<String>,
 }
 
@@ -54,7 +57,9 @@ impl Default for AddConfig {
 }
 
 /// When `mt add` opens the interactive editor.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum InteractiveMode {
     /// Open in a terminal when a required slot is still unfilled (default).

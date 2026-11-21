@@ -26,8 +26,9 @@
 
 A project's config is in `.mindtape/config.toml` at its root. Every key is
 optional. Any key you leave out takes its value from the floor, the defaults
-built into `mt`. To see what `mt` ends up with, `mt config show` prints the
-merged config as TOML, and `--origin` lists the files it came from (see
+built into `mt`. To see what `mt` ends up with, `mt config show --resolved`
+prints it as TOML with every default filled in. `mt config show` alone prints
+just what the layers set, and `--origin` lists the files they came from (see
 #link(u("/cli/config/"))[`mt config`]).
 
 = Layers

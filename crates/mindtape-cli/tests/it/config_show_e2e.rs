@@ -96,3 +96,67 @@ fn malformed_config_toml_fails_origin_with_context() {
     let stderr = support::stderr_of(&output);
     assert!(stderr.contains("config.toml"), "{stderr}");
 }
+
+/// A rule that sets no `severity` still reports at a level, and the collected
+/// view cannot say which: no layer set the key. `--resolved` prints the level
+/// `mt` applies.
+#[test]
+fn config_show_resolved_prints_the_level_a_rule_reports_at() {
+    let dir = tempdir_with_config(
+        "[[tasks.rules]]\nname = \"no-full-stop\"\nassert = '!matches(title, \"\\\\.$\")'\n",
+    );
+
+    let collected = support::stdout(dir.path(), &["config", "show"]);
+    assert_eq!(collected.matches("\nseverity = ").count(), 0, "{collected}");
+
+    let resolved = support::stdout(dir.path(), &["config", "show", "--resolved"]);
+    assert_eq!(resolved.matches("\nseverity = ").count(), 1, "{resolved}");
+}
+
+#[test]
+fn config_show_resolved_json_mirrors_the_toml() {
+    let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
+
+    let text = support::stdout(dir.path(), &["config", "show", "--resolved", "--json"]);
+    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+
+    support::assert_schema(&value, "config-show");
+    assert_eq!(value["config"]["project"]["code"], "demo");
+    assert_eq!(value["config"]["format"]["enabled"], true);
+    assert_eq!(
+        value["config"]["tasks"]["estimate"]["units"],
+        serde_json::json!([]),
+        "a section no layer set still prints its defaults: {value}"
+    );
+}
+
+/// A project built from the resolved output reproduces it byte for byte,
+/// which is what "resolves to itself" means for this view.
+#[test]
+fn config_show_resolved_output_round_trips_as_a_config() {
+    let dir = tempdir_with_config(
+        "[project]\ncode = \"demo\"\n\n\
+         [[tasks.rules]]\nname = \"no-full-stop\"\nassert = '!matches(title, \"\\\\.$\")'\n\n\
+         [ls]\nhyperlinks = \"never\"\n",
+    );
+
+    let first = support::stdout(dir.path(), &["config", "show", "--resolved"]);
+    let rebuilt = tempdir_with_config(&first);
+    let second = support::stdout(rebuilt.path(), &["config", "show", "--resolved"]);
+
+    assert_eq!(first, second);
+}
+
+#[test]
+fn config_show_resolved_conflicts_with_origin_and_defaults() {
+    let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
+
+    for other in ["--origin", "--defaults"] {
+        let output = support::mt(dir.path())
+            .args(["config", "show", "--resolved", other])
+            .assert()
+            .failure();
+        let stderr = support::stderr_of(&output);
+        assert!(stderr.contains("cannot be used with"), "{other}: {stderr}");
+    }
+}

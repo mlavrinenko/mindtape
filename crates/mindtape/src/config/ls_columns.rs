@@ -33,7 +33,7 @@
 
 use std::collections::BTreeSet;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::ls::{LS_COLUMNS, LsConfig};
 use crate::filter::condition::Condition;
@@ -41,7 +41,7 @@ use crate::problem::Problem;
 use crate::suggest::Unknown;
 
 /// Display settings for one column.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ColumnConfig {
     /// Condition under which this column renders. It takes the `[[ls.rules]]`
@@ -52,6 +52,7 @@ pub struct ColumnConfig {
     // The embedded floor sets `when` on every column, so an absent `when` is a
     // column a config layer deleted.
     #[schemars(extend("x-expression" = "condition"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub when: Option<String>,
 }
 

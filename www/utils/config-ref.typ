@@ -115,12 +115,25 @@
 }
 
 // A schema default as it would be written in TOML. None when the schema has
-// no default, or the default is null.
+// no default, or the default is null. A nested table renders inline, as
+// `{ count = "all" }`, because a default that fills a whole table arrives as a
+// dictionary rather than a scalar.
 #let _toml-value(v) = {
   if v == none { none } else if type(v) == str { "\"" + v + "\"" } else if (
     type(v) == bool
   ) { if v { "true" } else { "false" } } else if type(v) == array {
     "[" + v.map(_toml-value).join(", ") + "]"
+  } else if type(v) == dictionary {
+    if v.len() == 0 { "{}" } else {
+      (
+        "{ "
+          + v
+            .pairs()
+            .map(((k, inner)) => k + " = " + _toml-value(inner))
+            .join(", ")
+          + " }"
+      )
+    }
   } else { str(v) }
 }
 

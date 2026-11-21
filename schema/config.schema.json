@@ -83,6 +83,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/AddValue"
           },
+          "default": {},
           "description": "Fields to set, by writable name. `dir` is not a field, and the config\nrefuses it.",
           "type": "object"
         }
@@ -99,7 +100,6 @@
           "type": "boolean"
         },
         "editor": {
-          "default": null,
           "description": "Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a\nbuilt-in default. May carry arguments (split on whitespace).",
           "type": [
             "string",
@@ -107,7 +107,6 @@
           ]
         },
         "header": {
-          "default": null,
           "description": "Scaffold header override. Absent uses the built-in instructions. An empty\n(or all-blank) string disables the header. Any other text replaces it,\ncomment-prefixed so it stays valid YAML. Ignored when `comments = false`.",
           "type": [
             "string",
@@ -116,10 +115,10 @@
         },
         "interactive": {
           "$ref": "#/$defs/InteractiveMode",
+          "default": "auto",
           "description": "When the interactive editor opens."
         },
         "verify-when": {
-          "default": null,
           "description": "Whether `mt add` verifies the task it files, as a condition over the\ninvocation's ambient facts: `tty()`, `env(\"NAME\")`, `on_branch(\"glob\")`,\n`now()` and `weekday()`. Absent verifies always, so a project that says\nnothing keeps the refusal. `!tty()` verifies only a run without a\nterminal, which files an incomplete task from a terminal and still\nrefuses one from an agent. `--verify` and `--no-verify` override it for\none call.",
           "type": [
             "string",
@@ -135,6 +134,7 @@
       "description": "One `[[on.add]]` entry: when it fires, and what it does.",
       "properties": {
         "actions": {
+          "default": [],
           "description": "Actions to apply, in declaration order.",
           "items": {
             "$ref": "#/$defs/AddAction"
@@ -142,7 +142,6 @@
           "type": "array"
         },
         "name": {
-          "default": null,
           "description": "Optional name. A later entry with the same name, from a nearer layer or\na pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends. Also the label\n`mt config show --origin` prints.",
           "type": [
             "string",
@@ -193,7 +192,6 @@
       "description": "One labeled point in an anchor classification.",
       "properties": {
         "color": {
-          "default": null,
           "description": "Optional color: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
@@ -201,7 +199,6 @@
           ]
         },
         "glyph": {
-          "default": null,
           "description": "Optional decorative glyph.",
           "type": [
             "string",
@@ -235,7 +232,6 @@
           "type": "array"
         },
         "example": {
-          "default": null,
           "description": "The assignee `mt check` files a spliced slot with. A required assignee\nwith no `example` leaves that slot unfillable.",
           "type": [
             "string",
@@ -244,11 +240,11 @@
         },
         "required": {
           "$ref": "#/$defs/Requirement",
+          "default": false,
           "description": "Whether a task must carry an assignee.",
           "x-expression": "filter"
         },
         "values-when": {
-          "default": null,
           "description": "A filter that selects the tasks held to `allowed`. Every other task keeps\nwhatever it carries. Absent holds every task.",
           "type": [
             "string",
@@ -264,7 +260,6 @@
       "description": "The body of an `ast_grep` query.",
       "properties": {
         "glob": {
-          "default": null,
           "description": "A glob or `@name` path set a matched file must also fall in.",
           "type": [
             "string",
@@ -305,7 +300,6 @@
       "description": "One contiguous labeled range in a band classification.",
       "properties": {
         "color": {
-          "default": null,
           "description": "Optional color: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
@@ -313,7 +307,6 @@
           ]
         },
         "glyph": {
-          "default": null,
           "description": "Optional decorative glyph.",
           "type": [
             "string",
@@ -345,7 +338,6 @@
       "description": "One category, with the expression that selects it, its score and its display.",
       "properties": {
         "color": {
-          "default": null,
           "description": "Optional color: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
@@ -353,7 +345,6 @@
           ]
         },
         "glyph": {
-          "default": null,
           "description": "Optional decorative glyph.",
           "type": [
             "string",
@@ -361,7 +352,6 @@
           ]
         },
         "label": {
-          "default": null,
           "description": "Display label, empty when absent.",
           "type": [
             "string",
@@ -388,7 +378,6 @@
       "description": "Call a Typst function instead of evaluating an `assert` expression, with\n`check = { typst, function, field }`.",
       "properties": {
         "field": {
-          "default": null,
           "description": "Field whose value the function receives (`none` when the task omits\nit). Absent means the function receives the whole task, in the shape\n`mt eval --json` prints.",
           "type": [
             "string",
@@ -421,6 +410,7 @@
         },
         "run": {
           "$ref": "#/$defs/ConfigCommand",
+          "default": "",
           "description": "The command, with `{id}` standing for the entry's id. A line runs\nthrough `sh -c`, or `cmd /C` on Windows. An array runs its program\ndirectly, without a shell, and fills `{id}` into every item. It runs\nfrom the project root. Exit 0 means the wait is over, 1 means it goes\non, anything else is unknown."
         }
       },
@@ -475,7 +465,6 @@
           "description": "The type of the value the collector produces."
         },
         "when": {
-          "default": null,
           "description": "Filter gating the collector. A task it excludes carries no field.",
           "type": [
             "string",
@@ -528,7 +517,6 @@
       "description": "Display settings for one column.",
       "properties": {
         "when": {
-          "default": null,
           "description": "Condition under which this column renders. It takes the `[[ls.rules]]`\ncondition grammar (`tty()`, `format()`, `env()`, `on_branch()`,\n`now()`, `weekday()`, `true`, `false`) plus four listing predicates:\n`nonempty()`, `contested()`, `named()` and `blocked()`. Absent means\nthe column never renders.",
           "type": [
             "string",
@@ -544,7 +532,6 @@
       "description": "Policy for review comments anywhere in a task's source file.",
       "properties": {
         "allow-pattern": {
-          "default": null,
           "description": "Regex that permits a deliberate comment form even under `warn` or\n`forbid`. It matches the comment's stripped, trimmed inner text.",
           "type": [
             "string",
@@ -553,6 +540,7 @@
         },
         "policy": {
           "$ref": "#/$defs/CommentsPolicy",
+          "default": "allow",
           "description": "Whether a comment stays unconstrained, gets reported, or fails `mt check`."
         }
       },
@@ -588,7 +576,6 @@
           "x-expression": "commit"
         },
         "message": {
-          "default": null,
           "description": "What a breach tells the author, in place of the default advice that\nquotes the `assert` expression.",
           "type": [
             "string",
@@ -596,7 +583,6 @@
           ]
         },
         "name": {
-          "default": null,
           "description": "The name a report shows for the rule (`commits.rules.<name>`). The same\nname overrides or `disable`s the rule across packs. Optional: an\nunnamed rule reports by its position (`commits.rules[0]`).",
           "type": [
             "string",
@@ -605,6 +591,7 @@
         },
         "scope": {
           "$ref": "#/$defs/CommitScope",
+          "default": "commit",
           "description": "The input the rule reads. Default `commit`."
         },
         "severity": {
@@ -613,7 +600,6 @@
           "description": "Whether a breach fails the check or only reports. Default `error`."
         },
         "when": {
-          "default": null,
           "description": "Commit expression gating which commits the rule applies to. Absent\nmeans every commit.",
           "type": [
             "string",
@@ -660,6 +646,7 @@
           "type": "array"
         },
         "rules": {
+          "default": [],
           "description": "Assertions every checked commit must satisfy.",
           "items": {
             "$ref": "#/$defs/CommitRuleSpec"
@@ -767,6 +754,7 @@
       "description": "Rules for what a body section must contain.",
       "properties": {
         "rules": {
+          "default": [],
           "description": "Ordered list of section-content gating rules.",
           "items": {
             "$ref": "#/$defs/ContentRuleConfig"
@@ -775,6 +763,9 @@
         },
         "words": {
           "$ref": "#/$defs/WordDefaults",
+          "default": {
+            "count": "all"
+          },
           "description": "Defaults every content rule inherits."
         }
       },
@@ -796,7 +787,6 @@
           ]
         },
         "name": {
-          "default": null,
           "description": "The name a report shows for the rule (`body.content.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.content.rules[0]`). Two rules in this array sharing a name is a\nconfig error that reports both.",
           "type": [
             "string",
@@ -850,6 +840,7 @@
         },
         "per": {
           "$ref": "#/$defs/DensityUnit",
+          "default": "section",
           "description": "Unit to count matches in: `section` (the default), `paragraph` or\n`sentence`."
         }
       },
@@ -873,7 +864,6 @@
       "description": "`derive = { typst, function, field }`: call `function` from the `typst`\nmodule and replace `field` with its value. A list field takes the whole\nreturned array, which must hold only strings.",
       "properties": {
         "field": {
-          "default": null,
           "description": "The writable field the returned value replaces.",
           "type": [
             "string",
@@ -905,6 +895,9 @@
           "type": "boolean"
         },
         "collect": {
+          "default": [
+            "segments"
+          ],
           "description": "Collectors to run. Both may run at once, and the merge combines their\ntags without duplicates.",
           "items": {
             "$ref": "#/$defs/Collector"
@@ -1001,7 +994,6 @@
           "type": "array"
         },
         "path": {
-          "default": null,
           "description": "A file of entries, one per line, relative to the project root, or to\nthe directory of the pack that declares the dictionary. The reader skips\nblank lines and lines whose first non-blank character is `#`, and trims\neach entry. May leave the root (`../shared/verbs.txt`), the same rule\n`[[typst.local-packages]] path` follows.",
           "type": [
             "string",
@@ -1050,7 +1042,6 @@
             "format": "double",
             "type": "number"
           },
-          "default": null,
           "description": "The estimate `mt check` files a spliced slot with, as `unit = quantity`\npairs. A required estimate with no `example` leaves that slot\nunfillable.",
           "type": [
             "object",
@@ -1067,6 +1058,7 @@
         },
         "required": {
           "$ref": "#/$defs/Requirement",
+          "default": false,
           "description": "Whether a task must carry an estimate.",
           "x-expression": "filter"
         },
@@ -1101,7 +1093,6 @@
       "description": "Allowed values, default and requirement for `kind` or one `x-<ns>`\nextension field.",
       "properties": {
         "default": {
-          "default": null,
           "description": "Value `mt add` fills in when the field is mandatory and neither the\ntemplate nor the caller sets it. `mt check` never applies it.",
           "type": [
             "string",
@@ -1126,6 +1117,7 @@
         },
         "required": {
           "$ref": "#/$defs/Requirement",
+          "default": false,
           "description": "Whether a task must carry the field.",
           "x-expression": "filter"
         },
@@ -1138,7 +1130,6 @@
           "type": "array"
         },
         "values-when": {
-          "default": null,
           "description": "A filter that selects the tasks held to `values`. Every other task\nkeeps whatever it carries. Absent holds every task.",
           "type": [
             "string",
@@ -1175,7 +1166,6 @@
           "type": "boolean"
         },
         "list": {
-          "default": null,
           "description": "Print the matching tasks with `{ list = \"filter or @view\" }`.",
           "type": [
             "string",
@@ -1184,7 +1174,6 @@
           "x-expression": "filter"
         },
         "message": {
-          "default": null,
           "description": "Explanation printed when `run` exits non-zero, or when a gate with no\n`run` refuses the write.",
           "type": [
             "string",
@@ -1203,7 +1192,6 @@
           "description": "Run a command with `{ run = \"command\" }`, through the platform shell\n(`sh -c`, or `cmd /C` on Windows), or with `{ run = [\"program\", \"arg\"] }`,\ndirectly with no shell. A gating action may omit it, and then the gate\nrefuses the write whenever the entry's `when` matches."
         },
         "show": {
-          "default": null,
           "description": "Print a message with `{ show = \"text\" }`.",
           "type": [
             "string",
@@ -1211,7 +1199,6 @@
           ]
         },
         "title": {
-          "default": null,
           "description": "Heading printed above a `list`'s table.",
           "type": [
             "string",
@@ -1226,6 +1213,7 @@
       "description": "One `[[on.flip]]` entry: which transitions it fires on, and what it does.",
       "properties": {
         "actions": {
+          "default": [],
           "description": "Actions to run, in declaration order.",
           "items": {
             "$ref": "#/$defs/FlipAction"
@@ -1233,7 +1221,6 @@
           "type": "array"
         },
         "name": {
-          "default": null,
           "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt explain rules` and `mt config show --origin` print.",
           "type": [
             "string",
@@ -1266,6 +1253,7 @@
       "description": "Holds one scoring framework: typed inputs, plus either a `score` formula or\na list of categories.",
       "properties": {
         "category": {
+          "default": [],
           "description": "Categories to classify a task into. For any input values, exactly one\ncategory's `when` must be true. Doesn't combine with `score`.",
           "items": {
             "$ref": "#/$defs/Category"
@@ -1276,11 +1264,11 @@
           "additionalProperties": {
             "$ref": "#/$defs/Input"
           },
+          "default": {},
           "description": "Inputs by name. `score` and each category's `when` refer to them by\nthese names.",
           "type": "object"
         },
         "score": {
-          "default": null,
           "description": "Arithmetic expression over the inputs that computes the score, such as\n`impact * confidence * ease`. Doesn't combine with `category`.",
           "type": [
             "string",
@@ -1296,7 +1284,6 @@
       "description": "Settings for `mt go`.",
       "properties": {
         "editor": {
-          "default": null,
           "description": "Editor command. `mt go` replaces a `{task}` token with the task's file\npath, or appends the path when there is no token. Falls back to\n`$VISUAL`, then `$EDITOR`. `mt go` fails when neither variable has a\nvalue. May carry arguments, split on whitespace.",
           "type": [
             "string",
@@ -1351,6 +1338,7 @@
           "description": "Whether the target headings must exist, must not, or must be unique, or\nwhether this is an `order`/`allowlist` rule."
         },
         "after": {
+          "default": [],
           "description": "Path whose headings must come after (`order`).",
           "items": {
             "$ref": "#/$defs/HeaderPathSegment"
@@ -1358,6 +1346,7 @@
           "type": "array"
         },
         "allowed": {
+          "default": [],
           "description": "The permitted headings (`allowlist`).",
           "items": {
             "$ref": "#/$defs/HeaderPathSegment"
@@ -1365,6 +1354,7 @@
           "type": "array"
         },
         "before": {
+          "default": [],
           "description": "Path whose headings must come first (`order`).",
           "items": {
             "$ref": "#/$defs/HeaderPathSegment"
@@ -1379,7 +1369,6 @@
           ]
         },
         "name": {
-          "default": null,
           "description": "The name a report shows for the rule (`body.headers.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.headers.rules[0]`). Two rules in this array sharing a name is a\nconfig error that reports both.",
           "type": [
             "string",
@@ -1387,6 +1376,7 @@
           ]
         },
         "path": {
+          "default": [],
           "description": "Path through the heading tree (`require`, `forbid`, `unique`).",
           "items": {
             "$ref": "#/$defs/HeaderPathSegment"
@@ -1394,6 +1384,7 @@
           "type": "array"
         },
         "scope": {
+          "default": [],
           "description": "Path selecting the scopes whose children the rule constrains\n(`allowlist`). Omit it to constrain top-level headings.",
           "items": {
             "$ref": "#/$defs/HeaderPathSegment"
@@ -1419,6 +1410,7 @@
       "description": "Rules for the headings a task body must or must not have.",
       "properties": {
         "rules": {
+          "default": [],
           "description": "Ordered list of heading gating rules.",
           "items": {
             "$ref": "#/$defs/HeaderRuleConfig"
@@ -1454,6 +1446,7 @@
       "properties": {
         "format": {
           "$ref": "#/$defs/IdFormat",
+          "default": "string",
           "description": "Format an explicit `id:` must have. The default, `string`, accepts any\nnon-empty string."
         }
       },
@@ -1473,7 +1466,6 @@
       "description": "Holds one declared input: its type and bounds (numbers) or allowed values\n(enums).",
       "properties": {
         "max": {
-          "default": null,
           "description": "Inclusive upper bound (number inputs).",
           "format": "double",
           "type": [
@@ -1482,7 +1474,6 @@
           ]
         },
         "min": {
-          "default": null,
           "description": "Inclusive lower bound (number inputs).",
           "format": "double",
           "type": [
@@ -1492,6 +1483,7 @@
         },
         "type": {
           "$ref": "#/$defs/InputKind",
+          "default": "number",
           "description": "Input type."
         },
         "values": {
@@ -1557,7 +1549,6 @@
       "description": "One `[[tasks.status]]` entry: a value plus its display attributes.",
       "properties": {
         "color": {
-          "default": null,
           "description": "Optional color: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
@@ -1565,7 +1556,6 @@
           ]
         },
         "glyph": {
-          "default": null,
           "description": "Optional decorative glyph (emoji or ASCII).",
           "type": [
             "string",
@@ -1573,7 +1563,6 @@
           ]
         },
         "label": {
-          "default": null,
           "description": "Optional display label, which falls back to `value`.",
           "type": [
             "string",
@@ -1582,6 +1571,7 @@
         },
         "note": {
           "$ref": "#/$defs/NoteRule",
+          "default": "optional",
           "description": "Whether a move into this status needs a note: `required` or\n`optional` (the default). With `required`, `mt flip` refuses the move\nwithout `-m`, and `mt check` flags a task here with no note.\n`mt` accepts `forbidden` but does not enforce it for a status."
         },
         "terminal": {
@@ -1625,7 +1615,6 @@
           "type": "boolean"
         },
         "max": {
-          "default": null,
           "description": "Most edges of this kind one task may carry. Absent means no limit.",
           "format": "uint32",
           "minimum": 0,
@@ -1641,10 +1630,10 @@
         },
         "note": {
           "$ref": "#/$defs/NoteRule",
+          "default": "optional",
           "description": "Note requirement for edges of this kind."
         },
         "regex": {
-          "default": null,
           "description": "Regex a target must match when `validate = \"regex\"`. That validator\nrequires it, and every other validator rejects it. A missing or invalid\npattern is a config error.",
           "type": [
             "string",
@@ -1653,6 +1642,7 @@
         },
         "validate": {
           "$ref": "#/$defs/TargetValidator",
+          "default": "local-task-path",
           "description": "The kind of thing this kind's targets are. The default,\n`local-task-path`, is a path from the linking task's file to another\ntask's file. Any other value makes the targets something outside the\nbacklog, such as a commit, a pull request or a build."
         }
       },
@@ -1663,6 +1653,7 @@
       "description": "The link kinds a task's `links:` edges may use.",
       "properties": {
         "kinds": {
+          "default": [],
           "description": "Custom link kinds, added to the built-in ones. A built-in kind stays\nfixed.",
           "items": {
             "$ref": "#/$defs/LinkKind"
@@ -1697,6 +1688,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/ColumnConfig"
           },
+          "default": {},
           "description": "Per-column display settings, keyed by column name. The built-in\ndefaults set `when` on every column. A column with no `when` never\nrenders.",
           "type": "object"
         },
@@ -1717,7 +1709,6 @@
           "type": "array"
         },
         "date-format": {
-          "default": null,
           "description": "Date format for every date column. Tokens, longest match first: `YYYY`\n4-digit year, `YY` 2-digit year, `MMMM` full month name, `MMM`\nabbreviated month, `MM` zero-padded month, `M` bare month, `DD`\nzero-padded day, `D` bare day. Other characters print as written.\nAbsent prints ISO `YYYY-MM-DD`.",
           "type": [
             "string",
@@ -1733,7 +1724,6 @@
           "type": "array"
         },
         "default-view": {
-          "default": null,
           "description": "Name of the view that drives the default `mt ls` listing when the\ncaller passes no filter. It falls back to the `[views.default]` view\nwhen this is unset, and matches every task when the config declares\nneither. Validated at config load.",
           "type": [
             "string",
@@ -1741,7 +1731,6 @@
           ]
         },
         "hyperlink-target": {
-          "default": null,
           "description": "URI that a row's `slug#` and `file` cells link to. `mt` replaces `{abs}`\nwith the task's absolute path as it follows `file://`, such as\n`/C:/proj/tasks/a.typ`, and `{rel}` with the path the `file` column\nshows. Both use `/` and percent-encode a space or any other character a\nURI can't hold. Defaults to `file://{abs}`. Point it at another scheme,\nsuch as an editor's URI handler, to open the task there.",
           "type": [
             "string",
@@ -1750,10 +1739,10 @@
         },
         "hyperlinks": {
           "$ref": "#/$defs/HyperlinkChoice",
+          "default": "never",
           "description": "Whether the `slug#` and `file` cells carry terminal hyperlinks: `auto`,\n`always`, or `never` (the default). `--hyperlinks` overrides it for one\nrun."
         },
         "overdue-color": {
-          "default": null,
           "description": "Color for the overdue due-date accent. Defaults to `\"red\"`.",
           "type": [
             "string",
@@ -1762,9 +1751,11 @@
         },
         "ready": {
           "$ref": "#/$defs/ReadyConfig",
+          "default": {},
           "description": "Glyph, color and label for the ready and blocked states in the `READY`\ncolumn. An unset key takes the built-in default."
         },
         "rules": {
+          "default": [],
           "description": "Ordered auto-activation rules applied to a bare `mt ls` (no CLI\nfilter, no `@view`): the first rule whose condition holds (or that\nhas none) wins and supplies its filter, sort, and columns.",
           "items": {
             "$ref": "#/$defs/LsRule"
@@ -1787,7 +1778,6 @@
           "type": "array"
         },
         "condition": {
-          "default": null,
           "description": "Condition expression over environment predicates such as\n`on_branch`, `env`, `weekday`, and `now`. Absent means the rule always\nmatches.",
           "type": [
             "string",
@@ -1796,7 +1786,6 @@
           "x-expression": "condition"
         },
         "filter": {
-          "default": null,
           "description": "Manual filter override. It has the highest precedence for the filter facet.\nSame grammar as `[views]`, and may use `@view` / `in_view`.",
           "type": [
             "string",
@@ -1813,7 +1802,6 @@
           "type": "array"
         },
         "name": {
-          "default": null,
           "description": "Shown in the trailer and the JSON envelope's `applied.rule`. Falls\nback to the condition text when unset.",
           "type": [
             "string",
@@ -1847,7 +1835,6 @@
           "description": "What `mt add` does when the stem already exists. `--dedup` overrides it\nfor one run. Unset means `add-suffix` when `stem` has a value, else\n`fail`."
         },
         "stem": {
-          "default": null,
           "description": "Filename stem template. Macros: `{slug}`, `{date}`, `{date:FMT}`,\n`{yy}`, `{mm}`, `{dd}`, `{n}` and `{n:0N}`. Unset means `{slug}`.",
           "type": [
             "string",
@@ -1882,6 +1869,7 @@
       "description": "A numeric scalar field with a `[min, max]` scale and, optionally, one\nclassification style, either contiguous bands or labeled anchor points.\nDefaults to an integer `0..9` scale without a classification.",
       "properties": {
         "anchors": {
+          "default": [],
           "description": "Anchor classification (mutually exclusive with `bands`).",
           "items": {
             "$ref": "#/$defs/Anchor"
@@ -1889,6 +1877,7 @@
           "type": "array"
         },
         "bands": {
+          "default": [],
           "description": "Band classification (mutually exclusive with `anchors`).",
           "items": {
             "$ref": "#/$defs/Band"
@@ -1896,7 +1885,6 @@
           "type": "array"
         },
         "example": {
-          "default": null,
           "description": "The value `mt check` files a spliced slot with. A required field with\nno `example` leaves that slot unfillable.",
           "format": "double",
           "type": [
@@ -1906,6 +1894,7 @@
         },
         "kind": {
           "$ref": "#/$defs/ScaleKind",
+          "default": "int",
           "description": "Whether the scale is integer or real."
         },
         "max": {
@@ -1922,6 +1911,7 @@
         },
         "required": {
           "$ref": "#/$defs/Requirement",
+          "default": false,
           "description": "Whether the field must carry a value.",
           "x-expression": "filter"
         }
@@ -1933,6 +1923,7 @@
       "description": "Hooks keyed by the event that fires them.",
       "properties": {
         "add": {
+          "default": [],
           "description": "`[[on.add]]` entries, in declaration order. Their shape and validation\nlive in the add-hook config module.",
           "items": {
             "$ref": "#/$defs/AddHook"
@@ -1940,6 +1931,7 @@
           "type": "array"
         },
         "flip": {
+          "default": [],
           "description": "`[[on.flip]]` entries, in declaration order.",
           "items": {
             "$ref": "#/$defs/FlipHook"
@@ -1947,6 +1939,7 @@
           "type": "array"
         },
         "rm": {
+          "default": [],
           "description": "`[[on.rm]]` entries, in declaration order. Their shape and validation\nlive in the rm-hook config module.",
           "items": {
             "$ref": "#/$defs/RmHook"
@@ -2043,6 +2036,7 @@
           "type": "boolean"
         },
         "anchors": {
+          "default": [],
           "description": "Anchor classification (mutually exclusive with `bands`).",
           "items": {
             "$ref": "#/$defs/Anchor"
@@ -2050,6 +2044,7 @@
           "type": "array"
         },
         "bands": {
+          "default": [],
           "description": "Band classification (mutually exclusive with `anchors`).",
           "items": {
             "$ref": "#/$defs/Band"
@@ -2057,7 +2052,6 @@
           "type": "array"
         },
         "example": {
-          "default": null,
           "description": "The value `mt check` files a spliced slot with. A required field with\nno `example` leaves that slot unfillable.",
           "format": "double",
           "type": [
@@ -2066,7 +2060,6 @@
           ]
         },
         "framework": {
-          "default": null,
           "description": "Name of the framework that computes priority, a key of `frameworks`.\nAbsent means priority is a raw number.",
           "type": [
             "string",
@@ -2077,11 +2070,13 @@
           "additionalProperties": {
             "$ref": "#/$defs/Framework"
           },
+          "default": {},
           "description": "Scoring frameworks by name: the built-in ones merged with any declared\nhere.",
           "type": "object"
         },
         "kind": {
           "$ref": "#/$defs/ScaleKind",
+          "default": "int",
           "description": "Whether the scale is integer or real."
         },
         "max": {
@@ -2098,6 +2093,7 @@
         },
         "required": {
           "$ref": "#/$defs/Requirement",
+          "default": false,
           "description": "Whether the field must carry a value.",
           "x-expression": "filter"
         }
@@ -2109,7 +2105,6 @@
       "description": "Project-level settings.",
       "properties": {
         "code": {
-          "default": null,
           "description": "Short project qualifier. Falls back to the root directory name when absent.",
           "type": [
             "string",
@@ -2124,7 +2119,6 @@
       "description": "Glyph, color and label for the ready and blocked states in the `READY`\ncolumn. An omitted key takes the built-in default.",
       "properties": {
         "blocked-color": {
-          "default": null,
           "description": "Color for the blocked state: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
@@ -2132,7 +2126,6 @@
           ]
         },
         "blocked-glyph": {
-          "default": null,
           "description": "Glyph shown for a blocked task.",
           "type": [
             "string",
@@ -2140,7 +2133,6 @@
           ]
         },
         "blocked-label": {
-          "default": null,
           "description": "Display label for the blocked state.",
           "type": [
             "string",
@@ -2148,7 +2140,6 @@
           ]
         },
         "ready-color": {
-          "default": null,
           "description": "Color for the ready state: a named ANSI color or `#RRGGBB`.",
           "type": [
             "string",
@@ -2156,7 +2147,6 @@
           ]
         },
         "ready-glyph": {
-          "default": null,
           "description": "Glyph shown for a ready (unblocked, non-terminal) task.",
           "type": [
             "string",
@@ -2164,7 +2154,6 @@
           ]
         },
         "ready-label": {
-          "default": null,
           "description": "Display label for the ready state.",
           "type": [
             "string",
@@ -2237,7 +2226,6 @@
       "description": "A regex query takes the first capture group (or the whole match) of every\nmatch in every selected section's content.",
       "properties": {
         "group": {
-          "default": null,
           "description": "The capture group to take, counting from 0. Absent takes the first\ncapture group when the pattern has one, else the whole match.",
           "format": "uint",
           "minimum": 0,
@@ -2277,7 +2265,6 @@
       "description": "The gitless `rm` tombstone. It keeps the file and flips its status to a\nterminal one.",
       "properties": {
         "rename": {
-          "default": null,
           "description": "Move the retired task file into a sibling folder of this name, such as\n`.archive`. Omitted keeps the file where it is.",
           "type": [
             "string",
@@ -2285,7 +2272,6 @@
           ]
         },
         "status": {
-          "default": null,
           "description": "The terminal status the retired task flips to. Defaults to the legend's\nfirst terminal status (an error if the legend declares none).",
           "type": [
             "string",
@@ -2300,7 +2286,6 @@
       "description": "Defaults for the `rm` task-removal command.",
       "properties": {
         "default-filter": {
-          "default": null,
           "description": "Filter selecting which tasks a bare `mt rm` (no target given) retires.\nDefaults to `\"terminal\"`, sweeping every task in a terminal status.\nAn explicit ref or filter argument on the command line overrides it.",
           "type": [
             "string",
@@ -2327,6 +2312,7 @@
       "description": "One `[[on.rm]]` entry: which removals it fires on, and what it does.",
       "properties": {
         "actions": {
+          "default": [],
           "description": "Actions to run, in declaration order.",
           "items": {
             "$ref": "#/$defs/FlipAction"
@@ -2334,7 +2320,6 @@
           "type": "array"
         },
         "name": {
-          "default": null,
           "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt explain rules` and `mt config show --origin` print.",
           "type": [
             "string",
@@ -2413,7 +2398,6 @@
           "type": "array"
         },
         "name": {
-          "default": null,
           "description": "Tag emitted for the root itself. Defaults to the path's last segment.",
           "type": [
             "string",
@@ -2446,7 +2430,6 @@
       "description": "One assertion or check that every selected task must satisfy. Set exactly one\nof `assert` and `check`.",
       "properties": {
         "assert": {
-          "default": null,
           "description": "Filter expression that must evaluate true for every task the rule\napplies to. The rule sets exactly one of this and `check`.",
           "type": [
             "string",
@@ -2463,11 +2446,9 @@
               "type": "null"
             }
           ],
-          "default": null,
           "description": "A Typst function to call instead of an `assert` expression. The rule\nsets exactly one of this and `assert`."
         },
         "message": {
-          "default": null,
           "description": "What an `assert` breach tells the author to do, in place of the\ndefault advice that quotes the `assert` expression. A `check` rule\nignores it and prints each string its function returns.",
           "type": [
             "string",
@@ -2475,7 +2456,6 @@
           ]
         },
         "name": {
-          "default": null,
           "description": "The name a report shows for the rule (`rules.<name>`). Optional: an\nunnamed rule reports by its position instead (`rules[0]`).",
           "type": [
             "string",
@@ -2488,7 +2468,6 @@
           "description": "Whether a breach fails the command or only reports. Default `error`."
         },
         "when": {
-          "default": null,
           "description": "Filter expression gating which tasks the rule applies to. Absent means\nevery task.",
           "type": [
             "string",
@@ -2558,7 +2537,6 @@
           "type": "array"
         },
         "values-when": {
-          "default": null,
           "description": "A filter that selects the tasks held to `allowed`. Absent means\n`!terminal`, and a closed task then keeps a tag dropped from the list.",
           "type": [
             "string",
@@ -2610,10 +2588,19 @@
       "properties": {
         "content": {
           "$ref": "#/$defs/ContentConfig",
+          "default": {
+            "rules": [],
+            "words": {
+              "count": "all"
+            }
+          },
           "description": "Section-content gating rules."
         },
         "headers": {
           "$ref": "#/$defs/HeadersConfig",
+          "default": {
+            "rules": []
+          },
           "description": "Section-heading gating rules."
         }
       },
@@ -2625,13 +2612,29 @@
       "properties": {
         "assignee": {
           "$ref": "#/$defs/AssigneeConfig",
+          "default": {
+            "allowed": [],
+            "required": false
+          },
           "description": "Which actors `assignee:` may name, and whether a task must carry one."
         },
         "body": {
           "$ref": "#/$defs/TaskBodyConfig",
+          "default": {
+            "content": {
+              "rules": [],
+              "words": {
+                "count": "all"
+              }
+            },
+            "headers": {
+              "rules": []
+            }
+          },
           "description": "Rules over a task body's headings and section content."
         },
         "collectors": {
+          "default": [],
           "description": "Derived fields, each a query run over every task and read as\n`derived.<name>`. A collector a pack or a lower layer declared merges\nby name, as a rule does.",
           "items": {
             "$ref": "#/$defs/CollectorSpec"
@@ -2640,48 +2643,111 @@
         },
         "comments": {
           "$ref": "#/$defs/CommentsConfig",
+          "default": {
+            "policy": "allow"
+          },
           "description": "Review-comment policy over a task's whole source file (`mt check`)."
         },
         "derive-tags": {
           "$ref": "#/$defs/DeriveConfig",
+          "default": {
+            "breadcrumb-root": false,
+            "collect": [
+              "segments"
+            ],
+            "enabled": false,
+            "separator": ":",
+            "slugify": true
+          },
           "description": "Project-wide folder-derived-tag policy."
         },
         "difficulty": {
           "$ref": "#/$defs/NumericField",
+          "default": {
+            "anchors": [],
+            "bands": [],
+            "kind": "int",
+            "max": 9.0,
+            "min": 0.0,
+            "required": false
+          },
           "description": "The difficulty scale and its labeled anchors or bands."
         },
         "estimate": {
           "$ref": "#/$defs/EstimateConfig",
+          "default": {
+            "queries": {},
+            "required": false,
+            "units": []
+          },
           "description": "Allowed estimate units, and whether a task must carry an estimate."
         },
         "fields": {
           "additionalProperties": {
             "$ref": "#/$defs/FieldConfig"
           },
+          "default": {},
           "description": "Allowed values, default and requirement for `kind` and for each\n`x-<ns>` extension field, keyed by field name. Any other key fails\nconfig load.",
           "type": "object"
         },
         "id": {
           "$ref": "#/$defs/IdConfig",
+          "default": {
+            "format": "string"
+          },
           "description": "Task id format."
         },
         "links": {
           "$ref": "#/$defs/LinksConfig",
+          "default": {
+            "kinds": []
+          },
           "description": "Custom link kinds that `links:` edges may use, beside the built-in ones."
         },
         "naming": {
           "$ref": "#/$defs/NamingConfig",
+          "default": {},
           "description": "The filename stem template `mt add` and `mt recur` use, and what\n`mt add` does when another task already holds the stem (`dedup`)."
         },
         "priority": {
           "$ref": "#/$defs/PriorityConfig",
+          "default": {
+            "allow-manual": true,
+            "anchors": [],
+            "bands": [],
+            "frameworks": {},
+            "kind": "int",
+            "max": 9.0,
+            "min": 0.0,
+            "required": false
+          },
           "description": "The priority scale, its bands, and an optional scoring framework that\ncomputes priority from inputs."
         },
         "recur": {
           "$ref": "#/$defs/RecurConfig",
+          "default": {
+            "anchors": [
+              "completion",
+              "due"
+            ],
+            "default-anchor": "completion",
+            "enabled": true,
+            "materialize": "spawn",
+            "max-advance": 52,
+            "rrule": false,
+            "units": [
+              "days",
+              "weeks",
+              "months",
+              "years"
+            ]
+          },
           "description": "Whether the config enables recurring tasks, and the units, anchors and\nlimits `mt recur` accepts."
         },
         "roots": {
+          "default": [
+            "tasks"
+          ],
           "description": "Directories (relative to the project root) holding one task per file.",
           "items": {
             "$ref": "#/$defs/RootSpec"
@@ -2689,6 +2755,7 @@
           "type": "array"
         },
         "rules": {
+          "default": [],
           "description": "Assertions every selected task must satisfy. `mt check` enforces them,\nand so does every write command before it writes.",
           "items": {
             "$ref": "#/$defs/RuleSpec"
@@ -2697,13 +2764,18 @@
         },
         "status": {
           "$ref": "#/$defs/Legend",
+          "default": [],
           "description": "Status legend: legal values in lifecycle order, plus per-value display\n(glyph, color, label) and the `terminal` flag."
         },
         "tags": {
           "$ref": "#/$defs/TagsConfig",
+          "default": {
+            "allowed": []
+          },
           "description": "Tag allow-list, checked on open tasks only."
         },
         "waits": {
+          "default": [],
           "description": "Commands a `waits-on` entry names: each answers by exit code whether a\ntask still waits on something outside the repo.",
           "items": {
             "$ref": "#/$defs/Checker"
@@ -2739,6 +2811,7 @@
         },
         "fallback-severity": {
           "$ref": "#/$defs/FallbackSeverity",
+          "default": "warning",
           "description": "How `mt check` reports a breach of the built-in template, which `mt add`\nfalls back to when no template dir holds `task.typ`. A project's own\ntemplates always report errors."
         }
       },
@@ -2749,6 +2822,7 @@
       "description": "Typst evaluation settings.",
       "properties": {
         "local-packages": {
+          "default": [],
           "description": "`@local/<name>` packages to load from a directory in the project, so a\ntask can import a package that is not installed globally. `mt`\nregisters `@local/mindtape` itself when `<root>/lib` holds the\n`mindtape` package. List any other package here.",
           "items": {
             "$ref": "#/$defs/LocalPackage"
@@ -2763,7 +2837,6 @@
       "description": "A Typst query: call a project function over the canonical task, or over\none field of it, and return its value.",
       "properties": {
         "field": {
-          "default": null,
           "description": "The field whose value the function receives. Absent means the whole\ntask, in the shape `mt eval --json` prints.",
           "type": [
             "string",
@@ -2798,7 +2871,6 @@
           "type": "array"
         },
         "description": {
-          "default": null,
           "description": "Human description, shown by `mt explain views`.",
           "type": [
             "string",
@@ -2845,6 +2917,7 @@
       "properties": {
         "count": {
           "$ref": "#/$defs/WordCount",
+          "default": "all",
           "description": "Unit a rule's word count uses when its own `words` table omits `count`."
         }
       },
@@ -2889,6 +2962,7 @@
   "description": "Schema for `.mindtape/config.toml`, the per-project Mindtape configuration. Every section is optional; an omitted section takes the shipped defaults.",
   "properties": {
     "actors": {
+      "default": [],
       "description": "The project's actor registry (`[[actors]]`): named workers (people and\nlanguage models) that `assignee:` values may reference.",
       "items": {
         "$ref": "#/$defs/Actor"
@@ -2897,10 +2971,19 @@
     },
     "add": {
       "$ref": "#/$defs/AddConfig",
+      "default": {
+        "comments": true,
+        "interactive": "auto"
+      },
       "description": "`add` settings for `mt add`: the editor fill and whether it verifies."
     },
     "commits": {
       "$ref": "#/$defs/CommitsConfig",
+      "default": {
+        "external-refs": [],
+        "rules": [],
+        "trailer": "Refs"
+      },
       "description": "The commit trailer, its external refs, and the rules\n`mt check --commit-msg` checks a commit against."
     },
     "dicts": {
@@ -2912,35 +2995,53 @@
       "type": "object"
     },
     "disable": {
-      "default": [],
-      "description": "Rule names to drop once every pack and layer has added its rules. A\nname that matches no rule is a config error.",
+      "description": "Rule names to drop once every pack and layer has added its rules. A\nname that matches no rule is a config error. The resolved view skips\nit, as it skips `extends`.",
       "items": {
         "type": "string"
       },
-      "type": "array"
+      "type": "array",
+      "writeOnly": true
     },
     "extends": {
-      "default": [],
       "description": "Packs this config builds on, in any config layer. An entry with a path\nseparator is a TOML pack file, or a directory pack, a folder holding\n`pack.toml` and an optional `templates/`, relative to the file that\ndeclares it. A directory's `templates/` joins `templates.dirs`.\nAny other entry is `<source>:<pack>`, and `mindtape` is the one source\nknown without a declaration: `mindtape:tasks` is a pack built into\n`mt`. A pack holds any config key but `extends`, `disable`,\n`pack-sources`, `project.code`, `tasks.roots`, `templates.dirs` and\n`[typst]`. Its\nkeys merge just below this layer's own, table by table, and its rules\ncome ahead of this layer's, where a rule with the same name replaces\nit. Two packs here that set one value differently are an error,\nunless this layer sets that key too. An entry `{ pack, with }` sets\nthe pack's parameters, which its expressions read as\n`param(\"name\")`.",
       "items": {
         "$ref": "#/$defs/PackEntry"
       },
-      "type": "array"
+      "type": "array",
+      "writeOnly": true
     },
     "format": {
       "$ref": "#/$defs/FormatConfig",
+      "default": {
+        "enabled": true
+      },
       "description": "Whether `mt` reformats the Typst source it writes (`[format]`)."
     },
     "go": {
       "$ref": "#/$defs/GoConfig",
+      "default": {},
       "description": "`go` (open in editor) settings."
     },
     "ls": {
       "$ref": "#/$defs/LsConfig",
+      "default": {
+        "columns": {},
+        "columns-order": [],
+        "contains-fields": [],
+        "default-sort": [],
+        "hyperlinks": "never",
+        "ready": {},
+        "rules": []
+      },
       "description": "`mt ls` defaults."
     },
     "on": {
       "$ref": "#/$defs/OnConfig",
+      "default": {
+        "add": [],
+        "flip": [],
+        "rm": []
+      },
       "description": "Hooks keyed by event: `[[on.flip]]`, `[[on.add]]` and `[[on.rm]]`."
     },
     "pack-sources": {
@@ -2948,21 +3049,26 @@
         "$ref": "#/$defs/PackSource"
       },
       "description": "Git repositories the project takes packs from, each a\n`[pack-sources.<name>]` table of `git`, the repository, and `ref`, a\ntag, branch or commit. An `extends` entry `<name>:<pack>` names a pack\nin one. Only the project's own `.mindtape/config.toml` declares a\nsource, and the embedded source already holds the name `mindtape`.\n`.mindtape/packs.lock` pins each source to a commit, and a config load\nrefuses a source the lock doesn't pin from the `git` and `ref` here.",
-      "type": "object"
+      "type": "object",
+      "writeOnly": true
     },
     "project": {
       "$ref": "#/$defs/ProjectConfig",
+      "default": {},
       "description": "Project-level settings (code, etc.)."
     },
     "retire": {
       "$ref": "#/$defs/RetireConfig",
+      "default": {},
       "description": "Settings for the gitless `rm` strategy's tombstone."
     },
     "rm": {
       "$ref": "#/$defs/RmConfig",
+      "default": {},
       "description": "`rm` (task removal) defaults."
     },
     "roles": {
+      "default": [],
       "description": "Role names (`[[roles]]`) that actors may hold. A role carries no\nsettings, and a harness keys its own config by role name.",
       "items": {
         "$ref": "#/$defs/Role"
@@ -2971,14 +3077,112 @@
     },
     "tasks": {
       "$ref": "#/$defs/TasksConfig",
+      "default": {
+        "assignee": {
+          "allowed": [],
+          "required": false
+        },
+        "body": {
+          "content": {
+            "rules": [],
+            "words": {
+              "count": "all"
+            }
+          },
+          "headers": {
+            "rules": []
+          }
+        },
+        "collectors": [],
+        "comments": {
+          "policy": "allow"
+        },
+        "derive-tags": {
+          "breadcrumb-root": false,
+          "collect": [
+            "segments"
+          ],
+          "enabled": false,
+          "separator": ":",
+          "slugify": true
+        },
+        "difficulty": {
+          "anchors": [],
+          "bands": [],
+          "kind": "int",
+          "max": 9.0,
+          "min": 0.0,
+          "required": false
+        },
+        "estimate": {
+          "queries": {},
+          "required": false,
+          "units": []
+        },
+        "fields": {},
+        "id": {
+          "format": "string"
+        },
+        "links": {
+          "kinds": []
+        },
+        "naming": {},
+        "priority": {
+          "allow-manual": true,
+          "anchors": [],
+          "bands": [],
+          "frameworks": {},
+          "kind": "int",
+          "max": 9.0,
+          "min": 0.0,
+          "required": false
+        },
+        "recur": {
+          "anchors": [
+            "completion",
+            "due"
+          ],
+          "default-anchor": "completion",
+          "enabled": true,
+          "materialize": "spawn",
+          "max-advance": 52,
+          "rrule": false,
+          "units": [
+            "days",
+            "weeks",
+            "months",
+            "years"
+          ]
+        },
+        "roots": [
+          "tasks"
+        ],
+        "rules": [],
+        "status": [],
+        "tags": {
+          "allowed": []
+        },
+        "waits": []
+      },
       "description": "Task discovery, status lifecycle, and field constraints."
     },
     "templates": {
       "$ref": "#/$defs/TemplatesConfig",
+      "default": {
+        "check-defaults": false,
+        "default": "task",
+        "dirs": [
+          ".mindtape/templates"
+        ],
+        "fallback-severity": "warning"
+      },
       "description": "`add` (task creation) template discovery."
     },
     "typst": {
       "$ref": "#/$defs/TypstConfig",
+      "default": {
+        "local-packages": []
+      },
       "description": "Typst evaluation settings (local-package overrides)."
     },
     "views": {

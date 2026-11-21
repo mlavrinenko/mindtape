@@ -3,15 +3,16 @@
 //! Shape only: the spawn machinery (placeholder substitution, resolution
 //! ladder) lives in the CLI, keeping the library format- and process-blind.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Settings for `mt go`.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct GoConfig {
     /// Editor command. `mt go` replaces a `{task}` token with the task's file
     /// path, or appends the path when there is no token. Falls back to
     /// `$VISUAL`, then `$EDITOR`. `mt go` fails when neither variable has a
     /// value. May carry arguments, split on whitespace.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub editor: Option<String>,
 }

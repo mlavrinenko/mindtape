@@ -17,7 +17,7 @@
 
 pub mod scan;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use typst_harvest::HVal;
 
@@ -326,7 +326,7 @@ pub fn acyclic_kinds(config: &LinksConfig) -> Vec<&str> {
 }
 
 /// The link kinds a task's `links:` edges may use.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LinksConfig {
     /// Custom link kinds, added to the built-in ones. A built-in kind stays
@@ -335,12 +335,13 @@ pub struct LinksConfig {
 }
 
 /// One custom link kind.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LinkKind {
     /// Kind name, matched against an edge's `kind`.
     pub name: String,
     /// Most edges of this kind one task may carry. Absent means no limit.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max: Option<u32>,
     /// Note requirement for edges of this kind.
     pub note: NoteRule,
@@ -360,6 +361,7 @@ pub struct LinkKind {
     /// Regex a target must match when `validate = "regex"`. That validator
     /// requires it, and every other validator rejects it. A missing or invalid
     /// pattern is a config error.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub regex: Option<String>,
 }
 
@@ -378,7 +380,9 @@ impl Default for LinkKind {
 }
 
 /// Note requirement for an edge kind.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum NoteRule {
     /// A non-empty note is mandatory, as on the built-in `related` kind.

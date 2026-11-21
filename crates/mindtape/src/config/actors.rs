@@ -11,14 +11,14 @@
 
 use std::collections::HashSet;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
 /// One named worker in the project.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct Actor {
     /// Unique actor name, the value an `assignee:` field (or a
@@ -32,7 +32,7 @@ pub struct Actor {
 }
 
 /// The kind of worker an actor is.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum ActorKind {
     /// A person.
@@ -43,7 +43,7 @@ pub enum ActorKind {
 
 /// One role name an actor can hold. A role carries no settings, and a harness
 /// keys its own config by role name.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Role {
     /// Unique role name.

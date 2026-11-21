@@ -14,12 +14,12 @@
 
 use std::collections::BTreeMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Requirement;
 
 /// The legal estimate units, and whether a task must carry one.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct EstimateConfig {
     /// Allowed unit names. Empty = any unit.
@@ -30,6 +30,7 @@ pub struct EstimateConfig {
     /// The estimate `mt check` files a spliced slot with, as `unit = quantity`
     /// pairs. A required estimate with no `example` leaves that slot
     /// unfillable.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub example: Option<BTreeMap<String, f64>>,
     /// The units that take `count(n, ..queries)`, each naming the path set,
     /// a glob or an `@name` set, its matched files must fall in. A unit

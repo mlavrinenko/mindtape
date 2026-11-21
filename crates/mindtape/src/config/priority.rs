@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::config::required::Requirement;
 use crate::framework::Framework;
@@ -18,7 +18,7 @@ use crate::model::numeric::{Anchor, Band, NumericField, ScaleKind};
 /// project declares.
 // `Deserialize` is hand-written: serde cannot combine `flatten` with
 // `deny_unknown_fields`, so `PriorityRaw` spells the scale keys out.
-#[derive(Debug, Clone, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct PriorityConfig {
     /// Scale and band classification (shared numeric-field machinery).
@@ -26,6 +26,7 @@ pub struct PriorityConfig {
     pub field: NumericField,
     /// Name of the framework that computes priority, a key of `frameworks`.
     /// Absent means priority is a raw number.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub framework: Option<String>,
     /// Whether a raw integer passes while a framework is active.
     pub allow_manual: bool,

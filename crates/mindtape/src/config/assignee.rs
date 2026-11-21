@@ -12,12 +12,12 @@
 //! is no `default`: an assignee is a runtime value, and a template that needs
 //! one fills it through a slot (`env: "MINDTAPE_PRINCIPAL"`).
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Requirement;
 
 /// Who may hold the assignee role, and whether a task must carry one.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct AssigneeConfig {
     /// Allowed assignees (the project's actors). Empty = accept any value.
@@ -28,9 +28,11 @@ pub struct AssigneeConfig {
     /// A filter that selects the tasks held to `allowed`. Every other task keeps
     /// whatever it carries. Absent holds every task.
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub values_when: Option<String>,
     /// The assignee `mt check` files a spliced slot with. A required assignee
     /// with no `example` leaves that slot unfillable.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub example: Option<String>,
 }
 

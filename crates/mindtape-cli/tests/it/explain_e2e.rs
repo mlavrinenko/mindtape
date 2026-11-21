@@ -370,7 +370,6 @@ fn views_json_wraps_the_map_and_a_named_view_stays_flat() {
             "filter": "priority > 5",
             "sort": ["priority:desc"],
             "columns": [],
-            "description": null,
         })
     );
 
@@ -380,7 +379,6 @@ fn views_json_wraps_the_map_and_a_named_view_stays_flat() {
             "filter": "priority > 5",
             "sort": ["priority:desc"],
             "columns": [],
-            "description": null,
         })
     );
 }

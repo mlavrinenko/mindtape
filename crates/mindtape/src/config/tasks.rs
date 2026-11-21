@@ -12,7 +12,7 @@
 
 use std::collections::{BTreeMap, HashSet};
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::body::content::ContentConfig;
 use crate::body::headers::HeadersConfig;
@@ -22,13 +22,14 @@ use crate::config::estimate::EstimateConfig;
 use crate::config::priority::PriorityConfig;
 use crate::config::required::Requirement;
 use crate::config::roots::{DeriveConfig, RootSpec};
+use crate::config::serialize_labels;
 use crate::config::status::Legend;
 use crate::model::numeric::NumericField;
 use crate::problem::Problem;
 use crate::suggest::Unknown;
 
 /// Where tasks live and how the config constrains them.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TasksConfig {
     /// Directories (relative to the project root) holding one task per file.
@@ -111,7 +112,7 @@ impl Default for TasksConfig {
 }
 
 /// Format constraint on a task's identity.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct IdConfig {
     /// Format an explicit `id:` must have. The default, `string`, accepts any
@@ -162,9 +163,15 @@ impl<'de> Deserialize<'de> for IdFormat {
     }
 }
 
+serialize_labels!(IdFormat {
+    Self::String => "string",
+    Self::UuidV4 => "uuid-v4",
+    Self::UuidV7 => "uuid-v7",
+});
+
 /// Allowed values, default and requirement for `kind` or one `x-<ns>`
 /// extension field.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct FieldConfig {
     /// Allowed values. Empty accepts any value, and a non-empty list takes a
@@ -175,6 +182,7 @@ pub struct FieldConfig {
     pub values: Vec<String>,
     /// Value `mt add` fills in when the field is mandatory and neither the
     /// template nor the caller sets it. `mt check` never applies it.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub default: Option<String>,
     /// Whether a task must carry the field.
     #[schemars(extend("x-expression" = "filter"))]
@@ -182,6 +190,7 @@ pub struct FieldConfig {
     /// A filter that selects the tasks held to `values`. Every other task
     /// keeps whatever it carries. Absent holds every task.
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub values_when: Option<String>,
     /// Whether an `x-<ns>` field holds a list of strings rather than one
     /// string. `mt check` refuses a string in such a field, and a list in a
@@ -192,12 +201,13 @@ pub struct FieldConfig {
     /// or a list of strings for a `multiple` field. A required field with no
     /// `example` and no `default` leaves that slot unfillable, so
     /// `mt check` names this table.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub example: Option<FieldExample>,
 }
 
 /// A `[tasks.fields.<name>] example`: one string, or a list for a `multiple`
 /// field.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum FieldExample {
     /// The example of a single-valued field.
@@ -207,7 +217,7 @@ pub enum FieldExample {
 }
 
 /// Optional tag allow-list.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TagsConfig {
     /// Allowed tag names. Empty accepts any tag. The loader derives folder tags
@@ -218,6 +228,7 @@ pub struct TagsConfig {
     /// A filter that selects the tasks held to `allowed`. Absent means
     /// `!terminal`, and a closed task then keeps a tag dropped from the list.
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub values_when: Option<String>,
 }
 
@@ -354,7 +365,7 @@ pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
 }
 
 /// Constraints on the shape of a task body.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TaskBodyConfig {
     /// Section-heading gating rules.

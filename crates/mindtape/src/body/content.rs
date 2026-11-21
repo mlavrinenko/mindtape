@@ -6,12 +6,13 @@
 //! holds. That is the section's content, everything from the heading down to
 //! the next heading of the same or higher level.
 
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::body::headers::{HeaderPathSegment, duplicate_rule_names, rule_label};
+use crate::config::serialize_labels;
 
 /// Rules for what a body section must contain.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct ContentConfig {
     /// Defaults every content rule inherits.
@@ -24,7 +25,7 @@ pub struct ContentConfig {
 ///
 /// Only `count` lives here. A bound stays on the rule that enforces it, so
 /// `mt` refuses a `[tasks.body.content] words` table carrying `min` or `max`.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct WordDefaults {
     /// Unit a rule's word count uses when its own `words` table omits `count`.
@@ -36,7 +37,7 @@ pub struct WordDefaults {
 /// `path` selects sections by heading path, the same way a header rule does.
 /// The rule checks `assert` against each matched section's content. Like a
 /// header rule, it takes an optional `when` filter and `message` override.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ContentRuleConfig {
     /// The name a report shows for the rule (`body.content.rules.<name>`).
@@ -44,6 +45,7 @@ pub struct ContentRuleConfig {
     /// (`body.content.rules[0]`). Two rules in this array sharing a name is a
     /// config error that reports both.
     #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Path through the heading tree selecting the sections to assert over.
     pub path: Vec<HeaderPathSegment>,
@@ -51,8 +53,10 @@ pub struct ContentRuleConfig {
     pub assert: ContentAssert,
     /// Optional filter expression gating this rule to matching tasks only.
     #[schemars(extend("x-expression" = "filter"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub when: Option<String>,
     /// Override for the default violation message.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
 }
 
@@ -92,14 +96,17 @@ pub enum ContentAssert {
 ///
 /// A `words` table must carry at least one of `min` and `max`, else it bounds
 /// nothing. `count` overrides the section default.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct WordSpec {
     /// The fewest words the section may contain.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min: Option<usize>,
     /// The most words the section may contain.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max: Option<usize>,
     /// Unit to count words in. Absent, it inherits
     /// `[tasks.body.content] words.count`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub count: Option<WordCount>,
 }
 
@@ -165,9 +172,15 @@ impl<'de> Deserialize<'de> for WordCount {
     }
 }
 
+serialize_labels!(WordCount {
+    Self::All => "all",
+    Self::Prose => "prose",
+    Self::Text => "text",
+});
+
 /// Fails when one unit of the section carries more than `max` matches of
 /// `pattern`, as in `{ density = { pattern, max, per } }`.
-#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct DensitySpec {
     /// Rust regex counted within each unit.
@@ -208,6 +221,12 @@ impl<'de> Deserialize<'de> for DensityUnit {
         }
     }
 }
+
+serialize_labels!(DensityUnit {
+    Self::Section => "section",
+    Self::Paragraph => "paragraph",
+    Self::Sentence => "sentence",
+});
 
 impl<'de> Deserialize<'de> for ContentAssert {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -267,6 +286,18 @@ impl<'de> Deserialize<'de> for ContentAssert {
         }
 
         deserializer.deserialize_any(AssertVisitor)
+    }
+}
+
+impl Serialize for ContentAssert {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::NonEmpty => serializer.serialize_str("non-empty"),
+            Self::Words(spec) => serializer.collect_map([("words", spec)]),
+            Self::MustMatch(pattern) => serializer.collect_map([("must-match", pattern)]),
+            Self::MustNotMatch(pattern) => serializer.collect_map([("must-not-match", pattern)]),
+            Self::Density(spec) => serializer.collect_map([("density", spec)]),
+        }
     }
 }
 

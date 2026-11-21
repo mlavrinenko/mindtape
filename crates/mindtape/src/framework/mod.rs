@@ -26,7 +26,7 @@ pub(crate) mod validate;
 
 use std::collections::BTreeMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::PriorityConfig;
 use crate::config::merge::deep_merge;
@@ -39,7 +39,7 @@ const BUILTIN_FRAMEWORKS: &str = include_str!("frameworks.toml");
 
 /// Holds one scoring framework: typed inputs, plus either a `score` formula or
 /// a list of categories.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Framework {
     /// Inputs by name. `score` and each category's `when` refer to them by
@@ -48,6 +48,7 @@ pub struct Framework {
     /// Arithmetic expression over the inputs that computes the score, such as
     /// `impact * confidence * ease`. Doesn't combine with `category`.
     #[schemars(extend("x-expression" = "formula"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub score: Option<String>,
     /// Categories to classify a task into. For any input values, exactly one
     /// category's `when` must be true. Doesn't combine with `score`.
@@ -57,22 +58,26 @@ pub struct Framework {
 
 /// Holds one declared input: its type and bounds (numbers) or allowed values
 /// (enums).
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Input {
     /// Input type.
     #[serde(rename = "type")]
     pub kind: InputKind,
     /// Inclusive lower bound (number inputs).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min: Option<f64>,
     /// Inclusive upper bound (number inputs).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max: Option<f64>,
     /// Allowed values (enum inputs).
     pub values: Vec<String>,
 }
 
 /// The type of a framework input.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum InputKind {
     /// A bounded number.
@@ -85,7 +90,7 @@ pub enum InputKind {
 }
 
 /// One category, with the expression that selects it, its score and its display.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Category {
     /// Boolean expression over the inputs. A task falls in this category
@@ -95,10 +100,13 @@ pub struct Category {
     /// Score of a task in this category, used for bands and sorting.
     pub score: f64,
     /// Display label, empty when absent.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     /// Optional decorative glyph.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub glyph: Option<String>,
     /// Optional color: a named ANSI color or `#RRGGBB`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
 }
 

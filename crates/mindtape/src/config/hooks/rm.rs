@@ -22,7 +22,7 @@
 //! This module holds the shape and the selection (which hooks fire for a given
 //! removal). Running the actions is the CLI's job.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 use crate::filter::Filter;
@@ -32,13 +32,14 @@ use crate::model::Task;
 use super::{FlipAction, HookError, HookFields, matching};
 
 /// One `[[on.rm]]` entry: which removals it fires on, and what it does.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct RmHook {
     /// Optional name. A later entry with the same name, from a nearer layer
     /// or a pack, replaces an earlier one in place, and `disable` drops it by
     /// name. An unnamed entry always appends and is never replaced. Also the
     /// label `mt explain rules` and `mt config show --origin` print.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Filter over the task the removal acts on. Empty fires on every removal.
     #[schemars(extend("x-expression" = "filter"))]

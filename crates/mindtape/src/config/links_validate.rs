@@ -25,14 +25,16 @@
 use std::collections::HashMap;
 
 use regex::Regex;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 use crate::link::{LinkKind, LinksConfig};
 
 /// What shape a link kind's targets take. It is the `validate` key of
 /// `[[tasks.links.kinds]]`.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum TargetValidator {
     /// A path from the linking task's file to another task's file (the

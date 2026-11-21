@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt config show --resolved` prints the config `mt` uses.** The default view
+  prints what the layers set, so a rule with no `severity` shows no level at
+  all. `--resolved` prints the loaded config instead, every default filled in,
+  and `--json` mirrors it. Written back as
+  `.mindtape/config.toml`, the output resolves to itself. It leaves out
+  `extends`, `disable` and `[pack-sources]`, which say how the layers combine
+  rather than what the config does, and it refuses to combine with `--origin`
+  or `--defaults`, which answer other questions.
 - **`mt fix` reports the summary, and `-v` and `-q` pick the detail.** A
   `--check` run now prints each rewrite and the closing count instead of a
   `kept` row per file the scan leaves alone, which on this repo's backlog was

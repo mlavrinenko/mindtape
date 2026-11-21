@@ -67,7 +67,6 @@
       "description": "Call a Typst function instead of evaluating an `assert` expression, with\n`check = { typst, function, field }`.",
       "properties": {
         "field": {
-          "default": null,
           "description": "Field whose value the function receives (`none` when the task omits\nit). Absent means the function receives the whole task, in the shape\n`mt eval --json` prints.",
           "type": [
             "string",

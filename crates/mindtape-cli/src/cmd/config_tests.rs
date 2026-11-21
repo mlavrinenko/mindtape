@@ -7,6 +7,12 @@ use mindtape::{Config, LayerSource, RuleOrigin, load_config, load_config_layered
 
 use super::{render_effective, render_origin, render_schema};
 
+/// The config a `--json` payload carries, read back through the typed `Config`.
+pub(super) fn config_from_json(value: &serde_json::Value) -> Config {
+    let table: toml::Table = serde_json::from_value(value["config"].clone()).unwrap();
+    toml::Value::Table(table).try_into().unwrap()
+}
+
 /// A fresh tempdir with `.mindtape/` already created (so `find_root` and the
 /// layer discovery walk see a project), optionally holding a `config.toml`.
 fn bare_project() -> tempfile::TempDir {
@@ -17,7 +23,7 @@ fn bare_project() -> tempfile::TempDir {
 fn effective_config_round_trips_through_parse_config() {
     let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
 
-    let text = render_effective(dir.path(), false).unwrap();
+    let text = render_effective(dir.path(), false, false).unwrap();
     let reparsed = parse_config(&text).unwrap();
     let original = load_config(dir.path()).unwrap();
     assert_eq!(reparsed, original);
@@ -27,8 +33,8 @@ fn effective_config_round_trips_through_parse_config() {
 #[test]
 fn effective_config_json_round_trips_to_same_shape_as_toml() {
     let dir = bare_project();
-    let toml_text = render_effective(dir.path(), false).unwrap();
-    let json_text = render_effective(dir.path(), true).unwrap();
+    let toml_text = render_effective(dir.path(), false, false).unwrap();
+    let json_text = render_effective(dir.path(), true, false).unwrap();
 
     let from_toml = parse_config(&toml_text).unwrap();
     let json_value: serde_json::Value = serde_json::from_str(&json_text).unwrap();
@@ -41,8 +47,7 @@ fn effective_config_json_round_trips_to_same_shape_as_toml() {
     );
     // Round the merged table back through the same typed `Config`
     // deserialization the TOML encoding gets.
-    let table: toml::Table = serde_json::from_value(json_value["config"].clone()).unwrap();
-    let from_json: Config = toml::Value::Table(table).try_into().unwrap();
+    let from_json = config_from_json(&json_value);
     assert_eq!(from_toml, from_json);
 }
 
@@ -56,7 +61,7 @@ fn effective_config_surfaces_the_dicts_section() {
         "[dicts.verbs]\nvalues = [\"add\", \"wire\"]\ninclude = [\"mindtape-verbs\"]\n",
     );
 
-    let text = render_effective(dir.path(), false).unwrap();
+    let text = render_effective(dir.path(), false, false).unwrap();
     assert!(text.contains("[dicts.verbs]"), "{text}");
     let reparsed = parse_config(&text).unwrap();
     let spec = reparsed.dicts.get("verbs").unwrap();
@@ -74,7 +79,7 @@ fn effective_config_surfaces_the_dicts_section() {
 #[test]
 fn bare_project_show_reflects_the_embedded_floor() {
     let dir = bare_project();
-    let text = render_effective(dir.path(), false).unwrap();
+    let text = render_effective(dir.path(), false, false).unwrap();
     let config = parse_config(&text).unwrap();
 
     // The floor ships a non-empty legend with at least one terminal value.
@@ -158,6 +163,7 @@ fn run_defaults_prints_embedded_floor() {
         action: Some(super::ConfigAction::Show(super::ShowArgs {
             origin: false,
             defaults: true,
+            resolved: false,
             json: false,
         })),
     };

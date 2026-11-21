@@ -7,7 +7,8 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use serde::{Deserialize, Deserializer};
+use serde::ser::{SerializeMap, SerializeSeq};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// A `returns` type expression: an atom, a one-element list `[T]`, or a record
 /// `{ field = T }`.
@@ -211,6 +212,26 @@ impl<'de> Deserialize<'de> for CollectorType {
         }
 
         deserializer.deserialize_any(TypeVisitor)
+    }
+}
+
+impl Serialize for CollectorType {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::Atom(atom) => serializer.serialize_str(atom.as_str()),
+            Self::List(inner) => {
+                let mut seq = serializer.serialize_seq(Some(1))?;
+                seq.serialize_element(inner.as_ref())?;
+                seq.end()
+            }
+            Self::Record(fields) => {
+                let mut map = serializer.serialize_map(Some(fields.len()))?;
+                for (name, ty) in fields {
+                    map.serialize_entry(name, ty)?;
+                }
+                map.end()
+            }
+        }
     }
 }
 

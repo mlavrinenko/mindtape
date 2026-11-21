@@ -16,7 +16,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// The shell a string command goes through, as `(program, command-flag)`.
 ///
@@ -30,7 +30,9 @@ pub const SHELL: (&str, &str) = ("sh", "-c");
 pub const SHELL: (&str, &str) = ("cmd", "/C");
 
 /// A command a config asks `mt` to run: a `run` key's value.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize, schemars::JsonSchema,
+)]
 #[serde(untagged)]
 pub enum ConfigCommand {
     /// A command line for the platform shell: `sh -c`, or `cmd /C` on Windows.

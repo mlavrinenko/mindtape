@@ -42,7 +42,7 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, PoisonError};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::{Config, quote};
 use crate::model::Task;
@@ -51,7 +51,7 @@ use crate::suggest::Unknown;
 
 /// One `[[tasks.waits]]` entry: a named command that answers whether a task
 /// still waits.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Checker {
     /// The name a `waits-on` entry writes before its colon.

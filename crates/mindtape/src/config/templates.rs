@@ -2,12 +2,12 @@
 
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::add_hooks::BUILTIN_TEMPLATE;
 
 /// Where `mt add` finds task templates.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct TemplatesConfig {
     /// Directories, relative to the project root, holding `*.typ` task templates.
@@ -26,7 +26,9 @@ pub struct TemplatesConfig {
 }
 
 /// How severely `mt check` reports a breach of the built-in template.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, Default, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum FallbackSeverity {
     /// Print the breach, and `mt check` still succeeds. The default.

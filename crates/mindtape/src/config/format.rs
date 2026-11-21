@@ -3,10 +3,10 @@
 //! Shape only: the formatter itself is [`crate::format_typst`], and the CLI
 //! consults [`FormatConfig::enabled`] at each write boundary.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// How `mt` canonicalizes task source before writing it.
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FormatConfig {
     /// Whether `mt` runs typstyle over the Typst source it writes (`add`,

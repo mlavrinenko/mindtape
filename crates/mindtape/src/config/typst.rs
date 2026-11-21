@@ -1,9 +1,9 @@
 //! `[typst]` config: Typst evaluation settings and project-local packages.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Typst evaluation settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TypstConfig {
     /// `@local/<name>` packages to load from a directory in the project, so a
@@ -14,7 +14,7 @@ pub struct TypstConfig {
 }
 
 /// One `@local/<name>` package loaded from a project directory.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct LocalPackage {
     /// The `@local/<name>` package name.

@@ -20,7 +20,7 @@
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::Requirement;
 
@@ -98,7 +98,9 @@ pub fn format_num(num: f64) -> String {
 }
 
 /// Whether the scale carries integers or reals.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, schemars::JsonSchema)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize, schemars::JsonSchema,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum ScaleKind {
     /// Whole numbers, with bands inclusive and contiguous.
@@ -109,7 +111,7 @@ pub enum ScaleKind {
 }
 
 /// One contiguous labeled range in a band classification.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Band {
     /// Display label.
@@ -119,13 +121,15 @@ pub struct Band {
     /// Upper bound (inclusive for int and the last real band, else exclusive).
     pub max: f64,
     /// Optional decorative glyph.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub glyph: Option<String>,
     /// Optional color: a named ANSI color or `#RRGGBB`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
 }
 
 /// One labeled point in an anchor classification.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Anchor {
     /// The point on the scale this label names.
@@ -133,8 +137,10 @@ pub struct Anchor {
     /// Display label.
     pub label: String,
     /// Optional decorative glyph.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub glyph: Option<String>,
     /// Optional color: a named ANSI color or `#RRGGBB`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
 }
 
@@ -152,7 +158,7 @@ pub struct NumCell {
 /// A numeric scalar field with a `[min, max]` scale and, optionally, one
 /// classification style, either contiguous bands or labeled anchor points.
 /// Defaults to an integer `0..9` scale without a classification.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct NumericField {
     /// Whether the scale is integer or real.
@@ -170,6 +176,7 @@ pub struct NumericField {
     pub required: Requirement,
     /// The value `mt check` files a spliced slot with. A required field with
     /// no `example` leaves that slot unfillable.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub example: Option<f64>,
 }
 
