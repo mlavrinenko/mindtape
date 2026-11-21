@@ -66,6 +66,7 @@ mod explain_shape_e2e;
 mod find_e2e;
 mod first_run_errors;
 mod fix_e2e;
+mod fix_flags_e2e;
 mod flip_chain_e2e;
 mod flip_e2e;
 mod flip_hooks_e2e;

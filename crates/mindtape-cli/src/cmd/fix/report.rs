@@ -46,8 +46,17 @@ pub(super) struct Tally {
 }
 
 /// Print `lines` as one aligned row each, and return their counts.
-pub(super) fn print(lines: &[Line]) -> Tally {
-    let width = widest(lines.iter().map(|line| line.file.as_str()));
+///
+/// `list_kept` prints a row for each import the fixer leaves alone. The tally
+/// counts them either way, and `quiet` doesn't print a row.
+pub(super) fn print(lines: &[Line], list_kept: bool, quiet: bool) -> Tally {
+    let listed = |line: &Line| !quiet && (list_kept || line.is_rewrite());
+    let width = widest(
+        lines
+            .iter()
+            .filter(|line| listed(line))
+            .map(|line| line.file.as_str()),
+    );
     let mut tally = Tally {
         rewrites: 0,
         kept: 0,
@@ -58,7 +67,9 @@ pub(super) fn print(lines: &[Line]) -> Tally {
         } else {
             tally.kept += 1;
         }
-        println!("{:<8}{:<width$}  {}", line.verb, line.file, line.detail);
+        if listed(line) {
+            println!("{:<8}{:<width$}  {}", line.verb, line.file, line.detail);
+        }
     }
     tally
 }
@@ -75,5 +86,12 @@ pub(super) fn summary(verb: &str, tally: &Tally) -> String {
         head
     } else {
         format!("{head}; {} kept", tally.kept)
+    }
+}
+
+/// Print the closing line [`summary`] builds, unless `quiet`.
+pub(super) fn print_summary(quiet: bool, verb: &str, tally: &Tally) {
+    if !quiet {
+        println!("{}", summary(verb, tally));
     }
 }

@@ -4,7 +4,8 @@
 //! `@local/mindtape` at an older version this binary does not read, changing
 //! only the version bytes. `--check` reports an unsupported pin without writing
 //! and exits 1 while one remains. `--dry-run` prints every edit. `--list`
-//! names the fixers.
+//! names the fixers. `-v` lists the imports the fixer keeps, and `-q` doesn't
+//! print while a run succeeds.
 //!
 //! The scan reads config with [`mindtape::load_config`] and never loads tasks.
 //! A file with an unsupported import is exactly the file a task load would
@@ -59,6 +60,20 @@ pub struct FixArgs {
     /// Scan the whole project tree, not just task roots and template dirs.
     #[arg(long)]
     pub all: bool,
+
+    /// List each import the fixer keeps as well as each one it rewrites.
+    // `verbose` is the global `-v`'s id, which is what keeps clap from
+    // propagating the global copy into this command beside it. The two share
+    // the id, so both declare the same count: a plain bool here would break
+    // the root's own read of the flag.
+    #[arg(short = 'v', long, action = clap::ArgAction::Count)]
+    pub verbose: u8,
+
+    /// Don't print a report while the run succeeds.
+    ///
+    /// Diagnostics still print.
+    #[arg(short = 'q', long)]
+    pub quiet: bool,
 }
 
 /// A fixer `mt fix` can run.
@@ -144,12 +159,12 @@ pub fn run(args: &FixArgs) -> Result<()> {
     let paths = scope::collect(&root, &config, args.all)?;
     let scan = read_all(&root, &paths, pin.as_deref());
     if args.check {
-        return scan.check();
+        return scan.check(args);
     }
     if !enabled(args, Fixer::PreludeImport) {
         return Ok(());
     }
-    scan.fix(args.dry_run)
+    scan.fix(args)
 }
 
 /// Whether `args` asks for `fixer`: every fixer when the command line names none.
@@ -193,11 +208,13 @@ fn read_all(root: &Path, paths: &[PathBuf], pin: Option<&str>) -> Scan {
 }
 
 impl Scan {
-    /// `--check`: one diagnostic per unsupported version, plus every file the
-    /// scan could not read or whose spec does not parse. It leaves every file alone.
-    fn check(&self) -> Result<()> {
+    /// `--check`: the rewrites and the summary, one diagnostic per unsupported
+    /// version, plus every file the scan could not read or whose spec does not
+    /// parse. `-v` adds a row per kept import, `-q` doesn't print a row or the
+    /// summary, and no file changes either way.
+    fn check(&self, args: &FixArgs) -> Result<()> {
         let mut diags = self.errors.clone();
-        let mut kept = Vec::new();
+        let mut lines = Vec::new();
         let mut versions: BTreeMap<String, SeenVersion> = BTreeMap::new();
         for file in &self.files {
             for import in &file.imports {
@@ -207,8 +224,9 @@ impl Scan {
                 };
                 match import.action {
                     PreludeImportAction::Current => {}
-                    PreludeImportAction::Keep => kept.push(Line::kept(&file.display, version)),
+                    PreludeImportAction::Keep => lines.push(Line::kept(&file.display, version)),
                     PreludeImportAction::Rewrite => {
+                        lines.push(Line::rewrite(&file.display, version));
                         versions.entry(version.clone()).or_insert(SeenVersion {
                             first: file.display.clone(),
                             pinned: false,
@@ -224,7 +242,8 @@ impl Scan {
                 }
             }
         }
-        report::print(&kept);
+        let tally = report::print(&lines, args.verbose > 0, args.quiet);
+        report::print_summary(args.quiet, "would rewrite", &tally);
         diags.extend(
             versions
                 .into_iter()
@@ -233,24 +252,28 @@ impl Scan {
         fail_after_emitting(diags)
     }
 
-    /// Build the report, then write it and run `mt check`, unless `dry_run`.
-    fn fix(&self, dry_run: bool) -> Result<()> {
+    /// Build the report, then write it and run `mt check`, unless `--dry-run`.
+    /// A write lists every row the scan found, kept imports included.
+    fn fix(&self, args: &FixArgs) -> Result<()> {
         let plan = self.plan();
-        let tally = report::print(&plan.lines);
+        let tally = report::print(&plan.lines, true, args.quiet);
         if !plan.refusals.is_empty() {
             return fail_after_emitting(plan.refusals);
         }
-        if dry_run {
-            println!("{}", report::summary("would rewrite", &tally));
+        if args.dry_run {
+            report::print_summary(args.quiet, "would rewrite", &tally);
             return Ok(());
         }
         if plan.writes.is_empty() {
-            println!("{}", report::summary("rewrote", &tally));
+            report::print_summary(args.quiet, "rewrote", &tally);
             return Ok(());
         }
         write_all(&plan.writes)?;
-        println!("{}", report::summary("rewrote", &tally));
-        crate::cmd::check::run(&crate::cmd::check::CheckArgs::default())
+        report::print_summary(args.quiet, "rewrote", &tally);
+        crate::cmd::check::run(&crate::cmd::check::CheckArgs {
+            quiet: args.quiet,
+            ..crate::cmd::check::CheckArgs::default()
+        })
     }
 
     /// Classify every import into a report row, a refusal or a pending edit.

@@ -16,10 +16,18 @@ project instead, non-task files such as `lib/` and docs included. Outside a
 Git work tree, `--all` walks the project with the `.git`, `target` and
 `.mindtape/cache` skips. Both scopes skip a symlinked directory and leave out
 an untracked ignored file. Both include a tracked task under an ignore rule.
-`--dry-run` prints each edit and doesn't write anything. `--check` prints
-one diagnostic per unsupported version, names the first file that uses it and
-the versions this `mt` supports, and exits 1 while one remains, so CI can gate
-it with `mt fix --all --check`.
+`--dry-run` prints each edit and doesn't write anything.
+
+A run prints one row per import it finds, `rewrite` for an import it changes
+and `kept` for a supported older version it leaves alone. It ends on a line
+with both counts. `--check` doesn't write. It prints the rewrites and the
+summary. It reports each unsupported version with the first file that uses
+it and the versions this `mt` supports, and exits 1 while one remains. CI gates
+that with `mt fix --all --check`. `-v` adds the `kept` rows to the report, the
+scan record a reader gets as one line per import. `-q` doesn't print a row or
+the summary while a run succeeds, in either mode. Every diagnostic still
+prints. A gate reads one line per problem, and a clean tree leaves the output
+empty: `mt fix --all --check -q`.
 
 `mt fix` keeps and reports an import of a supported older version, such as
 `0.2.0`. It refuses a newer version with an upgrade hint. It reports a

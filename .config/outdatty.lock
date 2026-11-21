@@ -130,14 +130,14 @@ groups:
       www/utils/cli-notes.typ: 48bb8cd575c63ee49666392cc35b555b5954ec6084823f289dc5f51906334a4b
   cli-fix-docs:
     source:
-      crates/mindtape-cli/src/cmd/fix/mod.rs: b2a398dcbb4e432446e121eeb98ac51b67d900c1b703f481c7cf31ce4fc08a5b
+      crates/mindtape-cli/src/cmd/fix/mod.rs: ea3a832470e4dbc17816352524c4990bfb8fdd55fcf2a0cdffe61f013e0db49d
       crates/mindtape-cli/src/cmd/fix/scope.rs: 6e688b3d46c8aa88c8e02f804f4da024354750d619af3437b5785feb3388dbe3
       crates/mindtape/src/prelude_import.rs: bb30a766fdf0f6c31708d90eb6dbe891ef8b79e5f33b1692e44c97039b0e3441
     dependents:
-      www/content/cli/fix.typ: ceb29f9cc8832e6a3bcba55e6767ee3dd69a60eeb08565a1f40498e70feee263
-      www/content/config.typ: af9095edf5e1f36b2155998fb3e0a853988810e0c3b44f18f3a3448c2f3c0653
+      www/content/cli/fix.typ: 37cf719e367063696c978c6e556f32b3521ebfbeb90a34d8c0cecc2e9a4c11ff
+      www/content/config.typ: 04e586a123cceea87ac7e35a92be45f4bdeca2a3ae7e3745897805cc9650cde7
       www/content/task-files.typ: 6a5721fc8904a9bb5ecba9fb0e61f64f5059ce36bbde08124acc130f01cce1ff
-      www/utils/cli-notes.typ: 48bb8cd575c63ee49666392cc35b555b5954ec6084823f289dc5f51906334a4b
+      www/utils/cli-notes.typ: fb4421f045ebae597036832b451074d8a8d34aad9d200ead69949b6b97422009
   cli-flip-docs:
     source:
       crates/mindtape-cli/src/cmd/flip/guards.rs: e94f7f12df73f6aefeaffbb6073e34b89d6f668086168ccc870d9c94313f2126

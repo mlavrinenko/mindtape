@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt fix` reports the summary, and `-v` and `-q` pick the detail.** A
+  `--check` run now prints each rewrite and the closing count instead of a
+  `kept` row per file the scan leaves alone, which on this repo's backlog was
+  923 rows saying nothing needs fixing. `-v` restores the `kept` rows, and
+  `-q` doesn't print while a run succeeds, in either mode, while every
+  diagnostic still prints: `mt fix --all --check -q` is a gate that reads one
+  line per problem and nothing on a clean tree, as `mt check -q` does. A write
+  keeps its rows.
 - **A filter expression decides whether `mt add` verifies.** `[add]
   verify-when` takes a condition over the run's own facts, so `!tty()` checks
   only a run without a terminal: a person at a terminal files an incomplete

@@ -9,25 +9,25 @@ use mindtape::test_support::{tempdir, write_file};
 use crate::support;
 
 /// A task importing `version`, with a body that passes the default rules.
-fn task(version: &str, title: &str) -> String {
+pub(crate) fn task(version: &str, title: &str) -> String {
     format!(
         "#import \"@local/mindtape:{version}\": *\n\n\
          #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n  priority: 3,\n)\n"
     )
 }
 
-fn project() -> tempfile::TempDir {
+pub(crate) fn project() -> tempfile::TempDir {
     support::scaffold_project("[tasks]\nroots = [\"tasks\"]\n")
 }
 
-fn put(dir: &Path, rel: &str, version: &str, title: &str) -> String {
+pub(crate) fn put(dir: &Path, rel: &str, version: &str, title: &str) -> String {
     let source = task(version, title);
     write_file(dir, rel, &source);
     source
 }
 
 /// A project holding one task at `version`, and the task's bytes.
-fn project_with(version: &str) -> (tempfile::TempDir, String) {
+pub(crate) fn project_with(version: &str) -> (tempfile::TempDir, String) {
     let dir = project();
     let before = put(dir.path(), "tasks/old.typ", version, "Old task");
     (dir, before)
@@ -38,7 +38,7 @@ fn link(target: &Path, path: &Path) {
     std::os::unix::fs::symlink(target, path).unwrap();
 }
 
-fn read(dir: &Path, rel: &str) -> String {
+pub(crate) fn read(dir: &Path, rel: &str) -> String {
     std::fs::read_to_string(dir.join(rel)).unwrap()
 }
 
@@ -59,7 +59,7 @@ fn refused(dir: &Path, args: &[&str]) -> String {
 /// Every `needle` appears in `text`. The check compares printed paths with `/`
 /// on every platform. A package spec such as `@local/mindtape` has no separator
 /// and stays as written.
-fn has(text: &str, needles: &[&str]) {
+pub(crate) fn has(text: &str, needles: &[&str]) {
     let text = text.replace('\\', "/");
     for needle in needles {
         assert!(text.contains(needle), "missing {needle:?}: {text}");
@@ -67,7 +67,7 @@ fn has(text: &str, needles: &[&str]) {
 }
 
 /// No `needle` appears in `text`.
-fn lacks(text: &str, needles: &[&str]) {
+pub(crate) fn lacks(text: &str, needles: &[&str]) {
     let text = text.replace('\\', "/");
     for needle in needles {
         assert!(!text.contains(needle), "unexpected {needle:?}: {text}");
@@ -85,7 +85,7 @@ fn refused_has(dir: &Path, args: &[&str], needles: &[&str]) {
     has(&stderr, needles);
 }
 
-fn unchanged(dir: &Path, rel: &str, before: &str) {
+pub(crate) fn unchanged(dir: &Path, rel: &str, before: &str) {
     assert_eq!(read(dir, rel), before, "{rel} changed");
 }
 
@@ -123,15 +123,9 @@ fn keeps_a_supported_old_pin() {
     fixed_has(
         dir.path(),
         &["fix"],
-        &["kept", "0.2.0", "nothing to rewrite; 1 kept"],
+        &["kept    tasks/old.typ  0.2.0", "nothing to rewrite; 1 kept"],
     );
     unchanged(dir.path(), "tasks/old.typ", &before);
-
-    fixed_has(
-        dir.path(),
-        &["fix", "--check"],
-        &["kept    tasks/old.typ  0.2.0"],
-    );
 }
 
 #[test]
