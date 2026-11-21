@@ -764,6 +764,15 @@ groups:
       - docs/src/contributing/docs-site-build.typ
       - docs/src/contributing/documentation.typ
 
+  # The scan that keeps a repo-local `just` recipe out of a user-facing
+  # string, which cli.typ states as the rule a hint follows. A script edit
+  # means a reader must re-confirm that sentence, not just its code.
+  - name: cli-hint-docs
+    source:
+      - .just/scripts/check-no-just-in-output.sh
+    dependents:
+      - www/content/cli.typ
+
   # The script that writes the site's Markdown copies and llms.txt, which
   # docs-site-build.typ describes and the agents page and the skill point
   # readers at.

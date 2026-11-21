@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": CLI_GROUPS, u
+#import "../generated/just.typ" as just
 #import "../utils/cli-ref.typ": (
   CLI, cli-gate, cli-group, render-after-help, render-globals,
 )
@@ -36,6 +37,20 @@ what that run printed.
 `mt --help` ends on these lines:
 
 #render-after-help(CLI)
+
+= Hints
+
+Every refusal ends on a hint that states what to do next, and the command it
+gives is one `mt` provides: `mt check`, `mt flip`, `mt allow`. The hint never
+gives a `just` recipe from this repository's own `Justfile`, because `mt`
+installs into projects that have no `Justfile`. There, #just.check() fails
+before it can fix anything.
+
+#just.lint-no-just-in-output() holds that rule over the strings the binary
+prints, and points at the file and line of a hint that breaks it.
+`tests/it/cli_text_e2e.rs` holds the reflected help text to the same rule. A
+doc comment may mention a recipe: a reader of the source is in this
+repository, and a user of the binary never sees the comment.
 
 = Global flags
 

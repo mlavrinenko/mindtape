@@ -547,6 +547,11 @@ scopes:
     - ".just/scripts/path-attr-check.sh"
   script-plural-check:
     - ".just/scripts/plural-check.sh"
+  # The scanner behind `just lint::no-just-in-output`. It reads the recipe
+  # names out of `gates-meta`'s Justfile and scans `rust` for a user-facing
+  # mention, so a body edit busts that one rule.
+  script-check-no-just-in-output:
+    - ".just/scripts/check-no-just-in-output.sh"
   script-positional-args-check:
     - ".just/scripts/positional-args-check.sh"
   script-release-hook:
@@ -916,6 +921,16 @@ commands:
   - name: just lint::plural
     tags: [gate]
     inputs: [rust, gates-meta, script-plural-check]
+
+  # A user-facing string names a command `mt` provides, never a `just` recipe
+  # only this repo declares. `mt` installs into projects that have no Justfile,
+  # so `just check` in a hint names a fix the reader cannot run. `rust` is the
+  # tree it scans, `gates-meta` the Justfile and module files the recipe names
+  # come from (and the dev-shell pin of the just and jq that read the dump),
+  # and `script-check-no-just-in-output` the body.
+  - name: just lint::no-just-in-output
+    tags: [gate]
+    inputs: [rust, gates-meta, script-check-no-just-in-output]
 
   # `cargo doc` over the workspace with rustdoc warnings denied. `rust` is the
   # source tree and manifests it reads; `gates-meta` is the Justfile line and

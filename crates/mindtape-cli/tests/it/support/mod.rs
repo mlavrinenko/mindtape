@@ -16,6 +16,8 @@
 
 use std::path::{Path, PathBuf};
 
+use mindtape::test_support::tempdir;
+
 mod fixtures;
 #[cfg(unix)]
 mod merge_driver;
@@ -245,6 +247,13 @@ fn json_output(dir: &Path, args: &[&str]) -> serde_json::Value {
         .stdout
         .clone();
     serde_json::from_slice(&output).unwrap()
+}
+
+/// The `mt _cli --json` command tree, parsed. `_cli` doesn't read config, so
+/// the throwaway directory is isolation, not a fixture.
+pub fn cli_tree() -> serde_json::Value {
+    let dir = tempdir();
+    json_output(dir.path(), &["_cli", "--json"])
 }
 
 /// The canonical-JSON row `mt ls --json` reports for task `id` in `dir`. Reading

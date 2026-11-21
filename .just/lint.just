@@ -86,3 +86,8 @@ rustdoc:
 [group("gate")]
 plural:
     bash .just/scripts/plural-check.sh
+
+[doc("Refuse a user-facing string that names a recipe only this repo declares")]
+[group("gate")]
+no-just-in-output:
+    bash .just/scripts/check-no-just-in-output.sh

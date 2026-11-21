@@ -131,14 +131,14 @@ groups:
       www/utils/cli-notes.typ: 48bb8cd575c63ee49666392cc35b555b5954ec6084823f289dc5f51906334a4b
   cli-fix-docs:
     source:
-      crates/mindtape-cli/src/cmd/fix/mod.rs: ea3a832470e4dbc17816352524c4990bfb8fdd55fcf2a0cdffe61f013e0db49d
+      crates/mindtape-cli/src/cmd/fix/mod.rs: 7f4fd1ad6804c9c16d2c1676ed22a76fafdba6d0430ea53e5ad24a1ac9660bac
       crates/mindtape-cli/src/cmd/fix/scope.rs: 6e688b3d46c8aa88c8e02f804f4da024354750d619af3437b5785feb3388dbe3
       crates/mindtape/src/prelude_import.rs: bb30a766fdf0f6c31708d90eb6dbe891ef8b79e5f33b1692e44c97039b0e3441
     dependents:
-      www/content/cli/fix.typ: 37cf719e367063696c978c6e556f32b3521ebfbeb90a34d8c0cecc2e9a4c11ff
-      www/content/config.typ: 04e586a123cceea87ac7e35a92be45f4bdeca2a3ae7e3745897805cc9650cde7
+      www/content/cli/fix.typ: 397aba11822ed9758da6c76f5870cc6d436794df24556f5a682fa2491cd3b0b2
+      www/content/config.typ: afc2e947fe3d226e66c01521055f55c1ca1005247d0d87adb0c73a9bd86db654
       www/content/task-files.typ: 6a5721fc8904a9bb5ecba9fb0e61f64f5059ce36bbde08124acc130f01cce1ff
-      www/utils/cli-notes.typ: fb4421f045ebae597036832b451074d8a8d34aad9d200ead69949b6b97422009
+      www/utils/cli-notes.typ: bfe44c78cf9490fb11d9340a9854c0926fcc213404a12500a73f5486614b0243
   cli-flip-docs:
     source:
       crates/mindtape-cli/src/cmd/flip/guards.rs: e94f7f12df73f6aefeaffbb6073e34b89d6f668086168ccc870d9c94313f2126
@@ -174,6 +174,11 @@ groups:
       www/content/agents.typ: 6b56e7fc0f4e54308818d3a593bd4d18ce414372cbcf7f87912c13394e43343f
       www/content/cli/graph.typ: 556c209246824b0783d93c88ea3f6dbecfb07971e749ae13c6eead9d92cf0f36
       www/content/links.typ: 0d27e778be846c07b2f32eb50ce8b14e77126b2a7cb16b7ad56efce11f270415
+  cli-hint-docs:
+    source:
+      .just/scripts/check-no-just-in-output.sh: 450cbe381115723a59b41c54078553bef091bf543820ede9530e6758ffa7b7c6
+    dependents:
+      www/content/cli.typ: acd3fcd8b8ee29c9428d52e5478161d481501076829d8e6bbe908594669d8357
   cli-import-docs:
     source:
       crates/mindtape-cli/src/cmd/import/input.rs: 941085c3702516f529211630b81056c1ef2f86e6c61cbb960ec65b1f6b84cd5e
@@ -362,14 +367,14 @@ groups:
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
       .just/docs.just: 82a3017127b223bd655b6cc9d43e8aa1b84dca3184823eebb4d75b703a71f493
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
-      .just/lint.just: d0c310950235d72f0f1f1ac88a177f0aeb9f2e26433950803d52c31ea06fbfda
+      .just/lint.just: f6bcc42e508e2849ee74d17691888c2ff73216334740609c778657dabe78256d
       .just/meta.just: 17f3c67395d11fe1ed06ad6067c77a2e0939fdf7f95706df3bbed76d3e59a368
       .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
       .just/outdatty.just: fb95f90850c8179bb3fba01a8ae90e2fe703c1c551cb8181892bd24b03f95866
       .just/scripts/check-examples.sh: eca8ba0bcc674cb6dcece4000c512662296b514857d2f7f5dd8acf9655780372
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: 97a4ef31a342a808c516133529368b33c6f976f8fb0cf5c573902ff4d0229d28
-      Justfile: 5d5c264109f8184af4f3cc10d82bee85691a5a31f72312d922b46f9967a52560
+      Justfile: ada1321ba61546aaef4465b832730d5c2ffabd42ce79ccc9a5ce31027ff15ad2
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
       nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
@@ -377,14 +382,14 @@ groups:
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
     dependents:
-      docs/src/agents.typ: cd3e7c409644b14fe5196ab29d273e4df5f97af9e640dbf986e319ac1a02db64
+      docs/src/agents.typ: eb3629236c564a52ef6d460741312abf93d795a44e239e56cf820ee56cb1500b
       docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
       docs/src/contributing/coverage-crap.typ: dfd3234c064a7403e05bac07755428caa51e21d49d084eff17a9a2eee6d93243
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
       docs/src/contributing/docs-site-build.typ: 6dee8629cb4d56d1eebb8b47f07c33859d4a00f1f6855f2f067383e0fd61d918
       docs/src/contributing/documentation.typ: 6f8898dfc7d4af6266a25dbe1d7c1e52dcb2cc51fd77b71121536b7ce531b402
       docs/src/contributing/example-projects.typ: 952534459fb3f06fe43736e8949beffdc296319a3c8ad2a979587f2fcd887ca0
-      docs/src/contributing/gates.typ: c2f44ddb83d885c8d587db03426578a521e79424bb702191ce96c0046114dbe4
+      docs/src/contributing/gates.typ: 910cbb2bf36604e03db362d3989a0de6b0216e767352124fb6e990b3b0638189
       docs/src/contributing/mutation-testing.typ: fd3b81fd022bbfbfd8161cdebc1b2fa65fcd0a9979ba455a384ca6a2b0e5dfb5
       docs/src/contributing/signal-sweep.typ: ee308da314f2396880c7b0802719c8b02e05d7bb562ec0e0b6ea106179728c04
       docs/src/contributing/windows.typ: d19d7853f501ffaaf49f885c87f657d517d4e475f6683e532983c51441a47022

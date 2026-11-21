@@ -57,7 +57,7 @@ pub struct FixArgs {
     #[arg(long)]
     pub check: bool,
 
-    /// Scan the whole project tree, not just task roots and template dirs.
+    /// Scan the whole project tree, not only task roots and template dirs.
     #[arg(long)]
     pub all: bool,
 

@@ -53,7 +53,7 @@ _check-stages: _check-fast _check-build _check-cover
 
 [parallel]
 [private]
-_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "lint::machete") (mmz "lint::workflows") (mmz "lint::shellcheck") (mmz "lint::banners") (mmz "lint::vale-code") (mmz "lint::vale-levels") (mmz "lint::size") (mmz "lint::dry") (mmz "lint::secrets") (mmz "outdatty::check") (mmz "docs::recipes") (mmz "docs::blocks") (mmz "meta::fmt-fixture") (mmz "outdatty::trailer-fixture") (mmz "meta::arg-pattern") (mmz "meta::positional-args") (mmz "meta::script-attr") (mmz "lint::path-attr") (mmz "lint::plural") (mmz "meta::size-fixture") (mmz "meta::script-scope") (mmz "crap::baseline-check") (mmz "meta::gate-drift") (mmz "skill-evals-check") (mmz "skill-drift")
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "lint::machete") (mmz "lint::workflows") (mmz "lint::shellcheck") (mmz "lint::banners") (mmz "lint::vale-code") (mmz "lint::vale-levels") (mmz "lint::size") (mmz "lint::dry") (mmz "lint::secrets") (mmz "outdatty::check") (mmz "docs::recipes") (mmz "docs::blocks") (mmz "meta::fmt-fixture") (mmz "outdatty::trailer-fixture") (mmz "meta::arg-pattern") (mmz "meta::positional-args") (mmz "meta::script-attr") (mmz "lint::path-attr") (mmz "lint::plural") (mmz "lint::no-just-in-output") (mmz "meta::size-fixture") (mmz "meta::script-scope") (mmz "crap::baseline-check") (mmz "meta::gate-drift") (mmz "skill-evals-check") (mmz "skill-drift")
 
 [parallel]
 [private]

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A user-facing string can no longer name a repo-local `just` recipe.** A
+  hint that says `just check` names a command a reader in another project
+  cannot run, so `just lint::no-just-in-output` fails it, naming the file and
+  line. The scan reads the recipe names from the `Justfile`, so a renamed
+  recipe cannot slip through, and it lets a doc comment through because a user
+  never reads one. The reflected help text gets its own test: `just ` appears
+  in no `about`, `long_about` or argument help.
 - **`mt allow --status` lists the commands without recording the approval.** It
   prints each `[[tasks.waits]]` checker, each `[[on.flip]]` and `[[on.rm]]`
   `run`, and each `[go]` and `[add]` editor the config declares, under one line

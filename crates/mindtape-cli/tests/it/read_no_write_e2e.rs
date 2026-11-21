@@ -23,7 +23,6 @@
 //! out of the CLI's own JSON dump is how a `tests/` binary sees it at all.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
-use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -235,13 +234,7 @@ fn read_command_paths() -> Vec<String> {
 /// Every `Read`-classified leaf of a fresh `mt _cli --json`, as its flattened
 /// path and its JSON node. A test can then read any mark the registry exports.
 pub(crate) fn read_leaves() -> Vec<(String, serde_json::Value)> {
-    let dir = tempdir();
-    let output = support::mt(dir.path())
-        .args(["_cli", "--json"])
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "`mt _cli --json` failed");
-    let tree: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let tree = support::cli_tree();
     let commands = tree
         .get("commands")
         .and_then(serde_json::Value::as_array)
