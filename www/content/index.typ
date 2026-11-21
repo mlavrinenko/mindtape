@@ -4,7 +4,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": hero, lsp-demo
 #import "../utils/demo.typ": recipe-table, typst-section
-#import "../utils/site.typ": mindtape, u
+#import "../utils/site.typ": mindtape, section-head, u
 
 // The summary is the meta description, which the page-manifest check holds to
 // one sentence. The tagline is two, so the root words it as one.
@@ -23,16 +23,22 @@
 
 #let site-link = (route, body) => link(u(route), body)
 
-#recipe-table(site-link)
+#recipe-table(site-link, head: section-head)
 
-#typst-section(site-link)
+#typst-section(site-link, head: section-head)
+
+#section-head("06", [Edit tasks with autocomplete.], note: "TINYMIST · LSP")
 
 #link("https://myriad-dreamin.github.io/tinymist/")[tinymist] helps with
 autocompletion and highlights issues:
 
 #lsp-demo()
 
-= For people and for agents
+#section-head(
+  "07",
+  [For people and for agents.],
+  note: "MT LS · JSON, CSV, PATHS",
+)
 
 `mt ls` prints a table for you to read, and JSON, CSV or a bare list of paths
 for scripts. When `mt` refuses a command, it exits non-zero and says what to

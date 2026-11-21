@@ -1,7 +1,13 @@
 // Rendering helpers shared across content pages.
 
-#import "site.typ": MARKDOWN, PKG, md-copy-button, mindtape, u
-#import "demo.typ": lede, listing-capture, listing-intro, showcase-intro
+#import "site.typ": (
+  MARKDOWN, NAV, PKG, SITE, md-copy-button, mindtape, page-meta, render-summary,
+  section-head, u,
+)
+#import "release.typ": cli-crate
+#import "demo.typ": (
+  fixture-root, listing-capture, showcase-file, showcase-intro, showcase-path,
+)
 
 // Inline package name, e.g. `@local/mindtape:0.3.0` — always version-synced.
 #let pkg = raw(PKG)
@@ -13,12 +19,20 @@
 }
 
 // A dark terminal panel holding plain text, with leading and trailing blank
-// lines trimmed.
-#let _terminal-panel(body) = el(
-  "div",
-  attrs: (class: "terminal"),
-  raw(body.trim("\n", repeat: true), block: true),
-)
+// lines trimmed. The head names the panel, so a capture reads as one surface
+// with the code panels rather than a bare black box.
+#let _terminal-panel(body) = {
+  let text = raw(body.trim("\n", repeat: true), block: true)
+  if MARKDOWN { text } else {
+    html.elem("div", attrs: (class: "terminal"), {
+      html.elem("div", attrs: (class: "terminal-head"), {
+        html.elem("i")
+        "TERMINAL"
+      })
+      text
+    })
+  }
+}
 
 // ── ANSI color ──────────────────────────────────────────────────────────────
 // A capture keeps the SGR escapes `mt` printed in a terminal. terminal-ansi()
@@ -165,14 +179,18 @@
 // `terminal()` with the color the terminal showed: the same panel and the same
 // `$ command` lines, with each colored run as a span in a selectable `pre`.
 // The Markdown copy has no color, so it shows `terminal()`.
-#let terminal-ansi(slug) = if MARKDOWN { terminal(slug) } else {
-  html.elem(
-    "div",
-    attrs: (class: "terminal"),
+#let terminal-ansi(slug, head: none) = if MARKDOWN { terminal(slug) } else {
+  html.elem("div", attrs: (class: "terminal"), {
+    if head != none {
+      html.elem("div", attrs: (class: "terminal-head"), {
+        html.elem("i")
+        head
+      })
+    }
     html.elem("pre", html.elem("code", _ansi-spans(_transcript(json(
       "../generated/" + slug + ".json",
-    ))))),
-  )
+    )))))
+  })
 }
 
 // The hero's task, its `mt ls` row and its typeset card are read from the live
@@ -182,87 +200,249 @@
 // show rule.
 #let _hero-source = read("../generated/hero-source.typ")
 
-// One panel of the hero. The Markdown copy shows its caption as a paragraph.
-#let face(kind, caption, body) = if MARKDOWN [#caption #parbreak() #body] else {
-  html.elem(
-    "figure",
-    attrs: (class: "face face-" + kind),
-    {
-      html.elem("figcaption", [#caption])
-      html.elem("div", attrs: (class: "face-body"), body)
-    },
-  )
-}
+// ── Departure board ─────────────────────────────────────────────────────────
+// The board is the same `mt ls` a reader gets: the table capture supplies the
+// rows, their readiness and their footer count, and the JSON run of the same
+// default view supplies the blocker a row names. Nothing is typed in.
+#let _take(list, n) = if list.len() > n { list.slice(0, n) } else { list }
 
-// The line that leads into the typeset card.
-#let _typeset-intro = [
-  The same file also typesets as a document.
-]
+#let _ls-lines = _ansi-strip(
+  json("../generated/hero-ls.json").steps.at(0).out,
+).split("\n")
 
-// The task file, then how `mt ls` lists it, each under its own line. Both
-// copies show these. The typeset card is an inline SVG, which typlite cannot
-// write, so only the HTML hero adds it.
-#let _hero-panels() = {
-  let line(body) = if MARKDOWN [#body #parbreak()] else {
-    html.elem("p", attrs: (class: "faces-intro"), body)
+#let _board-tasks = json("../generated/home-board-tasks.json").tasks
+
+#let _board-rows = {
+  let rows = ()
+  for line in _ls-lines {
+    let cells = line.split(regex("\\s{2,}")).map(s => s.trim())
+    if cells.len() < 5 { continue }
+    let ready = cells.at(2)
+    if not (ready.contains("ready") or ready.contains("blocked")) { continue }
+    let title = cells.last()
+    let task = _board-tasks.find(t => t.title == title)
+    let needs = if (
+      task != none
+        and task.why.len() > 0
+        and task.why.at(0).kind == "depends-on"
+    ) { task.why.at(0).stem } else { none }
+    rows.push((
+      slug: cells.at(0),
+      status: cells.at(1),
+      blocked: ready.contains("blocked"),
+      wip: cells.at(1) == "wip",
+      priority: cells.at(3).split(" ").last(),
+      due: if cells.len() >= 6 { cells.at(4) } else { "" },
+      title: title,
+      needs: needs,
+    ))
   }
-  line(showcase-intro)
-  face("source", "source · throttle-failed-logins-per-ip.typ", raw(
-    _hero-source,
-    lang: "typ",
-    block: true,
-  ))
-  line(listing-intro)
-  face("terminal", "terminal", terminal-ansi(listing-capture))
+  rows
 }
 
-// typlite joins two `par` calls into one line, so the paragraphs are markup.
-#let _md-hero() = [
-  #lede
+// The three-letter slug a blocker is listed under, or the stem when the board
+// does not list it.
+#let _slug-for(id) = {
+  let task = _board-tasks.find(t => t.id == id)
+  if task == none { return id }
+  let row = _board-rows.find(r => r.title == task.title)
+  if row == none { return id }
+  row.slug
+}
 
-  #link(u("/quickstart/"))[Get started] · #link(u("/concepts/"))[How it works]
+#let _board-counts = {
+  let line = _ls-lines.find(l => l.contains("default view"))
+  assert(line != none, message: "hero-ls.json has no default-view footer")
+  let hit = line.matches(regex("([0-9]+) of ([0-9]+) tasks")).last()
+  assert(hit != none, message: "hero-ls.json footer has no task count")
+  (visible: hit.captures.at(0), total: hit.captures.at(1))
+}
 
-  #_hero-panels()
+#let _board() = {
+  let counts = _board-counts
+  let ready = _board-rows.filter(r => not r.blocked)
+  let blocked = _board-rows.filter(r => r.blocked)
+  html.elem("div", attrs: (class: "hero-board"), {
+    html.elem("div", attrs: (class: "caption"), {
+      html.elem("span", {
+        html.elem("b", "DEPARTURES")
+        " / backlog"
+      })
+      html.elem("span", upper(
+        counts.visible + " OF " + counts.total + " TASKS",
+      ))
+    })
+    html.elem("figure", attrs: (class: "board"), {
+      html.elem("figcaption", attrs: (class: "board-head"), {
+        html.elem("span", "MT LS / DEFAULT VIEW")
+        html.elem("span", {
+          html.elem("b", "●")
+          " LIVE"
+        })
+      })
+      html.elem("div", attrs: (class: "board-cols"), {
+        html.elem("span", "Status")
+        html.elem("span", "Task")
+        html.elem("span", "Due")
+      })
+      html.elem("ol", attrs: (class: "board-rows"), {
+        for row in _take(ready, 4) + _take(blocked, 2) {
+          let cls = (
+            "st"
+              + if row.blocked { " is-blocked" } else if row.wip {
+                " is-wip"
+              } else { "" }
+          )
+          let label = if row.blocked { "blocked" } else if row.wip {
+            "wip"
+          } else { "ready" }
+          let needs = if row.needs != none { _slug-for(row.needs) } else {
+            none
+          }
+          let small = (
+            row.slug
+              + " · "
+              + row.status
+              + " · "
+              + row.priority
+              + if needs != none { " · needs " + needs } else { "" }
+          )
+          html.elem("li", {
+            html.elem("span", attrs: (class: cls), {
+              html.elem("i")
+              label
+            })
+            html.elem("span", attrs: (class: "board-task"), {
+              html.elem("b", row.title)
+              html.elem("small", small)
+            })
+            html.elem("span", attrs: (class: "due"), if row.due == "" {
+              "—"
+            } else { row.due.slice(5) })
+          })
+        }
+      })
+      html.elem("div", attrs: (class: "board-foot"), {
+        html.elem("span", "default view")
+        html.elem("span", counts.visible + " of " + counts.total)
+      })
+    })
+  })
+}
 
-  #_typeset-intro
-]
+// A numbered section head: the transit line's marker for a new stretch of the
+// home page. The note at the right names where the section's material came
+// from, so a reader can check it.
 
-#let _html-hero() = html.elem("section", attrs: (class: "hero"), {
-  html.elem("div", attrs: (class: "hero-lede"), {
-    html.elem(
-      "div",
-      attrs: (class: "page-title"),
-      html.elem("h1", mindtape) + md-copy-button("/"),
-    )
-    html.elem("p", attrs: (class: "hero-sub"), lede)
+#let _hero-copy() = {
+  let overview = page-meta("/")
+  let label = if overview == none { "Overview" } else { upper(overview.label) }
+  html.elem("div", attrs: (class: "hero-copy"), {
+    html.elem("p", attrs: (class: "kicker"), {
+      html.elem("span", attrs: (class: "num"), "01")
+      " " + upper(NAV.at(0).title) + " / " + label
+      html.elem("span", attrs: (class: "bar"))
+    })
+    html.elem("h1", mindtape)
+    html.elem("p", attrs: (class: "lede"), SITE.tagline)
+    html.elem("p", attrs: (class: "pitch"), render-summary(SITE.pitch))
     html.elem("div", attrs: (class: "hero-cta"), {
       html.elem(
         "a",
         attrs: (class: "btn", href: u("/quickstart/")),
-        [Get started],
+        [Get started #html.elem("span", "→")],
       )
       html.elem(
         "a",
-        attrs: (class: "btn ghost", href: u("/concepts/")),
+        attrs: (class: "btn btn-ghost", href: u("/concepts/")),
         [How it works],
       )
     })
+    html.elem("p", attrs: (class: "install"), {
+      "INSTALL "
+      html.elem("code", "cargo install " + cli-crate)
+    })
   })
-  _hero-panels()
-  // The card stays folded: one line says the file typesets, and a click shows
-  // it. Read the SVG bytes rather than `image("…path…")`: the card is
-  // build-time content inlined as a data-uri, not a served asset, so a path
-  // literal would trip tola's asset-link validator (generated/ is never
-  // copied to public/).
-  html.elem("details", attrs: (class: "typeset"), {
-    html.elem("summary", _typeset-intro + [ Take a look.])
-    html.elem("div", attrs: (class: "typeset-card"), image(
-      read("../generated/hero-card.svg", encoding: none),
-      format: "svg",
-      alt: "The task above, typeset as a document",
-    ))
+}
+
+// The site's own line into the listing: shorter than README's, which also
+// points at the rest of the backlog.
+#let _site-listing-intro = [And here's how `mt ls` lists it.]
+
+// The task file, then how `mt ls` lists it. The typeset card is an inline SVG,
+// which typlite cannot write, so only the HTML hero adds it.
+#let _md-hero() = [
+  #SITE.tagline
+
+  #render-summary(SITE.pitch)
+
+  #link(u("/quickstart/"))[Get started] · #link(u("/concepts/"))[How it works]
+
+  #showcase-intro
+
+  #raw(_hero-source, lang: "typ", block: true)
+
+  #_site-listing-intro
+
+  #terminal(listing-capture)
+
+  The same file also typesets as a document.
+]
+
+#let _html-hero() = {
+  html.elem("section", attrs: (class: "hero"), {
+    _hero-copy()
+    _board()
   })
-})
+  html.elem("section", attrs: (class: "proof"), {
+    section-head(
+      "02",
+      [Here's a real task.],
+      note: "SOURCE · " + upper(showcase-file),
+    )
+    html.elem("div", attrs: (class: "code"), {
+      html.elem("div", attrs: (class: "code-head"), {
+        html.elem("span", attrs: (class: "sq"))
+        html.elem("span", "TASK FILE")
+        html.elem("span", attrs: (class: "path"), showcase-path)
+        html.elem(
+          "button",
+          attrs: (
+            class: "copy",
+            type: "button",
+            "aria-label": "Copy task file",
+          ),
+          "COPY",
+        )
+      })
+      raw(_hero-source, lang: "typ", block: true)
+    })
+    // The card stays folded: one line says the file typesets, and a click
+    // shows it. Read the SVG bytes rather than `image("…path…")`: the card is
+    // build-time content inlined as a data-uri, not a served asset, so a path
+    // literal would trip tola's asset-link validator (generated/ is never
+    // copied to public/).
+    html.elem("details", attrs: (class: "proof-typeset"), {
+      html.elem("summary", attrs: (class: "proof-foot"), {
+        html.elem("span", "THE SAME FILE ALSO TYPESETS AS A DOCUMENT")
+        html.elem("span", attrs: (class: "proof-open"), "Take a look →")
+      })
+      html.elem("div", attrs: (class: "typeset-card"), image(
+        read("../generated/hero-card.svg", encoding: none),
+        format: "svg",
+        alt: "The task above, typeset as a document",
+      ))
+    })
+  })
+  html.elem("section", attrs: (class: "mt-list"), {
+    section-head(
+      "03",
+      _site-listing-intro,
+      note: "TERMINAL · " + fixture-root,
+    )
+    terminal-ansi(listing-capture, head: "TERMINAL · " + fixture-root)
+  })
+}
 
 #let hero() = if MARKDOWN { _md-hero() } else { _html-hero() }
 
