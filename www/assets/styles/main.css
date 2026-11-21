@@ -141,7 +141,7 @@ img, svg { display: block; }
 .mono { font-family: var(--mono); }
 .eyebrow {
   font-family: var(--sans);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -178,7 +178,7 @@ img, svg { display: block; }
   letter-spacing: -0.03em; color: var(--ink);
 }
 .badge {
-  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
   letter-spacing: 0.1em; color: var(--green-ink);
   background: var(--green-wash); border: 1px solid var(--green);
   padding: 2px 6px; margin-left: 2px;
@@ -204,7 +204,7 @@ img, svg { display: block; }
 .search-key {
   position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
   z-index: 2; pointer-events: none;
-  font-family: var(--mono); font-size: 10px;
+  font-family: var(--mono); font-size: 11px;
   border: 1px solid var(--line); padding: 1px 5px; background: var(--paper);
   color: var(--muted);
 }
@@ -261,13 +261,13 @@ img, svg { display: block; }
   flex: none; display: inline-flex; align-items: center; height: 22px;
   padding: 0 7px; margin-right: 22px;
   background: var(--green); color: #fff;
-  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
   letter-spacing: 0.08em; text-transform: uppercase;
 }
 .station {
   position: relative; display: inline-flex; align-items: center; gap: 7px;
   padding: 0 15px; color: var(--ink-2); text-decoration: none;
-  font-family: var(--sans); font-size: 10px; font-weight: 600;
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
   letter-spacing: 0.09em; text-transform: uppercase; white-space: nowrap;
 }
 .station + .station::before {
@@ -287,7 +287,7 @@ img, svg { display: block; }
 }
 .line-end {
   margin-left: auto; padding-left: 18px;
-  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
   letter-spacing: 0.06em; white-space: nowrap;
 }
 
@@ -333,10 +333,10 @@ main { min-width: 0; padding-bottom: 80px; }
 .nav-title {
   position: relative; display: flex; gap: 7px; align-items: baseline;
   margin: 0 0 7px -18px;
-  font-family: var(--sans); font-size: 10px; font-weight: 800;
+  font-family: var(--sans); font-size: 11px; font-weight: 800;
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink);
 }
-.group-no { font-family: var(--mono); font-size: 8px; font-weight: 500; color: var(--green); }
+.group-no { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--green); }
 .sidebar ul { list-style: none; margin: 0; padding: 0; }
 .sidebar li { margin: 0; }
 .stop {
@@ -357,12 +357,12 @@ main { min-width: 0; padding-bottom: 80px; }
   background: var(--green); border-color: var(--green);
   box-shadow: 0 0 0 2px var(--paper);
 }
-.stop.sub { padding-left: 14px; font-family: var(--mono); font-size: 10.5px; }
+.stop.sub { padding-left: 14px; font-family: var(--mono); font-size: 11px; }
 .stop.sub::before { left: -12px; width: 5px; height: 5px; top: 11px; }
 .rail-foot {
   margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--line);
   display: flex; justify-content: space-between;
-  font-family: var(--mono); font-size: 8px; color: var(--muted);
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
 }
 
 /* The CLI entry is a <details> so the command list needs no script. */
@@ -385,7 +385,7 @@ main { min-width: 0; padding-bottom: 80px; }
 .kicker {
   display: flex; align-items: center; gap: 10px;
   margin: 0 0 12px;
-  font-family: var(--mono); font-size: 9px; font-weight: 500;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
   letter-spacing: 0.12em; color: var(--muted);
 }
 .kicker .num { color: var(--green); font-weight: 600; }
@@ -412,7 +412,7 @@ main { min-width: 0; padding-bottom: 80px; }
   flex: none; display: inline-flex; align-items: center; gap: 6px;
   margin-left: auto; padding: 4px 7px;
   border: 1px solid var(--line); background: var(--paper);
-  font-family: var(--mono); font-size: 7.5px; font-weight: 500;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
   letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted);
   cursor: pointer; position: relative;
 }
@@ -424,7 +424,7 @@ main { min-width: 0; padding-bottom: 80px; }
 .md-copy::after {
   content: attr(data-tip); position: absolute; top: calc(100% + 6px); right: 0;
   white-space: nowrap; pointer-events: none;
-  font: 500 0.68rem/1 var(--mono); padding: 0.35rem 0.5rem;
+  font: 500 11px/1 var(--mono); padding: 0.35rem 0.5rem;
   background: var(--ink); color: var(--paper); opacity: 0; transition: opacity 0.12s;
   z-index: 5;
 }
@@ -444,7 +444,8 @@ main { min-width: 0; padding-bottom: 80px; }
 }
 .prose p { font-size: 16.5px; line-height: 1.68; margin: 0 0 14px; }
 .prose ul > li { font-size: 14px; }
-.prose code { font-size: 0.8em; }
+.prose code { font-size: max(11px, 0.8em); }
+.prose pre code { font-size: inherit; }
 .prose pre, .prose .code pre { font-size: 11.5px; }
 .prose .terminal pre { font-size: 11px; }
 .page-rail { align-self: start; position: sticky; top: 88px; }
@@ -477,7 +478,7 @@ blockquote {
 }
 
 code {
-  font-family: var(--mono); font-size: 0.82em;
+  font-family: var(--mono); font-size: max(11px, 0.82em);
   color: var(--code-fg); background: var(--code-bg);
   border: 1px solid var(--code-border); padding: 0.08em 0.3em;
   border-radius: 1px;
@@ -518,8 +519,8 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
   text-decoration: none; color: var(--ink);
 }
 .next-stop::before { content: ""; width: 7px; height: 7px; background: var(--green); flex: none; }
-.next-kicker { font-family: var(--mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); }
-.next-route { font-family: var(--mono); font-size: 8px; color: var(--green); letter-spacing: 0.06em; }
+.next-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); }
+.next-route { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: 0.06em; }
 .next-label { font-family: var(--sans); font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
 .next-arrow { margin-left: auto; font-family: var(--sans); font-size: 16px; color: var(--green); }
 .next-stop:hover .next-label { color: var(--green-ink); }
@@ -530,7 +531,7 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
   border-top: 1px solid var(--line-strong);
   padding: 28px 0 36px; margin-top: 64px;
 }
-.footer-inner { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 9px; color: var(--muted); }
+.footer-inner { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
 .footer-inner .end { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-transform: uppercase; }
 .footer-inner .end i { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
 .footer-inner .right { margin-left: auto; display: flex; gap: 18px; }

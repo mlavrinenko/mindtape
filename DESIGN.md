@@ -46,7 +46,7 @@ typography:
     lineHeight: 1.68
   label:
     fontFamily: "JetBrains Mono, ui-monospace, SFMono-Regular, monospace"
-    fontSize: "9px"
+    fontSize: "11px"
     fontWeight: 500
     letterSpacing: "0.1em"
 rounded:
@@ -139,10 +139,10 @@ A paper-and-ink palette with one signal green. The green is the logo's own accen
 - **Title** (700, 30px, 1.1, -0.035em): section heads on the home page and inside prose. H2s inside prose carry a hairline above them; the first one does not.
 - **Lede** (400, 21px, 1.42): the home summary in Literata; article ledes drop to 19px/1.5 and cap at 60ch.
 - **Body** (400, 18px, 1.65): default prose. Article prose reads at 16.5px/1.68 in a 690px column.
-- **Label** (500, 8 to 10px, 0.08 to 0.16em, uppercase): station numbers, route labels, board headers, and metadata. Uppercase comes from CSS, never from the source string.
+- **Label** (500, 11px, 0.08 to 0.16em, uppercase): station numbers, route labels, board headers, and metadata. Uppercase comes from CSS, never from the source string.
 - **Code** (400, 12.5px, 1.62): panels on the home page; 11.5px inside article prose.
 
-**The Measured Column Rule.** Reading text stays between 60 and 72 characters. Display type may exceed the column, reading text may not.
+**The Measured Column Rule.** Reading text stays between 60 and 72 characters. Display type may exceed the column, reading text may not. **The Legibility Floor.** No type role is set below 11px; labels separate themselves by family, weight, tracking and color, and inline code keeps its parent's size.
 
 ## Layout
 
@@ -174,7 +174,7 @@ Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean
 - **Behavior:** Pagefind replaces the static placeholder in place. `/` focuses the input from anywhere; Escape closes the result panel.
 
 ### Departure Board (signature)
-- **Style:** 1px strong border. A 38px ink header with `MT LS / DEFAULT VIEW` and a live dot; a column header row in 8px uppercase sans; rows on a 76px / fluid / 48px grid.
+- **Style:** 1px strong border. A 38px ink header with `MT LS / DEFAULT VIEW` and a live dot; a column header row in 11px uppercase sans; rows on a 76px / fluid / 48px grid.
 - **Rows:** a status word with a square or ring, a task title, its slug and priority marks, and a due date. Hover tints the row with paper-sunk. Every row is real captured `mt ls` output from `www/generated/`, never invented tasks.
 
 ### Code Panel

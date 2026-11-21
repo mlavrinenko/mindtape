@@ -40,9 +40,9 @@
 .install {
   display: flex; align-items: center; gap: 10px;
   margin: 0; padding-top: 13px; border-top: 1px solid var(--line);
-  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
 }
-.install code { font-size: 10px; background: var(--code-bg); color: var(--code-fg); }
+.install code { font-size: 11px; background: var(--code-bg); color: var(--code-fg); }
 
 /* ── Departure board ──────────────────────────────────────────────────────── */
 
@@ -50,7 +50,7 @@
 .hero-board .caption {
   display: flex; justify-content: space-between; gap: 10px;
   margin: 0 0 8px;
-  font-family: var(--mono); font-size: 8px; letter-spacing: 0.08em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
   color: var(--muted);
 }
 .hero-board .caption b { color: var(--green); font-weight: 600; }
@@ -63,13 +63,13 @@
   display: flex; align-items: center; justify-content: space-between;
   height: 38px; padding: 0 14px;
   background: var(--ink); color: var(--paper);
-  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
 }
 .board-head b { color: var(--green); font-weight: 600; }
 .board-cols {
   display: grid; grid-template-columns: 76px minmax(0, 1fr) 48px; gap: 10px;
   padding: 8px 14px; border-bottom: 1px solid var(--line-strong);
-  font-family: var(--sans); font-size: 8px; font-weight: 700;
+  font-family: var(--sans); font-size: 11px; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
 }
 .board-rows { display: block; list-style: none; margin: 0; padding: 0; }
@@ -82,7 +82,7 @@
 .board-rows li:last-child { border-bottom: 0; }
 .st {
   display: inline-flex; align-items: center; gap: 5px;
-  font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.03em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.03em;
   color: var(--ink-2); white-space: nowrap;
 }
 .st i { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--green); }
@@ -96,18 +96,18 @@
 }
 .board-task small {
   display: block; margin-top: 1px;
-  font-family: var(--mono); font-size: 8px; letter-spacing: 0.02em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em;
   color: var(--muted);
 }
 .due {
-  font-family: var(--mono); font-size: 9px; color: var(--ink-2);
+  font-family: var(--mono); font-size: 11px; color: var(--ink-2);
   text-align: right; font-variant-numeric: tabular-nums;
 }
 .board-foot {
   display: flex; justify-content: space-between; gap: 10px;
   padding: 8px 14px; border-top: 1px solid var(--line-strong);
   background: var(--paper-2);
-  font-family: var(--mono); font-size: 8px; color: var(--muted);
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
 }
 
 /* ── Section heads ────────────────────────────────────────────────────────── */
@@ -118,7 +118,7 @@
   margin-bottom: 22px;
 }
 .section-head p { display: contents; }
-.section-no { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--green); }
+.section-no { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--green); }
 .section-head h2 {
   font-size: 30px; font-weight: 700; letter-spacing: -0.035em;
   line-height: 1.1; margin: 0;
@@ -126,7 +126,7 @@
 .section-head h2 code { font-size: 0.72em; background: none; border: 0; padding: 0; }
 .section-note {
   margin-left: auto; text-align: right;
-  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
   letter-spacing: 0.02em;
 }
 
@@ -155,10 +155,13 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   display: flex; align-items: center; gap: 9px;
   height: 36px; padding: 0 12px; overflow: hidden;
   border-bottom: 1px solid var(--line); background: var(--paper);
-  font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
   color: var(--ink-2);
 }
 .code-head .sq { width: 7px; height: 7px; background: var(--green); flex: none; }
+/* Typst wraps the header's inline spans in a <p>; unwrap it so the path can
+   shrink and COPY stays on screen at every width. */
+.code-head p { display: contents; }
 .code-head .code-lang { letter-spacing: 0.08em; }
 .code-head .path {
   flex: 1; min-width: 0;
@@ -168,7 +171,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 .code-head .copy { flex: none;
   margin-left: auto; padding: 3px 6px;
   border: 1px solid var(--line); background: var(--paper-2);
-  font-family: var(--mono); font-size: 8px; letter-spacing: 0.08em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
   color: var(--muted); cursor: pointer;
 }
 .code-head .copy:hover { color: var(--green-ink); border-color: var(--green); }
@@ -181,7 +184,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   display: flex; align-items: center; gap: 12px;
   padding: 11px 14px;
   border: 1px solid var(--line-strong); border-top: 0;
-  font-family: var(--mono); font-size: 9px; color: var(--muted);
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
 }
 .proof-open { margin-left: auto; color: var(--green-ink); }
 .proof-typeset[open] .proof-open { color: var(--green); }
@@ -200,7 +203,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   display: flex; align-items: center; gap: 9px;
   height: 34px; padding: 0 12px;
   border-bottom: 1px solid #26332c;
-  font-family: var(--mono); font-size: 8px; letter-spacing: 0.1em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
   color: #8fa398;
 }
 .terminal-head i { width: 7px; height: 7px; background: var(--green); flex: none; }
@@ -268,7 +271,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 }
 .page-toc-flow summary {
   cursor: pointer; padding: 10px 14px;
-  font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--muted);
 }
 .page-toc-flow summary:hover { color: var(--green-ink); }
@@ -280,7 +283,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 .rail-meta {
   display: flex; flex-direction: column; gap: 4px;
   padding-top: 14px; border-top: 1px solid var(--line);
-  font-family: var(--mono); font-size: 8px; letter-spacing: 0.06em;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
   color: var(--muted); text-transform: uppercase;
 }
 
@@ -317,7 +320,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   border: 1px solid var(--line-strong); background: var(--paper);
 }
 .lsp figcaption {
-  font-family: var(--mono); font-size: 8.5px; color: var(--muted);
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
   padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--line);
   background: var(--paper-2); letter-spacing: 0.04em;
 }
@@ -373,12 +376,12 @@ main th, main td {
 }
 main thead th {
   padding: 0 20px 9px 0; border-bottom: 1px solid var(--line-strong);
-  font-family: var(--sans); font-size: 8px; font-weight: 800;
+  font-family: var(--sans); font-size: 11px; font-weight: 800;
   letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted);
 }
 main table a { font-family: var(--sans); font-weight: 600; text-decoration: none; letter-spacing: -0.01em; }
 main table a:hover { text-decoration: underline; }
-main table code { display: inline; font-size: 9.5px; line-height: 1.7; white-space: normal; }
+main table code { display: inline; font-size: 11px; line-height: 1.7; white-space: normal; }
 
 /* ── Wide comparison matrix ───────────────────────────────────────────────── */
 
@@ -474,7 +477,7 @@ main table code { display: inline; font-size: 9.5px; line-height: 1.7; white-spa
 #search .pagefind-ui__form:before { width: 14px; height: 14px; top: 11px; left: 11px; }
 #search .pagefind-ui__search-clear {
   height: 26px; top: 4px; right: 8px;
-  font-size: 0.62rem; padding: 0 0.4rem;
+  font-size: 11px; padding: 0 0.4rem;
 }
 .search-wrap:focus-within .search-key,
 .search-wrap:has(input:not(:placeholder-shown)) .search-key { display: none; }
