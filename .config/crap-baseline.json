@@ -11921,16 +11921,16 @@
     {
       "file": "crates/mindtape/src/body/content.rs",
       "function": "ContentAssert::deserialize",
-      "line": 123,
-      "cyclomatic": 17.0,
+      "line": 213,
+      "cyclomatic": 15.0,
       "coverage": 100.0,
-      "crap": 17.0,
+      "crap": 15.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/body/content.rs",
       "function": "ContentRuleConfig::label",
-      "line": 196,
+      "line": 278,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -11939,7 +11939,7 @@
     {
       "file": "crates/mindtape/src/body/content.rs",
       "function": "DensityUnit::deserialize",
-      "line": 106,
+      "line": 196,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -11947,8 +11947,26 @@
     },
     {
       "file": "crates/mindtape/src/body/content.rs",
+      "function": "WordCount::deserialize",
+      "line": 152,
+      "cyclomatic": 6.0,
+      "coverage": 100.0,
+      "crap": 6.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/body/content.rs",
+      "function": "WordSpec::deserialize",
+      "line": 107,
+      "cyclomatic": 4.0,
+      "coverage": 100.0,
+      "crap": 4.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/body/content.rs",
       "function": "validate_content_rules",
-      "line": 203,
+      "line": 285,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -12056,7 +12074,7 @@
     {
       "file": "crates/mindtape/src/body/content_gate/mod.rs",
       "function": "CompiledContentRule::worded",
-      "line": 128,
+      "line": 142,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -12065,7 +12083,7 @@
     {
       "file": "crates/mindtape/src/body/content_gate/mod.rs",
       "function": "check_content",
-      "line": 149,
+      "line": 163,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -12074,16 +12092,16 @@
     {
       "file": "crates/mindtape/src/body/content_gate/mod.rs",
       "function": "compile_content_rule",
-      "line": 94,
-      "cyclomatic": 13.0,
+      "line": 104,
+      "cyclomatic": 12.0,
       "coverage": 100.0,
-      "crap": 13.0,
+      "crap": 12.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/body/content_gate/mod.rs",
       "function": "compile_content_rules",
-      "line": 84,
+      "line": 93,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -12092,7 +12110,7 @@
     {
       "file": "crates/mindtape/src/body/content_gate/mod.rs",
       "function": "compile_regex",
-      "line": 136,
+      "line": 150,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -12101,19 +12119,19 @@
     {
       "file": "crates/mindtape/src/body/content_gate/mod.rs",
       "function": "evaluate",
-      "line": 195,
-      "cyclomatic": 7.0,
+      "line": 209,
+      "cyclomatic": 9.0,
       "coverage": 100.0,
-      "crap": 7.0,
+      "crap": 9.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/body/content_gate/mod.rs",
       "function": "word_count",
-      "line": 223,
-      "cyclomatic": 1.0,
+      "line": 237,
+      "cyclomatic": 4.0,
       "coverage": 100.0,
-      "crap": 1.0,
+      "crap": 4.0,
       "crate": "mindtape"
     },
     {
@@ -17294,7 +17312,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "ContentAssert::json_schema",
-      "line": 166,
+      "line": 233,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17303,7 +17321,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "ContentAssert::schema_id",
-      "line": 162,
+      "line": 229,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17312,7 +17330,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "ContentAssert::schema_name",
-      "line": 158,
+      "line": 225,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17321,7 +17339,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "DedupMode::json_schema",
-      "line": 102,
+      "line": 103,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17330,7 +17348,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "DedupMode::schema_id",
-      "line": 98,
+      "line": 99,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17339,7 +17357,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "DedupMode::schema_name",
-      "line": 94,
+      "line": 95,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17348,7 +17366,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "DensityUnit::json_schema",
-      "line": 147,
+      "line": 148,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17357,7 +17375,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "DensityUnit::schema_id",
-      "line": 143,
+      "line": 144,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17366,7 +17384,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "DensityUnit::schema_name",
-      "line": 139,
+      "line": 140,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17375,7 +17393,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "HeaderAction::json_schema",
-      "line": 244,
+      "line": 295,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17384,7 +17402,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "HeaderAction::schema_id",
-      "line": 240,
+      "line": 291,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17393,7 +17411,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "HeaderAction::schema_name",
-      "line": 236,
+      "line": 287,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17402,7 +17420,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "HeaderPathSegment::json_schema",
-      "line": 264,
+      "line": 315,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17411,7 +17429,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "HeaderPathSegment::schema_id",
-      "line": 260,
+      "line": 311,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17420,7 +17438,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "HeaderPathSegment::schema_name",
-      "line": 256,
+      "line": 307,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17429,7 +17447,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "IdFormat::json_schema",
-      "line": 84,
+      "line": 85,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17438,7 +17456,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "IdFormat::schema_id",
-      "line": 80,
+      "line": 81,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17447,7 +17465,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "IdFormat::schema_name",
-      "line": 76,
+      "line": 77,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17456,7 +17474,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "Requirement::json_schema",
-      "line": 124,
+      "line": 125,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17465,7 +17483,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "Requirement::schema_id",
-      "line": 120,
+      "line": 121,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17474,7 +17492,61 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "Requirement::schema_name",
-      "line": 116,
+      "line": 117,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/schema.rs",
+      "function": "WordCount::json_schema",
+      "line": 167,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/schema.rs",
+      "function": "WordCount::schema_id",
+      "line": 163,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/schema.rs",
+      "function": "WordCount::schema_name",
+      "line": 159,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/schema.rs",
+      "function": "WordSpec::json_schema",
+      "line": 199,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/schema.rs",
+      "function": "WordSpec::schema_id",
+      "line": 195,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/config/schema.rs",
+      "function": "WordSpec::schema_name",
+      "line": 191,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17483,7 +17555,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "config_schema_json",
-      "line": 40,
+      "line": 41,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -17492,7 +17564,7 @@
     {
       "file": "crates/mindtape/src/config/schema.rs",
       "function": "stamped_schema_json",
-      "line": 58,
+      "line": 59,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,

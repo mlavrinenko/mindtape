@@ -130,7 +130,7 @@ message = "write text under the Summary heading or remove the heading"
 [[tasks.body.content.rules]]
 name = "repro-has-detail"
 path = ["Steps to reproduce"]
-assert = { min-words = 15 }
+assert = { words = { min = 15 } }
 when = 'kind == "bug"'
 
 [[tasks.body.content.rules]]

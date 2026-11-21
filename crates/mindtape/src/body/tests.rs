@@ -49,7 +49,7 @@ fn reports_a_content_violation() {
         "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = \"non-empty\"\n",
     )
     .unwrap();
-    let content = compile_content_rules(&config.tasks.body.content.rules).unwrap();
+    let content = compile_content_rules(&config.tasks.body.content).unwrap();
     let rules = BodyRules {
         headers: &[],
         content: &content,
@@ -70,7 +70,7 @@ fn reports_violations_from_both_gates_together() {
     )
     .unwrap();
     let headers = compile_rules(&config.tasks.body.headers.rules).unwrap();
-    let content = compile_content_rules(&config.tasks.body.content.rules).unwrap();
+    let content = compile_content_rules(&config.tasks.body.content).unwrap();
     let rules = BodyRules {
         headers: &headers,
         content: &content,

@@ -226,7 +226,7 @@ pub(crate) fn with_body_rules<T>(
 ) -> Result<T> {
     let headers = compile_rules(&config.tasks.body.headers.rules)
         .map_err(|err| Diag::failed("invalid tasks.body.headers.rules in config").cause(&err))?;
-    let content = compile_content_rules(&config.tasks.body.content.rules)
+    let content = compile_content_rules(&config.tasks.body.content)
         .map_err(|err| Diag::failed("invalid tasks.body.content.rules in config").cause(&err))?;
     run(BodyRules {
         headers: &headers,

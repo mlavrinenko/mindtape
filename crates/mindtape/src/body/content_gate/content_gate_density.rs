@@ -100,7 +100,7 @@ fn snippet(text: &str) -> String {
 ///    item rather than one paragraph for the whole list. Its continuation lines
 ///    (indented text with no bullet) stay part of that item. Nested-subsection
 ///    prose is already part of `content` by the time it reaches this function
-///    (the same span `min-words` counts over), so it groups exactly like
+///    (the same span a `words` assert counts over), so it groups exactly like
 ///    top-level section prose.
 /// 2. At `per = sentence`, each paragraph is further split on `.`, `!`, or
 ///    `?` followed by whitespace or the paragraph's end.
@@ -122,7 +122,7 @@ fn unit_ranges(text: &str, per: DensityUnit) -> Vec<Range<usize>> {
 /// so paragraph boundaries around a removed fence stay put. A line
 /// that opens with three or more backticks and closes them on the same line
 /// is inline code, which [`mask_inline_code`] handles, not a fence.
-fn strip_fenced_code(content: &str) -> String {
+pub(super) fn strip_fenced_code(content: &str) -> String {
     let mut out = String::new();
     let mut in_fence = false;
     for line in content.lines() {
@@ -156,7 +156,7 @@ fn closes_on_line(line: &str) -> bool {
 /// two make an empty span, and three or more close at the next run of as many.
 /// A backslash escapes the character after it. An escaped backtick then opens
 /// nothing. A run that never closes stays as it is.
-fn mask_inline_code(text: &str) -> String {
+pub(super) fn mask_inline_code(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     let mut rest = text;
     while let Some(at) = rest.find(['`', '\\']) {

@@ -17,6 +17,7 @@ use std::borrow::Cow;
 
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 
+use crate::body::content::{WordCount, WordSpec};
 use crate::config::{
     ContentAssert, DensityUnit, HeaderAction, HeaderPathSegment, IdFormat, Requirement,
 };
@@ -154,6 +155,72 @@ impl JsonSchema for DensityUnit {
     }
 }
 
+impl JsonSchema for WordCount {
+    fn schema_name() -> Cow<'static, str> {
+        "WordCount".into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        "mindtape::body::content::WordCount".into()
+    }
+
+    fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
+        json_schema!({
+            "description": "Unit a `words` assert counts: `all` (the default) sees \
+                markup, code and nested headings; `prose` drops fenced code; `text` \
+                also masks inline code.",
+            "oneOf": [
+                {
+                    "const": "all",
+                    "description": "Every token in the section slice, markup and code included (the default)."
+                },
+                {
+                    "const": "prose",
+                    "description": "The section's prose. The count drops fenced code and keeps inline code as part of its sentence."
+                },
+                {
+                    "const": "text",
+                    "description": "The section's text outside code. The count drops fenced code and masks inline raw spans."
+                }
+            ]
+        })
+    }
+}
+
+impl JsonSchema for WordSpec {
+    fn schema_name() -> Cow<'static, str> {
+        "WordSpec".into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        "mindtape::body::content::WordSpec".into()
+    }
+
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        let count = generator.subschema_for::<WordCount>();
+        json_schema!({
+            "description": "A word-count bound, as in `{ words = { min = 10, max = 120 } }`. \
+                The table must carry at least one of `min` and `max`.",
+            "type": "object",
+            "properties": {
+                "min": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "The fewest words the section may contain."
+                },
+                "max": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "The most words the section may contain."
+                },
+                "count": count
+            },
+            "additionalProperties": false,
+            "anyOf": [{ "required": ["min"] }, { "required": ["max"] }]
+        })
+    }
+}
+
 impl JsonSchema for ContentAssert {
     fn schema_name() -> Cow<'static, str> {
         "ContentAssert".into()
@@ -165,36 +232,20 @@ impl JsonSchema for ContentAssert {
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         let density = generator.subschema_for::<crate::body::content::DensitySpec>();
+        let words = generator.subschema_for::<WordSpec>();
         json_schema!({
             "description": "The assertion made over a matched section's content: the \
-                string `\"non-empty\"`, or a one-key table `{ min-words = N }`, \
-                `{ max-words = N }`, `{ must-match = \"regex\" }`, \
-                `{ must-not-match = \"regex\" }`, or `{ density = { pattern = \"regex\", \
-                max = N, per = \"section\" } }`.",
+                string `\"non-empty\"`, or a one-key table `{ words = { min = N, max = M } }`, \
+                `{ must-match = \"regex\" }`, `{ must-not-match = \"regex\" }`, or \
+                `{ density = { pattern = \"regex\", max = N, per = \"section\" } }`.",
             "oneOf": [
                 { "type": "string", "enum": ["non-empty"] },
                 {
                     "type": "object",
                     "properties": {
-                        "min-words": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "description": "The section must contain at least this many words."
-                        }
+                        "words": words
                     },
-                    "required": ["min-words"],
-                    "additionalProperties": false
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "max-words": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "description": "The section must contain at most this many words."
-                        }
-                    },
-                    "required": ["max-words"],
+                    "required": ["words"],
                     "additionalProperties": false
                 },
                 {

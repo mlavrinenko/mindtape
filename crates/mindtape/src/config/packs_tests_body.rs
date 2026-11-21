@@ -54,7 +54,7 @@ fn task(kind: &str, tags: &[&str]) -> Task {
 /// `[[body.content.rules]]`.
 fn violations_for_task(config: &Config, task: &Task, source: &str) -> Vec<Violation> {
     let headers = compile_rules(&config.tasks.body.headers.rules).unwrap();
-    let content = compile_content_rules(&config.tasks.body.content.rules).unwrap();
+    let content = compile_content_rules(&config.tasks.body.content).unwrap();
     let rules = BodyRules {
         headers: &headers,
         content: &content,

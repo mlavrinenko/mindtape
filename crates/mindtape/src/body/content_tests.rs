@@ -1,10 +1,12 @@
 //! `[tasks.body.content.rules]`, section-content gate parsing: the assertion
-//! shapes (string `"non-empty"` vs. the one-key tables `min-words`,
-//! `must-match`, `must-not-match`, `density`), path reuse, and the
-//! malformed-shape error message.
+//! shapes (string `"non-empty"` vs. the one-key tables `words`,
+//! `must-match`, `must-not-match`, `density`), the `words` section default,
+//! path reuse, and the malformed-shape error message.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{ContentAssert, ContentRuleConfig, DensitySpec, DensityUnit};
+use super::{
+    ContentAssert, ContentRuleConfig, DensitySpec, DensityUnit, WordCount, WordDefaults, WordSpec,
+};
 use crate::config::{Config, HeaderPathSegment, parse_config};
 
 /// The first `[[tasks.body.content.rules]]` entry `text` declares.
@@ -34,17 +36,75 @@ fn parses_non_empty_assertion() {
 }
 
 #[test]
-fn parses_min_words_assertion() {
-    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { min-words = 20 }\n";
+fn parses_words_assertion_with_both_bounds() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { words = { min = 10, max = 200 } }\n";
     let rule = first_rule(text);
-    assert_eq!(rule.assert, ContentAssert::MinWords(20));
+    assert_eq!(
+        rule.assert,
+        ContentAssert::Words(WordSpec {
+            min: Some(10),
+            max: Some(200),
+            count: None,
+        })
+    );
 }
 
 #[test]
-fn parses_max_words_assertion() {
-    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { max-words = 200 }\n";
+fn parses_words_assertion_with_a_count() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { words = { max = 120, count = \"prose\" } }\n";
     let rule = first_rule(text);
-    assert_eq!(rule.assert, ContentAssert::MaxWords(200));
+    assert_eq!(
+        rule.assert,
+        ContentAssert::Words(WordSpec {
+            min: None,
+            max: Some(120),
+            count: Some(WordCount::Prose),
+        })
+    );
+}
+
+#[test]
+fn rejects_words_assertion_without_a_bound() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { words = { count = \"prose\" } }\n";
+    let err = parse_config(text).unwrap_err().to_string();
+    assert!(
+        err.contains("must carry `min` or `max`"),
+        "expected a missing-bound error, got: {err}"
+    );
+}
+
+#[test]
+fn rejects_unknown_words_count() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { words = { max = 120, count = \"sentence\" } }\n";
+    let err = parse_config(text).unwrap_err().to_string();
+    assert!(
+        err.contains("invalid word count `sentence`"),
+        "expected a word-count error, got: {err}"
+    );
+}
+
+#[test]
+fn words_count_section_default_is_all() {
+    let config = parse_config("").unwrap();
+    assert_eq!(config.tasks.body.content.words, WordDefaults::default());
+    assert_eq!(config.tasks.body.content.words.count, WordCount::All);
+}
+
+#[test]
+fn parses_words_count_section_default() {
+    let text = "[tasks.body.content]\nwords = { count = \"prose\" }\n";
+    let config = parse_config(text).unwrap();
+    assert_eq!(config.tasks.body.content.words.count, WordCount::Prose);
+}
+
+#[test]
+fn rejects_a_bound_in_the_words_section_default() {
+    let text = "[tasks.body.content]\nwords = { min = 10 }\n";
+    let err = parse_config(text).unwrap_err().to_string();
+    assert!(
+        err.contains("unknown field `min`"),
+        "expected an unknown-field error, got: {err}"
+    );
 }
 
 #[test]
@@ -144,7 +204,7 @@ fn rejects_unknown_assertion_key() {
 
 #[test]
 fn rejects_assertion_table_with_two_keys() {
-    let text = "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = { min-words = 1, must-match = \"x\" }\n";
+    let text = "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = { words = { min = 1 }, must-match = \"x\" }\n";
     let err = parse_config(text).unwrap_err().to_string();
     assert!(
         err.contains("exactly one"),
@@ -157,7 +217,7 @@ fn assertion_type_error_names_expected_shape() {
     let text = "[[tasks.body.content.rules]]\npath = [\"Summary\"]\nassert = 42\n";
     let err = parse_config(text).unwrap_err().to_string();
     assert!(
-        err.contains("non-empty") && err.contains("min-words"),
+        err.contains("non-empty") && err.contains("words"),
         "expected assertion-shape hint, got: {err}"
     );
 }

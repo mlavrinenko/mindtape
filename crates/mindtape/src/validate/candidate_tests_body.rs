@@ -42,7 +42,7 @@ message = "open every TO-BE bullet with 🟢"
 "#,
     )
     .unwrap();
-    let content = compile_content_rules(&config.tasks.body.content.rules).unwrap();
+    let content = compile_content_rules(&config.tasks.body.content).unwrap();
     let body_rules = BodyRules {
         headers: &[],
         content: &content,
@@ -137,7 +137,7 @@ assert = "non-empty"
     let existing = load_project(dir.path(), &config).tasks;
     assert_eq!(existing.len(), 1);
 
-    let content = compile_content_rules(&config.tasks.body.content.rules).unwrap();
+    let content = compile_content_rules(&config.tasks.body.content).unwrap();
     let body_rules = BodyRules {
         headers: &[],
         content: &content,

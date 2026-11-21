@@ -301,12 +301,19 @@ down to the next heading of the same or a higher level, subsections included.
   block: true,
 )
 
-`assert` takes one of six forms:
+`assert` takes one of five forms:
 
 - `"non-empty"`: the section has some text.
-- `{ min-words = N }` and `{ max-words = N }`: a word is any run of
-  non-whitespace characters containing a letter or a digit. Markup, code and
-  subsection headings count.
+- `{ words = { min = N, max = M } }`: at least `N` and / or at most `M`
+  words, where a word is any run of non-whitespace characters containing a
+  letter or a digit. The table must carry `min` or `max`. `mt` refuses a
+  table that carries neither. `count` picks what the count counts:
+  - `all` (the default): markup, fenced code, inline code and subsection
+    headings all count.
+  - `prose` drops fenced code and keeps inline code as part of the
+    sentence it sits in.
+  - `text` drops fenced code and masks inline code, so only the text
+    outside code counts.
 - `{ must-match = "regex" }` and `{ must-not-match = "regex" }`: the regex runs
   against the section's source text, markup included.
 - `{ density = { pattern = "regex", max = N, per = "section" } }`: no single
@@ -315,6 +322,15 @@ down to the next heading of the same or a higher level, subsections included.
   item. Sentences split after a `.`, `!` or `?` followed by a space or the
   end. `mt` removes code first, fenced or inline, so a match inside a code
   sample or a backtick span never counts, and a span never splits a sentence.
+
+#config-values-table(schema, "WordCount")
+
+`[tasks.body.content] words = { count = "prose" }` sets the unit once for
+every content rule that leaves `count` out. A rule's own `count` overrides it.
+The section table carries only `count`. `mt` refuses `min` or `max` there,
+because a bound stays visible on the rule that enforces it.
+
+#config-keys-table(schema, "tasks.body.content")
 
 `mt` refuses a write that breaks a body rule, the same as a field rule.
 `mt check` reports a body violation at the heading's line, or at the

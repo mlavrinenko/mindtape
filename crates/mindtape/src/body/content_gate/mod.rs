@@ -13,21 +13,22 @@
 //! selects one or more sections. A section's *content* is everything from the
 //! end of its heading down to the next heading of the same or higher level,
 //! nested subsection prose and code blocks included. The assertion then runs
-//! over that raw source slice: non-empty, a minimum or maximum word count, a
-//! regex the slice must / must not match, or a density. A density means no
+//! over that raw source slice: non-empty, a word-count bound, a regex the
+//! slice must / must not match, or a density. A density means no
 //! single unit (section, paragraph, or sentence, as `content_gate_density`'s own
 //! `density_units` decides the split) may carry more than `max` matches of a
-//! regex. Words are whitespace-delimited tokens containing an alphanumeric
-//! character, so markup, code blocks, and nested subsection headings all count.
-//! A `Scope` section that is all `#raw` is a real shape and must not read as
-//! empty. Density is the one exception: its unit split drops code, fenced or
-//! inline, since a pattern inside a code sample is not prose.
+//! regex. A word is a whitespace-delimited token containing an alphanumeric
+//! character. The default `count` of `all` sees markup, code and nested
+//! subsection headings. `prose` drops fenced code, and `text` also masks inline
+//! code. A `Scope` section that is all `#raw` is a real shape and must not read
+//! as empty. Density's unit split drops code too, fenced or inline, since
+//! a pattern inside a code sample is not prose.
 
 use artifact_gate::{Matcher, select_by};
 use regex::Regex;
 use typst_cst::{parse_headings, tree};
 
-use crate::body::content::{ContentAssert, DensityUnit};
+use crate::body::content::{ContentAssert, ContentConfig, DensityUnit, WordCount, WordDefaults};
 use crate::body::gate::{GateError, compile_path};
 use crate::config::Config;
 use crate::filter::Filter;
@@ -35,7 +36,7 @@ use crate::model::Task;
 use crate::validate::{Location, Violation};
 
 mod content_gate_density;
-use content_gate_density::density_violation;
+use content_gate_density::{density_violation, mask_inline_code, strip_fenced_code};
 
 /// A compiled, ready-to-run content rule (pre-parsed filter, pre-compiled
 /// regexes, pre-baked diagnostic message).
@@ -56,10 +57,15 @@ pub struct CompiledContentRule {
 enum CompiledAssert {
     /// The section must contain any non-whitespace content.
     NonEmpty,
-    /// The section must contain at least this many words.
-    MinWords(usize),
-    /// The section must contain at most this many words.
-    MaxWords(usize),
+    /// The section's word count must fall inside this bound.
+    Words {
+        /// The fewest words the section may contain.
+        min: Option<usize>,
+        /// The most words the section may contain.
+        max: Option<usize>,
+        /// What the count counts.
+        count: WordCount,
+    },
     /// The section's source text must match this regex.
     MustMatch(Regex),
     /// The section's source text must not match this regex.
@@ -78,22 +84,27 @@ enum CompiledAssert {
 
 /// Compile content rules, pre-parsing `when` expressions and compiling regexes.
 ///
+/// A rule that omits `count` inherits [`ContentConfig::words`]. The section
+/// default reaches every rule that does not set its own.
+///
 /// # Errors
 /// Returns [`GateError`] if any rule has an empty path, an invalid regex, or
 /// an invalid `when` expression.
 pub fn compile_content_rules(
-    rules: &[crate::body::content::ContentRuleConfig],
+    config: &ContentConfig,
 ) -> Result<Vec<CompiledContentRule>, GateError> {
-    rules
+    config
+        .rules
         .iter()
         .enumerate()
-        .map(|(index, rule)| compile_content_rule(rule, index))
+        .map(|(index, rule)| compile_content_rule(rule, index, &config.words))
         .collect()
 }
 
 fn compile_content_rule(
     rule: &crate::body::content::ContentRuleConfig,
     index: usize,
+    defaults: &WordDefaults,
 ) -> Result<CompiledContentRule, GateError> {
     if rule.path.is_empty() {
         return Err(GateError::EmptyPath);
@@ -101,8 +112,11 @@ fn compile_content_rule(
     let path = compile_path(&rule.path)?;
     let assert = match &rule.assert {
         ContentAssert::NonEmpty => CompiledAssert::NonEmpty,
-        ContentAssert::MinWords(n) => CompiledAssert::MinWords(*n),
-        ContentAssert::MaxWords(n) => CompiledAssert::MaxWords(*n),
+        ContentAssert::Words(spec) => CompiledAssert::Words {
+            min: spec.min,
+            max: spec.max,
+            count: spec.count.unwrap_or(defaults.count),
+        },
         ContentAssert::MustMatch(p) => CompiledAssert::MustMatch(compile_regex(p)?),
         ContentAssert::MustNotMatch(p) => CompiledAssert::MustNotMatch(compile_regex(p)?),
         ContentAssert::Density(spec) => CompiledAssert::Density {
@@ -197,17 +211,17 @@ fn evaluate(assert: &CompiledAssert, content: &str, heading: &str) -> Option<Str
         CompiledAssert::NonEmpty => {
             (content.trim().is_empty()).then(|| format!("section `{heading}` must not be empty"))
         }
-        CompiledAssert::MinWords(n) => {
-            let found = word_count(content);
-            (found < *n).then(|| {
-                format!("section `{heading}` must contain at least {n} words (found {found})")
-            })
-        }
-        CompiledAssert::MaxWords(n) => {
-            let found = word_count(content);
-            (found > *n).then(|| {
-                format!("section `{heading}` must contain at most {n} words (found {found})")
-            })
+        CompiledAssert::Words { min, max, count } => {
+            let found = word_count(content, *count);
+            match (min, max) {
+                (Some(min), _) if found < *min => Some(format!(
+                    "section `{heading}` must contain at least {min} words (found {found})"
+                )),
+                (_, Some(max)) if found > *max => Some(format!(
+                    "section `{heading}` must contain at most {max} words (found {found})"
+                )),
+                _ => None,
+            }
         }
         CompiledAssert::MustMatch(re) => (!re.is_match(content))
             .then(|| format!("section `{heading}` must match `{}`", re.as_str())),
@@ -220,7 +234,12 @@ fn evaluate(assert: &CompiledAssert, content: &str, heading: &str) -> Option<Str
     }
 }
 
-fn word_count(text: &str) -> usize {
+fn word_count(text: &str, count: WordCount) -> usize {
+    let text = match count {
+        WordCount::All => std::borrow::Cow::Borrowed(text),
+        WordCount::Prose => std::borrow::Cow::Owned(strip_fenced_code(text)),
+        WordCount::Text => std::borrow::Cow::Owned(mask_inline_code(&strip_fenced_code(text))),
+    };
     text.split_whitespace()
         .filter(|tok| tok.chars().any(char::is_alphanumeric))
         .count()
@@ -228,3 +247,5 @@ fn word_count(text: &str) -> usize {
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod words_tests;

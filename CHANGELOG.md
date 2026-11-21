@@ -105,6 +105,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `severity = "warn"`: the rule reports and the command succeeds. A project
   that relied on the old default fixes it with one line per rule, as
   `examples/rules` does for its one advisory title rule.
+- **Word asserts share one `words` table.** `{ min-words = N }` and
+  `{ max-words = N }` become `{ words = { min = N, max = M } }`, and `count`
+  picks what the bound counts: `all` (the default), `prose` (fenced code
+  dropped) or `text` (inline code masked too). `[tasks.body.content] words =
+  { count = "prose" }` sets the unit once for every rule that omits it, while
+  a bound stays on the rule. The tasks and dogfood packs use the new spelling,
+  and this repo counts prose for its four caps.
 - **The `mt ls` footer names the filter it applied.** A view or a narrowing
   `[[ls.rules]]` entry shows its filter, or the view's `description` when it
   has one, as in

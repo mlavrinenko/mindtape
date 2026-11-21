@@ -101,10 +101,10 @@ fn content_non_empty_rule_fails_on_empty_section() {
 }
 
 #[test]
-fn content_min_words_rule_fails_when_short() {
+fn content_words_rule_fails_when_short() {
     assert!(
         check(
-            "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { min-words = 100 }\n",
+            "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { words = { min = 100 } }\n",
             TASK_WITH_EMPTY_SUMMARY
         )
         .is_err()

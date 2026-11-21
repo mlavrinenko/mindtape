@@ -45,6 +45,12 @@ derive-tags = true
 [tasks.derive-tags]
 collect = []
 
+# The task packs cap a section's word count. Count prose here, so a quoted
+# command or a code listing does not spend the budget the cap is about; a rule
+# that wants to count code still sets its own `count`.
+[tasks.body.content]
+words = { count = "prose" }
+
 # Difficulty says which model tier and reasoning effort a task wants, before
 # anyone starts it. The scale and its junior/mid/senior/staff anchors come from
 # the embedded floor; only the rubric and `required` are set here. No vendor or

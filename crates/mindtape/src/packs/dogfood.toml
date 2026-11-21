@@ -52,6 +52,6 @@ message = "write how this repo uses the change under Dogfood, or \"Not applicabl
 [[tasks.body.content.rules]]
 name = "cap-dogfood-at-120-words"
 path = ["Dogfood"]
-assert = { max-words = 120 }
+assert = { words = { max = 120 } }
 when = "!terminal"
 message = "cut this section to under 120 words, or split the task in two"

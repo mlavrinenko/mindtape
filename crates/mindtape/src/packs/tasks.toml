@@ -360,21 +360,21 @@ name = "cap-every-listed-section-at-120-words"
 path = [
   { match = "^(Environment|TO-BE|Source of truth|Alternatives|Rollback|Out of scope)$" },
 ]
-assert = { max-words = 120 }
+assert = { words = { max = 120 } }
 when = "!terminal"
 message = "cut this section to under 120 words, or split the task in two"
 
 [[tasks.body.content.rules]]
 name = "cap-as-is-at-120-words"
 path = ["AS-IS"]
-assert = { max-words = 120 }
+assert = { words = { max = 120 } }
 when = "!terminal"
 message = "cut this section to under 120 words, or split the task in two"
 
 [[tasks.body.content.rules]]
 name = "cap-changes-at-220-words"
 path = ["Changes"]
-assert = { max-words = 220 }
+assert = { words = { max = 220 } }
 when = "!terminal"
 message = "cut this section to under 220 words, or split the task in two"
 
