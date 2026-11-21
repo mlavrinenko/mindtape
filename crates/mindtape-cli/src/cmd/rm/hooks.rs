@@ -51,8 +51,8 @@ pub(super) struct Hooks<'a> {
 }
 
 /// What a `run` action that fails without gating says when it doesn't declare
-/// a `message`.
-const DEFAULT_ADVICE: &str = "fix it, then run mt rm again";
+/// a `message`: the removal goes ahead, so the command is the user's to rerun.
+const DEFAULT_ADVICE: &str = "fix it, then run the command yourself; the removal is not blocked";
 
 /// Absolute path of the task the removal targets.
 const ENV_FILE: &str = "MINDTAPE_TASK_FILE";

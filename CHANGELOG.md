@@ -129,6 +129,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A failed hook action says what happened to the write.** The advice a
+  failing `run` prints now matches its path: a gate keeps its refusal, while a
+  `run` without `gate` says the write goes ahead and asks you to run the
+  command yourself. The non-gating `[[on.flip]]` warning no longer offers
+  `--force` for a write it does not block.
 - **`mt add --edit` re-opens the buffer when a rule refuses the filled task.**
   A rule breach now comes back in the same editor with every breach as a `#`
   comment above the values, so the answers survive a rejection instead of being

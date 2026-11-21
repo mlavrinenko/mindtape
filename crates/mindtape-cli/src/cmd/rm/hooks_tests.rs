@@ -123,15 +123,28 @@ fn a_passing_run_prints_its_output() {
     );
 }
 
-/// A failing `run` without `gate` warns and lets the removal go on.
+/// A failing `run` without `gate` warns and lets the removal go on, with the
+/// default advice or with the `message` the action declares. An `mt rm` has no
+/// `--force`. The advice offers none.
 #[test]
 fn a_failing_run_without_gate_only_warns() {
     let dir = tempdir();
     let config = "[[on.rm]]\nwhen = ''\nactions = [{ run = \"exit 1\" }]\n";
     let out = run(dir.path(), config, false, true).unwrap();
     assert!(
-        out.contains("warning: exit 1 (exit 1) — fix it, then run mt rm again"),
+        out.contains(
+            "warning: exit 1 (exit 1) — fix it, then run the command yourself; \
+             the removal is not blocked"
+        ),
         "{out}"
+    );
+    assert!(!out.contains("--force"), "{out}");
+
+    let messaged = "[[on.rm]]\nwhen = ''\n\
+                    actions = [{ run = \"exit 1\", message = \"archive by hand\" }]\n";
+    assert_eq!(
+        run(dir.path(), messaged, false, true).unwrap(),
+        "$ exit 1\nwarning: exit 1 (exit 1) — archive by hand\n"
     );
 }
 
@@ -145,6 +158,7 @@ fn a_failing_run_gate_refuses() {
     let text = refusal(dir.path(), config);
     assert!(text.contains("gate failed: 'exit 1': exit 1"), "{text}");
     assert!(text.contains("hint: clean first"), "{text}");
+    assert!(!text.contains("not blocked"), "{text}");
 }
 
 /// A run-less gate refuses on `when` alone, with no command to run.

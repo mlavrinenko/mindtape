@@ -141,18 +141,18 @@ groups:
   cli-flip-docs:
     source:
       crates/mindtape-cli/src/cmd/flip/guards.rs: e94f7f12df73f6aefeaffbb6073e34b89d6f668086168ccc870d9c94313f2126
-      crates/mindtape-cli/src/cmd/flip/hooks.rs: 5a2ac8cc9d0763bf21356742577bc8065bb1bbc9549f09d5bdf162321c39c9e0
+      crates/mindtape-cli/src/cmd/flip/hooks.rs: 1ac0628f0f9db9289aff509562e8eba4198d868b175d2eefa696fb3ee140af6a
       crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs: e2448013317e2f53e364052389ed1861cf9b274cdd562b757968ab0009ec3f2e
       crates/mindtape-cli/src/cmd/flip/mod.rs: 602497114ce029026ab8d96e5230010e8e5675d402e929312a859f852b05371e
     dependents:
-      docs/src/skill.typ: a202bd91265f0357263b879af10018e425154bbabfe6826f581ba3ed28c40787
+      docs/src/skill.typ: c979ac413782e44ecf6f0eb8cc2a9eb99f3e81d16e552f1454c80b3d4143fc61
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
       www/content/cli/flip.typ: 91b648123dc153ae7ef64d3666aeba37993fe8ed722027912cf62451b4d7166b
-      www/content/hooks.typ: 4d67a254a1b432e33637dced252a767f2592f2bb3f1ae35a2667f9da8e786ef9
+      www/content/hooks.typ: 6b6734571af418a404c85e316575b388151985c150069730527665ff2f686da1
       www/content/links.typ: 0d27e778be846c07b2f32eb50ce8b14e77126b2a7cb16b7ad56efce11f270415
       www/content/quickstart.typ: b76d49b8880baa90d19717c5ff230ba51838948a622cc5e06e8bec7ded6f4786
       www/content/statuses.typ: 4d7130a064c883caacf439d5e8c2ba117391836ab8dec864468bbb5559d8e689
-      www/utils/cli-notes.typ: 95e3a155f2a7f67f1a86eb26b04a50edfeab16eacc9736f0c3d720e6320e44fe
+      www/utils/cli-notes.typ: fb4421f045ebae597036832b451074d8a8d34aad9d200ead69949b6b97422009
   cli-globals-docs:
     source:
       crates/mindtape-cli/src/cli/mod.rs: f89be4c4569ab7a13daf36c63dee6dd3c01f8f668b31609e8cd2702f3b744108
@@ -265,12 +265,12 @@ groups:
     source:
       crates/mindtape-cli/src/cmd/rm/mod.rs: 7b18f5fa610c58d4dd9617055508494880f8ec38eb80535f6f1873c3dfe32fb0
     dependents:
-      docs/src/skill.typ: a202bd91265f0357263b879af10018e425154bbabfe6826f581ba3ed28c40787
+      docs/src/skill.typ: c979ac413782e44ecf6f0eb8cc2a9eb99f3e81d16e552f1454c80b3d4143fc61
       www/content/cli/ls.typ: 87ebc0c29c9e5d961ce069e7c78b887397e6106dec3d6f9c8c6f9529e1f7c936
       www/content/cli/rm.typ: 025c0ba11403ede1b041d49c96945c12af1fcab8971be6307bf785b48ee38bb6
       www/content/filters.typ: 9e58b0ec69be023ee3b5d57350024c2d6b5f465d11c1be629f72ba1df1db8a57
       www/content/statuses.typ: 4d7130a064c883caacf439d5e8c2ba117391836ab8dec864468bbb5559d8e689
-      www/utils/cli-notes.typ: 95e3a155f2a7f67f1a86eb26b04a50edfeab16eacc9736f0c3d720e6320e44fe
+      www/utils/cli-notes.typ: fb4421f045ebae597036832b451074d8a8d34aad9d200ead69949b6b97422009
   cli-rules-docs:
     source:
       crates/mindtape-cli/src/cmd/explain/rules.rs: 54d3263e57fcbc6a54e4707531df0a7622a71cea79c8654ca3f8b6d857ff9d1f

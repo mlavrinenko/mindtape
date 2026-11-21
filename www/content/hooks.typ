@@ -78,6 +78,11 @@ fails. `title` goes with `list`, and `gate` and `message` go with `run`.
 Actions run in the order written. A gate that refuses stops the actions after
 it, and `mt` writes nothing for that task.
 
+When a command fails, `mt` adds a line saying what happened to the write. A
+gate that fails refuses the write, and the refusal prints the command it ran
+and the exit code. A `run` without `gate` only warns. The write goes ahead, and
+the advice asks you to fix the command and run it yourself.
+
 `show`, `list` and the output of a passing command print only when stdout is a
 terminal and `--quiet` isn't set. A scripted flip then prints only the flip. A
 failing command prints its output either way. `mt rm` has no `--quiet`, so its

@@ -38,9 +38,14 @@ use crate::cmd::hooks::{Presenter, RunAction, present};
 use crate::diag::{Diag, Hint};
 use crate::util::Project;
 
-/// Advice attached to a gate refusal when the action doesn't declare a `message`.
-const DEFAULT_ADVICE: &str = "fix it, or re-run with --force (the override is \
-                              recorded in the status note)";
+/// The advice a gate keeps when `--force` can still waive it: what a run-less
+/// gate without a `message` records in the status note.
+const GATE_ADVICE: &str = "fix it, or re-run with --force (the override is \
+                           recorded in the status note)";
+
+/// What a `run` action that fails without gating says when it doesn't declare
+/// a `message`: the flip goes ahead, so the command is the user's to rerun.
+const RUN_ADVICE: &str = "fix it, then run the command yourself; the flip is not blocked";
 
 /// One transition, as the hooks see it.
 pub(crate) struct Transition<'a> {
@@ -68,7 +73,7 @@ pub(crate) struct HookOutcome {
 /// run-less gate whose `when` matched.
 struct Gate {
     /// The command line, for the status note, or, for a run-less gate with no
-    /// command to name, its `message` (falling back to [`DEFAULT_ADVICE`]).
+    /// command to name, its `message` (falling back to [`GATE_ADVICE`]).
     command: String,
     /// The refusal, for the caller's problem report.
     refusal: Diag,
@@ -203,7 +208,7 @@ impl<'a> Hooks<'a> {
         // refusal rests on, or a command the project asked to be told about.
         write_output(out, &command, &report)?;
         if !run.gate {
-            let advice = run.message.unwrap_or(DEFAULT_ADVICE);
+            let advice = run.message.unwrap_or(RUN_ADVICE);
             writeln!(out, "warning: {command} ({}) — {advice}", report.verdict())?;
             return Ok(None);
         }
@@ -242,7 +247,7 @@ fn held_back(command: &str, gate: bool, out: &mut dyn Write) -> Result<Option<Ga
 /// advice, absent one) is both the refusal's explanation and the stand-in for a
 /// command in the status note.
 fn runless_gate(message: Option<&str>) -> Gate {
-    let advice = message.unwrap_or(DEFAULT_ADVICE);
+    let advice = message.unwrap_or(GATE_ADVICE);
     Gate {
         command: advice.to_owned(),
         refusal: with_override_hint(Diag::refused("gate refused"), message),

@@ -7,7 +7,7 @@ use std::path::Path;
 
 use mindtape::parse_config;
 
-use super::{HookOutcome, Hooks, Transition};
+use super::{GATE_ADVICE, HookOutcome, Hooks, Transition};
 use crate::diag::plain;
 
 /// The mode a test runs the hooks in. It records whether `show`/`list` print,
@@ -216,7 +216,9 @@ fn a_failed_gate_skips_the_actions_after_it() {
     );
 }
 
-/// Without `gate`, a non-zero exit is informational: it warns and allows.
+/// Without `gate`, a non-zero exit is informational: it warns, says the flip
+/// is not blocked, and allows. The advice offers no `--force`, because the
+/// override changes nothing about a write that goes ahead.
 #[test]
 fn a_failing_run_without_gate_warns_but_allows() {
     let dir = tempdir();
@@ -224,8 +226,27 @@ fn a_failing_run_without_gate_warns_but_allows() {
                   actions = [{ run = 'echo hmm && exit 1' }]\n";
     let (outcome, out) = run_visible(dir.path(), config, "done");
     assert!(outcome.refusal.is_none());
-    assert!(out.contains("warning:"), "{out}");
-    assert!(out.contains("hmm"), "{out}");
+    assert!(
+        out.contains(
+            "warning: echo hmm && exit 1 (exit 1) — fix it, then run the command \
+             yourself; the flip is not blocked"
+        ),
+        "{out}"
+    );
+    assert!(!out.contains("--force"), "the write goes ahead: {out}");
+}
+
+/// A `message` the action declares replaces the default advice.
+#[test]
+fn a_failing_run_without_gate_uses_its_message() {
+    let dir = tempdir();
+    let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
+                  actions = [{ run = \"exit 1\", message = \"notify the team\" }]\n";
+    let (_, out) = run_visible(dir.path(), config, "done");
+    assert_eq!(
+        out.lines().next_back(),
+        Some("warning: exit 1 (exit 1) — notify the team")
+    );
 }
 
 /// A successful non-gate run's output is presentation, so it follows `show`.
@@ -299,10 +320,10 @@ fn a_runless_gate_lets_a_non_matching_transition_through() {
     assert_eq!(out, "");
 }
 
-/// Without a `message`, a run-less gate falls back to the same default advice
-/// a `run` gate does.
+/// Without a `message`, a run-less gate still offers `--force` as the way past
+/// it.
 #[test]
-fn a_runless_gate_without_a_message_uses_the_default_advice() {
+fn a_runless_gate_without_a_message_still_offers_force() {
     let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ gate = true }]\n";
     let (outcome, _) = run_visible(dir.path(), config, "done");
@@ -326,6 +347,17 @@ fn force_waives_a_runless_gate_and_records_its_message() {
     );
     assert_eq!(outcome.forced, vec!["re-read the scope first".to_owned()]);
     assert!(out.contains("--force"), "{out}");
+}
+
+/// Without a `message`, a waived run-less gate records the gate's own advice in
+/// the status note, as a failing `run` gate records its command.
+#[test]
+fn force_waives_a_runless_gate_and_records_the_gate_advice() {
+    let dir = tempdir();
+    let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ gate = true }]\n";
+    let (outcome, _) = run(dir.path(), config, "done", true, true);
+    assert!(outcome.refusal.is_none());
+    assert_eq!(outcome.forced, vec![GATE_ADVICE.to_owned()]);
 }
 
 #[test]

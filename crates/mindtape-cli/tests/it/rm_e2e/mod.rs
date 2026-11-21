@@ -382,7 +382,7 @@ fn a_failing_on_rm_run_without_gate_only_warns() {
         .assert()
         .success()
         .stdout(predicates::str::contains(
-            "warning: exit 1 (exit 1) — fix it, then run mt rm again\n",
+            "warning: exit 1 (exit 1) — fix it, then run the command yourself; the removal is not blocked\n",
         ));
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
