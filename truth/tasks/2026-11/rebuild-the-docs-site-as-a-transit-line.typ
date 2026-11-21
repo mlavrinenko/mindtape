@@ -80,7 +80,6 @@ MT LS / DEFAULT VIEW                        LIVE
 - The Impeccable records under `.impeccable/`. The user decides what to keep in a later session.
 - The capture mirror and the hero manifest. They serve the capture gate only, and the site does not read them.
 - An alternate display face. The approved comp renders in the site's sans, and the build matches its pixels.
-- A dark code paper. Typst bakes one syntax palette into the spans, so code stays on light paper in both themes.
 
 == Dogfood
 

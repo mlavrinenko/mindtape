@@ -94,7 +94,7 @@ components:
 
 The documentation is a transit information system. Every page is a stop on one line, its position is drawn in the left rail, and the current page is marked twice: by a filled stop on the line map and by the station label above the title. The world is Swiss wayfinding and a paper timetable, not a terminal costume: flat unprinted paper, black rules, one green line, and real command output set as the timetable data.
 
-The system is strict because the product is. A 1360px wrap holds a fixed 232px line map and a fluid reading column; hairlines separate regions instead of cards; the display face is heavy and tight so a page title reads across a room. Code is printed on light paper in both themes, because Typst bakes one syntax palette into the spans and a dark surface would erase it. The voice is plain and technical: explain the mechanism, show a real command, move on. A dot exists only where a real destination sits.
+The system is strict because the product is. A 1360px wrap holds a fixed 232px line map and a fluid reading column; hairlines separate regions instead of cards; the display face is heavy and tight so a page title reads across a room. Code sits on paper in light mode and on a raised night panel in dark mode, with Typst's baked syntax palette remapped for the dark ground. The voice is plain and technical: explain the mechanism, show a real command, move on. A dot exists only where a real destination sits.
 
 **Key Characteristics:**
 - One line from masthead to footer, with real stops and a marked current position.
@@ -178,7 +178,7 @@ Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean
 - **Rows:** a status word with a square or ring, a task title, its slug and priority marks, and a due date. Hover tints the row with paper-sunk. Every row is real captured `mt ls` output from `www/generated/`, never invented tasks.
 
 ### Code Panel
-- **Style:** 1px strong border with a 3px green top edge. A 36px paper header carries a 7px green square, the language label, the file path in muted mono, and a COPY control. The body is code on light paper in both themes.
+- **Style:** 1px strong border with a 3px green top edge. A 36px paper header carries a 7px green square, the language label, the file path in muted mono, and a COPY control. The body is code on light paper in light mode and on a raised night panel (#1a261e) in dark mode.
 - **Behavior:** COPY copies the block and says "Copied" for two seconds. Article panels take the language label from the first line or the fence, never a hand-written guess.
 
 ### Line Map (signature)
@@ -192,7 +192,7 @@ Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean
 
 - **Do** draw position with the line: a dot only where a real page or group exists.
 - **Do** keep the green under about a tenth of any screen. Its rarity is the signal.
-- **Do** keep code on light paper in both themes so Typst's baked syntax colors survive.
+- **Do** keep code on a panel: light paper in light mode, a raised night panel in dark mode, with the baked palette remapped.
 
 - **Don't** add a second accent color, a gradient, or a glass surface.
 - **Don't** round a card, add a shadow, or float a panel.

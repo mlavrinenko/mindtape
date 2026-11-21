@@ -49,8 +49,8 @@
   --amber: #9a6200;
   --red: #b3261e;
 
-  /* Code keeps a light paper in both themes: Typst bakes one highlight
-     palette into inline span colors, so a dark surface would erase them. */
+  /* Code paper. Dark mode overrides this with a raised night panel and
+     remaps the baked syntax palette below. */
   --code-bg: #f3f5f0;
   --code-fg: #101512;
   --code-border: #ccd6ce;
@@ -88,6 +88,11 @@
   --blue: #8bb7d4;
   --amber: #e2c06e;
   --red: #e0867d;
+
+  /* Night code: a raised panel, not a white island. */
+  --code-bg: #1a261e;
+  --code-fg: #e7efe9;
+  --code-border: #2c3a32;
 }
 
 * { box-sizing: border-box; }
@@ -486,6 +491,23 @@ pre {
   tab-size: 2;
 }
 pre code { border: 0; padding: 0; background: none; font-size: inherit; color: inherit; }
+
+/* Typst bakes its syntax palette into inline span colors. The light
+   overrides lift the three values under AA on the light paper; the dark
+   set maps all eight for the night panel. Scoped to pre, so terminal
+   ANSI keeps its own palette. */
+pre span[style*="color: #d73948"] { color: #c93240 !important; }
+pre span[style*="color: #198810"] { color: #177c0e !important; }
+pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
+
+[data-theme="dark"] pre span[style*="color: #d73948"] { color: #ff8a94 !important; }
+[data-theme="dark"] pre span[style*="color: #198810"] { color: #7fdc9f !important; }
+[data-theme="dark"] pre span[style*="color: #4b69c6"] { color: #8fb3ff !important; }
+[data-theme="dark"] pre span[style*="color: #74747c"] { color: #9aa79e !important; }
+[data-theme="dark"] pre span[style*="color: #6b6b6f"] { color: #8a978e !important; }
+[data-theme="dark"] pre span[style*="color: #b60157"] { color: #f08cc8 !important; }
+[data-theme="dark"] pre span[style*="color: #8b41b1"] { color: #c79bf0 !important; }
+[data-theme="dark"] pre span[style*="color: #1d6c76"] { color: #62d6d6 !important; }
 
 /* ── Next stop ────────────────────────────────────────────────────────────── */
 
