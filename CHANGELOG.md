@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt allow --status` lists the commands without recording the approval.** It
+  prints each `[[tasks.waits]]` checker, each `[[on.flip]]` and `[[on.rm]]`
+  `run`, and each `[go]` and `[add]` editor the config declares, under one line
+  saying whether the repository allows them all, and writes nothing. `--json`
+  prints the same list, with each site's `kind`, `moment`, hook `label` and
+  `command`. Bare `mt allow` still records, and prints the same table under an
+  `allowed` line.
 - **`mt templates` lists the templates `mt add` files from.** Each line gives
   the template's name, the `kind` it sets, its slot count, and `default` on the
   one `mt add` picks. It reads the same template files `mt add` reads, so a
@@ -123,6 +130,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`mt allow` prints its table under an `allowed` line.** The commands it
+  records now carry the gate or editor kind and, for a hook, its label, so the
+  listing and the record read alike.
 - **A rule's `severity` defaults to `error`.** A `[[tasks.rules]]` or
   `[[commits.rules]]` entry that names no level now refuses the write, like one
   that says `error`. A project that wants an advisory rule writes

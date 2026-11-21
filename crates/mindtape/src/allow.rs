@@ -25,6 +25,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, PoisonError};
 
+use serde::Serialize;
 use sha1::{Digest, Sha1};
 
 use crate::config::Config;
@@ -34,74 +35,116 @@ use crate::fs_atomic::write_atomic;
 use crate::shell::ConfigCommand;
 
 /// Every command the config asks `mt` to run, sorted and deduplicated: what
-/// [`digest`] covers and what `mt allow` lists. That is every [`gate_commands`]
-/// entry plus the `[go] editor` and `[add] editor` commands unless the user's
-/// own layer set them. Another kind of config command joins by adding its
-/// commands to [`gate_commands`] or here, and every approval then asks again.
+/// [`digest`] covers and what an approval records. It is every [`sites`]
+/// command, so a command a caller lists there joins the approval too.
 #[must_use]
 pub fn commands(config: &Config) -> Vec<ConfigCommand> {
-    let gates = gate_commands(config).into_iter().map(|gate| gate.command);
-    let editors = [&config.go.editor, &config.add.editor]
-        .into_iter()
-        .filter_map(|editor| untrusted_editor(config, editor.as_deref()))
-        .map(ConfigCommand::Line);
-    let mut commands: Vec<ConfigCommand> = gates.chain(editors).collect();
+    let mut commands: Vec<ConfigCommand> =
+        sites(config).into_iter().map(|site| site.command).collect();
     commands.sort();
     commands.dedup();
     commands
 }
 
-/// One command a gate in the config runs, with the gate that declares it.
+/// What a [`Site`] does with its command.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, schemars::JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum SiteKind {
+    /// A command `mt` holds back until the user allows it: a checker or gate.
+    Gate,
+    /// A program `mt` spawns when the user asks for an editor.
+    Editor,
+}
+
+/// One command the config declares, with the section and hook that declare it.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct GateCommand {
-    /// The config section that declares the gate: `on.flip`, `on.rm` or
-    /// `waits`.
-    pub gate: &'static str,
+pub struct Site {
+    /// Whether the site gates a write or opens an editor.
+    pub kind: SiteKind,
+    /// The config section that declares it: `waits`, `on.flip`, `on.rm`,
+    /// `go` or `add`.
+    pub moment: &'static str,
+    /// The `name` of the `[[on.flip]]` or `[[on.rm]]` hook that declares the
+    /// command, when it has one.
+    pub label: Option<String>,
     /// The command as it shows.
     pub command: ConfigCommand,
 }
 
-/// Every command a gate runs, in declaration order: each `[[tasks.waits]]`
-/// checker, then each `[[on.flip]]` action's `run`, then each `[[on.rm]]`
-/// action's. A caller falls back to `$VISUAL` for an editor rather than
-/// refusing. The editors stay out of this list. A new gate joins here, and
-/// [`commands`] picks it up for approval too.
+/// Every command a config site declares, in declaration order: each
+/// `[[tasks.waits]]` checker, then each `[[on.flip]]` and `[[on.rm]]` action's
+/// `run`, then the `[go]` and `[add]` editors unless the user's own layer set
+/// them. `mt allow` lists this list and records [`commands`], its sorted,
+/// deduplicated commands. A new config section that runs a command joins here,
+/// and every approval then asks again.
 #[must_use]
-pub fn gate_commands(config: &Config) -> Vec<GateCommand> {
-    let checkers = config.tasks.waits.iter().map(|checker| GateCommand {
-        gate: "waits",
+pub fn sites(config: &Config) -> Vec<Site> {
+    let checkers = config.tasks.waits.iter().map(|checker| Site {
+        kind: SiteKind::Gate,
+        moment: "waits",
+        label: None,
         command: checker.run.clone(),
     });
-    let flips = hook_commands("on.flip", &config.on.flip);
-    let removals = hook_commands("on.rm", &config.on.rm);
-    checkers.chain(flips).chain(removals).collect()
-}
-
-/// The `run` commands of one hook array, each labelled with the `gate` that
-/// declares it.
-fn hook_commands(gate: &'static str, hooks: &[impl HookFields]) -> Vec<GateCommand> {
-    hooks
-        .iter()
-        .flat_map(|hook| hook.parts().2)
-        .filter_map(|action| action.run.clone())
-        .map(|command| GateCommand { gate, command })
+    let flips = hook_sites("on.flip", &config.on.flip);
+    let removals = hook_sites("on.rm", &config.on.rm);
+    let editors = [
+        ("go", config.go.editor.as_deref()),
+        ("add", config.add.editor.as_deref()),
+    ]
+    .into_iter()
+    .filter_map(|(moment, editor)| {
+        Some(Site {
+            kind: SiteKind::Editor,
+            moment,
+            label: None,
+            command: ConfigCommand::Line(untrusted_editor(config, editor)?),
+        })
+    });
+    checkers
+        .chain(flips)
+        .chain(removals)
+        .chain(editors)
         .collect()
 }
 
-/// The gate commands the user has not allowed for the repository holding
-/// `root`, in declaration order. Empty when the user allowed the config's
-/// commands, or the config runs none.
+/// The `run` commands of one hook array, each labelled with its hook's `name`
+/// when it has one.
+fn hook_sites(moment: &'static str, hooks: &[impl HookFields]) -> Vec<Site> {
+    hooks
+        .iter()
+        .flat_map(|hook| {
+            let (label, _, actions) = hook.parts();
+            actions.iter().filter_map(move |action| {
+                let command = action.run.clone()?;
+                Some(Site {
+                    kind: SiteKind::Gate,
+                    moment,
+                    label: label.map(str::to_owned),
+                    command,
+                })
+            })
+        })
+        .collect()
+}
+
+/// The gate sites the user has not allowed for the repository holding `root`,
+/// in declaration order. Empty when the user allowed the config's commands, or
+/// the config runs none. An editor is never here: `mt` falls back to `$VISUAL`
+/// rather than refusing.
 #[must_use]
-pub fn refused_gates(root: &Path, config: &Config) -> Vec<GateCommand> {
+pub fn refused_gates(root: &Path, config: &Config) -> Vec<Site> {
     refused_gates_in(crate::data_home().as_deref(), root, config)
 }
 
 /// [`refused_gates`] against the data home `home`.
-fn refused_gates_in(home: Option<&Path>, root: &Path, config: &Config) -> Vec<GateCommand> {
+fn refused_gates_in(home: Option<&Path>, root: &Path, config: &Config) -> Vec<Site> {
     if allowed_in(home, root, &commands(config)) {
         return Vec::new();
     }
-    gate_commands(config)
+    sites(config)
+        .into_iter()
+        .filter(|site| site.kind == SiteKind::Gate)
+        .collect()
 }
 
 /// The editor commands the user's own config layer sets, which run without

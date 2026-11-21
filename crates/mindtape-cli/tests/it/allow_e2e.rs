@@ -63,6 +63,24 @@ fn ran(dir: &Path) -> bool {
     dir.join("runs.txt").exists()
 }
 
+/// `mt allow --status` in `dir`, after asserting the set's verdict and the one
+/// checker row this battery's config declares.
+fn allow_status(dir: &Path, allowed: bool) -> String {
+    let status = support::stdout(dir, &["allow", "--status"]);
+    let verdict = if allowed { "allowed" } else { "not allowed" };
+    assert!(
+        status.contains(&format!("{verdict} in this repository and its worktrees:")),
+        "{status}"
+    );
+    assert!(status.contains(&format!("  waits  {RUN}")), "{status}");
+    status
+}
+
+/// `value`'s site at `index`, compared whole with `expected`.
+fn assert_site(value: &serde_json::Value, index: usize, expected: &serde_json::Value) {
+    assert_eq!(value["sites"][index], *expected, "{value}");
+}
+
 #[test]
 fn no_checker_runs_before_mt_allow_and_the_command_warns_once() {
     let dir = project(RUN);
@@ -99,10 +117,115 @@ fn mt_allow_lists_the_commands_and_checkers_run_after_it() {
     let allowed = support::stdout(dir.path(), &["allow"]);
     let (ready, stderr) = listed(dir.path(), "ready");
 
-    assert!(allowed.contains(RUN), "{allowed}");
+    assert!(
+        allowed.contains("allowed in this repository and its worktrees:"),
+        "{allowed}"
+    );
+    assert!(allowed.contains(&format!("  waits  {RUN}")), "{allowed}");
     assert!(ran(dir.path()));
     assert!(ready.contains("Drop the patch"), "{ready}");
     assert!(!stderr.contains("warning:"), "{stderr}");
+}
+
+#[test]
+fn allow_status_lists_the_commands_without_recording_them() {
+    let dir = project(RUN);
+
+    allow_status(dir.path(), false);
+    let (blocked, stderr) = listed(dir.path(), "blocked");
+    assert!(blocked.contains("unknown: not allowed"), "{blocked}");
+    assert!(stderr.contains("warning:"), "{stderr}");
+    assert!(!ran(dir.path()));
+}
+
+#[test]
+fn allow_status_json_lists_the_sites_and_the_sets_verdict() {
+    let dir = project(RUN);
+
+    let before = support::json(dir.path(), &["allow", "--status", "--json"]);
+
+    support::assert_schema(&before, "allow-status");
+    assert_eq!(before["allowed"], false);
+    assert_site(
+        &before,
+        0,
+        &serde_json::json!({"kind": "gate", "moment": "waits", "command": RUN}),
+    );
+
+    support::run_ok(dir.path(), &["allow"]);
+    let after = support::json(dir.path(), &["allow", "--status", "--json"]);
+
+    assert_eq!(after["allowed"], true);
+    assert_site(
+        &after,
+        0,
+        &serde_json::json!({"kind": "gate", "moment": "waits", "command": RUN}),
+    );
+}
+
+#[test]
+fn allow_status_json_does_not_record() {
+    let dir = project(RUN);
+
+    let status = support::json(dir.path(), &["allow", "--json"]);
+
+    support::assert_schema(&status, "allow-status");
+    assert_eq!(status["allowed"], false);
+    let (blocked, _) = listed(dir.path(), "blocked");
+    assert!(blocked.contains("unknown: not allowed"), "{blocked}");
+    assert!(!ran(dir.path()));
+}
+
+#[test]
+fn a_config_with_no_commands_prints_the_same_line_in_both_modes() {
+    let dir = support::scaffold_project("[tasks]\nroots = [\"tasks\"]\n");
+
+    let status = support::stdout(dir.path(), &["allow", "--status"]);
+    let bare = support::stdout(dir.path(), &["allow"]);
+
+    assert_eq!(status, bare);
+    assert!(status.contains("nothing to allow"), "{status}");
+    let value = support::json(dir.path(), &["allow", "--json"]);
+
+    support::assert_schema(&value, "allow-status");
+    assert_eq!(value["allowed"], true);
+    assert_eq!(value["sites"], serde_json::json!([]));
+}
+
+/// A command written as an array stays an array in JSON, so a script can join
+/// it with the config's own `run` value.
+#[test]
+fn allow_status_json_keeps_an_array_command_as_an_array() {
+    let dir = support::scaffold_project(
+        "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.waits]]\nname = \"up\"\n\
+         run = [\"sh\", \"-c\", \"exit 0\"]\n",
+    );
+
+    let value = support::json(dir.path(), &["allow", "--status", "--json"]);
+
+    assert_eq!(
+        value["sites"][0]["command"],
+        serde_json::json!(["sh", "-c", "exit 0"])
+    );
+}
+
+/// The `[go]` and `[add]` editors `mt allow` records are part of the status
+/// listing too, because one enumerator feeds both modes.
+#[test]
+fn allow_status_lists_the_editors_bare_allow_records() {
+    let dir = support::scaffold_project(
+        "[tasks]\nroots = [\"tasks\"]\n\n[go]\neditor = \"zed {task}\"\n",
+    );
+
+    let status = support::stdout(dir.path(), &["allow", "--status"]);
+    let value = support::json(dir.path(), &["allow", "--status", "--json"]);
+
+    assert!(status.contains("  go  zed {task}"), "{status}");
+    assert_site(
+        &value,
+        0,
+        &serde_json::json!({"kind": "editor", "moment": "go", "command": "zed {task}"}),
+    );
 }
 
 #[test]

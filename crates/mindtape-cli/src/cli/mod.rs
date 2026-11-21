@@ -200,10 +200,12 @@ enum Command {
     Templates(templates::TemplatesArgs),
     /// Trust the commands your config runs in this repo.
     ///
-    /// Those are its `[[tasks.waits]]` checkers and `[[on.flip]]` `run`
-    /// actions. It prints each command and records them for this repository
-    /// and every worktree of it. Until you do, mt runs none of them, and a
-    /// changed command asks again. Read them first: they run with your rights.
+    /// Those are its `[[tasks.waits]]` checkers, its `[[on.flip]]` and
+    /// `[[on.rm]]` `run` actions, and its `[go]` and `[add]` editors. It prints
+    /// each command and records them for this repository and every worktree of
+    /// it. Until you do, mt runs none of them, and a changed command asks
+    /// again. Read them first: they run with your rights. `--status` prints the
+    /// list without recording anything, and `--json` prints it as JSON.
     Allow(allow::AllowArgs),
     /// Save this project's setup as a preset for `mt init`, or list presets.
     Preset(preset_cmd::PresetArgs),

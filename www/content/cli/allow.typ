@@ -11,4 +11,11 @@ and `[add] editor` programs open when you ask for an editor. `mt` runs none of t
 `mt allow` there. Read them first. They run with your rights. An editor declared in your
 own `mindtape/defaults.toml` doesn't need approval.
 
+`mt allow` prints every command under one line saying whether the repository
+allows them, then records the approval. `mt allow --status` prints the same
+table and doesn't record anything, so you can read what the config runs before
+you trust it. `--json` prints that list for a script: each site's `kind`
+(`gate` or `editor`), its `moment`, the hook's `label` when it has one, and its
+`command`.
+
 #cli-command("allow")

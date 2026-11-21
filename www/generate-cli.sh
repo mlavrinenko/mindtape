@@ -117,6 +117,7 @@ EOF
     capture_copy P examples/api-service
     capture_lines allow "$P" <<'EOF'
 mt ls blocked --columns title,why
+mt allow --status
 mt allow
 EOF
 )

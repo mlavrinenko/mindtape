@@ -192,8 +192,9 @@ Every command output has its own file. The odd names map to their command:
 `set-check` is `mt @name check --json`, `at-project` and `at-set` are the two
 `mt at <name> --json` shapes, `describe` is `mt add --describe=json`,
 `explain-add` is `mt explain add --json`, `config-show` is
-`mt config show --json`, `view` is `mt explain views <name> --json`, and `dict`
-is `mt dicts <name> --json`. The rest take their command's name: `ls`,
+`mt config show --json`, `allow-status` is `mt allow --status --json`, `view`
+is `mt explain views <name> --json`, and `dict` is `mt dicts <name> --json`.
+The rest take their command's name: `ls`,
 `add`, `check`, `graph`, `explain`, `rules`, `tags`, `eval`, `board`, `at`,
 `packs`, `views`, `dicts` and `templates`.
 

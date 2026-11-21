@@ -4,8 +4,8 @@ use crate::test_support::tempdir;
 use std::path::{Path, PathBuf};
 
 use super::{
-    AllowError, GateCommand, allowed_in, commands, digest, gate_commands, held_back, hold,
-    record_in, record_path, refused_gates_in, repo_key, runnable_editor_in, take_held,
+    AllowError, Site, SiteKind, allowed_in, commands, digest, held_back, hold, record_in,
+    record_path, refused_gates_in, repo_key, runnable_editor_in, sites, take_held,
 };
 use crate::config::Config;
 use crate::shell::ConfigCommand;
@@ -35,50 +35,62 @@ fn argv(args: &[&str]) -> ConfigCommand {
 }
 
 #[test]
-fn the_commands_are_every_run_line_sorted_once() {
+fn the_commands_are_every_site_sorted_once() {
     assert_eq!(commands(&config(&["b", "a", "b"])), lines(&["a", "b"]));
     assert!(commands(&Config::default()).is_empty());
-    assert!(gate_commands(&Config::default()).is_empty());
+    assert!(sites(&Config::default()).is_empty());
 }
 
-/// Each gate command keeps the section that declares it, in declaration order,
-/// so a block built over this list covers a new gate without knowing which one
-/// it is.
+/// Each site keeps the section that declares it, in declaration order. A named
+/// hook keeps its label too, so a block built over this list covers a new
+/// section without knowing which one it is.
 #[test]
-fn the_commands_take_each_flip_run_line_beside_the_checkers() {
+fn the_sites_take_each_flip_run_line_beside_the_checkers() {
     let config = crate::parse_config(
         "[[tasks.waits]]\nname = \"up\"\nrun = \"b\"\n\
-         [[on.flip]]\nwhen = ''\nactions = [{ run = \"c\", gate = true }, { show = \"x\" }]\n\
+         [[on.flip]]\nname = \"before-merge\"\nwhen = ''\n\
+         actions = [{ run = \"c\", gate = true }, { show = \"x\" }]\n\
          [[on.flip]]\nwhen = ''\nactions = [{ run = \"b\" }, { gate = true }, { run = \"a\" }]\n",
     )
     .unwrap();
 
     assert_eq!(commands(&config), lines(&["a", "b", "c"]));
-    let gates: Vec<(&str, String)> = gate_commands(&config)
+    let sites: Vec<(SiteKind, &str, Option<String>, String)> = sites(&config)
         .into_iter()
-        .map(|gate| (gate.gate, gate.command.to_string()))
+        .map(|site| (site.kind, site.moment, site.label, site.command.to_string()))
         .collect();
     assert_eq!(
-        gates,
+        sites,
         [
-            ("waits", "b".to_owned()),
-            ("on.flip", "c".to_owned()),
-            ("on.flip", "b".to_owned()),
-            ("on.flip", "a".to_owned()),
+            (SiteKind::Gate, "waits", None, "b".to_owned()),
+            (
+                SiteKind::Gate,
+                "on.flip",
+                Some("before-merge".to_owned()),
+                "c".to_owned(),
+            ),
+            (SiteKind::Gate, "on.flip", None, "b".to_owned()),
+            (SiteKind::Gate, "on.flip", None, "a".to_owned()),
         ]
     );
 }
 
 /// A gate the user allowed doesn't print, and one they did not prints with its
-/// section.
+/// section. An editor is never refused: `mt` falls back to `$VISUAL` instead.
 #[test]
 fn only_a_gate_the_user_has_not_allowed_is_refused() {
     let (_dir, home, root) = data_home_and_root();
-    let config = config(&["b"]);
+    let config = crate::parse_config(
+        "[go]\neditor = \"zed {task}\"\n\
+         [[tasks.waits]]\nname = \"up\"\nrun = \"b\"\n",
+    )
+    .unwrap();
     assert_eq!(
         refused_gates_in(Some(&home), &root, &config),
-        [GateCommand {
-            gate: "waits",
+        [Site {
+            kind: SiteKind::Gate,
+            moment: "waits",
+            label: None,
             command: ConfigCommand::Line("b".to_owned()),
         }]
     );
@@ -272,6 +284,18 @@ fn the_commands_list_a_go_and_an_add_editor_beside_the_run_lines() {
     .unwrap();
 
     assert_eq!(commands(&config), lines(&["b", "nvim -p", "zed {task}"]));
+    let editors: Vec<(&str, String)> = sites(&config)
+        .into_iter()
+        .filter(|site| site.kind == SiteKind::Editor)
+        .map(|site| (site.moment, site.command.to_string()))
+        .collect();
+    assert_eq!(
+        editors,
+        [
+            ("go", "zed {task}".to_owned()),
+            ("add", "nvim -p".to_owned())
+        ]
+    );
 }
 
 /// `commands` of a project over a user layer, for each `(user, project, listed)`

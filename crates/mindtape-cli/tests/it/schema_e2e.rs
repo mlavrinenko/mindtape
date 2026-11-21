@@ -56,10 +56,13 @@ fn byte_compared_goldens_are_pinned_to_lf() {
 }
 
 /// Every registered output, in `mt schema` order.
-const NAMES: [&str; 25] = [
+// jscpd:ignore-start
+// One name per line is the data, not a pasted block. A new output adds a line.
+const NAMES: [&str; 26] = [
     "ls",
     "task",
     "add",
+    "allow-status",
     "check",
     "set-check",
     "graph",
@@ -83,6 +86,7 @@ const NAMES: [&str; 25] = [
     "dict",
     "config-show",
 ];
+// jscpd:ignore-end
 
 #[test]
 fn recorded_schemas_match_the_binary() {

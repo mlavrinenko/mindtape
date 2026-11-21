@@ -275,11 +275,14 @@
       flip gate refuses the flip, and `--force` takes it past. `mt` skips a flip
       `run` without `gate`. It skips an editor that isn't allowed too.
       `mt go`, the `mt ls` picker and `mt add --edit` try `$VISUAL`, then
-      `$EDITOR`. With neither, `mt go` fails and `mt add` opens `vi`. `mt allow` prints each command and records a hash of them all in
-      `allowed/` under `mt`'s data directory, outside the repo, so no clone
-      can approve its own commands. The record belongs to the repo's git
-      directory, so every worktree of it shares one approval. Change a command
-      and `mt` asks again.],
+      `$EDITOR`. With neither, `mt go` fails and `mt add` opens `vi`.
+      `mt allow --status` lists the same commands under one status line without
+      recording anything, and `--json` prints that list. Bare `mt allow` records
+      the approval and prints the list under an `allowed` line. The record holds
+      a hash of them all in `allowed/` under `mt`'s data directory, outside
+      the repo, so no clone can approve its own commands. The record belongs to
+      the repo's git directory, so every worktree of it shares one approval.
+      Change a command and `mt` asks again.],
     outputs: ("allow",),
   ),
   "at": (

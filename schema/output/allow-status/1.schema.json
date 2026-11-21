@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "AllowSiteJson": {
+      "description": "One site in the `allow-status` output.",
+      "properties": {
+        "command": {
+          "$ref": "#/$defs/CommandJson",
+          "description": "The command as its config spells it: a shell line, or a program and its\narguments."
+        },
+        "kind": {
+          "$ref": "#/$defs/SiteKind",
+          "description": "Whether the site gates a write or opens an editor."
+        },
+        "label": {
+          "description": "The hook's `name`, when it has one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "moment": {
+          "description": "The config section that declares it: `waits`, `on.flip`, `on.rm`,\n`go` or `add`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "moment",
+        "command"
+      ],
+      "type": "object"
+    },
+    "CommandJson": {
+      "anyOf": [
+        {
+          "description": "A command line for the platform shell.",
+          "type": "string"
+        },
+        {
+          "description": "A program and its arguments, run without a shell.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "A config command in its JSON shape."
+    },
+    "SiteKind": {
+      "description": "What a [`Site`] does with its command.",
+      "oneOf": [
+        {
+          "const": "gate",
+          "description": "A command `mt` holds back until the user allows it: a checker or gate.",
+          "type": "string"
+        },
+        {
+          "const": "editor",
+          "description": "A program `mt` spawns when the user asks for an editor.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/output/allow-status/1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The object `mt allow --status --json` prints: whether the repository allows the config's commands, and one entry per site.",
+  "properties": {
+    "$schema": {
+      "description": "The URL of the schema this object conforms to.",
+      "type": "string"
+    },
+    "allowed": {
+      "description": "Whether the user allowed every command the config declares for this\nrepository.",
+      "type": "boolean"
+    },
+    "sites": {
+      "description": "Every command the config declares, in declaration order.",
+      "items": {
+        "$ref": "#/$defs/AllowSiteJson"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "allowed",
+    "sites"
+  ],
+  "title": "Mindtape allow status",
+  "type": "object"
+}

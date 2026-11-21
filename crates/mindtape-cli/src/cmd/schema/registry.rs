@@ -5,6 +5,7 @@ use serde_json::Value;
 use super::SchemaId;
 use crate::cmd::add::output::AddReport;
 use crate::cmd::add::values::DescribePayload;
+use crate::cmd::allow::AllowStatusPayload;
 use crate::cmd::at::{AtListPayload, AtProjectJson, AtSetJson};
 use crate::cmd::board::BoardPayload;
 use crate::cmd::config::ConfigShowPayload;
@@ -100,6 +101,12 @@ pub const EVAL: SchemaId = SchemaId {
 /// `mt add --json`.
 pub const ADD: SchemaId = SchemaId {
     name: "add",
+    version: 1,
+};
+
+/// `mt allow --status --json`.
+pub const ALLOW_STATUS: SchemaId = SchemaId {
+    name: "allow-status",
     version: 1,
 };
 
@@ -211,6 +218,8 @@ const EVAL_DESCRIPTION: &str =
 const ADD_TITLE: &str = "Mindtape add report";
 const ADD_DESCRIPTION: &str =
     "The object `mt add --json` prints: what the run did, the task's path and its stem hash.";
+const ALLOW_STATUS_TITLE: &str = "Mindtape allow status";
+const ALLOW_STATUS_DESCRIPTION: &str = "The object `mt allow --status --json` prints: whether the repository allows the config's commands, and one entry per site.";
 const BOARD_TITLE: &str = "Mindtape board";
 const BOARD_DESCRIPTION: &str = "The object `mt board --json` prints: one row per project, its cells, or the error that kept it from loading.";
 const AT_TITLE: &str = "Mindtape at entries";
@@ -283,6 +292,12 @@ pub const SCHEMAS: &[Schema] = &[
         title: ADD_TITLE,
         description: ADD_DESCRIPTION,
         schema: || schemars::schema_for!(Envelope<AddReport>),
+    },
+    Schema {
+        id: ALLOW_STATUS,
+        title: ALLOW_STATUS_TITLE,
+        description: ALLOW_STATUS_DESCRIPTION,
+        schema: || schemars::schema_for!(Envelope<AllowStatusPayload>),
     },
     Schema {
         id: CHECK,
