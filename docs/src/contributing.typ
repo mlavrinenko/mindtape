@@ -70,10 +70,10 @@ the code you write:
 - Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/it/`,
   which each crate links as one binary: declare a new file in
   `tests/it/main.rs`. Only they get `CARGO_BIN_EXE_mt`.
-- When a file nears its linecop cap, run #just.fix-check(). It moves the
-  file's inline tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`)
-  with #link("https://github.com/mlavrinenko/ejectest")[ejectest].
-- Run the suite with #just.test() and count it with #just.count-tests().
+- When a file nears its linecop cap, run #just.fix-check(). It moves inline
+  tests into a `_tests.rs` sibling (`tests.rs` for a `mod.rs`) with
+  #link("https://github.com/mlavrinenko/ejectest")[ejectest].
+- Run the suite with #just.test() and count it with #just.advisory-count-tests().
 - If your code runs a process or joins paths, the Windows CI job runs it too.
   See #link("docs/contributing/windows.md")[docs/contributing/windows.md].
 - Before a PR, run #just.mutants-diff() and triage every survivor. A run over
@@ -171,7 +171,7 @@ When you see a problem outside your task, file it with
 in passing. The template requires a `surfaced-by` link to the task where you
 found it.
 
-#just.ask-refactoring() reads the quality signals that no gate enforces and
+#just.advisory-ask-refactoring() reads quality signals no gate enforces and
 prints one task per finding. Add `--write` to file them. The arms and their
 scoring are in
 #link("docs/contributing/signal-sweep.md")[docs/contributing/signal-sweep.md].

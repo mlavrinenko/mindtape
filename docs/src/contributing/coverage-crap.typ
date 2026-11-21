@@ -117,7 +117,7 @@ or rebase that leaves the bytes alone does not make the lcov stale.
 
 A CRAP band below 30 would flag the wrong functions. Of the 15 functions here
 that score from 15 to 30, 11 are at least 90% covered. Of the 16 that are
-complex and undertested, 12 score below 15. So #just.ask-refactoring() has no
+complex and undertested, 12 score below 15. So #just.advisory-ask-refactoring() has no
 CRAP arm.
 
 = Why both run in every check

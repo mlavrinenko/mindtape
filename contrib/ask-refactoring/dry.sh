@@ -120,7 +120,7 @@ emit_dry() {
     more=$((copies - 6))
     listed="$shown"
     [ "$more" -gt 0 ] && listed="$shown
-  - and $more more, which \`just ask-refactoring\` lists again on its next run"
+  - and $more more, which \`just advisory ask-refactoring\` lists again on its next run"
 
     local shape="This clone appears"
     [ "$families" -gt 1 ] && shape="$families clones anchored in this file appear"

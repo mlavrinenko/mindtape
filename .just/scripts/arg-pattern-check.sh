@@ -7,8 +7,8 @@
 # script from fmt-fixture-check.sh on purpose. That one locks that three
 # formatters reject drift in a synthesized fixture file. This one locks that
 # the `[arg(...)]` `pattern`s on `release`, `bench::run`, `bench::gen`, `eject`,
-# `ask-refactoring`, `outdatty::update` and `check` actually reject a bad argument and
-# accept a good one.
+# `advisory::ask-refactoring`, `outdatty::update` and `check` actually reject a
+# bad argument and accept a good one.
 # Same reasoning, different subject (recipe dispatch, not file formatting), so
 # a sibling fixture-style script rather than an added arm in that one.
 # Bundling them would make one script answer two questions.
@@ -150,8 +150,8 @@ assert_default_accepted eject
 # `--write` has no bad-value case, and cannot have one. It carries
 # `value='1'`, so the flag doesn't consume an argument of its own. A
 # parameter declared with `long=` is flag-only (verified on just 1.46: `just
-# ask-refactoring 2` reports `Justfile does not contain recipe 2` rather than
-# assigning `2` to the first parameter). Its `[01]` pattern guards exactly
+# advisory::ask-refactoring 2` reports `Justfile does not contain recipe 2`
+# rather than assigning `2` to the first parameter). Its `[01]` pattern guards exactly
 # two values, the declared default and that fixed `1`, and the
 # `assert_default_accepted` call below is what exercises it.
 #
@@ -159,16 +159,16 @@ assert_default_accepted eject
 # file. `ask-refactoring`'s defaults are the only copy of the sweep's
 # thresholds (contrib/ask-refactoring.sh requires all six and defaults
 # nothing). A default that failed its own pattern would break every plain
-# `just ask-refactoring` run, and there is no fallback to hide it.
-assert_rejected ask-refactoring --baseline 101
-assert_rejected ask-refactoring --baseline 'a b'
-assert_rejected ask-refactoring --cc-floor abc
-assert_rejected ask-refactoring --fn-coverage-floor 101
-assert_rejected ask-refactoring --dry-gain abc
-assert_accepted ask-refactoring --baseline 85
-assert_accepted ask-refactoring --fn-coverage-floor 92 --cc-floor 12
-assert_accepted ask-refactoring --dry-gain 100
-assert_accepted ask-refactoring --write
+# `just advisory ask-refactoring` run, and there is no fallback to hide it.
+assert_rejected advisory::ask-refactoring --baseline 101
+assert_rejected advisory::ask-refactoring --baseline 'a b'
+assert_rejected advisory::ask-refactoring --cc-floor abc
+assert_rejected advisory::ask-refactoring --fn-coverage-floor 101
+assert_rejected advisory::ask-refactoring --dry-gain abc
+assert_accepted advisory::ask-refactoring --baseline 85
+assert_accepted advisory::ask-refactoring --fn-coverage-floor 92 --cc-floor 12
+assert_accepted advisory::ask-refactoring --dry-gain 100
+assert_accepted advisory::ask-refactoring --write
 # `check` takes stage names, which CI uses to run the cover stage in a job of
 # its own. A name outside the stages must fail at dispatch, not run nothing.
 assert_rejected check bogus
@@ -176,7 +176,7 @@ assert_rejected check fast bogus
 assert_accepted check
 assert_accepted check fast build
 assert_accepted check cover
-assert_default_accepted ask-refactoring
+assert_default_accepted advisory::ask-refactoring
 
 if [ "$fail" -ne 0 ]; then
     echo "arg-pattern-check: one or more arg patterns did not behave as expected" >&2

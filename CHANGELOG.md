@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`just orient` starts a session in this repository.** The recipe in
+  `.just/session.just`, aliased in the `Justfile` because a module path
+  namespaces its recipes, makes four `mt` calls and prints one screen: the
+  project's roots and statuses from `mt config show --json --resolved` through
+  `contrib/jq/reports/essentials.jq`, the open count from one `mt ls --json`
+  pass over every task, the templates `mt templates --json` lists, and the
+  commands `mt allow --status --json` reports. Only the listing reads the task
+  files. The four `[group("advisory")]` recipes move to `.just/advisory.just`,
+  so their invocation gains the module name, as in
+  `just advisory ask-refactoring`.
 - **`contrib/jq/` splits its adapters from its reports, starting with the
   essentials report.** The three tracker adapters move to
   `contrib/jq/import/`, unchanged, with their fixtures. `contrib/jq/reports/`

@@ -160,7 +160,7 @@ allowed = [
   # fenced repro in AS-IS, `no-ui-ux` the fenced example in TO-BE.
   "no-repro",
   "no-ui-ux",
-  # Provenance, written by `just ask-refactoring` (contrib/ask-refactoring.sh)
+  # Provenance, written by `just advisory ask-refactoring` (contrib/ask-refactoring.sh)
   # and by nothing else. `swept` marks a task the sweep filed rather than a
   # human; the signal tags say which advisory tool noticed it: linecop
   # (`size`), cargo-mutants, llvm-cov (`coverage`), and jscpd under the
@@ -278,7 +278,7 @@ values = [
   "!**/*test*.rs",
 ]
 
-# The sweep's own inbox: everything `just ask-refactoring` filed that is still
+# The sweep's own inbox: everything `just advisory ask-refactoring` filed that is still
 # open. It is both a listing (`mt ls @ask-refactoring`) and the sweep's re-run
 # guard — contrib/ask-refactoring.sh refuses to run while this view is
 # non-empty, so one sprint of mechanical work is emptied before the next is
@@ -292,7 +292,7 @@ values = [
 [views.ask-refactoring]
 filter = 'has_tag("swept") && !terminal'
 sort = ["priority:desc"]
-description = "Open findings from the last `just ask-refactoring` sweep"
+description = "Open findings from the last `just advisory ask-refactoring` sweep"
 
 # The two working lists: `mt ls @owner` is what the maintainer still has to do
 # by hand, `mt ls @agent` is what an agent can pick up. Both are `!terminal`

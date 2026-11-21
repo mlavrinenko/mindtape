@@ -61,7 +61,7 @@
 
 == AS-IS
 
-+ Run `just ask-refactoring`.
++ Run `just advisory ask-refactoring`.
 #slot(
   "measured",
   kind: "raw",
@@ -86,13 +86,13 @@ The first copy reads:
   ````,
 )
 
-`just ask-refactoring` filed this from jscpd's clone classes at 15 tokens,
+`just advisory ask-refactoring` filed this from jscpd's clone classes at 15 tokens,
 under the 50-token floor of `just lint::dry`. A location may belong to a
 neighboring window of the same snippet.
 
 == TO-BE
 
-- 🟢 The snippet lives in one helper, and `just ask-refactoring` no longer
+- 🟢 The snippet lives in one helper, and `just advisory ask-refactoring` no longer
   names it.
 
 == Changes

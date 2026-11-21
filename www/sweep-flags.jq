@@ -5,10 +5,11 @@
 # under its own linecop cap, so a derivation with an argument to write cannot
 # live inline there at all.
 #
-# Subject: `just ask-refactoring`'s flag interface — the signal sweep's six
-# thresholds (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-
-# attributes.typ). Every one of them was prose in a comment above the recipe
-# until they became declared parameters carrying `[arg(...)]` attributes.
+# Subject: `just advisory ask-refactoring`'s flag interface — the signal
+# sweep's six thresholds (truth/tasks/derive-the-ask-refactoring-flag-table-
+# from-arg-attributes.typ). Every one of them was prose in a comment above the
+# recipe until they became declared parameters carrying `[arg(...)]`
+# attributes.
 # `just --dump` reports each parameter with its `long`, `short`, `help`,
 # `pattern` and (for a flag that sets a fixed value rather than taking one)
 # `value`, and carries the DEFAULT alongside in the same object — so the
@@ -16,19 +17,21 @@
 # the Justfile rather than retyped beside it, which is the whole point.
 #
 # Row order is the recipe SIGNATURE's order, not sorted: that is the order
-# `just --usage ask-refactoring` prints and the order the flags read in
-# (`--write`, then one arm at a time). Sorting here would make the rendered
+# `just --usage advisory::ask-refactoring` prints and the order the flags read
+# in (`--write`, then one arm at a time). Sorting here would make the rendered
 # table disagree with just's own output for no gain.
 #
-# The recipe name is hardcoded, like `.recipes["_check-stages"]` is in gates.jq. There is
-# exactly one swept recipe and inventing a discovery rule for a set of one
-# would be a guess about a second one that does not exist.
+# The module and recipe names are hardcoded, like `.recipes["_check-stages"]`
+# is in gates.jq. There is exactly one swept recipe and inventing a discovery
+# rule for a set of one would be a guess about a second one that does not
+# exist.
 
+def module_name: "advisory";
 def recipe_name: "ask-refactoring";
 
-.recipes[recipe_name] as $r
+.modules[module_name].recipes[recipe_name] as $r
 | if $r == null then
-    ("sweep-flags.jq: no `" + recipe_name + "` recipe in the just dump")
+    ("sweep-flags.jq: no `" + module_name + "::" + recipe_name + "` recipe in the just dump")
     | halt_error(1)
   else . end
 # A parameter with no `long` is positional-only, so nothing renders it as a

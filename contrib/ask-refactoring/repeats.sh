@@ -138,7 +138,7 @@ emit_repeats() {
     more=$((copies - 12))
     listed="$shown"
     [ "$more" -gt 0 ] && listed="$shown
-  - and $more more, which \`just ask-refactoring\` lists again on its next run"
+  - and $more more, which \`just advisory ask-refactoring\` lists again on its next run"
 
     local measured="+ 🔴 This snippet repeats $copies times across $files $([ "$files" -eq 1 ] && echo file || echo files), $tokens jscpd tokens each. Extracting it saves about $gain tokens net of the helper and its calls.
 $listed"

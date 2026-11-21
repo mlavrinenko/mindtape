@@ -603,7 +603,7 @@ scopes:
 # per arm.
 on_hit: ""
 
-# `just ask-refactoring` is absent below because memoizing it would defeat it,
+# `just advisory ask-refactoring` is absent below because memoizing it would defeat it,
 # gate or not. The sweep re-observes the advisory signals on every run, and a
 # cache hit is the answer it must never give. Its own re-run guard is the
 # [views.ask-refactoring] view, not a cache.
@@ -625,7 +625,7 @@ commands:
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap::check`
-  # and `just ask-refactoring`'s undertested arm both read. The output voids the
+  # and `just advisory ask-refactoring`'s undertested arm both read. The output voids the
   # record when the lcov is deleted, so `just crap::check` never scores a missing one
   # behind a fresh `cover`.
   - name: just cover

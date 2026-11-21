@@ -61,7 +61,7 @@
 
 == AS-IS
 
-+ Run `just ask-refactoring`.
++ Run `just advisory ask-refactoring`.
 #slot(
   "measured",
   kind: "raw",

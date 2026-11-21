@@ -65,7 +65,7 @@
 + 🔴 #raw(slot("function", prompt: "the mutated function", example: "compare_due")) in #raw(slot("path", prompt: "repo-relative path of the mutated file", example: "crates/mindtape/src/sort.rs")) survived a mutation at line #slot("line", kind: "text", prompt: "line number of the mutant", example: "88"): the suite still passed after #raw(slot("mutation", prompt: "cargo-mutants' own wording for the mutation, so it greps against missed.txt", example: "replace compare_due -> Ordering with Ordering::Equal")).
 
 The line is covered, so something executes it, but nothing asserts on what it
-decides. `just ask-refactoring` filed this, and the sweep re-reads the signal
+decides. `just advisory ask-refactoring` filed this, and the sweep re-reads the signal
 every run, so the task is worth only as much as that measurement still is.
 
 #slot(

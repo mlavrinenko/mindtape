@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 21),
+  status: done(2026, 11, 21),
   links: depends-on(
     "split-contrib-jq-and-add-the-essentials-report.typ",
     "show-the-resolved-config-in-mt-config-show.typ",

@@ -728,7 +728,8 @@ groups:
   # the doc that restates it, so a script fix asks for that doc and no other. A
   # script no doc restates sits in the source-only group at the end. Tracking a
   # new script is a decision: `just meta::script-scope` fails on a script that
-  # is a source of no group.
+  # is a source of no group. The quickstart's session-start section restates the
+  # recipe, so it joins the dependents beside the contributor docs.
   - name: dev-shell-docs
     source:
       - flake.nix
@@ -740,6 +741,7 @@ groups:
       - Justfile
       - .config/nextest.toml
       - .config/wt.toml
+      - .just/advisory.just
       - .just/bench.just
       - .just/crap.just
       - .just/docs.just
@@ -748,12 +750,14 @@ groups:
       - .just/meta.just
       - .just/mutants.just
       - .just/outdatty.just
+      - .just/session.just
       - .just/scripts/wt-carry-lcov.sh
       - .just/scripts/clippy.sh
       - .just/scripts/check-examples.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ
+      - www/content/quickstart.typ
       - docs/src/contributing/gates.typ
       - docs/src/contributing/example-projects.typ
       - docs/src/contributing/windows.typ
@@ -1004,7 +1008,7 @@ groups:
     dependents:
       - www/content/cli/config.typ
 
-  # The six `just ask-refactoring` templates share one shape: the same
+  # The six `just advisory ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it
   # did" paragraph, and the same remedy-is-your-call Scope. A Typst `#import`
   # would share it, but the import survives into every task the sweep writes

@@ -1,4 +1,4 @@
-// Hand-written rationale, one entry per `just ask-refactoring` flag, keyed by
+// Hand-written rationale, one entry per `just advisory ask-refactoring` flag, keyed by
 // the flag's long name. The flag list, each flag's help text and each default
 // come from www/generated/sweep-flags.json (www/generate-facts.sh, reading
 // `just --dump`); this dict contains only what a machine cannot state: why the

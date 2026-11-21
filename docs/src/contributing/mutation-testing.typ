@@ -70,7 +70,7 @@ something.
 Every survivor is a real gap or an equivalent mutant.
 
 - For a real gap, write a test that kills it. If you won't fix it in this
-  change, leave it to #just.ask-refactoring(), which reads the last sweep's
+  change, leave it to #just.advisory-ask-refactoring(), which reads the last sweep's
   outcomes and files one task per survivor.
 - An equivalent mutant doesn't change anything a test can observe. Record it in
   `.config/mutants.toml` under `exclude_re` or `exclude_globs`, and start its

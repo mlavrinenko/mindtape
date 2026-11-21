@@ -2,6 +2,7 @@
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": REPO, mindtape, u
 #import "../utils/release.typ": cli-crate, release-targets
+#import "../generated/just.typ" as just
 
 #let meta = (
   route: "/quickstart/",
@@ -189,3 +190,15 @@ yourself.
 
 For more than one repo, #link(u("/read-many-projects/"))[Read many projects]
 shows how one `mt @name` reads them all.
+
+= Start a session in #mindtape's repository
+
+A `just` recipe belongs to the repository that writes it, not to `mt`, which
+installs into projects that have no `Justfile`. #mindtape's own repository
+starts a session with #just.session-orient(): four `mt` calls, one screen.
+
+It reads the project's shape from `mt config show --json --resolved` through
+`contrib/jq/reports/essentials.jq`, so the roots and statuses are the config's
+own. Then it prints the open count, the templates `mt add` offers, and the
+commands the config runs and `mt allow --status` lists. Only the listing reads
+the task files. A project can write the same recipe from those four commands.

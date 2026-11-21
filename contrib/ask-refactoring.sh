@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ask-refactoring.sh: turn advisory quality signals into backlog tasks.
 #
-# Run it as `just ask-refactoring` (dry) or `just ask-refactoring --write`.
+# Run it as `just advisory ask-refactoring` (dry) or `just advisory ask-refactoring --write`.
 #
 # Mechanical refactoring work recurs, and a human notices it only when it
 # blocks something else. The tools that predict it are machine-readable. This
@@ -58,7 +58,7 @@ usage() {
 usage: bash contrib/ask-refactoring.sh --write 0|1 --baseline PCT
            --cc-floor N --fn-coverage-floor PCT --repeat-gain N --dry-gain N
 
-Run it as `just ask-refactoring` — the recipe owns every default and forwards
+Run it as `just advisory ask-refactoring` — the recipe owns every default and forwards
 all six flags; `just --usage ask-refactoring` prints them with their values.
 All six are required here; there are no defaults at this layer.
 

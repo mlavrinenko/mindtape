@@ -2,7 +2,7 @@
 
 # Signal sweep
 
-To turn quality signals that every gate ignores into backlog tasks, run `just ask-refactoring`. It runs `contrib/ask-refactoring.sh`, which files one task per finding. It reads signals that fail nothing yet, such as a file at 90% of its size cap.
+To turn quality signals that every gate ignores into backlog tasks, run `just advisory ask-refactoring`. It runs `contrib/ask-refactoring.sh`, which files one task per finding. It reads signals that fail nothing yet, such as a file at 90% of its size cap.
 
 By default it prints each arm’s finding count and its three findings with the highest ICE score. It writes those tasks’ bodies to `target/ask-refactoring/` so you can read them before you file. Add `--write` to file every finding. A threshold flag, such as `--cc-floor 12`, changes that arm for one run.
 

@@ -78,7 +78,7 @@
   example: "The fill path and the header injection read as two seams; nothing settles which to carve first.",
 )
 
-`just ask-refactoring` filed this, and the sweep re-reads the signal every run,
+`just advisory ask-refactoring` filed this, and the sweep re-reads the signal every run,
 so the task is worth only as much as that measurement still is.
 
 == TO-BE

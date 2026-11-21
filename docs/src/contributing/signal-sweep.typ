@@ -16,7 +16,7 @@
 #doc-title[Signal sweep]
 
 To turn quality signals that every gate ignores into backlog tasks, run
-#just.ask-refactoring(). It runs `contrib/ask-refactoring.sh`, which files one
+#just.advisory-ask-refactoring(). It runs `contrib/ask-refactoring.sh`, which files one
 task per finding. It reads signals that fail nothing yet, such as a file at 90% of its size cap.
 
 By default it prints each arm's finding count and its three findings with the
