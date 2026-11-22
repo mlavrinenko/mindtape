@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::test_support::write_file;
-use crate::test_support::{tempdir, tempdir_with_files};
+use crate::test_support::{body_marker, tempdir, tempdir_with_files};
 use std::collections::BTreeMap;
 
 use super::{
@@ -9,10 +9,21 @@ use super::{
     prune_stale,
 };
 use crate::config::Config;
+use crate::model::BodyMarker;
 use typst_harvest::HVal;
 
 fn open(root: &std::path::Path) -> TaskCache {
     TaskCache::open(root, &Config::default(), &[])
+}
+
+/// The payload [`TaskCache::put`] stores and [`TaskCache::get`] returns: one
+/// outcome, its body markers, and no warnings.
+fn cached(outcome: CachedOutcome, markers: Vec<BodyMarker>) -> Cached {
+    Cached {
+        outcome,
+        markers,
+        warnings: Vec::new(),
+    }
 }
 
 #[test]
@@ -54,7 +65,11 @@ fn put_get_roundtrips_a_marker() {
     ]));
 
     let hash = TaskCache::content_hash(b"source");
-    cache.put(&hash, Some(&marker), &[], &[]);
+    cache.put(
+        &hash,
+        &cached(CachedOutcome::Marker(marker.clone()), Vec::new()),
+        &[],
+    );
 
     match cache.get(&hash) {
         Some(Cached {
@@ -66,11 +81,39 @@ fn put_get_roundtrips_a_marker() {
 }
 
 #[test]
+fn put_get_roundtrips_the_body_markers() {
+    let root = tempdir();
+    let cache = open(root.path());
+    let markers = vec![
+        body_marker(
+            Some("goals"),
+            HVal::Dict(BTreeMap::from([(
+                "verdict".to_owned(),
+                HVal::Str("helps".to_owned()),
+            )])),
+        ),
+        body_marker(None, HVal::Str("bare".to_owned())),
+    ];
+
+    let hash = TaskCache::content_hash(b"marked");
+    cache.put(
+        &hash,
+        &cached(CachedOutcome::NoMarker, markers.clone()),
+        &[],
+    );
+
+    match cache.get(&hash) {
+        Some(Cached { markers: got, .. }) => assert_eq!(got, markers),
+        None => panic!("expected a hit"),
+    }
+}
+
+#[test]
 fn nomarker_outcome_roundtrips() {
     let root = tempdir();
     let cache = open(root.path());
     let hash = TaskCache::content_hash(b"no-marker");
-    cache.put(&hash, None, &[], &[]);
+    cache.put(&hash, &cached(CachedOutcome::NoMarker, Vec::new()), &[]);
     assert!(matches!(
         cache.get(&hash),
         Some(Cached {
@@ -96,7 +139,7 @@ fn corrupt_or_wrong_format_entry_is_a_miss() {
     let root = tempdir();
     let cache = open(root.path());
     let hash = TaskCache::content_hash(b"entry");
-    cache.put(&hash, None, &[], &[]);
+    cache.put(&hash, &cached(CachedOutcome::NoMarker, Vec::new()), &[]);
     let path = cache.entry_path(&hash).unwrap();
 
     std::fs::write(&path, "{ not json").unwrap();

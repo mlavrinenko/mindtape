@@ -109,6 +109,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         collector_problems: Vec::new(),
         shape_errors: Vec::new(),
         body,
+        markers: Vec::new(),
         spans: crate::model::task_spans::TaskCallSpans::default(),
     };
 

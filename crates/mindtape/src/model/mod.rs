@@ -27,6 +27,7 @@ pub mod writable;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use serde::{Deserialize, Serialize};
 use typst_harvest::HVal;
 
 use crate::model::marker::{
@@ -44,6 +45,23 @@ pub struct Status {
     pub date: Option<String>,
     /// Free-form note.
     pub note: Option<String>,
+}
+
+/// One marker a task body emitted, kept for a check rule to read as the
+/// reserved `markers` input ([`crate::rules::CheckSpec::field`]). The loader
+/// keeps every harvested marker except the `mindtape.task` one, in document
+/// order, so a project check can read the metadata its own body emits.
+///
+/// It carries no source location: a breach a check raises still lands on the
+/// task's `task.with(…)` line, like every other rule's.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct BodyMarker {
+    /// The marker's label (`#metadata(..) <label>`), `None` for an unlabelled
+    /// marker.
+    pub label: Option<String>,
+    /// The marker's value, the Typst tree the harvest projected. A date in it
+    /// arrives as its `YYYY-MM-DD` text, the form the cache stores.
+    pub value: HVal,
 }
 
 /// One task, the portable item model harvested from a per-file artifact.
@@ -155,6 +173,13 @@ pub struct Task {
     /// appends it back verbatim, so a `mt ls --json | mt import` round-trip
     /// preserves the body.
     pub body: String,
+    /// Every body marker except the `mindtape.task` one, in document order,
+    /// each with its label and value ([`BodyMarker`]). The loader fills it from
+    /// the harvest, or from the cache entry that harvest wrote, so a warm hit
+    /// and a cold eval agree. It is empty when constructed without a loader
+    /// (such as [`Task::from_marker`]). No listing or eval projection prints it:
+    /// the one consumer is a check rule's reserved `markers` input.
+    pub markers: Vec<BodyMarker>,
     /// Where the `#show: task.with(…)` call and each of its named arguments sit
     /// in the source. A violation the validation pass raises can then point at
     /// the file rather than only name the task. The loader reads it off the
@@ -244,6 +269,7 @@ impl Task {
             collector_problems: Vec::new(),
             shape_errors: errors,
             body: String::new(),
+            markers: Vec::new(),
             spans: crate::model::task_spans::TaskCallSpans::default(),
         }
     }

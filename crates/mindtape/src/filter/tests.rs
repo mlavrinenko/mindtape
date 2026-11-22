@@ -45,6 +45,7 @@ fn sample() -> Task {
         collector_problems: Vec::new(),
         shape_errors: Vec::new(),
         body: String::new(),
+        markers: Vec::new(),
         spans: crate::model::task_spans::TaskCallSpans::default(),
     }
 }

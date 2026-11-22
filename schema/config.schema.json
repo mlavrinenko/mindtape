@@ -378,7 +378,7 @@
       "description": "Call a Typst function instead of evaluating an `assert` expression, with\n`check = { typst, function, field }`.",
       "properties": {
         "field": {
-          "description": "Field whose value the function receives (`none` when the task omits\nit). Absent means the function receives the whole task, in the shape\n`mt eval --json` prints.",
+          "description": "Field whose value the function receives (`none` when the task omits\nit). Absent means the function receives the whole task, in the shape\n`mt eval --json` prints. `markers` is the one reserved input: it yields\nthe task body's metadata markers as an array of `(label, value)` dicts\nin document order. It yields an empty array rather than `none` when the\nbody emits none. Every other name is a canonical field or an `x-<ns>`\nslot.",
           "type": [
             "string",
             "null"

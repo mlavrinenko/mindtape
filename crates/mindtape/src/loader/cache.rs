@@ -51,10 +51,11 @@ use typst_harvest::HVal;
 
 use super::LoadWarning;
 use crate::config::Config;
+use crate::model::BodyMarker;
 
 /// On-disk entry format. Bump when the entry shape or the marker reconstruction
 /// changes. The build key folds it in, and a bump busts every entry.
-const FORMAT_VERSION: u32 = 3;
+const FORMAT_VERSION: u32 = 4;
 
 /// Set this env var to a non-empty value to bypass the cache entirely (always
 /// eval). For benchmarking the cold path and as an escape hatch.
@@ -65,6 +66,9 @@ const DISABLE_ENV: &str = "MINDTAPE_NO_CACHE";
 pub(crate) struct Cached {
     /// The marker, or its confirmed absence.
     pub(crate) outcome: CachedOutcome,
+    /// Every body marker the file emitted besides the task marker, in document
+    /// order, the list [`crate::model::Task::markers`] takes from a hit.
+    pub(crate) markers: Vec<BodyMarker>,
     /// The Typst warnings the evaluation raised, replayed on every hit.
     pub(crate) warnings: Vec<LoadWarning>,
 }
@@ -134,6 +138,7 @@ impl TaskCache {
         };
         Some(Cached {
             outcome,
+            markers: entry.markers,
             warnings: entry.warnings,
         })
     }
@@ -146,19 +151,14 @@ impl TaskCache {
         })
     }
 
-    /// Record a clean harvest outcome for `content_hash`: `Some(marker)` for a
-    /// task, `None` for a file without a marker. The entry also holds the
-    /// `warnings` its evaluation raised and the project-local `deps` (relative
-    /// to the root) that it imported. The write is best-effort and atomic
-    /// (write-temp-then-rename). A write failure, or a dependency that the
-    /// loader cannot read, leaves the entry a miss.
-    pub(crate) fn put(
-        &self,
-        content_hash: &str,
-        marker: Option<&HVal>,
-        warnings: &[LoadWarning],
-        deps: &[PathBuf],
-    ) {
+    /// Record a clean harvest outcome for `content_hash`, the payload a later
+    /// [`Self::get`] returns. It holds the [`CachedOutcome`] (a task marker or
+    /// a file without one), every other body marker the file emitted, and the
+    /// warnings its evaluation raised. The entry also holds the project-local
+    /// `deps` (relative to the root) that it imported. The write is
+    /// best-effort and atomic (write-temp-then-rename). A write failure, or a
+    /// dependency that the loader cannot read, leaves the entry a miss.
+    pub(crate) fn put(&self, content_hash: &str, cached: &Cached, deps: &[PathBuf]) {
         let Some(path) = self.entry_path(content_hash) else {
             return;
         };
@@ -177,8 +177,12 @@ impl TaskCache {
         };
         let entry = Entry {
             format: FORMAT_VERSION,
-            marker: marker.cloned(),
-            warnings: warnings.to_vec(),
+            marker: match &cached.outcome {
+                CachedOutcome::Marker(value) => Some(value.clone()),
+                CachedOutcome::NoMarker => None,
+            },
+            markers: cached.markers.clone(),
+            warnings: cached.warnings.clone(),
             deps,
         };
         let Ok(json) = serde_json::to_string(&entry) else {
@@ -196,11 +200,14 @@ impl TaskCache {
 
 /// One on-disk cache entry. It holds the format tag, the harvested marker as
 /// JSON (`null` when the file had no task marker), and the Typst warnings the
-/// evaluation raised.
+/// evaluation raised. The other body markers the file emitted sit beside them.
 #[derive(Serialize, Deserialize)]
 struct Entry {
     format: u32,
     marker: Option<HVal>,
+    /// Every body marker except the task marker, in document order.
+    #[serde(default)]
+    markers: Vec<BodyMarker>,
     #[serde(default)]
     warnings: Vec<LoadWarning>,
     /// Imported project files and their hashes at the time of the write.

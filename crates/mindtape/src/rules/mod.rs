@@ -132,7 +132,11 @@ pub struct CheckSpec {
     pub function: String,
     /// Field whose value the function receives (`none` when the task omits
     /// it). Absent means the function receives the whole task, in the shape
-    /// `mt eval --json` prints.
+    /// `mt eval --json` prints. `markers` is the one reserved input: it yields
+    /// the task body's metadata markers as an array of `(label, value)` dicts
+    /// in document order. It yields an empty array rather than `none` when the
+    /// body emits none. Every other name is a canonical field or an `x-<ns>`
+    /// slot.
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub field: Option<String>,

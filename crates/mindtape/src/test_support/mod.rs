@@ -75,7 +75,18 @@ macro_rules! typst_task {
 use crate::config::Config;
 use crate::link::Link;
 use crate::model::numeric::{InputValue, NumValue};
-use crate::model::{Status, Task};
+use crate::model::{BodyMarker, Status, Task};
+use typst_harvest::HVal;
+
+/// A body marker carrying `label` and `value`, the fixture for a test that
+/// reads a task's markers. `label` is `None` for an unlabelled marker.
+#[must_use]
+pub fn body_marker(label: Option<&str>, value: HVal) -> BodyMarker {
+    BodyMarker {
+        label: label.map(str::to_owned),
+        value,
+    }
+}
 
 /// A task with the given id and every other field at its empty/`None` default.
 ///
@@ -113,6 +124,7 @@ pub fn bare_task(id: &str) -> Task {
         collector_problems: Vec::new(),
         shape_errors: Vec::new(),
         body: String::new(),
+        markers: Vec::new(),
         spans: crate::model::task_spans::TaskCallSpans::default(),
     }
 }

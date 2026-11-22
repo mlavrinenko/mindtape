@@ -256,6 +256,17 @@ object, a date is a `YYYY-MM-DD` string. A Typst error, a `panic()` in the
 function, or a return that isn't an array of strings counts as one breach with
 the message. The rest of the project still loads.
 
+`markers` is the one reserved `field`. It reads the metadata markers the body
+emits instead of a task field, and the function receives them as an array of
+`(label, value)` dicts in document order. `label` is the marker's Typst label,
+`none` for a marker without one, and `value` is the whole value the marker
+carries, so `#metadata((marker: "example", value: 1)) <example>` arrives as
+`(label: "example", value: (marker: "example", value: 1))`. A task whose body
+emits none of them passes an empty array, not `none`, so the function can loop
+over it without a nil guard. A date in a marker value arrives as its
+`YYYY-MM-DD` text, and a warm load reads the same text back from the cache.
+Every other `field` is a canonical field or an `x-<ns>` slot.
+
 When `mt` loads the config, it checks that the module exists and exports the
 function, and reports each failure as its own config error. It doesn't call
 the function then, so a function that rejects some values can't fail the

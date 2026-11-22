@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A Typst check can read the metadata markers a task body emits.** A `check`
+  rule with `field = "markers"` hands its function an array of `(label, value)`
+  dicts in document order. Each dict holds the marker's Typst label (`none`
+  when it has none) and the whole value the marker carries, and a task whose
+  body emits none gets an empty array. It is the one reserved check input, not
+  a canonical field. The loader keeps every marker except `mindtape.task`, and
+  the content-hash cache stores that list, so a warm load reports what the cold
+  eval did. No listing or eval output changes: the check input is the only
+  consumer.
 - **`just orient` starts a session in this repository.** The recipe in
   `.just/session.just`, aliased in the `Justfile` because a module path
   namespaces its recipes, makes four `mt` calls and prints one screen: the

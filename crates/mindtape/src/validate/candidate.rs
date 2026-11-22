@@ -302,7 +302,16 @@ pub(crate) fn harvest_source_with(
 ) -> Result<Option<Task>, LoadError> {
     Ok(
         eval_marker(root, config, candidate, packages)?.map(|marker| {
-            crate::loader::task_at(root, config, candidate.rel, &marker, candidate.source)
+            crate::loader::task_at(
+                root,
+                config,
+                candidate.rel,
+                crate::loader::BodyMarkers {
+                    task: &marker,
+                    body: &[],
+                },
+                candidate.source,
+            )
         }),
     )
 }

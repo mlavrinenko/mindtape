@@ -71,6 +71,7 @@
 //! strings. A non-string array element becomes one too, rendered by its own
 //! literal.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -79,8 +80,8 @@ use typst_harvest::{HVal, HarvestWorld, SourceSnapshot, harvest};
 use typst_world::root_file_id;
 
 use crate::config::Config;
-use crate::model::Task;
 use crate::model::canonical::CanonicalTask;
+use crate::model::{BodyMarker, Task};
 use crate::rules::CheckSpec;
 
 /// `path` made canonical, or as given when it can't be.
@@ -318,15 +319,20 @@ fn validate_module(
         .map_err(|err| format!("`{typst}` does not export `{function}`: {err}"))
 }
 
-/// The value `check.function` receives for `task`. It is the raw extras value
-/// when `field` names an `x-<ns>` slot (see the module doc's "Value literal"
-/// section for why that keeps a nested [`HVal::Date`] intact). Otherwise it is
-/// a lookup into the same canonical shape `mt eval --json` prints, or, with no
-/// `field`, the whole canonical task.
+/// The value `check.function` receives for `task`. `markers` is the one
+/// reserved input, read straight off [`Task::markers`] before anything else: no
+/// canonical field and no `x-<ns>` slot carries it. Otherwise the value is the
+/// raw extras value when `field` names an `x-<ns>` slot (see the module doc's
+/// "Value literal" section for why that keeps a nested [`HVal::Date`] intact).
+/// Without such a slot it is a lookup into the same canonical shape
+/// `mt eval --json` prints, or, with no `field`, the whole canonical task.
 fn field_value(task: &Task, config: &Config, field: Option<&str>) -> HVal {
     let Some(name) = field else {
         return canonical_hval(task, config);
     };
+    if name == "markers" {
+        return markers_hval(&task.markers);
+    }
     if let Some(value) = task.extras.get(name) {
         return value.clone();
     }
@@ -334,6 +340,25 @@ fn field_value(task: &Task, config: &Config, field: Option<&str>) -> HVal {
         .get(name)
         .cloned()
         .unwrap_or(HVal::Null)
+}
+
+/// The reserved `markers` check input: one `(label, value)` dict per body
+/// marker, in document order, with `label` as `none` for an unlabelled marker.
+/// A task that emits none yields an empty array, never `none`. A check can
+/// then loop over it without a nil guard.
+fn markers_hval(markers: &[BodyMarker]) -> HVal {
+    HVal::Array(
+        markers
+            .iter()
+            .map(|marker| {
+                let label = marker.label.clone().map_or(HVal::Null, HVal::Str);
+                HVal::Dict(BTreeMap::from([
+                    ("label".to_owned(), label),
+                    ("value".to_owned(), marker.value.clone()),
+                ]))
+            })
+            .collect(),
+    )
 }
 
 /// `task` projected to the same canonical shape `mt eval --json` prints, as an

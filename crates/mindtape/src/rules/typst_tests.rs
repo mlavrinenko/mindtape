@@ -7,7 +7,8 @@ use crate::parse_config;
 use crate::rules::CheckSpec;
 use crate::test_support::tempdir;
 use crate::test_support::write_file;
-use crate::test_support::{bare_task, write_bare_project};
+use crate::test_support::{bare_task, body_marker, write_bare_project};
+use std::path::Path;
 use typst_harvest::HVal;
 
 /// The value an add `derive` reads never carries the draft's synthetic
@@ -257,4 +258,79 @@ fn a_project_with_no_check_rule_passes_load_validation_untouched() {
     write_bare_project(dir.path());
     let config = config();
     assert!(validate_load(&config, dir.path()).is_ok());
+}
+
+/// The reserved `markers` field: the body's metadata markers as `(label, value)`
+/// dicts in document order, `label` `none` for an unlabelled marker. It is the
+/// one check input that is neither a canonical field nor an `x-<ns>` slot, and
+/// the goals DSL reads it.
+const CHECK_MARKERS: &str = "\
+#let check-markers(markers) = {
+  if markers == none { return (\"markers must be an array, not none\",) }
+  if markers.len() != 2 { return (\"two markers expected: \" + repr(markers),) }
+  let first = markers.at(0)
+  if first.label != \"goals\" { return (\"first label: \" + repr(first.label),) }
+  if first.value != (goal: \"implementable-tasks\", verdict: \"helps\") {
+    return (\"first value: \" + repr(first.value),)
+  }
+  let second = markers.at(1)
+  if second.label != none { return (\"second label: \" + repr(second.label),) }
+  if second.value != \"bare\" { return (\"second value: \" + repr(second.value),) }
+  ()
+}
+";
+
+/// A task carrying a labelled marker and an unlabelled one, in that order.
+fn task_with_body_markers() -> Task {
+    use std::collections::BTreeMap;
+
+    let mut task = bare_task("a");
+    task.markers = vec![
+        body_marker(
+            Some("goals"),
+            HVal::Dict(BTreeMap::from([
+                (
+                    "goal".to_owned(),
+                    HVal::Str("implementable-tasks".to_owned()),
+                ),
+                ("verdict".to_owned(), HVal::Str("helps".to_owned())),
+            ])),
+        ),
+        body_marker(None, HVal::Str("bare".to_owned())),
+    ];
+    task
+}
+
+/// The breaches a rule calling `function` over `field` reports for `task`,
+/// evaluated in the project at `dir`.
+fn breaches(dir: &Path, function: &str, field: &str, task: &Task) -> Vec<String> {
+    let config = config();
+    let spec = field_spec(function, field);
+    CompiledCheck::new(&spec, dir, &config).evaluate(task, &config)
+}
+
+#[test]
+fn the_reserved_markers_field_reaches_the_function_as_dicts() {
+    let dir = project(CHECK_MARKERS);
+    let task = task_with_body_markers();
+    let found = breaches(dir.path(), "check-markers", "markers", &task);
+    assert!(found.is_empty(), "{found:?}");
+}
+
+/// A task whose body carries an empty marker list hands the function an empty
+/// array, not `none`. A check can then call `.len()` on it without a nil guard.
+const CHECK_NO_MARKERS: &str = "\
+#let check-no-markers(markers) = {
+  if markers == none { return (\"markers must be an array, not none\",) }
+  if markers.len() != 0 { return (\"expected no markers: \" + repr(markers),) }
+  ()
+}
+";
+
+#[test]
+fn an_absent_markers_field_is_an_empty_array() {
+    let dir = project(CHECK_NO_MARKERS);
+    let task = bare_task("a");
+    let found = breaches(dir.path(), "check-no-markers", "markers", &task);
+    assert!(found.is_empty(), "{found:?}");
 }

@@ -3,6 +3,8 @@
 //! # Files
 //!
 //! - `app_dirs.rs`: where `mt` keeps its per-user state.
+//! - `assemble.rs`: the [`LoadItem`] a walk yields, and the one [`Task`]
+//!   builder a cache hit and a fresh harvest both take.
 //! - `cache.rs`: the persistent content-hash task cache.
 //! - `derive.rs`: folder-derived virtual tags.
 //! - `embedded.rs`, `embedded_tests.rs`: the prelude packages this crate
@@ -15,6 +17,7 @@
 //!   Git's working-tree view, the fallback walk and the destination probe.
 
 pub mod app_dirs;
+mod assemble;
 pub mod derive;
 mod embedded;
 mod errors;
@@ -25,6 +28,7 @@ mod visible;
 mod visible_git;
 mod visible_project;
 
+pub(crate) use assemble::{BodyMarkers, derivation, task_at};
 pub(crate) use pins::StatePackages;
 
 pub use app_dirs::package_root;
@@ -52,9 +56,10 @@ use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, b
 use crate::config::Config;
 use crate::loader::derive::RootDeriver;
 use crate::model::Task;
-use crate::model::task_spans::TaskCallSpans;
 use crate::slash_path;
 use crate::task_source::{TaskPath, TaskSource};
+
+use assemble::{LoadItem, assemble_task, body_markers, item_at};
 
 // The persistent task cache is a loader implementation detail with no public
 // API, so it lives as a private submodule here rather than on the crate's
@@ -109,15 +114,6 @@ fn find_root_bounded(start: &Path, stop: Option<&Path>) -> Option<PathBuf> {
             return None;
         }
     }
-}
-
-/// One task file to harvest. It holds the path, the project-relative path, the
-/// tags its folder location derives, and its nesting depth under the root.
-struct LoadItem {
-    file: PathBuf,
-    rel: PathBuf,
-    folder_tags: Vec<String>,
-    depth: u8,
 }
 
 /// A cache miss to harvest. It holds the item, the source already read for
@@ -241,17 +237,25 @@ fn split_hits<'a>(
 }
 
 /// Serve one cache hit: replay its warnings against this file, and assemble
-/// its task when it holds a marker.
+/// its task when it holds a marker. The hit's body markers come back with it,
+/// the same list the cold eval cached.
 fn replay(item: &LoadItem, source: Option<&str>, hit: Cached, outcome: &mut LoadOutcome) {
+    let Cached {
+        outcome: cached,
+        markers,
+        warnings,
+    } = hit;
     outcome
         .warnings
-        .extend(hit.warnings.into_iter().map(|warning| LoadWarning {
+        .extend(warnings.into_iter().map(|warning| LoadWarning {
             file: item.rel.clone(),
             ..warning
         }));
-    if let CachedOutcome::Marker(marker) = hit.outcome {
+    if let CachedOutcome::Marker(marker) = cached {
         let body = source.unwrap_or_default();
-        outcome.tasks.push(assemble_task(item, &marker, body));
+        outcome
+            .tasks
+            .push(assemble_task(item, &marker, &markers, body));
     }
 }
 
@@ -277,70 +281,6 @@ fn harvest_misses(
     for (miss, result) in misses.iter().zip(results) {
         record_miss(miss, result, cache, outcome);
     }
-}
-
-/// Build a [`Task`] from a harvested marker and the file's source. Identity
-/// comes from the stem (an explicit `id:` still wins), the folder-derived tags
-/// come from the item, and the builder slices the prose body from the source.
-/// Both a cache hit and a fresh harvest funnel through this path, so they agree.
-fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
-    let id = file_stem(&item.file);
-    let mut task = Task::from_marker(id, item.rel.clone(), marker);
-    task.derived_tags = item.folder_tags.clone();
-    task.depth = item.depth;
-    task.spans = TaskCallSpans::parse(source);
-    task.body = task.spans.body(source);
-    task
-}
-
-/// Build a [`Task`] for a file at project-relative `rel` from an already
-/// harvested `marker` and the source it came from. This is the [`assemble_task`]
-/// path for a file that [`collect_items`] never walked, because it is not on
-/// disk yet ([`crate::validate::candidate`]).
-pub(crate) fn task_at(
-    root: &Path,
-    config: &Config,
-    rel: &Path,
-    marker: &HVal,
-    source: &str,
-) -> Task {
-    assemble_task(&item_at(root, config, rel), marker, source)
-}
-
-/// The [`LoadItem`] that [`collect_items`] would walk a file at
-/// project-relative `rel` as: the folder-derived tags and nesting depth of the
-/// first configured root that contains it. A path outside every root derives
-/// neither, the same tags and depth a file written outside the roots would carry
-/// once it landed there, which is nothing.
-fn item_at(root: &Path, config: &Config, rel: &Path) -> LoadItem {
-    let (folder_tags, depth) = derivation(config, rel);
-    LoadItem {
-        file: root.join(rel),
-        rel: rel.to_path_buf(),
-        folder_tags,
-        depth,
-    }
-}
-
-/// The folder-derived tags and nesting depth [`item_at`] would give a file at
-/// project-relative `rel`. They come from the first configured root that
-/// admits it, with the root path normalized, or neither when no root does. A
-/// root admits a file under its directory that its `exclude` globs do not
-/// match.
-pub(crate) fn derivation(config: &Config, rel: &Path) -> (Vec<String>, u8) {
-    config
-        .tasks
-        .roots
-        .iter()
-        .find_map(|spec| {
-            let rel_within = spec.admits(rel)?;
-            let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
-            Some((
-                deriver.tags_for(rel_within),
-                crate::loader::derive::depth(rel_within),
-            ))
-        })
-        .unwrap_or_default()
 }
 
 /// Every task source under the configured roots, paired with its
@@ -426,17 +366,25 @@ fn record_miss(
                 &slash_path(&miss.item.rel),
                 &harvested.warnings,
             );
+            let markers = body_markers(&harvested);
             let marker = harvested
                 .with_marker("mindtape.task")
                 .next()
                 .map(|found| &found.value);
             if let Some(hash) = &miss.hash {
-                cache.put(hash, marker, &warnings, &harvested.dependencies);
+                let cached = Cached {
+                    outcome: marker.map_or(CachedOutcome::NoMarker, |value| {
+                        CachedOutcome::Marker(value.clone())
+                    }),
+                    markers: markers.clone(),
+                    warnings: warnings.clone(),
+                };
+                cache.put(hash, &cached, &harvested.dependencies);
             }
             if let Some(marker) = marker {
                 outcome
                     .tasks
-                    .push(assemble_task(miss.item, marker, &miss.source));
+                    .push(assemble_task(miss.item, marker, &markers, &miss.source));
             }
             outcome.warnings.extend(warnings);
         }
@@ -464,11 +412,6 @@ fn build_world(
 ) -> Result<HarvestWorld, String> {
     let world = HarvestWorld::with_root(file, root).map_err(|err| err.to_string())?;
     Ok(with_packages(world, overrides))
-}
-
-fn file_stem(file: &Path) -> String {
-    file.file_stem()
-        .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())
 }
 
 /// The first `mindtape.task` marker value in a harvest, if any.

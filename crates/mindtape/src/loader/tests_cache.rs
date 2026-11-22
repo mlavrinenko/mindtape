@@ -5,12 +5,15 @@
 //! `PRELUDE_STUB`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use crate::test_support::write_file;
+use crate::test_support::{body_marker, write_file};
 use std::path::{Path, PathBuf};
+
+use typst_harvest::HVal;
 
 use super::tests::{PRELUDE_STUB, TASK_BODY, lib_config, setup, write_pkg};
 use super::{LoadOutcome, load_project};
 use crate::config::Config;
+use crate::model::BodyMarker;
 use crate::parse_config;
 
 /// The sole build-key directory a single populated load leaves under
@@ -169,6 +172,128 @@ fn a_cache_hit_replays_the_files_typst_warnings() {
 
 /// A task whose title comes from an imported module.
 const IMPORTING_TASK: &str = "#import \"../shared.typ\": t\n#metadata((marker: \"mindtape.task\", fields: (title: t, status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none), priority: 8), extras: (:)))\n";
+
+/// A task body carrying one labelled marker under a heading and one bare,
+/// unlabelled marker after it, the shape a goals table emits into a section.
+/// Everything except the `mindtape.task` marker is a body marker.
+const MARKED_TASK: &str = "#metadata((
+  marker: \"mindtape.task\",
+  fields: (
+    title: \"Build\",
+    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
+    priority: 8,
+  ),
+  extras: (:),
+))
+
+== Goals
+
+#metadata((marker: \"goals\", value: (goal: \"implementable-tasks\", verdict: \"helps\"))) <goals>
+
+#metadata(\"bare\")
+";
+
+/// The sole task's body markers from a fresh default-config load of `root`.
+fn load_markers(root: &Path) -> Vec<BodyMarker> {
+    let out = load_project(root, &Config::default());
+    assert_eq!(out.errors, Vec::new(), "{:?}", out.errors);
+    out.tasks.first().unwrap().markers.clone()
+}
+
+#[test]
+fn a_heading_marker_reaches_the_task_in_document_order() {
+    let dir = setup();
+    write_file(dir.path(), "tasks/build.typ", MARKED_TASK);
+    let markers = load_markers(dir.path());
+    assert_eq!(markers.len(), 2, "{markers:?}");
+    assert_eq!(markers[0].label.as_deref(), Some("goals"));
+    assert_eq!(markers[1].label, None);
+    assert_eq!(markers[1].value, HVal::Str("bare".to_owned()));
+}
+
+#[test]
+fn a_marker_an_imported_helper_emits_is_kept() {
+    let dir = setup();
+    write_file(
+        dir.path(),
+        "shared.typ",
+        "#let goals() = [#metadata((marker: \"goals\", value: \"helps\")) <goals>]\n",
+    );
+    write_file(
+        dir.path(),
+        "tasks/imp.typ",
+        "#import \"../shared.typ\": goals\n#metadata((marker: \"mindtape.task\", fields: (title: \"Imp\", status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none), priority: 8), extras: (:)))\n\n== Goals\n\n#goals()\n",
+    );
+    let markers = load_markers(dir.path());
+    assert_eq!(markers.len(), 1, "{markers:?}");
+    assert_eq!(markers[0].label.as_deref(), Some("goals"));
+    assert_eq!(
+        markers[0].value,
+        HVal::Dict(std::collections::BTreeMap::from([
+            ("marker".to_owned(), HVal::Str("goals".to_owned())),
+            ("value".to_owned(), HVal::Str("helps".to_owned())),
+        ]))
+    );
+}
+
+/// A task body whose marker carries a `datetime`, the one value JSON cannot
+/// store as itself.
+const DATED_TASK: &str = "#metadata((
+  marker: \"mindtape.task\",
+  fields: (
+    title: \"Dated\",
+    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
+    priority: 8,
+  ),
+  extras: (:),
+))
+
+#metadata((day: datetime(year: 2027, month: 1, day: 2))) <dated>
+";
+
+#[test]
+fn a_date_valued_marker_reads_the_same_cold_and_warm() {
+    let dir = setup();
+    write_file(dir.path(), "tasks/dated.typ", DATED_TASK);
+    let cold = load_markers(dir.path());
+    assert_eq!(
+        cold,
+        vec![body_marker(
+            Some("dated"),
+            HVal::Dict(std::collections::BTreeMap::from([(
+                "day".to_owned(),
+                HVal::Str("2027-01-02".to_owned()),
+            )])),
+        )]
+    );
+    assert_eq!(load_markers(dir.path()), cold);
+}
+
+/// Rewrite a cached entry's first body marker label. A load that reads the
+/// cache rather than re-evaluating the untouched file then reports the new
+/// label in the marker list it builds.
+fn doctor_cache_marker_label(entry: &Path, label: &str) {
+    let text = std::fs::read_to_string(entry).unwrap();
+    let mut value: serde_json::Value = serde_json::from_str(&text).unwrap();
+    value["markers"][0]["label"] = serde_json::Value::from(label);
+    std::fs::write(entry, serde_json::to_string(&value).unwrap()).unwrap();
+}
+
+#[test]
+fn a_warm_hit_reports_the_same_markers_as_the_cold_eval() {
+    let dir = setup();
+    write_file(dir.path(), "tasks/build.typ", MARKED_TASK);
+    let cold = load_markers(dir.path());
+    assert_eq!(cold.len(), 2, "{cold:?}");
+
+    // The doctored label proves the second load reads the cached entry rather
+    // than re-evaluating the file, and that the entry carries the marker list.
+    doctor_cache_marker_label(&sole_cache_entry(dir.path()), "FROM-CACHE");
+    let warm = load_markers(dir.path());
+    let mut expected = cold;
+    expected[0].label = Some("FROM-CACHE".to_owned());
+    assert_eq!(warm, expected);
+}
 
 #[test]
 fn edited_imported_module_busts_the_entry() {
