@@ -183,6 +183,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A write sees the body markers a task emits.** `mt add`, `mt import`,
+  `mt link`, `mt recur`, `mt set` and the `mt check --commits` state loader now
+  validate a candidate against the same marker list `mt check` reads, so a
+  `field = "markers"` rule no longer refuses a valid write. The candidate door
+  harvests once, keeps the `mindtape.task` marker and every other marker in
+  document order, and builds the task from both, the way a load does. The list
+  lives in memory for the check; no cache or output changes.
 - **A failed hook action says what happened to the write.** The advice a
   failing `run` prints now matches its path: a gate keeps its refusal, while a
   `run` without `gate` says the write goes ahead and asks you to run the

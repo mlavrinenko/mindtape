@@ -29,7 +29,7 @@ use crate::body::{BodyRules, check_body_rules};
 use crate::config::Config;
 use crate::link::acyclic_kinds;
 use crate::loader::{LoadError, StatePackages};
-use crate::model::Task;
+use crate::model::{BodyMarker, Task};
 use crate::validate::Violation;
 
 /// A task source that does not exist on disk, and the project-relative path a
@@ -262,8 +262,8 @@ fn elsewhere_violations(
 }
 
 /// Evaluate `candidate`'s source at its destination path and build the [`Task`]
-/// it would load as: identity from the stem, folder-derived tags and depth from
-/// the path, body from the source.
+/// it would load as. Identity comes from the stem, folder-derived tags and
+/// depth from the path, and the body with its markers from the source.
 ///
 /// # Errors
 /// Returns a [`LoadError`] when the world fails to build, evaluation fails, or
@@ -301,14 +301,14 @@ pub(crate) fn harvest_source_with(
     packages: Option<StatePackages>,
 ) -> Result<Option<Task>, LoadError> {
     Ok(
-        eval_marker(root, config, candidate, packages)?.map(|marker| {
+        eval_marker(root, config, candidate, packages)?.map(|markers| {
             crate::loader::task_at(
                 root,
                 config,
                 candidate.rel,
                 crate::loader::BodyMarkers {
-                    task: &marker,
-                    body: &[],
+                    task: &markers.task,
+                    body: &markers.body,
                 },
                 candidate.source,
             )
@@ -316,13 +316,23 @@ pub(crate) fn harvest_source_with(
     )
 }
 
-/// Evaluate the candidate source and return its first `mindtape.task` marker.
+/// What one harvest of a candidate yields: the marker that makes it a task, and
+/// every other marker its body emitted, in document order. They travel
+/// together because the task builder needs both.
+struct Harvested {
+    task: HVal,
+    body: Vec<BodyMarker>,
+}
+
+/// Evaluate the candidate source and return its `mindtape.task` marker with the
+/// full body marker list. One harvest provides both. The candidate door then
+/// reads exactly the markers a load of the written file would.
 fn eval_marker(
     root: &Path,
     config: &Config,
     candidate: Candidate<'_>,
     packages: Option<StatePackages>,
-) -> Result<Option<HVal>, LoadError> {
+) -> Result<Option<Harvested>, LoadError> {
     let fail = |message: String| LoadError {
         file: candidate.rel.to_path_buf(),
         message,
@@ -340,10 +350,14 @@ fn eval_marker(
 
     let harvested = harvest(&world)
         .map_err(|err| LoadError::harvest(candidate.rel.to_path_buf(), &err, candidate.source))?;
-    Ok(harvested
+    let task = harvested
         .with_marker("mindtape.task")
         .next()
-        .map(|found| found.value.clone()))
+        .map(|found| found.value.clone());
+    Ok(task.map(|task| Harvested {
+        task,
+        body: crate::loader::body_markers(&harvested),
+    }))
 }
 
 #[cfg(test)]
@@ -353,3 +367,7 @@ mod tests;
 #[cfg(test)]
 #[path = "candidate_tests_body.rs"]
 mod tests_body;
+
+#[cfg(test)]
+#[path = "candidate_tests_markers.rs"]
+mod tests_markers;

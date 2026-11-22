@@ -60,8 +60,8 @@ pub(crate) struct BodyMarkers<'a> {
 /// harvested [`BodyMarkers`] and the source it came from. This is the
 /// [`assemble_task`] path for a file that [`collect_items`](super::collect_items)
 /// never walked, because it is not on disk yet
-/// ([`crate::validate::candidate`]). The candidate door passes an empty body
-/// list until it harvests its own.
+/// ([`crate::validate::candidate`]). The candidate door supplies the markers
+/// its own harvest emitted, so a candidate and a load agree on the list.
 pub(crate) fn task_at(
     root: &Path,
     config: &Config,
@@ -122,7 +122,7 @@ fn file_stem(file: &Path) -> String {
 /// order, as the [`Task::markers`] a check rule reads. The task marker itself is
 /// the task, not a body marker, so it never appears here. An unlabelled marker
 /// keeps `label: None`.
-pub(super) fn body_markers(harvested: &Harvest) -> Vec<BodyMarker> {
+pub(crate) fn body_markers(harvested: &Harvest) -> Vec<BodyMarker> {
     harvested
         .markers
         .iter()

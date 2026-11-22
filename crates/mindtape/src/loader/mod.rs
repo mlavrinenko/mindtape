@@ -28,7 +28,7 @@ mod visible;
 mod visible_git;
 mod visible_project;
 
-pub(crate) use assemble::{BodyMarkers, derivation, task_at};
+pub(crate) use assemble::{BodyMarkers, body_markers, derivation, task_at};
 pub(crate) use pins::StatePackages;
 
 pub use app_dirs::package_root;
@@ -59,7 +59,7 @@ use crate::model::Task;
 use crate::slash_path;
 use crate::task_source::{TaskPath, TaskSource};
 
-use assemble::{LoadItem, assemble_task, body_markers, item_at};
+use assemble::{LoadItem, assemble_task, item_at};
 
 // The persistent task cache is a loader implementation detail with no public
 // API, so it lives as a private submodule here rather than on the crate's
