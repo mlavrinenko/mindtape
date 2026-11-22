@@ -213,7 +213,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   border-left: 1px solid var(--line);
 }
 .page-rail .page-toc li::before {
-  content: ""; position: absolute; left: -4px; top: 50%;
+  content: ""; position: absolute; left: -5px; top: 50%;
   width: 7px; height: 7px; border-radius: 50%;
   border: 1px solid var(--line); background: var(--paper);
   transform: translateY(-50%);
