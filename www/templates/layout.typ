@@ -201,6 +201,13 @@ done.then(function(){var was=b.textContent;b.textContent='COPIED';setTimeout(fun
 // the rail is hidden and the same list becomes a folded box above the first
 // heading, which is where a phone reader needs it. A page with fewer than
 // three headings gets no index at all.
+//
+// The rail tracks the heading under the masthead as the reader scrolls. Every
+// stop above the current one is passed, and a green line runs from the list
+// top to the current dot, whose centre the script writes to `--toc-here`. A
+// click holds the mark on that stop through the smooth scroll, and the next
+// wheel, touch or key hands it back to the reading position. A page opened
+// at a fragment marks that section on the first frame.
 #let _toc-script = "document.addEventListener('DOMContentLoaded',function(){
 var main=document.querySelector('main[data-pagefind-body]');
 if(!main)return;
@@ -208,6 +215,7 @@ var heads=main.querySelectorAll('h2[id]');
 if(heads.length<3)return;
 var rail=main.querySelector('.page-rail');
 var narrow=window.matchMedia('(max-width:52rem)').matches;
+var flow=narrow||!rail;
 var list=document.createElement('ul');
 heads.forEach(function(h){
 var li=document.createElement('li');
@@ -217,29 +225,85 @@ a.textContent=h.textContent;
 li.appendChild(a);
 list.appendChild(li);
 });
-if(narrow||!rail){
+var nav=document.createElement('nav');
+nav.className='page-toc';
+nav.setAttribute('data-pagefind-ignore','');
+if(flow){
+nav.className='page-toc page-toc-flow';
 var details=document.createElement('details');
 details.open=!narrow;
 var summary=document.createElement('summary');
 summary.textContent='Calling points';
 details.appendChild(summary);
 details.appendChild(list);
-var nav=document.createElement('nav');
-nav.className='page-toc page-toc-flow';
-nav.setAttribute('data-pagefind-ignore','');
 nav.appendChild(details);
 heads[0].parentNode.insertBefore(nav,heads[0]);
-return;
-}
-var nav=document.createElement('nav');
-nav.className='page-toc';
-nav.setAttribute('data-pagefind-ignore','');
+}else{
 var eyebrow=document.createElement('p');
 eyebrow.className='eyebrow';
 eyebrow.textContent='Calling points';
 nav.appendChild(eyebrow);
 nav.appendChild(list);
 rail.insertBefore(nav,rail.firstChild);
+}
+nav.classList.add('page-toc-live');
+var items=Array.prototype.slice.call(list.children);
+var current=-1,locked=-1,frame=0;
+function dotCenter(i){
+var host=flow?items[i].firstChild:items[i];
+var hr=host.getBoundingClientRect(),lr=list.getBoundingClientRect();
+return hr.top-lr.top+hr.height/2;
+}
+function setCurrent(i){
+if(i!==current){
+current=i;
+items.forEach(function(li,k){
+li.classList.toggle('is-passed',k<i);
+li.classList.toggle('is-current',k===i);
+var a=li.firstChild;
+if(k===i)a.setAttribute('aria-current','location');
+else a.removeAttribute('aria-current');
+});
+}
+list.style.setProperty('--toc-here',dotCenter(i)+'px');
+}
+function pick(){
+var line=96,i=0;
+for(var k=0;k<heads.length;k++){
+if(heads[k].getBoundingClientRect().top<=line)i=k;else break;
+}
+if(window.innerHeight+window.pageYOffset>=document.documentElement.scrollHeight-2)i=heads.length-1;
+return i;
+}
+function update(){
+frame=0;
+setCurrent(locked>=0?locked:pick());
+}
+function queue(){
+if(!frame)frame=requestAnimationFrame(update);
+}
+function release(){
+if(locked<0)return;
+locked=-1;
+queue();
+}
+list.addEventListener('click',function(e){
+var a=e.target.closest('a');
+if(!a||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+var i=items.indexOf(a.parentNode);
+if(i<0)return;
+locked=i;
+setCurrent(i);
+});
+['wheel','touchstart','keydown','pointerdown'].forEach(function(type){
+window.addEventListener(type,release,{passive:true});
+});
+window.addEventListener('scroll',queue,{passive:true});
+window.addEventListener('resize',queue);
+window.addEventListener('load',queue);
+var box=nav.querySelector('details');
+if(box)box.addEventListener('toggle',queue);
+update();
 });"
 
 // The page's Markdown copy, which www/generate-md.sh writes beside its HTML.

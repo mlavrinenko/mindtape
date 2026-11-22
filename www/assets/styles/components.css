@@ -167,6 +167,13 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   content: ""; position: absolute; left: 3px; top: 6px; bottom: 6px;
   width: 1px; background: var(--line);
 }
+/* The green segment ends at the current stop's dot. --toc-here is that dot's
+   centre, measured from the list top by the page script. */
+.page-toc ul::after {
+  content: ""; position: absolute; left: 3px; top: 6px; width: 1px;
+  height: max(0px, calc(var(--toc-here, 0px) - 6px));
+  background: var(--green); pointer-events: none;
+}
 .page-toc li { margin: 0; }
 .page-toc a {
   position: relative; display: block; padding: 7px 0;
@@ -175,13 +182,24 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   line-height: 1.35; letter-spacing: -0.01em;
 }
 .page-toc a::before {
-  content: ""; position: absolute; left: -18px; top: 13px;
+  content: ""; position: absolute; left: -18px; top: 50%;
   width: 7px; height: 7px; border-radius: 50%;
   border: 1px solid var(--line); background: var(--paper);
+  transform: translateY(-50%);
 }
 .page-toc a:hover { color: var(--green-ink); }
-.page-toc li:first-child a { color: var(--green-ink); font-weight: 700; }
-.page-toc li:first-child a::before {
+.page-toc li.is-passed a::before,
+.page-toc li.is-current a::before {
+  background: var(--green); border-color: var(--green);
+}
+.page-toc li.is-current a { color: var(--green-ink); font-weight: 700; }
+.page-toc li.is-current a::before { box-shadow: 0 0 0 2px var(--paper); }
+/* Without the page script the list would stop at its first stop, which is the
+   only one that can be known before a scroll. */
+.page-toc:not(.page-toc-live) li:first-child a {
+  color: var(--green-ink); font-weight: 700;
+}
+.page-toc:not(.page-toc-live) li:first-child a::before {
   background: var(--green); border-color: var(--green);
   box-shadow: 0 0 0 2px var(--paper);
 }
@@ -189,19 +207,22 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 /* The rail's stops sit on the line itself, one bordered cell each. */
 .page-rail .page-toc ul { padding-left: 0; }
 .page-rail .page-toc ul::before { display: none; }
+.page-rail .page-toc ul::after { left: 0; top: 0; height: var(--toc-here, 0px); }
 .page-rail .page-toc li {
-  position: relative; padding: 7px 0 7px 16px;
+  display: flex; position: relative; padding: 10px 0 10px 16px;
   border-left: 1px solid var(--line);
 }
 .page-rail .page-toc li::before {
-  content: ""; position: absolute; left: -4px; top: 14px;
+  content: ""; position: absolute; left: -4px; top: 50%;
   width: 7px; height: 7px; border-radius: 50%;
   border: 1px solid var(--line); background: var(--paper);
+  transform: translateY(-50%);
 }
-.page-rail .page-toc li:first-child { border-left-color: var(--green); }
-.page-rail .page-toc li:first-child::before {
+.page-rail .page-toc li.is-passed::before,
+.page-rail .page-toc li.is-current::before {
   background: var(--green); border-color: var(--green);
 }
+.page-rail .page-toc li.is-current::before { box-shadow: 0 0 0 2px var(--paper); }
 .page-rail .page-toc a { display: inline; padding: 0; }
 .page-rail .page-toc a::before { display: none; }
 
@@ -217,8 +238,12 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 .page-toc-flow summary:hover { color: var(--green-ink); }
 .page-toc-flow ul { padding: 0 14px 12px 34px; }
 .page-toc-flow ul::before { left: 18px; top: 12px; bottom: 12px; }
+.page-toc-flow ul::after {
+  left: 18px; top: 12px;
+  height: max(0px, calc(var(--toc-here, 0px) - 12px));
+}
 .page-toc-flow a { padding: 4px 0; font-size: 13px; }
-.page-toc-flow a::before { left: -18px; top: 9px; }
+.page-toc-flow a::before { left: -18px; }
 
 .rail-meta {
   display: flex; flex-direction: column; gap: 4px;

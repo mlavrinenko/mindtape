@@ -183,7 +183,8 @@ Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean
 - **Behavior:** the rail is sticky at 22px on wide screens; below 52rem it becomes a drawer with the same line and stops.
 
 ### Calling Points
-- **Style:** a 210px sticky rail under a 1px strong rule. Each entry is a bordered cell on the vertical line, with a 7px stop at 14px; the current entry is green, the rest hollow. Narrow screens fold the list into a `<details>` block above the prose.
+- **Style:** a 210px sticky rail under a 1px strong rule. Each entry is a bordered cell on the vertical line, with a 7px stop centred on its label. The current entry is green and bold, every stop above it is filled, and a green segment runs from the list top to the current stop; later stops stay hollow. Narrow screens fold the list into a `<details>` block above the prose.
+- **Behavior:** the rail follows the heading under the masthead on scroll and moves at once on a click. A page with fewer than three headings has no rail.
 
 ## Do's and Don'ts
 
