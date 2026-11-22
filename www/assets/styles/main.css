@@ -460,7 +460,9 @@ main p { margin: 0 0 1rem; }
 main ul, main ol { margin: 0 0 1rem; padding-left: 1.3rem; }
 main ul { list-style: none; }
 main ul > li { position: relative; }
-main ul > li::before {
+/* A list with a class is a component and draws its own markers; the green
+   square is for prose content only. */
+main ul:not([class]) > li::before {
   content: ""; position: absolute; left: -0.9rem; top: 0.72em;
   width: 5px; height: 5px; background: var(--green);
 }
