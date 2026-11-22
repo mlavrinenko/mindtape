@@ -140,6 +140,7 @@ $listed"
         --set "confidence=0.6"
         --set "ease=$ease"
         --set "difficulty=2"
+        --set "goals=$(goals_with_one_helps maintainer keep-changes-safe 'a clone the gate tolerates lives in one helper, or carries a comment saying why it matches, and the baseline shrinks')"
         --set 'tags+=swept' --set 'tags+=dry' --set 'tags+=stateless'
     )
     local advice

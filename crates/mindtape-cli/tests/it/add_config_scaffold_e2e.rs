@@ -184,11 +184,11 @@ fn files_at_the_status_the_template_names() {
 /// `[tasks.estimate] example`.
 const PRODUCTION_TEMPLATE: &str = include_str!("../../../../.mindtape/templates/task.typ");
 
-/// The generation prelude the production template imports, copied beside the
-/// template's destination so the test evaluates the real pair. The temp
-/// project already resolves `@local/mindtape:0.4.0` through
-/// [`super::fixtures::install_lib`].
-const PRODUCTION_PRELUDE: &str = include_str!("../../../../truth/prelude/1/lib.typ");
+/// The goal block the production template's `goals` slot requires. It rates
+/// every goal once, with one helps. The filed task then clears the goal check.
+const PRODUCTION_GOALS: &str = "== Goals\n\n\
+    + #Helps(adopter, to: guide-the-implementer)[because the production template carries one goal block].\n\
+    + #Neutral(read-tasks-at-a-glance, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).";
 
 /// Mirrors a project's `[tasks.estimate]`: required on every non-terminal
 /// task, capped at 5 `src-files` by a rule, no minimum, and an example that
@@ -204,14 +204,13 @@ const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
 /// moment it lands.
 #[test]
 fn add_splices_a_required_estimate_into_the_production_template() {
-    let dir = support::scaffold_project(ESTIMATE_REQUIRED_CONFIG);
+    let dir = support::goal_project(ESTIMATE_REQUIRED_CONFIG);
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
     write_file(
         dir.path(),
         ".mindtape/templates/task.typ",
         PRODUCTION_TEMPLATE,
     );
-    write_file(dir.path(), "truth/prelude/1/lib.typ", PRODUCTION_PRELUDE);
 
     assert!(
         support::describe_slot_names(dir.path())
@@ -220,6 +219,7 @@ fn add_splices_a_required_estimate_into_the_production_template() {
         "a required estimate is spliced into the production template"
     );
 
+    let goals = format!("goals={PRODUCTION_GOALS}");
     let written = support::add_and_read(
         dir.path(),
         "with-estimate",
@@ -240,9 +240,15 @@ fn add_splices_a_required_estimate_into_the_production_template() {
             "kind=test",
             "--set",
             "estimate=(src-files: 2)",
+            "--set",
+            &goals,
         ],
     );
     assert!(written.contains("estimate: (src-files: 2)"), "{written}");
+    assert!(
+        written.contains("+ #Helps(adopter, to: guide-the-implementer)"),
+        "{written}"
+    );
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     support::check_ok(dir.path());

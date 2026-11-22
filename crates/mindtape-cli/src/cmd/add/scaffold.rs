@@ -14,7 +14,7 @@ use crate::cmd::add::values::example_of;
 const DEFAULT_HEADER: &str = "\
 # mt add — fill the values below, then save and quit.
 # '#' lines are ignored. Leave a value empty to use its default (or to skip it).
-# 'text' slots use a YAML block scalar (|-); keep the two-space indentation.";
+# 'text' and 'raw' slots use a YAML block scalar (|-); keep the two-space indentation.";
 
 /// Render the YAML scaffold: the (optional) header plus one entry per slot,
 /// blocks separated by a blank line. The tail carries no trailing newline so the
@@ -109,7 +109,12 @@ fn push_comment(out: &mut String, spec: &SlotSpec) {
         out.push_str(&format!("# choices: {}\n", choices.join(", ")));
     }
     if let Some(default) = &spec.default {
-        out.push_str(&format!("# default: {default}\n"));
+        let shown = if spec.kind.splices_verbatim() {
+            spec.default_string.as_deref().unwrap_or(default)
+        } else {
+            default
+        };
+        push_comment_lines(out, &format!("default: {shown}"));
     }
     push_shape(out, spec);
 }
@@ -169,13 +174,14 @@ fn push_entry(out: &mut String, spec: &SlotSpec, seed: Option<&RawValue>) {
     }
 }
 
-/// Resolve the pre-fill value: a seed value wins, else the slot default. `text`
-/// slots always get a block scalar so the editor shows the `|-` affordance.
+/// Resolve the pre-fill value: a seed value wins, else the slot default. The
+/// kinds that splice body markup always get a block scalar. A multi-line value
+/// then stays one YAML block and the editor shows the `|-` affordance.
 fn entry_value(spec: &SlotSpec, seed: Option<&RawValue>) -> Option<Entry> {
     if let Some(raw) = seed {
-        return Some(seed_entry(spec.kind, raw));
+        return Some(seed_entry(spec, raw));
     }
-    if spec.kind == SlotKind::Text {
+    if spec.kind.splices_verbatim() {
         return Some(Entry::Block(
             spec.default_string.clone().unwrap_or_default(),
         ));
@@ -183,9 +189,9 @@ fn entry_value(spec: &SlotSpec, seed: Option<&RawValue>) -> Option<Entry> {
     default_entry(spec)
 }
 
-fn seed_entry(kind: SlotKind, raw: &RawValue) -> Entry {
+fn seed_entry(spec: &SlotSpec, raw: &RawValue) -> Entry {
     match raw {
-        RawValue::Str(text) if kind == SlotKind::Text => Entry::Block(text.clone()),
+        RawValue::Str(text) if spec.kind.splices_verbatim() => Entry::Block(text.clone()),
         RawValue::Str(text) => Entry::Scalar(quote(text)),
         RawValue::Int(value) => Entry::Scalar(value.to_string()),
         RawValue::Float(value) => Entry::Scalar(value.to_string()),

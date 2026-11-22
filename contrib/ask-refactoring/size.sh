@@ -215,6 +215,7 @@ emit_size() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
+        --set "goals=$(goals_with_one_helps maintainer keep-changes-safe 'a file under its cap changes without reading its neighbors')"
         "${tags[@]}"
     )
 

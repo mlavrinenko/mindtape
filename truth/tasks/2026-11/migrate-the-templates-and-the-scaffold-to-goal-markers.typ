@@ -11,7 +11,7 @@
   difficulty: 3,
   tags: ("mt", "tooling", "tests", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 21),
+  status: done(2026, 11, 22),
   links: parent("rewire-goals-through-typst-markers.typ")
     + depends-on(
       "migrate-the-open-backlog-and-switch-the-goal-rule.typ",

@@ -143,8 +143,11 @@ impl SlotKind {
     /// string-literal default, rather than rendering a self-delimiting Typst
     /// literal (a quoted string, a number, a list). `text` and `raw` both hold
     /// body content, and they differ only in whether the CLI escapes the value
-    /// first, a decision made upstream of this crate.
-    fn splices_verbatim(self) -> bool {
+    /// first, a decision made upstream of this crate. The editor scaffold reads
+    /// the same pair to pick a block scalar. The two steps then agree on which
+    /// values are body markup.
+    #[must_use]
+    pub fn splices_verbatim(self) -> bool {
         matches!(self, Self::Text | Self::Raw)
     }
 }

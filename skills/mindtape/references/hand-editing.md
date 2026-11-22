@@ -49,9 +49,20 @@ Rules:
 - Name a custom field `x-<ns>`, such as `x-speconaut: ...`. Every other field
   name is a declared parameter of `task`, so a typo fails instead of becoming
   an extension: a field written `titel:` fails with
-  `unexpected argument: titel`. A project whose rules rate goals writes one
-  line per goal, `x-goals: (secure: helps[why], fast: neutral)`, using
-  `helps[why]`, `hurts[why]` or `neutral`.
+  `unexpected argument: titel`. A project whose rules rate goals writes a
+  `== Goals` section after `Dogfood`, one marker per goal:
+  `#Helps(adopter, to: <goal>)[why]`,
+  `#Hinders(maintainer, from: <goal>)[why]` and `#Neutral(<goal>, ...)`. A
+  template carries the whole section in one `goals` raw slot, whose value
+  starts with the `== Goals` heading, and the body adds no second one. The
+  slot's example is the whole section:
+
+  ```typ
+  == Goals
+
+  + #Helps(adopter, to: guide-the-implementer)[why].
+  + #Neutral(read-tasks-at-a-glance, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).
+  ```
 - Pass an edge helper plain path strings, never `link("a.typ")`. A `link(...)`
   is content, so the helper treats it as the trailing note. A `link(...)`, a
   second note, a named argument or a non-string is an eval error naming the

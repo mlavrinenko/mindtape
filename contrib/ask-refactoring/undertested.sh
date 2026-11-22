@@ -231,6 +231,7 @@ emit_undertested() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
+        --set "goals=$(goals_with_one_helps maintainer keep-changes-safe 'a complex function nobody exercises gets a test that fails when it breaks')"
         # `coverage`, not a further signal tag: the tag says which advisory tool
         # noticed the finding (see the `[tasks.tags]` comment in the config),
         # and that is llvm-cov.

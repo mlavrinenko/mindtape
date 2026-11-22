@@ -303,6 +303,46 @@ fn a_multiline_example_stays_a_comment() {
     parse_buffer(&buffer).unwrap();
 }
 
+const MULTILINE_RAW_DEFAULT: &str = r#"#show: task.with(as-is: slot("as-is", kind: "raw", default: ```typ
++ Run it.
+
++ 🔴 It prints nothing.
+```))"#;
+
+#[test]
+fn a_multiline_raw_default_stays_a_comment_and_parses_with_comments_on() {
+    let buffer = scaffold_of(MULTILINE_RAW_DEFAULT);
+    assert!(
+        buffer.contains("# default: + Run it.\n#\n# + 🔴 It prints nothing.\n"),
+        "{buffer}"
+    );
+    assert_eq!(
+        parse_buffer(&buffer).unwrap()["as-is"],
+        RawValue::Str("+ Run it.\n\n+ 🔴 It prints nothing.".to_owned())
+    );
+}
+
+#[test]
+fn a_multiline_raw_default_parses_with_comments_off() {
+    let config = AddConfig {
+        comments: false,
+        ..Default::default()
+    };
+    let buffer = scaffold(
+        &config,
+        &discover_slots(MULTILINE_RAW_DEFAULT),
+        &BTreeMap::new(),
+    );
+    assert!(
+        buffer.contains("as-is: |-\n  + Run it.\n\n  + 🔴 It prints nothing."),
+        "{buffer}"
+    );
+    assert_eq!(
+        parse_buffer(&buffer).unwrap()["as-is"],
+        RawValue::Str("+ Run it.\n\n+ 🔴 It prints nothing.".to_owned())
+    );
+}
+
 // ── default_entry: a date default pre-fills so the editor shows the shape ──
 
 #[test]
@@ -347,6 +387,25 @@ fn text_slot_seed_renders_as_block() {
     assert!(
         !buffer.contains(r#""hello\nworld""#),
         "text seed must not be rendered as quoted scalar: {buffer}"
+    );
+}
+
+#[test]
+fn raw_slot_seed_renders_as_a_block() {
+    let mut seed = BTreeMap::new();
+    let goals = "== Goals\n\n+ #Helps(adopter, to: guide-the-implementer)[why].";
+    seed.insert("goals".to_owned(), RawValue::Str(goals.to_owned()));
+    let specs = discover_slots("#show: task.with(goals: slot(\"goals\", kind: \"raw\"))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    assert!(
+        buffer.contains(
+            "goals: |-\n  == Goals\n\n  + #Helps(adopter, to: guide-the-implementer)[why]."
+        ),
+        "{buffer}"
+    );
+    assert_eq!(
+        parse_buffer(&buffer).unwrap()["goals"],
+        RawValue::Str(goals.to_owned())
     );
 }
 

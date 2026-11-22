@@ -156,6 +156,7 @@ $listed"
         --set "confidence=0.7"
         --set "ease=$ease"
         --set "difficulty=2"
+        --set "goals=$(goals_with_one_helps maintainer keep-changes-safe 'a snippet pasted everywhere lives in one helper and a fix lands once')"
         --set 'tags+=swept' --set 'tags+=repeats' --set 'tags+=stateless'
     )
     local advice; advice=$(printf '%s\n' 'the stem is taken, so this snippet was filed before and closed' 'without the repetition going — reopen it, or mark the copies with' '`jscpd:ignore-start` and a comment saying why')

@@ -32,6 +32,13 @@ const TEMPLATE: &str = mindtape::typst_task!(
 "#
 );
 
+const GOALS_TEMPLATE: &str = mindtape::typst_task!(
+    r#"(title: slot("title"))
+
+#slot("goals", kind: "raw", required: true)
+"#
+);
+
 const BAD: &str = "\
 title: \"Sort tasks\"
 as-is: |-
@@ -91,6 +98,55 @@ fn a_rule_breach_re_opens_the_buffer_and_files_the_fixed_task() {
         second.contains("+ Run `mt ls`."),
         "the answers stay: {second}"
     );
+}
+
+#[test]
+fn a_set_value_with_a_newline_is_a_block_in_the_editor_buffer() {
+    let dir = support::project_with_template(GOALS_TEMPLATE);
+    let seen = dir.path().join("seen.yaml");
+    let goals = dir.path().join("goals.txt");
+    std::fs::write(&goals, "== Goals\n\n+ A reason.").unwrap();
+    let add = dir.path().join("add.sh");
+    std::fs::write(
+        &add,
+        "exec \"$MT_BIN\" add --edit -t task --set title=T --set \"goals=$(cat \"$GOALS_FILE\")\"\n",
+    )
+    .unwrap();
+    let editor = capture_editor(dir.path(), &seen);
+
+    let mut script = std::process::Command::new("script");
+    let output = support::isolate(&mut script, dir.path())
+        .args([
+            "-q",
+            "-e",
+            "-c",
+            &format!("sh {}", add.display()),
+            "/dev/null",
+        ])
+        .current_dir(dir.path())
+        .env("EDITOR", &editor)
+        .env("MT_BIN", env!("CARGO_BIN_EXE_mt"))
+        .env("GOALS_FILE", &goals)
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let buffer = std::fs::read_to_string(&seen).unwrap();
+    assert!(
+        buffer.contains("goals: |-\n  == Goals\n\n  + A reason."),
+        "{buffer}"
+    );
+    assert!(buffer.contains("title: \"T\""), "{buffer}");
+}
+
+fn capture_editor(dir: &Path, seen: &Path) -> String {
+    let script = dir.join("capture-editor.sh");
+    std::fs::write(&script, format!("cp \"$1\" \"{}\"\n", seen.display())).unwrap();
+    format!("sh {}", script.display())
 }
 
 /// An editor that copies the buffer it receives to `seen`, then writes `good`

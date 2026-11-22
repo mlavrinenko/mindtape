@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt add` templates write goals as body markers.** Every active template in
+  `.mindtape/templates/` imports generation 2 and replaces its ten `x-goals`
+  fields with one required `goals` raw slot after `Dogfood`. The slot's value
+  carries the whole `== Goals` section, and its example rates every goal with
+  one `#Helps` and nine `#Neutral`. The editor scaffold comment-prefixes a
+  multi-line default and renders a raw default or `--set` value as a block
+  scalar, so the buffer stays valid YAML with comments on or off. The five
+  sweep templates take the same slot and pass `goals_with_one_helps` from
+  `contrib/ask-refactoring.sh`.
 - **The goal check reads the markers a task body emits.** An open task rates
   every goal under one `== Goals` section after `Dogfood`, with
   `#Helps(adopter, to: <goal>)[why]`, `#Hinders(maintainer, from: <goal>)[why]`

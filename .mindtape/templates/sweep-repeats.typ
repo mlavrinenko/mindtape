@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: slot(
@@ -40,22 +40,6 @@
     prompt: "swept, repeats",
     default: ("stateless",),
     example: ("swept", "repeats", "stateless"),
-  ),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      config-over-code: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: helps[a snippet pasted everywhere lives in one helper, so a fix lands once],
-      docs-match-code: neutral,
-    ),
   ),
 )
 
@@ -115,3 +99,16 @@ neighboring window of the same snippet.
 == Dogfood
 
 Not applicable: a sweep finding changes no feature this repo could use.
+
+#slot(
+  "goals",
+  kind: "raw",
+  required: true,
+  prompt: "Under `== Goals`, rate every goal: one `#Helps` with a reason, then `#Neutral` for the rest",
+  example: ```typ
+  == Goals
+
+  + #Helps(adopter, to: guide-the-implementer)[because one template slot carries the whole goal block].
+  + #Neutral(read-tasks-at-a-glance, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).
+  ```,
+)

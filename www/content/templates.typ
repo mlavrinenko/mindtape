@@ -92,6 +92,30 @@ well as a string, so a body section's example reads as markup, as in the
 template above. Typst removes the indentation every line shares, the closing
 fence's line included, and ignores the language tag.
 
+A raw slot can stand for a whole body section, heading included. This
+repository's templates put one `goals` slot after `Dogfood`, and its value
+carries the `== Goals` heading with every goal verdict. The template body
+leaves the heading to the slot:
+
+// docs:hand-typed the slot shape a project copies before it has a goal registry
+````typ
+#slot(
+  "goals",
+  kind: "raw",
+  required: true,
+  example: ```typ
+  == Goals
+
+  + #Helps(adopter, to: guide-the-implementer)[why].
+  + #Neutral(read-tasks-at-a-glance, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).
+  ```,
+)
+````
+
+`required: true` matters because an optional raw slot with no default fills as
+the literal `none`. `mt add` refuses a blank required slot. The author then
+rates every goal, by hand in the editor or with `--set goals=...`.
+
 = Check the templates
 
 `mt check` checks every template `mt add` accepts. So if a config
@@ -112,7 +136,9 @@ every slot's `default`, falling back to its `example` for a slot with no
 default. A default that falls behind its example then fails the check too. `mt add`
 catches it before filing the task. The option is off by default because a template may
 leave a goal `neutral` so `mt add` refuses a task that helps no goal until the
-caller answers one. `mt check` reports a breach that both variants share once.
+caller answers one. A slot with no default, such as the `goals` slot, has the
+same value in both variants. The option then leaves that slot alone. `mt check`
+reports a breach that both variants share once.
 A problem about the backlog or the file's place doesn't count. That covers a
 `count()` cap, a rule on `ready`, `blocked`, `path` or `dir`, a link cycle, and
 a link to a task that isn't there.

@@ -184,6 +184,7 @@ emit_mutants() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
+        --set "goals=$(goals_with_one_helps maintainer keep-changes-safe 'a line that decides something gets a test that fails when it breaks')"
         --set 'tags+=swept' --set 'tags+=mutants' --set 'tags+=stateless'
     )
 

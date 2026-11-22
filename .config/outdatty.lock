@@ -563,29 +563,29 @@ groups:
       docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: 96c6e9d76c833b70e526e091b1a179fb7f415a7b7c95715233528c6f7d584f36
+      .mindtape/templates/sweep-size.typ: 8ee7e372e7fa0a5888c939dd6a017ff74b393f9477193336eecf30dc1e0d0fda
     dependents:
-      .mindtape/templates/sweep-dry.typ: 61a5eef23a9d6032700f43fa5d3021fe1ee2fe21254a2bdfe44c5f14073f6a18
-      .mindtape/templates/sweep-mutants.typ: 0c17db4ff48f95a36576128e2f4633ebdb56745af5d3649d86a44bf3a6cd2d9c
-      .mindtape/templates/sweep-repeats.typ: 4a697441d5f3240c2b9bf7e6b17db477b8b7f6ad89d20266a49a0e599c854df0
-      .mindtape/templates/sweep-undertested.typ: b02a9ec3b4b4aade2b65f7151425825bc036b9f4a202cc6114d2c52c2c78bc99
-      contrib/ask-refactoring/dry.sh: da2dfffa64044daf2d0c38837d6990840f20edebb2a1bf7f97a5acfc669466c8
-      contrib/ask-refactoring/mutants.sh: 8d366293e6cfa7e37c9afc364442e487f8608f378c0caa35ec839855d1fdb403
-      contrib/ask-refactoring/repeats.sh: 8e23992c5fc716d1b23225051dfc5fa170e710a236c1cd9c061470f3bc19ea94
-      contrib/ask-refactoring/size.sh: 9ce5686c38651383240402af8dd0dcd9ff1e7a41549d559bf99e24167fb7888c
-      contrib/ask-refactoring/undertested.sh: 56982936cf27f940bfa7906ff5edbe3c37e197d136a4085d5858a5d1a2363636
+      .mindtape/templates/sweep-dry.typ: b66bf570b7d08ce59bf2b963067692d326c1950276f0ff0b5768d46b4f5377d5
+      .mindtape/templates/sweep-mutants.typ: e74eac2f97bf44666133c53bcfdf44078543d7896887e94e7e0278a41ce8e63b
+      .mindtape/templates/sweep-repeats.typ: d5372762cf579f591dd1376b22d86db387137c134fb63a360a99ba6b47020e5a
+      .mindtape/templates/sweep-undertested.typ: c6665cfb45f452229e910f5406392854c6896d7b48e5fd0b832ae727e84fcde2
+      contrib/ask-refactoring/dry.sh: 36c51a504839c36255a29649cf4a6b0fea34647843a7caab003afe55c9269e52
+      contrib/ask-refactoring/mutants.sh: dce6936b14ef2988777dbe59815c51e402f58541fdc93fcd59efb3e5c60c188d
+      contrib/ask-refactoring/repeats.sh: b6996c590209ecdea50c0d6444144e8cb97816d13cb489fca51fc3fed6b5b4ae
+      contrib/ask-refactoring/size.sh: 9352872df34950a3ec1166739cb24df2bb1ef1a69a645b23ee788e2f51870412
+      contrib/ask-refactoring/undertested.sh: 1dc143c3a2bfd709cf0c4481a445c85dc2a3f748dd76205d26d2204c119d8405
   task-templates:
     source:
-      .mindtape/templates/task.typ: c4bb9fe073c0ed8c24bf856dde9407ade390e66dfc7bb53d647c17664cfab655
+      .mindtape/templates/task.typ: ffc1784f6217ca36ea8fd81aae5b8948c27402abede659bddea07990f0f76c97
     dependents:
-      .mindtape/templates/decision.typ: 4cb2a7b9af417480c60f82998df658353de50c779ccef004ad237556e098b782
-      .mindtape/templates/dev-stateful.typ: 5490a0d9d2e3b0630ad6aed281a269c16af0f0ed400bb40be90addfd055d21ba
-      .mindtape/templates/dev.typ: 3384c6926eca70e9cee954e1cd40ac2a636be7dbad52e3bf43a856aa6282862c
-      .mindtape/templates/docs.typ: 74bf9626fb81b0a4691433ab03414a32604b82fb2dfdb8f6a4829c4ea66f1dc3
-      .mindtape/templates/feat-stateful.typ: 7fec133b73f5fbed5d78612cb3dbb52f8e9cf3bfce39411afd265cf0b2cd7b55
-      .mindtape/templates/feat.typ: b8beedf196eb7154dba694adad0929985057adb9e96e8c1529208962af1d1f15
-      .mindtape/templates/fix-stateful.typ: 114c0336e8e175bb7a992e24dd4d0ea35a3af3ccb7fe857a9f6519c8ec178388
-      .mindtape/templates/fix.typ: 55e76aae8569a3b56c487d6566d616c6bc430d20c70d2667b1528adc4b6f1043
+      .mindtape/templates/decision.typ: 2114c0b3205eb4c632c5bc967ea87757b2125f2898da9507c8d56f82ab459b3a
+      .mindtape/templates/dev-stateful.typ: 10c6ec0f47fdf6becf65a280e3e513f164acffc800130a23b928d9673ecdcc31
+      .mindtape/templates/dev.typ: f3d99aa99ff23c68ecd08b710fa180fc56d9d61e9f04e71770811f134082cc8b
+      .mindtape/templates/docs.typ: 3f04a0d3ee39bf83ba51a2835ec054580009d663e181f5fad7858b180d8d32e2
+      .mindtape/templates/feat-stateful.typ: ed2195a52c03701e90fcd160a3da0aa040686ee3a09ae79021c3982461b3f3c0
+      .mindtape/templates/feat.typ: 9fe92bfce1b488bedc445d2da819bdb36629636fe393ba0dbed719a238b35e2f
+      .mindtape/templates/fix-stateful.typ: 4e67f26ac0720b0d0d06b14c27b9a18eef624f43f8667676e37b7609944ad855
+      .mindtape/templates/fix.typ: 01f0af871fdca6ac7ac945aaed00d92dbb34b7c8c5c3db28e90df8fa6b64a206
   typst-pkg-version:
     source:
       lib/typst.toml: 2a5837c51f4f9ed4b670d79dd7a1860301db050368a12b7b8a6bfabe1726bc68

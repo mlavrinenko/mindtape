@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: slot(
@@ -14,43 +14,6 @@
   ),
   difficulty: slot("difficulty", kind: "int", default: 3),
   tags: slot("tags", kind: "list", default: ("stateless",)),
-  x-goals: (
-    product: (
-      readable-tasks: slot(
-        "readable-tasks",
-        kind: "raw",
-        default: "neutral",
-        example: "helps[a listing sorted by due shows what is due first]",
-      ),
-      implementable-tasks: slot(
-        "implementable-tasks",
-        kind: "raw",
-        default: "neutral",
-      ),
-      enforced-practice: slot(
-        "enforced-practice",
-        kind: "raw",
-        default: "neutral",
-      ),
-      config-over-code: slot(
-        "config-over-code",
-        kind: "raw",
-        default: "neutral",
-      ),
-      cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
-      typst-over-markdown: slot(
-        "typst-over-markdown",
-        kind: "raw",
-        default: "neutral",
-      ),
-      plain-files: slot("plain-files", kind: "raw", default: "neutral"),
-      self-describing: slot("self-describing", kind: "raw", default: "neutral"),
-    ),
-    process: (
-      sound-codebase: slot("sound-codebase", kind: "raw", default: "neutral"),
-      docs-match-code: slot("docs-match-code", kind: "raw", default: "neutral"),
-    ),
-  ),
 )
 
 == AS-IS
@@ -118,5 +81,18 @@
   prompt: "How this repo will use the change, or Not applicable and why",
   example: ```typ
   This repo's `mt ls --sort due:asc` lists the dated backlog first.
+  ```,
+)
+
+#slot(
+  "goals",
+  kind: "raw",
+  required: true,
+  prompt: "Under `== Goals`, rate every goal: one `#Helps` with a reason, then `#Neutral` for the rest",
+  example: ```typ
+  == Goals
+
+  + #Helps(adopter, to: guide-the-implementer)[because one template slot carries the whole goal block].
+  + #Neutral(read-tasks-at-a-glance, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).
   ```,
 )
