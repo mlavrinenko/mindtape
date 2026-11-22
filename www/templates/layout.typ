@@ -625,7 +625,6 @@ if route in NAV_CHILDREN { (route,) + NAV_CHILDREN.at(route) } else {
         },
       )
     }
-    html.elem("span", attrs: (class: "line-end"), "MIND TAPE / LOCAL")
   }),
 )
 
@@ -766,7 +765,7 @@ if route in NAV_CHILDREN { (route,) + NAV_CHILDREN.at(route) } else {
         html.elem("i")
         "End of line 01"
       })
-      html.elem("span", "MIND TAPE · MIT · 2026")
+      html.elem("span", "MINDTAPE · MIT · 2026")
       html.elem("span", attrs: (class: "right"), {
         link(REPO)[GitHub]
         link(u("/quickstart/"))[Quickstart]

@@ -283,11 +283,6 @@ img, svg { display: block; }
   background: var(--green); border-color: var(--green);
   box-shadow: 0 0 0 3px var(--paper), 0 0 0 4px var(--green);
 }
-.line-end {
-  margin-left: auto; padding-left: 18px;
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
-  letter-spacing: 0.06em; white-space: nowrap;
-}
 
 /* ── Shell and the line map ───────────────────────────────────────────────── */
 
@@ -589,7 +584,6 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
   .masthead { height: auto; }
   .masthead-inner { flex-wrap: wrap; row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
   .search-wrap { order: 3; width: 100%; margin-left: 0; }
-  .line-end { display: none; }
   .article-head h1 { font-size: 40px; }
 }
 
