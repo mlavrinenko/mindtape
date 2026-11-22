@@ -11,7 +11,7 @@
   difficulty: 5,
   tags: ("mt", "tooling", "gating", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 21),
+  status: done(2026, 11, 22),
 )
 
 == AS-IS
