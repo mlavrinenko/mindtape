@@ -494,15 +494,33 @@ update();
 
 #let _group-at(index) = NAV.at(index)
 
-// Every page in reading order, with a nav entry's children after it: the
-// article footer's next stop and the rail's page count both use this.
-#let _reading-order = NAV
-.map(group => group.items.map(route => {
-if route in NAV_CHILDREN { (route,) + NAV_CHILDREN.at(route) } else {
-(route,)
-}
-}))
-.flatten()
+// Every page in reading order, with a nav entry's children after it. The
+// article footer's next stop walks this order. The per-page map leaves one
+// array per page and `NAV` adds a group level above those, so each level is
+// flattened in turn. The parentheses keep the chain one expression: a line
+// break after `NAV` would end the binding at `NAV` itself.
+#let _reading-order = (
+  NAV
+    .map(group => group
+      .items
+      .map(route => if route in NAV_CHILDREN {
+        (route,) + NAV_CHILDREN.at(route)
+      } else { (route,) })
+      .flatten())
+    .flatten()
+)
+
+// `flatten()` removes one level, and this order nests routes two deep. With
+// a level left unflattened, every entry is an array, no entry equals a page's
+// route string, and every next stop falls back to the start. Fail the build
+// on that shape instead of shipping it.
+#assert(
+  _reading-order.len() > 0 and _reading-order.all(r => type(r) == str),
+  message: "NAV reading order is not a flat list of routes: "
+    + repr(
+      _reading-order,
+    ),
+)
 
 #let _next-route(active) = {
   let at = _reading-order.position(r => r == active)
