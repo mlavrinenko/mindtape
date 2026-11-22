@@ -12,10 +12,10 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
 
 - Tasks read at a glance: Anyone opening an open task file can say within 30 seconds what is broken, why it matters, and how it should work instead.
 - Tasks guide the implementer: An implementer in a fresh session, given only the task file, lands the change without asking where to start or what done looks like.
-- Checks run where work happens: `mt add` refuses a task that breaks the project’s rules, and `mt flip` runs the project’s own checks before a status move lands; no rule depends on someone remembering it.
-- Policy lives in config, not code: Every rule, status, tag, path and threshold `mt` enforces is a config key. A project changes one by editing `.mindtape/config.toml`, and no Rust change is needed. A behavior only a Rust change can alter fails this goal.
+- A project's rules run at the write: `mt add` and `mt flip` refuse what a rule rejects. A git-reading rule reports `skipped`.
+- A project owns its policy: Every status, tag, rule, path and threshold is a config key, and a rule’s function is the project’s own Typst. Rust owns the vocabulary the schema spells as an enum, the canonical field names and the reserved `markers` input.
 - Best practice adopts in one line: A repo takes the flagship’s practice with one config line, overrides what it disagrees with, and gets later fixes without copying.
-- Typst beats Markdown with frontmatter: A software engineer reading the docs’ first screen sees a task that Markdown plus YAML plus scripts cannot express as briefly.
+- Typst beats Markdown with frontmatter: A field, slot or marker reaches a rule as a value, never by parsing prose. A collector may derive one; a rule reads the value. Prose rules may match markup and headings, but none re-derives a field. A misspelled helper is a compile error.
 - Plain files, no infrastructure: `mt` binary is the whole setup: no daemon, no database, no index, and nothing outside the repo to lose.
 - The CLI explains itself: A newcomer in a fresh session, given a project and `mt` but no external documentation, can list, file and flip a task, and every refusal names the command that fixes it.
 - Changes stay safe: A change that breaks documented behavior fails `just check` before it can be committed, and every file fits its size cap.

@@ -75,6 +75,7 @@ mod flow_pack_e2e;
 mod gitignore_cache_e2e;
 mod global_config_e2e;
 mod go_e2e;
+mod goal_markers_e2e;
 mod hint_scope_e2e;
 mod hyperlinks_e2e;
 mod import_e2e;
