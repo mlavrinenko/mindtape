@@ -16,7 +16,6 @@
 #
 # Adopt it as `extends = ["mindtape:tasks", "mindtape:dogfood"]`.
 
-# docs:slice packs/allow-only-declared-sections
 [[tasks.body.headers.rules]]
 name = "allow-only-declared-sections"
 action = "allowlist"
@@ -25,7 +24,6 @@ allowed = [
 ]
 when = "!terminal"
 message = "limit an open task to AS-IS, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
-# docs:end
 
 [[tasks.body.headers.rules]]
 name = "keep-one-dogfood-section"

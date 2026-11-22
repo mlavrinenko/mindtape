@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Migrate the open backlog and switch the goal rule",
@@ -10,24 +10,8 @@
   ),
   difficulty: 4,
   tags: ("mt", "docs", "tooling", "stateless"),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      config-over-code: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: helps[the migration is what makes the marker check live.],
-      docs-match-code: helps[AGENTS and the task files show the same form.],
-    ),
-  ),
   assignee: "agent",
-  status: proposed(2026, 11, 21),
+  status: done(2026, 11, 22),
   links: parent("rewire-goals-through-typst-markers.typ")
     + depends-on(
       "define-the-goal-dsl-over-metadata-markers.typ",
@@ -173,3 +157,9 @@ contrib/jq/fixtures/essentials.out.json
 == Dogfood
 
 `mt ls 'has(x-goals)'` lists only closed tasks and any reopened legacy task the warning names, and `mt ls --json | mt import` rebuilds a task that still evaluates.
+
+== Goals
+
++ #Helps(maintainer, to: keep-changes-safe)[the migration is what makes the marker check live].
++ #Helps(maintainer, to: match-docs-to-code)[AGENTS and the task files show the same form].
++ #Neutral(read-tasks-at-a-glance, guide-the-implementer, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself).

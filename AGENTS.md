@@ -26,9 +26,8 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task DSL.
 - `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
 - `truth/tasks/`: Mindtape’s own backlog, a folder per month plus a `swept/` inbox, read with the in-tree `lib/`.
-- `truth/goals.typ` and `truth/process-goals.typ`: the goals above.
-- `www/content/*.typ`: the docs site, built with tola.
-- `docs/src/*.typ`: the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the `docs/contributing/*.md` deep dives.
+- `truth/*.typ`: the goals above and the names a task writes.
+- `www/content/*.typ` and `docs/src/*.typ`: the docs site and the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the deep dives.
 - `skills/mindtape/`: the agent skill for driving `mt`, with its references and evals.
 - `examples/`: fixture projects backing one docs page each. `api-service` is a sample backend backlog. `minimal` is the smallest config. `dsl` is the task quoted on the DSL page. `large` is a 2000-task benchmark. `nix-adopter` is a flake that takes `mt` into its dev shell.
 
@@ -61,4 +60,4 @@ The Typst plumbing comes from seven crates.io dependencies at the versions `Carg
 
 ## Task definition language (lib/prelude.typ)
 
-`mt add` writes a task file, and `mt` commands change it, as `skills/mindtape/SKILL.md` says. Run `mt config show --resolved` for the shape this repo declares and `mt templates` for the templates `mt add` files from. Edit a task by hand only for the body, a framework priority, `estimate` and `x-goals`, then run `mt check`.
+`mt add` writes a task file. `mt` commands change it, as `skills/mindtape/SKILL.md` says. `mt config show --resolved` prints this repo’s shape and `mt templates` the templates it uses. An open task imports `truth/prelude/2/lib.typ` and rates every goal under `== Goals` after `Dogfood` with `#Helps`, `#Hinders` or `#Neutral`. Edit only the body, a framework priority or `estimate` by hand, then run `mt check`.

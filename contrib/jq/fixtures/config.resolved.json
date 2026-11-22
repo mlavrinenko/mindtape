@@ -482,6 +482,29 @@
                 "Dogfood"
               ],
               "when": "!terminal"
+            },
+            {
+              "assert": "non-empty",
+              "message": "write the goal block under `Goals`; an empty section rates nothing",
+              "name": "write-goals-section",
+              "path": [
+                "Goals"
+              ],
+              "when": "!terminal && !has(x-goals)"
+            },
+            {
+              "assert": {
+                "words": {
+                  "count": "text",
+                  "max": 160
+                }
+              },
+              "message": "cut the goal reasons to under 160 words",
+              "name": "cap-goals-at-160-words",
+              "path": [
+                "Goals"
+              ],
+              "when": "!terminal && !has(x-goals)"
             }
           ],
           "words": {
@@ -495,12 +518,12 @@
               "after": [],
               "allowed": [
                 {
-                  "match": "^(AS-IS|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$",
+                  "match": "^(AS-IS|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood|Goals)$",
                   "recursive": false
                 }
               ],
               "before": [],
-              "message": "limit an open task to AS-IS, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section",
+              "message": "limit an open task to AS-IS, TO-BE, Changes, Out of scope, Dogfood and Goals, plus its kind's own section",
               "name": "allow-only-declared-sections",
               "path": [],
               "scope": [],
@@ -859,6 +882,34 @@
               "path": [],
               "scope": [],
               "when": "!terminal"
+            },
+            {
+              "action": "unique",
+              "after": [],
+              "allowed": [],
+              "before": [],
+              "message": "rate every goal under one `== Goals` heading",
+              "name": "keep-one-goals-section",
+              "path": [
+                "Goals"
+              ],
+              "scope": [],
+              "when": "!terminal && !has(x-goals)"
+            },
+            {
+              "action": "order",
+              "after": [
+                "Goals"
+              ],
+              "allowed": [],
+              "before": [
+                "Dogfood"
+              ],
+              "message": "move Goals after Dogfood",
+              "name": "put-goals-after-dogfood",
+              "path": [],
+              "scope": [],
+              "when": "!terminal"
             }
           ]
         }
@@ -920,6 +971,9 @@
         "min": 0.0,
         "required": "!terminal"
       },
+      "emit-imports": [
+        "/truth/prelude/2/lib.typ"
+      ],
       "estimate": {
         "example": {
           "src-files": 1.0
@@ -1232,13 +1286,20 @@
         },
         {
           "check": {
-            "field": "x-goals",
-            "function": "check-goals",
+            "field": "markers",
+            "function": "check-goal-over",
             "typst": "truth/lib.typ"
           },
           "name": "give-every-goal-verdict",
           "severity": "error",
-          "when": "!terminal"
+          "when": "!terminal && !has(x-goals)"
+        },
+        {
+          "assert": "miss(x-goals)",
+          "message": "move `x-goals` into `== Goals`; the goal check reads markers. A reopened legacy task warns until it is re-rated.",
+          "name": "warn-on-x-goals-on-open-tasks",
+          "severity": "warn",
+          "when": "!terminal && matches(dir, \"^truth/tasks/\")"
         },
         {
           "assert": "matches(dir, \"^truth/tasks/[0-9]{4}-[0-9]{2}$\")",
@@ -1389,7 +1450,7 @@
       },
       "ask-refactoring": {
         "columns": [],
-        "description": "Open findings from the last `just ask-refactoring` sweep",
+        "description": "Open findings from the last `just advisory ask-refactoring` sweep",
         "filter": "has_tag(\"swept\") && !terminal",
         "sort": [
           "priority:desc"

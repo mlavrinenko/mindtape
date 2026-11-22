@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Record the task gates after a flip so the close commit fits the budget",
@@ -17,22 +17,6 @@
     ),
   ),
   tags: ("found", "gating", "tooling", "stateless"),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      config-over-code: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: helps[the close path costs one commit, not two],
-      docs-match-code: neutral,
-    ),
-  ),
   assignee: "agent",
   status: proposed(2026, 11, 21),
 )
@@ -78,3 +62,8 @@ $ mt done <stem> && git commit
 == Dogfood
 
 Every close in this repo runs the order. Every close pays the retry until this lands.
+
+== Goals
+
++ #Helps(maintainer, to: keep-changes-safe)[the close path costs one commit, not two].
++ #Neutral(read-tasks-at-a-glance, guide-the-implementer, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, match-docs-to-code).

@@ -8,8 +8,8 @@
 # (`mindtape:dogfood`), the status legend and the stale-WIP gate
 # (`mindtape:flow`), ICE priority (`mindtape:ice`), the WIP caps, the size
 # budget, tweaks and the commit rules. What stays local is only what is true
-# of THIS repo: the goal verdicts (the `give-every-goal-verdict` rule, below),
-# the tag list, the actors, the path sets and the close gate.
+# of THIS repo: the goal block (the `give-every-goal-verdict` rule, below), the
+# tag list, the actors, the path sets and the close gate.
 # docs:slice packs/extends
 extends = [
   { pack = "mindtape:tasks", with = { statefulness = true, examples = true } },
@@ -31,6 +31,10 @@ name = "mindtape"
 path = "lib"
 
 [tasks]
+# Every writer that rebuilds a task emits this import after the prelude. It is
+# the generation that re-exports the goal values, so a rebuilt task still rates
+# its goals by name. Generation 1 stays importable for a task that pins it.
+emit-imports = ["/truth/prelude/2/lib.typ"]
 
 # Mindtape's own backlog lives here, one task per file, in the folder named by
 # the month git first added it (`2026-11/`) or in `swept/` for a sweep batch.
@@ -50,6 +54,51 @@ collect = []
 # that wants to count code still sets its own `count`.
 [tasks.body.content]
 words = { count = "prose" }
+
+# A content rule does not fire on a missing section, so `keep-one-goals-section`
+# is what requires one; this rule only refuses an empty one.
+[[tasks.body.content.rules]]
+name = "write-goals-section"
+path = ["Goals"]
+assert = "non-empty"
+when = "!terminal && !has(x-goals)"
+message = "write the goal block under `Goals`; an empty section rates nothing"
+
+[[tasks.body.content.rules]]
+name = "cap-goals-at-160-words"
+path = ["Goals"]
+assert = { words = { max = 160, count = "text" } }
+when = "!terminal && !has(x-goals)"
+message = "cut the goal reasons to under 160 words"
+
+# The project's own allowlist replaces both packs' rule. It names every section
+# this backlog uses, including `Dogfood` from the dogfood pack and `Goals` from
+# the marker rule above, so one list answers for both.
+# docs:slice packs/allow-only-declared-sections
+[[tasks.body.headers.rules]]
+name = "allow-only-declared-sections"
+action = "allowlist"
+allowed = [
+  { match = "^(AS-IS|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood|Goals)$" },
+]
+when = "!terminal"
+message = "limit an open task to AS-IS, TO-BE, Changes, Out of scope, Dogfood and Goals, plus its kind's own section"
+# docs:end
+
+[[tasks.body.headers.rules]]
+name = "keep-one-goals-section"
+path = ["Goals"]
+action = "unique"
+when = "!terminal && !has(x-goals)"
+message = "rate every goal under one `== Goals` heading"
+
+[[tasks.body.headers.rules]]
+name = "put-goals-after-dogfood"
+action = "order"
+before = ["Dogfood"]
+after = ["Goals"]
+when = "!terminal"
+message = "move Goals after Dogfood"
 
 # Difficulty says which model tier and reasoning effort a task wants, before
 # anyone starts it. The scale and its junior/mid/senior/staff anchors come from
@@ -83,20 +132,26 @@ example = 3
 required = false
 example = { src-files = 1 }
 
-# Goal verdicts moved out of the body into `x-goals:`, beside status and
-# links, so a script can find them without parsing prose (`mt eval --json`
-# now carries them). `assert` reads an `x-<ns>` dict by presence and key only
-# and cannot walk its nested values, so this reaches for `check`: `check-goals` re-checks the same
-# rules `goals(...)` used to enforce at Typst load — missing/unknown goals, a
-# helps/hurts with no reason, a task that helps nothing — but as `mt check`
-# breaches instead of a load-time panic. One verdict per goal in
-# truth/goals.typ and truth/process-goals.typ, and a task that helps no goal is
-# refused, so nothing unjustified gets filed.
+# A task rates its goals with body markers: `#Helps`, `#Hinders` and
+# `#Neutral` under `== Goals`. The check reads the reserved `markers` input, so
+# a verdict reaches it as a Typst value rather than a header dict. One verdict
+# per goal in truth/goals.typ and truth/process-goals.typ, with the audience the
+# registry declares, a reason on a helps or hinders, and at least one helps. A
+# task that helps no goal is refused, so nothing unjustified gets filed. An
+# open task that still carries `x-goals` is exempt here, and the warning below
+# names the move.
 [[tasks.rules]]
 name = "give-every-goal-verdict"
-when = "!terminal"
-check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
+when = "!terminal && !has(x-goals)"
+check = { typst = "truth/lib.typ", function = "check-goal-over", field = "markers" }
 severity = "error"
+
+[[tasks.rules]]
+name = "warn-on-x-goals-on-open-tasks"
+when = '!terminal && matches(dir, "^truth/tasks/")'
+assert = "miss(x-goals)"
+message = "move `x-goals` into `== Goals`; the goal check reads markers. A reopened legacy task warns until it is re-rated."
+severity = "warn"
 
 # The backlog is one folder per filing month, plus `swept/` for a sweep batch.
 # The folder is a filing date, not a label, so no tag is derived from it

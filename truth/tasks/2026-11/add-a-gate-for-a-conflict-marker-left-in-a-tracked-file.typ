@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Add a gate for a conflict marker left in a tracked file",
@@ -17,22 +17,6 @@
     ),
   ),
   tags: ("found", "gating", "tooling", "stateless"),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: helps[a landed change cannot carry a hand-merged marker],
-      config-over-code: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
-    ),
-  ),
   assignee: "agent",
   status: proposed(2026, 11, 21),
 )
@@ -78,3 +62,8 @@ error: CHANGELOG.md:12 has a conflict marker `<<<<<<<`
 == Dogfood
 
 This repo lands on `main` from parallel worktrees, so a hand-resolved conflict is the common case, and the marker that reached `28cafc4b` cost a later rebase.
+
+== Goals
+
++ #Helps(adopter, to: run-checks-at-the-write)[a landed change cannot carry a hand-merged marker].
++ #Neutral(read-tasks-at-a-glance, guide-the-implementer, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).

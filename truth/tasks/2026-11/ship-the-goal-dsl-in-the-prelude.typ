@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Ship the goal DSL in the prelude",
@@ -15,22 +15,6 @@
       "migrate-the-open-backlog-and-switch-the-goal-rule.typ",
     ),
   tags: ("found", "tooling", "stateless"),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[the DSL moves to the prelude. An adopter imports it instead of copying it.],
-      enforced-practice: neutral,
-      config-over-code: helps[the generic DSL leaves the project, and only the registries stay project-side.],
-      cheap-adoption: helps[an adopter copies three files instead of five, and gets later DSL fixes from the prelude.],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the prelude page and the goals page name the same functions.],
-    ),
-  ),
   assignee: "agent",
   status: proposed(2026, 11, 22),
 )
@@ -76,3 +60,11 @@ truth/lib.typ
 == Dogfood
 
 This repo's `truth/goal-dsl.typ` disappears, and its registries import `goal` from the prelude.
+
+== Goals
+
++ #Helps(adopter, to: guide-the-implementer)[the DSL moves to the prelude. An adopter imports it instead of copying it].
++ #Helps(adopter, to: keep-the-engine-agnostic)[the generic DSL leaves the project, and only the registries stay project-side].
++ #Helps(adopter, to: adopt-in-one-line)[an adopter copies three files instead of five, and gets later DSL fixes from the prelude].
++ #Helps(maintainer, to: match-docs-to-code)[the prelude page and the goals page name the same functions].
++ #Neutral(read-tasks-at-a-glance, run-checks-at-the-write, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe).

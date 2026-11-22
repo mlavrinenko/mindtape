@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Migrate the templates and the scaffold to goal markers",
@@ -10,22 +10,6 @@
   ),
   difficulty: 3,
   tags: ("mt", "tooling", "tests", "stateless"),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[one template slot carries the whole goal block instead of ten fields.],
-      enforced-practice: helps[`mt add` writes a task the marker check reads.],
-      config-over-code: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the templates page and the hand-editing reference show the new form.],
-    ),
-  ),
   assignee: "agent",
   status: proposed(2026, 11, 21),
   links: parent("rewire-goals-through-typst-markers.typ")
@@ -75,3 +59,10 @@
 == Dogfood
 
 The next `mt add` writes the new form, and `just advisory ask-refactoring --write` files a swept task that passes `mt check`.
+
+== Goals
+
++ #Helps(adopter, to: guide-the-implementer)[one template slot carries the whole goal block instead of ten fields].
++ #Helps(adopter, to: run-checks-at-the-write)[`mt add` writes a task the marker check reads].
++ #Helps(maintainer, to: match-docs-to-code)[the templates page and the hand-editing reference show the new form].
++ #Neutral(read-tasks-at-a-glance, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe).

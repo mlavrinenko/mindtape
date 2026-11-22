@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Resolve a pack-relative path in the resolved config view",
@@ -17,22 +17,6 @@
     ),
   ),
   tags: ("found", "cli", "stateless"),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      config-over-code: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: helps[the resolved view states the path a project actually loads],
-    ),
-  ),
   assignee: "agent",
   status: proposed(2026, 11, 21),
 )
@@ -71,3 +55,8 @@ check = { typst = "crates/mindtape/src/packs/rules.typ", function = "check" }
 == Dogfood
 
 This repo declares `[[typst.local-packages]] path` in its own config, so a project that copies a resolved view from a pack would break on the first check.
+
+== Goals
+
++ #Helps(maintainer, to: match-docs-to-code)[the resolved view states the path a project actually loads].
++ #Neutral(read-tasks-at-a-glance, guide-the-implementer, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe).

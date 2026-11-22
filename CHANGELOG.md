@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The goal check reads the markers a task body emits.** An open task rates
+  every goal under one `== Goals` section after `Dogfood`, with
+  `#Helps(adopter, to: <goal>)[why]`, `#Hinders(maintainer, from: <goal>)[why]`
+  or `#Neutral(...)`. This repository's `truth/prelude/2/lib.typ` adds the goal
+  values beside generation 1's prelude, `truth/lib.typ` keeps `check-goal-over`
+  over the two registries, and each registry keeps the old `x-goals` key as an
+  alias. `.mindtape/config.toml` switches `give-every-goal-verdict` to
+  `field = "markers"`, adds the project allowlist and the four `Goals` rules,
+  and warns on an open task that still carries `x-goals`. Closed history keeps
+  the old field.
 - **A rebuilt task file can carry the project's own imports.** `[tasks]
   emit-imports` lists root-absolute `.typ` modules, and `mt import` writes one
   `#import "<path>": *` per entry after the prelude import and before the body,

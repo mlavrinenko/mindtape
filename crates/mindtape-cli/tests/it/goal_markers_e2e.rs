@@ -48,41 +48,6 @@ const COMPLETE: &str = "\
 + #Neutral(guide-the-implementer, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, match-docs-to-code).
 ";
 
-/// Copy one of this repo's real goal files into the throwaway project. The
-/// test then reads the source the backlog reads, not a fixture.
-fn copy(dir: &Path, name: &str, source: &str) {
-    write_file(dir, format!("truth/{name}"), source);
-}
-
-/// A throwaway project carrying this repo's goal files and `truth/lib.typ`,
-/// with the goal rule pointed at `check-goal-over`.
-fn project() -> tempfile::TempDir {
-    let dir = support::scaffold_project(CONFIG);
-    let truth = dir.path();
-    copy(truth, "lib.typ", include_str!("../../../../truth/lib.typ"));
-    copy(
-        truth,
-        "goal-dsl.typ",
-        include_str!("../../../../truth/goal-dsl.typ"),
-    );
-    copy(
-        truth,
-        "goals.typ",
-        include_str!("../../../../truth/goals.typ"),
-    );
-    copy(
-        truth,
-        "process-goals.typ",
-        include_str!("../../../../truth/process-goals.typ"),
-    );
-    copy(
-        truth,
-        "goal-calls.typ",
-        include_str!("../../../../truth/goal-calls.typ"),
-    );
-    dir
-}
-
 /// The task source a case files: the prelude, the goal DSL, a `wip` task, then
 /// the body under test.
 fn task_source(body: &str) -> String {
@@ -106,7 +71,7 @@ fn check(dir: &Path, body: &str) -> (bool, String) {
 /// load refuses the file before any check runs.
 #[test]
 fn a_verdict_without_a_goal_fails_the_load() {
-    let dir = project();
+    let dir = support::goal_project(CONFIG);
     let cases = [
         (
             "+ #Helps(adopter)[because a newcomer reads the block].",
@@ -128,7 +93,7 @@ fn a_verdict_without_a_goal_fails_the_load() {
 /// starts from [`COMPLETE`] so exactly one problem is in the body.
 #[test]
 fn a_broken_verdict_is_a_check_breach() {
-    let dir = project();
+    let dir = support::goal_project(CONFIG);
     let cases = [
         (
             "wrong audience",
@@ -185,7 +150,7 @@ fn a_broken_verdict_is_a_check_breach() {
 /// reason and carries a marker that is not a goal passes.
 #[test]
 fn a_complete_block_passes() {
-    let dir = project();
+    let dir = support::goal_project(CONFIG);
     let (ok, text) = check(dir.path(), PASSING);
     assert!(ok, "a complete block must pass: {text}");
 }
@@ -195,7 +160,7 @@ fn a_complete_block_passes() {
 /// all behaves the same.
 #[test]
 fn a_body_with_no_goal_marker_breaches() {
-    let dir = project();
+    let dir = support::goal_project(CONFIG);
     let cases = [
         ("marker-free body", "== Summary\n\n- nothing to rate.\n"),
         ("dropped body", ""),

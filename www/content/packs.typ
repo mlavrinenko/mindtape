@@ -28,16 +28,16 @@ built-in packs: `mindtape:tasks`, `mindtape:dogfood`, `mindtape:flow`,
 that layer adopts. If the layer declares a rule with the same `name` as a
 pack's rule, it replaces that rule where the pack put it. #mindtape's own
 `.mindtape/config.toml` adopts `mindtape:tasks` and, after it,
-`mindtape:dogfood`. The dogfood pack's `allow-only-declared-sections` replaces
-the tasks pack's rule to allow one more section, `Dogfood`. It adopts the other
+`mindtape:dogfood`, so a task can carry a Dogfood section. It adopts the other
 packs below too, `mindtape:budget` with `max-files` set to 5. It keeps only its
-tag list, its actors, its path sets, its goal check and its close gate:
+own policy: the allowlist that names `Dogfood` and `Goals`, its goal check, its
+tag list, its actors, its path sets and its close gate:
 
 #let parts = (
   ("extends", "the adoption, at the top of the file"),
   (
     "allow-only-declared-sections",
-    "the replacement, in the dogfood pack: the name matches, so it takes the place of the tasks pack's rule",
+    "the project's own rule, which replaces both packs' allowlist and names Dogfood and Goals",
   ),
 )
 
@@ -297,12 +297,11 @@ Every rule from a pack reads `pack <name>`: the two caps read
 `pack mindtape:wip-caps`, `cap-judgment-work-at-max-source-files` and
 `keep-work-inside-changes-plan` read `pack mindtape:budget`, `file-tweak-done`
 reads `pack mindtape:tweaks`, and the rest of the task rules read
-`pack mindtape:tasks`. The exception is `allow-only-declared-sections` and the
-Dogfood rules, which read `pack mindtape:dogfood`, because that pack replaced
-the tasks pack's allowlist. The `review-stale-task-before-starting` hook reads
-`pack mindtape:flow`, and the repository's own rule
-`give-every-goal-verdict` and its `close-only-on-fresh-gate` hook read
-`project` because only the project declares them. Keys that aren't rules read
+`pack mindtape:tasks`. The exception is the Dogfood rules, which read
+`pack mindtape:dogfood`. The `review-stale-task-before-starting` hook reads
+`pack mindtape:flow`. The repository's own rules read `project`: the allowlist,
+the goal check and its warning, the month and finding rules, the four `Goals`
+rules, and the `close-only-on-fresh-gate` hook. Keys that aren't rules read
 the same way, such as `key tasks.status` for `pack mindtape:flow`. To read
 each rule's severity and message as well, run
 #link(u("/cli/config/"))[`mt config show --resolved`].

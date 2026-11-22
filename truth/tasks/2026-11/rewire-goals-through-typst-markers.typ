@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Rewrite goals through Typst metadata markers",
@@ -10,22 +10,6 @@
   ),
   difficulty: 5,
   tags: ("mt", "tooling", "gating", "stateless"),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: helps[the milestone splits the loader, the candidate door, the emitter, the project DSL and the migration into leaves with a gate order.],
-      enforced-practice: helps[a project check reads structured markers the task body emits.],
-      config-over-code: helps[the marker field is generic. The goal policy stays in project Typst.],
-      cheap-adoption: neutral,
-      typst-over-markdown: helps[the marker field lets a rule read Typst values instead of parsed prose.],
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
-    ),
-  ),
   assignee: "agent",
   status: proposed(2026, 11, 21),
 )
@@ -76,3 +60,11 @@ Gate order: the exposure, emitter and decision leaves can run in parallel. The c
 == Dogfood
 
 This repo's own backlog is the first goal check. Every open task and active template uses the marker DSL once the two migration leaves land.
+
+== Goals
+
++ #Helps(adopter, to: guide-the-implementer)[the milestone splits the loader, the candidate door, the emitter, the project DSL and the migration into leaves with a gate order].
++ #Helps(adopter, to: run-checks-at-the-write)[a project check reads structured markers the task body emits].
++ #Helps(adopter, to: keep-the-engine-agnostic)[the marker field is generic. The goal policy stays in project Typst].
++ #Helps(adopter, to: beat-markdown)[the marker field lets a rule read Typst values instead of parsed prose].
++ #Neutral(read-tasks-at-a-glance, adopt-in-one-line, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).

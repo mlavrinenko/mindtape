@@ -1,4 +1,4 @@
-#import "/truth/prelude/1/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Install the skill from the checkout under test, not from the machine",
@@ -17,22 +17,6 @@
     ),
   ),
   tags: ("found", "tooling", "gating", "stateless"),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      config-over-code: neutral,
-      cheap-adoption: helps[a fork works beside its siblings],
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
-    ),
-  ),
   assignee: "agent",
   status: proposed(2026, 11, 21),
 )
@@ -76,3 +60,8 @@ warning: ~/.claude/skills/mindtape was installed from ../mindtape-other, not thi
 == Dogfood
 
 A `just fork` milestone runs many worktrees at once, and the skill is one of the files a feature branch edits.
+
+== Goals
+
++ #Helps(adopter, to: adopt-in-one-line)[a fork works beside its siblings].
++ #Neutral(read-tasks-at-a-glance, guide-the-implementer, run-checks-at-the-write, keep-the-engine-agnostic, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).

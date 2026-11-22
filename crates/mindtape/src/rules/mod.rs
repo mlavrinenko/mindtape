@@ -23,9 +23,12 @@
 //!   [[tasks.rules]]
 //!   name = "give-every-goal-verdict"
 //!   when = "!terminal"
-//!   check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
+//!   check = { typst = "truth/lib.typ", function = "check-goal-over", field = "markers" }
 //!   severity = "error"
 //!   ```
+//!
+//!   `field = "markers"` is the reserved input, not a task field: it hands the
+//!   function the metadata markers the body emits.
 //!
 //! `name`, `when`, `message` and `severity` work the same for either shape.
 //! [`RuleSpec`] takes exactly one of `assert`/`check`, and [`validate_rules`]

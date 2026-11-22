@@ -176,6 +176,46 @@ pub fn scaffold_project(config: &str) -> tempfile::TempDir {
     dir
 }
 
+/// Write this repo's goal modules and both task-prelude generations under
+/// `dir`'s `truth/` tree. A rule pointed at `check-goal-over` then reads the
+/// real files, not a fixture.
+fn copy_goal_files(dir: &Path) {
+    for (name, source) in [
+        ("lib.typ", include_str!("../../../../../truth/lib.typ")),
+        (
+            "goal-dsl.typ",
+            include_str!("../../../../../truth/goal-dsl.typ"),
+        ),
+        ("goals.typ", include_str!("../../../../../truth/goals.typ")),
+        (
+            "process-goals.typ",
+            include_str!("../../../../../truth/process-goals.typ"),
+        ),
+        (
+            "goal-calls.typ",
+            include_str!("../../../../../truth/goal-calls.typ"),
+        ),
+        (
+            "prelude/1/lib.typ",
+            include_str!("../../../../../truth/prelude/1/lib.typ"),
+        ),
+        (
+            "prelude/2/lib.typ",
+            include_str!("../../../../../truth/prelude/2/lib.typ"),
+        ),
+    ] {
+        write_file(dir, format!("truth/{name}"), source);
+    }
+}
+
+/// A project scaffolded with `config`, carrying this repo's real goal modules
+/// under `truth/`. The two e2e suites that exercise the goal DSL share it.
+pub fn goal_project(config: &str) -> tempfile::TempDir {
+    let dir = scaffold_project(config);
+    copy_goal_files(dir.path());
+    dir
+}
+
 /// `[tasks] roots = ["tasks"]`, the minimal config both [`project_with_tasks`]
 /// and [`project_with_task`] scaffold onto via [`scaffold_project`].
 const TASKS_ROOT_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";

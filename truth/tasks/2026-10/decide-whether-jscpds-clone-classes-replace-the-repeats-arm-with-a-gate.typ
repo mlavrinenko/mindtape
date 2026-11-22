@@ -1,5 +1,4 @@
-#import "@local/mindtape:0.3.0": *
-#import "/truth/lib.typ": *
+#import "/truth/prelude/2/lib.typ": *
 
 #show: task.with(
   title: "Decide whether jscpd's clone classes replace the repeats arm with a gate",
@@ -12,22 +11,6 @@
   difficulty: 3,
   tags: ("tooling", "repeats"),
   estimate: (src-files: 3),
-  x-goals: (
-    product: (
-      readable-tasks: neutral,
-      implementable-tasks: neutral,
-      enforced-practice: neutral,
-      config-over-code: neutral,
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-      self-describing: neutral,
-    ),
-    process: (
-      sound-codebase: helps[short repeats stop growing between sweeps instead of waiting for one],
-      docs-match-code: neutral,
-    ),
-  ),
   assignee: "max",
   status: proposed(2026, 10, 28),
 )
@@ -65,3 +48,8 @@
 == Dogfood
 
 This repo's own short repeats are what the decision is about.
+
+== Goals
+
++ #Helps(maintainer, to: keep-changes-safe)[short repeats stop growing between sweeps instead of waiting for one].
++ #Neutral(read-tasks-at-a-glance, guide-the-implementer, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, match-docs-to-code).

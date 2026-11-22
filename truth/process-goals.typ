@@ -3,8 +3,8 @@
 // too, checked by `check-goal-over(...)` from truth/lib.typ.
 //
 // A task names a goal by the kebab of its infinitive, which goal-calls.typ
-// binds. The dict keys stay the names a task rated in `x-goals:` until the
-// migration renames them to that kebab.
+// binds. The registry keys carry those names. goal-calls.typ also binds the
+// old `x-goals` keys as aliases, so a task filed before the rename evaluates.
 
 #import "goal-dsl.typ": maintainer
 #import "goal-dsl.typ": goal as goal-of
@@ -21,13 +21,13 @@
 )
 
 #let goals = (
-  sound-codebase: goal(
+  keep-changes-safe: goal(
     to: "keep changes safe",
     from: "keeping changes safe",
     title: "Changes stay safe",
     acid-test: [A change that breaks documented behavior fails `just check` before it can be committed, and every file fits its size cap.],
   ),
-  docs-match-code: goal(
+  match-docs-to-code: goal(
     to: "match docs to code",
     from: "matching docs to code",
     title: "Docs match the code",

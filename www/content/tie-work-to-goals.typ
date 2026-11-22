@@ -17,12 +17,16 @@
 Someone opens a milestone to rewrite the logging. The work is tidy, but the
 milestone serves none of your goals, and a week passes before anyone asks why.
 
+The slices below come from `examples/api-service`, which keeps the adopter
+`x-goals` form. This repository's own backlog writes a `== Goals` block of
+`#Helps`, `#Hinders` and `#Neutral` markers instead.
+
 = Config
 
 #recipe-config("tie-work-to-goals")
 
-The rule passes each open milestone's `x-goals` field to `check-goals`, a Typst
-function next to the goals it checks:
+The example's rule passes each open milestone's `x-goals` field to
+`check-goals`, a Typst function next to the goals it checks:
 
 #fixture-slice("goals")
 

@@ -32,6 +32,7 @@ mod board_e2e;
 mod breach_location_e2e;
 mod broken_pipe_e2e;
 mod check_content_detail_e2e;
+mod check_goals_e2e;
 mod check_json_e2e;
 mod check_set;
 mod check_stderr_e2e;
