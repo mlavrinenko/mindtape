@@ -23,7 +23,7 @@ fn land_creates_a_destination_that_did_not_exist_yet() {
         date: Some("2026-06-01".to_owned()),
         note: None,
     });
-    let source = mindtape::emit_task(&task);
+    let source = mindtape::emit_task_with(&task, &project.config.tasks.emit_imports);
 
     let dest = dir.path().join("tasks/fresh");
     assert!(!dest.exists(), "the destination must not pre-exist");

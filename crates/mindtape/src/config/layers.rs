@@ -270,6 +270,10 @@ fn build_typed(
     config.user_commands = crate::allow::UserCommands::from_layers(layers);
     config.git.set_root(root);
     config.validate().map_err(ConfigError::invalid)?;
+    // Root-aware, because an `emit-imports` path resolves against the project
+    // root and `Config::validate` never receives one.
+    crate::config::tasks::validate_emit_imports(&config.tasks, root)
+        .map_err(ConfigError::invalid)?;
     // Root-aware, so it cannot run inside `Config::validate` itself (which
     // stays callable rootless, e.g. from `mt init`'s wizard and from the many
     // unit tests that build a `Config` from a bare TOML string): a
@@ -442,6 +446,10 @@ pub fn load_config_layered_in(
 #[cfg(test)]
 #[path = "layers_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "layers_tests_emit.rs"]
+mod tests_emit;
 
 #[cfg(test)]
 #[path = "layers_tests_source.rs"]

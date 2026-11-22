@@ -21,7 +21,7 @@ use crate::model::{Status, Task};
 use crate::test_support::bare_task;
 use crate::validate::validate;
 
-use super::emit_task;
+use super::{emit_task, emit_task_with};
 
 use crate::test_support::PRELUDE;
 
@@ -70,8 +70,26 @@ fn link_sort_key(link: &Link) -> (String, String, Option<String>) {
 /// `blocks` and link order), and it passes validation with no violation
 /// attributed to `task.id`.
 pub(super) fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
+    assert_round_trips_with(task, config_text, stub_ids, &[], &[]);
+}
+
+/// [`assert_round_trips`] with the project modules a body calls: `imports` are
+/// the root-absolute paths the emitter writes as `#import "<path>": *`, and
+/// each `modules` entry is a `(root-relative path, source)` the load resolves
+/// one against.
+pub(super) fn assert_round_trips_with(
+    task: &Task,
+    config_text: &str,
+    stub_ids: &[&str],
+    imports: &[&str],
+    modules: &[(&str, &str)],
+) {
     let dir = tempdir();
-    let source = emit_task(task);
+    for &(path, source) in modules {
+        write_file(dir.path(), path, source);
+    }
+    let imports: Vec<String> = imports.iter().map(|path| (*path).to_owned()).collect();
+    let source = emit_task_with(task, &imports);
     let mut files = vec![(format!("{}.typ", task.id), source.clone())];
     for id in stub_ids {
         files.push((format!("{id}.typ"), STUB.to_owned()));
@@ -344,6 +362,57 @@ fn emits_unnamed_framework_with_inputs_via_the_generic_escape_hatch() {
         source.contains(r#"priority: framework("custom", flag: true, note: "careful")"#),
         "{source}"
     );
+}
+
+/// A body that calls a project helper evaluates when the emitter writes the
+/// project's import above it, and the round trip carries the body unchanged.
+#[test]
+fn round_trips_a_body_that_calls_a_project_helper() {
+    let mut task = bare_task("helper-call");
+    task.body = "== Summary\n\n#emphasize[A body that calls the project helper.]".to_owned();
+    task.status = Some(status("wip", "2026-06-01"));
+    assert_round_trips_with(
+        &task,
+        CONFIG,
+        &[],
+        &["/truth/prelude/2/lib.typ"],
+        &[(
+            "truth/prelude/2/lib.typ",
+            "#let emphasize(body) = text(weight: \"bold\", body)\n",
+        )],
+    );
+}
+
+/// An empty import list writes the exact file the emitter wrote before the
+/// list existed: the prelude import, a blank line, then the `#show` header.
+#[test]
+fn an_empty_import_list_writes_the_unchanged_file() {
+    let mut task = bare_task("no-imports");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.body = "== Summary\n\nSome prose.".to_owned();
+    let expected = "#import \"@local/mindtape:0.4.0\": *\n\n\
+         #show: task.with(\n  title: \"no-imports\",\n  status: wip(2026, 6, 1),\n)\n\n\
+         == Summary\n\nSome prose.\n";
+    assert_eq!(emit_task_with(&task, &[]), expected);
+}
+
+/// Each configured import follows the prelude import, in order, and the blank
+/// line that starts the body still separates the header from the `#show` call.
+#[test]
+fn emits_configured_imports_in_order_after_the_prelude() {
+    let task = bare_task("ordered-imports");
+    let source = emit_task_with(
+        &task,
+        &[
+            "/truth/prelude/2/lib.typ".to_owned(),
+            "/helpers/labels.typ".to_owned(),
+        ],
+    );
+    let expected = "#import \"@local/mindtape:0.4.0\": *\n\
+         #import \"/truth/prelude/2/lib.typ\": *\n\
+         #import \"/helpers/labels.typ\": *\n\n\
+         #show: task.with(\n";
+    assert!(source.starts_with(expected), "{source}");
 }
 
 #[test]

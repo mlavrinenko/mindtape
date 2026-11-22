@@ -11,6 +11,7 @@
 //! rules (`rules/mod.rs`), and comments (`config/comments.rs`).
 
 use std::collections::{BTreeMap, HashSet};
+use std::path::{Component, Path};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -36,6 +37,12 @@ pub struct TasksConfig {
     pub roots: Vec<RootSpec>,
     /// Project-wide folder-derived-tag policy.
     pub derive_tags: DeriveConfig,
+    /// Typst modules every writer imports into a task file it rebuilds, each a
+    /// root-absolute path to a `.typ` module. `mt import` writes
+    /// `#import "<path>": *` for each entry, after the prelude import and
+    /// before the body. A project with no entry gets the file writers always
+    /// wrote.
+    pub emit_imports: Vec<String>,
     /// Status legend: legal values in lifecycle order, plus per-value display
     /// (glyph, color, label) and the `terminal` flag.
     pub status: Legend,
@@ -91,6 +98,7 @@ impl Default for TasksConfig {
         Self {
             roots: vec![RootSpec::Short("tasks".to_owned())],
             derive_tags: DeriveConfig::default(),
+            emit_imports: Vec::new(),
             status: Legend::default(),
             priority: PriorityConfig::default(),
             difficulty: NumericField::default(),
@@ -308,6 +316,53 @@ fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(),
     } else {
         Err(Problem::join(problems))
     }
+}
+
+/// The key every `emit-imports` refusal mentions.
+const EMIT_IMPORTS_KEY: &str = "tasks.emit-imports";
+
+/// Check every `[tasks] emit-imports` entry against `root`. A writer emits each
+/// one as `#import "<path>": *`, and the list holds root-absolute `.typ`
+/// modules that the project has. Emitted from `build_typed`, because a rootless
+/// [`crate::config::Config::validate`] cannot resolve a path against the
+/// project.
+///
+/// # Errors
+/// The first problem found, prefixed with the key it belongs to.
+pub(crate) fn validate_emit_imports(tasks: &TasksConfig, root: &Path) -> Result<(), String> {
+    for import in &tasks.emit_imports {
+        if let Some(problem) = emit_import_problem(import, root) {
+            return Err(format!("{EMIT_IMPORTS_KEY}: {problem}"));
+        }
+    }
+    Ok(())
+}
+
+/// The first problem with one `import`, or `None` when it specifies a module
+/// under `root`.
+fn emit_import_problem(import: &str, root: &Path) -> Option<String> {
+    let Some(relative) = import.strip_prefix('/') else {
+        return Some(format!(
+            "`{import}` must start with `/`, a root-absolute path"
+        ));
+    };
+    if relative.is_empty() {
+        return Some("an entry is empty; name a `.typ` module".to_owned());
+    }
+    if Path::new(relative)
+        .components()
+        .any(|component| matches!(component, Component::ParentDir))
+    {
+        return Some(format!("`{import}` climbs out of the root with `..`"));
+    }
+    if !relative.ends_with(".typ") {
+        return Some(format!("`{import}` is not a `.typ` file"));
+    }
+    (!root.join(relative).is_file()).then(|| {
+        format!(
+            "`{import}` does not exist under the project root; write the module or drop the entry"
+        )
+    })
 }
 
 /// Core fields that carry their own `[tasks.<name>]` table, which a

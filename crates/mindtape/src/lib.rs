@@ -91,9 +91,9 @@ pub use config::{
 pub use config::{KeyOrigin, ParamOrigin};
 pub use date::pin::{DateOverrideError, init_pinned_today};
 pub use date::{DATE_TOKENS, DateToken, days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
-pub use emit::emit_task;
 pub use emit::format::{typ_array, typ_str};
 pub use emit::status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
+pub use emit::{emit_task, emit_task_with};
 pub use filter::condition::{Condition, ConditionError};
 pub use filter::condition_env::{ColumnFacts, ConditionEnv};
 pub use filter::{DictMiss, Filter, FilterError};

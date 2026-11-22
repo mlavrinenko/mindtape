@@ -175,6 +175,30 @@ pin declares the same unsupported version an import names, `mt fix` reports
 that import unfixable, because rewriting it would change which prelude the
 project reads.
 
+= Emitted imports
+
+`mt` rebuilds a task file from the model in one place, `mt import`. The header
+it writes holds the prelude import, then one `#import "<path>": *` per
+`[tasks] emit-imports` entry, then the blank line and the body. Each entry is a
+root-absolute path to a `.typ` module in the project, so a rebuilt body that
+calls a project helper still evaluates:
+
+// docs:hand-typed the shape of a project helper no fixture here ships
+```toml
+[tasks]
+emit-imports = ["/truth/prelude/2/lib.typ"]
+```
+
+The `: *` wildcard brings in every name the module exports. `mt` refuses an
+entry that is not root-absolute, holds `..`, does not end in `.typ`, or names a
+module the project lacks, and it refuses each of them when the config loads. A
+project with no entry writes the file `mt` always wrote.
+
+The list is project policy, not a fixed header. `mt import` never reads the
+imports a task file carried before. It also never writes a project helper into
+the body, where the helper would sit in the prose and repeat on every round
+trip.
+
 = Editor schema
 
 `mt install` writes a JSON Schema for `.mindtape/config.toml` into the config
@@ -222,6 +246,7 @@ leaves out.
   ("tasks.body.headers", "[tasks.body.headers]"),
   ("tasks.body.content", "[tasks.body.content]"),
   ("tasks.derive-tags", "[tasks.derive-tags]"),
+  ("tasks.emit-imports", "[tasks] emit-imports"),
   ("tasks.tags", "[tasks.tags]"),
   ("tasks.rules", "[[tasks.rules]]"),
   ("tasks.collectors", "[[tasks.collectors]]"),

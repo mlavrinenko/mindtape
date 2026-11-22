@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 use std::collections::BTreeMap;
 
-use super::{FieldConfig, TagsConfig, TasksConfig, expand_dict_refs};
+use super::{FieldConfig, TagsConfig, TasksConfig, expand_dict_refs, validate_emit_imports};
 use crate::config::dicts::{DictSpec, Dicts, compile_dicts_rootless};
 
 /// Compile a `Dicts` from `(name, values)` pairs, inline `values` only, which
@@ -18,6 +18,41 @@ fn dicts(spec: &[(&str, &[&str])]) -> Dicts {
         })
         .collect();
     compile_dicts_rootless(&map).expect("inline-only dicts always compile")
+}
+
+/// A root-absolute `.typ` module the project holds passes.
+#[test]
+fn a_present_root_absolute_module_passes() {
+    let dir = crate::test_support::tempdir();
+    crate::test_support::write_file(dir.path(), "truth/prelude/2/lib.typ", "");
+    let tasks = TasksConfig {
+        emit_imports: vec!["/truth/prelude/2/lib.typ".to_owned()],
+        ..TasksConfig::default()
+    };
+    assert_eq!(validate_emit_imports(&tasks, dir.path()), Ok(()));
+}
+
+/// A relative path, a `..` segment, a non-`.typ` file and a missing module are
+/// each refused, each naming the key.
+#[test]
+fn a_bad_emit_import_is_refused() {
+    let dir = crate::test_support::tempdir();
+    crate::test_support::write_file(dir.path(), "notes.md", "");
+    for (entry, expected) in [
+        ("truth/prelude/2/lib.typ", "root-absolute"),
+        ("/", "an entry is empty"),
+        ("/truth/../lib.typ", "`..`"),
+        ("/notes.md", "`.typ`"),
+        ("/truth/prelude/2/lib.typ", "does not exist"),
+    ] {
+        let tasks = TasksConfig {
+            emit_imports: vec![entry.to_owned()],
+            ..TasksConfig::default()
+        };
+        let err = validate_emit_imports(&tasks, dir.path()).unwrap_err();
+        assert!(err.contains(expected), "{entry}: {err}");
+        assert!(err.contains("tasks.emit-imports"), "{entry}: {err}");
+    }
 }
 
 /// No `@` entry anywhere leaves both lists exactly as declared.

@@ -236,8 +236,8 @@ fn a_marker_an_imported_helper_emits_is_kept() {
     );
 }
 
-/// A task body whose marker carries a `datetime`, the one value JSON cannot
-/// store as itself.
+/// A task body whose markers carry a `datetime`, the one value JSON cannot
+/// store as itself: once inside a dict and once inside a list.
 const DATED_TASK: &str = "#metadata((
   marker: \"mindtape.task\",
   fields: (
@@ -249,6 +249,8 @@ const DATED_TASK: &str = "#metadata((
 ))
 
 #metadata((day: datetime(year: 2027, month: 1, day: 2))) <dated>
+
+#metadata((datetime(year: 2027, month: 1, day: 2), datetime(year: 2027, month: 1, day: 3))) <dated-list>
 ";
 
 #[test]
@@ -258,13 +260,22 @@ fn a_date_valued_marker_reads_the_same_cold_and_warm() {
     let cold = load_markers(dir.path());
     assert_eq!(
         cold,
-        vec![body_marker(
-            Some("dated"),
-            HVal::Dict(std::collections::BTreeMap::from([(
-                "day".to_owned(),
-                HVal::Str("2027-01-02".to_owned()),
-            )])),
-        )]
+        vec![
+            body_marker(
+                Some("dated"),
+                HVal::Dict(std::collections::BTreeMap::from([(
+                    "day".to_owned(),
+                    HVal::Str("2027-01-02".to_owned()),
+                )])),
+            ),
+            body_marker(
+                Some("dated-list"),
+                HVal::Array(vec![
+                    HVal::Str("2027-01-02".to_owned()),
+                    HVal::Str("2027-01-03".to_owned()),
+                ]),
+            ),
+        ]
     );
     assert_eq!(load_markers(dir.path()), cold);
 }

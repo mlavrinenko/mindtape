@@ -5,15 +5,17 @@
 //! `crates/mindtape-cli/src/cmd/import/tests.rs` via `cmd::import::import_records`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use std::path::Path;
+
 use crate::support;
 use mindtape::test_support::write_file;
 
+/// The status legend every scaffold in this file shares.
+const LEGEND: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
+     [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
+
 fn scaffold() -> tempfile::TempDir {
-    support::scaffold_project(
-        "[tasks]\nroots = [\"tasks\"]\n\
-         [[tasks.status]]\nvalue = \"wip\"\n\
-         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
-    )
+    support::scaffold_project(&format!("[tasks]\nroots = [\"tasks\"]\n{LEGEND}"))
 }
 
 const ONE_TASK_JSON: &str = r#"[{"id":"","file":"","title":"Wire import","status":{"name":"wip","date":"2026-06-01","note":null},"priority":null,"difficulty":null,"kind":null,"estimate":{},"links":[],"tags":[],"derived_tags":[],"due":null,"start":null,"reviewed":null,"body":"","extras":{}}]"#;
@@ -21,11 +23,7 @@ const ONE_TASK_JSON: &str = r#"[{"id":"","file":"","title":"Wire import","status
 /// [`scaffold`] with `.` as the only task root, so a path below the project
 /// stays under a root while reserved or ignored.
 fn root_scaffold() -> tempfile::TempDir {
-    support::scaffold_project(
-        "[tasks]\nroots = [\".\"]\n\
-         [[tasks.status]]\nvalue = \"wip\"\n\
-         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
-    )
+    support::scaffold_project(&format!("[tasks]\nroots = [\".\"]\n{LEGEND}"))
 }
 
 /// The path `mt` shows for `rel` under `dir`, in the native separator.
@@ -154,6 +152,66 @@ fn imports_from_a_file_argument() {
     assert!(written.contains("title: \"Wire import\""), "{written}");
 
     // The filed task passes `check`.
+    support::check_ok(dir.path());
+}
+
+const HELPER: &str = "#let emphasize(body) = text(weight: \"bold\", body)\n";
+
+const HELPER_TASK: &str = "#import \"@local/mindtape:0.4.0\": *\n\
+     #import \"/truth/prelude/2/lib.typ\": *\n\n\
+     #show: task.with(\n  title: \"Uses the helper\",\n  status: wip(2026, 6, 1),\n)\n\n\
+     = Summary\n\n#emphasize[The project helper resolves.]\n";
+
+/// [`scaffold`] with `[tasks] emit-imports` and the project helper module a
+/// rebuilt body calls.
+fn helper_scaffold() -> tempfile::TempDir {
+    let dir = support::scaffold_project(&format!(
+        "[tasks]\nroots = [\"tasks\"]\n\
+         emit-imports = [\"/truth/prelude/2/lib.typ\"]\n{LEGEND}"
+    ));
+    write_file(dir.path(), "truth/prelude/2/lib.typ", HELPER);
+    dir
+}
+
+/// Run `mt import` in `dir` over `input`, requiring success.
+fn import_stdin(dir: &Path, input: impl Into<Vec<u8>>) {
+    support::mt(dir)
+        .arg("import")
+        .write_stdin(input)
+        .assert()
+        .success();
+}
+
+/// A task whose body calls a project helper keeps its `emit-imports` line
+/// through `mt ls --json | mt import`, so the rebuilt file evaluates and
+/// passes `mt check`.
+#[test]
+fn a_rebuilt_task_keeps_the_project_import_its_body_calls() {
+    let dir = helper_scaffold();
+    write_file(dir.path(), "tasks/uses-helper.typ", HELPER_TASK);
+
+    let exported = support::mt(dir.path())
+        .args(["ls", "", "--json"])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    std::fs::remove_file(dir.path().join("tasks/uses-helper.typ")).unwrap();
+    import_stdin(dir.path(), exported);
+
+    let rebuilt = std::fs::read_to_string(dir.path().join("tasks/uses-helper.typ")).unwrap();
+    assert_eq!(
+        rebuilt.lines().take(2).collect::<Vec<_>>(),
+        [
+            "#import \"@local/mindtape:0.4.0\": *",
+            "#import \"/truth/prelude/2/lib.typ\": *",
+        ]
+    );
+    assert!(
+        rebuilt.contains("#emphasize[The project helper resolves.]"),
+        "{rebuilt}"
+    );
     support::check_ok(dir.path());
 }
 

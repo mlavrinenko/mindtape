@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A rebuilt task file can carry the project's own imports.** `[tasks]
+  emit-imports` lists root-absolute `.typ` modules, and `mt import` writes one
+  `#import "<path>": *` per entry after the prelude import and before the body,
+  so a task rebuilt from JSON evaluates when its body calls a project helper.
+  `emit_task_with` is the new library entry point, `emit_task` stays the
+  no-import wrapper, and a project with no entry writes the same file as
+  before. Config load refuses an entry that is not root-absolute, climbs with
+  `..`, is not a `.typ` file, or names a module the project lacks.
 - **A Typst check can read the metadata markers a task body emits.** A `check`
   rule with `field = "markers"` hands its function an array of `(label, value)`
   dicts in document order. Each dict holds the marker's Typst label (`none`

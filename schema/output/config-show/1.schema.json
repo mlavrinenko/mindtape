@@ -829,6 +829,7 @@
               "min": 0.0,
               "required": false
             },
+            "emit-imports": [],
             "estimate": {
               "queries": {},
               "required": false,
@@ -2911,6 +2912,14 @@
             "required": false
           },
           "description": "The difficulty scale and its labeled anchors or bands."
+        },
+        "emit-imports": {
+          "default": [],
+          "description": "Typst modules every writer imports into a task file it rebuilds, each a\nroot-absolute path to a `.typ` module. `mt import` writes\n`#import \"<path>\": *` for each entry, after the prelude import and\nbefore the body. A project with no entry gets the file writers always\nwrote.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "estimate": {
           "$ref": "#/$defs/EstimateConfig",

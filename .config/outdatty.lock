@@ -172,11 +172,11 @@ groups:
   cli-import-docs:
     source:
       crates/mindtape-cli/src/cmd/import/input.rs: 941085c3702516f529211630b81056c1ef2f86e6c61cbb960ec65b1f6b84cd5e
-      crates/mindtape-cli/src/cmd/import/mod.rs: f67535c834540dcd96f06f16ad57aae1fd084af69f481200aeb319999813e1ae
+      crates/mindtape-cli/src/cmd/import/mod.rs: ba2c16e7f8b9176051cd895fc9ed52898130bd8a336804a57afde97dc6f5e53c
     dependents:
       skills/mindtape/references/import.md: eb50d2566963d76563c23528b14c888119c065815292a218cb9f091d1e5f0670
-      www/content/import-export.typ: b10e38ea0f24336e8f930e2c2a86f9eb9603e86a919dd22535ce092d163ceeb2
-      www/content/schema.typ: 2d009ca8a861a81d353ec2dfd1cc6dcdb0f8aec324cbc02219702f6a38c2c8f4
+      www/content/import-export.typ: 980820320bbbc8cc599afd7457ca9d34df0ebfdbf0463173463086055398af83
+      www/content/schema.typ: 4e926010926508f00e9666eb08cdcc7c63b31759f5ebb085694d35bc41546797
   cli-init-docs:
     source:
       crates/mindtape-cli/src/cmd/init/mod.rs: 3c171cf4618fb04603ac7806a722b9de58c624040cd39fe90f32e0b3ea5a7454

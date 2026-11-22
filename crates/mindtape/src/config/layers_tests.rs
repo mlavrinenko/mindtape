@@ -193,7 +193,7 @@ fn merged_config_table_returns_content_from_project_layer() {
 }
 
 /// A fresh home and project whose `.mindtape/config.toml` holds `config`.
-fn project_with_config(
+pub(super) fn project_with_config(
     config: &str,
 ) -> (tempfile::TempDir, std::path::PathBuf, std::path::PathBuf) {
     let (tmp, home, project) = home_and_project();

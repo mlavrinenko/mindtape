@@ -1,9 +1,10 @@
 //! `mt import` reads canonical task-JSON (a file arg or stdin `-`) and writes
 //! native `.typ` tasks. It maps each record onto this project's config policy
-//! (`mindtape::map_canonical`), emits it (`mindtape::emit_task`), lands the
-//! whole batch, validates it as a set, and reports. It is "`mt add` without a
-//! template, from a full record", and it reuses `mt add`'s destination
-//! resolution (`--dir`) and dedupe.
+//! (`mindtape::map_canonical`), emits it with the project's `[tasks]
+//! emit-imports` list (`mindtape::emit_task_with`), lands the whole batch,
+//! validates it as a set, and reports. It is "`mt add` without a template, from
+//! a full record", and it reuses `mt add`'s destination resolution (`--dir`)
+//! and dedupe.
 //!
 //! One bad record does not refuse the batch. The rest still land, and the
 //! per-record report says which did. The run exits 1 once it has printed the
@@ -150,7 +151,7 @@ fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec
             Ok(stem) => {
                 let mut task = mapped.task;
                 task.id.clone_from(&stem);
-                let source = mindtape::emit_task(&task);
+                let source = mindtape::emit_task_with(&task, &config.tasks.emit_imports);
                 staged.push(StagedTask {
                     label,
                     dest,
