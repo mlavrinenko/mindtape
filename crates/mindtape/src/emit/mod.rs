@@ -37,7 +37,7 @@ use crate::recur::{Recur, Rule};
 use format::{hval_to_typ, typ_array, typ_str};
 
 /// The prelude import every emitted task file starts with.
-const PRELUDE_IMPORT: &str = "#import \"@local/mindtape:0.4.0\": *\n";
+const PRELUDE_IMPORT: &str = "#import \"@local/mindtape:0.5.0\": *\n";
 
 /// Serialize `task` to a full task-file source: the `@local/mindtape` import,
 /// one `#import "<path>": *` per entry of `imports` in order, then

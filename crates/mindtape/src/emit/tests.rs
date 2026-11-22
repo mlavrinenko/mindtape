@@ -390,7 +390,7 @@ fn an_empty_import_list_writes_the_unchanged_file() {
     let mut task = bare_task("no-imports");
     task.status = Some(status("wip", "2026-06-01"));
     task.body = "== Summary\n\nSome prose.".to_owned();
-    let expected = "#import \"@local/mindtape:0.4.0\": *\n\n\
+    let expected = "#import \"@local/mindtape:0.5.0\": *\n\n\
          #show: task.with(\n  title: \"no-imports\",\n  status: wip(2026, 6, 1),\n)\n\n\
          == Summary\n\nSome prose.\n";
     assert_eq!(emit_task_with(&task, &[]), expected);
@@ -408,7 +408,7 @@ fn emits_configured_imports_in_order_after_the_prelude() {
             "/helpers/labels.typ".to_owned(),
         ],
     );
-    let expected = "#import \"@local/mindtape:0.4.0\": *\n\
+    let expected = "#import \"@local/mindtape:0.5.0\": *\n\
          #import \"/truth/prelude/2/lib.typ\": *\n\
          #import \"/helpers/labels.typ\": *\n\n\
          #show: task.with(\n";

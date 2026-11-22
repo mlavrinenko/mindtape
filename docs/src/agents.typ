@@ -62,7 +62,7 @@ unchanged files.
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task
   DSL.
 - `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each
-  prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
+  prelude version this binary reads, `0.2.0` through `0.5.0`.
 - `truth/tasks/`: #mindtape's own backlog, a folder per month plus a
   `swept/` inbox, read with the in-tree `lib/`.
 - `truth/*.typ`: the goals above and the names a task writes.

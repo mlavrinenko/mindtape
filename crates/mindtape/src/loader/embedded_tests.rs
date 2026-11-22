@@ -94,11 +94,12 @@ fn the_supported_set_lists_every_snapshot_and_ends_at_the_current_version() {
 }
 
 #[test]
-fn the_supported_set_names_the_three_versions_this_release_reads() {
-    assert_eq!(PRELUDE_SUPPORTED, ["0.2.0", "0.3.0", "0.4.0"]);
+fn the_supported_set_names_the_four_versions_this_release_reads() {
+    assert_eq!(PRELUDE_SUPPORTED, ["0.2.0", "0.3.0", "0.4.0", "0.5.0"]);
     assert!(prelude_supports("0.2.0"));
     assert!(prelude_supports("0.3.0"));
     assert!(prelude_supports("0.4.0"));
+    assert!(prelude_supports("0.5.0"));
     assert!(!prelude_supports("0.1.0"));
     assert!(!prelude_supports("99.99.99"));
     assert!(!prelude_supports("0.4"));
@@ -116,7 +117,7 @@ fn an_unsupported_prelude_names_the_version_and_the_supported_set() {
         Some("0.1.0"),
         "{message}"
     );
-    assert!(message.contains("0.2.0, 0.3.0, 0.4.0"), "{message}");
+    assert!(message.contains("0.2.0, 0.3.0, 0.4.0, 0.5.0"), "{message}");
 }
 
 /// The gate runs before any package directory. A working `0.1.0` install
@@ -206,13 +207,28 @@ fn the_archived_snapshot_checksum_normalizes_crlf() {
 const ARCHIVED_0_2_0_SHA256: &str =
     "e9bec1519fe6778cbfbdfb7d5897d616261661ecd529246faf4126b8050b7b10";
 
-/// The current snapshot carries the helper a 0.4.0 task authors.
+/// The current snapshot carries the helper a 0.5.0 task authors.
 #[test]
 fn the_current_snapshot_carries_the_ast_grep_helper() {
     assert!(
         PRELUDE.contains("#let ast_grep("),
-        "0.4.0 must ship `ast_grep`"
+        "0.5.0 must ship `ast_grep`"
     );
+}
+
+/// The current snapshot carries the goal DSL a project imports and a task
+/// body writes.
+#[test]
+fn the_current_snapshot_carries_the_goal_dsl() {
+    for helper in [
+        "#let Helps(",
+        "#let Hinders(",
+        "#let Neutral(",
+        "#let goal(",
+        "#let check-goal-over(",
+    ] {
+        assert!(PRELUDE.contains(helper), "0.5.0 must ship `{helper}`");
+    }
 }
 
 /// The archived 0.3.0 snapshot predates `ast_grep(...)`, so a later edit that

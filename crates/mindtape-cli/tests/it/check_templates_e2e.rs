@@ -34,7 +34,7 @@ fn check(dir: &std::path::Path) -> (bool, String) {
 
 fn template(kind: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.4.0\": *\n#show: task.with(\n  \
+        "#import \"@local/mindtape:0.5.0\": *\n#show: task.with(\n  \
          title: slot(\"title\", example: \"Fix the crash on save\"),\n  kind: {kind},\n)\n"
     )
 }
@@ -94,7 +94,7 @@ fn both_the_example_and_the_default_are_filed() {
 /// template may leave a goal neutral for `mt add` to refuse.
 #[test]
 fn defaults_are_filed_only_under_check_defaults() {
-    let body = "#import \"@local/mindtape:0.4.0\": *\n#show: task.with(\n  \
+    let body = "#import \"@local/mindtape:0.5.0\": *\n#show: task.with(\n  \
          title: slot(\"title\", example: \"Fix the crash on save\"),\n  kind: \"fix\",\n  \
          x-machine: slot(\"x-machine\", kind: \"list\", default: (\"beta\",), \
          example: (\"alpha\",)),\n)\n";
@@ -343,7 +343,7 @@ fn add_task(dir: &std::path::Path, stem: &str, title: &str) {
     let file = dir.join(format!("tasks/{stem}.typ"));
     std::fs::create_dir_all(file.parent().unwrap()).unwrap();
     let source = format!(
-        "#import \"@local/mindtape:0.4.0\": *\n#show: task.with(\n  title: \"{title}\",\n  \
+        "#import \"@local/mindtape:0.5.0\": *\n#show: task.with(\n  title: \"{title}\",\n  \
          kind: \"fix\",\n  status: proposed(2026, 1, 1),\n)\n"
     );
     std::fs::write(file, source).unwrap();

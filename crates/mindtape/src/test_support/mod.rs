@@ -60,7 +60,7 @@ pub fn assert_schema_at(value: &serde_json::Value, name: &str, version: u32) {
 #[macro_export]
 macro_rules! typst_import {
     ($($part:literal),+) => {
-        concat!("#import \"@local/mindtape:0.4.0\": *\n", $($part),+)
+        concat!("#import \"@local/mindtape:0.5.0\": *\n", $($part),+)
     };
 }
 

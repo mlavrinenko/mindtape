@@ -21,6 +21,19 @@ The slices below come from `examples/api-service`, which keeps the adopter
 `x-goals` form. This repository's own backlog writes a `== Goals` block of
 `#Helps`, `#Hinders` and `#Neutral` markers instead.
 
+The prelude defines the goal DSL. A project imports its functions and declares
+the goals its tasks rate:
+
+// docs:hand-typed the prelude function list is a shape, not a fixture
+```typ
+#import "@local/mindtape:0.5.0": Helps, Hinders, Neutral, goal, check-goal-over
+```
+
+Each goal carries an audience (`adopter` or `maintainer`), the infinitive a task
+writes, and the sentence a render shows. The project keeps its registry and its
+own wrapper around `check-goal-over`, which takes both registries and the task's
+markers.
+
 = Config
 
 #recipe-config("tie-work-to-goals")

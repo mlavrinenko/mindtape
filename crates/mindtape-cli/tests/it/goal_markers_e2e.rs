@@ -52,7 +52,7 @@ const COMPLETE: &str = "\
 /// the body under test.
 fn task_source(body: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.4.0\": *\n\
+        "#import \"@local/mindtape:0.5.0\": *\n\
          #import \"/truth/goal-calls.typ\": *\n\n\
          #show: task.with(\n  title: \"Subject\",\n  status: wip(2026, 6, 1),\n)\n\n\
          {body}\n"

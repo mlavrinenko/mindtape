@@ -33,7 +33,7 @@ fn check_prints_the_rewrites_and_the_summary() {
     has(
         &stdout,
         &[
-            "rewrite tasks/old.typ  0.1.0 -> 0.4.0",
+            "rewrite tasks/old.typ  0.1.0 -> 0.5.0",
             "would rewrite 1 import; 1 kept",
         ],
     );
@@ -94,5 +94,5 @@ fn a_quiet_write_prints_nothing_and_keeps_its_edit() {
     let (dir, _) = project_with("0.1.0");
 
     silent(dir.path(), &["fix", "-q"], 0);
-    assert_eq!(read(dir.path(), "tasks/old.typ"), task("0.4.0", "Old task"));
+    assert_eq!(read(dir.path(), "tasks/old.typ"), task("0.5.0", "Old task"));
 }

@@ -24,7 +24,7 @@ Mindtape is a file-based task tracker. Each task is one Typst file (`#show: task
 ## Repo map
 
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task DSL.
-- `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each prelude version this binary reads, `0.2.0`, `0.3.0` and `0.4.0`.
+- `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each prelude version this binary reads, `0.2.0` through `0.5.0`.
 - `truth/tasks/`: Mindtape’s own backlog, a folder per month plus a `swept/` inbox, read with the in-tree `lib/`.
 - `truth/*.typ`: the goals above and the names a task writes.
 - `www/content/*.typ` and `docs/src/*.typ`: the docs site and the sources of README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the deep dives.

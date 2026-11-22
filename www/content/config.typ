@@ -128,8 +128,8 @@ variable.
 A task file imports the DSL as `@local/mindtape`, and Typst resolves a
 `@local` package from one directory per machine. `mt install` fills that
 directory with every prelude version `mt` reads, and `mt`, `typst` and
-tinymist all read it. This `mt` reads `0.2.0`, `0.3.0` and `0.4.0`, and the
-binary holds a copy of each. A task file then loads even where the directory
+tinymist all read it. This `mt` reads `0.2.0`, `0.3.0`, `0.4.0` and `0.5.0`,
+and the binary holds a copy of each. A task file then loads even where the directory
 has none of them. `mt` refuses an import at any other version at load, with
 the supported set and the hint that fits.
 

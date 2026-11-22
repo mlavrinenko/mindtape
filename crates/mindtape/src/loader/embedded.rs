@@ -19,18 +19,19 @@ use typst_world::{
 
 /// The prelude package's current version, and the highest this binary reads.
 /// Mirrors `lib/typst.toml`.
-pub const PRELUDE_VERSION: &str = "0.4.0";
+pub const PRELUDE_VERSION: &str = "0.5.0";
 
 /// Every prelude version this binary evaluates, oldest first. The current
 /// version is the last entry.
-pub const PRELUDE_SUPPORTED: &[&str] = &["0.2.0", "0.3.0", "0.4.0"];
+pub const PRELUDE_SUPPORTED: &[&str] = &["0.2.0", "0.3.0", "0.4.0", "0.5.0"];
 
 /// The current prelude, a copy of `lib/prelude.typ` inside the crate so the
 /// published tarball holds it, and a test keeps the two equal.
-pub const PRELUDE: &str = include_str!("preludes/0.4.0/prelude.typ");
+pub const PRELUDE: &str = include_str!("preludes/0.5.0/prelude.typ");
 
 const PRELUDE_0_2: &str = include_str!("preludes/0.2.0/prelude.typ");
 const PRELUDE_0_3: &str = include_str!("preludes/0.3.0/prelude.typ");
+const PRELUDE_0_4: &str = include_str!("preludes/0.4.0/prelude.typ");
 
 /// One supported prelude version and the source it carries.
 #[derive(Debug, Clone, Copy)]
@@ -51,6 +52,10 @@ pub const PRELUDE_SNAPSHOTS: &[PreludeSnapshot] = &[
     PreludeSnapshot {
         version: "0.3.0",
         source: PRELUDE_0_3,
+    },
+    PreludeSnapshot {
+        version: "0.4.0",
+        source: PRELUDE_0_4,
     },
     PreludeSnapshot {
         version: PRELUDE_VERSION,

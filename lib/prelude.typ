@@ -98,6 +98,167 @@
   slots.map(name => (name, neutral)).to-dict() + given
 }
 
+// ── Goal DSL ─────────────────────────────────────────────────────────────────
+// A project declares goals with `goal(...)`; a task rates each with a body
+// marker that its check reads through the reserved `markers` input.
+
+// `adopter` serves a task's reader, `maintainer` the people who build it.
+#let adopter = "adopter"
+#let maintainer = "maintainer"
+#let _goal-marker = "goal"
+
+#let _kebab(to) = {
+  assert(type(to) == str and to != "", message: "goal() needs an infinitive")
+  lower(to).split(" ").filter(word => word != "").join("-")
+}
+
+// A goal value: `to` and `from` are its two spellings, `title` and `acid-test`
+// what a render shows, `audience` the registry, and `name` the kebab of `to`.
+#let goal(audience, to: none, from: none, title: none, acid-test: none) = {
+  assert(
+    audience in (adopter, maintainer),
+    message: "goal() takes `adopter` or `maintainer`, not " + repr(audience),
+  )
+  (
+    audience: audience,
+    name: _kebab(to),
+    to: to,
+    from: from,
+    title: title,
+    acid-test: acid-test,
+  )
+}
+
+#let _goal-marker-of(d) = [#metadata((marker: _goal-marker) + d)]
+
+#let _rated(value, label, key) = {
+  assert(value != none, message: label + "() needs `" + key + ": <goal>`")
+  assert(
+    type(value) == dictionary and "name" in value,
+    message: label + "() takes a goal value, not " + repr(value),
+  )
+  value.name
+}
+
+// A goal this task helps, with its reason as the trailing block.
+#let Helps(audience, reason, to: none) = _goal-marker-of((
+  audience: audience,
+  goal: _rated(to, "Helps", "to"),
+  effect: "helps",
+  reason: reason,
+))
+
+// A goal this task hinders, with its reason as the trailing block.
+#let Hinders(audience, reason, from: none) = _goal-marker-of((
+  audience: audience,
+  goal: _rated(from, "Hinders", "from"),
+  effect: "hinders",
+  reason: reason,
+))
+
+// The goals a task leaves alone: one marker each, carrying its own audience.
+#let Neutral(..goals) = {
+  assert(goals.named().len() == 0, message: "Neutral() takes positional goals")
+  for value in goals.pos() {
+    assert(
+      type(value) == dictionary and "name" in value and "audience" in value,
+      message: "Neutral() takes a goal value, not " + repr(value),
+    )
+    _goal-marker-of((
+      audience: value.audience,
+      goal: value.name,
+      effect: "neutral",
+      reason: none,
+    ))
+  }
+}
+
+#let _goals-by-name(product, process) = {
+  let by-name(registry) = registry
+    .values()
+    .map(value => (value.name, value))
+    .to-dict()
+  by-name(product) + by-name(process)
+}
+
+#let _verdict-problems(value, goal) = {
+  let messages = ()
+  let audience = value.at("audience", default: none)
+  if audience != goal.audience {
+    let fix = "#Helps(" + goal.audience + ", to: " + goal.name + ")"
+    messages.push(
+      "goal `"
+        + goal.name
+        + "` is "
+        + goal.audience
+        + " work, rated "
+        + str(audience)
+        + "; write "
+        + fix,
+    )
+  }
+  let effect = value.at("effect", default: none)
+  if (
+    effect != "neutral" and value.at("reason", default: none) in (none, "", [ ])
+  ) {
+    messages.push(
+      "goal `" + goal.name + "` says " + str(effect) + " but not why",
+    )
+  }
+  messages
+}
+
+// `[[tasks.rules]] check` entry point for `field = "markers"`: every goal once,
+// under its registry's audience, with a reason on a `Helps`/`Hinders` and at
+// least one `Helps`. A task with no goal marker arrives as `[]` and is refused.
+#let check-goal-over(product, process, markers) = {
+  if type(markers) != array {
+    return ("the goal check reads the body's markers; got " + repr(markers),)
+  }
+  let known = _goals-by-name(product, process)
+  let messages = ()
+  let rated = ()
+  let helped = false
+  let values = markers
+    .filter(marker => type(marker) == dictionary)
+    .map(marker => marker.at("value", default: none))
+    .filter(value => (
+      type(value) == dictionary
+        and value.at("marker", default: none) == _goal-marker
+    ))
+  for value in values {
+    let name = value.at("goal", default: none)
+    if type(name) != str {
+      messages.push("a goal marker names no goal")
+      continue
+    }
+    if name in rated {
+      messages.push("goal `" + name + "` is rated twice")
+    }
+    rated.push(name)
+    let goal = known.at(name, default: none)
+    if goal == none {
+      messages.push(
+        "unknown goal `" + name + "`; known: " + known.keys().join(", "),
+      )
+      continue
+    }
+    messages += _verdict-problems(value, goal)
+    if value.at("effect", default: none) == "helps" {
+      helped = true
+    }
+  }
+  for name in known.keys() {
+    if name not in rated {
+      messages.push("goal `" + name + "` is not rated")
+    }
+  }
+  if not helped {
+    messages.push("the task helps no goal; if nothing justifies it, cancel it")
+  }
+  messages
+}
+
 // Priority framework packagers. These are pure sugar: they only shape a
 // `(framework, inputs)` dict for the Rust layer to score — no math, bounds, or
 // classification live here (those are config + Rust concerns). `framework` is

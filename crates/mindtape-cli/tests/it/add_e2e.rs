@@ -121,7 +121,7 @@ fn describe_json_emits_slot_schema() {
 fn a_directory_pack_ships_its_templates_beneath_the_projects_own() {
     let pack = tempdir();
     let template = |title: &str| {
-        format!("#import \"@local/mindtape:0.4.0\": *\n#show: task.with(title: \"{title}\")\n")
+        format!("#import \"@local/mindtape:0.5.0\": *\n#show: task.with(title: \"{title}\")\n")
     };
     write_file(pack.path(), "pack.toml", "");
     write_file(pack.path(), "templates/feat.typ", template("from the pack"));

@@ -213,7 +213,7 @@ fn a_misfiled_typ_with_a_task_call_warns_at_the_call_line() {
     let warning = warning(
         "[tasks]\nroots = [\".\"]\n",
         ".mindtape/task.typ",
-        "#import \"@local/mindtape:0.4.0\": *\n\n#show: task.with(title: \"Misfiled\")\n",
+        "#import \"@local/mindtape:0.5.0\": *\n\n#show: task.with(title: \"Misfiled\")\n",
     )
     .unwrap();
     assert_eq!(warning.file, Path::new(".mindtape/task.typ"));

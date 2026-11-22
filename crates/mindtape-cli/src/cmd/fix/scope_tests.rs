@@ -8,7 +8,7 @@ use mindtape::{Config, RootSpec};
 use super::collect;
 
 fn write_typ(root: &Path, rel: &str) {
-    write_file(root, rel, "#import \"@local/mindtape:0.4.0\": *\n");
+    write_file(root, rel, "#import \"@local/mindtape:0.5.0\": *\n");
 }
 
 fn shown(files: &[PathBuf], root: &Path) -> Vec<String> {

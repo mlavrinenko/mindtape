@@ -145,7 +145,7 @@ pub fn git_commit_all(dir: &Path) {
 pub fn install_lib(dir: &Path) {
     let pkg = dir
         .join(super::DATA_HOME)
-        .join("typst/packages/local/mindtape/0.4.0");
+        .join("typst/packages/local/mindtape/0.5.0");
     mindtape::test_support::write_package(&pkg, PRELUDE);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
 }
@@ -182,10 +182,6 @@ pub fn scaffold_project(config: &str) -> tempfile::TempDir {
 fn copy_goal_files(dir: &Path) {
     for (name, source) in [
         ("lib.typ", include_str!("../../../../../truth/lib.typ")),
-        (
-            "goal-dsl.typ",
-            include_str!("../../../../../truth/goal-dsl.typ"),
-        ),
         ("goals.typ", include_str!("../../../../../truth/goals.typ")),
         (
             "process-goals.typ",
@@ -226,7 +222,7 @@ const TASKS_ROOT_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
 /// task.
 fn task_source(title: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.4.0\": *\n\n\
+        "#import \"@local/mindtape:0.5.0\": *\n\n\
          #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n  priority: 3,\n)\n"
     )
 }
@@ -282,7 +278,7 @@ pub fn commit_repo(rules: &str) -> tempfile::TempDir {
 /// so no literal `task.with(…)` call exists for an edit to hold. Returns the
 /// bytes written, for a test that checks the edit left the file alone.
 pub fn write_aliased_task(dir: &Path, stem: &str) -> String {
-    let body = "#import \"@local/mindtape:0.4.0\": *\n#let t = task\n\
+    let body = "#import \"@local/mindtape:0.5.0\": *\n#let t = task\n\
                 #show: t.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n)\n";
     write_file(dir, format!("tasks/{stem}.typ"), body);
     body.to_owned()

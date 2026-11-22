@@ -74,6 +74,23 @@ commands such as `mt wip` write the field for you.
 #link(u("/links/"))[Task links] for the kinds. `recur:` makes the task repeat.
 See #link(u("/recurring/"))[Recurring tasks] for the rules.
 
+= Goals
+
+The prelude defines the goal DSL. A project imports its functions and declares
+its own goals:
+
+// docs:hand-typed the import shape is the same in every project
+```typ
+#import "@local/mindtape:0.5.0": Helps, Hinders, Neutral, goal, check-goal-over
+```
+
+`goal(audience, to: ..., from: ..., title: ..., acid-test: ...)` builds one
+value. A task rates a goal it helps with `Helps(adopter, to: <goal>)[why]`,
+names one it works against with `Hinders(maintainer, from: <goal>)[why]`, and
+rates the rest with `Neutral(...)`. Each call emits a metadata marker that a
+project's `check-goal-over` rule reads. See
+#link(u("/tie-work-to-goals/"))[Tie work to your goals].
+
 = Task bodies
 
 Everything below `task.with(...)` is the body, in Typst markup.

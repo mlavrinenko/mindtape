@@ -6,8 +6,8 @@
 // binds. The registry keys carry those names. goal-calls.typ also binds the
 // old `x-goals` keys as aliases, so a task filed before the rename evaluates.
 
-#import "goal-dsl.typ": adopter
-#import "goal-dsl.typ": goal as goal-of
+#import "@local/mindtape:0.5.0": adopter
+#import "@local/mindtape:0.5.0": goal as goal-of
 
 // This set's audience, fixed once: a goal value in goals.typ serves a task's
 // reader, and a verdict written for anyone else is a wrong-audience breach.

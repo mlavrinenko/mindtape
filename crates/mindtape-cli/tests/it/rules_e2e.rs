@@ -29,7 +29,7 @@ fn project(rules: &str, title: &str) -> tempfile::TempDir {
         dir.path(),
         "tasks/subject.typ",
         format!(
-            "#import \"@local/mindtape:0.4.0\": *\n\n\
+            "#import \"@local/mindtape:0.5.0\": *\n\n\
              #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
         ),
     );
@@ -162,7 +162,7 @@ fn a_matches_dir_rule_holds_a_task_to_its_month_folder() {
     write_file(
         nested.path(),
         "tasks/2026-11/subject.typ",
-        "#import \"@local/mindtape:0.4.0\": *\n\n#show: task.with(\n  title: \"Refactor the loader\",\n  status: wip(2026, 6, 1),\n)\n",
+        "#import \"@local/mindtape:0.5.0\": *\n\n#show: task.with(\n  title: \"Refactor the loader\",\n  status: wip(2026, 6, 1),\n)\n",
     );
     let (ok, text) = check(nested.path());
     assert!(ok, "a task in a month folder must pass: {text}");
@@ -355,7 +355,7 @@ fn check_project(rules: &str, title: &str) -> tempfile::TempDir {
         dir.path(),
         "tasks/subject.typ",
         format!(
-            "#import \"@local/mindtape:0.4.0\": *\n\n\
+            "#import \"@local/mindtape:0.5.0\": *\n\n\
              #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
         ),
     );
@@ -469,7 +469,7 @@ fn a_packs_check_file_and_dict_file_resolve_from_the_pack_directory() {
             dir.path(),
             format!("tasks/{stem}.typ"),
             format!(
-                "#import \"@local/mindtape:0.4.0\": *\n\n\
+                "#import \"@local/mindtape:0.5.0\": *\n\n\
                  #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
             ),
         );

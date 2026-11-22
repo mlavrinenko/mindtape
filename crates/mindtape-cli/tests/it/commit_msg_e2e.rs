@@ -317,7 +317,7 @@ const NO_TASK_RULES: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
 /// A real task source titled `title`.
 fn task(title: &str) -> String {
     format!(
-        "#import \"@local/mindtape:0.4.0\": *\n\n\
+        "#import \"@local/mindtape:0.5.0\": *\n\n\
          #show: task.with(title: \"{title}\", status: wip(2026, 6, 1))\n"
     )
 }

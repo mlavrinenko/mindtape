@@ -82,6 +82,15 @@ exec 9>"target/www-generated.lock"
 flock 9
 export MINDTAPE_GENERATED_LOCK=1
 
+# The docs sources import this checkout's goal modules, and those import
+# `@local/mindtape` by version. A throwaway package path symlinked at lib/
+# resolves it without depending on `mt install` having run on this machine.
+PKGS="$(mktemp -d)"
+LIBVER="$(sed -n 's/^version = "\(.*\)"/\1/p' "$REPO/lib/typst.toml" | head -1)"
+mkdir -p "$PKGS/local/mindtape"
+ln -s "$REPO/lib" "$PKGS/local/mindtape/$LIBVER"
+export TYPST_PACKAGE_PATH="$PKGS"
+
 # Through mmz, so a `just check` whose docs::check arm already regenerated this
 # tree finds the record fresh instead of running www/generate.sh again.
 mmz just docs::gen
@@ -91,7 +100,7 @@ BANNER_TMPL='<!-- Generated from %s by `just docs md`. Do not edit; edit the sou
 
 shopt -s globstar nullglob
 err="$(mktemp)"
-trap 'rm -f "$err"' EXIT
+trap 'rm -f "$err"; rm -rf "$PKGS"' EXIT
 
 rendered=0
 for src in docs/src/**/*.typ; do

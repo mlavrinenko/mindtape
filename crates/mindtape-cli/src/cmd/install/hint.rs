@@ -202,7 +202,7 @@ mod tests {
 
     /// Verbatim from `mt ls` against a project whose prelude is not installed.
     const REAL: &str = "file not found (searched at \
-                        /home/u/.local/share/typst/packages/local/mindtape/0.4.0/typst.toml)";
+                        /home/u/.local/share/typst/packages/local/mindtape/0.5.0/typst.toml)";
 
     #[test]
     fn detects_the_real_diagnostic() {
@@ -211,7 +211,7 @@ mod tests {
 
     #[test]
     fn detects_the_diagnostic_when_no_data_home_resolves() {
-        let bare = "file not found (searched at @local/mindtape:0.4.0)";
+        let bare = "file not found (searched at @local/mindtape:0.5.0)";
         assert!(names_prelude_package(bare));
         assert_eq!(super::searched_path(bare), None);
     }
@@ -220,7 +220,7 @@ mod tests {
     /// path need not run through a `packages/` directory.
     #[test]
     fn detects_a_package_root_from_typst_package_path() {
-        let moved = "file not found (searched at /opt/typst/local/mindtape/0.4.0/typst.toml)";
+        let moved = "file not found (searched at /opt/typst/local/mindtape/0.5.0/typst.toml)";
         assert!(names_prelude_package(moved));
     }
 
@@ -260,7 +260,7 @@ mod tests {
             "warning: can't find the prelude package: '@local/mindtape'\n\
              hint: install it once per machine: mt install\n\
              hint: or pin a copy under [[typst.local-packages]] in the config\n\
-             note: searched at: '/home/u/.local/share/typst/packages/local/mindtape/0.4.0/typst.toml'\n"
+             note: searched at: '/home/u/.local/share/typst/packages/local/mindtape/0.5.0/typst.toml'\n"
         );
     }
 }

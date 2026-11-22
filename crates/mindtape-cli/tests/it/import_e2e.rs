@@ -157,7 +157,7 @@ fn imports_from_a_file_argument() {
 
 const HELPER: &str = "#let emphasize(body) = text(weight: \"bold\", body)\n";
 
-const HELPER_TASK: &str = "#import \"@local/mindtape:0.4.0\": *\n\
+const HELPER_TASK: &str = "#import \"@local/mindtape:0.5.0\": *\n\
      #import \"/truth/prelude/2/lib.typ\": *\n\n\
      #show: task.with(\n  title: \"Uses the helper\",\n  status: wip(2026, 6, 1),\n)\n\n\
      = Summary\n\n#emphasize[The project helper resolves.]\n";
@@ -204,7 +204,7 @@ fn a_rebuilt_task_keeps_the_project_import_its_body_calls() {
     assert_eq!(
         rebuilt.lines().take(2).collect::<Vec<_>>(),
         [
-            "#import \"@local/mindtape:0.4.0\": *",
+            "#import \"@local/mindtape:0.5.0\": *",
             "#import \"/truth/prelude/2/lib.typ\": *",
         ]
     );

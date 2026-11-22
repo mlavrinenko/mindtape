@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The goal DSL ships in the prelude.** `Helps`, `Hinders`, `Neutral`,
+  `goal(...)`, `adopter`, `maintainer` and
+  `check-goal-over(product, process, markers)` live in
+  `@local/mindtape:0.5.0`, so an adopter imports the DSL and declares only its
+  own registries. This repository drops `truth/goal-dsl.typ`, and its goal
+  modules and `truth/lib.typ` import the prelude and wrap the check with the
+  product and process goals.
 - **`mt add` templates write goals as body markers.** Every active template in
   `.mindtape/templates/` imports generation 2 and replaces its ten `x-goals`
   fields with one required `goals` raw slot after `Dogfood`. The slot's value

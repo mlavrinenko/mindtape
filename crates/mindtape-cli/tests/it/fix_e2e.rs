@@ -108,12 +108,12 @@ fn rewrites_an_unsupported_pin_and_ends_with_check() {
         dir.path(),
         &["fix"],
         &[
-            "rewrite tasks/old.typ  0.1.0 -> 0.4.0",
+            "rewrite tasks/old.typ  0.1.0 -> 0.5.0",
             "rewrote 1 import",
             "ok: 1 task",
         ],
     );
-    assert_eq!(read(dir.path(), "tasks/old.typ"), task("0.4.0", "Old task"));
+    assert_eq!(read(dir.path(), "tasks/old.typ"), task("0.5.0", "Old task"));
 }
 
 #[test]
@@ -136,7 +136,7 @@ fn dry_run_prints_the_edit_and_writes_nothing() {
         dir.path(),
         &["fix", "--dry-run"],
         &[
-            "rewrite tasks/old.typ  0.1.0 -> 0.4.0",
+            "rewrite tasks/old.typ  0.1.0 -> 0.5.0",
             "would rewrite 1 import",
         ],
     );
@@ -156,8 +156,8 @@ fn check_reports_one_diagnostic_per_unsupported_version() {
         &stderr,
         &[
             "error: tasks/a-old.typ: imports @local/mindtape:0.1.0, which this mt does not support",
-            "supported: 0.2.0, 0.3.0, 0.4.0",
-            "run mt fix to rewrite it to @local/mindtape:0.4.0",
+            "supported: 0.2.0, 0.3.0, 0.4.0, 0.5.0",
+            "run mt fix to rewrite it to @local/mindtape:0.5.0",
             "upgrade mt to read @local/mindtape:99.99.99",
         ],
     );
@@ -198,7 +198,7 @@ fn a_malformed_spec_is_reported() {
 #[cfg(unix)]
 #[test]
 fn a_symlinked_file_is_reported_only_in_the_all_scope() {
-    let (dir, _) = project_with("0.4.0");
+    let (dir, _) = project_with("0.5.0");
     let target = tempdir();
     let before = put(target.path(), "old.typ", "0.1.0", "Linked");
     link(
@@ -240,9 +240,9 @@ fn all_scans_past_the_default_scope() {
     fixed_has(
         dir.path(),
         &["fix", "--all"],
-        &["rewrite notes.typ  0.1.0 -> 0.4.0"],
+        &["rewrite notes.typ  0.1.0 -> 0.5.0"],
     );
-    assert_eq!(read(dir.path(), "notes.typ"), task("0.4.0", "Elsewhere"));
+    assert_eq!(read(dir.path(), "notes.typ"), task("0.5.0", "Elsewhere"));
 }
 
 #[test]
@@ -265,7 +265,7 @@ fn a_tracked_ignored_task_source_is_in_both_scopes() {
             &[
                 "rewrite tasks/generated.typ",
                 "rewrite tasks/real.typ",
-                "0.1.0 -> 0.4.0",
+                "0.1.0 -> 0.5.0",
             ],
         );
     }
@@ -286,7 +286,7 @@ fn an_untracked_ignored_task_source_is_in_neither_scope() {
         let text = fixed_has(
             dir.path(),
             args,
-            &["rewrite tasks/real.typ", "0.1.0 -> 0.4.0"],
+            &["rewrite tasks/real.typ", "0.1.0 -> 0.5.0"],
         );
         lacks(&text, &["tasks/generated.typ"]);
     }
@@ -303,7 +303,7 @@ fn all_includes_non_task_typ_files() {
     let text = fixed_has(
         dir.path(),
         &["fix", "--dry-run"],
-        &["rewrite tasks/real.typ", "0.1.0 -> 0.4.0"],
+        &["rewrite tasks/real.typ", "0.1.0 -> 0.5.0"],
     );
     lacks(&text, &["lib/notes.typ", "docs/guide.typ"]);
 
@@ -314,7 +314,7 @@ fn all_includes_non_task_typ_files() {
             "rewrite docs/guide.typ",
             "rewrite lib/notes.typ",
             "rewrite tasks/real.typ",
-            "0.1.0 -> 0.4.0",
+            "0.1.0 -> 0.5.0",
         ],
     );
 }
@@ -337,7 +337,7 @@ fn a_non_git_all_skips_target_and_includes_templates() {
         &[
             "rewrite .mindtape/templates/task.typ",
             "rewrite notes.typ",
-            "0.1.0 -> 0.4.0",
+            "0.1.0 -> 0.5.0",
         ],
     );
     lacks(&text, &["target/generated.typ"]);
@@ -345,7 +345,7 @@ fn a_non_git_all_skips_target_and_includes_templates() {
     let text = fixed_has(
         dir.path(),
         &["fix", "--dry-run"],
-        &["rewrite .mindtape/templates/task.typ", "0.1.0 -> 0.4.0"],
+        &["rewrite .mindtape/templates/task.typ", "0.1.0 -> 0.5.0"],
     );
     lacks(&text, &["notes.typ", "target/generated.typ"]);
 }
@@ -365,7 +365,7 @@ fn a_tracked_deleted_task_source_is_never_scanned() {
         let text = fixed_has(
             dir.path(),
             args,
-            &["rewrite tasks/real.typ", "0.1.0 -> 0.4.0"],
+            &["rewrite tasks/real.typ", "0.1.0 -> 0.5.0"],
         );
         lacks(&text, &["tasks/gone.typ"]);
     }
@@ -378,7 +378,7 @@ fn all_does_not_follow_a_symlinked_directory() {
     let outside = tempdir();
     let before = put(outside.path(), "hidden.typ", "0.1.0", "Hidden");
     link(outside.path(), &dir.path().join("tasks/linked"));
-    put(dir.path(), "tasks/real.typ", "0.4.0", "Real");
+    put(dir.path(), "tasks/real.typ", "0.5.0", "Real");
 
     for args in [
         &["fix", "--dry-run"][..],
@@ -410,7 +410,7 @@ fn a_directory_packs_templates_join_the_default_scope() {
     fixed_has(
         dir.path(),
         &["fix", "--dry-run"],
-        &["rewrite team/templates/feat.typ", "0.1.0 -> 0.4.0"],
+        &["rewrite team/templates/feat.typ", "0.1.0 -> 0.5.0"],
     );
 }
 

@@ -132,7 +132,7 @@ fn import_skipped_for_another_reason_prints_no_install_note() {
     write_file(&project, "in.json", ONE_RECORD);
     // Installed where `run_fresh` points the data home, as `mt install` would.
     mindtape::test_support::write_package(
-        &project.join("empty-data/typst/packages/local/mindtape/0.4.0"),
+        &project.join("empty-data/typst/packages/local/mindtape/0.5.0"),
         mindtape::test_support::PRELUDE,
     );
 
@@ -236,7 +236,7 @@ fn check_names_the_supported_set_once_for_a_template_on_an_old_prelude() {
     );
     support::assert_unsupported_prelude(&stderr, "0.1.0");
     assert!(
-        stderr.contains("run mt fix to rewrite it to @local/mindtape:0.4.0"),
+        stderr.contains("run mt fix to rewrite it to @local/mindtape:0.5.0"),
         "{stderr}"
     );
 }

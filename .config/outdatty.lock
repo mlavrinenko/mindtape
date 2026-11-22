@@ -30,7 +30,7 @@ groups:
       examples/api-service/tasks/replace-the-deprecated-search-client.typ: 0deb8389fa19201a99c9fe163e9686baa36f902310643c1f7cb028493c2c20c3
       examples/api-service/tasks/rotate-the-jwt-signing-key.typ: 5e2ce9c9c600a5bac6d27eb1615336931e6a95ed07b71cfdf10ca194093be42b
       examples/api-service/tasks/send-a-welcome-email-after-signup.typ: 5798f2c0450150f663a00f923ca9a777fcc95f1a86d91a0b7afa0b9a017207ac
-      examples/api-service/tasks/throttle-failed-logins-per-ip.typ: a7b6331faad86ae3476d69b000c1b1af919eaa5af60b551b701facb291f118f1
+      examples/api-service/tasks/throttle-failed-logins-per-ip.typ: c7545126a3a4946f36c0f9bb975113eba1d53d57fdff4db44db90b83906056df
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: d16290949063e916e74e75d8308401b93fec29e12e824b0dd75f936e1d0803a7
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: 5edd783761d8c71e6a68ff9975234dde517eb8803f07b4be7d75caf5df4ed573
       www/generate-api-service.sh: 3ee9616c4cb42ba9fdc1e4e9980a94668b83328fd6e770af909cd4d98efd7e64
@@ -41,7 +41,7 @@ groups:
       www/content/require-a-task-shape.typ: 4d3d444f11428e2cb61eb3b2884d12f603978ca8c0fe3e67e64316651de83414
       www/content/split-oversized-tasks.typ: 754649f490dad5cb6d5bca3353a337af5ca39846431e5779a23b6655e64b0e6b
       www/content/start-titles-with-a-verb.typ: c55ba88ff5645a2eb6c99b9957f6908cf5389e807b89693e1e844dfba70cd802
-      www/content/tie-work-to-goals.typ: 53c55e0998f5afea1597b586ea5fea05bab7ea3028316171b1c5a3a6a71e00f5
+      www/content/tie-work-to-goals.typ: ed5972649424a6cf5e109c54472314f3fd31fece0394d0e57a138536d6aa6144
       www/content/trace-commits-to-tasks.typ: fd060b241c34cc9152327ea06689a368afa54f42253629a89120d093979166fb
       www/content/wait-on-upstream.typ: 7ca6183faaa31d78c2885276ac4c27ad15dba8336a59e4d74c122cd41e6f0d8e
   cli-add-docs:
@@ -474,18 +474,19 @@ groups:
       docs/src/contributing/signal-sweep.typ: ee308da314f2396880c7b0802719c8b02e05d7bb562ec0e0b6ea106179728c04
   prelude-docs:
     source:
-      lib/prelude.typ: cc34496632536cd3d9202151d1394869b9b1cd0d8ab8ea31be4eac4a73d4c7a6
+      lib/prelude.typ: 89032286790a04f6441fe40b2301f2852e1558d7550c35a0d561cc52af3240c4
     dependents:
-      docs/src/agents.typ: a649624f423a0870c444f79f788d9bf44608cc67d36073fb83850086d061f3c5
-      docs/src/skill.typ: f4ba635341662e23ac85eb9107589b7101c96db8ddee2adf59063516705d63e2
-      skills/mindtape/references/add-slots.md: 4e41cf5256ef673f180e24d9e2c4257105e2594b530f2d660abe8594291812ab
-      www/content/concepts.typ: b92b0de119002fb0ca4d2017394aaf4ed665928740d7847fde30cab64fce1048
-      www/content/dsl.typ: ee6084a424871772754978b4ccddf2eae37315be1553406493a8b98dc32182c8
+      docs/src/agents.typ: 9177dc760435f9fe7cda03da6550c8276c77010a1a79e6e2dc7cbf62021b3674
+      docs/src/skill.typ: f8bb51218dbcf18f257cc8cd43a10eeccd621d92443b412df72de54b3687f341
+      skills/mindtape/references/add-slots.md: b67bda064ae21eeb53a39772b542625ba7490fc211a3fa0f2cecdb3559a626e0
+      www/content/concepts.typ: ebe2a5b9546d8d08a07a55f048aa70fd32b1a7ab27b6e23a2fc81919f9b1e446
+      www/content/dsl.typ: 33ccf8449470726b89ae21ae07b3cb9a83b24e8625e92c8b9baadd14089da04c
       www/content/index.typ: da1919ce21dfe712795d6974151e6e25bfd40ad70b54cc349cd6f1ef130b2aa6
       www/content/links.typ: 0d27e778be846c07b2f32eb50ce8b14e77126b2a7cb16b7ad56efce11f270415
       www/content/priority.typ: 27395d87f11646468629f66f52ba49a10dc4b8f837df5235121948a7757dc149
       www/content/recurring.typ: a3acefcde5abae54e98ea8408145b45260195fd5fc100e4824028eb16b9cb7d8
-      www/content/templates.typ: a534f25d0ae260bf9852e6683cca2e6450390e44a36b2b02aa0603e103f02dd0
+      www/content/templates.typ: dd9b4e939eb5f4ba748194922d2cf44f3a05f4dfb1f586e6aaf8ffcf474b0c4c
+      www/content/tie-work-to-goals.typ: 3cd8c3e45f42cd24ce05ab4f3946568a9306015365ad1c76648b118876b0601c
   priority-frameworks:
     source:
       crates/mindtape/src/framework/frameworks.toml: 7ace56205f2fa3bc5973eba8cbb94b47b30b70d564fc278a81e35d6615cfdcbb
@@ -588,12 +589,14 @@ groups:
       .mindtape/templates/fix.typ: 01f0af871fdca6ac7ac945aaed00d92dbb34b7c8c5c3db28e90df8fa6b64a206
   typst-pkg-version:
     source:
-      lib/typst.toml: 2a5837c51f4f9ed4b670d79dd7a1860301db050368a12b7b8a6bfabe1726bc68
+      lib/typst.toml: 5b930349900089ee77cc21d45b328281367e5387a0e62f102dbb77268c01d644
     dependents:
       crates/mindtape-cli/src/cmd/init/presets/gated/templates/task.typ: c56fd7e1ebd978178f41ad9c70b8b5d90ecf075c19f02eb79170e3f167df3767
-      crates/mindtape/src/loader/embedded.rs: 71a2dea921dee5b4ade0c27519506bb0b95c1bca0aaca25fed91a65a59d69f69
-      crates/mindtape/src/test_support/fs.rs: cb81c77377b3a303f4008c08079dea68bea4a5a7500a321c7dfac715c514fdb0
-      crates/mindtape/src/test_support/mod.rs: 248a57f5f49a52fd3c9d2a4a19338160d9ebf092baab977333588e25ee454976
+      crates/mindtape/src/loader/embedded.rs: 1836f01e5249c9bb3b782e0fac3249e2f0300d13e0d745283049307a8833155f
+      crates/mindtape/src/test_support/fs.rs: 732fa6d6f2cdef6d462f576d6cee98ca3dae6a6cccfca9ab60eb7832e4dcfd5b
+      crates/mindtape/src/test_support/mod.rs: c77958567db3cf4d8b26e56c6d568e4381968118c7dd8f07cbfa89b8ca3abf33
+      docs/src/agents.typ: ed12743e7af30d75a0d26d1d1ef1170123c03b2d8c0fd53f29521d54aa1855ed
+      examples/api-service/tasks/throttle-failed-logins-per-ip.typ: c7545126a3a4946f36c0f9bb975113eba1d53d57fdff4db44db90b83906056df
       examples/dsl/tasks/add-a-session-store.typ: 791b6e46a0eabd5d10d4f816df9be527cdb4b4949bb3cfdf8a92c56be16b8559
       examples/dsl/tasks/fix-the-login-redirect.typ: 72e729ce4fc689861619af4419de4776d73740f0bf93d33e0907f660f7f2e7d6
       examples/estimates/tasks/rename-the-status-glyphs.typ: 38e05ecf54bf20a0d61d2f98e83c37934a2623fb72018cbc65fcad9c8192116f
@@ -645,6 +648,8 @@ groups:
       examples/task-files/tasks/add-a-session-store.typ: 26a6fcf08909ed4d3fb5d879fbfe2e124f6719ce9a31db1f772b1503697b340d
       examples/task-files/tasks/fix-the-login-redirect.typ: 3c48c3d926cae5fcca6d50a43794e297c3dd8c525d6bdfc3d15c35027ac717b2
       examples/task-files/tasks/log-failed-logins.typ: 30d1a0f50122d56da2a3039c3f3987f34f044d06e09dc840a36fdbd537adcb73
+      www/content/config.typ: a200c89a7638fa8d1943cefbe15237251222cb3d22fc31c71a8e21e11e27bb87
+      www/content/task-files.typ: d38cb17dfe06e63bc59a42aed2913ba7db2ec2d127cf25084c86a9ff6ac79a6a
   vale-docs:
     source:
       .config/vale-code.ini: ae583dc33e98d20a27a21836d8966b75dcbba160eb0dde601df40198c566abd3
