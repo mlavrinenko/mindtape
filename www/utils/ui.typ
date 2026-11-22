@@ -4,7 +4,7 @@
   MARKDOWN, NAV, PKG, SITE, md-copy-button, mindtape, page-meta, render-summary,
   section-head, u,
 )
-#import "release.typ": cli-crate
+
 #import "demo.typ": (
   fixture-root, listing-capture, showcase-file, showcase-intro, showcase-path,
 )
@@ -232,10 +232,11 @@
         attrs: (class: "btn btn-ghost", href: u("/concepts/")),
         [How it works],
       )
-    })
-    html.elem("p", attrs: (class: "install"), {
-      "INSTALL "
-      html.elem("code", "cargo install " + cli-crate)
+      html.elem(
+        "a",
+        attrs: (class: "btn btn-ghost", href: u("/quickstart/#install")),
+        [Install],
+      )
     })
   })
 }
@@ -251,7 +252,7 @@
 
   #render-summary(SITE.pitch)
 
-  #link(u("/quickstart/"))[Get started] · #link(u("/concepts/"))[How it works]
+  #link(u("/quickstart/"))[Get started] · #link(u("/concepts/"))[How it works] · #link(u("/quickstart/#install"))[Install]
 
   #showcase-intro
 

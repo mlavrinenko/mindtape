@@ -31,7 +31,7 @@
 }
 .hero .lede { margin: 0 0 14px; }
 .pitch { color: var(--ink-2); font-size: 14.5px; line-height: 1.55; margin: 0; }
-.hero-cta { display: flex; gap: 10px; margin: 24px 0 22px; }
+.hero-cta { display: flex; gap: 10px; margin: 24px 0 0; }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 16px;
@@ -49,13 +49,6 @@
 [data-theme="dark"] .btn:hover { color: #06231a; }
 [data-theme="dark"] .btn-ghost { color: var(--ink); }
 [data-theme="dark"] .btn-ghost:hover { color: var(--paper); }
-
-.install {
-  display: flex; align-items: center; gap: 10px;
-  margin: 0; padding-top: 13px; border-top: 1px solid var(--line);
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
-}
-.install code { font-size: 11px; background: var(--code-bg); color: var(--code-fg); }
 
 /* ── Section heads ────────────────────────────────────────────────────────── */
 
