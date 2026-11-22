@@ -30,12 +30,8 @@ capture_init
 # A commit in a capture copy, with a fixed author and no signing.
 COMMIT='git -c user.name=docs -c user.email=docs@example.com -c commit.gpgsign=false commit -q'
 
-# the home page hero and /filters/
+# the home page proof terminal and /filters/
 capture hero-ls "$API" 'mt ls'
-capture home-board "$API" 'mt ls --json'
-# Typst reads JSON from a file, not from a string, so put the run's own output
-# beside its capture record for the board to read.
-jq -r '.steps[0].out' "$OUT/home-board.json" > "$OUT/home-board-tasks.json"
 capture filters-open "$API" "mt ls '!terminal'"
 capture filters-operators "$API" "mt ls 'kind == \"fix\" || (kind == \"feat\" && count_paths(derived.changes, \"@source\") <= 2)'"
 capture_lines filters-missing "$API" <<'EOF'

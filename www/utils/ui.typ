@@ -200,139 +200,8 @@
 // show rule.
 #let _hero-source = read("../generated/hero-source.typ")
 
-// ── Departure board ─────────────────────────────────────────────────────────
-// The board is the same `mt ls` a reader gets: the table capture supplies the
-// rows, their readiness and their footer count, and the JSON run of the same
-// default view supplies the blocker a row names. Nothing is typed in.
-#let _take(list, n) = if list.len() > n { list.slice(0, n) } else { list }
-
-#let _ls-lines = _ansi-strip(
-  json("../generated/hero-ls.json").steps.at(0).out,
-).split("\n")
-
-#let _board-tasks = json("../generated/home-board-tasks.json").tasks
-
-#let _board-rows = {
-  let rows = ()
-  for line in _ls-lines {
-    let cells = line.split(regex("\\s{2,}")).map(s => s.trim())
-    if cells.len() < 5 { continue }
-    let ready = cells.at(2)
-    if not (ready.contains("ready") or ready.contains("blocked")) { continue }
-    let title = cells.last()
-    let task = _board-tasks.find(t => t.title == title)
-    let needs = if (
-      task != none
-        and task.why.len() > 0
-        and task.why.at(0).kind == "depends-on"
-    ) { task.why.at(0).stem } else { none }
-    rows.push((
-      slug: cells.at(0),
-      status: cells.at(1),
-      blocked: ready.contains("blocked"),
-      wip: cells.at(1) == "wip",
-      priority: cells.at(3).split(" ").last(),
-      due: if cells.len() >= 6 { cells.at(4) } else { "" },
-      title: title,
-      needs: needs,
-    ))
-  }
-  rows
-}
-
-// The three-letter slug a blocker is listed under, or the stem when the board
-// does not list it.
-#let _slug-for(id) = {
-  let task = _board-tasks.find(t => t.id == id)
-  if task == none { return id }
-  let row = _board-rows.find(r => r.title == task.title)
-  if row == none { return id }
-  row.slug
-}
-
-#let _board-counts = {
-  let line = _ls-lines.find(l => l.contains("default view"))
-  assert(line != none, message: "hero-ls.json has no default-view footer")
-  let hit = line.matches(regex("([0-9]+) of ([0-9]+) tasks")).last()
-  assert(hit != none, message: "hero-ls.json footer has no task count")
-  (visible: hit.captures.at(0), total: hit.captures.at(1))
-}
-
-#let _board() = {
-  let counts = _board-counts
-  let ready = _board-rows.filter(r => not r.blocked)
-  let blocked = _board-rows.filter(r => r.blocked)
-  html.elem("div", attrs: (class: "hero-board"), {
-    html.elem("div", attrs: (class: "caption"), {
-      html.elem("span", {
-        html.elem("b", "DEPARTURES")
-        " / backlog"
-      })
-      html.elem("span", upper(
-        counts.visible + " OF " + counts.total + " TASKS",
-      ))
-    })
-    html.elem("figure", attrs: (class: "board"), {
-      html.elem("figcaption", attrs: (class: "board-head"), {
-        html.elem("span", "MT LS / DEFAULT VIEW")
-        html.elem("span", {
-          html.elem("b", "●")
-          " LIVE"
-        })
-      })
-      html.elem("div", attrs: (class: "board-cols"), {
-        html.elem("span", "Status")
-        html.elem("span", "Task")
-        html.elem("span", "Due")
-      })
-      html.elem("ol", attrs: (class: "board-rows"), {
-        for row in _take(ready, 4) + _take(blocked, 2) {
-          let cls = (
-            "st"
-              + if row.blocked { " is-blocked" } else if row.wip {
-                " is-wip"
-              } else { "" }
-          )
-          let label = if row.blocked { "blocked" } else if row.wip {
-            "wip"
-          } else { "ready" }
-          let needs = if row.needs != none { _slug-for(row.needs) } else {
-            none
-          }
-          let small = (
-            row.slug
-              + " · "
-              + row.status
-              + " · "
-              + row.priority
-              + if needs != none { " · needs " + needs } else { "" }
-          )
-          html.elem("li", {
-            html.elem("span", attrs: (class: cls), {
-              html.elem("i")
-              label
-            })
-            html.elem("span", attrs: (class: "board-task"), {
-              html.elem("b", row.title)
-              html.elem("small", small)
-            })
-            html.elem("span", attrs: (class: "due"), if row.due == "" {
-              "—"
-            } else { row.due.slice(5) })
-          })
-        }
-      })
-      html.elem("div", attrs: (class: "board-foot"), {
-        html.elem("span", "default view")
-        html.elem("span", counts.visible + " of " + counts.total)
-      })
-    })
-  })
-}
-
-// A numbered section head: the transit line's marker for a new stretch of the
-// home page. The note at the right names where the section's material came
-// from, so a reader can check it.
+// The hero's copy. The mark fills the display title's right edge. The h1
+// already names the product, so the mark is decorative.
 
 #let _hero-copy() = {
   let overview = page-meta("/")
@@ -343,7 +212,13 @@
       " " + upper(NAV.at(0).title) + " / " + label
       html.elem("span", attrs: (class: "bar"))
     })
-    html.elem("h1", mindtape)
+    html.elem("div", attrs: (class: "hero-title"), {
+      html.elem("h1", mindtape)
+      html.elem("span", attrs: (
+        class: "hero-mark",
+        "aria-hidden": "true",
+      ))
+    })
     html.elem("p", attrs: (class: "lede"), SITE.tagline)
     html.elem("p", attrs: (class: "pitch"), render-summary(SITE.pitch))
     html.elem("div", attrs: (class: "hero-cta"), {
@@ -392,7 +267,6 @@
 #let _html-hero() = {
   html.elem("section", attrs: (class: "hero"), {
     _hero-copy()
-    _board()
   })
   html.elem("section", attrs: (class: "proof"), {
     section-head(

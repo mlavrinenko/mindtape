@@ -1,23 +1,36 @@
-/* Mindtape docs — components: hero, board, panels, terminal, article rail. */
+/* Mindtape docs — components: hero, panels, terminal, article rail. */
 
 /* ── Hero ─────────────────────────────────────────────────────────────────── */
 
 .hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(410px, 0.95fr);
-  gap: 48px;
-  align-items: start;
+  --hero-display: clamp(72px, 7.6vw, 107px);
   padding-bottom: 46px;
 }
 .hero h1 {
-  font-size: clamp(72px, 7.6vw, 107px);
+  font-size: var(--hero-display);
   font-weight: 800;
   line-height: 0.84;
   letter-spacing: -0.075em;
-  margin: 0 0 25px;
+  margin: 0;
 }
-.hero .lede { max-width: 30ch; margin: 0 0 14px; }
-.pitch { max-width: 44ch; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; margin: 0; }
+.hero-title {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 32px; margin: 0 0 25px;
+}
+/* Typst wraps the mark in a <p>; unwrap it so the span itself is the flex item. */
+.hero-title p { display: contents; }
+.hero-mark {
+  width: var(--hero-display); height: var(--hero-display); flex: none;
+  background: var(--green);
+  -webkit-mask: url("../images/logo.svg") center / contain no-repeat;
+  mask: url("../images/logo.svg") center / contain no-repeat;
+  transition: transform 0.2s ease;
+}
+.hero-mark:hover{
+    transform: rotate(-3deg);
+}
+.hero .lede { margin: 0 0 14px; }
+.pitch { color: var(--ink-2); font-size: 14.5px; line-height: 1.55; margin: 0; }
 .hero-cta { display: flex; gap: 10px; margin: 24px 0 22px; }
 
 .btn {
@@ -43,72 +56,6 @@
   font-family: var(--mono); font-size: 11px; color: var(--muted);
 }
 .install code { font-size: 11px; background: var(--code-bg); color: var(--code-fg); }
-
-/* ── Departure board ──────────────────────────────────────────────────────── */
-
-.hero-board { padding-top: 30px; min-width: 0; }
-.hero-board .caption {
-  display: flex; justify-content: space-between; gap: 10px;
-  margin: 0 0 8px;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
-  color: var(--muted);
-}
-.hero-board .caption b { color: var(--green); font-weight: 600; }
-
-.board {
-  margin: 0; min-width: 0;
-  border: 1px solid var(--line-strong); background: var(--paper);
-}
-.board-head {
-  display: flex; align-items: center; justify-content: space-between;
-  height: 38px; padding: 0 14px;
-  background: var(--ink); color: var(--paper);
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
-}
-.board-head b { color: var(--green); font-weight: 600; }
-.board-cols {
-  display: grid; grid-template-columns: 76px minmax(0, 1fr) 48px; gap: 10px;
-  padding: 8px 14px; border-bottom: 1px solid var(--line-strong);
-  font-family: var(--sans); font-size: 11px; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
-}
-.board-rows { display: block; list-style: none; margin: 0; padding: 0; }
-.board-rows li {
-  display: grid; grid-template-columns: 76px minmax(0, 1fr) 48px; gap: 10px;
-  align-items: center; min-height: 47px; padding: 6px 14px;
-  border-bottom: 1px solid var(--line); margin: 0;
-}
-.board-rows li::before { content: none; }
-.board-rows li:last-child { border-bottom: 0; }
-.st {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.03em;
-  color: var(--ink-2); white-space: nowrap;
-}
-.st i { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--green); }
-.st.is-blocked i { border-radius: 0; background: var(--amber); }
-.st.is-wip i { border-radius: 0; background: var(--blue); }
-.board-task { min-width: 0; }
-.board-task b {
-  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-family: var(--sans); font-size: 12.5px; font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.board-task small {
-  display: block; margin-top: 1px;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em;
-  color: var(--muted);
-}
-.due {
-  font-family: var(--mono); font-size: 11px; color: var(--ink-2);
-  text-align: right; font-variant-numeric: tabular-nums;
-}
-.board-foot {
-  display: flex; justify-content: space-between; gap: 10px;
-  padding: 8px 14px; border-top: 1px solid var(--line-strong);
-  background: var(--paper-2);
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
-}
 
 /* ── Section heads ────────────────────────────────────────────────────────── */
 
@@ -500,18 +447,10 @@ main table code { display: inline; font-size: 11px; line-height: 1.7; white-spac
 
 /* ── Narrow tables and code ───────────────────────────────────────────────── */
 
-@media (max-width: 76rem) {
-  .hero { grid-template-columns: 1fr; }
-  .hero-board { padding-top: 0; }
-}
-
 @media (max-width: 40rem) {
-  .hero h1 { font-size: clamp(64px, 17vw, 92px); }
+  .hero { --hero-display: clamp(64px, 17vw, 92px); }
+  .hero-mark { display: none; }
   .hero-cta { flex-wrap: wrap; }
-  .board-cols, .board-rows li { grid-template-columns: 68px minmax(0, 1fr) 42px; }
-  .board-rows li { align-items: start; padding-top: 9px; padding-bottom: 9px; }
-  .board-task b { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; }
-  .st { margin-top: 2px; }
 }
 
 @media (max-width: 52rem) {
@@ -522,5 +461,4 @@ main table code { display: inline; font-size: 11px; line-height: 1.7; white-spac
   .matrix .table-scroll { overflow-x: visible; }
   main td pre { contain: inline-size; }
   .md-copy:not(.md-copy-said)::after { display: none; }
-  .board-head, .board-task b { min-width: 0; }
 }

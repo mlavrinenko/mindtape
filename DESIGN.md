@@ -81,9 +81,6 @@ components:
   code-panel:
     backgroundColor: "{colors.paper-sunk}"
     textColor: "{colors.ink}"
-  board-head:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.paper}"
 ---
 
 # Design System: Mindtape Documentation
@@ -114,7 +111,7 @@ A paper-and-ink palette with one signal green. The green is the logo's own accen
 ### Neutral
 - **Paper** (#f5f7f2): the page ground and every flat surface.
 - **Paper Sunk** (#edf1eb): inputs, code headers, muted panels; one step down, never a card.
-- **Ink** (#101512): display text, rules, board headers, and the strongest dividers.
+- **Ink** (#101512): display text, rules, panel headers, and the strongest dividers.
 - **Ink Soft** (#34423a): secondary prose and rail labels.
 - **Ink Muted** (#65746a): metadata, captions, timestamps, and placeholders.
 - **Rule** (#ccd6ce): hairline separators inside a region.
@@ -134,12 +131,12 @@ A paper-and-ink palette with one signal green. The green is the logo's own accen
 **Character:** A wide, heavy grotesque for station names, a book serif for reading, and a neutral mono for data, all self-hosted variable Latin subsets under `assets/fonts/` with their SIL OFL licenses. No third-party font requests.
 
 ### Hierarchy
-- **Display** (800, clamp(72px, 7.6vw, 107px), 0.84, -0.075em): the home page title only, set to the width of its column.
+- **Display** (800, clamp(72px, 7.6vw, 107px), 0.84, -0.075em): the home page title only, set across the full hero width with the cassette mark at its right edge.
 - **Headline** (800, clamp(46px, 5vw, 62px), 0.96, -0.055em): article titles. Distinct from display so a long page name still fits.
 - **Title** (700, 30px, 1.1, -0.035em): section heads on the home page and inside prose. H2s inside prose carry a hairline above them; the first one does not.
 - **Lede** (400, 21px, 1.42): the home summary in Literata; article ledes drop to 19px/1.5 and cap at 60ch.
 - **Body** (400, 18px, 1.65): default prose. Article prose reads at 16.5px/1.68 in a 690px column.
-- **Label** (500, 11px, 0.08 to 0.16em, uppercase): station numbers, route labels, board headers, and metadata. Uppercase comes from CSS, never from the source string.
+- **Label** (500, 11px, 0.08 to 0.16em, uppercase): station numbers, route labels, panel headers, and metadata. Uppercase comes from CSS, never from the source string.
 - **Code** (400, 12.5px, 1.62): panels on the home page; 11.5px inside article prose.
 
 **The Measured Column Rule.** Reading text stays between 60 and 72 characters. Display type may exceed the column, reading text may not. **The Legibility Floor.** No type role is set below 11px; labels separate themselves by family, weight, tracking and color, and inline code keeps its parent's size.
@@ -152,13 +149,13 @@ Vertical rhythm comes from hairlines and white space: 42px above the shell, 40px
 
 ## Elevation & Depth
 
-There are no shadows. Depth is drawn with two rules: the 1px hairline inside a region and the 1px strong border between regions. The departure board and the code panel invert their header (ink on paper, paper on ink) rather than lifting off the page, and the only dimensional mark is the filled green stop on the rail's own 1px line.
+There are no shadows. Depth is drawn with two rules: the 1px hairline inside a region and the 1px strong border between regions. The code panel separates its header with a hairline rather than lifting off the page, and the only dimensional mark is the filled green stop on the rail's own 1px line.
 
 **The Flat Paper Rule.** Surfaces are flat at rest and at every state. If an element needs emphasis, it gains a rule, a weight step, or an inverted header, never a shadow.
 
 ## Shapes
 
-Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean without reading as rounded. Borders are 1px, with 3px reserved for the top edge of a code panel and a callout. Dots are the only circular form: 7px stops on the line map and the calling points rail, and the 8px end-of-line mark in the footer. Buttons, inputs, code panels, and the departure board all keep the same square silhouette.
+Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean without reading as rounded. Borders are 1px, with 3px reserved for the top edge of a code panel and a callout. Dots are the only circular form: 7px stops on the line map and the calling points rail, and the 8px end-of-line mark in the footer. Buttons, inputs, and code panels all keep the same square silhouette.
 
 **The Squared Rule.** No rounded cards, pills, or floating panels. A circle appears only where a stop on a line is meant.
 
@@ -173,9 +170,9 @@ Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean
 - **Style:** 36px tall, paper-sunk ground, 1px rule, 12px sans placeholder, a 14px drawn magnifier, and a monospace `/` key hint at the right.
 - **Behavior:** Pagefind replaces the static placeholder in place. `/` focuses the input from anywhere; Escape closes the result panel.
 
-### Departure Board (signature)
-- **Style:** 1px strong border. A 38px ink header with `MT LS / DEFAULT VIEW` and a live dot; a column header row in 11px uppercase sans; rows on a 76px / fluid / 48px grid.
-- **Rows:** a status word with a square or ring, a task title, its slug and priority marks, and a due date. Hover tints the row with paper-sunk. Every row is real captured `mt ls` output from `www/generated/`, never invented tasks.
+### Mark
+- **Style:** the cassette silhouette from `logo.svg` as a flat CSS mask in signal green. The 26px mark sits beside the masthead name.
+- **Hero:** the same mark fills a square the size of the display title at the right edge of the hero's title row. The h1 already names the product, so the hero mark is decorative, and it hides below 40rem.
 
 ### Code Panel
 - **Style:** 1px strong border with a 3px green top edge. A 36px paper header carries a 7px green square, the language label, the file path in muted mono, and a COPY control. The body is code on light paper in light mode and on a raised night panel (#1a261e) in dark mode.
