@@ -6,6 +6,12 @@
 //! [`emit_task_with`]. Field order stays fixed (see [`emit_task_with`]), so two
 //! calls on an unchanged `Task` agree byte-for-byte.
 //!
+//! The header imports the project's modules first and the prelude last. A
+//! wildcard import shadows an earlier name, and the prelude goes last. That
+//! keeps the core helpers (`task`, `status`, `wip`, …) whatever a project
+//! module exports. A project helper that means to replace a core name cannot,
+//! and a body calls the project helper under the name the module gives it.
+//!
 //! `recur` emits `every(...)` for a period rule and `rrule(...)` for the
 //! escape hatch, mirroring the prelude's two constructors. See
 //! `truth/tasks/2026-09/carry-recur-through-the-canonical-task-json-round-trip.typ`.
@@ -36,24 +42,26 @@ use crate::query::Query;
 use crate::recur::{Recur, Rule};
 use format::{hval_to_typ, typ_array, typ_str};
 
-/// The prelude import every emitted task file starts with.
+/// The prelude import every emitted task file ends its header with.
 const PRELUDE_IMPORT: &str = "#import \"@local/mindtape:0.5.0\": *\n";
 
-/// Serialize `task` to a full task-file source: the `@local/mindtape` import,
-/// one `#import "<path>": *` per entry of `imports` in order, then
+/// Serialize `task` to a full task-file source: one `#import "<path>": *` per
+/// entry of `imports` in order, then the `@local/mindtape` import, then
 /// `#show: task.with(...)` with every set field, and the prose body appended
-/// verbatim after the marker. An empty body appends nothing, and the emitter
-/// never synthesizes a `Summary`. An empty `imports` writes the file
-/// [`emit_task`] always wrote.
+/// verbatim after the marker. The prelude comes last so a project module cannot
+/// shadow a core helper. An empty body appends nothing, and the emitter never
+/// synthesizes a `Summary`. An empty `imports` writes the file [`emit_task`]
+/// always wrote.
 #[must_use]
 pub fn emit_task_with(task: &Task, imports: &[String]) -> String {
     let fields = emit_fields(task);
-    let mut out = String::from(PRELUDE_IMPORT);
+    let mut out = String::new();
     for import in imports {
         out.push_str("#import ");
         out.push_str(&typ_str(import));
         out.push_str(": *\n");
     }
+    out.push_str(PRELUDE_IMPORT);
     out.push_str("\n#show: task.with(\n");
     for field in &fields {
         out.push_str("  ");

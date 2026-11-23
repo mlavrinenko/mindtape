@@ -39,9 +39,9 @@ pub struct TasksConfig {
     pub derive_tags: DeriveConfig,
     /// Typst modules every writer imports into a task file it rebuilds, each a
     /// root-absolute path to a `.typ` module. `mt import` writes
-    /// `#import "<path>": *` for each entry, after the prelude import and
-    /// before the body. A project with no entry gets the file writers always
-    /// wrote.
+    /// `#import "<path>": *` for each entry, before the prelude import and the
+    /// body, so a project wildcard cannot shadow a core helper. A project with
+    /// no entry gets the file writers always wrote.
     pub emit_imports: Vec<String>,
     /// Status legend: legal values in lifecycle order, plus per-value display
     /// (glyph, color, label) and the `terminal` flag.

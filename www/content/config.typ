@@ -178,8 +178,8 @@ project reads.
 = Emitted imports
 
 `mt` rebuilds a task file from the model in one place, `mt import`. The header
-it writes holds the prelude import, then one `#import "<path>": *` per
-`[tasks] emit-imports` entry, then the blank line and the body. Each entry is a
+it writes holds one `#import "<path>": *` per `[tasks] emit-imports` entry,
+then the prelude import, then the blank line and the body. Each entry is a
 root-absolute path to a `.typ` module in the project, so a rebuilt body that
 calls a project helper still evaluates:
 
@@ -189,7 +189,10 @@ calls a project helper still evaluates:
 emit-imports = ["/truth/prelude/2/lib.typ"]
 ```
 
-The `: *` wildcard brings in every name the module exports. `mt` refuses an
+The `: *` wildcard brings in every name the module exports. A wildcard import
+shadows an earlier one. The prelude comes last, and its `task`, `status` and
+status constructors keep their names whatever a project module exports. A
+project helper that means to replace one of those names cannot. `mt` refuses an
 entry that is not root-absolute, holds `..`, does not end in `.typ`, or names a
 module the project lacks, and it refuses each of them when the config loads. A
 project with no entry writes the file `mt` always wrote.

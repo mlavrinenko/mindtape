@@ -157,21 +157,32 @@ fn imports_from_a_file_argument() {
 
 const HELPER: &str = "#let emphasize(body) = text(weight: \"bold\", body)\n";
 
-const HELPER_TASK: &str = "#import \"@local/mindtape:0.5.0\": *\n\
-     #import \"/truth/prelude/2/lib.typ\": *\n\n\
+const HELPER_TASK: &str = "#import \"/truth/prelude/2/lib.typ\": *\n\
+     #import \"@local/mindtape:0.5.0\": *\n\n\
      #show: task.with(\n  title: \"Uses the helper\",\n  status: wip(2026, 6, 1),\n)\n\n\
      = Summary\n\n#emphasize[The project helper resolves.]\n";
 
-/// [`scaffold`] with `[tasks] emit-imports` and the project helper module a
-/// rebuilt body calls.
-fn helper_scaffold() -> tempfile::TempDir {
+/// A scaffold with `emit-imports` naming `module`, holding the task
+/// `(stem, source)` written under `tasks/`.
+fn emitted_scaffold(module: (&str, &str), task: (&str, &str)) -> tempfile::TempDir {
     let dir = support::scaffold_project(&format!(
         "[tasks]\nroots = [\"tasks\"]\n\
-         emit-imports = [\"/truth/prelude/2/lib.typ\"]\n{LEGEND}"
+         emit-imports = [\"/{}\"]\n{LEGEND}",
+        module.0
     ));
-    write_file(dir.path(), "truth/prelude/2/lib.typ", HELPER);
+    write_file(dir.path(), module.0, module.1);
+    write_file(dir.path(), format!("tasks/{}.typ", task.0), task.1);
     dir
 }
+
+/// A project module that exports its own `task` and `status`.
+const SHADOW: &str = "#let task(..) = [shadow]\n#let status(..) = [shadow]\n";
+
+/// A task authored with the module imported first. The prelude keeps `task`
+/// and `status`, and the file loads.
+const SHADOW_TASK: &str = "#import \"/helpers/shadow.typ\": *\n\
+     #import \"@local/mindtape:0.5.0\": *\n\n\
+     #show: task.with(\n  title: \"Shadowed by a project helper\",\n  status: wip(2026, 6, 1),\n)\n";
 
 /// Run `mt import` in `dir` over `input`, requiring success.
 fn import_stdin(dir: &Path, input: impl Into<Vec<u8>>) {
@@ -182,37 +193,79 @@ fn import_stdin(dir: &Path, input: impl Into<Vec<u8>>) {
         .success();
 }
 
-/// A task whose body calls a project helper keeps its `emit-imports` line
-/// through `mt ls --json | mt import`, so the rebuilt file evaluates and
-/// passes `mt check`.
-#[test]
-fn a_rebuilt_task_keeps_the_project_import_its_body_calls() {
-    let dir = helper_scaffold();
-    write_file(dir.path(), "tasks/uses-helper.typ", HELPER_TASK);
-
-    let exported = support::mt(dir.path())
+/// Export the task at `tasks/<stem>.typ`, remove it, and rebuild it from the
+/// export, returning the source `mt import` wrote back.
+fn rebuild(dir: &Path, stem: &str) -> String {
+    let exported = support::mt(dir)
         .args(["ls", "", "--json"])
         .assert()
         .success()
         .get_output()
         .stdout
         .clone();
-    std::fs::remove_file(dir.path().join("tasks/uses-helper.typ")).unwrap();
-    import_stdin(dir.path(), exported);
+    let path = dir.join("tasks").join(format!("{stem}.typ"));
+    std::fs::remove_file(&path).unwrap();
+    import_stdin(dir, exported);
+    std::fs::read_to_string(&path).unwrap()
+}
 
-    let rebuilt = std::fs::read_to_string(dir.path().join("tasks/uses-helper.typ")).unwrap();
+/// The first two lines `mt import` writes: the project import, then the
+/// prelude.
+fn assert_header(rebuilt: &str, project: &str) {
+    let expected = [
+        format!("#import \"{project}\": *"),
+        "#import \"@local/mindtape:0.5.0\": *".to_owned(),
+    ];
     assert_eq!(
-        rebuilt.lines().take(2).collect::<Vec<_>>(),
-        [
-            "#import \"@local/mindtape:0.5.0\": *",
-            "#import \"/truth/prelude/2/lib.typ\": *",
-        ]
+        rebuilt
+            .lines()
+            .take(2)
+            .map(str::to_owned)
+            .collect::<Vec<_>>(),
+        expected,
+        "{rebuilt}"
     );
+}
+
+/// Rebuild `tasks/<stem>.typ` from its export, assert its header names
+/// `project`, assert `mt check` passes, and return the source.
+fn rebuild_and_check(dir: &Path, stem: &str, project: &str) -> String {
+    let rebuilt = rebuild(dir, stem);
+    assert_header(&rebuilt, project);
+    support::check_ok(dir);
+    rebuilt
+}
+
+/// A task whose body calls a project helper keeps its `emit-imports` line
+/// through `mt ls --json | mt import`, so the rebuilt file evaluates and
+/// passes `mt check`.
+#[test]
+fn a_rebuilt_task_keeps_the_project_import_its_body_calls() {
+    let dir = emitted_scaffold(
+        ("truth/prelude/2/lib.typ", HELPER),
+        ("uses-helper", HELPER_TASK),
+    );
+
+    let rebuilt = rebuild_and_check(dir.path(), "uses-helper", "/truth/prelude/2/lib.typ");
     assert!(
         rebuilt.contains("#emphasize[The project helper resolves.]"),
         "{rebuilt}"
     );
-    support::check_ok(dir.path());
+}
+
+/// A project module that exports its own `task` and `status` keeps neither name
+/// in a rebuilt file. The emitter writes the project imports first and the
+/// prelude last, and the rebuilt task still loads with its own title.
+#[test]
+fn a_project_module_exporting_task_cannot_shadow_the_core() {
+    let dir = emitted_scaffold(("helpers/shadow.typ", SHADOW), ("shadowed", SHADOW_TASK));
+
+    rebuild_and_check(dir.path(), "shadowed", "/helpers/shadow.typ");
+    let row = support::task_json(dir.path(), "shadowed");
+    assert_eq!(
+        support::at(&row, "/title").as_str(),
+        Some("Shadowed by a project helper")
+    );
 }
 
 /// A clean record followed by one whose status is outside the legend.

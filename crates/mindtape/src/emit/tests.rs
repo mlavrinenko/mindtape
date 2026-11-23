@@ -366,6 +366,8 @@ fn emits_unnamed_framework_with_inputs_via_the_generic_escape_hatch() {
 
 /// A body that calls a project helper evaluates when the emitter writes the
 /// project's import above it, and the round trip carries the body unchanged.
+/// The module exports its own `task` too, and the prelude imported last keeps
+/// that name.
 #[test]
 fn round_trips_a_body_that_calls_a_project_helper() {
     let mut task = bare_task("helper-call");
@@ -378,7 +380,8 @@ fn round_trips_a_body_that_calls_a_project_helper() {
         &["/truth/prelude/2/lib.typ"],
         &[(
             "truth/prelude/2/lib.typ",
-            "#let emphasize(body) = text(weight: \"bold\", body)\n",
+            "#let emphasize(body) = text(weight: \"bold\", body)\n\
+             #let task(..) = [shadow]\n",
         )],
     );
 }
@@ -396,10 +399,11 @@ fn an_empty_import_list_writes_the_unchanged_file() {
     assert_eq!(emit_task_with(&task, &[]), expected);
 }
 
-/// Each configured import follows the prelude import, in order, and the blank
-/// line that starts the body still separates the header from the `#show` call.
+/// Each configured import comes before the prelude import, in order, and the
+/// blank line that starts the body still separates the header from the `#show`
+/// call. A project wildcard imported earlier cannot shadow a core name.
 #[test]
-fn emits_configured_imports_in_order_after_the_prelude() {
+fn emits_configured_imports_in_order_before_the_prelude() {
     let task = bare_task("ordered-imports");
     let source = emit_task_with(
         &task,
@@ -408,9 +412,9 @@ fn emits_configured_imports_in_order_after_the_prelude() {
             "/helpers/labels.typ".to_owned(),
         ],
     );
-    let expected = "#import \"@local/mindtape:0.5.0\": *\n\
-         #import \"/truth/prelude/2/lib.typ\": *\n\
-         #import \"/helpers/labels.typ\": *\n\n\
+    let expected = "#import \"/truth/prelude/2/lib.typ\": *\n\
+         #import \"/helpers/labels.typ\": *\n\
+         #import \"@local/mindtape:0.5.0\": *\n\n\
          #show: task.with(\n";
     assert!(source.starts_with(expected), "{source}");
 }

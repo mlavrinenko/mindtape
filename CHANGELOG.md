@@ -38,8 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the old field.
 - **A rebuilt task file can carry the project's own imports.** `[tasks]
   emit-imports` lists root-absolute `.typ` modules, and `mt import` writes one
-  `#import "<path>": *` per entry after the prelude import and before the body,
-  so a task rebuilt from JSON evaluates when its body calls a project helper.
+  `#import "<path>": *` per entry before the prelude import and the body, so a
+  task rebuilt from JSON evaluates when its body calls a project helper.
   `emit_task_with` is the new library entry point, `emit_task` stays the
   no-import wrapper, and a project with no entry writes the same file as
   before. Config load refuses an entry that is not root-absolute, climbs with
@@ -215,6 +215,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   carries leaves it out instead of naming it. A rule over `markers` keeps the
   names its `when` and `assert` read, and the `mt add` template hint and the
   pre-write consumers keep the behavior they had.
+- **A project module cannot shadow the core helpers in a rebuilt task.** The
+  emitter writes the `[tasks] emit-imports` wildcards before the prelude
+  import, so the prelude wins a name collision and a project module exporting
+  `task` or `status` no longer silently replaces it. A project with no entry
+  writes the same file as before.
 - **`emit-imports` refuses a path that resolves outside the project.** The
   check stripped one leading `/` and joined the rest under the root, so a `//`
   path left an absolute remainder that resolved elsewhere while the emitter

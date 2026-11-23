@@ -31,9 +31,10 @@ name = "mindtape"
 path = "lib"
 
 [tasks]
-# Every writer that rebuilds a task emits this import after the prelude. It is
-# the generation that re-exports the goal values, so a rebuilt task still rates
-# its goals by name. Generation 1 stays importable for a task that pins it.
+# Every writer that rebuilds a task emits this import before the prelude, whose
+# core helpers win a name collision. It is the generation that re-exports the
+# goal values, so a rebuilt task still rates its goals by name. Generation 1
+# stays importable for a task that pins it.
 emit-imports = ["/truth/prelude/2/lib.typ"]
 
 # Mindtape's own backlog lives here, one task per file, in the folder named by

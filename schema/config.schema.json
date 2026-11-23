@@ -2675,7 +2675,7 @@
         },
         "emit-imports": {
           "default": [],
-          "description": "Typst modules every writer imports into a task file it rebuilds, each a\nroot-absolute path to a `.typ` module. `mt import` writes\n`#import \"<path>\": *` for each entry, after the prelude import and\nbefore the body. A project with no entry gets the file writers always\nwrote.",
+          "description": "Typst modules every writer imports into a task file it rebuilds, each a\nroot-absolute path to a `.typ` module. `mt import` writes\n`#import \"<path>\": *` for each entry, before the prelude import and the\nbody, so a project wildcard cannot shadow a core helper. A project with\nno entry gets the file writers always wrote.",
           "items": {
             "type": "string"
           },
