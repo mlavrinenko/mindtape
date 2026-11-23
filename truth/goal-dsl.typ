@@ -156,10 +156,31 @@
   by-name(product) + by-name(process)
 }
 
-// What a verdict gets wrong, if anything: a wrong audience, or a `Helps` or
-// `Hinders` that gives no reason. A neutral verdict needs none.
+// What a verdict gets wrong, if anything: an unknown effect, a wrong audience,
+// or a `Helps` or `Hinders` that gives no reason. A neutral verdict needs none.
+// The effect is checked first, so a hand-written marker cannot reach the other
+// checks with a verdict the DSL cannot spell.
 #let _verdict-problems(value, goal) = {
   let messages = ()
+  let effect = value.at("effect", default: none)
+  if effect == none {
+    messages.push(
+      "goal `"
+        + goal.name
+        + "` has no effect; use `helps`, `hinders` or `neutral`",
+    )
+    return messages
+  }
+  if effect not in ("helps", "hinders", "neutral") {
+    messages.push(
+      "goal `"
+        + goal.name
+        + "` has unknown effect `"
+        + str(effect)
+        + "`; use `helps`, `hinders` or `neutral`",
+    )
+    return messages
+  }
   let audience = value.at("audience", default: none)
   if audience != goal.audience {
     let fix = "#Helps(" + goal.audience + ", to: " + goal.name + ")"
@@ -174,7 +195,6 @@
         + fix,
     )
   }
-  let effect = value.at("effect", default: none)
   if (
     effect != "neutral" and value.at("reason", default: none) in (none, "", [ ])
   ) {

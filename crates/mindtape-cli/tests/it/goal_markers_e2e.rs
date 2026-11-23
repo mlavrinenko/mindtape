@@ -94,6 +94,8 @@ fn a_verdict_without_a_goal_fails_the_load() {
 #[test]
 fn a_broken_verdict_is_a_check_breach() {
     let dir = support::goal_project(CONFIG);
+    let without_guide_neutral =
+        COMPLETE.replace("#Neutral(guide-the-implementer, ", "#Neutral(");
     let cases = [
         (
             "wrong audience",
@@ -120,6 +122,24 @@ fn a_broken_verdict_is_a_check_breach() {
                  goal: \"keep-some-files\", effect: \"neutral\", reason: none)).\n"
             ),
             "unknown goal `keep-some-files`",
+        ),
+        (
+            "unknown effect",
+            format!(
+                "{without_guide_neutral}\n+ #metadata((marker: \"goal\", audience: \"adopter\", \
+                 goal: \"guide-the-implementer\", effect: \"sideways\", \
+                 reason: \"because the implementer knows where to start\")).\n"
+            ),
+            "`guide-the-implementer` has unknown effect `sideways`",
+        ),
+        (
+            "missing effect",
+            format!(
+                "{without_guide_neutral}\n+ #metadata((marker: \"goal\", audience: \"adopter\", \
+                 goal: \"guide-the-implementer\", \
+                 reason: \"because the implementer knows where to start\")).\n"
+            ),
+            "`guide-the-implementer` has no effect",
         ),
         (
             "empty reason",
