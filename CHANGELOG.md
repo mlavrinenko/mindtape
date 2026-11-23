@@ -163,6 +163,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   slot's `example`, and a `date` slot spells `YYYY-MM-DD` with a sample, so
   `17.11.2026` no longer reads as a valid answer. A `date` slot with a default
   pre-fills it, and an entry you leave untouched keeps that default.
+- **A conflict marker left in a tracked file fails `just check`.** A
+  hand-resolved merge can leave git's three marker lines in a file, and no
+  other gate reads a file for them: commit 28cafc4b landed a `CHANGELOG.md`
+  holding all three, and 44 gates passed on that tree and on the next commit.
+  `just lint::conflict-markers` reads `git ls-files -z` in one pass and fails
+  naming the file, the line and the marker. A doc that must quote one takes
+  the scanner's `ignore` array.
 
 ### Changed
 

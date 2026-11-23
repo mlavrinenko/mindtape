@@ -136,6 +136,15 @@ scopes:
     globs: ["**"]
     exclude: ["truth/tasks"]
 
+  # Everything `just lint::conflict-markers` reads, which is the whole tree: a
+  # hand-resolved merge can leave a marker in any file, so no narrower list
+  # would cover it. It repeats `secrets-tree`'s shape and its exclusion for
+  # the same reason, and stays a scope of its own so a gitleaks ruleset edit
+  # does not re-run this scan and a marker scan does not re-run gitleaks.
+  conflict-tree:
+    globs: ["**"]
+    exclude: ["truth/tasks"]
+
   # outdatty's own config + lock. The dependents outdatty re-reads are already
   # covered by the `rust`/`policy`/`examples`/`docs` scopes (the lock hashes
   # their content), so a dependent edit busts via those scopes, and a raw
@@ -485,6 +494,13 @@ scopes:
     - ".just/scripts/_jq-reports-control.sh"
   script-check-secrets:
     - ".just/scripts/check-secrets.sh"
+  # The marker scan's body and the control the recipe runs before it. The
+  # control is a scope of its own, as every other control is, so editing its
+  # fixtures re-runs the rule without re-hashing the scanner.
+  script-check-conflict-markers:
+    - ".just/scripts/check-conflict-markers.sh"
+  script-conflict-markers-control:
+    - ".just/scripts/_conflict-markers-control.sh"
   script-cover:
     - ".just/scripts/cover.sh"
   script-crap:
@@ -703,6 +719,15 @@ commands:
   - name: just lint::secrets
     tags: [gate]
     inputs: [secrets-tree, secrets-config, gates-meta, script-check-secrets]
+
+  # The marker scan reads every tracked file, so `conflict-tree` is that tree
+  # (minus the one directory a gate-tagged rule may not name, argued on the
+  # scope itself). No `rust`: nothing is built or run here, and `crates/**` is
+  # scanned as text through `conflict-tree` like every other file. The two
+  # script scopes are the scanner and the control the recipe runs before it.
+  - name: just lint::conflict-markers
+    tags: [gate]
+    inputs: [conflict-tree, gates-meta, script-check-conflict-markers, script-conflict-markers-control]
 
   # outdatty.check re-reads every dependent's current content and compares it to
   # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so

@@ -877,13 +877,14 @@ groups:
     dependents:
       - www/content/schema.typ
 
-  # The gates that police the other gates, and the secret scan. gates.typ
-  # explains how each runs.
+  # The gates that police the other gates, the secret scan and the marker
+  # scan. gates.typ explains how each runs.
   - name: gate-scripts-docs
     source:
       - .just/scripts/check.sh
       - .just/scripts/mmz-arm.sh
       - .just/scripts/check-secrets.sh
+      - .just/scripts/check-conflict-markers.sh
       - .just/scripts/check-gate-drift.sh
       - .just/scripts/_gate-drift-lib.sh
       - .just/scripts/script-scope-check.sh
@@ -957,6 +958,7 @@ groups:
       - .just/scripts/_script-graph-control.sh
       - .just/scripts/_gate-drift-control.sh
       - .just/scripts/_doc-blocks-control.sh
+      - .just/scripts/_conflict-markers-control.sh
 
   # The essentials report, the gate that runs it and the fixture pair the gate
   # diffs. www/content/cli/config.typ says what the report prints and where a

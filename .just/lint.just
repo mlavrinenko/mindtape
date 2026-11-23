@@ -72,6 +72,16 @@ vale-levels:
 secrets:
     bash .just/scripts/check-secrets.sh
 
+# The control runs first, and the recipe runs it rather than the scanner,
+# because the control drives the scanner. A control call inside the scanner
+# would call itself.
+
+[doc("Fail on a git conflict marker left in a tracked file")]
+[group("gate")]
+conflict-markers:
+    bash .just/scripts/_conflict-markers-control.sh
+    bash .just/scripts/check-conflict-markers.sh
+
 [doc("Refuse a #[path] attribute that names anything but a test sibling")]
 [group("gate")]
 path-attr:

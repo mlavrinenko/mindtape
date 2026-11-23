@@ -18,7 +18,7 @@
   ),
   tags: ("found", "gating", "tooling", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 21),
+  status: done(2026, 11, 24),
 )
 
 == AS-IS
