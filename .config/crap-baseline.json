@@ -17420,10 +17420,10 @@
     {
       "file": "crates/mindtape/src/config/tasks.rs",
       "function": "emit_import_problem",
-      "line": 343,
-      "cyclomatic": 4.0,
+      "line": 350,
+      "cyclomatic": 7.0,
       "coverage": 100.0,
-      "crap": 4.0,
+      "crap": 7.0,
       "crate": "mindtape"
     },
     {
@@ -17456,7 +17456,7 @@
     {
       "file": "crates/mindtape/src/config/tasks.rs",
       "function": "validate_field_names",
-      "line": 386,
+      "line": 402,
       "cyclomatic": 1.0,
       "coverage": 83.87096774193549,
       "crap": 1.0041958980900272,
@@ -21020,7 +21020,7 @@
     {
       "file": "crates/mindtape/src/loader/embedded.rs",
       "function": "PreludeSnapshot::manifest",
-      "line": 64,
+      "line": 69,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -21029,7 +21029,7 @@
     {
       "file": "crates/mindtape/src/loader/embedded.rs",
       "function": "package_provider",
-      "line": 133,
+      "line": 138,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -21038,7 +21038,7 @@
     {
       "file": "crates/mindtape/src/loader/embedded.rs",
       "function": "prelude_is_older",
-      "line": 95,
+      "line": 100,
       "cyclomatic": 1.0,
       "coverage": 85.71428571428571,
       "crap": 1.0029154518950438,
@@ -21047,7 +21047,7 @@
     {
       "file": "crates/mindtape/src/loader/embedded.rs",
       "function": "prelude_manifest",
-      "line": 107,
+      "line": 112,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -21056,7 +21056,7 @@
     {
       "file": "crates/mindtape/src/loader/embedded.rs",
       "function": "prelude_snapshot",
-      "line": 75,
+      "line": 80,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -21065,7 +21065,7 @@
     {
       "file": "crates/mindtape/src/loader/embedded.rs",
       "function": "prelude_supports",
-      "line": 87,
+      "line": 92,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

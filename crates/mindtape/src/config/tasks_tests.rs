@@ -20,15 +20,20 @@ fn dicts(spec: &[(&str, &[&str])]) -> Dicts {
     compile_dicts_rootless(&map).expect("inline-only dicts always compile")
 }
 
+/// A `TasksConfig` whose only non-default setting is `emit_imports`.
+fn emit_tasks(entries: &[&str]) -> TasksConfig {
+    TasksConfig {
+        emit_imports: entries.iter().copied().map(str::to_owned).collect(),
+        ..TasksConfig::default()
+    }
+}
+
 /// A root-absolute `.typ` module the project holds passes.
 #[test]
 fn a_present_root_absolute_module_passes() {
     let dir = crate::test_support::tempdir();
     crate::test_support::write_file(dir.path(), "truth/prelude/2/lib.typ", "");
-    let tasks = TasksConfig {
-        emit_imports: vec!["/truth/prelude/2/lib.typ".to_owned()],
-        ..TasksConfig::default()
-    };
+    let tasks = emit_tasks(&["/truth/prelude/2/lib.typ"]);
     assert_eq!(validate_emit_imports(&tasks, dir.path()), Ok(()));
 }
 
@@ -45,14 +50,25 @@ fn a_bad_emit_import_is_refused() {
         ("/notes.md", "`.typ`"),
         ("/truth/prelude/2/lib.typ", "does not exist"),
     ] {
-        let tasks = TasksConfig {
-            emit_imports: vec![entry.to_owned()],
-            ..TasksConfig::default()
-        };
-        let err = validate_emit_imports(&tasks, dir.path()).unwrap_err();
+        let err = validate_emit_imports(&emit_tasks(&[entry]), dir.path()).unwrap_err();
         assert!(err.contains(expected), "{entry}: {err}");
         assert!(err.contains("tasks.emit-imports"), "{entry}: {err}");
     }
+}
+
+/// A `//` entry leaves an absolute remainder after the one stripped slash. The
+/// entry points outside the project, and validation refuses it. The same path
+/// with one leading `/` specifies a module under the root, and passes.
+#[test]
+fn a_double_slash_path_is_refused_and_a_single_slash_one_passes() {
+    let dir = crate::test_support::tempdir();
+    crate::test_support::write_file(dir.path(), "truth/prelude/2/lib.typ", "");
+    let err = validate_emit_imports(&emit_tasks(&["//tmp/x.typ"]), dir.path()).unwrap_err();
+    assert!(err.contains("resolves outside the project root"), "{err}");
+    assert!(err.contains("tasks.emit-imports"), "{err}");
+
+    let accepted = emit_tasks(&["/truth/prelude/2/lib.typ"]);
+    assert_eq!(validate_emit_imports(&accepted, dir.path()), Ok(()));
 }
 
 /// No `@` entry anywhere leaves both lists exactly as declared.

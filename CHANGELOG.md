@@ -215,6 +215,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   carries leaves it out instead of naming it. A rule over `markers` keeps the
   names its `when` and `assert` read, and the `mt add` template hint and the
   pre-write consumers keep the behavior they had.
+- **`emit-imports` refuses a path that resolves outside the project.** The
+  check stripped one leading `/` and joined the rest under the root, so a `//`
+  path left an absolute remainder that resolved elsewhere while the emitter
+  wrote the untouched string. Every component after the one leading slash must
+  now be a plain name, so a `//` entry, a `..` climb and a `.` segment are each
+  refused, and the existence check joins the same path the emitter writes.
 - **A write sees the body markers a task emits.** `mt add`, `mt import`,
   `mt link`, `mt recur`, `mt set` and the `mt check --commits` state loader now
   validate a candidate against the same marker list `mt check` reads, so a

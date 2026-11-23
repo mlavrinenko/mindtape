@@ -338,8 +338,15 @@ pub(crate) fn validate_emit_imports(tasks: &TasksConfig, root: &Path) -> Result<
     Ok(())
 }
 
-/// The first problem with one `import`, or `None` when it specifies a module
-/// under `root`.
+/// The first problem with one `import`, or `None` when the entry specifies a
+/// module under `root`.
+///
+/// The emitter writes the entry verbatim as `#import "<path>": *`, and Typst
+/// resolves that path from the project root. Every component after the one
+/// leading `/` must be a plain name. A `//` entry leaves an absolute
+/// remainder, and `root.join` then resolves it outside the project. A `..`
+/// segment climbs out. A `.` segment names the same file, so it passes. The
+/// existence check joins exactly the names the emitted path holds.
 fn emit_import_problem(import: &str, root: &Path) -> Option<String> {
     let Some(relative) = import.strip_prefix('/') else {
         return Some(format!(
@@ -349,11 +356,20 @@ fn emit_import_problem(import: &str, root: &Path) -> Option<String> {
     if relative.is_empty() {
         return Some("an entry is empty; name a `.typ` module".to_owned());
     }
-    if Path::new(relative)
-        .components()
-        .any(|component| matches!(component, Component::ParentDir))
-    {
-        return Some(format!("`{import}` climbs out of the root with `..`"));
+    for component in Path::new(relative).components() {
+        match component {
+            // `Path::components` already drops a `.` segment, so the join below
+            // reads the same names the emitted path resolves to.
+            Component::Normal(_) | Component::CurDir => {}
+            Component::ParentDir => {
+                return Some(format!("`{import}` climbs out of the root with `..`"));
+            }
+            Component::Prefix(_) | Component::RootDir => {
+                return Some(format!(
+                    "`{import}` resolves outside the project root; name it with one leading `/`"
+                ));
+            }
+        }
     }
     if !relative.ends_with(".typ") {
         return Some(format!("`{import}` is not a `.typ` file"));
