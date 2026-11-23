@@ -196,7 +196,13 @@
   }
   let audience = value.at("audience", default: none)
   if audience != goal.audience {
-    let fix = "#Helps(" + goal.audience + ", to: " + goal.name + ")"
+    let verdict = if effect == "helps" {
+      "Helps"
+    } else if effect == "hinders" {
+      "Hinders"
+    } else {
+      "Neutral"
+    }
     messages.push(
       "goal `"
         + goal.name
@@ -204,8 +210,9 @@
         + goal.audience
         + " work, rated "
         + str(audience)
-        + "; write "
-        + fix,
+        + "; reconsider the goal, the audience or the task's framing: a `"
+        + verdict
+        + "` here is not a `Helps`, and swapping the audience is not a fix",
     )
   }
   if effect != "neutral" and _reason-is-thin(value) {

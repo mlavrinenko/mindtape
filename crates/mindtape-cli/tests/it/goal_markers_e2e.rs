@@ -94,8 +94,7 @@ fn a_verdict_without_a_goal_fails_the_load() {
 #[test]
 fn a_broken_verdict_is_a_check_breach() {
     let dir = support::goal_project(CONFIG);
-    let without_guide_neutral =
-        COMPLETE.replace("#Neutral(guide-the-implementer, ", "#Neutral(");
+    let without_guide_neutral = COMPLETE.replace("#Neutral(guide-the-implementer, ", "#Neutral(");
     let cases = [
         (
             "wrong audience",
@@ -161,7 +160,10 @@ fn a_broken_verdict_is_a_check_breach() {
         ),
         (
             "one-word reason",
-            COMPLETE.replace("[because a newcomer reads the block in 30 seconds]", "[why]"),
+            COMPLETE.replace(
+                "[because a newcomer reads the block in 30 seconds]",
+                "[why]",
+            ),
             "`read-tasks-at-a-glance` says helps but not why",
         ),
         (
@@ -180,6 +182,46 @@ fn a_broken_verdict_is_a_check_breach() {
         assert!(
             text.contains(fragment),
             "{case}: expected {fragment:?}: {text}"
+        );
+    }
+}
+
+/// A wrong-audience verdict names both audiences and asks the author to
+/// reconsider, without a copy-paste replacement. A mechanical swap would hide
+/// a bad verdict instead of fixing the framing.
+#[test]
+fn a_wrong_audience_verdict_guides_without_a_mechanical_fix() {
+    let dir = support::goal_project(CONFIG);
+    let cases = [
+        (
+            "Hinders",
+            COMPLETE.replace(
+                "Hinders(maintainer, from: keep-changes-safe)",
+                "Hinders(adopter, from: keep-changes-safe)",
+            ),
+        ),
+        (
+            "Neutral",
+            COMPLETE.replace(
+                "+ #Hinders(maintainer, from: keep-changes-safe)[because a hand-merged marker slips past the gate].",
+                "+ #metadata((marker: \"goal\", audience: \"adopter\", goal: \"keep-changes-safe\", effect: \"neutral\", reason: none)).",
+            ),
+        ),
+    ];
+    for (case, body) in cases {
+        let (ok, text) = check(dir.path(), &body);
+        assert!(!ok, "{case}: a wrong audience must breach: {text}");
+        assert!(
+            text.contains("`keep-changes-safe` is maintainer work, rated adopter"),
+            "{case}: the message quotes both audiences: {text}"
+        );
+        assert!(
+            text.contains("reconsider the goal, the audience or the task's framing"),
+            "{case}: the message asks for a decision: {text}"
+        );
+        assert!(
+            !text.contains("#Helps"),
+            "{case}: the message gives no mechanical replacement: {text}"
         );
     }
 }
@@ -216,7 +258,10 @@ fn a_duplicate_goal_name_is_a_check_breach() {
             )),
             "{case}: the breach names the duplicate: {text}"
         );
-        assert!(!text.contains("ok: 1 task"), "{case}: no false pass: {text}");
+        assert!(
+            !text.contains("ok: 1 task"),
+            "{case}: no false pass: {text}"
+        );
         std::fs::write(&path, original).unwrap();
     }
 }
