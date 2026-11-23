@@ -148,17 +148,56 @@ pub(crate) fn render_effective(root: &Path, json: bool, resolved: bool) -> Resul
 /// it reports at. `extends`, `disable` and `pack-sources` are absent, because
 /// they say how the layers combine rather than what the config does.
 ///
+/// A path a pack declared prints as it resolves, relative to `root`. The
+/// document then reads back as the same config. The declared text would
+/// re-point at the project root, since a pack's paths resolve from the pack's
+/// own directory.
+///
 /// # Errors
 /// Returns an error if the config fails to load or to serialize. A [`Config`]
 /// always serializes as a table.
 ///
 /// [`Config`]: mindtape::Config
 fn resolved_table(root: &Path) -> Result<toml::Table> {
-    let config = mindtape::load_config(root)?;
+    let mut config = mindtape::load_config(root)?;
+    rewrite_pack_paths(&mut config, root);
     Ok(toml::Value::try_from(&config)?
         .as_table()
         .cloned()
         .unwrap_or_default())
+}
+
+/// Replace each path a pack declared with the form that reads at the project
+/// root: the absolute path it resolves to, made relative to `root` when it
+/// sits under it. A path outside the root stays absolute, which reads back
+/// too. A path the project declared already reads at the root, so it stays as
+/// it is.
+fn rewrite_pack_paths(config: &mut mindtape::Config, root: &Path) {
+    for rule in &mut config.tasks.rules {
+        if let Some(check) = &mut rule.check
+            && let Some(resolved) = check.resolved_typst().map(Path::to_path_buf)
+        {
+            check.typst = root_form(&resolved, root);
+        }
+    }
+    for spec in &mut config.tasks.collectors {
+        if let mindtape::CollectorQuery::Typst(query) = &mut spec.query
+            && let Some(resolved) = query.resolved_typst().map(Path::to_path_buf)
+        {
+            query.typst = root_form(&resolved, root);
+        }
+    }
+    for spec in config.dicts.values_mut() {
+        if let Some(path) = &spec.path {
+            spec.path = Some(root_form(Path::new(path), root));
+        }
+    }
+}
+
+/// `path` as the resolved view prints it: relative to the project root when it
+/// sits under it, else absolute. Either form reads back from the root.
+fn root_form(path: &Path, root: &Path) -> String {
+    mindtape::display_path(mindtape::relative_to(path, root))
 }
 
 /// Render the contributing layers for `root`, one per line, in the same

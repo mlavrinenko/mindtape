@@ -155,6 +155,23 @@ pub struct CheckSpec {
     /// project root. Set at load, never read from config.
     #[serde(skip)]
     pub(crate) root: Option<PathBuf>,
+    /// The absolute path `typst` resolves to, recorded at load beside the
+    /// declared text when a pack declared the rule. `None` when the declared
+    /// text already reads at the project root. The resolved view prints this
+    /// in place of `typst`, so writing that view back keeps the file the rule
+    /// reads. Set at load, never read from config.
+    #[serde(skip)]
+    pub(crate) resolved: Option<PathBuf>,
+}
+
+impl CheckSpec {
+    /// The absolute path `typst` resolves to, when a pack declared the rule.
+    /// `None` when the declared text already reads at the project root, which
+    /// is the form the resolved view prints.
+    #[must_use]
+    pub fn resolved_typst(&self) -> Option<&Path> {
+        self.resolved.as_deref()
+    }
 }
 
 /// One assertion or check that every selected task must satisfy. Set exactly one

@@ -227,6 +227,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt config show --resolved` prints a pack's paths as they resolve.** A
+  rule's `check.typst`, a collector's `query.typst` and a dictionary's `path`
+  load from the pack's own directory, and the resolved view printed the
+  declared text, so writing that output back as a config re-pointed each one
+  at the project root. The view now prints the file each resolves to, relative
+  to the project root, and the round-trip test's fixture declares one. The
+  collected view still prints the layer text.
 - **A task whose only work is a record edit starts and closes in its commit.**
   A task-scope commit rule reads `records_other`, true when the commit changes
   a task file other than the one the rule runs for. The `mindtape:tasks`

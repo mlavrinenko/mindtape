@@ -5,7 +5,9 @@
 //! file covers the resolved one, whose whole point is that its output reads
 //! back as the same config.
 
-use mindtape::test_support::tempdir_with_config;
+use std::path::Path;
+
+use mindtape::test_support::{tempdir_with_config, write_file};
 use mindtape::{load_config, parse_config};
 
 use super::render_effective;
@@ -20,7 +22,13 @@ use super::render_effective;
 /// `RootSpec`, `DeriveTags`, `SectionSpec` and `AddValue` enums. Each of those
 /// hand-writes its `Deserialize`, so a derived `Serialize` cannot mirror it on
 /// its own. The round trip below checks each one.
+///
+/// It extends `team/pack.toml`, whose `check.typst` is the one pack-relative
+/// path here: the resolved view has to print it from the project root, or
+/// writing that view back would re-point it.
 const RICH_CONFIG: &str = r#"
+extends = ["./team/pack.toml"]
+
 [project]
 code = "rich"
 
@@ -249,25 +257,88 @@ fn the_resolved_output_prints_the_sections_a_layer_left_unset() {
     }
 }
 
-/// A project holding [`RICH_CONFIG`], plus the module its `typst` collector
-/// names, which config load requires to exist relative to the root.
+/// A project holding [`RICH_CONFIG`], plus the two modules config load
+/// requires to exist. One is the module its `typst` collector names, relative
+/// to the root. The other is the one its pack's `check` rule names, relative
+/// to the pack.
 fn rich_project() -> tempfile::TempDir {
     let dir = tempdir_with_config(RICH_CONFIG);
-    std::fs::write(
-        dir.path().join("tools.typ"),
+    write_file(
+        dir.path(),
+        "tools.typ",
         "#let module(body) = (module: \"core\", names: (\"a\",))\n",
-    )
-    .unwrap();
+    );
+    write_file(
+        dir.path(),
+        "team/pack.toml",
+        "[[tasks.rules]]\nname = \"pack-check\"\ncheck = { typst = \"rules.typ\", function = \"check\" }\n",
+    );
+    write_file(dir.path(), "team/rules.typ", "#let check(task) = ()\n");
     dir
+}
+
+/// Each `check` rule's module as the resolved view prints it: the path a pack
+/// declared, recorded at load, else the declared text, both read from `root`.
+fn check_modules(config: &mindtape::Config, root: &Path) -> Vec<String> {
+    config
+        .tasks
+        .rules
+        .iter()
+        .filter_map(|rule| rule.check.as_ref())
+        .map(|check| {
+            let path = check
+                .resolved_typst()
+                .map_or_else(|| root.join(&check.typst), Path::to_path_buf);
+            mindtape::display_path(mindtape::relative_to(&path, root))
+        })
+        .collect()
 }
 
 #[test]
 fn the_resolved_output_round_trips_as_a_config() {
     let dir = rich_project();
+    let before = load_config(dir.path()).unwrap();
 
     let text = render_effective(dir.path(), false, true).unwrap();
-    let reparsed = parse_config(&text).unwrap();
-    assert_eq!(reparsed, load_config(dir.path()).unwrap());
+    // Write the resolved view back as the project's own config, the way a
+    // project copies it, and read it again.
+    std::fs::write(mindtape::config_path(dir.path()), &text).unwrap();
+    let after = load_config(dir.path()).unwrap();
+
+    // The pack's `check.typst` still names the pack's file, now from the root.
+    assert_eq!(
+        check_modules(&after, dir.path()),
+        check_modules(&before, dir.path()),
+        "{text}"
+    );
+    // And the view of the re-read config is the same document.
+    assert_eq!(render_effective(dir.path(), false, true).unwrap(), text);
+}
+
+#[test]
+fn a_pack_declared_collector_and_dict_print_the_files_they_resolve_to() {
+    let dir =
+        tempdir_with_config("extends = [\"./team/pack.toml\"]\n\n[project]\ncode = \"demo\"\n");
+    write_file(
+        dir.path(),
+        "team/pack.toml",
+        "[[tasks.collectors]]\nname = \"module\"\nquery = { typst = \"collect.typ\", function = \"collect\" }\nreturns = [\"string\"]\n\n[dicts.verbs]\npath = \"words.txt\"\n",
+    );
+    write_file(
+        dir.path(),
+        "team/collect.typ",
+        "#let collect(task) = \"x\"\n",
+    );
+    write_file(dir.path(), "team/words.txt", "add\n");
+
+    // The collected view keeps the layer text, which is what a config holds.
+    let collected = render_effective(dir.path(), false, false).unwrap();
+    assert!(collected.contains("typst = \"collect.typ\""), "{collected}");
+
+    let text = render_effective(dir.path(), false, true).unwrap();
+    for expected in ["typst = \"team/collect.typ\"", "path = \"team/words.txt\""] {
+        assert!(text.contains(expected), "{expected} missing from {text}");
+    }
 }
 
 #[test]

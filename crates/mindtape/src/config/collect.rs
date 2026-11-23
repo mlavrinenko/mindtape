@@ -6,7 +6,7 @@
 //! Collectors merge by name across layers and packs exactly as the rule arrays
 //! do ([`crate::config::packs`]).
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -204,6 +204,23 @@ pub struct TypstQuery {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub field: Option<String>,
+    /// The absolute path `typst` resolves to, recorded at load beside the
+    /// declared text when a pack declared the collector. `None` when the
+    /// declared text already reads at the project root. The resolved view
+    /// prints this in place of `typst`, so writing that view back keeps the
+    /// file the collector reads. Set at load, never read from config.
+    #[serde(skip)]
+    pub(crate) resolved: Option<PathBuf>,
+}
+
+impl TypstQuery {
+    /// The absolute path `typst` resolves to, when a pack declared the
+    /// collector. `None` when the declared text already reads at the project
+    /// root, which is the form the resolved view prints.
+    #[must_use]
+    pub fn resolved_typst(&self) -> Option<&Path> {
+        self.resolved.as_deref()
+    }
 }
 
 /// A regex query takes the first capture group (or the whole match) of every

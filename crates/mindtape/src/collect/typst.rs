@@ -43,6 +43,7 @@ impl CompiledTypst {
             function: query.function.clone(),
             field: query.field.clone(),
             root: spec.root.clone(),
+            resolved: query.resolved.clone(),
         };
         Self {
             check: CompiledCheck::new(&check, root, config),

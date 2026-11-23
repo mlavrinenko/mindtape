@@ -421,6 +421,7 @@ fn spec(field: Option<&str>) -> crate::rules::CheckSpec {
         function: "f".to_owned(),
         field: field.map(str::to_owned),
         root: None,
+        resolved: None,
     }
 }
 

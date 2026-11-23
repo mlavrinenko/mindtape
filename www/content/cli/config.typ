@@ -1,4 +1,5 @@
 #import "../../utils/cli-ref.typ": cli-command, cli-page
+#import "../../utils/site.typ": u
 #import "../../generated/just.typ" as just
 
 #show: cli-page.with("config")
@@ -12,11 +13,13 @@ The collected table carries the keys a layer set, so copying it into a config
 pins only what the project chose. `--resolved` prints what `mt` uses instead,
 every default filled in. A rule that sets no `severity` shows the level it
 reports at, and a section a layer leaves out prints the keys `mt` falls back
-to. Written back as a config, the resolved output resolves to itself. It leaves out
-`extends`, `disable` and `[pack-sources]`, because those say how the layers
-combine rather than what the config does. `--defaults` prints just the embedded
-floor, with no project needed. It and `--origin` answer other questions, so
-neither combines with `--resolved`.
+to. Written back as a config, the resolved output resolves to itself. A path a
+#link(u("/packs/#files-a-pack-names"))[pack declares] prints as the file it
+resolves to, relative to the project root, so writing the output back keeps
+it. It leaves out `extends`, `disable` and `[pack-sources]`, because those say
+how the layers combine rather than what the config does. `--defaults` prints
+just the embedded floor, with no project needed. It and `--origin` answer
+other questions, so neither combines with `--resolved`.
 
 = The essentials report
 

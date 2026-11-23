@@ -39,6 +39,7 @@ fn spec(function: &str) -> CheckSpec {
         function: function.to_owned(),
         field: None,
         root: None,
+        resolved: None,
     }
 }
 
@@ -49,6 +50,7 @@ fn field_spec(function: &str, field: &str) -> CheckSpec {
         function: function.to_owned(),
         field: Some(field.to_owned()),
         root: None,
+        resolved: None,
     }
 }
 

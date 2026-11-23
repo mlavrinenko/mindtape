@@ -90,12 +90,12 @@ groups:
       www/utils/cli-notes.typ: 1800945800ab58b472b83c75a82d8e90c5b459f874cc408964ff4a13453a779a
   cli-config-docs:
     source:
-      crates/mindtape-cli/src/cmd/config.rs: 1c1ec5b86ea6c0b6b6ae70d06e1d8877ecd57befc038c66bb9fa389b3e67e0f9
+      crates/mindtape-cli/src/cmd/config.rs: 16fbeb62b779a3bf5b92ef2509fb55fe05e74e9029f17f4ea75b5cb15756837a
     dependents:
-      docs/src/skill.typ: c979ac413782e44ecf6f0eb8cc2a9eb99f3e81d16e552f1454c80b3d4143fc61
-      www/content/agents.typ: e97e63c25a17a0ced65d04db5397a38b602865e31abbc0ebe55a15a99d796881
-      www/content/cli/config.typ: d377ffd19f50119e87632e9156a18e6bacda18500585cffd2c8643f2bd389115
-      www/content/config.typ: afc2e947fe3d226e66c01521055f55c1ca1005247d0d87adb0c73a9bd86db654
+      docs/src/skill.typ: f8bb51218dbcf18f257cc8cd43a10eeccd621d92443b412df72de54b3687f341
+      www/content/agents.typ: cffdfb91aa063873ec7b19caa7b70515944a4a9b2a4afdc0372310e079314b3f
+      www/content/cli/config.typ: 7edfac1ccc3ecec2e4c23c093a4994c69159d7fd730bb87fce1cc434bb78988c
+      www/content/config.typ: c442543eaaa652d2ce21e71ef19a13cb4fcb13ca97257218d4d437b2d188d01b
       www/content/priority.typ: 27395d87f11646468629f66f52ba49a10dc4b8f837df5235121948a7757dc149
   cli-dicts-docs:
     source:

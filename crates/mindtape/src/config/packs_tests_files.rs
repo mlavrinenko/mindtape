@@ -186,7 +186,7 @@ fn a_layers_own_dict_path_still_resolves_from_the_project_root() {
 }
 
 #[test]
-fn the_root_a_pack_rule_carries_is_its_pack_directory() {
+fn a_pack_rule_carries_its_pack_directory_and_the_path_its_check_resolves_to() {
     let files = [
         ("project/team/pack.toml", CHECK_RULE),
         ("project/team/check.typ", &check_x("the pack")),
@@ -197,6 +197,22 @@ fn the_root_a_pack_rule_carries_is_its_pack_directory() {
     let check = config.unwrap().tasks.rules[0].check.clone().unwrap();
     let team: PathBuf = tmp.path().join("project").join("team");
     assert_eq!(check.root.as_deref(), Some(team.as_path()));
+    assert_eq!(
+        check.resolved_typst(),
+        Some(team.join("check.typ").as_path())
+    );
+}
+
+#[test]
+fn a_layers_own_rule_records_no_resolved_path() {
+    let source = check_x("the project");
+    let files = [("project/check.typ", source.as_str())];
+
+    let (_tmp, config) = load(&files, CHECK_RULE);
+
+    let check = config.unwrap().tasks.rules[0].check.clone().unwrap();
+    assert_eq!(check.root, None);
+    assert_eq!(check.resolved_typst(), None);
 }
 
 /// The message a pack rule's `check` module outside its pack gets.

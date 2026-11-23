@@ -8,11 +8,15 @@
 //! turns each `path` into an absolute one while the pack is still its own
 //! table, and `dicts.rs` reads an absolute path as it is. A rule does keep its
 //! origin, so [`stamp_check_roots`] sets [`crate::rules::CheckSpec::root`] on
-//! each `check` rule a pack declared, after typing the config.
+//! each `check` rule a pack declared, after typing the config. It records the
+//! absolute path the declared text resolves to beside it, as
+//! [`stamp_collector_roots`] does for a collector's `query.typst`. That lets
+//! `mt config show --resolved` print the form that reads at the project root
+//! rather than the pack-relative text.
 
 use std::path::Path;
 
-use crate::config::collect::CollectorSpec;
+use crate::config::collect::{CollectorQuery, CollectorSpec};
 use crate::config::pack_dirs::{absolute, stays_inside};
 use crate::config::pack_registry::{PackOrigin, RuleOrigin, RuleOriginEntry};
 use crate::config::{ConfigError, quote};
@@ -54,22 +58,32 @@ pub(super) fn rebase_dict_paths(
 }
 
 /// Set the root of each `check` rule of `rules` that a pack declared, to
-/// that pack's directory. `origins` lists where every rule came from, in the
-/// order of the merged arrays, `[[tasks.rules]]` first.
+/// that pack's directory, and record the absolute path its `typst` resolves
+/// to. `origins` lists where every rule came from, in the order of the merged
+/// arrays, `[[tasks.rules]]` first.
 pub(crate) fn stamp_check_roots(rules: &mut [RuleSpec], origins: &[RuleOriginEntry]) {
     for (spec, entry) in rules.iter_mut().zip(origins) {
-        if let (Some(check), RuleOrigin::Pack(pack)) = (&mut spec.check, &entry.origin) {
-            check.root = pack.root().map(Path::to_path_buf);
+        if let (Some(check), RuleOrigin::Pack(pack)) = (&mut spec.check, &entry.origin)
+            && let Some(dir) = pack.root()
+        {
+            check.root = Some(dir.to_path_buf());
+            check.resolved = Some(dir.join(&check.typst));
         }
     }
 }
 
-/// Set the root of each collector a pack declared, to that pack's directory.
-/// `origins` is the collector array's own provenance, in declaration order.
+/// Set the root of each collector a pack declared, to that pack's directory,
+/// and record the absolute path a `typst` query resolves to. `origins` is the
+/// collector array's own provenance, in declaration order.
 pub(crate) fn stamp_collector_roots(collectors: &mut [CollectorSpec], origins: &[RuleOriginEntry]) {
     for (spec, entry) in collectors.iter_mut().zip(origins) {
-        if let RuleOrigin::Pack(pack) = &entry.origin {
-            spec.root = pack.root().map(Path::to_path_buf);
+        if let RuleOrigin::Pack(pack) = &entry.origin
+            && let Some(dir) = pack.root()
+        {
+            spec.root = Some(dir.to_path_buf());
+            if let CollectorQuery::Typst(query) = &mut spec.query {
+                query.resolved = Some(dir.join(&query.typst));
+            }
         }
     }
 }
