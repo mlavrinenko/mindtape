@@ -210,6 +210,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A `markers` check no longer reports a task-field read.** The reserved
+  `markers` check input is not a task field, so the read set a violation
+  carries leaves it out instead of naming it. A rule over `markers` keeps the
+  names its `when` and `assert` read, and the `mt add` template hint and the
+  pre-write consumers keep the behavior they had.
 - **A write sees the body markers a task emits.** `mt add`, `mt import`,
   `mt link`, `mt recur`, `mt set` and the `mt check --commits` state loader now
   validate a candidate against the same marker list `mt check` reads, so a

@@ -19,7 +19,7 @@ use crate::rules::typst::CompiledCheck;
 use crate::validate::Violation;
 use crate::validate::severity::Severity;
 
-use super::RuleSpec;
+use super::{MARKERS, RuleSpec};
 
 /// The compiled form of a rule's own assertion, once the shape is clear.
 enum RuleKind {
@@ -34,6 +34,9 @@ enum RuleKind {
 /// The names a rule reads are its `when` and `assert`, following a view either
 /// names, or the `field` its `check` receives. A `check` handed the whole task
 /// may be about any field, so it has no name set at all.
+///
+/// The reserved [`MARKERS`] input is not a task field, so a check over it
+/// leaves the set to its `when` and `assert` names alone.
 pub(super) fn rule_reads(
     when: Option<&str>,
     assertion: Option<&str>,
@@ -45,7 +48,10 @@ pub(super) fn rule_reads(
         reads.extend(crate::filter::names_in(expression, config));
     }
     if let Some(check) = check {
-        reads.insert(check.field.clone()?);
+        // A `check` handed the whole task may be about any field.
+        let field = check.field.as_deref()?;
+        // The reserved input is not a task field, so it stays out of the set.
+        reads.extend((field != MARKERS).then(|| field.to_owned()));
     }
     Some(reads)
 }

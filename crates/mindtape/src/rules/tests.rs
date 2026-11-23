@@ -410,16 +410,32 @@ fn a_rule_through_a_view_reads_the_views_names() {
 
 #[test]
 fn a_whole_task_check_may_be_about_any_field() {
-    let check = crate::rules::CheckSpec {
+    let found = super::eval::rule_reads(None, None, Some(&spec(None)), &Config::default());
+    assert_eq!(found, None);
+}
+
+/// A `check` spec over `field`, `None` handing the function the whole task.
+fn spec(field: Option<&str>) -> crate::rules::CheckSpec {
+    crate::rules::CheckSpec {
         typst: "check.typ".to_owned(),
         function: "f".to_owned(),
-        field: None,
+        field: field.map(str::to_owned),
         root: None,
-    };
-    assert_eq!(
-        super::eval::rule_reads(None, None, Some(&check), &Config::default()),
-        None
-    );
+    }
+}
+
+#[test]
+fn a_markers_check_reads_no_task_field() {
+    let check = spec(Some(super::MARKERS));
+    let found = super::eval::rule_reads(None, None, Some(&check), &Config::default());
+    assert_eq!(found, Some(fields(&[])));
+}
+
+#[test]
+fn a_markers_check_still_reads_the_names_its_when_reads() {
+    let check = spec(Some(super::MARKERS));
+    let found = super::eval::rule_reads(Some("status"), None, Some(&check), &Config::default());
+    assert_eq!(found, Some(fields(&["status"])));
 }
 
 #[test]

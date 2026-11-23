@@ -162,9 +162,11 @@ pub struct Violation {
     /// The task fields the check read to decide this breach. Those are a rule's
     /// `when` and `assert` names, a body rule's `when` names, or the field a
     /// field check is about. `None` when it may be about any field, as for a
-    /// rule reaching through a view, or a `check` handed the whole task. A
-    /// caller that offers a remedy (the `mt add` template hint) matches these
-    /// names, never the text of [`Violation::field`].
+    /// rule reaching through a view, or a `check` handed the whole task. The
+    /// reserved `markers` check input is not a task field and stays out of the
+    /// set, which then lists only task fields. A caller that offers a remedy
+    /// (the `mt add` template hint) matches these names, never the text of
+    /// [`Violation::field`].
     pub reads: Option<BTreeSet<String>>,
     /// The nearest known name for an unknown name in the message, plus the
     /// names to choose from.

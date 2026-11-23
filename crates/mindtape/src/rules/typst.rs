@@ -330,7 +330,7 @@ fn field_value(task: &Task, config: &Config, field: Option<&str>) -> HVal {
     let Some(name) = field else {
         return canonical_hval(task, config);
     };
-    if name == "markers" {
+    if name == super::MARKERS {
         return markers_hval(&task.markers);
     }
     if let Some(value) = task.extras.get(name) {

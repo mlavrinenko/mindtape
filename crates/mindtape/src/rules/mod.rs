@@ -121,6 +121,12 @@ impl RulesRoot {
     }
 }
 
+/// The one reserved `check.field` input: the metadata markers a task body
+/// emits, which no canonical field and no `x-<ns>` slot carries. [`CheckSpec`]
+/// documents what a check receives for it, and [`CheckSpec::field`] says why it
+/// is not one of the task fields [`crate::validate::Violation::reads`] lists.
+pub(crate) const MARKERS: &str = "markers";
+
 /// Call a Typst function instead of evaluating an `assert` expression, with
 /// `check = { typst, function, field }`.
 // `crate::rules::typst` evaluates the call.
@@ -139,7 +145,8 @@ pub struct CheckSpec {
     /// the task body's metadata markers as an array of `(label, value)` dicts
     /// in document order. It yields an empty array rather than `none` when the
     /// body emits none. Every other name is a canonical field or an `x-<ns>`
-    /// slot.
+    /// slot. The reserved input is not a task field, so a rule over it lists only
+    /// the fields its `when` and `assert` expressions read.
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub field: Option<String>,
