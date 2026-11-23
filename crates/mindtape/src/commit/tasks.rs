@@ -11,11 +11,12 @@
 //! resolves `@local` against that tree's `lib/`.
 //!
 //! [`StateLoader`] caches evaluations by resolved source identity (a regular
-//! file's blob, or the final target blob of a symlink), package-tree
-//! fingerprint and the config facts a harvest reads. A range reuses one loader
-//! across commits, and a `commit-msg` hook seeds it from the loaded working
-//! tree. The loader then evaluates again only the files whose bytes or
-//! package/config environment changed.
+//! file's blob, or the final target blob of a symlink) and by the project files
+//! the harvest read. It also keys an evaluation by the package-tree fingerprint
+//! and by the config facts a harvest reads. A range reuses one loader across
+//! commits, and a `commit-msg` hook seeds it from the loaded working tree. The
+//! loader then re-evaluates only the files whose bytes, imports or package/config
+//! environment changed.
 
 pub use crate::commit::state_loader::StateLoader;
 use crate::commit::{CommitMsgError, git, task_stem};

@@ -28,7 +28,9 @@
 //! project-local file the eval read
 //! ([`typst_harvest::Harvest::dependencies`]). A read re-hashes them and treats
 //! any mismatch, or a file gone missing, as a miss. An unreadable dependency at
-//! write time leaves the entry unwritten.
+//! write time leaves the entry unwritten. A commit state's reuse key reads the
+//! same list ([`crate::commit::state_cache`]), so a past tree and a warm load
+//! agree on what an imported module means.
 //!
 //! # Correctness
 //!
@@ -189,6 +191,24 @@ impl TaskCache {
             return;
         };
         let _ = crate::fs_atomic::write_atomic(&path, json.as_bytes());
+    }
+
+    /// The content hash of every project file the entry for `content_hash`
+    /// read, so a caller can key its own reuse by the same imports a warm load
+    /// saw. `None` when the entry is absent, unreadable or of another format.
+    /// The hashes are the values the entry validated on the way in, the ones
+    /// the working tree holds.
+    pub(crate) fn dependencies(&self, content_hash: &str) -> Option<Vec<(PathBuf, String)>> {
+        let path = self.entry_path(content_hash)?;
+        let text = std::fs::read_to_string(path).ok()?;
+        let entry: Entry = serde_json::from_str(&text).ok()?;
+        (entry.format == FORMAT_VERSION).then(|| {
+            entry
+                .deps
+                .into_iter()
+                .map(|dep| (dep.path, dep.hash))
+                .collect()
+        })
     }
 
     fn entry_path(&self, content_hash: &str) -> Option<PathBuf> {

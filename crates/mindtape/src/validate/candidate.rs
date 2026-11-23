@@ -20,7 +20,7 @@
 //! holds the main source in memory and reads every import from disk.
 
 use std::collections::HashSet;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use typst_harvest::{HVal, HarvestWorld, harvest};
 use typst_world::project_file_id;
@@ -289,50 +289,71 @@ pub(crate) fn harvest_source(
     config: &Config,
     candidate: Candidate<'_>,
 ) -> Result<Option<Task>, LoadError> {
-    harvest_source_with(root, config, candidate, None)
+    Ok(harvest_source_with(root, config, candidate, None)?.task)
 }
 
 /// [`harvest_source`] with a commit state's own package files tried first. A
-/// past tree's imports then resolve against that tree's `lib/`.
+/// past tree's imports then resolve against that tree's `lib/`. The result
+/// carries every project file the evaluation read, which a caller that caches
+/// the task keys its reuse by ([`crate::commit::state_cache`] does).
 pub(crate) fn harvest_source_with(
     root: &Path,
     config: &Config,
     candidate: Candidate<'_>,
     packages: Option<StatePackages>,
-) -> Result<Option<Task>, LoadError> {
-    Ok(
-        eval_marker(root, config, candidate, packages)?.map(|markers| {
-            crate::loader::task_at(
-                root,
-                config,
-                candidate.rel,
-                crate::loader::BodyMarkers {
-                    task: &markers.task,
-                    body: &markers.body,
-                },
-                candidate.source,
-            )
-        }),
-    )
+) -> Result<HarvestedSource, LoadError> {
+    let harvested = eval_marker(root, config, candidate, packages)?;
+    let task = harvested.task.map(|marker| {
+        crate::loader::task_at(
+            root,
+            config,
+            candidate.rel,
+            crate::loader::BodyMarkers {
+                task: &marker,
+                body: &harvested.body,
+            },
+            candidate.source,
+        )
+    });
+    Ok(HarvestedSource {
+        task,
+        dependencies: harvested.dependencies,
+    })
 }
 
-/// What one harvest of a candidate yields: the marker that makes it a task, and
-/// every other marker its body emitted, in document order. They travel
-/// together because the task builder needs both.
+/// What one candidate's evaluation yielded: the task it loads as, when its
+/// source carries a task marker, and the project files the harvest read.
+pub(crate) struct HarvestedSource {
+    /// The task, or `None` for a source that emitted no `mindtape.task` marker,
+    /// the way the loader reads a `.typ` beside the tasks that is not one.
+    pub(crate) task: Option<Task>,
+    /// Every project-local file the evaluation read, relative to the root
+    /// ([`typst_harvest::Harvest::dependencies`]). An imported module's bytes
+    /// decide the markers the task carries. A reuse key needs the same list.
+    pub(crate) dependencies: Vec<PathBuf>,
+}
+
+/// What one harvest of a candidate yields: the marker that makes it a task,
+/// every other marker its body emitted in document order, and the project
+/// files it read. They travel together because the task builder needs the
+/// markers and the caller that caches the task needs the imports.
 struct Harvested {
-    task: HVal,
+    task: Option<HVal>,
     body: Vec<BodyMarker>,
+    dependencies: Vec<PathBuf>,
 }
 
-/// Evaluate the candidate source and return its `mindtape.task` marker with the
-/// full body marker list. One harvest provides both. The candidate door then
-/// reads exactly the markers a load of the written file would.
+/// Evaluate the candidate source and return its `mindtape.task` marker, when it
+/// has one, with the full body marker list and the project files it read. One
+/// harvest provides all three. The candidate door then reads exactly the
+/// markers a load of the written file would, and a caller that caches the
+/// evaluation keys it by the same imports.
 fn eval_marker(
     root: &Path,
     config: &Config,
     candidate: Candidate<'_>,
     packages: Option<StatePackages>,
-) -> Result<Option<Harvested>, LoadError> {
+) -> Result<Harvested, LoadError> {
     let fail = |message: String| LoadError {
         file: candidate.rel.to_path_buf(),
         message,
@@ -354,10 +375,11 @@ fn eval_marker(
         .with_marker("mindtape.task")
         .next()
         .map(|found| found.value.clone());
-    Ok(task.map(|task| Harvested {
+    Ok(Harvested {
         task,
         body: crate::loader::body_markers(&harvested),
-    }))
+        dependencies: harvested.dependencies,
+    })
 }
 
 #[cfg(test)]

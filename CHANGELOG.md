@@ -231,6 +231,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wrote the untouched string. Every component after the one leading slash must
   now be a plain name, so a `//` entry, a `..` climb and a `.` segment are each
   refused, and the existence check joins the same path the emitter writes.
+- **A commit state no longer replays markers from a changed project module.**
+  The loader's reuse key held a task's source blob, config and packages, not
+  the modules its Typst source imports, so a source-identical task in a later
+  state could carry the markers an older module produced. Each reused task now
+  also checks the project files its harvest read, hashed the way the content
+  cache hashes its own dependencies, and the working-tree seed takes the same
+  list from the cache entry the working load wrote.
 - **A write sees the body markers a task emits.** `mt add`, `mt import`,
   `mt link`, `mt recur`, `mt set` and the `mt check --commits` state loader now
   validate a candidate against the same marker list `mt check` reads, so a
