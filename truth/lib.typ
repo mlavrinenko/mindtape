@@ -23,7 +23,7 @@
 // `edge("surfaced-by", ...)`, beside the goal check every task imports.
 #let surfaced-by(..args) = edge("surfaced-by", ..args)
 
-// The live rule's entry point: the prelude check over this repo's two goal
+// The live rule's entry point: the project check over this repo's two goal
 // registries. The function name stays `check-goal-over`, so the config's rule
 // points at this module unchanged.
 #let check-goal-over(markers) = check-goals-over-registries(
