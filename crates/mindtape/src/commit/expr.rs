@@ -33,9 +33,9 @@
 //! it also works under `mt check --commits`, where `changed()` does not run.
 //!
 //! A `scope = "task"` rule reads the same fields, plus the task's states:
-//! `head(...)`, `staged(...)`, `worktree(...)`, `named` and `retires_other`,
-//! evaluated by [`crate::commit::task_expr`] against the [`TaskScope`] it runs
-//! under.
+//! `head(...)`, `staged(...)`, `worktree(...)`, `named`, `retires_other` and
+//! `records_other`, evaluated by [`crate::commit::task_expr`] against the
+//! [`TaskScope`] it runs under.
 //!
 //! The parser refuses a task field by name, because a commit rule sees the
 //! commit and not a task. A bare `status` would silently read an empty value,
@@ -196,6 +196,7 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fil
             match name.as_str() {
                 "named" => Ok(env.task("`named`")?.named(env.commit)),
                 "retires_other" => Ok(env.task("`retires_other`")?.retires_other()),
+                "records_other" => Ok(env.task("`records_other`")?.records_other(env.commit)),
                 other => Err(not_boolean(other, env)),
             }
         }
@@ -298,6 +299,7 @@ fn function(
     match name {
         "named" => Ok(env.task("named()")?.named(env.commit)),
         "retires_other" => Ok(env.task("retires_other()")?.retires_other()),
+        "records_other" => Ok(env.task("records_other()")?.records_other(env.commit)),
         "head" | "staged" | "worktree" => env.task(&format!("{name}()"))?.holds(name, children),
         "has" => present(&single_field(children, "has")?, env),
         "miss" => Ok(!present(&single_field(children, "miss")?, env)?),
@@ -312,6 +314,7 @@ fn function(
                     "is_merge",
                     "named",
                     "retires_other",
+                    "records_other",
                     "head",
                     "staged",
                     "worktree",

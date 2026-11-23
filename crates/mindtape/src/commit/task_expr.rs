@@ -14,6 +14,8 @@
 //! - `retires_other`: the staged state lacks a task other than this one that
 //!   `HEAD` holds, which means the commit deletes (or moves away) another
 //!   task's file.
+//! - `records_other`: the commit changes a task file other than this one, as a
+//!   record correction does.
 //! - `into("s")`: `staged(status == "s") && !head(status == "s")`, rewritten
 //!   before the parse by the scanner `[[on.flip]]` shares
 //!   ([`crate::config::hooks::rewrite_into`]).
@@ -74,6 +76,11 @@ impl<'a> TaskScope<'a> {
             let stem = task_stem(task);
             stem != self.stem && self.states.staged.task(&stem).is_none()
         })
+    }
+
+    /// `records_other`: the commit changes a task file other than this one.
+    pub(crate) fn records_other(&self, commit: &CommitRecord) -> bool {
+        commit.changed_tasks.iter().any(|stem| stem != self.stem)
     }
 
     fn state(&self, name: &str) -> Result<&'a ProjectState, FilterError> {

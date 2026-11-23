@@ -10,6 +10,7 @@ fn commit() -> CommitRecord {
         subject: "docs: fix a typo".to_owned(),
         refs: vec!["parser".to_owned()],
         files: vec!["docs/guide.md".to_owned(), "src/lib.rs".to_owned()],
+        changed_tasks: Vec::new(),
         renamed_from: Vec::new(),
         tasks_only: false,
         in_range: false,

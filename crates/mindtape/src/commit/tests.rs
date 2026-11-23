@@ -185,6 +185,27 @@ fn tasks_only_needs_every_changed_file_under_a_task_root() {
 }
 
 #[test]
+fn changed_tasks_lists_each_changed_task_file_once() {
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    let (record, _) = CommitRecord::build(
+        &parse_message("task: close\n", "Refs"),
+        &changed(
+            &[
+                "tasks/parser.typ",
+                "tasks/lexer.typ",
+                "tasks/parser.typ",
+                "docs/guide.md",
+            ],
+            "",
+        ),
+        &[],
+        &config,
+        tempdir().path(),
+    );
+    assert_eq!(record.changed_tasks, ["parser", "lexer"]);
+}
+
+#[test]
 fn a_template_or_reserved_path_under_a_root_dot_is_not_a_task_file() {
     let config =
         parse_config("[tasks]\nroots = [\".\"]\n\n[templates]\ndirs = [\"templates\"]\n").unwrap();

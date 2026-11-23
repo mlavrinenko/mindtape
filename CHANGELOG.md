@@ -215,6 +215,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A task whose only work is a record edit starts and closes in its commit.**
+  A task-scope commit rule reads `records_other`, true when the commit changes
+  a task file other than the one the rule runs for. The `mindtape:tasks`
+  pack's `flip-task-with-its-work` uses it, so a one-line correction to
+  another task's record carries the task that made it. A task with no work at
+  all still needs `kind: "decision"` or `kind: "milestone"`, and the refusal
+  names both.
 - **A `markers` check no longer reports a task-field read.** The reserved
   `markers` check input is not a task field, so the read set a violation
   carries leaves it out instead of naming it. A rule over `markers` keeps the

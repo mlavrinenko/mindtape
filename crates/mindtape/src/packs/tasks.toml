@@ -471,17 +471,19 @@ severity = "error"
 # read, not a stale one from before. The kind is the task's own field, so a
 # decision needs no tag to close alone.
 # `retires_other` is the second escape hatch: a close whose work is retiring
-# other tasks (`mt rm`) touches nothing but task files, yet it is work. A
-# flip beside mere edits to other tasks' files still counts as none. The third
-# is a milestone: `staged(kind == "milestone")` reads the same `kind` this
-# pack's section rules do, for a task that ends through its leaves and carries
-# no work of its own.
+# other tasks (`mt rm`) touches nothing but task files, yet it is work.
+# `records_other` is the third: a close whose work is correcting another
+# task's record stages only task files too, and the commit that edits that
+# file carries the close. A flip that changes only its own file still counts
+# as none. The last is a milestone: `staged(kind == "milestone")` reads the
+# same `kind` this pack's section rules do, for a task that ends through its
+# leaves and carries no work of its own.
 [[commits.rules]]
 name = "flip-task-with-its-work"
 scope = "task"
 when = 'into("wip") || into("done")'
-assert = 'named && (!tasks_only || retires_other || staged(kind == "decision") || staged(kind == "milestone"))'
-message = "start or close a task in a commit that carries its work"
+assert = 'named && (!tasks_only || retires_other || records_other || staged(kind == "decision") || staged(kind == "milestone"))'
+message = "start or close a task in a commit that carries its work; a task with no work closes as `decision` or `milestone`"
 severity = "error"
 
 # A branch that works on a task finishes it: `scope = "tip"` runs once per task

@@ -23,6 +23,10 @@ pub struct CommitRecord {
     pub refs: Vec<String>,
     /// `files`: every changed path, repository-relative.
     pub files: Vec<String>,
+    /// The task stems of the files the commit changes, before refs. A
+    /// `scope = "task"` rule's `records_other` reads it, and it is not an
+    /// expression field.
+    pub changed_tasks: Vec<String>,
     /// The old path of each rename among `files`. `count(files, …)` skips
     /// them, `has` and `matches` still see them.
     pub renamed_from: Vec<String>,
@@ -75,18 +79,21 @@ impl CommitRecord {
                 .paths
                 .iter()
                 .all(|path| is_task_change(path, &changed.root_prefix, &source, &changed.symlinks));
-        let mut subjects: Vec<String> = changed
+        let mut changed_tasks: Vec<String> = changed
             .paths
             .iter()
             .filter(|path| is_task_change(path, &changed.root_prefix, &source, &changed.symlinks))
             .map(|path| value_stem(path))
-            .chain(task_refs)
             .collect();
+        dedup_keeping_order(&mut changed_tasks);
+        let mut subjects = changed_tasks.clone();
+        subjects.extend(task_refs);
         dedup_keeping_order(&mut subjects);
         let record = Self {
             subject: message.subject.clone(),
             refs,
             files: changed.paths.clone(),
+            changed_tasks,
             renamed_from: changed.renamed_from.clone(),
             tasks_only,
             in_range: false,

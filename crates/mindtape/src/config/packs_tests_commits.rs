@@ -25,6 +25,11 @@ fn has_task_rule(config: &Config, name: &str) -> bool {
         .any(|rule| rule.name.as_deref() == Some(name))
 }
 
+fn flip_rule() -> CommitRuleSpec {
+    let config = load("extends = [\"mindtape:tasks\"]\n");
+    commit_rule(&config, "flip-task-with-its-work").clone()
+}
+
 #[test]
 fn tweaks_ships_the_task_rule_and_the_commit_rule() {
     let config = load("extends = [\"mindtape:tweaks\"]\n");
@@ -69,6 +74,21 @@ fn flip_with_work_reads_the_decision_kind_not_a_tag() {
         rule.assertion
     );
     assert!(!rule.assertion.contains("has_tag"), "{}", rule.assertion);
+}
+
+#[test]
+fn flip_with_work_admits_a_record_edit() {
+    let rule = flip_rule();
+    assert!(
+        rule.assertion.contains("records_other"),
+        "{}",
+        rule.assertion
+    );
+    let message = rule.message.as_deref().unwrap();
+    assert!(
+        message.contains("decision") && message.contains("milestone"),
+        "{message}"
+    );
 }
 
 #[test]

@@ -55,6 +55,17 @@ fn commit(refs: &[&str]) -> CommitRecord {
     }
 }
 
+fn commit_with(refs: &[&str], changed_tasks: &[&str]) -> CommitRecord {
+    CommitRecord {
+        refs: refs.iter().map(|stem| (*stem).to_owned()).collect(),
+        changed_tasks: changed_tasks
+            .iter()
+            .map(|stem| (*stem).to_owned())
+            .collect(),
+        ..CommitRecord::default()
+    }
+}
+
 fn holds(expr: &str, commit: &CommitRecord) -> bool {
     let config = config();
     let states = states(&config);
@@ -123,13 +134,17 @@ fn with_lexer(config: &Config, keep: bool) -> CommitStates {
     }
 }
 
-fn retires_other(states: &CommitStates, stem: &str) -> bool {
+fn reads(expr: &str, states: &CommitStates, commit: &CommitRecord, stem: &str) -> bool {
     let config = config();
     let scope = TaskScope::new(stem, states, &config);
-    CommitExpr::parse("retires_other")
+    CommitExpr::parse(expr)
         .unwrap()
-        .matches_task(&commit(&[]), &scope)
+        .matches_task(commit, &scope)
         .unwrap()
+}
+
+fn retires_other(states: &CommitStates, stem: &str) -> bool {
+    reads("retires_other", states, &commit(&[]), stem)
 }
 
 #[test]
@@ -148,19 +163,48 @@ fn retires_other_ignores_the_task_itself() {
     assert!(!retires_other(&states(&config), "parser"));
 }
 
+fn records_other(states: &CommitStates, commit: &CommitRecord, stem: &str) -> bool {
+    reads("records_other", states, commit, stem)
+}
+
 #[test]
-fn retires_other_reads_as_a_call_too_and_needs_a_task_rule() {
+fn records_other_counts_a_changed_task_not_this_one() {
+    let config = config();
+    let states = states(&config);
+    assert!(records_other(
+        &states,
+        &commit_with(&[], &["lexer"]),
+        "parser"
+    ));
+}
+
+#[test]
+fn records_other_ignores_the_task_itself() {
+    let config = config();
+    let states = states(&config);
+    assert!(!records_other(
+        &states,
+        &commit_with(&[], &["parser"]),
+        "parser"
+    ));
+    assert!(!records_other(&states, &commit_with(&[], &[]), "parser"));
+}
+
+#[test]
+fn the_task_flags_read_as_calls_too_and_need_a_task_rule() {
     let config = config();
     let states = with_lexer(&config, false);
-    let scope = TaskScope::new("parser", &states, &config);
-    assert!(
-        CommitExpr::parse("retires_other()")
-            .unwrap()
-            .matches_task(&commit(&[]), &scope)
-            .unwrap()
-    );
-    let problem = crate::commit::expr::commit_expr_problem("retires_other", &config).unwrap();
-    assert!(problem.contains("scope = \"task\""), "{problem}");
+    assert!(reads("retires_other()", &states, &commit(&[]), "parser"));
+    assert!(reads(
+        "records_other()",
+        &states,
+        &commit_with(&[], &["lexer"]),
+        "parser"
+    ));
+    for name in ["retires_other", "records_other"] {
+        let problem = crate::commit::expr::commit_expr_problem(name, &config).unwrap();
+        assert!(problem.contains("scope = \"task\""), "{problem}");
+    }
 }
 
 #[test]

@@ -191,8 +191,13 @@ task in one of three states:
   [`named`], [Whether the trailer names the task.],
   [`retires_other`],
   [Whether the commit retires a task other than this one: `HEAD` has it and
-    the index doesn't, as after `mt rm`. Edits to other tasks' files don't
-    count.],
+    the index doesn't, as after `mt rm`. A change to its file, which
+    `records_other` reads, is not a retirement.],
+
+  [`records_other`],
+  [Whether the commit changes a task file other than this one, as a record
+    correction does. The task's own flip is not another file, so a close that
+    changes nothing else still fails.],
 )
 
 A wrapper takes any #link(u("/filters/"))[filter expression] and evaluates it
@@ -213,11 +218,15 @@ hook warns and skips every `scope = "task"` rule; the `Refs` trailer check and
 commit when its own or its parent tree is unsupported, because a task rule
 cannot read a state whose prelude does not load.
 
-The `mindtape:tasks` pack's `flip-task-with-its-work` uses `retires_other` so that a
-cleanup task closes in the commit that runs `mt rm` on other tasks, though
-that commit stages nothing but task files. It also lets a task of
-`kind: "milestone"` close alone, because a milestone ends through its leaves
-and has no work of its own.
+The `mindtape:tasks` pack's `flip-task-with-its-work` uses `retires_other` so
+that a cleanup task closes in the commit that runs `mt rm` on other tasks,
+though that commit stages nothing but task files. `records_other` is the
+record correction's escape: a task whose only work is one line of another
+task's record starts and closes in the commit that edits it. The rule also
+lets a task of `kind: "milestone"` close alone, because a milestone ends
+through its leaves and has no work of its own. A task with no work at all
+still needs `kind: "decision"` or `kind: "milestone"`, and the refusal names
+both.
 
 A breach names the rule, then the task. Here `mt done` changed the task
 file, but only the code is staged:

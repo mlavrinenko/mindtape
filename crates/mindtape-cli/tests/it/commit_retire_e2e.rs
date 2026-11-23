@@ -1,8 +1,9 @@
 //! The `mindtape:tasks` pack's `flip-task-with-its-work` rule counts retiring
 //! another task as work
 //! (`truth/tasks/count-retiring-other-tasks-as-work-in-the-flip-task-with-its-work-rule.typ`).
-//! A close that deletes other task files passes. A bare flip, or a flip beside
-//! edits to other tasks, is still refused.
+//! A close that deletes or edits other task files passes. A bare flip is still
+//! refused. The edit is the record-correction escape from
+//! `truth/tasks/2026-11/let-a-task-whose-only-work-is-a-record-edit-close.typ`.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
@@ -51,13 +52,16 @@ fn a_close_alone_is_still_refused() {
 }
 
 #[test]
-fn a_close_beside_an_edit_to_another_task_is_still_refused() {
+fn a_close_beside_an_edit_to_another_task_passes() {
     let dir = pack_repo();
     stage_close(dir.path());
     let path = dir.path().join("tasks/other.typ");
     let text = std::fs::read_to_string(&path).unwrap();
     std::fs::write(&path, text.replace("\"Other\"", "\"Other, reworded\"")).unwrap();
     git(dir.path(), &["add", "tasks/other.typ"]);
-    let text = support::commit_msg_refusal(dir.path(), MESSAGE);
-    assert!(text.contains("flip-task-with-its-work: parser"), "{text}");
+    let (ok, text) = check_commit_msg(dir.path(), MESSAGE);
+    assert!(
+        ok,
+        "editing another task's record is the close's work: {text}"
+    );
 }
