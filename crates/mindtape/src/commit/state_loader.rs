@@ -2,10 +2,10 @@
 //!
 //! A linear range only needs the previous state. The loader reuses its
 //! unchanged tasks by source identity, and evaluates changed files again. A
-//! regular file's identity is its blob id. The identity of a symlink is the
-//! blob id of its final target, so a target change cannot reuse a stale task.
-//! The working-tree load seeds the same reuse map for a hook, so a clean index
-//! does not re-evaluate the whole backlog.
+//! task file's identity is its blob id. A `120000` symlink entry is not a task
+//! source, and a state never resolves one. The working-tree load seeds the same
+//! reuse map for a hook, so a clean index does not re-evaluate the whole
+//! backlog.
 //!
 //! A task's markers also depend on the project modules its source imports
 //! (`truth/goals.typ` is one), which an evaluation reads from the working tree
@@ -21,11 +21,10 @@ use std::sync::Arc;
 use crate::commit::CommitMsgError;
 use crate::commit::packages::{PackageCache, working_packages};
 use crate::commit::state_cache::{
-    Build, Outcome, Parts, Reuse, Reused, Seen, SeenFile, load_env, lookup, record,
-    record_evaluated, working_oid,
+    Build, Outcome, Reuse, Reused, Seen, SeenFile, load_env, lookup, record_evaluated, working_oid,
 };
 use crate::commit::tasks::{CommitStates, ProjectState, StatePlan, StateSource};
-use crate::commit::tree::{StateConfig, StateTree, TaskEntry, TaskSource};
+use crate::commit::tree::{StateConfig, StateTree, TaskEntry};
 use crate::config::Config;
 use crate::loader::cache::TaskCache;
 use crate::loader::{LoadError, StatePackages};
@@ -68,8 +67,6 @@ struct Classified {
     seen: Vec<Seen>,
     /// The regular files this state must evaluate.
     regular: Vec<TaskEntry>,
-    /// The symlinked files this state must resolve and evaluate.
-    links: Vec<(TaskEntry, TaskSource)>,
     /// The project files each reused file read.
     deps: HashMap<PathBuf, Vec<(PathBuf, String)>>,
 }
@@ -291,7 +288,6 @@ impl<'a> StateLoader<'a> {
         let Classified {
             mut seen,
             regular,
-            links,
             mut deps,
         } = Self::classify(tree, config, reuse.as_ref(), &mut tasks)?;
         let paths: Vec<&str> = regular.iter().map(|entry| entry.repo.as_str()).collect();
@@ -308,11 +304,6 @@ impl<'a> StateLoader<'a> {
                 outcome,
             });
         }
-        let mut parts = Parts {
-            tasks: &mut tasks,
-            errors: &mut errors,
-        };
-        seen.extend(self.evaluate_links(links, config, packages, &mut parts));
         Ok(Build {
             tasks,
             errors,
@@ -330,17 +321,10 @@ impl<'a> StateLoader<'a> {
         reuse: Option<&Reuse<'_>>,
         tasks: &mut Vec<Task>,
     ) -> Result<Classified, CommitMsgError> {
-        let (mut seen, mut regular, mut links) = (Vec::new(), Vec::new(), Vec::new());
+        let (mut seen, mut regular) = (Vec::new(), Vec::new());
         let mut deps = HashMap::new();
         for entry in tree.task_entries(config)? {
-            let resolved = if entry.mode == "120000" {
-                Some(tree.task_source(&entry)?)
-            } else {
-                None
-            };
-            let source = resolved
-                .as_ref()
-                .map_or_else(|| entry.oid.clone(), |source| source.source().to_owned());
+            let source = entry.oid.clone();
             match reuse.and_then(|reuse| lookup(reuse, &entry, &source, config)) {
                 Some(Reused { task, deps: read }) => {
                     let outcome = task.map_or(Outcome::Missing, |task| {
@@ -354,54 +338,14 @@ impl<'a> StateLoader<'a> {
                         outcome,
                     });
                 }
-                None => {
-                    if let Some(source) = resolved {
-                        links.push((entry, source));
-                    } else {
-                        regular.push(entry);
-                    }
-                }
+                None => regular.push(entry),
             }
         }
         Ok(Classified {
             seen,
             regular,
-            links,
             deps,
         })
-    }
-
-    /// Evaluate the symlinked entries already resolved against the tree.
-    fn evaluate_links(
-        &self,
-        links: Vec<(TaskEntry, TaskSource)>,
-        config: &Config,
-        packages: Option<&StatePackages>,
-        parts: &mut Parts<'_>,
-    ) -> Vec<Seen> {
-        links
-            .into_iter()
-            .map(|(entry, source)| {
-                let identity = source.source().to_owned();
-                let found = match source {
-                    TaskSource::Text { text, .. } => {
-                        self.evaluate(config, packages, &entry.rel, &text)
-                    }
-                    TaskSource::Missing { .. } => Ok(None),
-                    TaskSource::Unsupported { message, .. } => Err(LoadError {
-                        file: entry.rel.clone(),
-                        message,
-                        ..LoadError::default()
-                    }),
-                };
-                let outcome = record(found, parts.tasks, parts.errors);
-                Seen {
-                    entry,
-                    source: identity,
-                    outcome,
-                }
-            })
-            .collect()
     }
 
     /// Harvest `text` as the task at project-relative `rel`, keeping the
@@ -448,13 +392,8 @@ impl<'a> StateLoader<'a> {
         let mut files = HashMap::new();
         for (index, task) in self.base.iter().enumerate() {
             if let Some(oid) = working_oid(self.root, &task.file) {
-                let mode = if std::fs::symlink_metadata(self.root.join(&task.file))
-                    .is_ok_and(|meta| meta.file_type().is_symlink())
-                {
-                    "120000"
-                } else {
-                    "100644"
-                };
+                // A task source is never a symlink, so a seeded file is a
+                // regular one.
                 // A task whose cache entry is missing records no imports, and
                 // a state then evaluates it again instead of reusing it.
                 if let Some(deps) = self.seeded_deps(&cache, task) {
@@ -462,7 +401,7 @@ impl<'a> StateLoader<'a> {
                         task.file.clone(),
                         SeenFile {
                             source: oid,
-                            mode: mode.to_owned(),
+                            mode: "100644".to_owned(),
                             deps,
                             outcome: Outcome::Task(index),
                         },

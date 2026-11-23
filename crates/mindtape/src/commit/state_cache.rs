@@ -73,7 +73,7 @@ pub(crate) fn lookup(
 
 /// Add one evaluation to the state, recording its outcome. `Ok(None)` is a file
 /// the state lacks the bytes of, which loads as no task.
-pub(crate) fn record(
+fn record(
     found: Result<Option<HarvestedSource>, LoadError>,
     tasks: &mut Vec<Task>,
     errors: &mut Vec<LoadError>,
@@ -188,10 +188,4 @@ pub(crate) struct Build {
     /// the state evaluated, and the reuse map for a file a previous state
     /// answered for.
     pub(crate) deps: HashMap<PathBuf, Vec<(PathBuf, String)>>,
-}
-
-/// The task and error lists that a state assembles into.
-pub(crate) struct Parts<'a> {
-    pub(crate) tasks: &'a mut Vec<Task>,
-    pub(crate) errors: &'a mut Vec<LoadError>,
 }

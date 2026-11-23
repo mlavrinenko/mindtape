@@ -16,7 +16,7 @@
 //! and so do files a config layer names, such as packs and dictionary paths.
 //! Task roots outside the project read it too. A state cannot list them.
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use typst::syntax::package::{PackageManifest, PackageSpec};
@@ -25,7 +25,7 @@ use crate::commit::packages::{PackageBlob, PackageCache, PackageSet};
 use crate::commit::tasks::{StatePlan, StateSource};
 use crate::commit::tree_io::{
     GitEntry, Listing, git_failed, parse_git_entries, project_rel, project_repo_path, read_blobs,
-    read_objects, repo_path, repo_root, resolve_link,
+    read_objects, repo_path, repo_root,
 };
 use crate::commit::{CommitMsgError, git_optional};
 use crate::config::Config;
@@ -57,28 +57,6 @@ pub(crate) struct TaskEntry {
     /// The git file mode. [`StateTree::task_entries`] drops a `120000`
     /// symlink: it is never a task source.
     pub(crate) mode: String,
-}
-
-/// What a task entry's blob resolves to in a state.
-pub(crate) enum TaskSource {
-    /// The Typst source to evaluate at the entry's path, and the final blob
-    /// identity that source came from.
-    Text { text: String, source: String },
-    /// The state lacks a blob at the entry.
-    Missing { source: String },
-    /// A symlink the state tree cannot resolve.
-    Unsupported { message: String, source: String },
-}
-
-impl TaskSource {
-    /// The identity of the bytes (or absence) this source names.
-    pub(crate) fn source(&self) -> &str {
-        match self {
-            Self::Text { source, .. }
-            | Self::Missing { source }
-            | Self::Unsupported { source, .. } => source,
-        }
-    }
 }
 
 /// One state's tree, read through git.
@@ -192,69 +170,6 @@ impl<'a> StateTree<'a> {
             .into_iter()
             .map(|entry| (entry.repo, entry.rel))
             .collect())
-    }
-
-    /// The Typst source `entry` resolves to, following the target of a symlink
-    /// inside the state tree.
-    pub(crate) fn task_source(&self, entry: &TaskEntry) -> Result<TaskSource, CommitMsgError> {
-        if entry.mode != "120000" {
-            return Ok(match self.read(&[entry.repo.as_str()])?.pop().flatten() {
-                Some(text) => TaskSource::Text {
-                    text,
-                    source: entry.oid.clone(),
-                },
-                None => TaskSource::Missing {
-                    source: entry.oid.clone(),
-                },
-            });
-        }
-        let mut seen = HashSet::new();
-        let mut path = entry.repo.clone();
-        loop {
-            if !seen.insert(path.clone()) {
-                return Ok(TaskSource::Unsupported {
-                    message: format!("symlinked task file cycles at '{path}'"),
-                    source: format!("cycle:{path}"),
-                });
-            }
-            let Some(target) = self.read(&[path.as_str()])?.pop().flatten() else {
-                return Ok(TaskSource::Missing {
-                    source: format!("missing-link:{path}"),
-                });
-            };
-            let target = target.trim_end_matches(['\n', '\r']);
-            let Some(resolved) = resolve_link(&path, target) else {
-                return Ok(TaskSource::Unsupported {
-                    message: format!("symlinked task file '{path}' points outside the repository"),
-                    source: format!("outside:{path}:{target}"),
-                });
-            };
-            let Some(found) = self.entry_at(&resolved)? else {
-                return Ok(TaskSource::Unsupported {
-                    message: format!("symlinked task file '{path}' target '{resolved}' is missing"),
-                    source: format!("missing:{resolved}"),
-                });
-            };
-            if found.mode == "120000" {
-                path = resolved;
-                continue;
-            }
-            if found.kind != "blob" {
-                return Ok(TaskSource::Unsupported {
-                    message: format!(
-                        "symlinked task file '{path}' target '{resolved}' is not a blob"
-                    ),
-                    source: format!("not-blob:{resolved}:{}", found.mode),
-                });
-            }
-            let source = found.oid;
-            return Ok(match self.read(&[resolved.as_str()])?.pop().flatten() {
-                Some(text) => TaskSource::Text { text, source },
-                None => TaskSource::Missing {
-                    source: format!("missing:{resolved}"),
-                },
-            });
-        }
     }
 
     /// Each `paths` object as text, in order, through one `cat-file --batch`.
@@ -396,34 +311,6 @@ impl<'a> StateTree<'a> {
             blobs.push((vpath.to_owned(), bytes));
         }
         Ok(Some((spec, blobs)))
-    }
-
-    /// The git entry repository-relative `path` holds in this state. An index
-    /// has no directory entries, so a path that only prefixes tracked files
-    /// yields a synthetic tree entry.
-    fn entry_at(&self, path: &str) -> Result<Option<GitEntry>, CommitMsgError> {
-        if path.is_empty() {
-            return Ok(None);
-        }
-        let args = if self.rev.is_empty() {
-            vec!["ls-files", "-s", "-z", "--full-name", "--"]
-        } else {
-            vec!["ls-tree", "-z", self.rev, "--"]
-        };
-        let entries = self.entries(&args, path)?;
-        if let Some(found) = entries.iter().find(|entry| entry.path == path) {
-            return Ok(Some(found.clone()));
-        }
-        let prefix = format!("{path}/");
-        Ok(entries
-            .iter()
-            .any(|entry| entry.path.starts_with(&prefix))
-            .then(|| GitEntry {
-                path: path.to_owned(),
-                oid: String::new(),
-                mode: "040000".to_owned(),
-                kind: "tree".to_owned(),
-            }))
     }
 
     /// Every repository-relative blob this state holds under `prefix`, with

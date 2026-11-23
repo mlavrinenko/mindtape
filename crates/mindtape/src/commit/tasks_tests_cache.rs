@@ -40,6 +40,11 @@ fn probe(task: &Task) -> Option<&str> {
         .and_then(HVal::as_str)
 }
 
+/// The working-tree load of `root` under `config`.
+fn working_base(root: &std::path::Path, config: &Config) -> Vec<Task> {
+    crate::loader::load_project(root, config).tasks
+}
+
 /// A state loader bounded to `root`, over `base` and `config`.
 fn state_loader<'a>(
     root: &'a std::path::Path,
@@ -98,7 +103,7 @@ fn a_reused_state_reevaluates_a_task_whose_imported_module_changed() {
 fn a_seeded_task_is_not_reused_after_its_imported_module_changes() {
     let (dir, config, one) = module_repo();
     let root = dir.path();
-    let base = crate::loader::load_project(root, &config).tasks;
+    let base = working_base(root, &config);
     assert_eq!(probe(&base[0]), Some("first"), "the seed reads the module");
 
     // The working tree moves on while the state's own bytes stay put, so only
@@ -141,13 +146,13 @@ fn a_seeded_task_keeps_the_state_root_choice_clean_or_dirty() {
         );
         let config = parse_config(text).unwrap();
         let plan = StatePlan::index(root).unwrap();
-        let clean_base = crate::loader::load_project(root, &config).tasks;
+        let clean_base = working_base(root, &config);
         let clean = load_from(root, &clean_base, &config, &plan);
 
         // A working-tree edit that stays out of the index: the state bytes do
         // not change, so a seeded state must not depend on it.
         write_file(root, "tasks/sub/x.typ", format!("{MARKER}// dirty\n"));
-        let dirty_base = crate::loader::load_project(root, &config).tasks;
+        let dirty_base = working_base(root, &config);
         let dirty = load_from(root, &dirty_base, &config, &plan);
 
         assert_eq!(
@@ -297,6 +302,40 @@ fn the_state_file_cache_reuses_hits_and_never_stores_errors() {
         loader.evaluations(),
         5,
         "only the changed file and the failed file are evaluated again"
+    );
+}
+
+#[test]
+fn a_pin_the_working_tree_lacks_seeds_nothing() {
+    let text = pin_config("gone-lib");
+    let dir = git_tempdir();
+    let root = dir.path();
+    commit_files(
+        root,
+        &[(".mindtape/config.toml", &text), ("tasks/a.typ", MARKER)],
+        "seed",
+    );
+    let config = parse_config(&text).unwrap();
+    let states = load(root, &config, &revisions("HEAD", "HEAD"));
+    assert_eq!(
+        states.staged.tasks.len(),
+        1,
+        "the state still loads its own task"
+    );
+}
+
+#[test]
+fn a_seeded_task_the_working_tree_lost_is_not_seeded() {
+    let (dir, config, one) = module_repo();
+    let root = dir.path();
+    let base = working_base(root, &config);
+    std::fs::remove_file(root.join("tasks/a.typ")).unwrap();
+    let mut loader = state_loader(root, &base, &config);
+    let states = loader.load(&revisions(&one, &one)).unwrap();
+    assert_eq!(
+        states.staged.tasks.len(),
+        1,
+        "the state still loads the file the working tree lost"
     );
 }
 

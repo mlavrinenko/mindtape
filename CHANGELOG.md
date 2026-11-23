@@ -219,6 +219,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rather than a second shape of it, each rule with the moments it fires at.
   `mt explain` now names those commands, and its six JSON outputs leave
   `schema/output/` with the page and the reference that documented them.
+- **A commit state no longer resolves a symlinked task file.** `StateTree`
+  drops every `120000` entry before the loader sees it, so the loader's
+  symlink resolution, its `links` vector and its `TaskSource` enum never ran.
+  One path loads a state's task files now: a task file's identity is its blob
+  id, and a symlinked task file is not a source, as it already was.
 
 ### Fixed
 

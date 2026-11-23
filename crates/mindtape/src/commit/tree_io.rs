@@ -1,5 +1,5 @@
 //! Low-level git tree reads and path arithmetic shared by [`crate::commit::tree`]:
-//! listing entries, reading blobs, resolving symlinks and mapping paths.
+//! listing entries, reading blobs and mapping paths.
 
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
@@ -14,16 +14,6 @@ pub(crate) struct GitEntry {
     pub(crate) oid: String,
     pub(crate) mode: String,
     pub(crate) kind: String,
-}
-
-/// Resolve a symlink `target` relative to repository-relative `link`, or
-/// `None` when it is absolute or escapes the repository.
-pub(crate) fn resolve_link(link: &str, target: &str) -> Option<String> {
-    if Path::new(target).is_absolute() {
-        return None;
-    }
-    let base = Path::new(link).parent().unwrap_or(Path::new(""));
-    lexical_path(base.components().chain(Path::new(target).components()))
 }
 
 /// The object kind a git file mode names.

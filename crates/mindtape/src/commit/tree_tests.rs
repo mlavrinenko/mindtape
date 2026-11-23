@@ -26,6 +26,13 @@ fn repo_with(committed: &[(&str, &str)], staged: &[(&str, &str)]) -> tempfile::T
     dir
 }
 
+/// A repository holding `files` in one commit.
+fn repo(files: &[(&str, &str)]) -> tempfile::TempDir {
+    let dir = git_tempdir();
+    commit_files(dir.path(), files, "seed");
+    dir
+}
+
 /// [`parse_batch_bytes`] with each object read as text, for a test that only
 /// cares about the contents.
 fn parse_batch(out: &[u8], count: usize) -> Vec<Option<String>> {
@@ -40,6 +47,7 @@ fn a_package_path_resolves_against_the_repository_root() {
     let cases = [
         ("examples/rules/", "../../lib", Some("lib")),
         ("examples/rules/", "lib", Some("examples/rules/lib")),
+        ("examples/rules/", "./lib", Some("examples/rules/lib")),
         ("", "lib", Some("lib")),
         ("examples/rules/", "../../../lib", None),
         ("", "/lib", None),
@@ -113,6 +121,25 @@ fn task_files_at(root: &Path, rev: &str, config: &Config) -> Vec<(String, PathBu
     tree.task_files(config).unwrap()
 }
 
+/// The project-relative paths `rev` holds under the roots `config` declares.
+fn task_rels_at(root: &Path, rev: &str, config: &Config) -> Vec<String> {
+    task_files_at(root, rev, config)
+        .iter()
+        .map(|(_, rel)| crate::slash_path(rel))
+        .collect()
+}
+
+/// Assert the task files `rev` lists under `config_text` are `expected`.
+fn assert_task_rels(files: &[(&str, &str)], config_text: &str, expected: &[&str]) {
+    let dir = repo(files);
+    let config = parse_config(config_text).unwrap();
+    assert_eq!(
+        task_rels_at(dir.path(), "HEAD", &config),
+        expected,
+        "{config_text:?}"
+    );
+}
+
 /// A config with `roots` and one `mindtape` pin at `pin`.
 fn pin_config(roots: &str, pin: &str) -> String {
     format!(
@@ -123,36 +150,22 @@ fn pin_config(roots: &str, pin: &str) -> String {
 
 #[test]
 fn a_state_lists_every_task_file_under_its_roots_once() {
-    let dir = git_tempdir();
-    let root = dir.path();
-    commit_files(
-        root,
+    assert_task_rels(
         &[
             ("tasks/a.typ", "a\n"),
             ("tasks/sub/b.typ", "b\n"),
             ("more/c.typ", "c\n"),
             ("notes.typ", "not a task\n"),
         ],
-        "seed",
+        "[tasks]\nroots = [\"tasks\", \"more\", \"tasks/sub\"]\n",
+        &["more/c.typ", "tasks/a.typ", "tasks/sub/b.typ"],
     );
-    let config = parse_config("[tasks]\nroots = [\"tasks\", \"more\", \"tasks/sub\"]\n").unwrap();
-    let files = task_files_at(root, "HEAD", &config);
-    let rels: Vec<String> = files
-        .iter()
-        .map(|(_, rel)| crate::slash_path(rel))
-        .collect();
-    assert_eq!(rels, ["more/c.typ", "tasks/a.typ", "tasks/sub/b.typ"]);
 }
 
 #[test]
 fn a_states_own_config_names_its_pins_and_roots() {
-    let dir = git_tempdir();
+    let dir = repo(&[(".mindtape/config.toml", &pin_config("old-tasks", "old-lib"))]);
     let root = dir.path();
-    commit_files(
-        root,
-        &[(".mindtape/config.toml", &pin_config("old-tasks", "old-lib"))],
-        "seed",
-    );
     commit_files(
         root,
         &[(".mindtape/config.toml", &pin_config("tasks", "lib"))],
@@ -168,9 +181,8 @@ fn a_states_own_config_names_its_pins_and_roots() {
 
 #[test]
 fn a_missing_or_malformed_state_config_is_reported_not_read() {
-    let dir = git_tempdir();
+    let dir = repo(&[("tasks/a.typ", "a\n")]);
     let root = dir.path();
-    commit_files(root, &[("tasks/a.typ", "a\n")], "no config");
     let missing = config_at(root, "HEAD");
     assert!(missing.config.is_some() && missing.error.is_none());
 
@@ -187,16 +199,11 @@ fn a_missing_or_malformed_state_config_is_reported_not_read() {
 
 #[test]
 fn a_subproject_state_reads_its_prefix_config() {
-    let dir = git_tempdir();
+    let dir = repo(&[
+        ("sub/.mindtape/config.toml", &pin_config("tasks", "lib")),
+        ("sub/tasks/a.typ", "a\n"),
+    ]);
     let root = dir.path();
-    commit_files(
-        root,
-        &[
-            ("sub/.mindtape/config.toml", &pin_config("tasks", "lib")),
-            ("sub/tasks/a.typ", "a\n"),
-        ],
-        "seed",
-    );
     let mut state_plan = plan("HEAD");
     state_plan.root_prefix = "sub/".to_owned();
     let sub = root.join("sub");
@@ -214,26 +221,16 @@ fn a_subproject_state_reads_its_prefix_config() {
 
 #[test]
 fn a_root_dot_state_skips_templates_and_reserved_directories() {
-    let dir = git_tempdir();
-    let root = dir.path();
-    commit_files(
-        root,
+    assert_task_rels(
         &[
             ("tasks/a.typ", "a\n"),
             ("templates/task.typ", "template\n"),
             (".mindtape/extra.typ", "metadata\n"),
             ("notes.md", "not a task\n"),
         ],
-        "seed",
+        "[tasks]\nroots = [\".\"]\n\n[templates]\ndirs = [\"templates\"]\n",
+        &["tasks/a.typ"],
     );
-    let config =
-        parse_config("[tasks]\nroots = [\".\"]\n\n[templates]\ndirs = [\"templates\"]\n").unwrap();
-    let files = task_files_at(root, "HEAD", &config);
-    let rels: Vec<String> = files
-        .iter()
-        .map(|(_, rel)| crate::slash_path(rel))
-        .collect();
-    assert_eq!(rels, ["tasks/a.typ"]);
 }
 
 #[cfg(unix)]
@@ -257,31 +254,22 @@ fn an_index_state_lists_the_task_files_the_index_holds() {
     let dir = repo_with(&[("tasks/a.typ", "a\n")], &[("tasks/b.typ", "b\n")]);
     let root = dir.path();
     let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
-    let state_plan = plan("");
-    let tree = StateTree::new(root, &state_plan, &state_plan.head);
-    let files = tree.task_files(&config).unwrap();
-    let rels: Vec<String> = files
-        .iter()
-        .map(|(_, rel)| crate::slash_path(rel))
-        .collect();
-    assert_eq!(rels, ["tasks/a.typ", "tasks/b.typ"]);
+    assert_eq!(
+        task_rels_at(root, "", &config),
+        ["tasks/a.typ", "tasks/b.typ"]
+    );
 }
 
 #[test]
 fn a_states_packages_carry_the_versions_its_manifests_declare() {
-    let dir = git_tempdir();
-    let root = dir.path();
     let manifest =
         "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n";
-    commit_files(
-        root,
-        &[
-            ("lib/typst.toml", manifest),
-            ("lib/prelude.typ", "#let task(body, ..meta) = none\n"),
-            (".mindtape/config.toml", &pin_config("tasks", "lib")),
-        ],
-        "seed",
-    );
+    let dir = repo(&[
+        ("lib/typst.toml", manifest),
+        ("lib/prelude.typ", "#let task(body, ..meta) = none\n"),
+        (".mindtape/config.toml", &pin_config("tasks", "lib")),
+    ]);
+    let root = dir.path();
     let config = config_at(root, "HEAD").config.unwrap();
     let state_plan = plan("HEAD");
     let tree = StateTree::new(root, &state_plan, &state_plan.head);
@@ -289,155 +277,10 @@ fn a_states_packages_carry_the_versions_its_manifests_declare() {
     assert_eq!(packages.specs[0].version.to_string(), "0.2.0");
 }
 
-/// A task entry for repository-relative `path` with `mode`.
-fn entry(path: &str, mode: &str) -> super::TaskEntry {
-    super::TaskEntry {
-        repo: path.to_owned(),
-        rel: PathBuf::from(path),
-        oid: "0".to_owned(),
-        mode: mode.to_owned(),
-    }
-}
-
-/// The source the `rev` state resolves for `path` with `mode`.
-fn source_at(root: &Path, rev: &str, path: &str, mode: &str) -> super::TaskSource {
-    let state_plan = plan(rev);
-    let tree = StateTree::new(root, &state_plan, &state_plan.head);
-    tree.task_source(&entry(path, mode)).unwrap()
-}
-
-#[test]
-fn a_missing_regular_task_blob_is_missing() {
-    let dir = git_tempdir();
-    let root = dir.path();
-    commit_files(root, &[("seed.txt", "seed\n")], "seed");
-    assert!(matches!(
-        source_at(root, "HEAD", "tasks/gone.typ", "100644"),
-        super::TaskSource::Missing { .. }
-    ));
-}
-
-#[cfg(unix)]
-#[test]
-fn a_symlink_outside_the_repository_is_unsupported() {
-    let dir = symlink_repo(&[("seed.txt", "seed\n")], &[("tasks/a.typ", "/etc/passwd")]);
-    assert!(matches!(
-        source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
-        super::TaskSource::Unsupported { .. }
-    ));
-}
-
-#[cfg(unix)]
-#[test]
-fn a_symlink_cycle_or_missing_target_is_unsupported() {
-    let dir = symlink_repo(
-        &[("seed.txt", "seed\n")],
-        &[
-            ("tasks/a.typ", "b.typ"),
-            ("tasks/b.typ", "a.typ"),
-            ("tasks/c.typ", "missing.typ"),
-        ],
-    );
-    for path in ["tasks/a.typ", "tasks/c.typ"] {
-        assert!(matches!(
-            source_at(dir.path(), "HEAD", path, "120000"),
-            super::TaskSource::Unsupported { .. }
-        ));
-    }
-}
-
-#[cfg(unix)]
-#[test]
-fn a_symlink_to_a_directory_is_unsupported_in_tree_and_index() {
-    let dir = symlink_repo(
-        &[("seed.txt", "seed\n"), ("dir/keep.txt", "x\n")],
-        &[("tasks/a.typ", "../dir")],
-    );
-    for rev in ["HEAD", ""] {
-        assert!(matches!(
-            source_at(dir.path(), rev, "tasks/a.typ", "120000"),
-            super::TaskSource::Unsupported { .. }
-        ));
-    }
-}
-
-#[cfg(unix)]
-#[test]
-fn empty_resolved_symlink_targets_are_unsupported_in_tree_and_index() {
-    let dir = symlink_repo(
-        &[("seed.txt", "seed\n")],
-        &[
-            ("tasks/a.typ", ".."),
-            ("tasks/b.typ", "."),
-            ("tasks/d.typ", "e.typ"),
-            ("tasks/e.typ", ".."),
-        ],
-    );
-    for path in ["tasks/a.typ", "tasks/b.typ", "tasks/d.typ"] {
-        for rev in ["HEAD", ""] {
-            assert!(matches!(
-                source_at(dir.path(), rev, path, "120000"),
-                super::TaskSource::Unsupported { .. }
-            ));
-        }
-    }
-}
-
-#[cfg(unix)]
-#[test]
-fn a_symlink_chain_resolves_to_its_final_blob() {
-    let dir = symlink_repo(
-        &[("shared/real.typ", "marker\n")],
-        &[
-            ("tasks/a.typ", "b.typ"),
-            ("tasks/b.typ", "../shared/real.typ"),
-        ],
-    );
-    let expected = git_stdout(dir.path(), &["rev-parse", "HEAD:shared/real.typ"]);
-    assert!(matches!(
-        source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
-        super::TaskSource::Text { text, source } if text.contains("marker") && source == expected
-    ));
-}
-
-#[cfg(unix)]
-#[test]
-fn a_relative_symlink_outside_the_repository_is_unsupported() {
-    let dir = symlink_repo(
-        &[("seed.txt", "seed\n")],
-        &[("tasks/a.typ", "../../outside")],
-    );
-    assert!(matches!(
-        source_at(dir.path(), "HEAD", "tasks/a.typ", "120000"),
-        super::TaskSource::Unsupported { .. }
-    ));
-}
-
-#[cfg(unix)]
-#[test]
-fn an_absolute_symlink_inside_the_repository_is_unsupported() {
-    let dir = git_tempdir();
-    let root = dir.path();
-    commit_files(
-        root,
-        &[("seed.txt", "seed\n"), ("shared/real.typ", "marker\n")],
-        "seed",
-    );
-    std::fs::create_dir_all(root.join("tasks")).unwrap();
-    std::os::unix::fs::symlink(root.join("shared/real.typ"), root.join("tasks/a.typ")).unwrap();
-    git(root, &["add", "-A"]);
-    git(root, &["commit", "-q", "-m", "absolute link"]);
-    assert!(matches!(
-        source_at(root, "HEAD", "tasks/a.typ", "120000"),
-        super::TaskSource::Unsupported { .. }
-    ));
-}
-
 #[test]
 fn an_index_gitlink_is_not_a_task_file() {
-    let dir = git_tempdir();
+    let dir = repo(&[("seed.txt", "seed\n")]);
     let root = dir.path();
-    commit_files(root, &[("seed.txt", "seed\n")], "seed");
     let head = git_stdout(root, &["rev-parse", "HEAD"]);
     git(
         root,
@@ -452,35 +295,4 @@ fn an_index_gitlink_is_not_a_task_file() {
     let state_plan = plan("");
     let tree = StateTree::new(root, &state_plan, &state_plan.head);
     assert!(tree.task_files(&config).unwrap().is_empty());
-}
-
-#[test]
-fn an_empty_symlink_blob_is_unsupported_in_tree_and_index() {
-    let dir = git_tempdir();
-    let root = dir.path();
-    commit_files(root, &[("seed.txt", "seed\n")], "seed");
-    // The empty blob as a `120000` entry: a symlink whose target text is empty.
-    let out = std::process::Command::new("git")
-        .current_dir(root)
-        .args(["hash-object", "-w", "-t", "blob", "--stdin"])
-        .stdin(std::process::Stdio::null())
-        .output()
-        .unwrap();
-    let empty = String::from_utf8_lossy(&out.stdout).trim().to_owned();
-    git(
-        root,
-        &[
-            "update-index",
-            "--add",
-            "--cacheinfo",
-            &format!("120000,{empty},tasks/a.typ"),
-        ],
-    );
-    git(root, &["commit", "-q", "-m", "empty link"]);
-    for rev in ["HEAD", ""] {
-        assert!(matches!(
-            source_at(root, rev, "tasks/a.typ", "120000"),
-            super::TaskSource::Unsupported { .. }
-        ));
-    }
 }

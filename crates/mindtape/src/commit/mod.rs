@@ -40,7 +40,7 @@
 //! - `state_cache.rs`: file outcomes, reuse identities and their helpers.
 //! - `state_loader.rs`: the evaluation cache shared across a range and the hook.
 //! - `tree.rs`: a commit state's git tree, its task files and config.
-//! - `tree_io.rs`: git listings, blob reads, symlink resolution and path arithmetic.
+//! - `tree_io.rs`: git listings, blob reads and path arithmetic.
 
 pub(crate) mod amend;
 pub use amend::writing_a_merge;
