@@ -216,18 +216,24 @@ fn the_current_snapshot_carries_the_ast_grep_helper() {
     );
 }
 
-/// The current snapshot carries the goal DSL a project imports and a task
-/// body writes.
+/// The current snapshot carries the mechanism, not this repository's goal
+/// policy. A project owns its goal module.
 #[test]
-fn the_current_snapshot_carries_the_goal_dsl() {
+fn the_current_snapshot_stays_core_only() {
     for helper in [
         "#let Helps(",
         "#let Hinders(",
         "#let Neutral(",
         "#let goal(",
+        "#let adopter",
+        "#let maintainer",
         "#let check-goal-over(",
+        "#let helps(",
+        "#let hurts(",
+        "#let neutral",
+        "#let verdicts(",
     ] {
-        assert!(PRELUDE.contains(helper), "0.5.0 must ship `{helper}`");
+        assert!(!PRELUDE.contains(helper), "0.5.0 must not ship `{helper}`");
     }
 }
 

@@ -11,7 +11,7 @@ use crate::model::Task;
 use crate::model::numeric::NumValue;
 use crate::recur::{PeriodUnit, Rule};
 use crate::test_support::write_file;
-use typst_harvest::{HVal, HarvestError, HarvestWorld, harvest};
+use typst_harvest::{HarvestError, HarvestWorld, harvest};
 use typst_layout::PagedDocument;
 
 use crate::test_support::PRELUDE;
@@ -457,44 +457,4 @@ fn real_prelude_refuses_a_grep_with_more_than_one_glob() {
             "{call}: {message}"
         );
     }
-}
-
-/// The prelude's goal verdicts: `verdicts` fills every neutral slot and keeps
-/// the explicit verdicts. A task then spells a whole group once.
-#[test]
-fn real_prelude_verdicts_fills_neutral_slots_and_keeps_an_explicit_verdict() {
-    let (_dir, outcome) = load_real_prelude(crate::typst_task!(
-        "(title: \"T\", x-goals: (product: verdicts(\
-           (cheap-adoption: helps[one config line], \
-            enforced-practice: hurts[a hidden step]), \
-           \"readable-tasks\")))\n"
-    ));
-    assert_eq!(outcome.errors, Vec::new());
-    let goals = outcome.tasks[0].extras["x-goals"]
-        .get("product")
-        .and_then(HVal::as_dict)
-        .unwrap();
-    let effect = |name: &str| {
-        goals
-            .get(name)
-            .and_then(|v| v.get("effect"))
-            .and_then(HVal::as_str)
-    };
-    assert_eq!(effect("readable-tasks"), Some("neutral"));
-    assert_eq!(effect("cheap-adoption"), Some("helps"));
-    assert_eq!(effect("enforced-practice"), Some("hurts"));
-}
-
-/// Naming one goal as both an explicit verdict and a neutral slot is an
-/// authoring mistake, not a precedence question. The merge would silently keep
-/// the verdict, so the helper asserts and names the goal instead.
-#[test]
-fn real_prelude_verdicts_refuses_a_goal_listed_both_ways() {
-    let message = prelude_eval_error(
-        "x-goals: (product: verdicts((cheap-adoption: helps[why],), \"cheap-adoption\"))",
-    );
-    assert!(
-        message.contains("`cheap-adoption`") && message.contains("neutral"),
-        "{message}"
-    );
 }
