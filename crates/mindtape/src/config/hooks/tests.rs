@@ -274,11 +274,11 @@ fn hooks_fire_only_on_the_matching_transition() {
 
     let into_done = matching_flip_hooks(&config, &task, "done", &ready).unwrap();
     assert_eq!(into_done.len(), 1);
-    assert_eq!(into_done.first().unwrap().when, r#"into("done")"#);
+    assert_eq!(into_done.first().unwrap().1.when, r#"into("done")"#);
 
     let into_wip = matching_flip_hooks(&config, &task, "wip", &ready).unwrap();
     assert_eq!(into_wip.len(), 1);
-    assert!(into_wip.first().unwrap().when.contains("accepted"));
+    assert!(into_wip.first().unwrap().1.when.contains("accepted"));
 
     let into_cancelled = matching_flip_hooks(&config, &task, "cancelled", &ready).unwrap();
     assert!(into_cancelled.is_empty());
@@ -351,6 +351,18 @@ fn validation_reports_each_problem() {
             "[[on.flip]]\nwhen = ''\nactions = [{ title = \"x\" }]\n",
             "on.flip[0].actions[0]",
         ),
+        (
+            "[[on.flip]]\nwhen = ''\nactions = [{ show = \"x\" }]\nafter = [{ gate = true }]\n",
+            "on.flip[0].after[0].gate",
+        ),
+        (
+            "[[on.flip]]\nwhen = ''\nactions = [{ show = \"x\" }]\nafter = [{ title = \"x\" }]\n",
+            "on.flip[0].after[0]",
+        ),
+        (
+            "[[on.flip]]\nwhen = ''\nactions = [{ show = \"x\" }]\nafter = [{ list = \"@ghost\" }]\n",
+            "on.flip[0].after[0].list",
+        ),
     ];
     for (toml, expected) in cases {
         // parse_config, not a bare deserialize: the shipped legend has to be in
@@ -387,6 +399,38 @@ fn a_runless_gate_passes_validation() {
     );
     assert!(validate_flip_hooks(&config).is_empty());
     assert!(config.validate().is_ok());
+}
+
+/// An after-the-write action takes the same kinds as a pre-write one, minus
+/// `gate`: the write it would refuse has already landed.
+#[test]
+fn an_after_action_passes_validation() {
+    let config = config_with(
+        "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ run = \"true\", gate = true }]\n\
+         after = [{ run = \"refresh\", message = \"refresh it\" }, { show = \"done\" }]\n",
+    );
+    assert!(validate_flip_hooks(&config).is_empty());
+    assert!(config.validate().is_ok());
+}
+
+/// The selection reports a hook's position, which is what the batch remembers
+/// to run that hook's `after` actions once, and the hook carries them.
+#[test]
+fn after_actions_are_selected_with_their_hook() {
+    let config = config_with(
+        "[[on.flip]]\nwhen = 'into(\"wip\")'\nactions = [{ show = \"x\" }]\n\
+         [[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ show = \"y\" }]\n\
+         after = [{ run = \"refresh\" }]\n",
+    );
+    let fired =
+        matching_flip_hooks(&config, &task_at("t", "wip"), "done", &Readiness::empty()).unwrap();
+    assert_eq!(fired.len(), 1);
+    let (index, hook) = fired.first().unwrap();
+    assert_eq!(*index, 1);
+    assert_eq!(
+        hook.after.first().unwrap().run,
+        Some(ConfigCommand::Line("refresh".to_owned()))
+    );
 }
 
 /// An empty legend unconstrains `into(...)` rather than rejecting every name.

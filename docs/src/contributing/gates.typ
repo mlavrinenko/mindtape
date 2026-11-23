@@ -44,7 +44,9 @@ and tags a rule `gate` when its own writes cannot stale its record. Then
 current tree, without running any of them. The pre-commit hook asserts it, and
 so does `mt flip` into a terminal status, through an `[[on.flip]]` hook. Two
 arms, #just.docs-vale-tasks() and #just.mt-check(), carry no tag, and "Inputs a
-plain glob can't name" below says why.
+plain glob can't name" below says why. The flip that closes a task refreshes
+both, through the same hook's `after` phase. The close commit then finds their
+records fresh.
 
 A passing #just.check() prints one line, such as
 `check: <n> gates passed (<ran> run, <cached> cached)`. An agent reads
@@ -86,8 +88,11 @@ They are the arms whose inputs include task files. #just.check() runs both, so
 a task body with a shouted word, an em dash, or a broken structure fails the
 build. The close predicate, `mmz --is-fresh --tag gate`, skips both. `mt flip`
 stamps the status into the files the arms read. A tagged record would go stale
-on the close that writes it, and the close could never pass. A close checks
-neither the task structure nor its prose. The arms' last #just.check() does.
+on the close that writes it, and the close could never pass. So the close
+refreshes them itself: the `refresh-the-task-arms` hook in
+`.mindtape/config.toml` runs both arms in its `after` phase, once the batch has
+landed. The close then records the arms' verdicts, and the commit that follows
+finds both records fresh.
 
 == Arms must not read what another arm writes
 
@@ -185,15 +190,17 @@ drifted modules and a clean one that sorts last.
 
 `.githooks/pre-commit` runs `mmz --is-fresh --tag gate`, then
 `.githooks/local-paths`, `typstyle --check truth`, #just.mmz("docs::vale-tasks")
-and #just.mmz("mt-check"). It refuses the commit when any of them fails.
+and #just.mmz("mt-check"). It refuses the commit when any of them fails. The
+last two read `truth/tasks/**`. A close stales them, and the flip's `after` hook
+refreshes them. The hook names either one that re-ran rather than hit.
 
 The hook also enforces a 10s wall-clock budget on itself, even when every
 assertion passes. A commit after a full #just.check() must stay cheap: the gate
 records are fresh, the task-structure and task-prose records hit, and
 #just.build-mt() ran at the end of the check. A run over budget prints each
-step's time and fails, naming the step to make cheap. The fix is to memoize
-that step or move its work into #just.check(), never to raise
-`MINDTAPE_PRECOMMIT_BUDGET_MS`.
+step's time and fails, naming the step to make cheap and the task arms that
+re-ran. The fix is to memoize that step or move its work into #just.check(),
+never to raise `MINDTAPE_PRECOMMIT_BUDGET_MS`.
 
 `.githooks/local-paths` refuses a staged file that names your `$HOME`, the
 checkout or the primary checkout. Such a path arrives in a pasted error or

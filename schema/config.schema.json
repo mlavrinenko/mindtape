@@ -1220,6 +1220,13 @@
           },
           "type": "array"
         },
+        "after": {
+          "description": "Actions to run once the batch's writes have landed, in declaration\norder. They run once per `mt flip` whose batch landed a target this\nhook's `when` matched, after the batch's revalidation. A non-zero exit\nwarns and never refuses the flip: the write already happened, so `gate`\nis a config error here.",
+          "items": {
+            "$ref": "#/$defs/FlipAction"
+          },
+          "type": "array"
+        },
         "name": {
           "description": "Optional name. A later entry with the same name, from a nearer layer\nor a pack, replaces an earlier one in place, and `disable` drops it by\nname. An unnamed entry always appends and is never replaced. Also the\nlabel `mt config show --origin` prints.",
           "type": [

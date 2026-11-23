@@ -23,6 +23,14 @@
 //! like an earlier one replaces it in place, and `disable` drops one by name
 //! ([`crate::config::packs`]), as for `[[tasks.rules]]`.
 //!
+//! A hook's `actions` run before the write, so a gate can still refuse it. Its
+//! `after` actions run once the batch's writes have landed, once per `mt flip`
+//! whose batch landed a target the hook's `when` matched, after the batch's
+//! revalidation. They cannot refuse anything: the write already happened, so
+//! `gate` is a config error there and a failing command only warns. That is the
+//! phase a project uses to refresh what its own write staled, such as a
+//! memoized check over the task files.
+//!
 //! `when` is a [filter expression](crate::filter) over the task **as it stands
 //! before the write** (so `status == "wip"` names the status the task leaves),
 //! plus the `into("name")` predicate for the status the flip stamps. `into` is
@@ -88,6 +96,13 @@ pub struct FlipHook {
     pub when: String,
     /// Actions to run, in declaration order.
     pub actions: Vec<FlipAction>,
+    /// Actions to run once the batch's writes have landed, in declaration
+    /// order. They run once per `mt flip` whose batch landed a target this
+    /// hook's `when` matched, after the batch's revalidation. A non-zero exit
+    /// warns and never refuses the flip: the write already happened, so `gate`
+    /// is a config error here.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub after: Vec<FlipAction>,
 }
 
 /// The fields every `[[on.*]]` hook carries, so one selection, one listing and
@@ -95,22 +110,30 @@ pub struct FlipHook {
 pub(crate) trait HookFields {
     /// The hook's `name`, `when` and `actions`, in that order.
     fn parts(&self) -> (Option<&str>, &str, &[FlipAction]);
+
+    /// The hook's after-the-write actions, in declaration order. Empty for a
+    /// hook array with no after phase.
+    fn after(&self) -> &[FlipAction];
 }
 
-/// Implement [`HookFields`] for a hook struct whose fields are `name`, `when`
-/// and `actions`, the shape every `[[on.*]]` entry shares.
+/// Implement [`HookFields`] for a hook struct whose fields are `name`, `when`,
+/// `actions` and the after-the-write list `$field`. Every `[[on.*]]` entry
+/// shares that shape.
 macro_rules! impl_hook_fields {
-    ($hook:ty) => {
+    ($hook:ty, $field:ident) => {
         impl HookFields for $hook {
             fn parts(&self) -> (Option<&str>, &str, &[FlipAction]) {
                 (self.name.as_deref(), &self.when, &self.actions)
             }
+
+            fn after(&self) -> &[FlipAction] {
+                &self.$field
+            }
         }
     };
 }
-pub(crate) use impl_hook_fields;
 
-impl_hook_fields!(FlipHook);
+impl_hook_fields!(FlipHook, after);
 
 /// One action of an `[[on.flip]]` or `[[on.rm]]` entry. Set exactly one of
 /// `show`, `list` and `run`, or set `gate = true` with no `run`.
@@ -254,7 +277,9 @@ pub struct HookError {
 }
 
 /// The `[[on.flip]]` hooks that fire when the flip stamps `task` `target`, in
-/// declaration order.
+/// declaration order, each with its position in `config.on.flip`. The position
+/// is what a caller remembers to run the hook's `after` actions once the batch
+/// lands.
 ///
 /// `task` is the artifact as it stands before the write, so `when` reads the
 /// status the task leaves. `target` answers `into(...)`. The caller computes
@@ -269,14 +294,15 @@ pub fn matching_flip_hooks<'a>(
     task: &Task,
     target: &str,
     readiness: &Readiness,
-) -> Result<Vec<&'a FlipHook>, HookError> {
+) -> Result<Vec<(usize, &'a FlipHook)>, HookError> {
     matching(&config.on.flip, "on.flip", |hook| {
         fires(hook, task, target, config, readiness)
     })
 }
 
-/// The hooks of `hooks` whose `when` matches, in declaration order. `section`
-/// is the array they sit in, for the error a bad `when` reports.
+/// The hooks of `hooks` whose `when` matches, in declaration order, each with
+/// its position in the array. `section` is the array they sit in, for the error
+/// a bad `when` reports.
 ///
 /// # Errors
 /// Returns [`HookError`] when a `when` expression fails to parse or names an
@@ -285,7 +311,7 @@ pub(crate) fn matching<'a, H: HookFields>(
     hooks: &'a [H],
     section: &'static str,
     fires: impl Fn(&H) -> Result<bool, FilterError>,
-) -> Result<Vec<&'a H>, HookError> {
+) -> Result<Vec<(usize, &'a H)>, HookError> {
     let mut hits = Vec::new();
     for (index, hook) in hooks.iter().enumerate() {
         let hit = fires(hook).map_err(|source| HookError {
@@ -295,7 +321,7 @@ pub(crate) fn matching<'a, H: HookFields>(
             source: Box::new(source),
         })?;
         if hit {
-            hits.push(hook);
+            hits.push((index, hook));
         }
     }
     Ok(hits)

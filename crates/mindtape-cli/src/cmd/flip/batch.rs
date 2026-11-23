@@ -19,17 +19,31 @@ use crate::diag::{Command, Diag, Hint, Kind, Note};
 use crate::util::Project;
 
 /// The record of what a batch actually wrote. The two sets answer "did this
-/// problem touch something we flipped" for the revalidation.
+/// problem touch something we flipped" for the revalidation, and the ordered
+/// list is what an after-the-write command reads.
 #[derive(Default)]
 pub(crate) struct Landed {
+    /// The landed tasks' ids and files, in the order they landed.
+    tasks: Vec<(String, PathBuf)>,
     ids: HashSet<String>,
     files: HashSet<PathBuf>,
 }
 
 impl Landed {
     pub(crate) fn record(&mut self, task: &mindtape::Task) {
+        self.tasks.push((task.id.clone(), task.file.clone()));
         self.ids.insert(task.id.clone());
         self.files.insert(task.file.clone());
+    }
+
+    /// The landed tasks' ids and files, in the order they landed.
+    pub(crate) fn tasks(&self) -> &[(String, PathBuf)] {
+        &self.tasks
+    }
+
+    /// The landed tasks' ids, in the order they landed.
+    pub(crate) fn ids(&self) -> Vec<&str> {
+        self.tasks.iter().map(|(id, _)| id.as_str()).collect()
     }
 }
 
@@ -125,7 +139,7 @@ impl Landed {
     /// Whether the batch landed nothing at all. Then there is no reload to pay
     /// for and nothing to report on.
     pub(crate) fn is_empty(&self) -> bool {
-        self.ids.is_empty()
+        self.tasks.is_empty()
     }
 }
 

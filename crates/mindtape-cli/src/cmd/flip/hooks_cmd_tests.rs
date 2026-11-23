@@ -13,9 +13,13 @@ use std::path::{Path, PathBuf};
 
 use mindtape::shell::ConfigCommand;
 
+use crate::cmd::flip::batch::Landed;
 use crate::cmd::flip::chain::Chain;
 
-use super::{CommandReport, ENV_FILE, ENV_STATUS, ENV_STEM, RunCtx, run_command};
+use super::{
+    BatchCtx, CommandReport, ENV_FILE, ENV_STATUS, ENV_STEM, ENV_TASKS, RunCtx, run_batch_command,
+    run_command,
+};
 
 /// `text` as a shell line, the form every case below uses.
 fn line(text: &str) -> ConfigCommand {
@@ -162,5 +166,52 @@ mod windows {
         let out = report.output.trim();
         assert!(out.starts_with("alpha done"), "{out}");
         assert!(out.contains("alpha.typ"), "{out}");
+    }
+}
+
+/// A batch that landed `ids`, for the after-the-write executor.
+fn batch(ids: &[&str]) -> Landed {
+    let mut batch = Landed::default();
+    for id in ids {
+        batch.record(&mindtape::test_support::bare_task(id));
+    }
+    batch
+}
+
+/// Run the shell line `text` for a batch that landed `alpha` and `beta`, from
+/// `root`.
+fn run_batch(root: &Path, text: &str) -> CommandReport {
+    let landed = batch(&["alpha", "beta"]);
+    let ctx = BatchCtx {
+        root,
+        target: "done",
+        chain: &NO_CHAIN,
+        landed: &landed,
+    };
+    run_batch_command(&line(text), &ctx).unwrap()
+}
+
+/// An after-the-write command runs once for the batch, so it sees the status
+/// and the landed tasks instead of one task. The POSIX arm asserts the whole
+/// line. The `cmd /C` arm uses `contains` for the reason the module docs give.
+#[test]
+fn a_batch_command_sees_the_status_and_the_landed_tasks() {
+    let dir = tempdir_with_files(&[("marker", "x")]);
+    #[cfg(not(windows))]
+    let script =
+        format!("test -f marker && echo \"${ENV_STATUS}|${ENV_TASKS}|${{{ENV_FILE}:-unset}}\"");
+    #[cfg(windows)]
+    let script = format!("if exist marker echo %{ENV_STATUS}% %{ENV_TASKS}%");
+
+    let report = run_batch(dir.path(), &script);
+
+    assert!(report.success, "{}", report.output);
+    #[cfg(not(windows))]
+    assert_eq!(report.output.trim(), "done|alpha\nbeta|unset");
+    #[cfg(windows)]
+    {
+        let out = report.output.trim();
+        assert!(out.starts_with("done alpha"), "{out}");
+        assert!(out.contains("beta"), "{out}");
     }
 }

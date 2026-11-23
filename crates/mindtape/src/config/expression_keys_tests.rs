@@ -71,6 +71,9 @@ fn the_schema_tags_every_expression_key_with_its_language() {
         .iter()
         .map(|(path, joins)| ((*path).to_owned(), *joins))
         .collect();
+    // An after-the-write action takes the same `list` filter as a pre-write
+    // one, so the schema tags it too.
+    expected.push(("on.flip.*.after.*.list".to_owned(), true));
     expected.sort();
     assert_eq!(listed, expected);
 }

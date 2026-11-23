@@ -73,29 +73,55 @@ fn validate_hooks<H: HookFields>(
         if let Some(problem) = crate::filter::expr_problem_in_set(&prepare(when), &probe, config) {
             problems.push(problem.under(&format!("{section}[{index}].when")));
         }
-        if actions.is_empty() {
+        if actions.is_empty() && hook.after().is_empty() {
             problems.push(Problem::new(format!(
                 "{section}[{index}]: no actions declared"
             )));
         }
-        problems.extend(action_problems(section, index, actions, &probe, config));
+        problems.extend(action_problems(
+            &format!("{section}[{index}].actions"),
+            actions,
+            &probe,
+            config,
+        ));
+        problems.extend(after_problems(
+            &format!("{section}[{index}].after"),
+            hook.after(),
+            &probe,
+            config,
+        ));
+    }
+    problems
+}
+
+/// Load-time problems in one hook's after-the-write actions: everything an
+/// `actions` entry answers for, plus a `gate`, which cannot refuse a write that
+/// already landed. `at` is the dotted path the actions sit under.
+fn after_problems(at: &str, actions: &[FlipAction], probe: &Task, config: &Config) -> Vec<Problem> {
+    let mut problems = action_problems(at, actions, probe, config);
+    for (slot, action) in actions.iter().enumerate() {
+        if action.gate {
+            problems.push(Problem::new(format!(
+                "{at}[{slot}].gate: an after action runs once the write has landed, so it cannot \
+                 refuse it; drop `gate` and let a failing command warn"
+            )));
+        }
     }
     problems
 }
 
 /// Load-time problems in one hook's actions: an unresolvable kind, or a `list`
-/// filter that does not parse or evaluate. `section` is the hook array the
-/// entry sits in, `on.flip` or `on.rm`.
+/// filter that does not parse or evaluate. `at` is the dotted path the actions
+/// sit under, such as `on.flip[0].actions`.
 fn action_problems(
-    section: &str,
-    index: usize,
+    at: &str,
     actions: &[FlipAction],
     probe: &Task,
     config: &Config,
 ) -> Vec<Problem> {
     let mut problems = Vec::new();
     for (slot, action) in actions.iter().enumerate() {
-        let at = format!("{section}[{index}].actions[{slot}]");
+        let at = format!("{at}[{slot}]");
         match action.kind() {
             Err(message) => problems.push(Problem::new(format!("{at}: {message}"))),
             Ok(ActionKind::List { filter, .. }) => {

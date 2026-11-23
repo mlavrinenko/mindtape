@@ -403,6 +403,25 @@ actions = [
   { run = "mmz --is-fresh --tag gate", gate = true, message = "run `just check`, then flip again" },
 ]
 
+# The close writes the task file, which stales the two untagged arms that read
+# `truth/tasks/**`: `just mt-check` and `just docs::vale-tasks`. The pre-commit
+# hook re-runs both, and a close that left them stale overruns its 10 s budget.
+# So the flip that staled them refreshes them, once the batch has landed. The
+# after phase cannot refuse the write, so a failing arm warns and the close
+# still lands.
+#
+# `mt allow` covers these commands like every other `run`: a clone runs none of
+# them until the user reads them and approves.
+[[on.flip]]
+name = "refresh-the-task-arms"
+when = 'into("done") || into("cancelled") || into("failed")'
+# docs:slice hooks/refresh-arms
+after = [
+  { run = "just mmz mt-check" },
+  { run = "just mmz docs::vale-tasks" },
+]
+# docs:end
+
 # Where a new task lands. The month hook reads the pinned date, not a field,
 # so a task's folder is the day it was filed even before `status` records one.
 # The sweep hook owns `swept/`, which is why `contrib/ask-refactoring.sh`

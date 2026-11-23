@@ -44,6 +44,17 @@ fn cmd(dir: &Path, args: &[&str]) -> assert_cmd::Command {
     command
 }
 
+/// `mt <args>` in `dir`, asserting success, and its stdout.
+fn stdout_of(dir: &Path, args: &[&str]) -> String {
+    let assertion = cmd(dir, args).assert().success();
+    String::from_utf8_lossy(&assertion.get_output().stdout).into_owned()
+}
+
+/// The text of `name` under `dir`.
+fn read(dir: &Path, name: &str) -> String {
+    std::fs::read_to_string(dir.join(name)).unwrap()
+}
+
 fn task_source(dir: &Path) -> String {
     std::fs::read_to_string(dir.join("tasks/alpha.typ")).unwrap()
 }
@@ -216,10 +227,7 @@ fn show_and_list_are_silent_when_piped_but_gates_still_run() {
          { list = '', title = \"SENTINEL-TITLE\" }, \
          { run = \"touch fired\", gate = true }]\n",
     );
-    let assertion = cmd(dir.path(), &["flip", "done", "alpha"])
-        .assert()
-        .success();
-    let stdout = String::from_utf8_lossy(&assertion.get_output().stdout).into_owned();
+    let stdout = stdout_of(dir.path(), &["flip", "done", "alpha"]);
     assert!(!stdout.contains("SENTINEL-TEXT"), "{stdout}");
     assert!(!stdout.contains("SENTINEL-TITLE"), "{stdout}");
     assert!(dir.path().join("fired").exists(), "the gate must still run");
@@ -308,4 +316,102 @@ fn mt_allow_lists_a_flip_command_and_it_runs_after() {
     assert_eq!(code, Some(0), "{stderr}");
     assert!(!stderr.contains("warning:"), "{stderr}");
     assert!(ran(dir.path()), "an allowed gate runs");
+}
+
+// after the write
+
+/// `mt <args>` in `dir` with the `mt` binary's directory on `PATH`, so a hook
+/// command can name `mt` by name on every platform.
+fn cmd_with_mt_on_path(dir: &Path, args: &[&str]) -> assert_cmd::Command {
+    let bin = Path::new(env!("CARGO_BIN_EXE_mt"));
+    let mut paths: Vec<std::path::PathBuf> =
+        bin.parent().map(Path::to_path_buf).into_iter().collect();
+    paths.extend(std::env::split_paths(
+        &std::env::var_os("PATH").unwrap_or_default(),
+    ));
+    let mut command = support::mt(dir);
+    command.env("PATH", std::env::join_paths(paths).unwrap());
+    command.args(args);
+    command
+}
+
+/// [`cmd_with_mt_on_path`], asserting success.
+fn run_with_mt_on_path(dir: &Path, args: &[&str]) {
+    cmd_with_mt_on_path(dir, args).assert().success();
+}
+
+/// An after-the-write command runs once the batch's writes have landed: it
+/// reads the status the flip stamped, and it runs once for a two-target batch.
+#[test]
+fn an_after_command_runs_once_after_the_write() {
+    let dir = project(
+        "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ show = \"x\" }]\n\
+         after = [{ run = \"mt eval tasks/alpha.typ --json > after.json && echo ran>> after.txt\" }]\n",
+    );
+    write_file(dir.path(), "tasks/beta.typ", TASK.replace("Alpha", "Beta"));
+
+    run_with_mt_on_path(dir.path(), &["done", "alpha", "beta"]);
+
+    let after = read(dir.path(), "after.json");
+    assert!(
+        after.contains("\"done\""),
+        "the write must land before the command reads it: {after}"
+    );
+    assert_eq!(
+        read(dir.path(), "after.txt").trim(),
+        "ran",
+        "once per batch"
+    );
+}
+
+/// A failing after command warns and the flip still succeeds: the write already
+/// landed, so nothing can refuse it.
+#[test]
+fn a_failing_after_command_warns_and_the_flip_succeeds() {
+    let dir = project(
+        "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ show = \"x\" }]\n\
+         after = [{ run = \"exit 3\", message = \"refresh the task arms\" }]\n",
+    );
+
+    let stdout = stdout_of(dir.path(), &["flip", "done", "alpha"]);
+
+    assert!(
+        stdout.contains("warning: exit 3 (exit 3) — refresh the task arms"),
+        "{stdout}"
+    );
+    assert!(task_source(dir.path()).contains("done("));
+}
+
+/// An after command waits for `mt allow` like every other `run`, and the flip
+/// still lands.
+#[test]
+fn an_unallowed_after_command_is_skipped_and_the_flip_lands() {
+    let dir = unallowed(
+        "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ show = \"x\" }]\n\
+         after = [{ run = \"echo after>> after.txt\" }]\n",
+    );
+
+    let (code, stderr) = support::run_stderr(dir.path(), &["flip", "done", "alpha"]);
+
+    assert_eq!(code, Some(0), "{stderr}");
+    assert!(!dir.path().join("after.txt").exists(), "{stderr}");
+    assert!(
+        stderr.contains("echo after>> after.txt"),
+        "the warning must name the held-back command: {stderr}"
+    );
+    assert!(task_source(dir.path()).contains("done("));
+}
+
+/// A `gate` in an after action is a config error: the write it would refuse has
+/// already landed.
+#[test]
+fn a_gate_in_an_after_action_fails_at_load() {
+    let dir = unallowed(
+        "[[on.flip]]\nwhen = ''\nactions = [{ show = \"x\" }]\n\
+         after = [{ run = \"true\", gate = true }]\n",
+    );
+    cmd(dir.path(), &["check"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("on.flip[0].after[0].gate"));
 }

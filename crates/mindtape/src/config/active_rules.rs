@@ -4,8 +4,9 @@
 //! It reads the typed [`Config`], whose rule arrays already hold what
 //! [`crate::config::packs`] left after packs, same-name overrides and
 //! `disable`. The listing then doesn't need a merge of its own. The
-//! `[[on.flip]]` and `[[on.rm]]` actions that gate a write or carry a `message`
-//! join them, since a gate refuses the way a rule does.
+//! `[[on.flip]]` and `[[on.rm]]` pre-write actions that gate a write or carry a
+//! `message` join them, since a gate refuses the way a rule does. An
+//! after-the-write action cannot refuse, so it is no rule and stays out.
 
 use serde::{Serialize, Serializer};
 

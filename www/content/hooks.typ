@@ -2,6 +2,7 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
+#import "../generated/just.typ" as just
 
 #let meta = (
   route: "/hooks/",
@@ -17,7 +18,7 @@
 #let own = checked-slices(
   json("../generated/hooks-config.json"),
   "hooks-config",
-  ("stale-gate",),
+  ("stale-gate", "refresh-arms"),
 )
 
 `[[on.flip]]` runs actions when `mt flip` changes a task's status, and
@@ -115,12 +116,17 @@ variables set:
 #table(
   columns: 2,
   table.header([Variable], [Value]),
-  [`MINDTAPE_TASK_FILE`], [The absolute path of the task file.],
+  [`MINDTAPE_TASK_FILE`],
+  [The absolute path of the task file. Unset for an `after` action, which runs for a batch.],
+
   [`MINDTAPE_TASK_STEM`],
-  [The task's `id` is its file stem, unless `id:` sets one.],
+  [The task's `id` is its file stem, unless `id:` sets one. Unset for an `after` action.],
 
   [`MINDTAPE_TASK_STATUS`],
   [The status `mt` is stamping. A removal stamps none, so it is unset.],
+
+  [`MINDTAPE_FLIP_TASKS`],
+  [The tasks an `after` action runs for, one id per line, in the order they landed. A pre-write action sets none.],
 
   [`MINDTAPE_FLIP_CHAIN`],
   [The flips in progress, this one last, one per line. `mt` reads it, so leave it be. A removal sets none.],
@@ -128,6 +134,38 @@ variables set:
 
 An array doesn't get a shell, so `$MINDTAPE_TASK_FILE` in one of its items stays
 as written. The program reads the variable itself.
+
+= After the write
+
+`actions` run before the write, so a gate can still refuse it. `after` holds
+actions that run once the batch's writes have landed. They run once per
+`mt flip` whose batch landed a task the hook's `when` matched, after `mt`
+revalidates what it wrote. They cannot refuse anything. The write already
+happened. So `gate` is a config error in an `after` action. A command that
+exits non-zero prints its output and a warning, and the flip still exits zero.
+`message` replaces that warning's advice, as it does before the write.
+
+That is the phase a project refreshes what its own write staled. This repo
+closes a task with `mt done`, which writes the task file. Two untagged
+#just.check() arms read `truth/tasks/**`. The write stales them, and the
+pre-commit hook re-runs both. The hook that closes a task refreshes them in its
+`after` phase:
+
+#raw(
+  render-slices(
+    own,
+    (("refresh-arms", "refresh the arms the close staled"),),
+    comment: "#",
+  ),
+  lang: "toml",
+  block: true,
+)
+
+An `after` action runs once for the batch, not once per task, so a two-target
+`mt flip` runs it once. It sees the batch, not one task: `MINDTAPE_TASK_FILE`
+and `MINDTAPE_TASK_STEM` are unset, and `MINDTAPE_FLIP_TASKS` lists the landed
+tasks instead. A `run` waits for `mt allow` like every other one, and `mt`
+skips it with a line saying so until then.
 
 = A hook that flips a task
 
@@ -261,9 +299,9 @@ It refuses every field the draft cannot answer, including `id`, `path`, `dir`,
 
 Until then a gate with `run` refuses the write and names `mt allow`, and
 `--force` takes a flip past it as it would a failing gate. `mt` skips a `run`
-without `gate`, and prints that it did. Either way `mt` warns once and
-lists the commands it did not run. A gate with no `run` runs nothing, so it needs
-no approval.
+without `gate`, and an `after` `run`, and prints that it did. Either way `mt`
+warns once and lists the commands it did not run. A gate with no `run` runs
+nothing, so it doesn't need approval.
 
 The two shells don't share syntax. If you use the project on both, write the
 command as an array, such as `run = ["cargo", "test"]`. `mt` starts the

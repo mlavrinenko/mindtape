@@ -5,11 +5,16 @@
 //! environment. That module states the trust boundary. The environment also
 //! carries the flips in progress ([`ENV_CHAIN`]), so a nested `mt flip` can
 //! refuse one that would loop.
+//!
+//! A pre-write command runs for one transition ([`RunCtx`]). An after-the-write
+//! command runs once for the batch that landed ([`BatchCtx`]), so it sees the
+//! status and the landed tasks instead of one task.
 
 use std::path::Path;
 
 use mindtape::shell::ConfigCommand;
 
+use crate::cmd::flip::batch::Landed;
 use crate::cmd::flip::chain::{Chain, ENV_CHAIN};
 use crate::diag::{Diag, Result};
 
@@ -19,6 +24,9 @@ pub(crate) const ENV_FILE: &str = "MINDTAPE_TASK_FILE";
 pub(crate) const ENV_STEM: &str = "MINDTAPE_TASK_STEM";
 /// The status the flip stamps, taken from the transition's `into(...)`.
 pub(crate) const ENV_STATUS: &str = "MINDTAPE_TASK_STATUS";
+/// The tasks an after-the-write command runs for, one id per line, in the order
+/// they landed. A pre-write command sets none.
+pub(crate) const ENV_TASKS: &str = "MINDTAPE_FLIP_TASKS";
 
 /// The transition a command runs for, as the command sees it.
 pub(crate) struct RunCtx<'a> {
@@ -32,6 +40,18 @@ pub(crate) struct RunCtx<'a> {
     pub target: &'a str,
     /// The flips in progress above this one.
     pub chain: &'a Chain,
+}
+
+/// The batch an after-the-write command runs for, as the command sees it.
+pub(crate) struct BatchCtx<'a> {
+    /// Project root, and the command's working directory.
+    pub root: &'a Path,
+    /// The status the batch stamps.
+    pub target: &'a str,
+    /// The flips in progress above this one.
+    pub chain: &'a Chain,
+    /// The tasks the batch wrote.
+    pub landed: &'a Landed,
 }
 
 /// What one command run reported.
@@ -74,7 +94,40 @@ pub(crate) fn run_command(command: &ConfigCommand, ctx: &RunCtx<'_>) -> Result<C
         (ENV_STATUS, ctx.target.as_ref()),
         (ENV_CHAIN, chain.as_os_str()),
     ];
-    let output = mindtape::shell::run(command, ctx.root, &env).map_err(|err| {
+    run_with(command, ctx.root, &env)
+}
+
+/// Run `command` once for the batch that landed, from the project root, with
+/// the status ([`ENV_STATUS`]), the landed tasks ([`ENV_TASKS`]) and the chain
+/// with every landed flip added ([`ENV_CHAIN`]) in the environment. It sees the
+/// batch, so [`ENV_FILE`] and [`ENV_STEM`] are unset.
+///
+/// # Errors
+/// Returns an error when the shell itself fails to spawn. A command that runs
+/// and fails is not an error here: it is a [`CommandReport`] the caller decides
+/// about.
+pub(crate) fn run_batch_command(
+    command: &ConfigCommand,
+    ctx: &BatchCtx<'_>,
+) -> Result<CommandReport> {
+    let chain = ctx.chain.passed_down_batch(ctx.landed.tasks(), ctx.target);
+    let tasks = ctx.landed.ids().join("\n");
+    let env = [
+        (ENV_STATUS, ctx.target.as_ref()),
+        (ENV_TASKS, tasks.as_ref()),
+        (ENV_CHAIN, chain.as_os_str()),
+    ];
+    run_with(command, ctx.root, &env)
+}
+
+/// Run `command` from `root` with `env`, mapping a spawn failure to the
+/// command's `Diag`.
+fn run_with(
+    command: &ConfigCommand,
+    root: &Path,
+    env: &[(&str, &std::ffi::OsStr)],
+) -> Result<CommandReport> {
+    let output = mindtape::shell::run(command, root, env).map_err(|err| {
         Diag::failed("can't run on.flip command")
             .value(command.to_string())
             .io(&err)

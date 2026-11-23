@@ -249,6 +249,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   other worktree. A copy with no stamp, or with a one-line stamp from an
   install that doesn't record a checkout, still fails as unverified: run
   `just install` once to migrate it.
+- **A flip refreshes what its own write staled.** An `[[on.flip]]` hook takes an
+  `after` list of actions that run once the batch's writes have landed, once per
+  `mt flip` whose batch landed a task the hook's `when` matched, after the
+  batch's revalidation. They cannot refuse the flip: `gate` is a config error
+  there, and a command that exits non-zero prints its output and a warning while
+  the flip still exits zero. An after command sees `MINDTAPE_TASK_STATUS` and
+  `MINDTAPE_FLIP_TASKS`, names no single task, and waits for `mt allow` like
+  every other `run`. This repository's `refresh-the-task-arms` hook runs
+  `just mmz mt-check` and `just mmz docs::vale-tasks` on a terminal flip, so the
+  close commit finds both untagged task arms fresh instead of re-running them
+  past the pre-commit budget.
 - **A task whose only work is a record edit starts and closes in its commit.**
   A task-scope commit rule reads `records_other`, true when the commit changes
   a task file other than the one the rule runs for. The `mindtape:tasks`

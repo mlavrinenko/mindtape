@@ -110,6 +110,7 @@ when = 'f == param("p")'
 [[on.flip]]
 when = 'g == param("p")'
 actions = [{ list = 'h == param("p")' }]
+after = [{ list = 'h2 == param("p")' }]
 
 [[on.add]]
 when = 'z == param("p")'

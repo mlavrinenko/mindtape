@@ -59,15 +59,15 @@ groups:
   cli-allow-docs:
     source:
       crates/mindtape-cli/src/cmd/allow.rs: 9fae241b1a254f46abaf8a634d2eaff047b926d0ac26599ccd5734d948cd9e85
-      crates/mindtape/src/allow.rs: 8faffd4bc0c2a144b06789dea2c20d74006c0d43d43b3e504d1fa4b9b9f38b00
+      crates/mindtape/src/allow.rs: 9c1d8a26e438bed5969d2ea748c3ed7015e4db77ed2efad96220173cf8d486b9
     dependents:
-      docs/src/skill.typ: c490abfc71cf5a50f74bc156506d03d382e6b2af38c63490b32705bddd25dc15
-      skills/mindtape/evals/README.md: 9b0640b6d7ca0a4cd408489aefd16dff5d98f2f454b3368bc23dd9f6dc4ddc67
+      docs/src/skill.typ: f8bb51218dbcf18f257cc8cd43a10eeccd621d92443b412df72de54b3687f341
+      skills/mindtape/evals/README.md: 1d42d470984ba44ffce0420bffcfb4f843e6625882bd0085b440d43d8f60eb47
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
       www/content/cli/allow.typ: 18cd635359176628455a95445c17084a149738642915f239c6c9fdf708d97eca
-      www/content/hooks.typ: 66ec74a7083deb11a2c682a73089b6f829278a733f3b5fa45194bf7a58bf2693
+      www/content/hooks.typ: 3425dfa265b991996539fc0c9a5d296e614e5ca2e0d9cd89a818e5ff2d576c2d
       www/content/wait-on-upstream.typ: 7ca6183faaa31d78c2885276ac4c27ad15dba8336a59e4d74c122cd41e6f0d8e
-      www/utils/cli-notes.typ: bfe44c78cf9490fb11d9340a9854c0926fcc213404a12500a73f5486614b0243
+      www/utils/cli-notes.typ: 1800945800ab58b472b83c75a82d8e90c5b459f874cc408964ff4a13453a779a
   cli-check-docs:
     source:
       crates/mindtape-cli/src/cmd/check/commit.rs: c1db1b845d8567aefa7d9aa9266415c4ce676012fb7a850487000f4dc3860ef2
@@ -131,18 +131,18 @@ groups:
   cli-flip-docs:
     source:
       crates/mindtape-cli/src/cmd/flip/guards.rs: e94f7f12df73f6aefeaffbb6073e34b89d6f668086168ccc870d9c94313f2126
-      crates/mindtape-cli/src/cmd/flip/hooks.rs: 1ac0628f0f9db9289aff509562e8eba4198d868b175d2eefa696fb3ee140af6a
-      crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs: e2448013317e2f53e364052389ed1861cf9b274cdd562b757968ab0009ec3f2e
-      crates/mindtape-cli/src/cmd/flip/mod.rs: 602497114ce029026ab8d96e5230010e8e5675d402e929312a859f852b05371e
+      crates/mindtape-cli/src/cmd/flip/hooks.rs: 1ce2965c2a5d9272327d1adb79c624d2f052e10c3323e3643f3cd690cdca75c9
+      crates/mindtape-cli/src/cmd/flip/hooks_cmd.rs: 759acc56851097704e2512ce0b1bfc1c39d0a29d63976974bbac5f1afb9e430a
+      crates/mindtape-cli/src/cmd/flip/mod.rs: d08c70ac5c04105044254e3ce5f06cc3362dd70d6e779119489f45b98c7736f4
     dependents:
-      docs/src/skill.typ: c979ac413782e44ecf6f0eb8cc2a9eb99f3e81d16e552f1454c80b3d4143fc61
+      docs/src/skill.typ: f8bb51218dbcf18f257cc8cd43a10eeccd621d92443b412df72de54b3687f341
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
       www/content/cli/flip.typ: 91b648123dc153ae7ef64d3666aeba37993fe8ed722027912cf62451b4d7166b
-      www/content/hooks.typ: 6b6734571af418a404c85e316575b388151985c150069730527665ff2f686da1
+      www/content/hooks.typ: 3425dfa265b991996539fc0c9a5d296e614e5ca2e0d9cd89a818e5ff2d576c2d
       www/content/links.typ: 0d27e778be846c07b2f32eb50ce8b14e77126b2a7cb16b7ad56efce11f270415
-      www/content/quickstart.typ: b76d49b8880baa90d19717c5ff230ba51838948a622cc5e06e8bec7ded6f4786
+      www/content/quickstart.typ: 42bbadd7446c9cd2d27f16b44dadf1d9bd57d92cefa0b07cc31d1ca9af1789cb
       www/content/statuses.typ: 4d7130a064c883caacf439d5e8c2ba117391836ab8dec864468bbb5559d8e689
-      www/utils/cli-notes.typ: fb4421f045ebae597036832b451074d8a8d34aad9d200ead69949b6b97422009
+      www/utils/cli-notes.typ: 1800945800ab58b472b83c75a82d8e90c5b459f874cc408964ff4a13453a779a
   cli-globals-docs:
     source:
       crates/mindtape-cli/src/cli/mod.rs: 95815f102b4b8c72a894a333dc3a9ed65493fb7700b7192cd2802c11042d7d5b
@@ -437,12 +437,12 @@ groups:
     source:
       .githooks/commit-msg: 4f385b9ac1487f7230b11bb92cc269d055af19f3ea983ba2037ba99c8bc6516b
       .githooks/local-paths: 3fed9f65a80f886ec6fa219ac250234b875faa01a6aab6ecc229cc83264e205e
-      .githooks/pre-commit: 3e3768a1ff674bd83b923a506658db8ceb0c6fbd83ed40d5025f97fd953472cd
+      .githooks/pre-commit: 31ba7425a4ced8a8357d03f517755724a9c33fb65564b01d0fbb73d3f44b5835
       .just/scripts/outdatty-review-trailer.sh: a645af24f532f8e2e21d4267de2658415af9832432e248be582ecc277282a7ee
     dependents:
-      docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
+      docs/src/contributing.typ: 5505f979d3b341710d1d114fb436d80d35888c2936e8d44e04c8b9a657ebc748
       docs/src/contributing/commit-messages.typ: fad91cf24ea6a0f21a4cb053989aef3e1135db045c1ae4d5baae652e984338d2
-      docs/src/contributing/gates.typ: c2f44ddb83d885c8d587db03426578a521e79424bb702191ce96c0046114dbe4
+      docs/src/contributing/gates.typ: 05e017d7a3293b0bb7f79db1ee4a1a1df2ff3d9ea3bd6588e8e32913e9636624
   goals-recipe:
     source:
       examples/goals/.mindtape/config.toml: 6a770d009cd6bf6d0310a94c0882aeb21769775c4c8fff0c199cf92fe7ba049e

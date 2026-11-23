@@ -88,3 +88,27 @@ fn a_line_without_three_fields_is_skipped() {
 
     assert_eq!(chain.labels(), "a → done");
 }
+
+/// The landed list a batch passes down, from `(id, path)` pairs.
+fn landed(pairs: &[(&str, &str)]) -> Vec<(String, std::path::PathBuf)> {
+    pairs
+        .iter()
+        .map(|(id, path)| ((*id).to_owned(), std::path::PathBuf::from(path)))
+        .collect()
+}
+
+/// An after-the-write command runs once for the batch. Every landed flip joins
+/// the chain, and `mt` refuses a nested flip of one of them into the same
+/// status. The batch cannot loop through its own after hook.
+#[test]
+fn a_batch_passes_down_every_landed_flip() {
+    let batch = landed(&[("a", "/p/a.typ"), ("b", "/p/b.typ")]);
+    let chain = Chain::parse(
+        &Chain::default()
+            .passed_down_batch(&batch, "done")
+            .to_string_lossy(),
+    );
+
+    assert_eq!(chain.labels(), "a → done, b → done");
+    assert!(chain.admit(Path::new("/p/b.typ"), "b", "done").is_err());
+}

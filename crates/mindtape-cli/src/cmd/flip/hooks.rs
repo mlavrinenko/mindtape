@@ -18,11 +18,17 @@
 //! waiver in the status note ([`note_with_overrides`]). An override nobody can
 //! see afterwards is not an override, it is a hole.
 //!
+//! Once the batch's writes have landed, [`Hooks::after`] runs the `after`
+//! actions of every hook that matched a landed target, once for the batch, in
+//! declaration order. That phase cannot refuse anything. The write already
+//! happened. A failing command prints its output and a warning, and the command
+//! exits zero. It is where a project refreshes what its own write staled.
+//!
 //! No `run` command runs until the user allows the config's commands with
 //! `mt allow` ([`mindtape::allow`]). Until then a gate refuses the flip as if
 //! it had failed, so `--force` waives it the same way. A non-gating `run` skips
-//! with a line saying so. Either way the command joins the held-back list that
-//! `main` warns about once.
+//! with a line saying so, and so does an after-the-write `run`. Either way the
+//! command joins the held-back list that `main` warns about once.
 
 use std::cell::OnceCell;
 use std::io::Write;
@@ -30,10 +36,14 @@ use std::path::Path;
 
 use crate::diag::Result;
 use mindtape::config::hooks::{FlipAction, matching_flip_hooks};
+use mindtape::shell::ConfigCommand;
 use mindtape::{Readiness, Task};
 
+use crate::cmd::flip::batch::Landed;
 use crate::cmd::flip::chain::Chain;
-use crate::cmd::flip::hooks_cmd::{CommandReport, RunCtx, run_command};
+use crate::cmd::flip::hooks_cmd::{
+    BatchCtx, CommandReport, RunCtx, run_batch_command, run_command,
+};
 use crate::cmd::hooks::{Presenter, RunAction, present};
 use crate::diag::{Diag, Hint};
 use crate::util::Project;
@@ -46,6 +56,10 @@ const GATE_ADVICE: &str = "fix it, or re-run with --force (the override is \
 /// What a `run` action that fails without gating says when it doesn't declare
 /// a `message`: the flip goes ahead, so the command is the user's to rerun.
 const RUN_ADVICE: &str = "fix it, then run the command yourself; the flip is not blocked";
+
+/// What an after-the-write `run` that fails says when it doesn't declare a
+/// `message`: the write already landed, so the command is the user's to rerun.
+const AFTER_ADVICE: &str = "fix it, then run the command yourself; the write already landed";
 
 /// One transition, as the hooks see it.
 pub(crate) struct Transition<'a> {
@@ -67,6 +81,10 @@ pub(crate) struct HookOutcome {
     /// Set when a gate failed and `--force` did not waive it: the reason the flip
     /// fails.
     pub refusal: Option<Diag>,
+    /// Positions in `config.on.flip` of the hooks whose `when` matched, in
+    /// declaration order. The batch remembers them for the landed targets, so
+    /// each hook's `after` actions run once.
+    pub matched: Vec<usize>,
 }
 
 /// A gate that refused the flip: a `run` command that exited non-zero, or a
@@ -128,6 +146,17 @@ impl<'a> Hooks<'a> {
         })
     }
 
+    /// Whether a command may run, recording the config's commands as held back
+    /// when it may not. The record is what `main`'s one warning lists.
+    fn allowed_or_hold(&self) -> bool {
+        if self.allowed() {
+            return true;
+        }
+        let project = &self.project;
+        mindtape::allow::hold(&project.root, &mindtape::allow::commands(&project.config));
+        false
+    }
+
     /// Run every action of every hook matching `at`, in declaration order,
     /// stopping at the first gate that fails without `--force`.
     ///
@@ -138,7 +167,8 @@ impl<'a> Hooks<'a> {
     pub(crate) fn run(&self, at: &Transition<'_>, out: &mut dyn Write) -> Result<HookOutcome> {
         let mut outcome = HookOutcome::default();
         let hooks = matching_flip_hooks(&self.project.config, at.task, at.target, &self.readiness)?;
-        for hook in hooks {
+        for (index, hook) in hooks {
+            outcome.matched.push(index);
             for action in &hook.actions {
                 let Some(gate) = self.act(action, at, out)? else {
                     continue;
@@ -152,6 +182,98 @@ impl<'a> Hooks<'a> {
             }
         }
         Ok(outcome)
+    }
+
+    /// Run the after-the-write actions of the hooks at `matched`, once for the
+    /// batch, in declaration order. `target` is the status the batch stamped,
+    /// and `landed` the tasks it wrote.
+    ///
+    /// Nothing here can refuse the flip: the write already happened. A command
+    /// that fails prints its output and a warning, and the flip still exits
+    /// zero.
+    ///
+    /// # Errors
+    /// Returns an error when a `list` expression fails to evaluate, an action
+    /// doesn't declare a single kind, or writing to `out` fails.
+    pub(crate) fn after(
+        &self,
+        matched: &[usize],
+        landed: &Landed,
+        target: &str,
+        out: &mut dyn Write,
+    ) -> Result<()> {
+        let hooks = matched
+            .iter()
+            .filter_map(|index| self.project.config.on.flip.get(*index));
+        for hook in hooks {
+            for action in &hook.after {
+                self.act_after(action, landed, target, out)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Run one after-the-write action. A `show` or `list` presents as it does
+    /// before the write. A `run` executes and warns on failure.
+    fn act_after(
+        &self,
+        action: &FlipAction,
+        landed: &Landed,
+        target: &str,
+        out: &mut dyn Write,
+    ) -> Result<()> {
+        let presenter = Presenter::new(self.project, &self.readiness, self.show);
+        let ctx = BatchCtx {
+            root: &self.project.root,
+            target,
+            chain: &self.chain,
+            landed,
+        };
+        match present(action, "on.flip", &presenter, out)? {
+            Some(RunAction {
+                command: Some(spec),
+                message,
+                ..
+            }) => self.exec_after(spec, message, &ctx, out),
+            // A `show` or `list`, or a run-less action, which config load
+            // already refuses in an `after` list.
+            _ => Ok(()),
+        }
+    }
+
+    /// Execute an after-the-write `run` and report what it did.
+    fn exec_after(
+        &self,
+        spec: &ConfigCommand,
+        message: Option<&str>,
+        ctx: &BatchCtx<'_>,
+        out: &mut dyn Write,
+    ) -> Result<()> {
+        let command = spec.to_string();
+        if !self.allowed_or_hold() {
+            writeln!(out, "skipped: {command} (not allowed)")?;
+            return Ok(());
+        }
+        let report = match run_batch_command(spec, ctx) {
+            Ok(report) => report,
+            Err(err) => {
+                writeln!(out, "warning: {command} could not run — {err}")?;
+                return Ok(());
+            }
+        };
+        if report.success {
+            // A passing after command's output is informational, suppressed on
+            // the same terms as `show` and `list`.
+            if self.show {
+                write_output(out, &command, &report)?;
+            }
+            return Ok(());
+        }
+        // A failure always surfaces: the project asked to be told about it.
+        write_output(out, &command, &report)?;
+        let advice = message.unwrap_or(AFTER_ADVICE);
+        writeln!(out, "warning: {command} ({}) — {advice}", report.verdict())?;
+        Ok(())
     }
 
     /// Run one action, returning the gate it failed, if any.
@@ -181,9 +303,7 @@ impl<'a> Hooks<'a> {
             return Ok(Some(runless_gate(run.message)));
         };
         let command = spec.to_string();
-        if !self.allowed() {
-            let project = &self.project;
-            mindtape::allow::hold(&project.root, &mindtape::allow::commands(&project.config));
+        if !self.allowed_or_hold() {
             return held_back(&command, run.gate, out);
         }
         let report = run_command(
@@ -297,6 +417,10 @@ pub(crate) fn note_with_overrides(note: Option<&str>, forced: &[String]) -> Opti
 #[cfg(test)]
 #[path = "hooks_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "hooks_after_tests.rs"]
+mod after_tests;
 
 #[cfg(test)]
 #[path = "hooks_approval_tests.rs"]

@@ -108,21 +108,25 @@ pub fn sites(config: &Config) -> Vec<Site> {
 }
 
 /// The `run` commands of one hook array, each labelled with its hook's `name`
-/// when it has one.
+/// when it has one. A hook's after-the-write commands join the same list: they
+/// run with the same authority, so they wait for the same approval.
 fn hook_sites(moment: &'static str, hooks: &[impl HookFields]) -> Vec<Site> {
     hooks
         .iter()
         .flat_map(|hook| {
             let (label, _, actions) = hook.parts();
-            actions.iter().filter_map(move |action| {
-                let command = action.run.clone()?;
-                Some(Site {
-                    kind: SiteKind::Gate,
-                    moment,
-                    label: label.map(str::to_owned),
-                    command,
+            actions
+                .iter()
+                .chain(hook.after())
+                .filter_map(move |action| {
+                    let command = action.run.clone()?;
+                    Some(Site {
+                        kind: SiteKind::Gate,
+                        moment,
+                        label: label.map(str::to_owned),
+                        command,
+                    })
                 })
-            })
         })
         .collect()
 }

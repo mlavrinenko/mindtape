@@ -33,6 +33,12 @@
 #    only commit skips assertion 1 and this is the run that sees the file. Its
 #    record still hits when `just check` ran after the last task edit.
 #
+#    Both arms read `truth/tasks/**`, so the flip that closes a task stales
+#    them. `mt flip` refreshes them through its `after` hook, and a record that
+#    re-runs here means that hook did not run (see `mt allow`). MMZ_REPORT says
+#    which arms ran rather than hit, so a budget failure names them instead of
+#    leaving a reader to guess which step a flip staled.
+#
 # 6. The whole hook fits MINDTAPE_PRECOMMIT_BUDGET_MS (10s by default). A
 #    commit after `just check` must stay cheap: the gate records pass 1, the
 #    task-structure record passes 4, the task-prose record passes 5,
@@ -46,6 +52,8 @@ root="$(git rev-parse --show-toplevel)"
 budget_ms="${MINDTAPE_PRECOMMIT_BUDGET_MS:-10000}"
 start_ns="$(date +%s%N)"
 steps=()
+# The task arms that re-ran rather than hit, named in the budget message.
+task_arms=()
 
 step() {
     local name="$1" status begin end
@@ -69,6 +77,10 @@ on_exit() {
         printf '%s\n' "${steps[@]}" | sort -rn | while IFS=$'\t' read -r ms name; do
             printf '  %6d ms  %s\n' "$ms" "$name" >&2
         done
+        if ((${#task_arms[@]})); then
+            printf 'pre-commit: the task arms re-ran: %s\n' "${task_arms[*]}" >&2
+            printf "pre-commit: \`mt flip\` refreshes them after a status write, so a re-run here means its after hook did not (see \`mt allow\`).\n" >&2
+        fi
         printf "pre-commit: make the slow step cheap: memoize it through mmz, or build what it needs in \`just check\`.\n" >&2
         printf 'pre-commit: do not raise the budget to hide it. See docs/contributing/gates.md, "Pre-commit assertions".\n' >&2
         exit 1
@@ -85,11 +97,26 @@ fi
 step ".githooks/local-paths" "$root/.githooks/local-paths"
 step "typstyle --check truth" direnv exec "$root" typstyle --check truth
 vale_log="$(mktemp)"
-if step "vale (docs::vale-tasks via mmz)" direnv exec "$root" just mmz docs::vale-tasks >"$vale_log" 2>&1; then
+vale_report="$(mktemp)"
+if MMZ_REPORT="$vale_report" step "just mmz docs::vale-tasks" direnv exec "$root" just mmz docs::vale-tasks >"$vale_log" 2>&1; then
     rm -f "$vale_log"
 else
     cat "$vale_log"
     rm -f "$vale_log"
     exit 1
 fi
-step "mt-check (via mmz)" direnv exec "$root" just mmz mt-check
+# No word means mmz stopped before it decided, which counts as a run: the arm
+# did not pass on a cached record.
+if [ "$(cat "$vale_report" 2>/dev/null)" != skipped ]; then
+    task_arms+=("just mmz docs::vale-tasks")
+fi
+rm -f "$vale_report"
+mt_report="$(mktemp)"
+if ! MMZ_REPORT="$mt_report" step "just mmz mt-check" direnv exec "$root" just mmz mt-check; then
+    rm -f "$mt_report"
+    exit 1
+fi
+if [ "$(cat "$mt_report" 2>/dev/null)" != skipped ]; then
+    task_arms+=("just mmz mt-check")
+fi
+rm -f "$mt_report"

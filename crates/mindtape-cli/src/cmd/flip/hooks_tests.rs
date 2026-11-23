@@ -3,6 +3,7 @@
 #![allow(clippy::unwrap_used)]
 
 use mindtape::test_support::tempdir;
+use std::io::Write;
 use std::path::Path;
 
 use mindtape::parse_config;
@@ -52,6 +53,19 @@ pub(super) fn run_in(
     let project = crate::test_util::hook_project(dir, config_text);
     let hooks = Hooks::new(&project, show);
     hooks.allowed.set(allowed).unwrap();
+    let mut out: Vec<u8> = Vec::new();
+    let outcome = run_transition(&hooks, &project, target, force, &mut out);
+    (outcome, String::from_utf8(out).unwrap())
+}
+
+/// Run `hooks` for `alpha` → `target`, writing what they print to `out`.
+pub(super) fn run_transition(
+    hooks: &Hooks<'_>,
+    project: &crate::util::Project,
+    target: &str,
+    force: bool,
+    out: &mut dyn Write,
+) -> HookOutcome {
     let task = project
         .outcome
         .tasks
@@ -59,9 +73,8 @@ pub(super) fn run_in(
         .find(|task| task.id == "alpha")
         .unwrap()
         .clone();
-    let path = dir.join("tasks/alpha.typ");
-    let mut out: Vec<u8> = Vec::new();
-    let outcome = hooks
+    let path = project.root.join("tasks/alpha.typ");
+    hooks
         .run(
             &Transition {
                 task: &task,
@@ -69,10 +82,9 @@ pub(super) fn run_in(
                 target,
                 force,
             },
-            &mut out,
+            out,
         )
-        .unwrap();
-    (outcome, String::from_utf8(out).unwrap())
+        .unwrap()
 }
 
 /// [`run`], with the default "visible, not forced" setting.

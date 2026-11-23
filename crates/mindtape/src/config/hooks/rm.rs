@@ -48,7 +48,16 @@ pub struct RmHook {
     pub actions: Vec<FlipAction>,
 }
 
-super::impl_hook_fields!(RmHook);
+impl HookFields for RmHook {
+    fn parts(&self) -> (Option<&str>, &str, &[FlipAction]) {
+        (self.name.as_deref(), &self.when, &self.actions)
+    }
+
+    /// A removal has no after-the-write phase. `mt rm` deletes the file.
+    fn after(&self) -> &[FlipAction] {
+        &[]
+    }
+}
 
 /// The `[[on.rm]]` hooks that fire when `mt rm` removes `task`, in declaration
 /// order.
@@ -65,7 +74,8 @@ pub fn matching_rm_hooks<'a>(
     task: &Task,
     readiness: &Readiness,
 ) -> Result<Vec<&'a RmHook>, HookError> {
-    matching(&config.on.rm, "on.rm", |hook| {
+    let hits = matching(&config.on.rm, "on.rm", |hook| {
         Filter::parse(&hook.when)?.matches_with(task, config, readiness)
-    })
+    })?;
+    Ok(hits.into_iter().map(|(_, hook)| hook).collect())
 }

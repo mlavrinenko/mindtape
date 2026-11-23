@@ -44,6 +44,11 @@ fn project(files: &[(&str, &str)], config: &str) -> (tempfile::TempDir, Project)
 /// reload yields none.
 fn landed(ids: &[&str], files: &[&str]) -> Landed {
     Landed {
+        tasks: ids
+            .iter()
+            .zip(files)
+            .map(|(id, file)| ((*id).to_owned(), PathBuf::from(file)))
+            .collect(),
         ids: ids
             .iter()
             .map(|id| (*id).to_owned())

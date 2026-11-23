@@ -75,6 +75,31 @@ fn the_sites_take_each_flip_run_line_beside_the_checkers() {
     );
 }
 
+/// An after-the-write command runs with the same authority as a pre-write one,
+/// so it joins the same list and waits for the same approval.
+#[test]
+fn an_after_command_joins_the_sites_after_its_hooks_actions() {
+    let config = crate::parse_config(
+        "[[on.flip]]\nname = \"refresh\"\nwhen = ''\n\
+         actions = [{ run = \"before\" }]\n\
+         after = [{ run = \"after\" }]\n",
+    )
+    .unwrap();
+
+    assert_eq!(commands(&config), lines(&["after", "before"]));
+    let sites: Vec<(Option<String>, String)> = sites(&config)
+        .into_iter()
+        .map(|site| (site.label, site.command.to_string()))
+        .collect();
+    assert_eq!(
+        sites,
+        [
+            (Some("refresh".to_owned()), "before".to_owned()),
+            (Some("refresh".to_owned()), "after".to_owned()),
+        ]
+    );
+}
+
 /// A gate the user allowed doesn't print, and one they did not prints with its
 /// section. An editor is never refused: `mt` falls back to `$VISUAL` instead.
 #[test]

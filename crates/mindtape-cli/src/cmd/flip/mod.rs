@@ -24,6 +24,11 @@
 //! refuses a nested flip of a task into a status it is already taking
 //! ([`crate::cmd::flip::chain`]), so hooks can't loop.
 //!
+//! A hook's `after` actions run once per landed batch, after the revalidation,
+//! for every hook whose `when` matched a target that landed. They cannot refuse
+//! the flip. The write already happened. A failing command warns. That is the
+//! phase a project refreshes what its own write staled in.
+//!
 //! # Files
 //!
 //! - `batch.rs`: the post-write revalidation of a landed batch, and the
@@ -227,11 +232,13 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
     // cured.
     let mut world = project.outcome.tasks.clone();
     let mut landed = Landed::default();
+    let mut matched: Vec<usize> = Vec::new();
     let mut flipped = 0;
     for (task, abs) in &resolved {
         match flip_target(&batch, &mut world, task, abs) {
-            Ok(()) => {
+            Ok(hooks) => {
                 landed.record(task);
+                matched.extend(hooks);
                 flipped += 1;
             }
             Err(problem) => problems.push(name_target(problem, &task.id, args.tasks.len())),
@@ -240,6 +247,12 @@ fn run_as(project: &Project, args: &FlipArgs, via: Via) -> Result<()> {
 
     if !landed.is_empty() {
         after_batch_diags(&project.root, &landed, &mut problems)?;
+        // Declaration order, once per hook, however many targets it matched.
+        matched.sort_unstable();
+        matched.dedup();
+        batch
+            .hooks
+            .after(&matched, &landed, status, &mut std::io::stdout())?;
     }
     finish(problems, flipped, args.tasks.len())
 }
@@ -271,9 +284,11 @@ struct Batch<'a> {
     ymd: (i32, u8, u8),
 }
 
-/// Guard, hook and write one target. `Ok(())` when the flip landed.
-/// `Err(diag)` says why it did not. The batch reports it and moves on, and a
-/// refused target leaves its own file untouched without rolling back the rest.
+/// Guard, hook and write one target. `Ok(hooks)` when the flip landed, naming
+/// the positions of the hooks whose `when` matched so their `after` actions run
+/// once for the batch. `Err(diag)` says why it did not. The batch reports it and
+/// moves on, and a refused target leaves its own file untouched without rolling
+/// back the rest.
 ///
 /// Order matters. `mt flip` refuses a flip already in progress above this `mt`
 /// first, `--force` or not, since its hooks would start this one again. The
@@ -284,7 +299,7 @@ fn flip_target(
     world: &mut Vec<mindtape::Task>,
     task: &mindtape::Task,
     abs: &Path,
-) -> std::result::Result<(), Diag> {
+) -> std::result::Result<Vec<usize>, Diag> {
     let (args, status) = (batch.args, batch.status);
     batch.hooks.chain().admit(abs, &task.id, status)?;
     let legend = &batch.project.config.tasks.status;
@@ -313,7 +328,7 @@ fn flip_target(
     flip_one(batch, world, abs, note.as_deref())?;
     report_flip(task, status, restamp);
     notice_recur(task, status, legend, &batch.project.config.tasks.recur);
-    Ok(())
+    Ok(outcome.matched)
 }
 
 /// `task` with every `waits-on` entry answered. The loader covers open tasks

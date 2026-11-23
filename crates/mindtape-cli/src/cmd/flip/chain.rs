@@ -11,7 +11,7 @@
 //! fresh task and flips it.
 
 use std::ffi::OsString;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::diag::{Diag, Hint, Note};
 
@@ -45,6 +45,11 @@ impl Link {
     /// The link as the refusal shows it: `alpha → done`.
     fn label(&self) -> String {
         format!("{} → {}", self.id, self.status)
+    }
+
+    /// The link as [`ENV_CHAIN`] spells it: `<status>\t<id>\t<path>`.
+    fn line(&self) -> String {
+        format!("{}\t{}\t{}", self.status, self.id, self.path)
     }
 }
 
@@ -115,14 +120,34 @@ impl Chain {
     /// The [`ENV_CHAIN`] value for a command that runs while the task at
     /// `path` is taking `status`.
     pub(crate) fn passed_down(&self, path: &Path, id: &str, status: &str) -> OsString {
-        let mut lines: Vec<String> = self
-            .0
-            .iter()
-            .chain([&Link::new(path, id, status)])
-            .map(|link| format!("{}\t{}\t{}", link.status, link.id, link.path))
+        self.passed_down_all(std::iter::once((path, id)), status)
+    }
+
+    /// The [`ENV_CHAIN`] value for a command that runs once a batch of tasks
+    /// has taken `status`. Every landed flip joins the chain, so `mt` refuses a
+    /// nested flip of one of them into the same status.
+    pub(crate) fn passed_down_batch(&self, landed: &[(String, PathBuf)], status: &str) -> OsString {
+        self.passed_down_all(
+            landed
+                .iter()
+                .map(|(id, path)| (path.as_path(), id.as_str())),
+            status,
+        )
+    }
+
+    /// [`ENV_CHAIN`]'s value with `links` added above this chain, outermost
+    /// first.
+    fn passed_down_all<'p>(
+        &self,
+        links: impl Iterator<Item = (&'p Path, &'p str)>,
+        status: &str,
+    ) -> OsString {
+        let added: Vec<Link> = links
+            .map(|(path, id)| Link::new(path, id, status))
             .collect();
-        lines.push(String::new());
-        lines.join("\n").into()
+        let mut rows: Vec<String> = self.0.iter().chain(added.iter()).map(Link::line).collect();
+        rows.push(String::new());
+        rows.join("\n").into()
     }
 }
 
