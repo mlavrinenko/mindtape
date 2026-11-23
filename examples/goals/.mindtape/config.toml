@@ -1,0 +1,32 @@
+#:schema ../../../schema/config.schema.json
+# A project whose tasks rate the goals in goals.typ with body markers.
+# goal-dsl.typ is the project's own Typst, and lib.typ wraps it with this
+# project's registry. The core provides the task DSL and the reserved
+# `markers` check input, not the goals.
+
+# Resolve @local/mindtape from this checkout's lib/.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "proposed"
+
+[[tasks.status]]
+value = "wip"
+
+[[tasks.status]]
+value = "done"
+terminal = true
+
+# docs:slice goals/tie-work-to-goals
+# The check reads the body's metadata markers, not a field the task sets.
+[[tasks.rules]]
+name = "goals"
+when = "!terminal"
+check = { typst = "lib.typ", function = "check-goals", field = "markers" }
+severity = "error"
+# docs:end

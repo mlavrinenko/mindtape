@@ -139,31 +139,6 @@ capture --exit 1 --expect 'rules\.start-title-with-verb' start-titles-with-a-ver
 capture start-titles-with-a-verb "$P" 'mt add Fix the login redirect -f sections.yaml'
 capture start-titles-with-a-verb "$P" 'mt add Backport the login redirect fix to v1 -f sections.yaml'
 
-# Tie work to your goals: the milestone template rates each goal `neutral`
-# unless the answers say otherwise. The goals rule refuses a milestone that
-# helps none of them, and files it once one goal says how it helps.
-api_copy P
-capture_prep "$P" "$(
-    cat <<'CMD'
-cat >checkout.yaml <<'EOF'
-title: Speed up checkout
-problem: |
-  + Run `curl -w '%{time_total}\n' localhost:8080/checkout`.
-  + 🔴 It prints `1.8`, and shoppers leave before checkout answers.
-to-be: |
-  - 🟢 Checkout answers within 100 ms.
-out-of-scope: |
-  - The payment provider's own latency.
-EOF
-CMD
-)"
-capture tie-work-to-goals "$P" 'cat checkout.yaml'
-capture --exit 1 --expect 'rules\.goals' tie-work-to-goals "$P" 'mt add -t milestone -f checkout.yaml'
-capture_lines tie-work-to-goals "$P" <<'EOF'
-echo 'fast: helps[checkout answers within 100 ms]' >>checkout.yaml
-mt add -t milestone -f checkout.yaml
-EOF
-
 # Limit work in progress: a milestone and one task under it are in progress,
 # so a second task cannot start, and a task cannot start before its
 # dependencies finish.

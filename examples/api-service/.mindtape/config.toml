@@ -30,14 +30,14 @@ message = "finish the task in progress before you start another"
 severity = "error"
 # docs:end
 
-# Tie work to your goals: an open milestone rates each goal in goals.typ.
-# docs:slice api-service/tie-work-to-goals
+# Tie work to your goals: an open milestone rates each goal in goals.typ in
+# its `x-goals` field. This is the older custom-field form; examples/goals/
+# shows the marker DSL the recipe page teaches today.
 [[tasks.rules]]
 name = "goals"
 when = '!terminal && kind == "milestone"'
 check = { typst = "goals.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
-# docs:end
 
 # Split oversized tasks: a judgment task is refused when its Changes section
 # names more than 5 source files. The `changes` collector reads one path per

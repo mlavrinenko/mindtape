@@ -11,7 +11,7 @@
 # target/debug/mt without the features the test arm links it with.
 set -eo pipefail
 examples=(
-    minimal links estimates dsl statuses rules api-service derived-tags
+    minimal links estimates dsl statuses rules goals api-service derived-tags
     round-trip named-sets priority recurring task-files
     across-projects/projects/shop across-projects/projects/blog
 )

@@ -2,7 +2,6 @@
 // `x-goals` field, and the `goals` rule in .mindtape/config.toml runs
 // `check-goals` on that field.
 
-// docs:slice goals
 #import "@local/mindtape:0.4.0": helps, hurts, neutral
 
 #let goals = (
@@ -27,12 +26,9 @@
   }
   messages
 }
-// docs:end
 
-// docs:slice goals-short
 // A task names every goal, one line each.
 #let example-goals = (
   secure: helps[an expired session can't mint a new token],
   fast: neutral,
 )
-// docs:end

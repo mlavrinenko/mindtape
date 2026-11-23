@@ -606,6 +606,9 @@ groups:
       - examples/minimal/tasks/write-docs.typ
       - examples/self-validating/tasks/ship-onboarding-checklist.typ
       - examples/self-validating/tasks/export-report-as-csv.typ
+      - examples/goals/tasks/ship-the-search-index.typ
+      - examples/goals/tasks/pin-the-search-schema.typ
+      - examples/goals/.mindtape/templates/task.typ
       - examples/links/tasks/pick-a-provider.typ
       - examples/links/tasks/auth-epic.typ
       - examples/links/tasks/write-docs.typ
@@ -1037,8 +1040,10 @@ groups:
 
   # Each page in the docs site's Recipes group explains, in prose, one block
   # of examples/api-service's config, the session generate-api-service.sh
-  # records for it, and the mindtape:tasks rules that block adopts. The config
-  # and the session render from generated facts, so only that prose can drift.
+  # records for it, and the mindtape:tasks rules that block adopts. The
+  # exception is /tie-work-to-goals/, which renders examples/goals under the
+  # goals-recipe group below. The config and the session render from generated
+  # facts, so only that prose can drift.
   # The skill's evals state the fixture's task counts and ready order by hand,
   # so any file under the fixture is a source; crates/mindtape-cli/tests/it/
   # eval_fixture_e2e.rs fails on the counts, and this group flags the prose.
@@ -1051,9 +1056,19 @@ groups:
       - www/content/split-oversized-tasks.typ
       - www/content/require-a-task-shape.typ
       - www/content/start-titles-with-a-verb.typ
-      - www/content/tie-work-to-goals.typ
       - www/content/limit-work-in-progress.typ
       - www/content/wait-on-upstream.typ
       - www/content/trace-commits-to-tasks.typ
       - skills/mindtape/evals/evals.json
       - skills/mindtape/evals/README.md
+
+  # /tie-work-to-goals/ shows examples/goals/ as the copyable goal recipe:
+  # the project-owned DSL, the registry, the wrapper, the config rule and a
+  # task. The page renders slices of the fixture, so an edit to the fixture
+  # leaves that prose to reconcile.
+  - name: goals-recipe
+    source:
+      - examples/goals/**
+      - www/generate-goals.sh
+    dependents:
+      - www/content/tie-work-to-goals.typ

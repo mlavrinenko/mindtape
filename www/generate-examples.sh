@@ -134,6 +134,7 @@ slice_fixture recurring | emit recurring.json
 slice_fixture dsl | emit dsl.json
 slice_fixture statuses | emit statuses.json
 slice_fixture self-validating | emit self-validating.json
+slice_fixture goals | emit goals.json
 slice_fixture priority | emit priority.json
 slice_fixture estimates | emit estimates.json
 slice_fixture api-service | emit api-service.json
@@ -154,6 +155,7 @@ CONFIG_SOURCES=(
   "examples/statuses/.mindtape/config.toml"
   "examples/derived-tags/.mindtape/config.toml"
   "examples/self-validating/.mindtape/config.toml"
+  "examples/goals/.mindtape/config.toml"
   "examples/across-projects/.config/mindtape/at.toml"
   "crates/mindtape/src/at/board.toml"
   "crates/mindtape/src/packs/dogfood.toml"
@@ -166,7 +168,7 @@ CONFIG_SOURCES=(
 # structurally cannot see from inside a single page. `api-service` holds the recipe
 # slices. The Recipes pages render them through www/utils/recipes.typ, and
 # generate-api-service.sh reads the same markers to require a session for each.
-CONFIG_FACTS=(across-projects api-service commit-rules config derived-tags estimates hooks links named-sets priority packs rules self-validating shipped-board statuses)
+CONFIG_FACTS=(across-projects api-service commit-rules config derived-tags estimates goals hooks links named-sets priority packs rules self-validating shipped-board statuses)
 
 # Same two-pass shape as `slice_fixture`: awk writes each slice to its own temp file
 # and one index row per slice. Then jq builds the JSON with `--rawfile` so no escaping

@@ -11,12 +11,12 @@ groups:
       crates/mindtape/src/packs/tasks.toml: c534edcc44575f056c148f35eeb0677154c20e0278abad89dc9d1042fa802099
       crates/mindtape/src/packs/tweaks.toml: 540d051dabcb38b215d5459108733ff797dd5dfb7bad6df396e2e4249978e8d9
       crates/mindtape/src/packs/wip-caps.toml: ff0253e57a07c3e5c533da5eed72afadaa09d87918155db03d3dfde055a1615d
-      examples/api-service/.mindtape/config.toml: f47ecb8a9fe075a140a8cb9f3f2f2bea6679cdab8751c5125b5f94c58374af0b
+      examples/api-service/.mindtape/config.toml: 4bc38d4b49e94035bcc6b245c37845a8685ceb0bf742791c420e74d91ba3d66c
       examples/api-service/.mindtape/templates/milestone.typ: 7fdc32e4e284f0573b17547a09ec29f9e3d109c58850a774fe1713b1e650fb96
       examples/api-service/.mindtape/templates/task.typ: 1ea69ba6d749b4562a5b81b32885bf7b5949e8d10a639e36787180eeb6b3d524
       examples/api-service/Cargo.lock: fb82d06c279532ad92269838be453a3ed883dcd8cf12daaad8fdd0e26f854805
       examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
-      examples/api-service/goals.typ: 0c04ab246cf1b586eddd5fe2a8923dafa760de1602bd434f1a6f6c27e3f7e790
+      examples/api-service/goals.typ: 974dd3fb6864ee970f8a2e4f3870f78a02f20e8e54256fb48535eb04b0a6cad3
       examples/api-service/scripts/locked: b3e770216763ddae63d751d7e5fafcab424a8a32628689f6b3cc859e8e7c49d5
       examples/api-service/scripts/test: 490e2b2adafd0151a29e903fbd21a77229c0f94ea7724a1ddf7aabc5561f79cc
       examples/api-service/tasks/add-redis-client.typ: 2781e2ebb032691496d9c9dd3c598321960505d0ca610d8f4deb6ac785f78dea
@@ -33,7 +33,7 @@ groups:
       examples/api-service/tasks/throttle-failed-logins-per-ip.typ: c7545126a3a4946f36c0f9bb975113eba1d53d57fdff4db44db90b83906056df
       examples/api-service/tasks/upgrade-the-axum-web-framework.typ: d16290949063e916e74e75d8308401b93fec29e12e824b0dd75f936e1d0803a7
       examples/api-service/tasks/verify-webhooks-with-the-acme-pay-sdk.typ: 5edd783761d8c71e6a68ff9975234dde517eb8803f07b4be7d75caf5df4ed573
-      www/generate-api-service.sh: 3ee9616c4cb42ba9fdc1e4e9980a94668b83328fd6e770af909cd4d98efd7e64
+      www/generate-api-service.sh: 8294c314b7ddc2bf00c49fff4c7a0329b613257878dd59f1e18ae341fdcd9359
     dependents:
       skills/mindtape/evals/README.md: 9b0640b6d7ca0a4cd408489aefd16dff5d98f2f454b3368bc23dd9f6dc4ddc67
       skills/mindtape/evals/evals.json: 658cdbd32c6a2c9671be99a6e9da99a0651b9ddedf59413004deca0e88d0004a
@@ -41,7 +41,6 @@ groups:
       www/content/require-a-task-shape.typ: 4d3d444f11428e2cb61eb3b2884d12f603978ca8c0fe3e67e64316651de83414
       www/content/split-oversized-tasks.typ: 754649f490dad5cb6d5bca3353a337af5ca39846431e5779a23b6655e64b0e6b
       www/content/start-titles-with-a-verb.typ: c55ba88ff5645a2eb6c99b9957f6908cf5389e807b89693e1e844dfba70cd802
-      www/content/tie-work-to-goals.typ: ed5972649424a6cf5e109c54472314f3fd31fece0394d0e57a138536d6aa6144
       www/content/trace-commits-to-tasks.typ: fd060b241c34cc9152327ea06689a368afa54f42253629a89120d093979166fb
       www/content/wait-on-upstream.typ: 7ca6183faaa31d78c2885276ac4c27ad15dba8336a59e4d74c122cd41e6f0d8e
   cli-add-docs:
@@ -336,11 +335,11 @@ groups:
       .just/meta.just: 50f81441c79a969597f3538652bcd95391806d272137b9bb5ac16388ca8a45fe
       .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
       .just/outdatty.just: fb95f90850c8179bb3fba01a8ae90e2fe703c1c551cb8181892bd24b03f95866
-      .just/scripts/check-examples.sh: eca8ba0bcc674cb6dcece4000c512662296b514857d2f7f5dd8acf9655780372
+      .just/scripts/check-examples.sh: 075a91969cca54b45f15d9dceafaf6ed7fa781d829eee3f9ed074a7f19052b8a
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: 97a4ef31a342a808c516133529368b33c6f976f8fb0cf5c573902ff4d0229d28
       .just/session.just: 4ec3006fe2b7e0d475e4cde780ead2e19d61a90ca48847664a3ef03a80955a04
-      Justfile: 91f390030d28678a14eac109aea4790f095a3d2a9669b772edc010b9710f21d2
+      Justfile: caa3c898585c26ca7ab1227d994f03895c4b23d85f98b09b0500d41dd9e0bc0f
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
       nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
@@ -348,7 +347,7 @@ groups:
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
     dependents:
-      docs/src/agents.typ: a649624f423a0870c444f79f788d9bf44608cc67d36073fb83850086d061f3c5
+      docs/src/agents.typ: 1d00f4c350667549472ea14ed389a314bcebbbd461647182b3e2948eff69c9b7
       docs/src/contributing.typ: ebe7fad4bdac4af756af744619f1f58ffa8d248940638550b0280b5674ebb599
       docs/src/contributing/coverage-crap.typ: 18dd7e60322c7e971c0544f791f87cbbd931313c979e901855302c10e50139be
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
@@ -443,6 +442,19 @@ groups:
       docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
       docs/src/contributing/commit-messages.typ: fad91cf24ea6a0f21a4cb053989aef3e1135db045c1ae4d5baae652e984338d2
       docs/src/contributing/gates.typ: c2f44ddb83d885c8d587db03426578a521e79424bb702191ce96c0046114dbe4
+  goals-recipe:
+    source:
+      examples/goals/.mindtape/config.toml: 6a770d009cd6bf6d0310a94c0882aeb21769775c4c8fff0c199cf92fe7ba049e
+      examples/goals/.mindtape/templates/task.typ: 720a713e10e8cfa4eb1bd14d0f4f1846d1279b5dd02edd7334a7dcc19a2718b8
+      examples/goals/goal-calls.typ: 5ae8d18b6da59e25bbe3134ae0dbeb4da1630162e1b362414e896fd266e797d9
+      examples/goals/goal-dsl.typ: 89ce1a17afbbddfab8528f8b3feb241d30502b627b952cc6b90daca34acfc30f
+      examples/goals/goals.typ: d2049c0cbf199ef69cb0934301a4393679e8d4f5d109ffac512b82b534c3a2c5
+      examples/goals/lib.typ: 7bd94d59c6aeaec18d9182ddc3fc582300c71ad6c08672ac6ceb8f2053849deb
+      examples/goals/tasks/pin-the-search-schema.typ: 3c7ae919f8bf13f4ce1fdb1eb2973c4c9ed267f0d0bf6d1fc37df1bae3e19340
+      examples/goals/tasks/ship-the-search-index.typ: 07268ca755306c0f65a52fa0b28d8666b45309a82354de60791fc53b25096b68
+      www/generate-goals.sh: ea67014e9de45711ad5f996b2385c4f035979fa1c8cc78f46b52ed8cdd86b3b2
+    dependents:
+      www/content/tie-work-to-goals.typ: 7657684c79af239835ea459c7282a81197da8193c1c9b237dd928eac21283fa3
   jq-reports-docs:
     source:
       .just/scripts/_jq-reports-control.sh: 54495ee283bc41c8cfec869ba64bfece08e37023988bb8736e257ee7b491d9d0
@@ -601,6 +613,9 @@ groups:
       examples/dsl/tasks/fix-the-login-redirect.typ: 72e729ce4fc689861619af4419de4776d73740f0bf93d33e0907f660f7f2e7d6
       examples/estimates/tasks/rename-the-status-glyphs.typ: 38e05ecf54bf20a0d61d2f98e83c37934a2623fb72018cbc65fcad9c8192116f
       examples/estimates/tasks/rewrite-loader.typ: 4e0ebfe474bcb1af53d71753cb9fb67ba9f0948e978885556aa211b821d8e9a7
+      examples/goals/.mindtape/templates/task.typ: 720a713e10e8cfa4eb1bd14d0f4f1846d1279b5dd02edd7334a7dcc19a2718b8
+      examples/goals/tasks/pin-the-search-schema.typ: 3c7ae919f8bf13f4ce1fdb1eb2973c4c9ed267f0d0bf6d1fc37df1bae3e19340
+      examples/goals/tasks/ship-the-search-index.typ: 07268ca755306c0f65a52fa0b28d8666b45309a82354de60791fc53b25096b68
       examples/links/tasks/auth-epic.typ: ff3d3f7356e57937d07d0ff8a5c28ee596d9a0f54b1a2653ef8182df468c3f78
       examples/links/tasks/drop-legacy-cli.typ: 14f8d5d8fb5ea8c4701ab02e77cbf68b84e94b655c524ced4de448a389e2bf14
       examples/links/tasks/legacy-cli.typ: 9bc66af7c9b1856bd8e92956a22c9f6286eb8caa6b590be4c57ca6bb913ce987
