@@ -65,6 +65,7 @@ tracked() {
     done < <(git ls-files -z)
 }
 
+# shellcheck disable=SC2016 # the awk program is single-quoted on purpose
 findings=$(tracked | xargs -0 -r awk '
     /^<<<<<<< / || /^=======$/ || /^>>>>>>> / {
         printf "error: %s:%d has a conflict marker `%s`\n", FILENAME, FNR, substr($0, 1, 7)

@@ -417,7 +417,7 @@ groups:
       .just/scripts/_script-graph.sh: a0a5854f68b78e176217a9b4dcefc0bc25a56320fd16440654e74f751df937d0
       .just/scripts/_script-reach.sh: b2003b6e1fa7ca9812115868fd82c4887a387b83eca42c5fb4da7641afdb3ff1
       .just/scripts/arg-pattern-check.sh: 68d7ab4ad6c46af3cbad81fde3a507b5f83fbe469f085a6c802dcaf66561a0ae
-      .just/scripts/check-conflict-markers.sh: fd7bd753103d77687c0263770dd51e978a16d735f92e1a40de4db2b3843af16a
+      .just/scripts/check-conflict-markers.sh: 6b4d4202e6ee43f5b66680df15598ca8b87f262d2cfadaa12f7007f892dc9f87
       .just/scripts/check-gate-drift.sh: 5cfb23413c33749e9063cad261064f63a34c4c295c4598ce0a0b6c013bb3295b
       .just/scripts/check-secrets.sh: 517cb3750fb909ef219f8c7f68541dc6a5031dd23dd04b85c98fa18f392a7bae
       .just/scripts/check.sh: 812f6c0cd901c49c16f1311b05067b7d8879f09069dec47fbb65ec079c5beec0
@@ -525,7 +525,7 @@ groups:
       www/content/schema.typ: 2d009ca8a861a81d353ec2dfd1cc6dcdb0f8aec324cbc02219702f6a38c2c8f4
   scripts-no-doc:
     source:
-      .just/scripts/_conflict-markers-control.sh: 06a0d2be20e035a0602cd694e42994e98f39666365fe1dc902ac52a2e6273b07
+      .just/scripts/_conflict-markers-control.sh: b269d05430406d4a708b0de1e326c5803a60d0721a906a075c97f2fecbb8d172
       .just/scripts/_doc-blocks-control.sh: 84d7aad84bc622e6394a21316daff84fda98bc3b7b6034c7a5ac12f24d4382cb
       .just/scripts/_gate-drift-control.sh: cd996d140e6932faab9361e75ab53db47d031478142013b79e234b27f1478ff3
       .just/scripts/_nav-diff.sh: 7a211eaded1a0c43ef2a1bf0a7bf94251bbb44e455a215f2f43918737fda3679

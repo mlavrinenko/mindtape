@@ -21,6 +21,10 @@
 # The recipe runs this before the scanner, not the scanner itself, because
 # this script runs the scanner. A control call inside the scanner would call
 # itself.
+#
+# Every expected message below is single-quoted, because the backticks around
+# the marker are message text and not a command substitution.
+# shellcheck disable=SC2016
 set -eo pipefail
 
 scanner=$PWD/.just/scripts/check-conflict-markers.sh
