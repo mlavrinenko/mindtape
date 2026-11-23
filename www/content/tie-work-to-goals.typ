@@ -8,14 +8,14 @@
   route: "/tie-work-to-goals/",
   label: "Tie work to your goals",
   title: "Tie work to your goals",
-  summary: "Make each milestone say how it serves your goals, and refuse one that helps none of them.",
+  summary: "Make every task say how it serves your goals, and refuse one that helps none of them.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-Someone opens a milestone to rewrite the logging. The work is tidy, but the
-milestone serves none of your goals, and a week passes before anyone asks why.
+Someone opens a task to rewrite the logging. The work is tidy, but the task
+serves none of your goals, and a week passes before anyone asks why.
 
 The core keeps the mechanism, not the policy. A task body can emit metadata
 markers, and a `[[tasks.rules]] check` with `field = "markers"` hands them to a
