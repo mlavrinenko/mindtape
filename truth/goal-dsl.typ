@@ -156,6 +156,19 @@
   by-name(product) + by-name(process)
 }
 
+// The reason text a verdict carries. The harvest turns content into a plain
+// string, so a blank `[ ]` arrives as whitespace, not as content `[ ]`.
+#let _reason-text(value) = {
+  let reason = value.at("reason", default: none)
+  if reason == none { "" } else { str(reason).trim() }
+}
+
+// Whether the reason says nothing: a blank, or fewer than three words. A
+// verdict that gives no reason is refused like one that gives a single word.
+#let _reason-is-thin(value) = {
+  _reason-text(value).split().filter(word => word != "").len() < 3
+}
+
 // What a verdict gets wrong, if anything: an unknown effect, a wrong audience,
 // or a `Helps` or `Hinders` that gives no reason. A neutral verdict needs none.
 // The effect is checked first, so a hand-written marker cannot reach the other
@@ -195,11 +208,13 @@
         + fix,
     )
   }
-  if (
-    effect != "neutral" and value.at("reason", default: none) in (none, "", [ ])
-  ) {
+  if effect != "neutral" and _reason-is-thin(value) {
     messages.push(
-      "goal `" + goal.name + "` says " + str(effect) + " but not why",
+      "goal `"
+        + goal.name
+        + "` says "
+        + str(effect)
+        + " but not why; write the reason in a sentence, not a blank or a one-word answer",
     )
   }
   messages

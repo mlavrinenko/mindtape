@@ -147,6 +147,24 @@ fn a_broken_verdict_is_a_check_breach() {
             "`read-tasks-at-a-glance` says helps but not why",
         ),
         (
+            "blank reason",
+            COMPLETE.replace("[because a newcomer reads the block in 30 seconds]", "[ ]"),
+            "`read-tasks-at-a-glance` says helps but not why",
+        ),
+        (
+            "whitespace reason",
+            COMPLETE.replace(
+                "[because a newcomer reads the block in 30 seconds]",
+                "[   ]",
+            ),
+            "`read-tasks-at-a-glance` says helps but not why",
+        ),
+        (
+            "one-word reason",
+            COMPLETE.replace("[because a newcomer reads the block in 30 seconds]", "[why]"),
+            "`read-tasks-at-a-glance` says helps but not why",
+        ),
+        (
             "no helps",
             COMPLETE.replace(
                 "#Helps(adopter, to: read-tasks-at-a-glance)\
