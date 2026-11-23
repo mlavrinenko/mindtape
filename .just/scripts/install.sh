@@ -3,9 +3,12 @@
 # generated JSON Schema, then a copy of every skill in the harness dirs. Runs
 # from the repo root, where `skills/` is.
 #
-# Each copied skill gets a `.mindtape-source-hash` stamp holding the hash of
-# the source tree it copied. `just check` can then tell a stale copy from a
-# current one (.just/scripts/check-skill-drift.sh).
+# Each copied skill gets a `.mindtape-source-hash` stamp of two lines. The
+# first is the hash of the source tree it copied, and the second is the
+# absolute path of the checkout that copied it. The path lets `just check`
+# tell a stale copy of this checkout from a sibling worktree's install. A
+# sibling's copy is that worktree's to verify
+# (.just/scripts/check-skill-drift.sh).
 #
 # `defaults.toml` is deliberately not refreshed. The install seeds it once, and the file then
 # takes hand edits as the global config layer (crates/mindtape-cli/src/cmd/install/mod.rs).
@@ -28,6 +31,11 @@ hash_tree() {
 # A SKILL.md is what makes a directory a skill, and the discriminator
 # matters. git ignores `skills/*-workspace` as eval scratch, so a bare
 # `skills/*/` glob would link a sandbox tree into the harness as a real skill.
+#
+# `pwd -P` resolves a symlinked path, so the checkout a stamp names is the one
+# the drift check resolves to from the same directory. Both run from the repo
+# root, so this is the root.
+checkout=$(pwd -P)
 shopt -s nullglob
 for dir in "$HOME/.claude/skills" "$HOME/.config/opencode/skills"; do
     [ -d "$dir" ] || continue
@@ -39,7 +47,10 @@ for dir in "$HOME/.claude/skills" "$HOME/.config/opencode/skills"; do
         # install removes the link alone.
         rm -rf "$target"
         cp -R "skills/$name" "$target"
-        hash_tree "skills/$name" >"$target/.mindtape-source-hash"
+        {
+            hash_tree "skills/$name"
+            printf '%s\n' "$checkout"
+        } >"$target/.mindtape-source-hash"
         echo "copied skill -> $target"
     done
 done

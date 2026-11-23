@@ -56,6 +56,10 @@ When the build stage passes, `just check` ends with `just build-mt`. That is the
 
 `.mmz/config.yaml` sets one scope per file under `.just/scripts/`. A single glob over the directory would re-run every gate when one script changed. A list covers only the scripts someone added to it. `just meta script-scope` fails on a script outside every scope, on a rule that reaches a script its inputs miss, and on a script that’s a source of no `.config/outdatty.yaml` group. Put a new script in the group of the doc that restates it, or in the source-only group when no doc does. `.just/scripts/script-scope-check.sh` explains each arm.
 
+### The skill-drift gate
+
+`just install all` copies each `skills/<name>` into the harness dirs. It writes a `.mindtape-source-hash` stamp into the copy: the hash of the source tree, then the absolute path of the checkout that copied it. `just skill-drift` compares the stamp with a fresh hash of `skills/<name>` only when that path is this checkout’s. A copy a sibling worktree installed belongs to that worktree, which verifies it. The gate reports the owning checkout and passes, because two worktrees editing the skill would otherwise fail each other. A copy with no stamp fails as unverified, and so does a one-line stamp from an install that doesn’t record a checkout. A harness dir with no copy stays quiet.
+
 ## The formatter path lists
 
 `just fmt` and `just fmt-check` read one list per formatter from the `Justfile`, so a path you add there reaches both. `just meta gate-drift` fails when `TOML_FMT_PATHS` misses a TOML file git lists.

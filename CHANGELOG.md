@@ -234,6 +234,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   at the project root. The view now prints the file each resolves to, relative
   to the project root, and the round-trip test's fixture declares one. The
   collected view still prints the layer text.
+- **`just skill-drift` fails only on a copy this checkout installed.** The
+  `.mindtape-source-hash` stamp `just install` writes into each installed skill
+  now holds two lines: the hash of the `skills/<name>` source, then the
+  absolute path of the checkout that copied it. The gate compares the hash only
+  when that path is the checkout it runs in, and otherwise names the owning
+  checkout and passes, so a sibling worktree's install no longer fails every
+  other worktree. A copy with no stamp, or with a one-line stamp from an
+  install that doesn't record a checkout, still fails as unverified: run
+  `just install` once to migrate it.
 - **A task whose only work is a record edit starts and closes in its commit.**
   A task-scope commit rule reads `records_other`, true when the commit changes
   a task file other than the one the rule runs for. The `mindtape:tasks`

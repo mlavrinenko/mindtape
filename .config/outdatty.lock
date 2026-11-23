@@ -572,10 +572,11 @@ groups:
       skills/mindtape/evals/README.md: 9b0640b6d7ca0a4cd408489aefd16dff5d98f2f454b3368bc23dd9f6dc4ddc67
   skill-install-docs:
     source:
-      .just/scripts/check-skill-drift.sh: e21c2215156dad5c92d6a13b1253ec3d67f6c7378fa3df6958f2011533e6fde6
-      .just/scripts/install.sh: 554e1c83cff65e1f9e4edc0b4294cb22be8f89076297e9df597dcb60b5c0a4b7
+      .just/scripts/check-skill-drift.sh: 9f072a411a7774f77d41b7b1daed004121a32d8e7e251c538350e0c4b6ec6a6d
+      .just/scripts/install.sh: b89eb2deff350d2d9cd738c60df9337888bb6a88a736bb6390c5ec084452c0da
     dependents:
-      docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
+      docs/src/contributing.typ: 5505f979d3b341710d1d114fb436d80d35888c2936e8d44e04c8b9a657ebc748
+      docs/src/contributing/gates.typ: 4964c7e859b9a50273fe963402a8443c785de8be6c350f5f8a858966f7d3aaa6
   sweep-templates:
     source:
       .mindtape/templates/sweep-size.typ: 8ee7e372e7fa0a5888c939dd6a017ff74b393f9477193336eecf30dc1e0d0fda

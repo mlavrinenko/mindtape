@@ -149,6 +149,19 @@ group. Put a new script in the group of the doc that
 restates it, or in the source-only group when no doc does.
 `.just/scripts/script-scope-check.sh` explains each arm.
 
+== The skill-drift gate
+
+#just.install-all() copies each `skills/<name>` into the harness dirs. It
+writes a `.mindtape-source-hash` stamp into the copy: the hash of the source
+tree, then the absolute path of the checkout that copied it.
+#just.skill-drift() compares the stamp with a fresh hash of `skills/<name>`
+only when that path is this checkout's. A copy a sibling worktree installed
+belongs to that worktree, which verifies it. The gate reports the owning
+checkout and passes, because two worktrees editing the skill would otherwise
+fail each other. A copy with no stamp fails as unverified, and so does a
+one-line stamp from an install that doesn't record a checkout. A harness dir
+with no copy stays quiet.
+
 = The formatter path lists
 
 #just.fmt() and #just.fmt-check() read one list per formatter from the

@@ -917,14 +917,16 @@ groups:
       - docs/src/contributing/gates.typ
       - docs/src/contributing/commit-messages.typ
 
-  # The skill install and its drift check, which contributing.typ's Worktrees
-  # section restates as the stamp and the warning.
+  # The skill install and its drift check. contributing.typ's Worktrees section
+  # points at gates.typ, which restates the stamp, the owning checkout and the
+  # unverified copy.
   - name: skill-install-docs
     source:
       - .just/scripts/install.sh
       - .just/scripts/check-skill-drift.sh
     dependents:
       - docs/src/contributing.typ
+      - docs/src/contributing/gates.typ
 
   # The skill-eval harness and the `.env` schema it reads. The evals README
   # restates the recipe, the two variables and the results layout.
