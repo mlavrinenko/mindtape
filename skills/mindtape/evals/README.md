@@ -137,7 +137,7 @@ and no external documentation. Eval 0 is a reproduction: its executor was the
 agent that wrote this file and had read `evals.json` first, so treat it as a
 shape check rather than a blind sample.
 
-These blind evals support the `self-describing` goal in `truth/goals.typ`.
+These blind evals support the `explain-itself` goal in `truth/goals.typ`.
 They list, file, flip and record a blocker from `mt` alone, so a later no-docs
 run that cannot finish a task without reading a page is evidence against that
 goal.
