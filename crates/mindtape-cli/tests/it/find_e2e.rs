@@ -66,12 +66,8 @@ fn find_json_reports_the_desugared_filter_in_applied() {
 #[test]
 fn find_table_footer_names_the_applied_filter() {
     let dir = scaffold();
-    let out = support::mt(dir.path())
-        .args(["find", "bug"])
-        .output()
-        .unwrap();
-    let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(stdout.contains("your filter · 2 of 4 tasks"), "{stdout}");
+    let stdout = support::stdout(dir.path(), &["find", "bug"]);
+    assert!(stdout.contains("2 of 4 tasks · your filter"), "{stdout}");
 }
 
 #[test]

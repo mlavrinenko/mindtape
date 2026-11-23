@@ -1,6 +1,6 @@
 //! `mt ls` attribution: [`Applied`], which source won each facet of a resolved
 //! listing, and the dim footer it renders as under the table:
-//! `default view (!terminal && (miss(start) || start <= now())) · 3 of 12 tasks`,
+//! `3 of 12 tasks · default view (!terminal && (miss(start) || start <= now()))`,
 //! with `· 1 broken` when a file failed to load.
 //!
 //! Attribution is per facet because selection and presentation come from
@@ -95,17 +95,19 @@ impl Applied {
     }
 }
 
-/// The lines under a table. They hold where the listing's rows came from and a
-/// rule that set the sort. The filter's source shows the filter it applied, or
-/// the view's description. They also hold the rows shown of the project's
-/// tasks, then the task files that failed to load. The parts join with ` · `:
-/// `inbox view (priority > 5) · release sort · 3 of 12 tasks`. A line wider
-/// than `width` wraps at a ` · ` separator, or at a space inside a part that is
+/// The lines under a table. They lead with the rows shown of the project's
+/// tasks, then say where those rows came from and a rule that set the sort. The
+/// filter's source shows the filter it applied, or the view's description. They
+/// end with the task files that failed to load. The parts join with ` · `:
+/// `3 of 12 tasks · inbox view (priority > 5) · release sort`. The count leads
+/// because it is the shortest part and the one a reader looks for first. A
+/// wrapped line then keeps it on the line the table ends on. A line wider than
+/// `width` wraps at a ` · ` separator, or at a space inside a part that is
 /// still too long, and each continuation line starts with [`CONTINUATION`].
 /// `None` leaves the line whole, since a pipe has no width. The footer doesn't
 /// say which facet came from where, or that the command line overrode a rule.
 /// The `mt ls --json` envelope carries both. A listing nothing shaped gets the
-/// counts alone.
+/// count alone.
 #[must_use]
 pub fn footer(
     applied: &Applied,
@@ -114,8 +116,8 @@ pub fn footer(
     broken: usize,
     width: Option<usize>,
 ) -> String {
-    let mut parts = source_parts(applied, filter_part(applied));
-    parts.push(format!("{shown} of {}", mindtape::count(total, "task")));
+    let mut parts = vec![format!("{shown} of {}", mindtape::count(total, "task"))];
+    parts.extend(source_parts(applied, filter_part(applied)));
     parts.extend(broken_part(broken));
     wrap(&parts.join(" · "), width).join("\n")
 }
@@ -143,7 +145,7 @@ pub fn empty_hint(shown: usize, total: usize) -> Option<String> {
     )))
 }
 
-/// [`footer`]'s parts before the count: `["inbox view", "release sort"]`,
+/// [`footer`]'s parts after the count: `["inbox view", "release sort"]`,
 /// empty when nothing shaped the listing. The filter part shows its source
 /// alone, since a set compares them across projects. [`footer`] adds the
 /// filter or the view's description.
@@ -152,7 +154,7 @@ pub fn footer_sources(applied: &Applied) -> Vec<String> {
     source_parts(applied, source_label(applied))
 }
 
-/// The parts before the count: `filter` when it gives a source, a rule that
+/// The parts after the count: `filter` when it gives a source, a rule that
 /// set the sort, or a rule that only picked the columns.
 fn source_parts(applied: &Applied, filter: Option<String>) -> Vec<String> {
     let mut parts: Vec<String> = filter.into_iter().collect();

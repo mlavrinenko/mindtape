@@ -8,8 +8,9 @@ save it in config, because `mt ls` shows what it selects.
 
 With no filter, `mt ls` applies the first `[[ls.rules]]` entry whose condition
 holds; if none matches, it applies the project's default view. The line under
-the table says which one ran and the filter it applied, as in
-`default view (!terminal && (miss(start) || start <= now())) · 3 of 12 tasks`,
+the table leads with the rows shown, then says which one ran and the filter it
+applied, as in
+`3 of 12 tasks · default view (!terminal && (miss(start) || start <= now()))`,
 or the view's `description` when it has one. A filter argument replaces only the
 filter; that rule's or view's sort and columns still apply. `-n N` keeps the
 first N rows after the sort, and `mt ls @view` uses one of the views that

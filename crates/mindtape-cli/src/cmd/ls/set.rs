@@ -126,26 +126,28 @@ fn print_footer(args: &LsArgs, held: &HeldSet, groups: &[Group]) {
     }
 }
 
-/// `your filter · 9 of 61 tasks in 27 projects · 1 broken`: the listings'
-/// source when they all share it, the rows shown of the listed projects'
-/// tasks, then their task files that failed to load.
+/// `9 of 61 tasks in 27 projects · your filter · 1 broken`: the rows shown of
+/// the listed projects' tasks, the listings' source when they all share it,
+/// then their task files that failed to load. The count leads, as it does under
+/// one project's table.
 fn footer(listings: &[&Listing]) -> String {
     let mut sources = listings
         .iter()
         .map(|listing| footer_sources(&listing.applied));
     let first = sources.next().unwrap_or_default();
-    let mut parts = if sources.all(|other| other == first) {
+    let source_parts = if sources.all(|other| other == first) {
         first
     } else {
         vec!["each project's listing".to_owned()]
     };
     let shown: usize = listings.iter().map(|listing| listing.tasks.len()).sum();
     let total: usize = listings.iter().map(|listing| listing.project_total).sum();
-    parts.push(format!(
+    let mut parts = vec![format!(
         "{shown} of {} in {}",
         mindtape::count(total, "task"),
         mindtape::count(listings.len(), "project")
-    ));
+    )];
+    parts.extend(source_parts);
     let broken = listings.iter().map(|listing| listing.broken).sum();
     parts.extend(broken_part(broken));
     parts.join(" · ")

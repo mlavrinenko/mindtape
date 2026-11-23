@@ -11,7 +11,7 @@
   difficulty: 1,
   tags: ("cli", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 23),
+  status: done(2026, 11, 24),
 )
 
 == AS-IS

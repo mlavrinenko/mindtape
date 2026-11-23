@@ -65,7 +65,7 @@ re8    proposed  ▶ ready     🟡 amber              Add a Redis client to the
 9ds    proposed  🔒 blocked  🟡 amber              Verify webhooks with the acme-pay SDK
 2q0    proposed  🔒 blocked  🟢 green              Throttle failed logins per IP
 
-default view (!terminal && (miss(start) || start <= now())) · 9 of 14 tasks
+9 of 14 tasks · default view (!terminal && (miss(start) || start <= now()))
 ```
 
 ## Bring your own rules

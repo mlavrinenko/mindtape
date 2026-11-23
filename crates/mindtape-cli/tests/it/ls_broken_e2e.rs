@@ -10,7 +10,7 @@ const MISSPELT: &str = "#import \"@local/mindtape:0.5.0\": *\n\n\
                         #show: task.with(\n  titel: \"Gamma\",\n  status: wip(2026, 6, 1),\n)\n";
 
 /// The line under the table when one of the two tasks that loaded matches.
-const FOOTER: &str = "\nyour filter · 1 of 2 tasks · 1 broken\n";
+const FOOTER: &str = "\n1 of 2 tasks · your filter · 1 broken\n";
 
 /// Two tasks that load and `gamma.typ`, which does not.
 fn project() -> tempfile::TempDir {

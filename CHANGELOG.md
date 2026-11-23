@@ -173,6 +173,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The `mt ls` footer leads with its count.** The line under the table reads
+  `19 of 1076 tasks · default view (!terminal && (miss(start) || start <= now()))`.
+  `mt @set ls` reads `3 of 3 tasks in 2 projects · your filter`. The source
+  parts keep their order after the count, and `1 broken` stays last. A narrow
+  terminal wraps the filter and leaves the count on the line the table ends on.
+  `mt ls --json` keeps its envelope.
 - **The goal check has no `x-goals` exemption.** `give-every-goal-verdict` and
   the content and unique `Goals` rules run on every open task, and the
   `warn-on-x-goals-on-open-tasks` rule is gone. A reopened legacy task moves
@@ -197,7 +203,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The `mt ls` footer names the filter it applied.** A view or a narrowing
   `[[ls.rules]]` entry shows its filter, or the view's `description` when it
   has one, as in
-  `default view (!terminal && (miss(start) || start <= now())) · 2 of 1013 tasks`.
+  `2 of 1013 tasks · default view (!terminal && (miss(start) || start <= now()))`.
   A filter you typed still reads `your filter`, and the line wraps at the
   terminal width. `--json` keeps `applied.facets.filter.value` unchanged.
 - **`mt add --list` retires in favor of `mt templates`.** The flag is hidden

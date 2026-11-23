@@ -26,7 +26,7 @@ fn limit_truncates_the_table_and_says_what_it_cut() {
     let text = stdout(scaffold().path(), &["ls", "", "-n", "1"]);
     assert!(
         text.contains(
-            "your filter · 1 of 3 tasks\n2 more not shown · next page: mt ls '' -n 1 --skip 1"
+            "1 of 3 tasks · your filter\n2 more not shown · next page: mt ls '' -n 1 --skip 1"
         ),
         "the table has room for a footer, so it owes the reader the count \
          it hid and the command that fetches the rest: {text}"

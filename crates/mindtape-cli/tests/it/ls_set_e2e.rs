@@ -115,7 +115,7 @@ fn a_set_lists_one_table_grouped_by_project_in_set_order() {
     assert!(stdout.starts_with("PROJECT "), "{stdout}");
     let expected = [set.alpha(), set.alpha(), set.beta()];
     assert_eq!(projects(&stdout), expected, "{stdout}");
-    let footer = "\nyour filter · 3 of 3 tasks in 2 projects\n";
+    let footer = "\n3 of 3 tasks in 2 projects · your filter\n";
     assert!(stdout.ends_with(footer), "{stdout}");
 }
 
@@ -123,7 +123,7 @@ fn a_set_lists_one_table_grouped_by_project_in_set_order() {
 fn the_footer_counts_the_task_files_that_failed_to_load() {
     let set = Set::new();
     std::fs::write(set.alpha.path().join("tasks/three.typ"), "#broken(\n").unwrap();
-    let footer = "\nyour filter · 3 of 3 tasks in 2 projects · 1 broken\n";
+    let footer = "\n3 of 3 tasks in 2 projects · your filter · 1 broken\n";
     let stdout = set.stdout(&["ls", ""], 0);
     assert!(stdout.ends_with(footer), "{stdout}");
 }
@@ -133,7 +133,7 @@ fn limit_counts_per_project() {
     let set = Set::new();
     let stdout = set.stdout(&["ls", "", "-n", "1"], 0);
     assert_eq!(projects(&stdout), [set.alpha(), set.beta()], "{stdout}");
-    let footer = "your filter · 2 of 3 tasks in 2 projects\n\
+    let footer = "2 of 3 tasks in 2 projects · your filter\n\
                   1 more not shown · next page: mt @both ls '' -n 1 --skip 1\n";
     assert!(stdout.ends_with(footer), "{stdout}");
 }
@@ -163,7 +163,10 @@ fn a_broken_member_exits_1_after_the_rest_print() {
     let set = Set::broken();
     let (table, _) = set.failing_beta(&["ls", ""]);
     assert_eq!(projects(&table), [set.alpha(), set.alpha()], "{table}");
-    assert!(table.contains("· 2 of 2 tasks in 1 project\n"), "{table}");
+    assert!(
+        table.contains("2 of 2 tasks in 1 project · your filter\n"),
+        "{table}"
+    );
     let (stdout, _) = set.failing_beta(&["ls", "", "--json"]);
     let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
     let at = |pointer: &str| json.pointer(pointer).unwrap().clone();
