@@ -18,14 +18,9 @@
 // The tagline and the pitch, which open README and the site root.
 #let lede = render-summary(SITE.tagline + " " + SITE.pitch)
 
-// The fixture's Typst slices: the task README opens with, and the goals
-// module the tie-work-to-goals recipe quotes.
+// The fixture's Typst slices: the task README and the site root open with.
 #let _fact = json("../generated/api-service.json")
-#let _slices = checked-slices(
-  _fact,
-  "api-service",
-  ("showcase", "goals", "goals-short"),
-)
+#let _slices = checked-slices(_fact, "api-service", ("showcase",))
 
 // Slice `id` under a link to the file it comes from.
 #let fixture-slice(id) = {

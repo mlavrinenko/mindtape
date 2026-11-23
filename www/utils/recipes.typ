@@ -4,23 +4,35 @@
 // Each `# docs:slice api-service/<id>` block in examples/api-service's config
 // is one recipe, and the page at /<id>/ shows it. checked-slices fails the
 // build when the slice ids and the group's routes differ, so a slice cannot
-// ship without its page, nor a page without its slice.
+// ship without its page, nor a page without its slice. /tie-work-to-goals/ is
+// the exception: it renders examples/goals, which owns the current marker
+// recipe, so its block comes from goals-config.json.
 
 #import "site.typ": NAV, REPO
 #import "slices.typ": checked-slices
 
-#let _ids = (
+#let _route-ids = (
   NAV
     .find(group => group.title == "Recipes")
     .at("items")
     .map(route => route.trim("/"))
 )
 
-#let _slices = checked-slices(
+// examples/goals holds the goal recipe now, so api-service no longer carries
+// a slice for it.
+#let _api-ids = _route-ids.filter(id => id != "tie-work-to-goals")
+#let _api-slices = checked-slices(
   json("../generated/api-service-config.json"),
   "api-service-config",
-  _ids,
+  _api-ids,
 )
+#let _goals-slices = checked-slices(
+  json("../generated/goals-config.json"),
+  "goals-config",
+  ("tie-work-to-goals",),
+)
+
+#let _slices = _api-slices + _goals-slices
 
 // The slice of recipe `id`, under a link to the file it comes from. `before`
 // and `after` are TOML text the block shows above and below the slice.

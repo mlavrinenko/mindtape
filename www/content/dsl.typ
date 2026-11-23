@@ -76,20 +76,12 @@ See #link(u("/recurring/"))[Recurring tasks] for the rules.
 
 = Goals
 
-The prelude defines the goal DSL. A project imports its functions and declares
-its own goals:
-
-// docs:hand-typed the import shape is the same in every project
-```typ
-#import "@local/mindtape:0.5.0": Helps, Hinders, Neutral, goal, check-goal-over
-```
-
-`goal(audience, to: ..., from: ..., title: ..., acid-test: ...)` builds one
-value. A task rates a goal it helps with `Helps(adopter, to: <goal>)[why]`,
-names one it works against with `Hinders(maintainer, from: <goal>)[why]`, and
-rates the rest with `Neutral(...)`. Each call emits a metadata marker that a
-project's `check-goal-over` rule reads. See
-#link(u("/tie-work-to-goals/"))[Tie work to your goals].
+The core defines no goal DSL. A task body can emit metadata markers, and a
+`[[tasks.rules]] check` with `field = "markers"` hands them to a Typst function
+your project writes. A project that rates goals declares them in its own
+module and points a rule at it.
+#link(u("/tie-work-to-goals/"))[Tie work to your goals] shows the recipe and a
+project you can copy.
 
 = Task bodies
 

@@ -18,9 +18,10 @@ with a Typst function you write. `mt check` runs the function on every task.
 The check is a file in the repo beside the tasks.
 
 Every block below is a slice of `examples/self-validating/`, a project with
-two tasks. The slices keep the adopter `x-goals` form. This repository's own
-backlog writes a `== Goals` block of `#Helps`, `#Hinders` and `#Neutral`
-markers instead. The example stays as it is.
+two tasks. The slices keep the older `x-goals` form, a custom field the project
+checks itself. #link(u("/tie-work-to-goals/"))[Tie work to your goals] is the
+current recipe, where the body emits markers and the check reads the reserved
+`markers` input. The example stays as it is.
 
 #let code = checked-slices(
   json("../generated/self-validating.json"),

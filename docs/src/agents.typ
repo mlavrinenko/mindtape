@@ -65,12 +65,12 @@ unchanged files.
   prelude version this binary reads, `0.2.0` through `0.5.0`.
 - `truth/tasks/`: #mindtape's own backlog, a folder per month plus a
   `swept/` inbox, read with the in-tree `lib/`.
-- `truth/*.typ`: the goals above and the names a task writes.
+- `truth/*.typ`: the goals above, the goal DSL and the names a task writes.
 - `www/content/*.typ` and `docs/src/*.typ`: the docs site and the sources of
   README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the deep dives.
 - `skills/mindtape/`: the agent skill for driving `mt`, with its references
   and evals.
-- `examples/`: fixture projects backing one docs page each. `api-service` is a
+- `examples/`: fixtures backing one docs page each. `api-service` is a
   sample backend backlog. `minimal` is the smallest config. `dsl` is the task
   quoted on the DSL page. `large` is a 2000-task benchmark. `nix-adopter` is a
   flake that takes `mt` into its dev shell.

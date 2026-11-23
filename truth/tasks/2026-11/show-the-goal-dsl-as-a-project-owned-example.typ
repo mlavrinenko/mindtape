@@ -11,7 +11,7 @@
   difficulty: 3,
   tags: ("www", "docs", "mt", "stateless"),
   assignee: "agent",
-  status: wip(2026, 11, 23),
+  status: done(2026, 11, 23),
 )
 
 == AS-IS

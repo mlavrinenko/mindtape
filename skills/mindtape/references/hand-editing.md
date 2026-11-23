@@ -52,10 +52,14 @@ Rules:
   `unexpected argument: titel`. A project whose rules rate goals writes a
   `== Goals` section after `Dogfood`, one marker per goal:
   `#Helps(adopter, to: <goal>)[why]`,
-  `#Hinders(maintainer, from: <goal>)[why]` and `#Neutral(<goal>, ...)`. A
-  template carries the whole section in one `goals` raw slot, whose value
-  starts with the `== Goals` heading, and the body adds no second one. The
-  slot's example is the whole section:
+  `#Hinders(maintainer, from: <goal>)[why]` and `#Neutral(<goal>, ...)`. The
+  core provides `task` and the reserved `markers` check input, not the goal
+  DSL. The project owns the DSL: this repo's `truth/goal-dsl.typ` declares the
+  helpers and the check, `truth/goals.typ` and `truth/process-goals.typ` hold
+  the registries, and `truth/lib.typ` wires the check with both. A template
+  carries the whole section in one `goals` raw slot, whose value starts with
+  the `== Goals` heading, and the body adds no second one. The slot's example
+  is the whole section:
 
   ```typ
   == Goals
