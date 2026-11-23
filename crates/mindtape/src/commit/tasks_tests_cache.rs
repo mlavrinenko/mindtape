@@ -7,15 +7,109 @@ use super::tests::{
     sub_plan, titled_prelude,
 };
 use super::{StateLoader, StatePlan};
-use crate::config::parse_config;
+use crate::config::{Config, parse_config};
+use crate::model::Task;
 use crate::test_support::commit_files;
 use crate::test_support::git_as_tester as git;
 use crate::test_support::git_stdout;
 use crate::test_support::git_tempdir;
 use crate::test_support::write_file;
+use typst_harvest::HVal;
 
 /// A source that fails evaluation.
 const BROKEN: &str = "#let x = (\n";
+
+/// A project module whose value a task's body marker reports.
+fn goal_module(value: &str) -> String {
+    format!("#let goal = \"{value}\"\n")
+}
+
+/// A task that imports the project module and emits the value it read as a body
+/// marker. Its own bytes are the same in every state.
+const MODULE_TASK: &str = "#import \"/truth/goals.typ\": goal\n\n\
+                           #metadata((marker: \"probe\", value: goal))\n\
+                           #metadata((marker: \"mindtape.task\", \
+                           fields: (title: \"Build\"), extras: (:)))\n";
+
+/// The value the `probe` body marker carries, when the task emitted one.
+fn probe(task: &Task) -> Option<&str> {
+    task.markers
+        .iter()
+        .find(|marker| marker.value.get("marker").and_then(HVal::as_str) == Some("probe"))
+        .and_then(|marker| marker.value.get("value"))
+        .and_then(HVal::as_str)
+}
+
+/// A state loader bounded to `root`, over `base` and `config`.
+fn state_loader<'a>(
+    root: &'a std::path::Path,
+    base: &'a [Task],
+    config: &'a Config,
+) -> StateLoader<'a> {
+    StateLoader::with_layers(root, base, config, (Some(root.to_path_buf()), None, None))
+}
+
+/// A repository whose task imports a module every state sees, with the config it
+/// declares and the commit of its first module.
+fn module_repo() -> (tempfile::TempDir, Config, String) {
+    let dir = git_tempdir();
+    let root = dir.path();
+    let text = "[tasks]\nroots = [\"tasks\"]\n";
+    commit_files(
+        root,
+        &[
+            (".mindtape/config.toml", text),
+            ("truth/goals.typ", &goal_module("first")),
+            ("tasks/a.typ", MODULE_TASK),
+            ("tasks/notes.typ", "= Notes\n"),
+        ],
+        "one",
+    );
+    let one = git_stdout(root, &["rev-parse", "HEAD"]);
+    let config = parse_config(text).unwrap();
+    (dir, config, one)
+}
+
+#[test]
+fn a_reused_state_reevaluates_a_task_whose_imported_module_changed() {
+    let (dir, config, one) = module_repo();
+    let root = dir.path();
+    let mut loader = state_loader(root, &[], &config);
+    let before = loader.load(&revisions(&one, &one)).unwrap();
+    assert_eq!(probe(&before.staged.tasks[0]), Some("first"));
+    assert_eq!(loader.evaluations(), 2, "the task and the file without one");
+
+    commit_files(root, &[("truth/goals.typ", &goal_module("second"))], "two");
+    let two = git_stdout(root, &["rev-parse", "HEAD"]);
+    let after = loader.load(&revisions(&two, &two)).unwrap();
+    assert_eq!(
+        probe(&after.staged.tasks[0]),
+        Some("second"),
+        "the task replays the module it read, not the first state's"
+    );
+    assert_eq!(loader.evaluations(), 3, "the module alone forces it again");
+    assert_eq!(
+        before.staged.tasks[0].body, after.staged.tasks[0].body,
+        "only the imported module changed"
+    );
+}
+
+#[test]
+fn a_seeded_task_is_not_reused_after_its_imported_module_changes() {
+    let (dir, config, one) = module_repo();
+    let root = dir.path();
+    let base = crate::loader::load_project(root, &config).tasks;
+    assert_eq!(probe(&base[0]), Some("first"), "the seed reads the module");
+
+    // The working tree moves on while the state's own bytes stay put, so only
+    // the recorded imports can tell the seed apart from the state.
+    write_file(root, "truth/goals.typ", goal_module("second"));
+    let mut loader = state_loader(root, &base, &config);
+    let plan = revisions(&one, &one);
+    let states = loader.load(&plan).unwrap();
+    assert_eq!(probe(&states.staged.tasks[0]), Some("second"));
+    assert_eq!(loader.evaluations(), 2, "the seed could not answer");
+}
 
 #[test]
 fn a_seeded_task_keeps_the_state_root_choice_clean_or_dirty() {

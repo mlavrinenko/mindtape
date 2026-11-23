@@ -18,7 +18,7 @@
   ),
   tags: ("found", "mt", "tooling", "stateless", "no-ui-ux"),
   assignee: "agent",
-  status: wip(2026, 11, 23),
+  status: done(2026, 11, 23),
 )
 
 == AS-IS
