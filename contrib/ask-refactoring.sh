@@ -146,27 +146,6 @@ stem_for() {
     printf '%s-%s\n' "$1" "$(printf '%s' "$encoded" | tr -c 'A-Za-z0-9' '-' | tr -s '-' | sed 's/^-//; s/-$//')"
 }
 
-# One `== Goals` block rating every goal: `$1` is the audience the single help
-# serves, `$2` the goal it helps and `$3` the reason. Each sweep arm passes its
-# own goal and reason, and the helper leaves that goal out of the neutral list.
-goals_with_one_helps() {
-    local audience="$1" goal="$2" reason="$3"
-    local goals=(
-        read-tasks-at-a-glance guide-the-implementer run-checks-at-the-write
-        keep-the-engine-agnostic adopt-in-one-line beat-markdown keep-plain-files
-        explain-itself keep-changes-safe match-docs-to-code
-    )
-    local neutral=()
-    local candidate
-    for candidate in "${goals[@]}"; do
-        [ "$candidate" = "$goal" ] || neutral+=("$candidate")
-    done
-    local joined
-    joined="$(printf '%s, ' "${neutral[@]}")"
-    printf '== Goals\n\n+ #Helps(%s, to: %s)[%s].\n+ #Neutral(%s).\n' \
-        "$audience" "$goal" "$reason" "${joined%, }"
-}
-
 # File one finding, or print what a write would file. `$1` is the arm, `$2` the
 # stem, `$3` a one-line summary for the dry run. `$4` the arm's advice for a
 # skipped finding (one line per newline: why an earlier task holds the stem and
@@ -228,6 +207,14 @@ report_arm() {
 skip_arm() {
     : >"$queue/$1.skipped"
 }
+
+# ── the goals block ─────────────────────────────────────────────────────────
+#
+# Every filed task carries one, and its goal names come from the registries
+# rather than from a second copy here. goals.sh reads them at source time, so a
+# missing tool or an empty registry fails the sweep before an arm runs.
+# shellcheck source=contrib/ask-refactoring/goals.sh
+. "$repo/contrib/ask-refactoring/goals.sh"
 
 # ── the arms ────────────────────────────────────────────────────────────────
 #

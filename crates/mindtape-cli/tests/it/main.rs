@@ -121,6 +121,7 @@ mod skipped_rule_once_e2e;
 mod status_note_paragraphs_e2e;
 mod stem_hash_e2e;
 mod support;
+mod sweep_goals_e2e;
 mod tasks_pack_kind_e2e;
 mod templates_e2e;
 mod tty_e2e;
