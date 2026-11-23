@@ -186,12 +186,7 @@ fn a_long_goals_section_breaches() {
 fn a_reopened_legacy_task_is_refused() {
     let dir = support::goal_project(CONFIG);
     let body = "== Dogfood\n\nNot applicable.\n";
-    let (ok, text) = check(dir.path(), LEGACY, body);
-    assert!(!ok, "a reopened task with x-goals must fail: {text}");
-    assert!(
-        text.contains("give-every-goal-verdict"),
-        "the refusal names the goal rule: {text}"
-    );
+    let text = breach(dir.path(), LEGACY, body, "give-every-goal-verdict");
     assert!(
         text.contains("keep-one-goals-section"),
         "the refusal names the missing Goals section: {text}"

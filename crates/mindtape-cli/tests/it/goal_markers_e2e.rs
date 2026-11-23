@@ -9,6 +9,7 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
+use std::process::Command;
 
 use crate::support;
 use mindtape::test_support::write_file;
@@ -23,6 +24,27 @@ roots = [\"tasks\"]
 name = \"rate-every-goal\"
 check = { typst = \"truth/lib.typ\", function = \"check-goal-over\", field = \"markers\" }
 severity = \"error\"
+";
+
+/// A warning rule that echoes the reasons the harvest recorded, so a test can
+/// see the marker's value instead of inferring it from a breach.
+const INSPECT: &str = "\
+#let check-reason(markers) = {
+  let reasons = markers
+    .filter(marker => type(marker) == dictionary)
+    .map(marker => marker.at(\"value\", default: none))
+    .filter(value => type(value) == dictionary and value.at(\"marker\", default: none) == \"goal\")
+    .map(value => value.at(\"reason\", default: none))
+  (\"harvested reasons: \" + repr(reasons),)
+}
+";
+
+/// The inspect rule, appended after the goal rule in [`CONFIG`].
+const INSPECT_RULE: &str = "\
+[[tasks.rules]]
+name = \"inspect-reason\"
+check = { typst = \"truth/inspect.typ\", function = \"check-reason\", field = \"markers\" }
+severity = \"warn\"
 ";
 
 /// A task that rates every goal once: two helps, a hinders with a reason, every
@@ -141,32 +163,6 @@ fn a_broken_verdict_is_a_check_breach() {
             "`guide-the-implementer` has no effect",
         ),
         (
-            "empty reason",
-            COMPLETE.replace("[because a newcomer reads the block in 30 seconds]", "[]"),
-            "`read-tasks-at-a-glance` says helps but not why",
-        ),
-        (
-            "blank reason",
-            COMPLETE.replace("[because a newcomer reads the block in 30 seconds]", "[ ]"),
-            "`read-tasks-at-a-glance` says helps but not why",
-        ),
-        (
-            "whitespace reason",
-            COMPLETE.replace(
-                "[because a newcomer reads the block in 30 seconds]",
-                "[   ]",
-            ),
-            "`read-tasks-at-a-glance` says helps but not why",
-        ),
-        (
-            "one-word reason",
-            COMPLETE.replace(
-                "[because a newcomer reads the block in 30 seconds]",
-                "[why]",
-            ),
-            "`read-tasks-at-a-glance` says helps but not why",
-        ),
-        (
             "no helps",
             COMPLETE.replace(
                 "#Helps(adopter, to: read-tasks-at-a-glance)\
@@ -186,9 +182,9 @@ fn a_broken_verdict_is_a_check_breach() {
     }
 }
 
-/// A wrong-audience verdict names both audiences and asks the author to
-/// reconsider, without a copy-paste replacement. A mechanical swap would hide
-/// a bad verdict instead of fixing the framing.
+/// The wrong-audience message quotes both audiences and leaves the decision
+/// to the author, without a copy-paste replacement. A mechanical swap would
+/// hide a bad verdict instead of fixing the framing.
 #[test]
 fn a_wrong_audience_verdict_guides_without_a_mechanical_fix() {
     let dir = support::goal_project(CONFIG);
@@ -226,9 +222,97 @@ fn a_wrong_audience_verdict_guides_without_a_mechanical_fix() {
     }
 }
 
-/// A duplicate goal name in either registry is refused before the merge. The
-/// merged `known` would keep one entry, so a task could pass with one goal
-/// unrated. Each case appends to a temp copy of this repo's real registry.
+/// The helper renders the reason, and the harvested marker still carries it.
+/// A warning rule echoes the marker's reason instead of a breach.
+#[test]
+fn the_harvested_marker_carries_the_reason() {
+    let dir = support::goal_project(CONFIG);
+    write_file(dir.path(), "truth/inspect.typ", INSPECT);
+    let config = dir.path().join(".mindtape/config.toml");
+    let base = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(&config, format!("{base}\n{INSPECT_RULE}")).unwrap();
+    write_file(dir.path(), "tasks/subject.typ", task_source(PASSING));
+    let (ok, text) = support::run_text(dir.path(), &["check"]);
+    assert!(ok, "a complete block passes with a warning: {text}");
+    assert!(text.contains("harvested reasons:"), "{text}");
+    assert!(
+        text.contains("because a newcomer reads the block in 30 seconds"),
+        "the marker still carries the reason: {text}"
+    );
+}
+
+/// The reason is visible in the compiled task, not only in the marker. The
+/// typst in this repo's shell lacks the HTML feature. The test queries the
+/// labelled reason: the same compile, read as text instead of outlined paths.
+#[test]
+fn a_goal_reason_renders_in_the_task_card() {
+    let dir = support::goal_project(CONFIG);
+    let help =
+        "+ #Helps(adopter, to: read-tasks-at-a-glance)[a visible goal reason <goal-reason>].\n";
+    write_file(dir.path(), "tasks/subject.typ", task_source(help));
+    let output = Command::new("typst")
+        .current_dir(dir.path())
+        .arg("query")
+        .arg("--package-path")
+        .arg(support::package_root(dir.path()))
+        .arg("--root")
+        .arg(dir.path())
+        .arg("tasks/subject.typ")
+        .arg("<goal-reason>")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "typst query failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let queried: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let shown: Vec<&str> = queried
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|entry| entry.get("text").and_then(serde_json::Value::as_str))
+        .collect();
+    assert_eq!(
+        shown,
+        ["a visible goal reason"],
+        "the compiled card shows the reason"
+    );
+}
+
+/// An empty reason is a breach: an empty block, a whitespace-only block, or a
+/// single word. Each case starts from [`COMPLETE`] so the reason is the one
+/// problem.
+#[test]
+fn a_thin_reason_is_a_check_breach() {
+    let dir = support::goal_project(CONFIG);
+    let cases = [
+        ("empty", "[]"),
+        ("blank", "[ ]"),
+        ("whitespace", "[   ]"),
+        ("one word", "[why]"),
+    ];
+    for (case, reason) in cases {
+        let (ok, text) = check(
+            dir.path(),
+            &COMPLETE.replace("[because a newcomer reads the block in 30 seconds]", reason),
+        );
+        assert!(!ok, "{case} reason must breach: {text}");
+        assert!(
+            text.contains("`read-tasks-at-a-glance` says helps but not why"),
+            "{case}: {text}"
+        );
+        assert!(
+            text.contains("write the reason in a sentence"),
+            "{case}: the message says what is missing: {text}"
+        );
+    }
+}
+
+/// The check refuses a duplicate goal name in either registry before the
+/// merge. The merged `known` would keep one entry, so a task could pass with
+/// one goal unrated. Each case appends to a temp copy of this repo's real
+/// registry.
 #[test]
 fn a_duplicate_goal_name_is_a_check_breach() {
     let dir = support::goal_project(CONFIG);

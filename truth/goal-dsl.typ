@@ -82,43 +82,56 @@
   value.name
 }
 
-// A goal this task helps, and why. The reason is the trailing content block.
-#let Helps(audience, reason, to: none) = _goal-marker-of((
-  audience: audience,
-  goal: _rated(to, "Helps", "to"),
-  effect: "helps",
-  reason: reason,
-))
+// A goal this task helps, and why. The reason is the trailing content block,
+// which the card shows beside the marker.
+#let Helps(audience, reason, to: none) = (
+  _goal-marker-of((
+    audience: audience,
+    goal: _rated(to, "Helps", "to"),
+    effect: "helps",
+    reason: reason,
+  ))
+    + reason
+)
 
 // A goal this task hinders, and from which direction. The reason is the
-// trailing content block.
-#let Hinders(audience, reason, from: none) = _goal-marker-of((
-  audience: audience,
-  goal: _rated(from, "Hinders", "from"),
-  effect: "hinders",
-  reason: reason,
-))
+// trailing content block, which the card shows beside the marker.
+#let Hinders(audience, reason, from: none) = (
+  _goal-marker-of((
+    audience: audience,
+    goal: _rated(from, "Hinders", "from"),
+    effect: "hinders",
+    reason: reason,
+  ))
+    + reason
+)
 
 // The goals this task leaves alone. One marker per goal, each carrying the
-// goal's own audience, since one neutral call spans both registries.
+// goal's own audience, since one neutral call spans both registries. The card
+// shows the goal names, so a reader sees what the task leaves alone.
 #let Neutral(..goals) = {
   assert(
     goals.named().len() == 0,
     message: "Neutral() takes goal values as positional arguments",
   )
+  let markers = ()
+  let names = ()
   for value in goals.pos() {
     assert(
       type(value) == dictionary and "name" in value and "audience" in value,
       message: "Neutral() takes goal values from goal-calls.typ, not "
         + repr(value),
     )
-    _goal-marker-of((
+    markers.push(_goal-marker-of((
       audience: value.audience,
       goal: value.name,
       effect: "neutral",
       reason: none,
-    ))
+    )))
+    names.push(value.name)
   }
+  if names.len() == 0 { return markers.join() }
+  markers.join() + [Neutral: #names.join(", ")]
 }
 
 // Every goal name the two registries declare, in registry order.

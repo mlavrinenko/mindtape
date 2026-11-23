@@ -5,7 +5,7 @@
 use super::{PRELUDE, run_ok};
 use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// A template whose slots span both sides of the escaping decision. A `string`
 /// title and an `int` priority render as literals and must stay verbatim, while
@@ -148,6 +148,13 @@ pub fn install_lib(dir: &Path) {
         .join("typst/packages/local/mindtape/0.5.0");
     mindtape::test_support::write_package(&pkg, PRELUDE);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
+}
+
+/// The package root [`install_lib`] fills, as `typst --package-path` reads a
+/// local `@local/mindtape`. A test that compiles a task outside `mt` resolves
+/// the same installed package the loader does.
+pub fn package_root(dir: &Path) -> PathBuf {
+    dir.join(super::DATA_HOME).join("typst/packages")
 }
 
 /// A temp project that can evaluate `@local/mindtape` via the in-tree lib
