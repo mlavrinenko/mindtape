@@ -62,14 +62,14 @@ words = { count = "prose" }
 name = "write-goals-section"
 path = ["Goals"]
 assert = "non-empty"
-when = "!terminal && !has(x-goals)"
+when = "!terminal"
 message = "write the goal block under `Goals`; an empty section rates nothing"
 
 [[tasks.body.content.rules]]
 name = "cap-goals-at-160-words"
 path = ["Goals"]
 assert = { words = { max = 160, count = "text" } }
-when = "!terminal && !has(x-goals)"
+when = "!terminal"
 message = "cut the goal reasons to under 160 words"
 
 # The project's own allowlist replaces both packs' rule. It names every section
@@ -90,7 +90,7 @@ message = "limit an open task to AS-IS, TO-BE, Changes, Out of scope, Dogfood an
 name = "keep-one-goals-section"
 path = ["Goals"]
 action = "unique"
-when = "!terminal && !has(x-goals)"
+when = "!terminal"
 message = "rate every goal under one `== Goals` heading"
 
 [[tasks.body.headers.rules]]
@@ -138,21 +138,15 @@ example = { src-files = 1 }
 # a verdict reaches it as a Typst value rather than a header dict. One verdict
 # per goal in truth/goals.typ and truth/process-goals.typ, with the audience the
 # registry declares, a reason on a helps or hinders, and at least one helps. A
-# task that helps no goal is refused, so nothing unjustified gets filed. An
-# open task that still carries `x-goals` is exempt here, and the warning below
-# names the move.
+# task that helps no goal is refused, so nothing unjustified gets filed. Every
+# open task gets this check, whatever fields it carries: a reopened task that
+# still has `x-goals` must move its goals into `== Goals`. Closed history keeps
+# the field as data.
 [[tasks.rules]]
 name = "give-every-goal-verdict"
-when = "!terminal && !has(x-goals)"
+when = "!terminal"
 check = { typst = "truth/lib.typ", function = "check-goal-over", field = "markers" }
 severity = "error"
-
-[[tasks.rules]]
-name = "warn-on-x-goals-on-open-tasks"
-when = '!terminal && matches(dir, "^truth/tasks/")'
-assert = "miss(x-goals)"
-message = "move `x-goals` into `== Goals`; the goal check reads markers. A reopened legacy task warns until it is re-rated."
-severity = "warn"
 
 # The backlog is one folder per filing month, plus `swept/` for a sweep batch.
 # The folder is a filing date, not a label, so no tag is derived from it

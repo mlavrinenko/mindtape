@@ -6,10 +6,7 @@
 //   #Hinders(maintainer, from: keep-changes-safe)[why]
 //   #Neutral(guide-the-implementer, beat-markdown)
 //
-// The registry keys and these bindings are the kebab names. Each old name stays
-// as an alias, so a task filed before the rename still evaluates. A verdict
-// written through an alias emits the new key, because the goal value carries
-// its own name.
+// The registry keys and these bindings are the kebab names.
 
 #import "goal-dsl.typ": Helps, Hinders, Neutral, adopter, goal, maintainer
 #import "goals.typ": goals as product-goals
@@ -28,16 +25,3 @@
 // How this repo builds Mindtape.
 #let keep-changes-safe = process-goals.keep-changes-safe
 #let match-docs-to-code = process-goals.match-docs-to-code
-
-// The names a task wrote before the rename. Each alias points at the same goal
-// value as its new spelling.
-#let readable-tasks = read-tasks-at-a-glance
-#let implementable-tasks = guide-the-implementer
-#let enforced-practice = run-checks-at-the-write
-#let config-over-code = keep-the-engine-agnostic
-#let cheap-adoption = adopt-in-one-line
-#let typst-over-markdown = beat-markdown
-#let plain-files = keep-plain-files
-#let self-describing = explain-itself
-#let sound-codebase = keep-changes-safe
-#let docs-match-code = match-docs-to-code

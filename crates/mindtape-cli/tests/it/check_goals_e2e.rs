@@ -1,6 +1,6 @@
 //! End-to-end tests for the live goal-block rules: the project's allowlist, the
 //! one `== Goals` section after `Dogfood`, and the content rules that keep it
-//! written and short. The warning covers a reopened task with `x-goals`
+//! written and short. The refusal covers a reopened task with `x-goals`
 //! (`truth/tasks/2026-11/migrate-the-open-backlog-and-switch-the-goal-rule.typ`).
 //!
 //! The marker DSL itself is `goal_markers_e2e`. This file reads this repo's
@@ -20,7 +20,7 @@ roots = [\"truth/tasks\"]
 
 [[tasks.rules]]
 name = \"give-every-goal-verdict\"
-when = \"!terminal && !has(x-goals)\"
+when = \"!terminal\"
 check = { typst = \"truth/lib.typ\", function = \"check-goal-over\", field = \"markers\" }
 severity = \"error\"
 
@@ -37,7 +37,7 @@ message = \"limit an open task to AS-IS, TO-BE, Changes, Out of scope, Dogfood a
 name = \"keep-one-goals-section\"
 path = [\"Goals\"]
 action = \"unique\"
-when = \"!terminal && !has(x-goals)\"
+when = \"!terminal\"
 message = \"rate every goal under one `== Goals` heading\"
 
 [[tasks.body.headers.rules]]
@@ -52,22 +52,15 @@ message = \"move Goals after Dogfood\"
 name = \"write-goals-section\"
 path = [\"Goals\"]
 assert = \"non-empty\"
-when = \"!terminal && !has(x-goals)\"
+when = \"!terminal\"
 message = \"write the goal block under `Goals`; an empty section rates nothing\"
 
 [[tasks.body.content.rules]]
 name = \"cap-goals-at-160-words\"
 path = [\"Goals\"]
 assert = { words = { max = 160, count = \"text\" } }
-when = \"!terminal && !has(x-goals)\"
+when = \"!terminal\"
 message = \"cut the goal reasons to under 160 words\"
-
-[[tasks.rules]]
-name = \"warn-on-x-goals-on-open-tasks\"
-when = '!terminal && matches(dir, \"^truth/tasks/\")'
-assert = \"miss(x-goals)\"
-message = \"move `x-goals` into `== Goals`; the goal check reads markers. A reopened legacy task warns until it is re-rated.\"
-severity = \"warn\"
 ";
 
 /// A complete block that rates every goal once.
@@ -82,8 +75,8 @@ Not applicable.
 + #Neutral(guide-the-implementer, run-checks-at-the-write, keep-the-engine-agnostic, adopt-in-one-line, beat-markdown, keep-plain-files, explain-itself, keep-changes-safe, match-docs-to-code).
 ";
 
-/// The old `x-goals` dict a reopened task carries. It is history: the goal
-/// check skips it, and the warning points at `Goals`.
+/// The old `x-goals` dict a reopened task carries. The live goal check reads
+/// the field, so the task must move its goals into `Goals`.
 const LEGACY: &str = "\
   x-goals: (
     product: (
@@ -187,42 +180,24 @@ fn a_long_goals_section_breaches() {
     breach(dir.path(), "", &body, "cap-goals-at-160-words");
 }
 
-/// A reopened task with `x-goals` passes and warns, because the field is
-/// history the goal check skips.
+/// The goal rules refuse a reopened task that still carries `x-goals` and no
+/// `Goals`, and the run names them rather than a warning.
 #[test]
-fn a_reopened_legacy_task_passes_with_a_warning() {
+fn a_reopened_legacy_task_is_refused() {
     let dir = support::goal_project(CONFIG);
     let body = "== Dogfood\n\nNot applicable.\n";
     let (ok, text) = check(dir.path(), LEGACY, body);
+    assert!(!ok, "a reopened task with x-goals must fail: {text}");
     assert!(
-        ok,
-        "a reopened task with x-goals passes at warn severity: {text}"
+        text.contains("give-every-goal-verdict"),
+        "the refusal names the goal rule: {text}"
     );
     assert!(
-        text.contains("warning:") && text.contains("warn-on-x-goals-on-open-tasks"),
-        "the run names the warning rule: {text}"
+        text.contains("keep-one-goals-section"),
+        "the refusal names the missing Goals section: {text}"
     );
     assert!(
-        text.contains("move `x-goals` into `== Goals`"),
-        "the warning names the fix: {text}"
+        !text.contains("warn-on-x-goals-on-open-tasks"),
+        "there is no warning rule: {text}"
     );
-}
-
-/// A task that rates every goal through the old alias names passes, because an
-/// alias carries the goal value whose name is the new key.
-#[test]
-fn an_alias_goal_emits_the_new_key() {
-    let dir = support::goal_project(CONFIG);
-    let body = "\
-== Dogfood
-
-Not applicable.
-
-== Goals
-
-+ #Helps(adopter, to: readable-tasks)[a reader sees the block].
-+ #Neutral(implementable-tasks, enforced-practice, config-over-code, cheap-adoption, typst-over-markdown, plain-files, self-describing, sound-codebase, docs-match-code).
-";
-    let (ok, text) = check(dir.path(), "", body);
-    assert!(ok, "an alias must emit the new key the check knows: {text}");
 }

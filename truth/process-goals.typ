@@ -3,8 +3,7 @@
 // too, checked by `check-goal-over(...)` from truth/lib.typ.
 //
 // A task names a goal by the kebab of its infinitive, which goal-calls.typ
-// binds. The registry keys carry those names. goal-calls.typ also binds the
-// old `x-goals` keys as aliases, so a task filed before the rename evaluates.
+// binds. The registry keys carry those names.
 
 #import "goal-dsl.typ": maintainer
 #import "goal-dsl.typ": goal as goal-of
