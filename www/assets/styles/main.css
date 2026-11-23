@@ -71,6 +71,10 @@
   --rail: 210px;
   --gap: clamp(1.5rem, 3.9vw, 3.5rem);
   --max-text: 46rem;
+
+  /* The sticky masthead height. The nav script measures it; the media query
+     below is the fallback for the two-row phone masthead. */
+  --masthead-h: 64px;
 }
 
 [data-theme="dark"] {
@@ -222,6 +226,25 @@ img, svg { display: block; }
 }
 .tool:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 
+/* The header tools set the ring; controls elsewhere keep it too. */
+.btn:focus-visible,
+.btn-ghost:focus-visible,
+.brand:focus-visible,
+.station:focus-visible,
+.stop:focus-visible,
+.page-toc a:focus-visible,
+.next-stop:focus-visible,
+.md-copy:focus-visible,
+.code-head .copy:focus-visible,
+#search .pagefind-ui__search-input:focus-visible,
+.skip:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+/* The code header clips its children at the right edge, so its focus ring
+   sits inside the button. */
+.code-head .copy:focus-visible { outline-offset: -2px; }
+
 /* The theme switch: a squared track whose knob slides right for dark mode. */
 .theme-switch {
   position: relative; flex: none; width: 42px; height: 23px; padding: 0;
@@ -245,6 +268,7 @@ img, svg { display: block; }
 .nav-toggle .nav-cross { display: none; }
 .nav-toggle[aria-expanded="true"] .nav-bars { display: none; }
 .nav-toggle[aria-expanded="true"] .nav-cross { display: block; }
+.nav-scrim { display: none; }
 @media (prefers-reduced-motion: reduce) { .theme-knob { transition: none; } }
 
 /* ── Route strip ──────────────────────────────────────────────────────────── */
@@ -465,7 +489,7 @@ main ul:not([class]) > li::before {
 main ol { list-style: decimal; }
 main li { margin: 0.28rem 0; }
 main hr { border: none; border-top: 1px solid var(--line); margin: 2.6rem 0; }
-main [id] { scroll-margin-top: 84px; }
+main#main, main [id] { scroll-margin-top: calc(var(--masthead-h, 64px) + 20px); }
 main h2 code, main h3 code { font-size: 0.78em; }
 
 blockquote {
@@ -570,9 +594,17 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
     transition: transform 0.2s ease, visibility 0s 0.2s;
   }
   .js-nav .sidebar nav { display: block; }
+  .js-nav .nav-scrim {
+    position: fixed; z-index: 18;
+    top: var(--header-bottom, var(--masthead-h));
+    right: 0; bottom: 0; left: 0;
+    display: block; background: rgba(0, 0, 0, 0.35);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .nav-open .nav-scrim { opacity: 1; pointer-events: auto; }
   .nav-open .sidebar {
     visibility: visible; transform: none; transition: transform 0.2s ease;
-    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.35);
   }
   .nav-open body { overflow: hidden; }
   .nav-open main, .nav-open .site-footer { pointer-events: none; }
@@ -582,6 +614,7 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
 }
 
 @media (max-width: 40rem) {
+  :root { --masthead-h: 99px; }
   .masthead { height: auto; }
   .masthead-inner { flex-wrap: wrap; row-gap: 10px; padding-top: 10px; padding-bottom: 10px; }
   .search-wrap { order: 3; width: 100%; margin-left: 0; }
@@ -589,7 +622,7 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
 }
 
 @media (max-width: 52rem) and (prefers-reduced-motion: reduce) {
-  .js-nav .sidebar, .nav-open .sidebar { transition: none; }
+  .js-nav .sidebar, .nav-open .sidebar, .nav-scrim { transition: none; }
 }
 
 /* tola 0.7.1 injects these rules as a link to a hidden .tola/ file. They live

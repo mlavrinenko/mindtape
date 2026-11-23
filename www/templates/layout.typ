@@ -15,31 +15,80 @@
 // becomes a drawer that the masthead's menu button opens. The `js-nav` class,
 // set before first paint, turns the drawer on, so without script the sidebar
 // stays in the page, after the content. Opening sets `nav-open` on <html>,
-// pins the drawer under the masthead and scrolls it to the current page. A tap
-// on a link or outside the drawer closes it, and so does Escape, which hands
-// focus back to the button.
+// marks the page behind the drawer inert, and moves focus to the current page.
+// A tap on a link, the scrim, or outside the drawer closes it, and so does
+// Escape, which hands focus back to the button.
 #let _nav-script = "document.documentElement.classList.add('js-nav');
 function scrollNav(s,a){if(!s||!a)return;var r=s.getBoundingClientRect(),ar=a.getBoundingClientRect();if(ar.top>=r.top+16&&ar.bottom<=r.bottom-16)return;s.scrollTop+=ar.top-r.top-s.clientHeight/3;}
-function setNav(open){
+function setInert(on){
+var els=document.querySelectorAll('.skip,.brand,.search-wrap,.line,main,.site-footer,.masthead .tool.header-icon,.theme-switch');
+els.forEach(function(el){if(on)el.setAttribute('inert','');else el.removeAttribute('inert');});
+}
+function setNav(open,restoreFocus){
 var d=document.documentElement,b=document.querySelector('.nav-toggle'),s=document.querySelector('.sidebar');
+if(open&&s)d.style.setProperty('--header-bottom',document.querySelector('.masthead').getBoundingClientRect().bottom+'px');
 d.classList.toggle('nav-open',open);
 if(b)b.setAttribute('aria-expanded',open?'true':'false');
-if(!open||!s)return;
-d.style.setProperty('--header-bottom',document.querySelector('.masthead').getBoundingClientRect().bottom+'px');
+if(!open){
+setInert(false);
+if(s){s.removeAttribute('role');s.removeAttribute('aria-modal');s.removeAttribute('aria-label');}
+if(restoreFocus&&b)b.focus();
+return;
+}
+if(!s)return;
+setInert(true);
+s.setAttribute('role','dialog');
+s.setAttribute('aria-modal','true');
+s.setAttribute('aria-label','Documentation menu');
 scrollNav(s,s.querySelector('[aria-current=page]'));
+var first=s.querySelector('[aria-current=page]')||s.querySelector('a');
+if(first)first.focus();
 }
 document.addEventListener('click',function(e){
 var open=document.documentElement.classList.contains('nav-open');
-if(e.target.closest('.nav-toggle'))setNav(!open);
-else if(open&&(e.target.closest('.sidebar a')||!e.target.closest('.sidebar')))setNav(false);
+if(e.target.closest('.nav-toggle')){setNav(!open,false);return;}
+if(!open)return;
+if(e.target.closest('.nav-scrim')){setNav(false,true);return;}
+if(e.target.closest('.sidebar a')){setNav(false,false);return;}
+if(!e.target.closest('.sidebar'))setNav(false,true);
 });
 document.addEventListener('keydown',function(e){
-if(e.key!=='Escape'||!document.documentElement.classList.contains('nav-open'))return;
-setNav(false);document.querySelector('.nav-toggle').focus();
+var d=document.documentElement;
+if(e.key==='Escape'&&d.classList.contains('nav-open')){setNav(false,true);return;}
+if(e.key!=='Tab'||!d.classList.contains('nav-open'))return;
+var b=document.querySelector('.nav-toggle'),s=document.querySelector('.sidebar');
+if(!b||!s)return;
+var f=s.querySelectorAll('a[href]');if(!f.length)return;
+var first=f[0],last=f[f.length-1];
+if(e.shiftKey){
+if(document.activeElement===first){e.preventDefault();b.focus();}
+else if(document.activeElement===b){e.preventDefault();last.focus();}
+}else{
+if(document.activeElement===last){e.preventDefault();b.focus();}
+else if(document.activeElement===b){e.preventDefault();first.focus();}
+}
 });
 document.addEventListener('DOMContentLoaded',function(){
 var s=document.querySelector('.sidebar');if(!s||s.scrollHeight<=s.clientHeight)return;
 scrollNav(s,s.querySelector('[aria-current=page]'));
+});
+document.addEventListener('DOMContentLoaded',function(){
+var mq=window.matchMedia('(max-width: 52rem)');
+function closeAtWide(e){if(!e.matches&&document.documentElement.classList.contains('nav-open'))setNav(false,false);}
+if(mq.addEventListener)mq.addEventListener('change',closeAtWide);else mq.addListener(closeAtWide);
+});
+function syncMasthead(){var m=document.querySelector('.masthead');if(m)document.documentElement.style.setProperty('--masthead-h',m.getBoundingClientRect().height+'px');}
+document.addEventListener('DOMContentLoaded',syncMasthead);
+window.addEventListener('resize',syncMasthead);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(syncMasthead);
+document.addEventListener('DOMContentLoaded',function(){
+var t=document.querySelector('main.home .table-scroll table');if(!t)return;
+t.setAttribute('role','table');
+t.setAttribute('aria-label','Recipes and the refusals they produce');
+t.querySelectorAll('thead,tbody').forEach(function(g){g.setAttribute('role','rowgroup')});
+t.querySelectorAll('tr').forEach(function(r){r.setAttribute('role','row')});
+t.querySelectorAll('th').forEach(function(c){c.setAttribute('role','columnheader')});
+t.querySelectorAll('td').forEach(function(c){c.setAttribute('role','cell')});
 });
 document.addEventListener('DOMContentLoaded',function(){
 document.querySelectorAll('.nav-group.is-here').forEach(function(g){
@@ -735,6 +784,9 @@ update();
   })
 
   _route-strip(active, here)
+
+  // The drawer's scrim sits below the masthead and closes the drawer on a tap.
+  html.elem("div", attrs: (class: "nav-scrim", "aria-hidden": "true"))
 
   html.elem(
     "div",

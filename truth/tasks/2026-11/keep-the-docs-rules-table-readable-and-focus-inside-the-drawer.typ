@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 11, 23),
+  status: done(
+    2026,
+    11,
+    23,
+  )[Mobile recipe rows stack and the drawer owns focus. Browser checks covered 390 and 1440, and the full check passes.],
   links: edge(
     "surfaced-by",
     "rebuild-the-docs-site-as-a-transit-line.typ",
