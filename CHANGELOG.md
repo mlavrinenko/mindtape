@@ -30,12 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every goal under one `== Goals` section after `Dogfood`, with
   `#Helps(adopter, to: <goal>)[why]`, `#Hinders(maintainer, from: <goal>)[why]`
   or `#Neutral(...)`. This repository's `truth/prelude/2/lib.typ` adds the goal
-  values beside generation 1's prelude, `truth/lib.typ` keeps `check-goal-over`
-  over the two registries, and each registry keeps the old `x-goals` key as an
-  alias. `.mindtape/config.toml` switches `give-every-goal-verdict` to
-  `field = "markers"`, adds the project allowlist and the four `Goals` rules,
-  and warns on an open task that still carries `x-goals`. Closed history keeps
-  the old field.
+  values beside generation 1's prelude, and `truth/lib.typ` keeps
+  `check-goal-over` over the two registries. `.mindtape/config.toml` switches
+  `give-every-goal-verdict` to `field = "markers"`, adds the project allowlist
+  and the four `Goals` rules, and gives every open task the check. Closed
+  history keeps the old field as data, and a reopened task must move its goals
+  into `== Goals`.
 - **A rebuilt task file can carry the project's own imports.** `[tasks]
   emit-imports` lists root-absolute `.typ` modules, and `mt import` writes one
   `#import "<path>": *` per entry before the prelude import and the body, so a
@@ -166,6 +166,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The goal check has no `x-goals` exemption.** `give-every-goal-verdict` and
+  the content and unique `Goals` rules run on every open task, and the
+  `warn-on-x-goals-on-open-tasks` rule is gone. A reopened legacy task moves
+  its goals into `== Goals`; closed history keeps `x-goals` as data. The
+  old-name goal aliases retire from `truth/goal-calls.typ`.
 - **`mt allow` prints its table under an `allowed` line.** The commands it
   records now carry the gate or editor kind and, for a hook, its label, so the
   listing and the record read alike.
