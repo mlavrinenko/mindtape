@@ -6,15 +6,15 @@
 // rather than one panic at a time. A task nothing justifies (helps no goal) is
 // refused, not filed.
 //
-// The check itself lives in the prelude and takes the two registries, because a
-// project's goals are its own. This module wraps it with this repo's product and
-// process goals. `check-goal-over` reads the reserved `markers` rule input, the
-// DSL a task writes as `#Helps`/`#Hinders`/`#Neutral`. The two registries fix
-// each goal's audience, which is why the wrapper passes them here rather than
-// letting the generic check guess.
+// The check itself lives in truth/goal-dsl.typ and takes the two registries,
+// because a project's goals are its own. This module wraps it with this repo's
+// product and process goals. `check-goal-over` reads the reserved `markers` rule
+// input, the DSL a task writes as `#Helps`/`#Hinders`/`#Neutral`. The two
+// registries fix each goal's audience, which is why the wrapper passes them here
+// rather than letting the generic check guess.
 
 #import "@local/mindtape:0.5.0": edge
-#import "@local/mindtape:0.5.0": check-goal-over as check-goals-over-registries
+#import "goal-dsl.typ": check-goal-over as check-goals-over-registries
 #import "goals.typ": goals as product-goals
 #import "process-goals.typ": goals as process-goals
 

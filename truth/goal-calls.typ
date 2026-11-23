@@ -11,9 +11,7 @@
 // written through an alias emits the new key, because the goal value carries
 // its own name.
 
-#import "@local/mindtape:0.5.0": (
-  Helps, Hinders, Neutral, adopter, goal, maintainer,
-)
+#import "goal-dsl.typ": Helps, Hinders, Neutral, adopter, goal, maintainer
 #import "goals.typ": goals as product-goals
 #import "process-goals.typ": goals as process-goals
 

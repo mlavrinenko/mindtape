@@ -11,7 +11,7 @@
   kind: "refactor",
   tags: ("mt", "tooling", "gating", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 22),
+  status: wip(2026, 11, 23),
 )
 
 == AS-IS

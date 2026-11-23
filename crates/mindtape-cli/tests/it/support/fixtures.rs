@@ -180,28 +180,31 @@ pub fn scaffold_project(config: &str) -> tempfile::TempDir {
 /// `dir`'s `truth/` tree. A rule pointed at `check-goal-over` then reads the
 /// real files, not a fixture.
 fn copy_goal_files(dir: &Path) {
-    for (name, source) in [
-        ("lib.typ", include_str!("../../../../../truth/lib.typ")),
-        ("goals.typ", include_str!("../../../../../truth/goals.typ")),
-        (
-            "process-goals.typ",
-            include_str!("../../../../../truth/process-goals.typ"),
-        ),
-        (
-            "goal-calls.typ",
-            include_str!("../../../../../truth/goal-calls.typ"),
-        ),
-        (
-            "prelude/1/lib.typ",
-            include_str!("../../../../../truth/prelude/1/lib.typ"),
-        ),
-        (
-            "prelude/2/lib.typ",
-            include_str!("../../../../../truth/prelude/2/lib.typ"),
-        ),
-    ] {
+    let copy = |name: &str, source: &str| {
         write_file(dir, format!("truth/{name}"), source);
-    }
+    };
+    copy("lib.typ", include_str!("../../../../../truth/lib.typ"));
+    copy(
+        "goal-dsl.typ",
+        include_str!("../../../../../truth/goal-dsl.typ"),
+    );
+    copy("goals.typ", include_str!("../../../../../truth/goals.typ"));
+    copy(
+        "process-goals.typ",
+        include_str!("../../../../../truth/process-goals.typ"),
+    );
+    copy(
+        "goal-calls.typ",
+        include_str!("../../../../../truth/goal-calls.typ"),
+    );
+    copy(
+        "prelude/1/lib.typ",
+        include_str!("../../../../../truth/prelude/1/lib.typ"),
+    );
+    copy(
+        "prelude/2/lib.typ",
+        include_str!("../../../../../truth/prelude/2/lib.typ"),
+    );
 }
 
 /// A project scaffolded with `config`, carrying this repo's real goal modules
