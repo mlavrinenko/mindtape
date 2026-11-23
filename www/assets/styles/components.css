@@ -63,7 +63,8 @@
   font-size: 30px; font-weight: 700; letter-spacing: -0.035em;
   line-height: 1.1; margin: 0;
 }
-.section-head h2 code { font-size: 0.72em; background: none; border: 0; padding: 0; }
+/* Inline code keeps its paper and border in a title; only the size steps down. */
+.section-head h2 code { font-size: 0.78em; letter-spacing: 0; }
 .section-note {
   margin-left: auto; text-align: right;
   font-family: var(--mono); font-size: 11px; color: var(--muted);
