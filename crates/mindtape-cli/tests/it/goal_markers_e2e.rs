@@ -146,6 +146,43 @@ fn a_broken_verdict_is_a_check_breach() {
     }
 }
 
+/// A duplicate goal name in either registry is refused before the merge. The
+/// merged `known` would keep one entry, so a task could pass with one goal
+/// unrated. Each case appends to a temp copy of this repo's real registry.
+#[test]
+fn a_duplicate_goal_name_is_a_check_breach() {
+    let dir = support::goal_project(CONFIG);
+    let cases = [
+        (
+            "within the product registry",
+            "truth/goals.typ",
+            "keep-plain-files",
+            "\n#let goals = goals + (\n  keep-plain-files-again: goal(\n    to: \"keep plain files\",\n    from: \"keeping plain files again\",\n  ),\n)\n",
+        ),
+        (
+            "across the two registries",
+            "truth/process-goals.typ",
+            "read-tasks-at-a-glance",
+            "\n#let goals = goals + (\n  read-tasks-at-a-glance: goal(\n    to: \"read tasks at a glance\",\n    from: \"reading tasks at a glance\",\n  ),\n)\n",
+        ),
+    ];
+    for (case, registry, name, duplicate) in cases {
+        let path = dir.path().join(registry);
+        let original = std::fs::read_to_string(&path).unwrap();
+        std::fs::write(&path, format!("{original}{duplicate}")).unwrap();
+        let (ok, text) = check(dir.path(), COMPLETE);
+        assert!(!ok, "{case}: a duplicate must breach: {text}");
+        assert!(
+            text.contains(&format!(
+                "`{name}` is declared twice; rename one `to` or split the registries"
+            )),
+            "{case}: the breach names the duplicate: {text}"
+        );
+        assert!(!text.contains("ok: 1 task"), "{case}: no false pass: {text}");
+        std::fs::write(&path, original).unwrap();
+    }
+}
+
 /// A task that rates every goal exactly once, helps twice, hinders with a
 /// reason and carries a marker that is not a goal passes.
 #[test]

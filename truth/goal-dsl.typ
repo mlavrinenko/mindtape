@@ -121,8 +121,33 @@
   }
 }
 
+// Every goal name the two registries declare, in registry order.
+#let _goal-names(product, process) = {
+  let names = product.values().map(value => value.name)
+  names + process.values().map(value => value.name)
+}
+
+// The names declared more than once across the two registries. A duplicate
+// would collapse to one `known` entry and leave one goal unrated, so the check
+// refuses the registry instead of merging it.
+#let _duplicate-goals(product, process) = {
+  let seen = ()
+  let duplicates = ()
+  for name in _goal-names(product, process) {
+    if name in seen {
+      if name not in duplicates {
+        duplicates.push(name)
+      }
+    } else {
+      seen.push(name)
+    }
+  }
+  duplicates
+}
+
 // Every goal value the two registries declare, keyed by the name a task writes.
-// A duplicate name is the project's to avoid: both registries are its own.
+// Both registries are the project's own; `_duplicate-goals` has already refused
+// a name either declares twice.
 #let _goals-by-name(product, process) = {
   let by-name(registry) = registry
     .values()
@@ -166,6 +191,14 @@
 #let check-goal-over(product, process, markers) = {
   if type(markers) != array {
     return ("the goal check reads the body's markers; got " + repr(markers),)
+  }
+  let duplicates = _duplicate-goals(product, process)
+  if duplicates.len() > 0 {
+    return duplicates.map(name => (
+      "goal `"
+        + name
+        + "` is declared twice; rename one `to` or split the registries"
+    ))
   }
   let known = _goals-by-name(product, process)
   let messages = ()

@@ -18,7 +18,11 @@
   ),
   tags: ("found", "mt", "tooling", "stateless", "no-ui-ux"),
   assignee: "agent",
-  status: proposed(2026, 11, 22),
+  status: done(
+    2026,
+    11,
+    23,
+  )[forced past failing gate: "mmz --is-fresh --tag gate"],
 )
 
 == AS-IS
