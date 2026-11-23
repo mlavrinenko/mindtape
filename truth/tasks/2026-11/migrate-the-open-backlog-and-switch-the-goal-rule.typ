@@ -52,7 +52,7 @@
 // demands of an open task. Append-only covers renames, not additions. A task
 // that must not move pins generation 1.
 ```
-- `truth/goal-calls.typ`, `truth/goals.typ`, `truth/process-goals.typ`, `truth/lib.typ`: the chosen names, re-export, aliases to the new keys, keep `check-goal-over` and `surfaced-by`, delete `check-goals`, `_check-group` and `_choices`, and rewrite the module comment. `truth/lib.typ` narrows to `#import "@local/mindtape:0.3.0": edge`. The pin stays: 603 tasks import it.
+- `truth/goal-calls.typ`, `truth/goals.typ`, `truth/process-goals.typ`, `truth/lib.typ`: the chosen names, re-export, aliases to the new keys, keep `check-goal-over` and `surfaced-by`, delete `check-goals`, `_check-group` and `_choices`, and rewrite the module comment. `truth/lib.typ` narrows to `#import "@local/mindtape:0.5.0": edge`. The pin stays: 603 tasks import it.
 - `.mindtape/config.toml`, `crates/mindtape/src/rules/mod.rs`: `emit-imports` on `[tasks]`, `give-every-goal-verdict` switched to `check-goal-over` and `markers`, `markers` reserved. Replace the first rule, rewrite its comment, and update the module doc's example.
 
 ```toml
