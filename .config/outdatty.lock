@@ -307,20 +307,20 @@ groups:
       www/content/templates.typ: a534f25d0ae260bf9852e6683cca2e6450390e44a36b2b02aa0603e103f02dd0
   coverage-test-re:
     source:
-      .just/scripts/cover.sh: 1081cf23989387c43c6d661c7520a08e7eb2538f9bac9674d54d3f6d057f23d4
+      .just/scripts/cover.sh: d2594a71218ba6fe1ba8597846ae756196054625796eb90c4d4bf4c2dd93575d
     dependents:
-      contrib/ask-refactoring/undertested.sh: 56982936cf27f940bfa7906ff5edbe3c37e197d136a4085d5858a5d1a2363636
+      contrib/ask-refactoring/undertested.sh: 1dc143c3a2bfd709cf0c4481a445c85dc2a3f748dd76205d26d2204c119d8405
   crap-scripts-docs:
     source:
       .just/scripts/_crap-ratchet-control.sh: 2a5e1fb290a23bb54980c9454c22901f426f4d2f9250511e6f2e4c6456e060c6
       .just/scripts/_crap-ratchet-lib.sh: 036f97530e29528b525bac18393fa81616cb2c64be2f67799bec4ba61ee03b96
       .just/scripts/_lcov-stale-reason.sh: 192149aef8f91a98d4712271b183ed848a55969c1f6fb6d6ea3eb9b37ff3074a
-      .just/scripts/cover.sh: 1081cf23989387c43c6d661c7520a08e7eb2538f9bac9674d54d3f6d057f23d4
+      .just/scripts/cover.sh: d2594a71218ba6fe1ba8597846ae756196054625796eb90c4d4bf4c2dd93575d
       .just/scripts/crap-baseline-check.sh: 3fb60e3d18198f1c56fd93fd6c76db776c5f11df113a61a19187338add0a16a1
       .just/scripts/crap-baseline.sh: a37106b125ba298bf7db628a77eaa552393f28f6ef6b1dcf6991f5fbd939f175
       .just/scripts/crap.sh: 039a500468a1fbecfec6214212645739f99cc02fdf5e14aeec5af61b7d73e52f
     dependents:
-      docs/src/contributing/coverage-crap.typ: dfd3234c064a7403e05bac07755428caa51e21d49d084eff17a9a2eee6d93243
+      docs/src/contributing/coverage-crap.typ: 0dfdbd3b18326b67df5c6e49743183684befba2fc6a4eaa9eea808ac142ac4a2
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
   dev-shell-docs:
     source:

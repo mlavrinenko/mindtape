@@ -45,10 +45,14 @@ The fix is a test. If a test can't reach the lines, add the file to `ignore` in
 #just.cover() also gates the lines changed since `main`. `diff-cover` reads the
 same lcov and fails when any added or edited line lacks coverage, so a branch
 cannot sit above both absolute floors while its new guards go untested. The
-diff is `git diff main`, not `main...HEAD`, so staged and working-tree lines
-count too. On `main` itself the diff is empty and the check is inert. A
-checkout without the ref skips it with a note. Set `MINDTAPE_COVER_BASE` to
-compare against another ref.
+diff runs from `git merge-base main HEAD`, the commit the branch forked from,
+not from `main`'s tip. A branch cut before `main` advanced then reports only
+its own lines. The lines `main` landed stay out of the diff. It is a plain
+`git diff` from that commit, not `main...HEAD`, so staged and working-tree
+lines count too. On `main` the merge base is `HEAD`, the diff is empty and the
+check is inert. A checkout without the ref, or one whose history stops short of
+the fork point, skips it with a note. Set `MINDTAPE_COVER_BASE` to compare
+against another ref.
 
 `.config/nextest.toml` sets the output level, because
 `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it. With

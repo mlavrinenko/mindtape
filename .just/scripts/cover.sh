@@ -79,18 +79,24 @@ fi
 # The changed-line floor catches a branch that sits above every absolute floor
 # while its new guards have no tests. `git diff` rather than `--compare-branch`
 # so staged and working-tree lines count too. A plain `git diff <ref>` includes
-# both. `main` itself has an empty diff and passes. A checkout without the ref
-# (a shallow CI clone) says so rather than failing on git.
+# both. The ref goes through `git merge-base` with HEAD first, as
+# mutants-diff.sh does. Diffing `main`'s tip reports every line main landed
+# after the fork as new, and fails a clean branch on code it never wrote. On
+# `main` the merge base is HEAD. The diff stays empty and the check is inert. A
+# checkout without the ref, or one whose history stops short of the fork point
+# (a shallow CI clone), says so rather than failing on git.
 base="${MINDTAPE_COVER_BASE:-${GITHUB_BASE_REF:-main}}"
-if git rev-parse --verify --quiet "$base" >/dev/null; then
+if ! git rev-parse --verify --quiet "$base" >/dev/null; then
+    echo "cover: no '$base' ref; skipping the changed-line floor (set MINDTAPE_COVER_BASE)" >&2
+elif ! fork_point="$(git merge-base "$base" HEAD)"; then
+    echo "cover: no merge base between '$base' and HEAD; skipping the changed-line floor (set MINDTAPE_COVER_BASE)" >&2
+else
     diff_file=target/coverage/changed.diff
-    git diff "$base" -- > "$diff_file"
+    git diff "$fork_point" -- > "$diff_file"
     if [ -s "$diff_file" ] &&
         ! diff-cover target/coverage/lcov.info --diff-file "$diff_file" \
             --exclude '*_tests*.rs' 'tests*.rs' --fail-under=100; then
         echo "cover: new or changed lines must be covered; add a test for the lines named above"
         exit 1
     fi
-else
-    echo "cover: no '$base' ref; skipping the changed-line floor (set MINDTAPE_COVER_BASE)" >&2
 fi
