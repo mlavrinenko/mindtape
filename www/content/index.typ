@@ -27,18 +27,14 @@
 
 #typst-section(site-link, head: section-head)
 
-#section-head("06", [Edit tasks with autocomplete.], note: "TINYMIST · LSP")
+#section-head([Edit tasks with autocomplete.])
 
 #link("https://myriad-dreamin.github.io/tinymist/")[tinymist] helps with
 autocompletion and highlights issues:
 
 #lsp-demo()
 
-#section-head(
-  "07",
-  [For people and for agents.],
-  note: "MT LS · JSON, CSV, PATHS",
-)
+#section-head([For people and for agents.])
 
 `mt ls` prints a table for you to read, and JSON, CSV or a bare list of paths
 for scripts. When `mt` refuses a command, it exits non-zero and says what to

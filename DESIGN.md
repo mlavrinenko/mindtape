@@ -89,7 +89,7 @@ components:
 
 **Creative North Star: "The Line"**
 
-The documentation is a transit information system. Every page is a stop on one line, its position is drawn in the left rail, and the current page is marked twice: by a filled stop on the line map and by the station label above the title. The world is Swiss wayfinding and a paper timetable, not a terminal costume: flat unprinted paper, black rules, one green line, and real command output set as the timetable data.
+The documentation is a transit information system. Every page is a stop on one line, its position is drawn in the left rail, and the current page is marked by a filled stop on the line map. The world is Swiss wayfinding and a paper timetable, not a terminal costume: flat unprinted paper, black rules, one green line, and real command output set as the timetable data.
 
 The system is strict because the product is. A 1360px wrap holds a fixed 232px line map and a fluid reading column; hairlines separate regions instead of cards; the display face is heavy and tight so a page title reads across a room. Code sits on paper in light mode and on a raised night panel in dark mode, with Typst's baked syntax palette remapped for the dark ground. The voice is plain and technical: explain the mechanism, show a real command, move on. A dot exists only where a real destination sits.
 
@@ -145,7 +145,7 @@ A paper-and-ink palette with one signal green. The green is the logo's own accen
 
 The page is a single 1360px wrap with 40px gutters. Below the masthead and route strip, a two-column shell holds a fixed 232px line map and a fluid main column, separated by a gap that scales from 1.5rem to 3.5rem. Articles add a second, sticky rail of 210px for calling points, with a fixed 56px gap; the prose itself stops at 690px so the rail never crowds the measure. The home page uses the full main column for the hero and caps each section at 690px, except the rules table, which is allowed to run wide.
 
-Vertical rhythm comes from hairlines and white space: 42px above the shell, 40px before a section head, 34px after an article head, 24px between a section and its first paragraph. Section numbers (01 to 07) are station numbers: they mark a real position in the line and remain in the copy. At 52rem the sidebar becomes a drawer and the calling points fold into a details block above the prose; at 40rem the masthead wraps to two rows, the search takes the full width, and the display title steps down to `clamp(64px, 17vw, 92px)`.
+Vertical rhythm comes from hairlines and white space: 42px above the shell, 40px before a section head, 34px after an article head, 24px between a section and its first paragraph. The line map’s numbers (01 to 07) are station numbers that mark a real position; section heads in the reading column carry none. At 52rem the sidebar becomes a drawer and the calling points fold into a details block above the prose; at 40rem the masthead wraps to two rows, the search takes the full width, and the display title steps down to `clamp(64px, 17vw, 92px)`.
 
 ## Elevation & Depth
 

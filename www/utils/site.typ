@@ -80,16 +80,15 @@
   pitch: "Write rules in `.mindtape/config.toml`, and `mt check` runs them over every task and commit.",
 )
 
-// A numbered section head: the line's marker for a new stretch of a page. In
-// the Markdown copy it is an ordinary heading, and `md-title` lets the site
-// carry a shorter sign than the long title README already uses.
-#let section-head(no, title, note: "", md-title: none) = if MARKDOWN {
+// A section head: the line's marker for a new stretch of a page. The line's
+// numbers live in the rail, never in the heading. In the Markdown copy it is
+// an ordinary heading, and `md-title` lets the site carry a shorter sign than
+// the long title README already uses.
+#let section-head(title, md-title: none) = if MARKDOWN {
   heading(level: 1, if md-title != none { md-title } else { title })
 } else {
   html.elem("div", attrs: (class: "section-head"), {
-    html.elem("span", attrs: (class: "section-no"), no)
     html.elem("h2", title)
-    if note != "" { html.elem("span", attrs: (class: "section-note"), note) }
   })
 }
 

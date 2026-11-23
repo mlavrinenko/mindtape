@@ -105,16 +105,14 @@
 // The Recipes nav group's routes, in nav order.
 #let recipe-routes = NAV.find(group => group.title == "Recipes").items
 
-// `head` is the site's numbered section-head; README leaves it out and gets
-// the plain heading it has always had.
+// `head` is the site's section-head; README leaves it out and gets the plain
+// heading it has always had.
 #let recipe-table(link, head: none) = {
   if head == none {
     heading(level: 1)[Bring your own rules]
   } else {
     head(
-      "04",
       [Bring your own rules.],
-      note: str(recipe-routes.len()) + " RECIPES · CONFIG, NOT CODE",
     )
   }
   [
@@ -143,9 +141,7 @@
     heading(level: 1)[The elephant in the room: Typst vs Markdown + frontmatter]
   } else {
     head(
-      "05",
       [Why Typst, not Markdown.],
-      note: "ONE FILE, MANY VIEWS",
     )
   }
   [

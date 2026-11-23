@@ -526,7 +526,7 @@ update();
 // ── Route helpers ───────────────────────────────────────────────────────────
 // The docs are one line, and each nav group is a numbered stretch of it. These
 // helpers read the NAV tree rather than restating its order, so the route
-// strip, the sidebar and an article's kicker always agree.
+// strip and the sidebar always agree.
 
 #let _two(n) = if n < 10 { "0" + str(n) } else { str(n) }
 
@@ -576,21 +576,6 @@ update();
   if at == none or at + 1 >= _reading-order.len() { none } else {
     _reading-order.at(at + 1)
   }
-}
-
-// A page's number on its own stretch of the line: 01 is the group's first
-// page, 02 its second, and a nav entry's children follow it. The kicker's
-// number is this page number, while the sidebar's is the group's.
-#let _page-no(active, here) = {
-  let group = _group-at(here)
-  let order = group
-    .items
-    .map(route => if route in NAV_CHILDREN {
-      (route,) + NAV_CHILDREN.at(route)
-    } else { (route,) })
-    .flatten()
-  let at = order.position(r => r == active)
-  if at == none { here + 1 } else { at + 1 }
 }
 
 // One sidebar stop. `class` is "stop" for a page and "stop sub" for a CLI
@@ -695,23 +680,6 @@ update();
   }),
 )
 
-// A page's kicker: its group number, the group and the page, in the transit
-// style. `bar` draws the hairline that runs to the hero's right edge.
-#let _kicker(active, here, bar: false) = {
-  let group = _group-at(here)
-  let meta = page-meta(active)
-  html.elem("p", attrs: (class: "kicker"), {
-    html.elem("span", attrs: (class: "num"), _two(_page-no(active, here)))
-    " "
-    (
-      upper(group.title)
-        + " / "
-        + if meta != none { upper(meta.label) } else { "" }
-    )
-    if bar { html.elem("span", attrs: (class: "bar")) }
-  })
-}
-
 // The rail beside an article: the page's line, its group, the group's page
 // count and the package version. The calling-points list is inserted above
 // this block at runtime.
@@ -805,7 +773,6 @@ update();
         {
           if title != none and not home {
             html.elem("div", attrs: (class: "article-head"), {
-              _kicker(active, here)
               html.elem("h1", title)
               html.elem("div", attrs: (class: "article-lede"), {
                 if summary != none {

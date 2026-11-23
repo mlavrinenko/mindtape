@@ -58,18 +58,12 @@
   margin-bottom: 22px;
 }
 .section-head p { display: contents; }
-.section-no { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--green); }
 .section-head h2 {
   font-size: 30px; font-weight: 700; letter-spacing: -0.035em;
   line-height: 1.1; margin: 0;
 }
 /* Inline code keeps its paper and border in a title; only the size steps down. */
 .section-head h2 code { font-size: 0.78em; letter-spacing: 0; }
-.section-note {
-  margin-left: auto; text-align: right;
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
-  letter-spacing: 0.02em;
-}
 
 .proof { margin-top: 8px; }
 
@@ -148,6 +142,11 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   color: #8fa398;
 }
 .terminal-head i { width: 7px; height: 7px; background: var(--green); flex: none; }
+.terminal-head .terminal-path {
+  min-width: 0; margin-left: auto;
+  letter-spacing: 0; color: var(--term-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .terminal pre {
   margin: 0; padding: 18px 22px 22px;
   background: transparent; color: var(--term-fg); border: 0;
@@ -291,6 +290,12 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   background: var(--paper-2); letter-spacing: 0.04em;
 }
 .lsp figcaption code { font-size: 1em; }
+.lsp-caption { display: flex; align-items: baseline; }
+.lsp-caption .lsp-server { flex: none; }
+.lsp-caption .lsp-file {
+  min-width: 0; margin-left: auto; text-align: right; letter-spacing: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .lsp-code { background: var(--code-bg); padding: 0.8rem 0; }
 .lsp-code pre {
   margin: 0; padding: 0 1.1rem; border: none; border-radius: 0; box-shadow: none;
@@ -328,7 +333,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 .lsp-error .lsp-severity { color: var(--lsp-error); }
 .lsp-warning .lsp-severity { color: var(--lsp-warning); }
 .lsp-message { flex: 1 1 18rem; }
-.lsp-where { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+.lsp-where { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
 
 /* ── Tables ───────────────────────────────────────────────────────────────── */
 

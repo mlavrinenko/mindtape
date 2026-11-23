@@ -27,7 +27,7 @@
     html.elem("div", attrs: (class: "terminal"), {
       html.elem("div", attrs: (class: "terminal-head"), {
         html.elem("i")
-        "TERMINAL"
+        html.elem("span", attrs: (class: "terminal-label"), "TERMINAL")
       })
       text
     })
@@ -179,12 +179,17 @@
 // `terminal()` with the color the terminal showed: the same panel and the same
 // `$ command` lines, with each colored run as a span in a selectable `pre`.
 // The Markdown copy has no color, so it shows `terminal()`.
-#let terminal-ansi(slug, head: none) = if MARKDOWN { terminal(slug) } else {
+#let terminal-ansi(slug, head: none, path: none) = if MARKDOWN {
+  terminal(slug)
+} else {
   html.elem("div", attrs: (class: "terminal"), {
     if head != none {
       html.elem("div", attrs: (class: "terminal-head"), {
         html.elem("i")
-        head
+        html.elem("span", attrs: (class: "terminal-label"), head)
+        if path != none {
+          html.elem("span", attrs: (class: "terminal-path"), path)
+        }
       })
     }
     html.elem("pre", html.elem("code", _ansi-spans(_transcript(json(
@@ -204,14 +209,7 @@
 // already names the product, so the mark is decorative.
 
 #let _hero-copy() = {
-  let overview = page-meta("/")
-  let label = if overview == none { "Overview" } else { upper(overview.label) }
   html.elem("div", attrs: (class: "hero-copy"), {
-    html.elem("p", attrs: (class: "kicker"), {
-      html.elem("span", attrs: (class: "num"), "01")
-      " " + upper(NAV.at(0).title) + " / " + label
-      html.elem("span", attrs: (class: "bar"))
-    })
     html.elem("div", attrs: (class: "hero-title"), {
       html.elem("h1", mindtape)
       html.elem("span", attrs: (
@@ -271,9 +269,7 @@
   })
   html.elem("section", attrs: (class: "proof"), {
     section-head(
-      "02",
       [Here's a real task.],
-      note: "SOURCE · " + upper(showcase-file),
     )
     html.elem("div", attrs: (class: "code"), {
       html.elem("div", attrs: (class: "code-head"), {
@@ -311,11 +307,9 @@
   })
   html.elem("section", attrs: (class: "mt-list"), {
     section-head(
-      "03",
       _site-listing-intro,
-      note: "TERMINAL · " + fixture-root,
     )
-    terminal-ansi(listing-capture, head: "TERMINAL · " + fixture-root)
+    terminal-ansi(listing-capture, head: "TERMINAL", path: fixture-root)
   })
 }
 
@@ -470,7 +464,10 @@
   }
   let cursor = record.line - 1
   html.elem("figure", attrs: (class: "lsp"), {
-    html.elem("figcaption", caption)
+    html.elem("figcaption", attrs: (class: "lsp-caption"), {
+      html.elem("span", attrs: (class: "lsp-server"), record.server)
+      html.elem("code", attrs: (class: "lsp-file"), record.file)
+    })
     html.elem("div", attrs: (class: "lsp-code"), {
       _lsp-marked(lines, record.diagnostics, 0, cursor)
       _lsp-menu(record)
