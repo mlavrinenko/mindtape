@@ -533,7 +533,6 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
   text-decoration: none; color: var(--ink);
 }
 .next-stop::before { content: ""; width: 7px; height: 7px; background: var(--green); flex: none; }
-.next-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); }
 .next-route { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: 0.06em; }
 .next-label { font-family: var(--sans); font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
 .next-arrow { margin-left: auto; font-family: var(--sans); font-size: 16px; color: var(--green); }

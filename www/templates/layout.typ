@@ -719,7 +719,6 @@ update();
   if meta == none { return none }
   let group = _group-at(_group-index(target))
   html.elem("a", attrs: (class: "next-stop", href: u(target)), {
-    html.elem("span", attrs: (class: "next-kicker"), "Next stop")
     html.elem("span", attrs: (class: "next-route"), {
       _two(_group-index(target) + 1) + " " + upper(group.title)
     })
