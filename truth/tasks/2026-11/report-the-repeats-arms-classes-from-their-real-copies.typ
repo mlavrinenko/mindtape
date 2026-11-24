@@ -23,6 +23,8 @@
 
 == AS-IS
 
+The repeats arm names files a snippet is not in. Its findings mislead.
+
 + Deduping the cmd tests outside add, after the repeats arm named 9 snippets there
 + 🔴 #raw("contrib/ask-refactoring/repeats.sh"): the arm reads jscpd's `classes` array, whose `fragments` list holds unrelated windows, so a finding's copy count and locations are wrong
 

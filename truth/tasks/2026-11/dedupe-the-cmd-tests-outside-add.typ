@@ -20,7 +20,8 @@
 
 == AS-IS
 
-+ The `crates/mindtape-cli/src/cmd/` tests outside `add/` paste the same setup and assertion lines instead of calling a helper.
+The `crates/mindtape-cli/src/cmd/` tests outside `add/` paste the same setup and assertion lines instead of calling a helper.
+
 + Run the repeats arm: `jscpd --no-tips -f rust -k 15 -l 1 -r json -o /tmp/rep crates`, then `score_repeats` from `contrib/ask-refactoring/repeats.sh`.
 + 🔴 It reports 9 snippets anchored here, 330 to 3633 tokens of gain: `eval_tests.rs:258` 77 copies, `eval_tests.rs:251` 43, `eval_tests.rs:311` 20, `flip/hooks_approval_tests.rs:72` 54, `fix/scope_tests.rs:37` 59, `flip/tests_output.rs:199` 23, `graph/tests.rs:61` 14, `check/tests.rs:28` 17, `flip/chain.rs:57` 24.
 + The anchor is one copy, and the real set is wider. `check/tests.rs` repeats `assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok())` 7 times and `.is_err()` 5, `flip/tests_output.rs` repeats the `rerun_isolated_stdout(FLIP_CHILD_ENV)` guard 6 times, `fix/scope_tests.rs` repeats `let dir = tempdir(); let root = dir.path();` 5 times, and three files restate one `TASK` marker.
