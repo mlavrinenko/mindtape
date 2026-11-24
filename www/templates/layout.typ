@@ -18,6 +18,11 @@
 // marks the page behind the drawer inert, and moves focus to the current page.
 // A tap on a link, the scrim, or outside the drawer closes it, and so does
 // Escape, which hands focus back to the button.
+//
+// The line map's green segment ends at the reader's station. A closed
+// <details> keeps the bounding boxes of its hidden rows, so the mark asks
+// `checkVisibility`: a collapsed CLI list ends at its summary, then re-extends
+// when reopened.
 #let _nav-script = "document.documentElement.classList.add('js-nav');
 function scrollNav(s,a){if(!s||!a)return;var r=s.getBoundingClientRect(),ar=a.getBoundingClientRect();if(ar.top>=r.top+16&&ar.bottom<=r.bottom-16)return;s.scrollTop+=ar.top-r.top-s.clientHeight/3;}
 function setInert(on){
@@ -92,9 +97,19 @@ t.querySelectorAll('td').forEach(function(c){c.setAttribute('role','cell')});
 });
 document.addEventListener('DOMContentLoaded',function(){
 document.querySelectorAll('.nav-group.is-here').forEach(function(g){
-var a=g.querySelector('.stop.is-current');if(!a)return;
+function shown(s){
+if(s.checkVisibility)return s.checkVisibility();
+return s.getClientRects().length>0&&(!!s.closest('summary')||!s.closest('details:not([open])'));
+}
+function mark(){
+var a,stops=g.querySelectorAll('.stop[aria-current]');
+stops.forEach(function(s){if(shown(s))a=s});
+if(!a){g.style.setProperty('--here','0px');return;}
 var gr=g.getBoundingClientRect(),ar=a.getBoundingClientRect();
 g.style.setProperty('--here',Math.max(0,ar.top+ar.height/2-gr.top-4)+'px');
+}
+mark();
+g.querySelectorAll('details.nav-nested').forEach(function(d){d.addEventListener('toggle',mark)});
 requestAnimationFrame(function(){g.classList.add('line-drawn')});
 });
 });"
