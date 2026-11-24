@@ -11,7 +11,11 @@
   kind: "dev",
   tags: ("stateless", "tests", "repeats"),
   assignee: "agent",
-  status: proposed(2026, 11, 24),
+  status: done(
+    2026,
+    11,
+    24,
+  )[the add tests share support\_tests.rs. 244 add tests pass and just check is green],
 )
 
 == AS-IS

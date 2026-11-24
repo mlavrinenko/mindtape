@@ -30,6 +30,12 @@ const HEADER: &str = mindtape::typst_task!(
 "#
 );
 
+fn args_with_title(words: &[&str]) -> AddArgs {
+    let mut args = bare_args();
+    args.title = words.iter().map(|word| (*word).to_owned()).collect();
+    args
+}
+
 fn bare_args() -> AddArgs {
     AddArgs {
         title: vec![],
@@ -144,8 +150,7 @@ fn tags_slot() -> SlotSpec {
 
 #[test]
 fn title_arg_joins_words_when_unset() {
-    let mut args = bare_args();
-    args.title = vec!["cleanup".to_owned(), "kitchen".to_owned()];
+    let args = args_with_title(&["cleanup", "kitchen"]);
     let (words, tags) = split_positional(&args, &[]);
     let mut values = BTreeMap::new();
     assert!(fill_title_from_args(&mut values, &words));
@@ -165,8 +170,7 @@ fn a_blank_title_word_list_sets_nothing() {
 
 #[test]
 fn title_arg_yields_to_higher_precedence_title() {
-    let mut args = bare_args();
-    args.title = vec!["positional".to_owned()];
+    let args = args_with_title(&["positional"]);
     let (words, _) = split_positional(&args, &[]);
     let mut values = BTreeMap::new();
     values.insert("title".to_owned(), RawValue::Str("explicit".to_owned()));
@@ -179,13 +183,7 @@ fn title_arg_yields_to_higher_precedence_title() {
 
 #[test]
 fn plus_tag_words_move_to_tags_when_slot_present() {
-    let mut args = bare_args();
-    args.title = vec![
-        "fix".to_owned(),
-        "login".to_owned(),
-        "+backend".to_owned(),
-        "+auth".to_owned(),
-    ];
+    let args = args_with_title(&["fix", "login", "+backend", "+auth"]);
     let (words, tags) = split_positional(&args, &[tags_slot()]);
     let mut values = BTreeMap::new();
     assert!(fill_title_from_args(&mut values, &words));
@@ -198,8 +196,7 @@ fn plus_tag_words_move_to_tags_when_slot_present() {
 
 #[test]
 fn plus_tag_words_stay_in_title_without_tags_slot() {
-    let mut args = bare_args();
-    args.title = vec!["fix".to_owned(), "+backend".to_owned()];
+    let args = args_with_title(&["fix", "+backend"]);
     let (words, tags) = split_positional(&args, &[]);
     let mut values = BTreeMap::new();
     fill_title_from_args(&mut values, &words);
@@ -213,8 +210,7 @@ fn plus_tag_words_stay_in_title_without_tags_slot() {
 
 #[test]
 fn bare_plus_stays_in_title_when_tags_slot_present() {
-    let mut args = bare_args();
-    args.title = vec!["fix".to_owned(), "+".to_owned(), "login".to_owned()];
+    let args = args_with_title(&["fix", "+", "login"]);
     let (words, tags) = split_positional(&args, &[tags_slot()]);
     let mut values = BTreeMap::new();
     fill_title_from_args(&mut values, &words);

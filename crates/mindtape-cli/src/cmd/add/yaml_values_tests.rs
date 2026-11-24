@@ -1,9 +1,10 @@
 //! Tests for the shared YAML mapping -> `RawValue` converter.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use mindtape::{LinkValue, RawValue};
+use mindtape::RawValue;
 
 use super::parse_mapping;
+use crate::cmd::add::support_tests::{links, list};
 
 fn parse(
     text: &str,
@@ -36,10 +37,7 @@ fn parses_empty_string_as_a_real_value() {
 #[test]
 fn parses_sequence_of_strings() {
     let values = parse("tags:\n  - a\n  - b\n").unwrap();
-    assert_eq!(
-        values["tags"],
-        Some(RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
-    );
+    assert_eq!(values["tags"], Some(list(&["a", "b"])));
 }
 
 #[test]
@@ -48,21 +46,7 @@ fn parses_sequence_of_link_mappings() {
         "links:\n  - kind: surfaced-by\n    task: origin.typ\n  - kind: related\n    task: other.typ\n    note: why\n",
     )
     .unwrap();
-    assert_eq!(
-        values["links"],
-        Some(RawValue::Links(vec![
-            LinkValue {
-                task: "origin.typ".to_owned(),
-                kind: "surfaced-by".to_owned(),
-                note: None,
-            },
-            LinkValue {
-                task: "other.typ".to_owned(),
-                kind: "related".to_owned(),
-                note: Some("why".to_owned()),
-            },
-        ]))
-    );
+    assert_eq!(values["links"], Some(links()));
 }
 
 #[test]

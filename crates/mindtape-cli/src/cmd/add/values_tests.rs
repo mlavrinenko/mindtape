@@ -6,52 +6,20 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::tempdir;
-use std::collections::BTreeMap;
 
-use mindtape::{FieldOp, LinkValue, RawValue};
+use mindtape::RawValue;
 
 use super::{collect_values, parse_sniffed_source, parse_source};
-
-/// The final map the old merged view exposed, rebuilt from the ordered ops.
-fn collect_map(
-    values: &[String],
-    sets: &[String],
-    tokens: &[String],
-) -> BTreeMap<String, RawValue> {
-    let collected = collect_values(values, sets, tokens).unwrap();
-    let mut out = BTreeMap::new();
-    for (name, op) in &collected.ops {
-        match op {
-            FieldOp::Set(value) => {
-                out.insert(name.clone(), value.clone());
-            }
-            FieldOp::Append(item) => {
-                crate::cmd::add::tokens::append_list_value(&mut out, name, item.clone());
-            }
-        }
-    }
-    out
-}
-
-/// Write `text` to `dir`/`name` and return the JSON/YAML `-f` value:
-/// `collect_values` reads a path from disk, so extension-driven dispatch
-/// needs a real file, not an in-memory string.
-pub(super) fn values_file(dir: &std::path::Path, name: &str, text: &str) -> String {
-    let path = dir.join(name);
-    std::fs::write(&path, text).unwrap();
-    path.to_string_lossy().into_owned()
-}
+use crate::cmd::add::support_tests::{
+    collect_err_at, collect_map, collect_override, collect_path, json_file, json_values_file,
+    links, list, unterminated_yaml_file, values_file, yaml_values_file, yml_values_file,
+};
 
 #[test]
 fn collect_set_overrides_json() {
     let dir = tempdir();
-    let path = dir.path().join("v.json");
-    std::fs::write(&path, r#"{"title":"From JSON","impact":8,"flag":true}"#).unwrap();
-    let values = collect_map(
-        &[path.to_string_lossy().into_owned()],
-        &["title=Override".to_owned()],
-        &[],
-    );
+    let path = json_values_file(dir.path());
+    let values = collect_override(&path);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("Override".to_owned()))
@@ -71,103 +39,60 @@ fn collect_append_operator_accumulates_into_list() {
         ],
         &[],
     );
-    assert_eq!(
-        values.get("tags"),
-        Some(&RawValue::List(vec![
-            "a".to_owned(),
-            "b".to_owned(),
-            "b,c".to_owned(), // a literal comma in a value is never split
-        ]))
-    );
+    assert_eq!(values.get("tags"), Some(&list(&["a", "b", "b,c"])));
 }
 
 #[test]
 fn collect_append_operator_appends_to_json_list() {
     let dir = tempdir();
-    let path = dir.path().join("v.json");
-    std::fs::write(&path, r#"{"tags":["a"]}"#).unwrap();
-    let values = collect_map(
-        &[path.to_string_lossy().into_owned()],
-        &["tags+=b".to_owned()],
-        &[],
-    );
-    assert_eq!(
-        values.get("tags"),
-        Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
-    );
+    let path = json_file(dir.path(), r#"{"tags":["a"]}"#);
+    let values = collect_map(&[path], &["tags+=b".to_owned()], &[]);
+    assert_eq!(values.get("tags"), Some(&list(&["a", "b"])));
 }
 
 #[test]
 fn collect_reads_json_array_as_list() {
     let dir = tempdir();
-    let path = dir.path().join("v.json");
-    std::fs::write(&path, r#"{"tags":["a","b"]}"#).unwrap();
-    let values = collect_map(&[path.to_string_lossy().into_owned()], &[], &[]);
-    assert_eq!(
-        values.get("tags"),
-        Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
-    );
+    let path = json_file(dir.path(), r#"{"tags":["a","b"]}"#);
+    let values = collect_path(&path);
+    assert_eq!(values.get("tags"), Some(&list(&["a", "b"])));
 }
 
 #[test]
 fn collect_reads_json_array_of_link_mappings() {
     let dir = tempdir();
-    let path = dir.path().join("v.json");
-    std::fs::write(
-        &path,
+    let path = json_file(
+        dir.path(),
         r#"{"links":[{"kind":"surfaced-by","task":"origin.typ"},{"kind":"related","task":"other.typ","note":"why"}]}"#,
-    )
-    .unwrap();
-    let values = collect_map(&[path.to_string_lossy().into_owned()], &[], &[]);
-    assert_eq!(
-        values.get("links"),
-        Some(&RawValue::Links(vec![
-            LinkValue {
-                task: "origin.typ".to_owned(),
-                kind: "surfaced-by".to_owned(),
-                note: None,
-            },
-            LinkValue {
-                task: "other.typ".to_owned(),
-                kind: "related".to_owned(),
-                note: Some("why".to_owned()),
-            },
-        ]))
     );
+    let values = collect_path(&path);
+    assert_eq!(values.get("links"), Some(&links()));
 }
 
 #[test]
 fn collect_rejects_a_mixed_json_list() {
     let dir = tempdir();
-    let path = dir.path().join("v.json");
-    std::fs::write(
-        &path,
+    let path = json_file(
+        dir.path(),
         r#"{"links":["a",{"kind":"related","task":"other.typ"}]}"#,
-    )
-    .unwrap();
-    let err = collect_values(&[path.to_string_lossy().into_owned()], &[], &[])
-        .unwrap_err()
-        .to_string();
+    );
+    let err = collect_err_at(&path);
     assert!(err.contains("strings or link mappings"), "{err}");
 }
 
 #[test]
 fn collect_rejects_a_json_link_without_a_kind() {
     let dir = tempdir();
-    let path = dir.path().join("v.json");
-    std::fs::write(&path, r#"{"links":[{"task":"other.typ"}]}"#).unwrap();
-    let err = collect_values(&[path.to_string_lossy().into_owned()], &[], &[])
-        .unwrap_err()
-        .to_string();
+    let path = json_file(dir.path(), r#"{"links":[{"task":"other.typ"}]}"#);
+    let err = collect_err_at(&path);
     assert!(err.contains("a link needs a kind"), "{err}");
 }
 
 #[test]
 fn collect_rejects_non_object_json() {
     let dir = tempdir();
-    let path = dir.path().join("v.json");
-    std::fs::write(&path, "[1,2,3]").unwrap();
-    assert!(collect_values(&[path.to_string_lossy().into_owned()], &[], &[]).is_err());
+    let path = json_file(dir.path(), "[1,2,3]");
+    assert!(collect_values(&[path], &[], &[]).is_err());
 }
 
 // ── YAML `-f` dispatch: extension, sniff, malformed input, tabs, blanks ──
@@ -175,8 +100,8 @@ fn collect_rejects_non_object_json() {
 #[test]
 fn dot_yaml_extension_parses_as_yaml() {
     let dir = tempdir();
-    let path = values_file(dir.path(), "v.yaml", "title: From YAML\nimpact: 8\n");
-    let values = collect_map(&[path], &[], &[]);
+    let path = yaml_values_file(dir.path());
+    let values = collect_path(&path);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("From YAML".to_owned()))
@@ -187,8 +112,8 @@ fn dot_yaml_extension_parses_as_yaml() {
 #[test]
 fn dot_yml_extension_parses_as_yaml() {
     let dir = tempdir();
-    let path = values_file(dir.path(), "v.yml", "title: From Yml\n");
-    let values = collect_map(&[path], &[], &[]);
+    let path = yml_values_file(dir.path());
+    let values = collect_path(&path);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("From Yml".to_owned()))
@@ -204,10 +129,7 @@ fn sniff_picks_yaml_for_non_brace_content() {
         values.get("title"),
         Some(&Some(RawValue::Str("Sniffed".to_owned())))
     );
-    assert_eq!(
-        values.get("tags"),
-        Some(&Some(RawValue::List(vec!["a".to_owned(), "b".to_owned()])))
-    );
+    assert_eq!(values.get("tags"), Some(&Some(list(&["a", "b"]))));
 }
 
 #[test]
@@ -223,7 +145,7 @@ fn sniff_picks_json_for_brace_content() {
 fn unknown_extension_sniffs_like_stdin() {
     let dir = tempdir();
     let path = values_file(dir.path(), "v.values", "title: Unknown Extension\n");
-    let values = collect_map(&[path], &[], &[]);
+    let values = collect_path(&path);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("Unknown Extension".to_owned()))
@@ -233,10 +155,8 @@ fn unknown_extension_sniffs_like_stdin() {
 #[test]
 fn malformed_yaml_extension_reports_a_useful_error() {
     let dir = tempdir();
-    let path = values_file(dir.path(), "v.yaml", "title: [unterminated\n");
-    let err = collect_values(std::slice::from_ref(&path), &[], &[])
-        .unwrap_err()
-        .to_string();
+    let path = unterminated_yaml_file(dir.path());
+    let err = collect_err_at(&path);
     assert!(err.contains(path.as_str()), "{err}");
 }
 
@@ -256,7 +176,7 @@ fn tab_indented_json_still_parses() {
     // using serde_json, which accepts it.
     let dir = tempdir();
     let path = values_file(dir.path(), "v.json", "{\n\t\"title\": \"Tabbed\"\n}\n");
-    let values = collect_map(&[path], &[], &[]);
+    let values = collect_path(&path);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("Tabbed".to_owned()))
@@ -278,7 +198,7 @@ fn empty_string_survives_a_yaml_values_file() {
     // file's `""` is a real value that must reach the fill map unchanged.
     let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "note: \"\"\n");
-    let values = collect_map(&[path], &[], &[]);
+    let values = collect_path(&path);
     assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
 }
 
@@ -286,7 +206,7 @@ fn empty_string_survives_a_yaml_values_file() {
 fn empty_string_survives_a_json_values_file() {
     let dir = tempdir();
     let path = values_file(dir.path(), "v.json", r#"{"note":""}"#);
-    let values = collect_map(&[path], &[], &[]);
+    let values = collect_path(&path);
     assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
 }
 
@@ -294,9 +214,7 @@ fn empty_string_survives_a_json_values_file() {
 fn yaml_non_mapping_root_is_rejected_with_json_shaped_wording() {
     let dir = tempdir();
     let path = values_file(dir.path(), "v.yaml", "- a\n- b\n");
-    let err = collect_values(std::slice::from_ref(&path), &[], &[])
-        .unwrap_err()
-        .to_string();
+    let err = collect_err_at(&path);
     assert_eq!(err, format!("values must be a YAML mapping: '{path}'"));
 }
 
@@ -392,10 +310,7 @@ fn trailing_tokens_parse_as_set_entries_do() {
         values.get("title"),
         Some(&RawValue::Str("From tokens".to_owned()))
     );
-    assert_eq!(
-        values.get("tags"),
-        Some(&RawValue::List(vec!["docs".to_owned()]))
-    );
+    assert_eq!(values.get("tags"), Some(&list(&["docs"])));
 }
 
 #[test]
@@ -416,10 +331,7 @@ fn trailing_tokens_apply_after_set() {
 #[test]
 fn append_operator_accumulates_across_both_carriers() {
     let values = collect_map(&[], &["tags+=a".to_owned()], &["tags+=b".to_owned()]);
-    assert_eq!(
-        values.get("tags"),
-        Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
-    );
+    assert_eq!(values.get("tags"), Some(&list(&["a", "b"])));
 }
 
 /// The pre-release `key[]=value` append spelling carries no diagnostic of its

@@ -2,7 +2,10 @@
 
 use mindtape::model::naming::DedupMode;
 
-use super::{Collision, DedupArg, effective_mode, resolve};
+use super::{Collision, DedupArg};
+use crate::cmd::add::support_tests::{
+    assert_effective_mode, config_with_dedup, resolve_err, resolve_ok, stem_config,
+};
 
 #[test]
 fn dedup_arg_converts_to_naming_dedup_mode() {
@@ -13,25 +16,20 @@ fn dedup_arg_converts_to_naming_dedup_mode() {
 
 #[test]
 fn effective_mode_flag_wins_over_config() {
-    let mut config = mindtape::Config::default();
-    config.tasks.naming.dedup = Some(DedupMode::Skip);
-    assert_eq!(
-        effective_mode(Some(DedupArg::AddSuffix), &config),
-        DedupMode::AddSuffix
-    );
+    let config = config_with_dedup(DedupMode::Skip);
+    assert_effective_mode(Some(DedupArg::AddSuffix), &config, DedupMode::AddSuffix);
 }
 
 #[test]
 fn effective_mode_falls_back_to_config_default() {
-    let mut config = mindtape::Config::default();
-    config.tasks.naming.dedup = Some(DedupMode::Skip);
-    assert_eq!(effective_mode(None, &config), DedupMode::Skip);
+    let config = config_with_dedup(DedupMode::Skip);
+    assert_effective_mode(None, &config, DedupMode::Skip);
 }
 
 #[test]
 fn effective_mode_falls_back_to_fail_when_nothing_set() {
     let config = mindtape::Config::default();
-    assert_eq!(effective_mode(None, &config), DedupMode::Fail);
+    assert_effective_mode(None, &config, DedupMode::Fail);
 }
 
 /// The regression this task fixes, pinned at the `effective_mode` layer. A
@@ -41,9 +39,8 @@ fn effective_mode_falls_back_to_fail_when_nothing_set() {
 /// a bare stem uses.
 #[test]
 fn effective_mode_defaults_to_add_suffix_when_only_stem_is_configured() {
-    let mut config = mindtape::Config::default();
-    config.tasks.naming.stem = Some("{slug}".to_owned());
-    assert_eq!(effective_mode(None, &config), DedupMode::AddSuffix);
+    let config = stem_config();
+    assert_effective_mode(None, &config, DedupMode::AddSuffix);
 }
 
 /// An explicit config `dedup` overrides the stem-driven default, whether a
@@ -51,21 +48,20 @@ fn effective_mode_defaults_to_add_suffix_when_only_stem_is_configured() {
 /// templated stem, which is exactly what was silently broken.
 #[test]
 fn effective_mode_explicit_config_dedup_wins_over_the_stem_default() {
-    let mut config = mindtape::Config::default();
-    config.tasks.naming.stem = Some("{slug}".to_owned());
+    let mut config = stem_config();
     config.tasks.naming.dedup = Some(DedupMode::Fail);
-    assert_eq!(effective_mode(None, &config), DedupMode::Fail);
+    assert_effective_mode(None, &config, DedupMode::Fail);
 }
 
 #[test]
 fn resolve_reports_no_collision_when_stem_is_free() {
-    let out = resolve(DedupMode::Fail, "foo", "tasks/foo.typ", |_| false).unwrap();
+    let out = resolve_ok(DedupMode::Fail, |_| false);
     assert_eq!(out, Collision::None);
 }
 
 #[test]
 fn resolve_fail_errors_naming_the_stem_and_label() {
-    let err = resolve(DedupMode::Fail, "foo", "tasks/foo.typ", |_| true).unwrap_err();
+    let err = resolve_err(DedupMode::Fail, |_| true);
     crate::diag::assert_plain(
         &err,
         "error: task already exists: 'tasks/foo.typ'\n\
@@ -75,16 +71,13 @@ fn resolve_fail_errors_naming_the_stem_and_label() {
 
 #[test]
 fn resolve_skip_reports_skipped_and_writes_nothing() {
-    let out = resolve(DedupMode::Skip, "foo", "tasks/foo.typ", |_| true).unwrap();
+    let out = resolve_ok(DedupMode::Skip, |_| true);
     assert_eq!(out, Collision::Skipped);
 }
 
 #[test]
 fn resolve_add_suffix_mints_the_next_free_stem() {
-    let out = resolve(DedupMode::AddSuffix, "foo", "tasks/foo.typ", |candidate| {
-        candidate == "foo"
-    })
-    .unwrap();
+    let out = resolve_ok(DedupMode::AddSuffix, |candidate| candidate == "foo");
     assert_eq!(out, Collision::Suffixed("foo-2".to_owned()));
 }
 
@@ -94,7 +87,7 @@ fn resolve_add_suffix_mints_the_next_free_stem() {
 /// rather than a directory of 10,000 real files.
 #[test]
 fn resolve_add_suffix_exhausts_into_an_error() {
-    let err = resolve(DedupMode::AddSuffix, "foo", "tasks/foo.typ", |_| true).unwrap_err();
+    let err = resolve_err(DedupMode::AddSuffix, |_| true);
     assert!(
         err.to_string().contains("exhausted"),
         "expected an exhaustion error, got: {err}"

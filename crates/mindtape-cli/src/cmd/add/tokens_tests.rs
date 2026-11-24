@@ -5,12 +5,12 @@
 //! splitting rule all three share.
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::tempdir;
 use std::collections::BTreeMap;
 
 use mindtape::RawValue;
 
 use super::{TokenOp, apply_token, parse_token};
+use crate::cmd::add::support_tests::{applied_file, file_fixture, list};
 
 /// Apply one token to a fresh map and unwrap the result.
 fn applied(token: &str) -> BTreeMap<String, RawValue> {
@@ -33,8 +33,7 @@ fn parse_token_keeps_set_and_append_apart() {
 
 #[test]
 fn parse_token_reads_a_file_into_the_file_operation() {
-    let dir = tempdir();
-    let path = file(&dir, "title.txt", "From a file\n");
+    let (_dir, path) = file_fixture("title.txt", "From a file\n");
     assert_eq!(
         parse_token(&format!("title@{path}")).unwrap(),
         ("title".to_owned(), TokenOp::File("From a file".to_owned()))
@@ -47,18 +46,10 @@ fn rejected(token: &str) -> String {
     crate::diag::plain(&apply_token(&mut out, token).unwrap_err())
 }
 
-/// A file whose contents are `body`, in `dir`, named `name`.
-fn file(dir: &tempfile::TempDir, name: &str, body: &str) -> String {
-    let path = dir.path().join(name);
-    std::fs::write(&path, body).unwrap();
-    path.to_string_lossy().into_owned()
-}
-
 #[test]
 fn file_operator_reads_the_value_from_the_file() {
-    let dir = tempdir();
-    let path = file(&dir, "notes.txt", "Work the 7th chords hands-separate.\n");
-    let values = applied(&format!("summary@{path}"));
+    let (_dir, path) = file_fixture("notes.txt", "Work the 7th chords hands-separate.\n");
+    let values = applied_file(&path);
     assert_eq!(
         values.get("summary"),
         Some(&RawValue::Str(
@@ -73,9 +64,8 @@ fn file_operator_reads_the_value_from_the_file() {
 /// line's own indentation.
 #[test]
 fn file_operator_strips_trailing_newlines_and_nothing_else() {
-    let dir = tempdir();
-    let path = file(&dir, "body.txt", "  first\n\nlast  \n\r\n\n");
-    let values = applied(&format!("summary@{path}"));
+    let (_dir, path) = file_fixture("body.txt", "  first\n\nlast  \n\r\n\n");
+    let values = applied_file(&path);
     assert_eq!(
         values.get("summary"),
         Some(&RawValue::Str("  first\n\nlast  ".to_owned()))
@@ -86,9 +76,8 @@ fn file_operator_strips_trailing_newlines_and_nothing_else() {
 /// operator reports what the file holds and lets the slot's kind judge it.
 #[test]
 fn file_operator_reads_an_empty_file_as_an_empty_value() {
-    let dir = tempdir();
-    let path = file(&dir, "blank.txt", "\n\n");
-    let values = applied(&format!("summary@{path}"));
+    let (_dir, path) = file_fixture("blank.txt", "\n\n");
+    let values = applied_file(&path);
     assert_eq!(values.get("summary"), Some(&RawValue::Str(String::new())));
 }
 
@@ -109,10 +98,9 @@ fn an_at_after_the_equals_is_part_of_the_value() {
 /// to reach it.
 #[test]
 fn an_equals_after_the_at_is_part_of_the_path() {
-    let dir = tempdir();
-    let path = file(&dir, "v=1.txt", "from a path holding an equals");
+    let (_dir, path) = file_fixture("v=1.txt", "from a path holding an equals");
     assert!(path.contains('='), "fixture must exercise the rule: {path}");
-    let values = applied(&format!("summary@{path}"));
+    let values = applied_file(&path);
     assert_eq!(
         values.get("summary"),
         Some(&RawValue::Str("from a path holding an equals".to_owned()))
@@ -191,8 +179,5 @@ fn a_bracket_suffixed_key_is_an_ordinary_key() {
 #[test]
 fn apply_token_appends_to_a_list() {
     let out = applied("tags+=docs");
-    assert_eq!(
-        out.get("tags"),
-        Some(&RawValue::List(vec!["docs".to_owned()]))
-    );
+    assert_eq!(out.get("tags"), Some(&list(&["docs"])));
 }

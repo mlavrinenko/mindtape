@@ -7,11 +7,11 @@
 
 use std::collections::BTreeMap;
 
-use mindtape::{AddConfig, RawValue};
+use mindtape::RawValue;
 
 use super::{Rejected, changed_keys, parse_buffer, rejected_buffer, strip_error_lines};
-use crate::cmd::add::scaffold::scaffold;
-use crate::cmd::add::scaffold::tests::specs;
+use crate::cmd::add::scaffold::tests::TEMPLATE;
+use crate::cmd::add::support_tests::{parse, scaffold_of};
 use crate::diag::Diag;
 use crate::pre_write::Problem;
 
@@ -27,7 +27,7 @@ summary: |-
   Line one
   Line two
 ";
-    let values = parse_buffer(buffer).unwrap();
+    let values = parse(buffer);
     assert_eq!(values["title"], RawValue::Str("Fix the parser".to_owned()));
     assert_eq!(values["priority"], RawValue::Int(8));
     assert_eq!(
@@ -47,7 +47,7 @@ title: \"Kept\"
 priority:
 summary: |-
 ";
-    let values = parse_buffer(buffer).unwrap();
+    let values = parse(buffer);
     assert!(values.contains_key("title"));
     assert!(!values.contains_key("priority"), "null dropped");
     assert!(!values.contains_key("summary"), "empty block dropped");
@@ -62,19 +62,18 @@ fn parse_back_rejects_non_mapping() {
 
 #[test]
 fn changed_keys_ignores_defaults_the_scaffold_prefilled() {
-    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
-    let baseline = parse_buffer(&buffer).unwrap();
-    let saved = parse_buffer(&buffer).unwrap();
+    let buffer = scaffold_of(TEMPLATE);
+    let baseline = parse(&buffer);
+    let saved = parse(&buffer);
 
     assert!(changed_keys(&baseline, &saved).is_empty());
 }
 
 #[test]
 fn changed_keys_counts_a_value_that_differs_from_the_scaffold() {
-    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
-    let baseline = parse_buffer(&buffer).unwrap();
-    let saved =
-        parse_buffer("title: \"Edited\"\npriority: 5\ntags: []\nsummary: |-\n  Body\n").unwrap();
+    let buffer = scaffold_of(TEMPLATE);
+    let baseline = parse(&buffer);
+    let saved = parse("title: \"Edited\"\npriority: 5\ntags: []\nsummary: |-\n  Body\n");
 
     let changed = changed_keys(&baseline, &saved);
 
@@ -168,7 +167,7 @@ fn strip_error_lines_drops_a_whole_refusal_block() {
 
 #[test]
 fn parse_buffer_null_returns_empty() {
-    let values = parse_buffer("~").unwrap();
+    let values = parse("~");
     assert!(values.is_empty());
 }
 

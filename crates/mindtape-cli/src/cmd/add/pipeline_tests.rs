@@ -79,11 +79,7 @@ fn a_refused_buffer_re_opens_with_the_error_above_the_values() {
 #[test]
 fn a_rule_breach_re_opens_the_buffer_with_every_breach() {
     let dir = tempdir();
-    let seen = dir.path().join("seen.yaml");
-    let bad = dir.path().join("bad.yaml");
-    let good = dir.path().join("good.yaml");
-    std::fs::write(&bad, BAD_BUFFER).unwrap();
-    std::fs::write(&good, GOOD_BUFFER).unwrap();
+    let (seen, bad, good) = buffers(dir.path());
     let editor = retrying_editor(dir.path(), &seen, &bad, &good);
     let fixture = Fixture::new();
     let mut session = fixture.session();
@@ -123,8 +119,7 @@ fn a_rule_breach_re_opens_the_buffer_with_every_breach() {
 fn an_unchanged_buffer_stops_the_loop() {
     let dir = tempdir();
     let count = dir.path().join("count");
-    let bad = dir.path().join("bad.yaml");
-    std::fs::write(&bad, BAD_BUFFER).unwrap();
+    let (_, bad, _) = buffers(dir.path());
     let editor = counting_editor(dir.path(), &count, &bad);
 
     let (calls, ready) = run_refused(&editor, &count);
@@ -175,6 +170,17 @@ fn run_refused(editor: &str, count: &Path) -> (String, Ready) {
         fill_until_it_passes(&mut session, &AddConfig::default(), Some(editor), &check).unwrap();
     let calls = std::fs::read_to_string(count).unwrap().trim().to_owned();
     (calls, ready)
+}
+
+/// The `seen`, `bad` and `good` paths the pipeline fixtures share, with the
+/// two buffers written.
+fn buffers(dir: &Path) -> (std::path::PathBuf, std::path::PathBuf, std::path::PathBuf) {
+    let seen = dir.join("seen.yaml");
+    let bad = dir.join("bad.yaml");
+    let good = dir.join("good.yaml");
+    std::fs::write(&bad, BAD_BUFFER).unwrap();
+    std::fs::write(&good, GOOD_BUFFER).unwrap();
+    (seen, bad, good)
 }
 
 /// The project and values a [`RULE_TEMPLATE`] session renders, kept alive for

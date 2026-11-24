@@ -5,28 +5,17 @@
 use mindtape::{FieldOp, RawValue, discover_slots};
 
 use super::{BUILTIN_TASK, collect_values, reject_unknown_keys};
-
-fn ops(pairs: &[(&str, &str)]) -> Vec<(String, FieldOp)> {
-    pairs
-        .iter()
-        .map(|(name, value)| {
-            (
-                (*name).to_owned(),
-                FieldOp::Set(RawValue::Str((*value).to_owned())),
-            )
-        })
-        .collect()
-}
+use crate::cmd::add::support_tests::{collected, list, ops, reject_plain, slot_values, specs_of};
 
 #[test]
 fn reject_unknown_keys_allows_known_slots_and_writable_fields() {
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
+    let specs = specs_of(BUILTIN_TASK); // one `title` slot
     assert!(reject_unknown_keys(&ops(&[("title", "Fine"), ("due", "2026-01-01")]), &specs).is_ok());
 }
 
 #[test]
 fn reject_unknown_keys_errors_naming_the_key_and_known_slots() {
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
+    let specs = specs_of(BUILTIN_TASK); // one `title` slot
     let err = crate::diag::plain(
         &reject_unknown_keys(&ops(&[("title", "Fine"), ("weights", "3")]), &specs).unwrap_err(),
     );
@@ -38,16 +27,14 @@ fn reject_unknown_keys_errors_naming_the_key_and_known_slots() {
 
 #[test]
 fn dir_is_refused_with_the_add_or_rename_hint() {
-    let specs = discover_slots(BUILTIN_TASK);
-    let err =
-        crate::diag::plain(&reject_unknown_keys(&ops(&[("dir", "fixes")]), &specs).unwrap_err());
+    let err = reject_plain(&[("dir", "fixes")]);
     assert!(err.contains("--dir"), "{err}");
     assert!(err.contains("mt mv"), "{err}");
 }
 
 #[test]
 fn an_append_to_a_scalar_writable_field_is_refused_by_name() {
-    let specs = discover_slots(BUILTIN_TASK);
+    let specs = specs_of(BUILTIN_TASK);
     let err = crate::diag::plain(
         &reject_unknown_keys(
             &[("priority".to_owned(), FieldOp::Append("8".to_owned()))],
@@ -64,15 +51,13 @@ fn an_append_to_a_scalar_writable_field_is_refused_by_name() {
 
 #[test]
 fn reject_unknown_keys_near_miss_offers_a_suggestion() {
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
-    let err =
-        crate::diag::plain(&reject_unknown_keys(&ops(&[("titel", "Typo")]), &specs).unwrap_err());
+    let err = reject_plain(&[("titel", "Typo")]);
     assert!(err.contains("hint: did you mean title?\n"), "{err}");
 }
 
 #[test]
 fn reject_unknown_keys_far_miss_omits_the_suggestion() {
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
+    let specs = specs_of(BUILTIN_TASK); // one `title` slot
     let err = crate::diag::plain(
         &reject_unknown_keys(&ops(&[("zzzzzzzz", "Nope")]), &specs).unwrap_err(),
     );
@@ -81,9 +66,7 @@ fn reject_unknown_keys_far_miss_omits_the_suggestion() {
 
 #[test]
 fn reject_unknown_keys_with_no_slots_omits_the_suggestion() {
-    let specs: Vec<mindtape::SlotSpec> = Vec::new();
-    let err =
-        crate::diag::plain(&reject_unknown_keys(&ops(&[("anything", "x")]), &specs).unwrap_err());
+    let err = reject_plain(&[("anything", "x")]);
     assert!(!err.contains("did you mean"), "{err}");
     assert!(err.contains("hint: run mt add --describe"), "{err}");
 }
@@ -93,8 +76,8 @@ fn reject_unknown_keys_with_no_slots_omits_the_suggestion() {
 /// key, and it fails downstream exactly as any other unknown key does.
 #[test]
 fn bracket_append_spelling_is_an_unknown_key_like_any_other() {
-    let collected = collect_values(&[], &["tags[]=docs".to_owned()], &[]).unwrap();
-    let specs = discover_slots(BUILTIN_TASK); // one `title` slot, no `tags[]`
+    let collected = collected(&["tags[]=docs"]);
+    let specs = specs_of(BUILTIN_TASK); // one `title` slot, no `tags[]`
     let err = reject_unknown_keys(&collected.ops, &specs)
         .unwrap_err()
         .to_string();
@@ -105,7 +88,7 @@ fn bracket_append_spelling_is_an_unknown_key_like_any_other() {
 /// are notes, so none disappears on the first re-run.
 #[test]
 fn reject_unknown_keys_names_every_unknown_key() {
-    let specs = discover_slots(BUILTIN_TASK);
+    let specs = specs_of(BUILTIN_TASK);
     let err = crate::diag::plain(
         &reject_unknown_keys(&ops(&[("alpha", "1"), ("beta", "2")]), &specs).unwrap_err(),
     );
@@ -122,47 +105,26 @@ const TAGS_DEFAULT: &str = r#"#f(tags: slot("tags", kind: "list", default: ("bas
 /// list, and a later `=` drops the earlier appends.
 #[test]
 fn a_list_slot_append_starts_from_its_default() {
-    let collected = collect_values(&[], &["tags+=a".to_owned()], &[]).unwrap();
-    let slots = collected
-        .slot_values(&discover_slots(TAGS_DEFAULT))
-        .unwrap();
-    assert_eq!(
-        slots.get("tags"),
-        Some(&RawValue::List(vec!["base".to_owned(), "a".to_owned()]))
-    );
+    let slots = slot_values(TAGS_DEFAULT, &["tags+=a"]);
+    assert_eq!(slots.get("tags"), Some(&list(&["base", "a"])));
 
-    let collected = collect_values(&[], &["tags+=a".to_owned(), "tags=b".to_owned()], &[]).unwrap();
-    let slots = collected
-        .slot_values(&discover_slots(TAGS_DEFAULT))
-        .unwrap();
-    assert_eq!(
-        slots.get("tags"),
-        Some(&RawValue::List(vec!["b".to_owned()]))
-    );
+    let slots = slot_values(TAGS_DEFAULT, &["tags+=a", "tags=b"]);
+    assert_eq!(slots.get("tags"), Some(&list(&["b"])));
 }
 
 /// An explicit base is where a following `+=` appends, whichever carrier gave
 /// it, and `=` means one item for a writable list field.
 #[test]
 fn an_explicit_list_base_feeds_the_following_appends() {
-    let collected = collect_values(&[], &["tags=b".to_owned(), "tags+=a".to_owned()], &[]).unwrap();
-    let slots = collected
-        .slot_values(&discover_slots(TAGS_DEFAULT))
-        .unwrap();
-    assert_eq!(
-        slots.get("tags"),
-        Some(&RawValue::List(vec!["b".to_owned(), "a".to_owned()]))
-    );
+    let slots = slot_values(TAGS_DEFAULT, &["tags=b", "tags+=a"]);
+    assert_eq!(slots.get("tags"), Some(&list(&["b", "a"])));
 }
 
 /// A slot with no operation is absent from the fill map, so `fill` keeps the
 /// template's own default instead of replacing it.
 #[test]
 fn an_untouched_slot_is_absent_from_the_fill_map() {
-    let collected = collect_values(&[], &[], &[]).unwrap();
-    let slots = collected
-        .slot_values(&discover_slots(TAGS_DEFAULT))
-        .unwrap();
+    let slots = slot_values(TAGS_DEFAULT, &[]);
     assert!(slots.is_empty());
 }
 
@@ -218,8 +180,8 @@ fn a_list_slot_accepts_an_array_or_one_scalar() {
         .next()
         .unwrap();
     assert_eq!(
-        crate::cmd::add::values_ops::base_value(&spec, &RawValue::List(vec!["a".to_owned()])),
-        RawValue::List(vec!["a".to_owned()])
+        crate::cmd::add::values_ops::base_value(&spec, &list(&["a"])),
+        list(&["a"])
     );
     assert_eq!(
         crate::cmd::add::values_ops::base_value(&spec, &RawValue::Int(3)),
@@ -231,5 +193,5 @@ fn a_list_slot_accepts_an_array_or_one_scalar() {
 fn appending_to_a_non_list_value_starts_a_list() {
     let mut value = RawValue::Str("a".to_owned());
     crate::cmd::add::values_ops::append_item(&mut value, "b");
-    assert_eq!(value, RawValue::List(vec!["b".to_owned()]));
+    assert_eq!(value, list(&["b"]));
 }

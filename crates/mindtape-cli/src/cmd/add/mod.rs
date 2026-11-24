@@ -465,4 +465,6 @@ fn kept(err: Diag, file: &Path) -> Diag {
 }
 
 #[cfg(test)]
+mod support_tests;
+#[cfg(test)]
 mod tests;

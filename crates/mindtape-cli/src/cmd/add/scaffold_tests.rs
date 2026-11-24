@@ -4,12 +4,13 @@
 //! `cmd/add/interactive_tests.rs` and `cmd/add/interactive_tests_editor.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use std::collections::BTreeMap;
+use mindtape::{AddConfig, RawValue};
 
-use mindtape::{AddConfig, LinkValue, RawValue, discover_slots};
-
-use super::scaffold;
-use crate::cmd::add::interactive::parse_buffer;
+use crate::cmd::add::support_tests::{
+    GOALS_SOURCE, LINKS_SOURCE, TAGS_SOURCE, TITLE_SOURCE, X_BOOL_SOURCE, X_FLOAT_SOURCE,
+    X_OPTIONAL_SOURCE, X_SOURCE, X_TEXT_SOURCE, comments_off, header_config, links, list, parse,
+    scaffold_of, scaffold_with, scaffold_with_config, seed,
+};
 
 pub(crate) const TEMPLATE: &str = mindtape::typst_task!(
     r#"(
@@ -24,22 +25,9 @@ pub(crate) const TEMPLATE: &str = mindtape::typst_task!(
 "#
 );
 
-pub(crate) fn specs() -> Vec<mindtape::SlotSpec> {
-    discover_slots(TEMPLATE)
-}
-
-/// The scaffold a template source renders, with no seed values.
-fn scaffold_of(source: &str) -> String {
-    scaffold(
-        &AddConfig::default(),
-        &discover_slots(source),
-        &BTreeMap::new(),
-    )
-}
-
 #[test]
 fn scaffold_emits_one_entry_per_slot_with_comments() {
-    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    let buffer = scaffold_of(TEMPLATE);
     // Prompt and kind annotations.
     assert!(
         buffer.contains("# Task title [string, required]"),
@@ -62,7 +50,7 @@ fn scaffold_emits_one_entry_per_slot_with_comments() {
 fn scaffold_sorts_required_slots_before_optional_preserving_relative_order() {
     // TEMPLATE order is title, priority, tags, summary; priority and tags have
     // defaults (optional), title and summary don't (required).
-    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    let buffer = scaffold_of(TEMPLATE);
     let title = buffer.find("title:").unwrap();
     let summary = buffer.find("summary:").unwrap();
     let priority = buffer.find("priority:").unwrap();
@@ -74,8 +62,7 @@ fn scaffold_sorts_required_slots_before_optional_preserving_relative_order() {
 
 #[test]
 fn scaffold_tail_is_fillable_with_no_trailing_blank() {
-    let specs = discover_slots("#show: task.with(title: slot(\"title\"))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
+    let buffer = scaffold_of(TITLE_SOURCE);
     assert!(!buffer.ends_with('\n'), "no trailing newline: {buffer:?}");
     assert!(
         buffer.ends_with("title: "),
@@ -85,12 +72,8 @@ fn scaffold_tail_is_fillable_with_no_trailing_blank() {
 
 #[test]
 fn scaffold_custom_header_is_comment_prefixed() {
-    let config = AddConfig {
-        header: Some("My note\nSecond line".to_owned()),
-        ..Default::default()
-    };
-    let specs = discover_slots("#show: task.with(title: slot(\"title\"))");
-    let buffer = scaffold(&config, &specs, &BTreeMap::new());
+    let config = header_config("My note\nSecond line");
+    let buffer = scaffold_with_config(&config, TITLE_SOURCE);
     assert!(
         buffer.starts_with("# My note\n# Second line\n\n# "),
         "{buffer}"
@@ -99,12 +82,8 @@ fn scaffold_custom_header_is_comment_prefixed() {
 
 #[test]
 fn scaffold_empty_header_disables_it() {
-    let config = AddConfig {
-        header: Some(String::new()),
-        ..Default::default()
-    };
-    let specs = discover_slots("#show: task.with(title: slot(\"title\"))");
-    let buffer = scaffold(&config, &specs, &BTreeMap::new());
+    let config = header_config("");
+    let buffer = scaffold_with_config(&config, TITLE_SOURCE);
     assert!(buffer.starts_with("# title ["), "no header block: {buffer}");
 }
 
@@ -116,7 +95,7 @@ fn scaffold_comments_false_strips_every_comment_but_stays_fillable() {
         header: Some("ignored".to_owned()),
         ..Default::default()
     };
-    let buffer = scaffold(&config, &specs(), &BTreeMap::new());
+    let buffer = scaffold_with_config(&config, TEMPLATE);
     assert!(
         !buffer
             .lines()
@@ -131,12 +110,12 @@ fn scaffold_comments_false_strips_every_comment_but_stays_fillable() {
     // Bare mapping is still present and parses back cleanly (defaults fill in).
     assert!(buffer.contains("priority: 5"), "{buffer}");
     assert!(buffer.contains("title: "), "{buffer}");
-    parse_buffer(&buffer).unwrap();
+    parse(&buffer);
 }
 
 #[test]
 fn scaffold_comments_on_spaces_entries_with_blank_lines() {
-    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    let buffer = scaffold_of(TEMPLATE);
     assert!(
         buffer.contains("\n\n"),
         "comment groups stay spaced: {buffer:?}"
@@ -145,10 +124,11 @@ fn scaffold_comments_on_spaces_entries_with_blank_lines() {
 
 #[test]
 fn scaffold_prefills_from_seed() {
-    let mut seed = BTreeMap::new();
-    seed.insert("title".to_owned(), RawValue::Str("Hello".to_owned()));
-    seed.insert("priority".to_owned(), RawValue::Int(8));
-    let buffer = scaffold(&AddConfig::default(), &specs(), &seed);
+    let seed = seed(&[
+        ("title", RawValue::Str("Hello".to_owned())),
+        ("priority", RawValue::Int(8)),
+    ]);
+    let buffer = scaffold_with(TEMPLATE, &seed);
     assert!(buffer.contains("title: \"Hello\""), "{buffer}");
     assert!(buffer.contains("priority: 8"), "{buffer}");
 }
@@ -157,45 +137,26 @@ fn scaffold_prefills_from_seed() {
 fn scaffold_renders_empty_list_default_as_bracket_pair() {
     // TEMPLATE's tags slot has `default: ()` — an empty list. It should surface
     // as an explicit empty flow sequence, not a blank scalar.
-    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    let buffer = scaffold_of(TEMPLATE);
     assert!(buffer.contains("tags: []"), "{buffer}");
     // Left untouched, it parses back to an empty list (not dropped as null).
-    let values = parse_buffer(&buffer).unwrap();
+    let values = parse(&buffer);
     assert_eq!(values["tags"], RawValue::List(Vec::new()));
 }
 
 #[test]
 fn scaffold_renders_links_as_a_yaml_list() {
-    let specs =
-        discover_slots("#show: task.with(links: slot(\"links\", kind: \"links\", default: ()))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
+    let buffer = scaffold_of(LINKS_SOURCE);
     assert!(buffer.contains("links: []"), "{buffer}");
-    assert_eq!(
-        parse_buffer(&buffer).unwrap()["links"],
-        RawValue::List(Vec::new())
-    );
+    assert_eq!(parse(&buffer)["links"], RawValue::List(Vec::new()));
 
-    let seed = BTreeMap::from([(
-        "links".to_owned(),
-        RawValue::Links(vec![
-            LinkValue {
-                task: "origin.typ".to_owned(),
-                kind: "surfaced-by".to_owned(),
-                note: None,
-            },
-            LinkValue {
-                task: "other.typ".to_owned(),
-                kind: "related".to_owned(),
-                note: Some("why".to_owned()),
-            },
-        ]),
-    )]);
-    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    let seed = seed(&[("links", links())]);
+    let buffer = scaffold_with(LINKS_SOURCE, &seed);
     assert!(
         buffer.contains("links:\n  - kind: \"surfaced-by\"\n    task: \"origin.typ\"\n"),
         "{buffer}"
     );
-    let values = parse_buffer(&buffer).unwrap();
+    let values = parse(&buffer);
     assert_eq!(values["links"], seed["links"]);
 }
 
@@ -203,10 +164,7 @@ fn scaffold_renders_links_as_a_yaml_list() {
 fn scaffold_leaves_non_empty_list_default_blank() {
     // A non-empty list default stays blank so an untouched slot falls through to
     // the default rather than being overwritten with an empty `[]`.
-    let specs = discover_slots(
-        "#show: task.with(tags: slot(\"tags\", kind: \"list\", default: (\"backend\",)))",
-    );
-    let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
+    let buffer = scaffold_of(TAGS_SOURCE);
     assert!(buffer.ends_with("tags: "), "left blank: {buffer:?}");
     assert!(!buffer.contains("tags: []"), "not bracketed: {buffer}");
     // The default is advertised in the comment.
@@ -215,32 +173,23 @@ fn scaffold_leaves_non_empty_list_default_blank() {
 
 #[test]
 fn round_trip_scaffold_then_parse() {
-    let mut seed = BTreeMap::new();
-    seed.insert("title".to_owned(), RawValue::Str("Round trip".to_owned()));
-    seed.insert(
-        "tags".to_owned(),
-        RawValue::List(vec!["a".to_owned(), "b".to_owned()]),
-    );
-    let buffer = scaffold(&AddConfig::default(), &specs(), &seed);
-    let values = parse_buffer(&buffer).unwrap();
+    let seed = seed(&[
+        ("title", RawValue::Str("Round trip".to_owned())),
+        ("tags", list(&["a", "b"])),
+    ]);
+    let buffer = scaffold_with(TEMPLATE, &seed);
+    let values = parse(&buffer);
     assert_eq!(values["title"], RawValue::Str("Round trip".to_owned()));
     assert_eq!(values["priority"], RawValue::Int(5)); // default pre-fill survives
-    assert_eq!(
-        values["tags"],
-        RawValue::List(vec!["a".to_owned(), "b".to_owned()])
-    );
+    assert_eq!(values["tags"], list(&["a", "b"]));
 }
 
 // ── commentify: either condition alone triggers the comment prefix ──
 
 #[test]
 fn custom_header_comment_lines_kept() {
-    let config = AddConfig {
-        header: Some("# Already a comment\nReal text".to_owned()),
-        ..Default::default()
-    };
-    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
-    let buffer = scaffold(&config, &specs, &BTreeMap::new());
+    let config = header_config("# Already a comment\nReal text");
+    let buffer = scaffold_with_config(&config, X_SOURCE);
     // Real: `# Already a comment` kept as-is (starts with # → kept).
     // Mutant: `false && true` → adds `# ` prefix → `# # Already a comment`.
     assert!(buffer.starts_with("# Already a comment"), "{buffer}");
@@ -250,8 +199,7 @@ fn custom_header_comment_lines_kept() {
 
 #[test]
 fn non_required_slot_label_is_optional() {
-    let specs = discover_slots("#show: task.with(x: slot(\"x\", required: false))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
+    let buffer = scaffold_of(X_OPTIONAL_SOURCE);
     // spec.required=false, default.is_none()=true → real: "optional", mutant: "required"
     assert!(buffer.contains("[string, optional]"), "{buffer}");
 }
@@ -300,7 +248,7 @@ fn a_multiline_example_stays_a_comment() {
         "{buffer}"
     );
     // Every line stays a comment, so the buffer is still a YAML mapping.
-    parse_buffer(&buffer).unwrap();
+    parse(&buffer);
 }
 
 const MULTILINE_RAW_DEFAULT: &str = r#"#show: task.with(as-is: slot("as-is", kind: "raw", default: ```typ
@@ -317,28 +265,21 @@ fn a_multiline_raw_default_stays_a_comment_and_parses_with_comments_on() {
         "{buffer}"
     );
     assert_eq!(
-        parse_buffer(&buffer).unwrap()["as-is"],
+        parse(&buffer)["as-is"],
         RawValue::Str("+ Run it.\n\n+ 🔴 It prints nothing.".to_owned())
     );
 }
 
 #[test]
 fn a_multiline_raw_default_parses_with_comments_off() {
-    let config = AddConfig {
-        comments: false,
-        ..Default::default()
-    };
-    let buffer = scaffold(
-        &config,
-        &discover_slots(MULTILINE_RAW_DEFAULT),
-        &BTreeMap::new(),
-    );
+    let config = comments_off();
+    let buffer = scaffold_with_config(&config, MULTILINE_RAW_DEFAULT);
     assert!(
         buffer.contains("as-is: |-\n  + Run it.\n\n  + 🔴 It prints nothing."),
         "{buffer}"
     );
     assert_eq!(
-        parse_buffer(&buffer).unwrap()["as-is"],
+        parse(&buffer)["as-is"],
         RawValue::Str("+ Run it.\n\n+ 🔴 It prints nothing.".to_owned())
     );
 }
@@ -353,7 +294,7 @@ fn scaffold_prefills_a_date_default() {
     assert!(buffer.contains("due: 2026-11-17"), "{buffer}");
     // Left untouched, it parses back to the same date, so the default survives.
     assert_eq!(
-        parse_buffer(&buffer).unwrap()["due"],
+        parse(&buffer)["due"],
         RawValue::Str("2026-11-17".to_owned())
     );
 }
@@ -373,10 +314,8 @@ fn a_date_default_that_is_not_a_ymd_literal_stays_blank() {
 
 #[test]
 fn text_slot_seed_renders_as_block() {
-    let mut seed = BTreeMap::new();
-    seed.insert("x".to_owned(), RawValue::Str("hello\nworld".to_owned()));
-    let specs = discover_slots("#show: task.with(x: slot(\"x\", kind: \"text\"))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    let seed = seed(&[("x", RawValue::Str("hello\nworld".to_owned()))]);
+    let buffer = scaffold_with(X_TEXT_SOURCE, &seed);
     // Real: Entry::Block renders `|-`.  Mutant (guard→false) renders quoted scalar.
     assert!(
         buffer.contains("|-"),
@@ -392,45 +331,36 @@ fn text_slot_seed_renders_as_block() {
 
 #[test]
 fn raw_slot_seed_renders_as_a_block() {
-    let mut seed = BTreeMap::new();
     let goals = "== Goals\n\n+ #Helps(adopter, to: guide-the-implementer)[why].";
-    seed.insert("goals".to_owned(), RawValue::Str(goals.to_owned()));
-    let specs = discover_slots("#show: task.with(goals: slot(\"goals\", kind: \"raw\"))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    let seed = seed(&[("goals", RawValue::Str(goals.to_owned()))]);
+    let buffer = scaffold_with(GOALS_SOURCE, &seed);
     assert!(
         buffer.contains(
             "goals: |-\n  == Goals\n\n  + #Helps(adopter, to: guide-the-implementer)[why]."
         ),
         "{buffer}"
     );
-    assert_eq!(
-        parse_buffer(&buffer).unwrap()["goals"],
-        RawValue::Str(goals.to_owned())
-    );
+    assert_eq!(parse(&buffer)["goals"], RawValue::Str(goals.to_owned()));
 }
 
 // ── seed_entry: the Float and Bool arms render their typed scalars ──
 
 #[test]
 fn float_seed_renders_as_scalar() {
-    let mut seed = BTreeMap::new();
-    seed.insert("x".to_owned(), RawValue::Float(1.5));
-    let specs = discover_slots("#show: task.with(x: slot(\"x\", kind: \"float\"))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    let seed = seed(&[("x", RawValue::Float(1.5))]);
+    let buffer = scaffold_with(X_FLOAT_SOURCE, &seed);
     assert!(buffer.contains("x: 1.5"), "{buffer}");
     // Round-trips back as a typed float, not a string.
-    let values = parse_buffer(&buffer).unwrap();
+    let values = parse(&buffer);
     assert_eq!(values["x"], RawValue::Float(1.5));
 }
 
 #[test]
 fn bool_seed_renders_as_scalar() {
-    let mut seed = BTreeMap::new();
-    seed.insert("x".to_owned(), RawValue::Bool(true));
-    let specs = discover_slots("#show: task.with(x: slot(\"x\", kind: \"bool\"))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    let seed = seed(&[("x", RawValue::Bool(true))]);
+    let buffer = scaffold_with(X_BOOL_SOURCE, &seed);
     assert!(buffer.contains("x: true"), "{buffer}");
-    let values = parse_buffer(&buffer).unwrap();
+    let values = parse(&buffer);
     assert_eq!(values["x"], RawValue::Bool(true));
 }
 
@@ -438,12 +368,10 @@ fn bool_seed_renders_as_scalar() {
 
 #[test]
 fn quote_special_chars_roundtrip() {
-    let mut seed = BTreeMap::new();
     // A string containing all four special chars: ", \, newline, tab.
-    seed.insert("x".to_owned(), RawValue::Str("a\"b\\c\nd\te".to_owned()));
-    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
-    let values = parse_buffer(&buffer).unwrap();
+    let seed = seed(&[("x", RawValue::Str("a\"b\\c\nd\te".to_owned()))]);
+    let buffer = scaffold_with(X_SOURCE, &seed);
+    let values = parse(&buffer);
     assert_eq!(values["x"], RawValue::Str("a\"b\\c\nd\te".to_owned()));
 }
 
@@ -451,10 +379,8 @@ fn quote_special_chars_roundtrip() {
 
 #[test]
 fn quote_escapes_tab_to_backslash_t() {
-    let mut seed = BTreeMap::new();
-    seed.insert("x".to_owned(), RawValue::Str("a\tb".to_owned()));
-    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
-    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    let seed = seed(&[("x", RawValue::Str("a\tb".to_owned()))]);
+    let buffer = scaffold_with(X_SOURCE, &seed);
     // Real: '\t' → push_str("\\t") → buffer contains `\t` (two chars).
     // Mutant (arm deleted): '\t' → push(ch) → literal tab (0x09), no `\t`.
     assert!(

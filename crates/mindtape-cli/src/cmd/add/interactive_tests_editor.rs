@@ -1,17 +1,20 @@
 //! Tests for the editor session: spawning the configured editor, tty/mode
 //! gating (`should_open`, `has_unfilled_required`), and `run`'s parse of the
 //! edited buffer. Scaffold rendering lives in `cmd/add/scaffold_tests.rs`, and
-//! the buffer's parse-back in `cmd/add/interactive_tests.rs`. This module
-//! shares the scaffold tests' `specs()` fixture.
+//! the buffer's parse-back in `cmd/add/interactive_tests.rs`. The fixtures
+//! come from `cmd/add/support_tests.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use mindtape::test_support::tempdir;
 use std::collections::BTreeMap;
 
-use mindtape::{AddConfig, InteractiveMode, RawValue, discover_slots};
+use mindtape::{AddConfig, RawValue};
 
 use super::{Session, editor_command, open_in_editor, run, should_open};
-use crate::cmd::add::scaffold::tests::specs;
+use crate::cmd::add::scaffold::tests::TEMPLATE;
+use crate::cmd::add::support_tests::{
+    X_OPTIONAL_SOURCE, X_SOURCE, always_config, editor_script, never_config, seed, specs_of,
+};
 
 #[test]
 fn editor_command_prefers_override() {
@@ -156,41 +159,29 @@ fn an_editor_that_exits_non_zero_keeps_the_buffer() {
 
 #[test]
 fn never_mode_without_force_stays_closed() {
-    let config = AddConfig {
-        interactive: InteractiveMode::Never,
-        ..Default::default()
-    };
+    let config = never_config();
     // No terminal in tests; should_open must not error and must stay false.
-    assert!(!should_open(false, &config, &specs(), &BTreeMap::new(), false).unwrap());
+    assert!(!should_open(false, &config, &specs_of(TEMPLATE), &BTreeMap::new(), false).unwrap());
 }
 
 #[test]
 fn always_mode_errors_without_tty() {
-    let config = AddConfig {
-        interactive: InteractiveMode::Always,
-        ..Default::default()
-    };
-    assert!(should_open(false, &config, &specs(), &BTreeMap::new(), false).is_err());
+    let config = always_config();
+    assert!(should_open(false, &config, &specs_of(TEMPLATE), &BTreeMap::new(), false).is_err());
 }
 
 #[test]
 fn always_mode_succeeds_with_tty() {
-    let config = AddConfig {
-        interactive: InteractiveMode::Always,
-        ..Default::default()
-    };
-    assert!(should_open(false, &config, &specs(), &BTreeMap::new(), true).unwrap());
+    let config = always_config();
+    assert!(should_open(false, &config, &specs_of(TEMPLATE), &BTreeMap::new(), true).unwrap());
 }
 
 // ── should_open: the negation that keeps a non-tty from opening an editor ──
 
 #[test]
 fn force_and_never_with_tty_opens() {
-    let config = AddConfig {
-        interactive: InteractiveMode::Never,
-        ..Default::default()
-    };
-    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    let config = never_config();
+    let specs = specs_of(X_SOURCE);
     // force=true + Never + tty=true: real Ok(true).  Mutant (no !): Ok(false).
     assert!(should_open(true, &config, &specs, &BTreeMap::new(), true).unwrap());
 }
@@ -201,9 +192,8 @@ fn force_and_never_with_tty_opens() {
 #[test]
 fn auto_mode_all_filled_stays_closed() {
     let config = AddConfig::default();
-    let mut seed = BTreeMap::new();
-    seed.insert("x".to_owned(), RawValue::Str("v".to_owned()));
-    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    let seed = seed(&[("x", RawValue::Str("v".to_owned()))]);
+    let specs = specs_of(X_SOURCE);
     // Seed fills the only required slot; real should_open = false.
     // Any of the four mutants makes should_open return true.
     assert!(!should_open(false, &config, &specs, &seed, true).unwrap());
@@ -214,7 +204,7 @@ fn auto_mode_all_filled_stays_closed() {
 #[test]
 fn auto_mode_unfilled_opens() {
     let config = AddConfig::default();
-    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    let specs = specs_of(X_SOURCE);
     // No seed — has unfilled required; real should_open = true.
     // Mutant (return false) makes should_open = false.
     assert!(should_open(false, &config, &specs, &BTreeMap::new(), true).unwrap());
@@ -225,7 +215,7 @@ fn auto_mode_unfilled_opens() {
 #[test]
 fn non_required_slot_not_unfilled() {
     let config = AddConfig::default();
-    let specs = discover_slots("#show: task.with(x: slot(\"x\", required: false))");
+    let specs = specs_of(X_OPTIONAL_SOURCE);
     // spec not-required, no default, no seed → real has_unfilled_required = false.
     // Mutant: false || (true && true) = true → should_open = true.
     assert!(!should_open(false, &config, &specs, &BTreeMap::new(), true).unwrap());
@@ -254,7 +244,7 @@ fn a_buffer_that_does_not_parse_comes_back_with_its_error() {
 fn run_on(line: &str) -> Session {
     let dir = tempdir();
     let editor = editor_script(dir.path(), line);
-    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    let specs = specs_of(X_SOURCE);
     run_fresh(&editor, &specs)
 }
 
@@ -268,21 +258,4 @@ fn run_fresh(editor: &str, specs: &[mindtape::SlotSpec]) -> Session {
         None,
     )
     .unwrap()
-}
-
-/// An editor command that overwrites the file it receives with `line`.
-#[cfg(unix)]
-fn editor_script(dir: &std::path::Path, line: &str) -> String {
-    let script = dir.join("editor.sh");
-    std::fs::write(&script, format!("cat > \"$1\" << 'EOF'\n{line}\nEOF\n")).unwrap();
-    format!("sh {}", script.display())
-}
-
-/// An editor command that overwrites the file it receives with `line`. Not
-/// `bash`: on Windows that can resolve to the WSL launcher in `System32`.
-#[cfg(windows)]
-fn editor_script(dir: &std::path::Path, line: &str) -> String {
-    let script = dir.join("editor.cmd");
-    std::fs::write(&script, format!("@echo {line}> %1\r\n")).unwrap();
-    format!("cmd /C {}", script.display())
 }

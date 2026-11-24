@@ -8,9 +8,8 @@ use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
 use mindtape::{Config, discover_slots};
 
-use super::{
-    BUILTIN_TASK, DescribeFormat, describe, list_templates, resolve_template, slug, stdin_title,
-};
+use super::{BUILTIN_TASK, DescribeFormat, list_templates, resolve_template, slug, stdin_title};
+use crate::cmd::add::support_tests::{describe_json, describe_text, specs_of};
 
 #[test]
 fn slug_lowercases_and_collapses() {
@@ -62,9 +61,8 @@ fn describe_format_parses() {
 
 #[test]
 fn describe_json_lists_builtin_slots() {
-    let specs = discover_slots(BUILTIN_TASK);
-    let json = describe(&specs, DescribeFormat::Json).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let specs = specs_of(BUILTIN_TASK);
+    let parsed = describe_json(&specs);
     let names: Vec<&str> = parsed["slots"]
         .as_array()
         .unwrap()
@@ -97,7 +95,7 @@ fn describe_text_marks_optional_correctly() {
         unknown_kind: None,
         range: 0..0,
     }];
-    let text = super::describe(&specs, super::DescribeFormat::Text).unwrap();
+    let text = describe_text(&specs);
     let lines: Vec<&str> = text.lines().collect();
     assert_eq!(lines.len(), 1);
     assert!(
@@ -114,8 +112,8 @@ fn describe_text_marks_optional_correctly() {
 
 #[test]
 fn describe_text_marks_required() {
-    let specs = discover_slots(BUILTIN_TASK);
-    let text = describe(&specs, DescribeFormat::Text).unwrap();
+    let specs = specs_of(BUILTIN_TASK);
+    let text = describe_text(&specs);
     assert!(
         text.lines()
             .any(|line| line.contains("title") && line.contains("required"))
@@ -127,23 +125,21 @@ fn describe_surfaces_declared_env() {
     let specs =
         discover_slots(r#"#f(t: slot("title", env: "MINDTAPE_PRINCIPAL", default: "untitled"))"#);
 
-    let text = describe(&specs, DescribeFormat::Text).unwrap();
+    let text = describe_text(&specs);
     assert!(
         text.lines()
             .any(|line| line.contains("env: MINDTAPE_PRINCIPAL")),
         "text describe should name the env variable, got: {text}"
     );
 
-    let json = describe(&specs, DescribeFormat::Json).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let parsed = describe_json(&specs);
     assert_eq!(parsed["slots"][0]["env"], "MINDTAPE_PRINCIPAL");
 
     // A slot without `env` stays quiet in both formats.
-    let plain = discover_slots(BUILTIN_TASK);
-    let text = describe(&plain, DescribeFormat::Text).unwrap();
+    let plain = specs_of(BUILTIN_TASK);
+    let text = describe_text(&plain);
     assert!(!text.contains("env:"));
-    let json = describe(&plain, DescribeFormat::Json).unwrap();
-    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let parsed = describe_json(&plain);
     assert!(parsed["slots"][0]["env"].is_null());
 }
 
@@ -202,14 +198,13 @@ fn describe_shows_each_slot_s_example() {
     let source = "#f(t: slot(\"title\", example: \"Retry failed payments\"))\n\
                   #slot(\"problem\", kind: \"raw\", example: ```typ\n+ one\n+ two\n```)\n";
     let specs = mindtape::discover_slots(source);
-    let text = super::describe(&specs, super::DescribeFormat::Text).unwrap();
+    let text = describe_text(&specs);
     assert!(
         text.contains("title  string  required\n    e.g. Retry failed payments"),
         "{text}"
     );
     assert!(text.contains("\n    e.g. + one\n         + two"), "{text}");
-    let json = super::describe(&specs, super::DescribeFormat::Json).unwrap();
-    let rows: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let rows = describe_json(&specs);
     assert_eq!(rows["slots"][0]["example"], "Retry failed payments");
     assert_eq!(rows["slots"][1]["example"], "+ one\n+ two");
 }
@@ -234,7 +229,7 @@ fn describe_text_separates_slots_from_hooks() {
 #[test]
 fn describe_text_lists_a_choice_slots_choices() {
     let specs = discover_slots(r#"#f(k: slot("kind", kind: "choice", choices: ("feat", "test")))"#);
-    let text = describe(&specs, DescribeFormat::Text).unwrap();
+    let text = describe_text(&specs);
     assert!(
         text.starts_with("kind  choice  required  one of: feat, test"),
         "{text}"

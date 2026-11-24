@@ -37,6 +37,11 @@ fn format_is_kept_without_the_json_flag() {
 /// Environment variable that gates the inner side of `fill_title_from_stdin` tests.
 const FILL_STDIN_INNER: &str = "_MT_ADD_FILL_STDIN";
 
+/// Whether this process is the inner side of a `fill_title_from_stdin` test.
+fn in_fill_stdin_inner() -> bool {
+    std::env::var(FILL_STDIN_INNER).is_ok()
+}
+
 /// Spawn an inner test binary instance that reads `input` from its piped stdin.
 fn run_fill_stdin_inner(name: &str, input: &[u8]) {
     use std::io::Write;
@@ -75,7 +80,7 @@ fn fill_stdin_base_args() -> AddArgs {
 /// would never reach the task. The real function reads stdin and sets the title.
 #[test]
 fn fill_stdin_reads_piped_title() {
-    if std::env::var(FILL_STDIN_INNER).is_ok() {
+    if in_fill_stdin_inner() {
         let mut values = BTreeMap::new();
         fill_title_from_stdin(&mut values, &fill_stdin_base_args()).unwrap();
         assert_eq!(
@@ -99,7 +104,7 @@ fn fill_stdin_reads_piped_title() {
 /// stdin, overwriting the pre-set title.
 #[test]
 fn fill_stdin_existing_title_is_not_overwritten() {
-    if std::env::var(FILL_STDIN_INNER).is_ok() {
+    if in_fill_stdin_inner() {
         let mut values = BTreeMap::new();
         values.insert("title".to_owned(), RawValue::Str("pre-set".to_owned()));
         fill_title_from_stdin(&mut values, &fill_stdin_base_args()).unwrap();
@@ -128,7 +133,7 @@ fn fill_stdin_existing_title_is_not_overwritten() {
 /// stdin, setting the title even though `-f -` claims stdin for JSON.
 #[test]
 fn fill_stdin_skips_when_dash_in_values() {
-    if std::env::var(FILL_STDIN_INNER).is_ok() {
+    if in_fill_stdin_inner() {
         let mut values = BTreeMap::new();
         let mut args = fill_stdin_base_args();
         args.values = vec!["-".to_owned()];
@@ -150,7 +155,7 @@ fn fill_stdin_skips_when_dash_in_values() {
 /// and sets the title. The mutant returns early and leaves the title unset.
 #[test]
 fn fill_stdin_reads_when_values_have_non_dash() {
-    if std::env::var(FILL_STDIN_INNER).is_ok() {
+    if in_fill_stdin_inner() {
         let mut values = BTreeMap::new();
         let mut args = fill_stdin_base_args();
         args.values = vec!["data.json".to_owned()];

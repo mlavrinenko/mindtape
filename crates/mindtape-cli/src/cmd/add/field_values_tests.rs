@@ -2,9 +2,10 @@
 //! `tests/it/add_fields_e2e.rs`.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use mindtape::{FieldOp, RawValue, discover_slots};
+use mindtape::{FieldOp, RawValue};
 
 use super::{touched, upsert};
+use crate::cmd::add::support_tests::specs_of;
 use crate::cmd::add::values::Collected;
 
 fn collected(ops: &[(&str, FieldOp)]) -> Collected {
@@ -18,7 +19,7 @@ fn collected(ops: &[(&str, FieldOp)]) -> Collected {
 
 #[test]
 fn a_field_with_no_slot_is_touched_in_operation_order() {
-    let specs = discover_slots(r#"#f(title: slot("title"))"#);
+    let specs = specs_of(r#"#f(title: slot("title"))"#);
     let values = collected(&[
         ("tags", FieldOp::Append("b".to_owned())),
         ("due", FieldOp::Set(RawValue::Str("2026-01-01".to_owned()))),
@@ -34,7 +35,7 @@ fn a_field_with_no_slot_is_touched_in_operation_order() {
 
 #[test]
 fn a_field_the_template_exposes_as_a_slot_is_not_touched() {
-    let specs = discover_slots(r#"#f(tags: slot("tags", kind: "list"))"#);
+    let specs = specs_of(r#"#f(tags: slot("tags", kind: "list"))"#);
     let values = collected(&[("tags", FieldOp::Append("a".to_owned()))]);
     assert!(touched(&values, &specs).is_empty());
 }
