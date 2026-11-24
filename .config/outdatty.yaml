@@ -312,12 +312,13 @@ groups:
       - www/utils/set-command-notes.typ
 
   # `mt ls`: the facets, paging and the next-page command, the line under the
-  # table, the sort spec, and that there is no `--all`. `ls/rules.rs` resolves
-  # the `[[ls.rules]]` cascade the pages describe.
+  # table (`ls/rules_applied.rs`), the sort spec, and that there is no `--all`.
+  # `ls/rules.rs` resolves the `[[ls.rules]]` cascade the pages describe.
   - name: cli-ls-docs
     source:
       - crates/mindtape-cli/src/cmd/ls/mod.rs
       - crates/mindtape-cli/src/cmd/ls/rules.rs
+      - crates/mindtape-cli/src/cmd/ls/rules_applied.rs
     dependents:
       - www/content/cli/ls.typ
       - www/content/filters.typ

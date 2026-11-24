@@ -18,11 +18,7 @@
   ),
   tags: ("found", "tooling", "stateless"),
   assignee: "agent",
-  status: accepted(
-    2026,
-    11,
-    24,
-  )[the fix works, and closing it needs \`mt allow\` for the new after-the-write commands],
+  status: done(2026, 11, 24),
 )
 
 == AS-IS
