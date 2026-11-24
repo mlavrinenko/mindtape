@@ -11,7 +11,7 @@
   kind: "dev",
   tags: ("stateless", "swept", "repeats", "tests"),
   assignee: "agent",
-  status: wip(2026, 11, 24),
+  status: done(2026, 11, 24),
 )
 
 == AS-IS
