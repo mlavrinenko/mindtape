@@ -180,6 +180,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Short repeats gate on jscpd's own baseline.** `just lint repeats` runs
+  jscpd over `crates/` at a 15-token floor and fails on a group whose
+  extraction would remove 100 tokens or more and whose pairs the baseline
+  lacks. `.config/jscpd-repeats-baseline.json` holds jscpd's own
+  fingerprints, and `.config/jscpd-repeats-reasons.json` holds one reason per
+  tolerated group, so a repeat the gate lets through is an explained false
+  positive, never debt. `just lint repeats-baseline` re-mints the baseline and
+  refuses a group with no reason. The `repeats` arm of `just ask-refactoring`
+  is gone: `just check` reports the same snippets once, and a new one fails
+  the tree.
 - **The `mt ls` footer leads with its count.** The line under the table reads
   `19 of 1076 tasks · default view (!terminal && (miss(start) || start <= now()))`.
   `mt @set ls` reads `3 of 3 tasks in 2 projects · your filter`. The source
