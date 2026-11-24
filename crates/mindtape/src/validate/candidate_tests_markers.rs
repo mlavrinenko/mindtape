@@ -10,7 +10,7 @@ use std::path::Path;
 
 use super::tests::{marker, setup};
 use super::{BodyRules, Candidate, check_candidate, harvest_candidate};
-use crate::test_support::write_file;
+use crate::test_support::{project_with_file, write_file};
 
 /// A project whose one rule reads the body markers a task emits and refuses a
 /// body with none. It is the rule `mt add` runs before it writes.
@@ -49,8 +49,7 @@ fn with_goals(status: &str) -> String {
 /// an empty list before this, and refused an add the load accepted.
 #[test]
 fn a_candidate_sees_the_body_markers_its_source_emits() {
-    let dir = setup();
-    write_file(dir.path(), ".mindtape/config.toml", MARKERS_RULE);
+    let dir = project_with_file(setup(), ".mindtape/config.toml", MARKERS_RULE);
     write_file(dir.path(), "check.typ", CHECK_MARKERS);
     let config = crate::load_config(dir.path()).unwrap();
     let source = with_goals("wip");

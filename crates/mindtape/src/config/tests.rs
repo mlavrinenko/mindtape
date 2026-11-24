@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::{Requirement, RootSpec, embedded_defaults, parse_config};
+use crate::test_support::assert_valid;
 
 #[test]
 fn defaults_when_empty() {
@@ -227,13 +228,11 @@ fn status_transitions_reject_unknown_endpoint() {
 
 #[test]
 fn status_transitions_sound_graph_validates() {
-    let config = parse_config(
+    assert_valid(
         "[[tasks.status]]\nvalue = \"proposed\"\nto = [\"wip\"]\n\
          [[tasks.status]]\nvalue = \"wip\"\nto = [\"done\"]\n\
          [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]

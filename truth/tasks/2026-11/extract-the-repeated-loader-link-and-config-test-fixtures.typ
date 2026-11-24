@@ -11,7 +11,7 @@
   difficulty: 2,
   tags: ("tests", "repeats", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 24),
+  status: done(2026, 11, 24),
 )
 
 == AS-IS

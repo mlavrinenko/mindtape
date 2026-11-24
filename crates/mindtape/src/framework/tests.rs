@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use crate::config::parse_config;
 use crate::model::numeric::{InputValue, NumValue};
+use crate::test_support::assert_valid;
 
 fn framework_value(name: &str, inputs: &[(&str, InputValue)]) -> NumValue {
     NumValue::Framework {
@@ -41,12 +42,10 @@ fn resolve_scores_ice_value() {
 
 #[test]
 fn ice_validates_against_default_scale() {
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"ice\"\nmin = 0\nmax = 9\n\
          [[tasks.priority.bands]]\nlabel = \"low\"\nmin = 0\nmax = 9\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]

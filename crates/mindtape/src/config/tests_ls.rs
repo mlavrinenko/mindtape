@@ -3,6 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::parse_config;
+use crate::test_support::assert_valid;
 
 #[test]
 fn ls_default_view_names_a_declared_view() {
@@ -38,14 +39,12 @@ fn ls_default_view_near_miss_suggests_the_close_name() {
 
 #[test]
 fn valid_ls_rules_pass_validate() {
-    let config = parse_config(
+    assert_valid(
         "[views.inbox]\nfilter = 'status != \"done\"'\n\
          [[ls.rules]]\nname = \"release\"\n\
          condition = 'on_branch(\"release/*\")'\n\
          import-views = [\"inbox\"]\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]

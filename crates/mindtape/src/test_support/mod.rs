@@ -20,8 +20,9 @@ mod process;
 pub use fs::symlink_repo;
 pub use fs::{
     LIB_ENTRY, PRELUDE, commit_files, git_as_tester, git_init, git_stdout, git_tempdir,
-    home_and_project, tempdir, tempdir_with_config, tempdir_with_dirs, tempdir_with_files,
-    write_bare_project, write_file, write_lib_package, write_package, write_package_version,
+    home_and_project, project_with_file, tempdir, tempdir_with_config, tempdir_with_dirs,
+    tempdir_with_files, write_bare_project, write_file, write_lib_package, write_package,
+    write_package_version,
 };
 pub use process::{
     assert_child_ok, current_test_name, rerun_isolated, rerun_isolated_stderr,
@@ -194,6 +195,18 @@ pub fn noted_edge(target: &str, kind: &str, note: &str) -> Link {
         note: Some(note.to_owned()),
         ..link_edge(target, kind)
     }
+}
+
+/// Parse `toml` and assert the config validates, the fixture shape a test
+/// needs when it expects the config to pass.
+///
+/// # Panics
+/// Panics if `toml` does not parse or the parsed config fails validation, a
+/// test-fixture bug.
+#[allow(clippy::unwrap_used)]
+pub fn assert_valid(toml: &str) {
+    let config = crate::parse_config(toml).unwrap();
+    assert!(config.validate().is_ok());
 }
 
 /// A canonical `mindtape.task` Typst metadata source: one `wip` task with a

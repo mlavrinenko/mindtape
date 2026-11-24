@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::test_support::tempdir;
-use crate::test_support::write_file;
+use crate::test_support::{project_with_file, write_file};
 use std::collections::HashSet;
 use std::path::Path;
 
@@ -122,8 +122,7 @@ fn check_wip_candidate_for_build(dir: &Path, config: &Config, existing: &[Task])
 /// write. The check returns only the candidate's own.
 #[test]
 fn filters_out_violations_of_the_existing_tasks() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/old.typ", marker("bogus"));
+    let dir = project_with_file(setup(), "tasks/old.typ", marker("bogus"));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
     assert_eq!(existing.len(), 1);
@@ -333,8 +332,7 @@ fn a_candidate_that_fails_to_evaluate_does_not_sink_the_batch() {
 /// rewrite: the old copy drops out, so the two never collide on the shared id.
 #[test]
 fn replaces_an_existing_task_at_the_same_path() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", marker("bogus"));
+    let dir = project_with_file(setup(), "tasks/build.typ", marker("bogus"));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
 
@@ -367,8 +365,7 @@ fn candidate_at_b(root: &Path, config: &Config, existing: &[Task], source: &str)
 /// `mt check` rejects on a neighbour. Its message is `mt check`'s own.
 #[test]
 fn a_batch_edge_that_closes_a_cycle_comes_back_as_elsewhere() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/a.typ", linked(&["b.typ"]));
+    let dir = project_with_file(setup(), "tasks/a.typ", linked(&["b.typ"]));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
     assert_eq!(existing.len(), 1);
@@ -407,8 +404,7 @@ fn a_batch_edge_that_closes_a_cycle_comes_back_as_elsewhere() {
 /// re-add it as a second, unreworded copy.
 #[test]
 fn a_cycle_on_the_candidate_is_not_reported_twice() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/z.typ", linked(&["b.typ"]));
+    let dir = project_with_file(setup(), "tasks/z.typ", linked(&["b.typ"]));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;
     assert_eq!(existing.len(), 1);
@@ -430,8 +426,7 @@ fn a_cycle_on_the_candidate_is_not_reported_twice() {
 /// cycle does not come back on every unrelated write.
 #[test]
 fn an_already_present_cycle_is_not_attributed_to_the_batch() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/a.typ", linked(&["b.typ"]));
+    let dir = project_with_file(setup(), "tasks/a.typ", linked(&["b.typ"]));
     write_file(dir.path(), "tasks/b.typ", linked(&["a.typ"]));
     let config = floor();
     let existing = load_project(dir.path(), &config).tasks;

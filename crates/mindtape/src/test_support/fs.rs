@@ -112,6 +112,21 @@ pub fn tempdir_with_files(files: &[(&str, &str)]) -> tempfile::TempDir {
     dir
 }
 
+/// `dir` with `rel` written to `source`: a fresh project plus the one file a
+/// test needs in it.
+///
+/// # Panics
+/// Panics if writing the file fails, a test-harness bug.
+#[must_use]
+pub fn project_with_file(
+    dir: tempfile::TempDir,
+    rel: &str,
+    source: impl AsRef<[u8]>,
+) -> tempfile::TempDir {
+    write_file(dir.path(), rel, source);
+    dir
+}
+
 /// A fresh [`tempdir`] holding `.mindtape/config.toml` with `config` and
 /// nothing else: no lib, no task root.
 ///

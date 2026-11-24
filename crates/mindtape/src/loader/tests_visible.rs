@@ -4,10 +4,10 @@ use std::path::Path;
 use std::process::Command;
 
 use super::load_project;
-use super::tests::{TASK_BODY, setup};
+use super::tests::{TASK_BODY, load_ok, one_error, setup};
 use crate::config::Config;
 use crate::parse_config;
-use crate::test_support::{tempdir, write_file};
+use crate::test_support::{project_with_file, tempdir, write_file};
 
 /// Run `git <args>` in `dir` with the developer's Git configuration out of
 /// reach, asserting success. A test about ignore semantics must read only the
@@ -62,8 +62,7 @@ fn git_lists_tracked_and_untracked_sources_but_not_untracked_ignored_ones() {
     write_file(dir.path(), "tasks/new.typ", TASK_BODY);
     write_file(dir.path(), "tasks/ignored/untracked.typ", TASK_BODY);
 
-    let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(dir.path(), &Config::default());
     assert_eq!(ids(&outcome), ["new", "tracked", "visible"]);
 }
 
@@ -78,8 +77,7 @@ fn git_does_not_load_a_tracked_file_deleted_from_the_working_tree() {
     git(dir.path(), &["commit", "-q", "-m", "seed"]);
     std::fs::remove_file(dir.path().join("tasks/gone.typ")).unwrap();
 
-    let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(dir.path(), &Config::default());
     assert!(outcome.tasks.is_empty(), "{:?}", outcome.tasks);
 }
 
@@ -97,8 +95,7 @@ fn an_ignored_root_lists_only_tracked_files_and_warns_once() {
     write_file(dir.path(), "tasks/visible.typ", TASK_BODY);
     let config = parse_config("[tasks]\nroots = [\"target\", \"tasks\"]\n").unwrap();
 
-    let outcome = load_project(dir.path(), &config);
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(dir.path(), &config);
     assert_eq!(ids(&outcome), ["tracked", "visible"]);
     assert_eq!(outcome.warnings.len(), 1, "{:?}", outcome.warnings);
     let warning = outcome.warnings.first().unwrap();
@@ -130,8 +127,7 @@ fn git_discovery_keeps_the_misfiled_task_warning() {
         "#show: task.with(title: \"Template\")\n",
     );
 
-    let outcome = load_project(dir.path(), &config);
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(dir.path(), &config);
     assert!(outcome.tasks.is_empty(), "{:?}", outcome.tasks);
     assert_eq!(outcome.warnings.len(), 1, "{:?}", outcome.warnings);
     assert_eq!(
@@ -149,8 +145,7 @@ fn a_project_nested_in_a_larger_repository_keeps_project_relative_paths() {
     std::fs::create_dir_all(project.join("tasks")).unwrap();
     write_file(&project, "tasks/a.typ", TASK_BODY);
 
-    let outcome = load_project(&project, &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(&project, &Config::default());
     assert_eq!(ids(&outcome), ["a"]);
     assert_eq!(
         outcome.tasks.first().unwrap().file,
@@ -162,14 +157,11 @@ fn a_project_nested_in_a_larger_repository_keeps_project_relative_paths() {
 /// is neither is a load error that specifies the root, not a silent empty scan.
 #[test]
 fn another_git_failure_is_a_load_error_naming_the_root() {
-    let dir = setup();
-    write_file(dir.path(), ".git", "not a git directory\n");
+    let dir = project_with_file(setup(), ".git", "not a git directory\n");
     write_file(dir.path(), "tasks/a.typ", TASK_BODY);
 
     let outcome = load_project(dir.path(), &Config::default());
-    assert!(outcome.tasks.is_empty());
-    assert_eq!(outcome.errors.len(), 1, "{:?}", outcome.errors);
-    let error = outcome.errors.first().unwrap();
+    let error = one_error(&outcome);
     assert_eq!(error.file, Path::new("tasks"));
     assert!(error.message.contains("tasks"), "{}", error.message);
 }
@@ -179,8 +171,7 @@ fn another_git_failure_is_a_load_error_naming_the_root() {
 #[cfg(unix)]
 #[test]
 fn a_non_git_project_walks_without_following_directory_symlinks() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/a.typ", TASK_BODY);
+    let dir = project_with_file(setup(), "tasks/a.typ", TASK_BODY);
     write_file(dir.path(), "elsewhere/b.typ", TASK_BODY);
     std::os::unix::fs::symlink(
         dir.path().join("elsewhere"),
@@ -188,8 +179,7 @@ fn a_non_git_project_walks_without_following_directory_symlinks() {
     )
     .unwrap();
 
-    let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(dir.path(), &Config::default());
     assert_eq!(ids(&outcome), ["a"]);
 }
 
@@ -207,8 +197,8 @@ fn a_non_utf8_git_path_is_preserved_in_the_load_error() {
     write_file(dir.path(), &rel, TASK_BODY);
 
     let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors.len(), 1);
-    assert_eq!(outcome.errors.first().unwrap().file, rel);
+    let error = one_error(&outcome);
+    assert_eq!(error.file, rel);
 }
 
 /// A root of `.` excludes `docs`, and a narrower root still loads a task
@@ -225,8 +215,7 @@ fn a_root_excludes_docs_and_a_narrower_root_loads_it() {
     write_file(dir.path(), "docs/tasks/real.typ", TASK_BODY);
     write_file(dir.path(), "tasks/other.typ", TASK_BODY);
 
-    let outcome = load_project(dir.path(), &config);
-    assert!(outcome.errors.is_empty(), "{:?}", outcome.errors);
+    let outcome = load_ok(dir.path(), &config);
     assert_eq!(outcome.tasks.len(), 2, "{:?}", outcome.tasks);
     let real = &outcome.tasks[1];
     assert_eq!(real.id, "real");

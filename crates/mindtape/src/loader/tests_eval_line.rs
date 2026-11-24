@@ -3,7 +3,7 @@
 //! it inside the prelude. The reader then never sees a prelude line.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::tests::{lib_config, setup, write_pkg};
+use super::tests::{lib_config, load_ok, setup, write_pkg};
 use super::{LoadError, load_project};
 use crate::test_support::write_file;
 
@@ -207,8 +207,7 @@ fn a_warning_on_a_file_that_loads_is_kept() {
          #import \"@local/mindtape:0.5.0\": *\n\
          #show: task.with(title: \"T\")\n",
     );
-    let outcome = load_project(dir.path(), &lib_config());
-    assert!(outcome.errors.is_empty(), "{:?}", outcome.errors);
+    let outcome = load_ok(dir.path(), &lib_config());
     assert_eq!(outcome.warnings.len(), 1, "{:?}", outcome.warnings);
     let warning = &outcome.warnings[0];
     assert_eq!(

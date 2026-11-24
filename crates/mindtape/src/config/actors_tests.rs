@@ -3,6 +3,7 @@
 
 use crate::config::Config;
 use crate::parse_config;
+use crate::test_support::assert_valid;
 
 use super::{Actor, ActorKind, Role, roles_of};
 
@@ -108,12 +109,10 @@ fn assignee_allowed_must_name_a_declared_actor() {
 
 #[test]
 fn assignee_allowed_referencing_a_declared_actor_passes() {
-    let config = parse_config(
+    assert_valid(
         "[tasks.assignee]\nallowed = [\"ada\"]\n\n\
          [[actors]]\nname = \"ada\"\nkind = \"human\"\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]

@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use crate::config::parse_config;
 use crate::model::numeric::InputValue;
+use crate::test_support::assert_valid;
 
 #[test]
 fn validate_rejects_framework_exceeding_scale() {
@@ -114,14 +115,12 @@ fn validate_accepts_scalar_at_scale_min_boundary() {
     // interval.lo = 9.999999999, scope.min = 10, EPS = 1e-9.
     // Real: 9.999999999 < 10 - 1e-9 = false → passes.
     // Mutant <=: 9.999999999 <= 10 - 1e-9 = true → error.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"t\"\nmin = 10\nmax = 100\n\
          [[tasks.priority.bands]]\nlabel = \"all\"\nmin = 10\nmax = 100\n\
          [tasks.priority.frameworks.t]\nscore = \"v\"\n\
          [tasks.priority.frameworks.t.inputs.v]\ntype = \"number\"\nmin = 9.999999999\nmax = 100\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
@@ -130,14 +129,12 @@ fn input_range_strictly_inside_the_scale_validates() {
     // scale [5, 100], so validation accepts it. The bound is compared with an
     // epsilon slack (`scope.min - EPS`); an arithmetic slip there turns the
     // slack into a huge number and rejects this perfectly valid config.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"x\"\nmin = 5\nmax = 100\n\
          [[tasks.priority.bands]]\nlabel = \"all\"\nmin = 5\nmax = 100\n\
          [tasks.priority.frameworks.x]\nscore = \"v\"\n\
          [tasks.priority.frameworks.x.inputs.v]\ntype = \"number\"\nmin = 10\nmax = 50\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
@@ -146,14 +143,12 @@ fn validate_accepts_scalar_at_scale_max_boundary() {
     // interval.hi = 10.000000001, scope.max = 10, EPS = 1e-9.
     // Real: 10.000000001 > 10 + 1e-9 = false → passes.
     // Mutant >=: 10.000000001 >= 10 + 1e-9 = true → error.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"t\"\nmin = 0\nmax = 10\n\
          [[tasks.priority.bands]]\nlabel = \"all\"\nmin = 0\nmax = 10\n\
          [tasks.priority.frameworks.t]\nscore = \"v\"\n\
          [tasks.priority.frameworks.t.inputs.v]\ntype = \"number\"\nmin = 0\nmax = 10.000000001\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
@@ -178,15 +173,13 @@ fn validate_accepts_categorical_score_at_min() {
     // score = 5, min = 5. Real: 5 < 5 || 5 > 10 = false → OK.
     // Mutant ==: 5 == 5 || ... = true → error.
     // Mutant <=: 5 <= 5 || ... = true → error.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"x\"\nmin = 5\nmax = 10\n\
          [[tasks.priority.bands]]\nlabel = \"all\"\nmin = 5\nmax = 10\n\
          [tasks.priority.frameworks.x.inputs.flag]\ntype = \"bool\"\n\
          [[tasks.priority.frameworks.x.category]]\nwhen = \"flag\"\nscore = 5\n\
          [[tasks.priority.frameworks.x.category]]\nwhen = \"!flag\"\nscore = 8\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
@@ -194,15 +187,13 @@ fn validate_accepts_categorical_strictly_above_min() {
     // validate_categorical < → >. score > min but in bounds.
     // score = 8, min = 5. Real: 8 < 5 || 8 > 10 = false → OK.
     // Mutant >: 8 > 5 || 8 > 10 = true || false = true → error.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"x\"\nmin = 5\nmax = 10\n\
          [[tasks.priority.bands]]\nlabel = \"all\"\nmin = 5\nmax = 10\n\
          [tasks.priority.frameworks.x.inputs.flag]\ntype = \"bool\"\n\
          [[tasks.priority.frameworks.x.category]]\nwhen = \"flag\"\nscore = 8\n\
          [[tasks.priority.frameworks.x.category]]\nwhen = \"!flag\"\nscore = 8\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
@@ -211,15 +202,13 @@ fn validate_accepts_categorical_score_at_max() {
     // score = 10, max = 10. Real: 0 < 10 || 10 > 10 = false → OK.
     // Mutant ==: 0 < 10 || 10 == 10 = false || true = true → error.
     // Mutant >=: 0 < 10 || 10 >= 10 = false || true = true → error.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"x\"\nmin = 0\nmax = 10\n\
          [[tasks.priority.bands]]\nlabel = \"all\"\nmin = 0\nmax = 10\n\
          [tasks.priority.frameworks.x.inputs.flag]\ntype = \"bool\"\n\
          [[tasks.priority.frameworks.x.category]]\nwhen = \"flag\"\nscore = 10\n\
          [[tasks.priority.frameworks.x.category]]\nwhen = \"!flag\"\nscore = 5\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
@@ -227,29 +216,25 @@ fn validate_accepts_categorical_strictly_below_max() {
     // validate_categorical > → <. score < max but in bounds.
     // score = 3, max = 10. Real: 3 < 0 || 3 > 10 = false || false = false → OK.
     // Mutant <: 3 < 0 || 3 < 10 = false || true = true → error.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"x\"\nmin = 0\nmax = 10\n\
          [[tasks.priority.bands]]\nlabel = \"all\"\nmin = 0\nmax = 10\n\
          [tasks.priority.frameworks.x.inputs.flag]\ntype = \"bool\"\n\
          [[tasks.priority.frameworks.x.category]]\nwhen = \"flag\"\nscore = 3\n\
          [[tasks.priority.frameworks.x.category]]\nwhen = \"!flag\"\nscore = 5\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
 fn validate_skips_coverage_with_number_input() {
     // check_coverage || → &&. Real: has Number input → skip coverage.
     // Mutant &&: inputs not empty && has Number = false && true = false → doesn't skip → errors.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"partial\"\n\
          [tasks.priority.frameworks.partial.inputs.flag]\ntype = \"bool\"\n\
          [tasks.priority.frameworks.partial.inputs.x]\ntype = \"number\"\nmin = 1\nmax = 10\n\
          [[tasks.priority.frameworks.partial.category]]\nwhen = \"flag\"\nscore = 5\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
@@ -257,14 +242,12 @@ fn validate_accepts_exhaustive_categories() {
     // check_coverage != → ==. Exhaustive+disjoint: matched == 1 for all combos.
     // Real: matched != 1 is false → no error.
     // Mutant ==: matched == 1 is true → error.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"full\"\n\
          [tasks.priority.frameworks.full.inputs.flag]\ntype = \"bool\"\n\
          [[tasks.priority.frameworks.full.category]]\nwhen = \"flag\"\nscore = 5\n\
          [[tasks.priority.frameworks.full.category]]\nwhen = \"!flag\"\nscore = 5\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]
@@ -272,7 +255,7 @@ fn validate_accepts_exhaustive_categories_multi_bool() {
     // category_domains → vec![] () and combinations → vec![BTreeMap::new()] ().
     // With 2 bool inputs + 4 exhaustive categories, real checks all 4 combos → matched==1 → OK.
     // Mutant empty domain/combo → only 1 empty combo → predicate eval fails → matched=0 → error.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"full\"\n\
          [tasks.priority.frameworks.full.inputs.a]\ntype = \"bool\"\n\
          [tasks.priority.frameworks.full.inputs.b]\ntype = \"bool\"\n\
@@ -280,9 +263,7 @@ fn validate_accepts_exhaustive_categories_multi_bool() {
          [[tasks.priority.frameworks.full.category]]\nwhen = \"a && !b\"\nscore = 5\n\
          [[tasks.priority.frameworks.full.category]]\nwhen = \"!a && b\"\nscore = 5\n\
          [[tasks.priority.frameworks.full.category]]\nwhen = \"!a && !b\"\nscore = 5\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 // --- Input names must be Typst identifiers ---
@@ -323,14 +304,12 @@ fn validate_rejects_keyword_and_underscore_input_names() {
 fn validate_accepts_hyphen_and_unicode_input_names() {
     // `my-input` (bare TOML key) and `café` (quoted key) both satisfy the
     // identifier rules; only spaces or a leading digit would fail them.
-    let config = parse_config(
+    assert_valid(
         "[tasks.priority]\nframework = \"g\"\nmin = 0\nmax = 9\n\
          [tasks.priority.frameworks.g]\nscore = \"1\"\n\
          [tasks.priority.frameworks.g.inputs.my-input]\ntype = \"number\"\nmin = 1\nmax = 10\n\
          [tasks.priority.frameworks.g.inputs.\"café\"]\ntype = \"number\"\nmin = 1\nmax = 10\n",
-    )
-    .unwrap();
-    assert!(config.validate().is_ok());
+    );
 }
 
 #[test]

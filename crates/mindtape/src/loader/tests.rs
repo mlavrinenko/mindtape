@@ -1,11 +1,12 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use crate::test_support::write_file;
-use crate::test_support::{tempdir, tempdir_with_dirs};
+use crate::test_support::{project_with_file, tempdir, tempdir_with_dirs};
 use std::path::Path;
 
-use super::{find_root, find_root_bounded, load_project};
+use super::{LoadError, LoadOutcome, find_root, find_root_bounded, load_project};
 use crate::config::Config;
+use crate::model::Task;
 use crate::model::numeric::NumValue;
 use crate::parse_config;
 use typst_harvest::HVal;
@@ -65,20 +66,40 @@ pub(super) fn setup() -> tempfile::TempDir {
     tempdir_with_dirs(&[".mindtape", "tasks"])
 }
 
+/// Load `dir` and assert the load doesn't report per-file errors, the shape
+/// most loader tests open with.
+pub(super) fn load_ok(dir: &Path, config: &Config) -> LoadOutcome {
+    let outcome = load_project(dir, config);
+    assert_eq!(outcome.errors, Vec::new(), "{:?}", outcome.errors);
+    outcome
+}
+
+/// Assert the load failed on exactly one file and return that error, the shape
+/// a test about a refused file needs.
+pub(super) fn one_error(outcome: &LoadOutcome) -> &LoadError {
+    assert!(outcome.tasks.is_empty(), "{:?}", outcome.tasks);
+    assert_eq!(outcome.errors.len(), 1, "{:?}", outcome.errors);
+    outcome.errors.first().unwrap()
+}
+
+/// Load `dir` and return its one task, asserting the load doesn't report
+/// errors and found exactly one.
+pub(super) fn load_one_task(dir: &Path, config: &Config) -> Task {
+    let outcome = load_ok(dir, config);
+    assert_eq!(outcome.tasks.len(), 1, "{:?}", outcome.tasks);
+    outcome.tasks.into_iter().next().unwrap()
+}
+
 #[test]
 fn loads_tasks_and_skips_non_tasks() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
+    let dir = project_with_file(setup(), "tasks/build.typ", TASK_BODY);
     write_file(
         dir.path(),
         "tasks/notes.typ",
         "= Just notes\n\nNo marker here.\n",
     );
 
-    let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
-    assert_eq!(outcome.tasks.len(), 1);
-    let task = outcome.tasks.first().unwrap();
+    let task = load_one_task(dir.path(), &Config::default());
     assert_eq!(task.id, "build");
     assert_eq!(task.title, "Build");
     assert_eq!(task.status.as_ref().unwrap().name, "wip");
@@ -112,8 +133,7 @@ fn a_template_is_not_a_task_and_earns_no_warning() {
             "#show: task.with(title: \"Template\")\n",
         );
 
-        let outcome = load_project(dir.path(), &config);
-        assert_eq!(outcome.errors, Vec::new());
+        let outcome = load_ok(dir.path(), &config);
         let ids: Vec<&str> = outcome.tasks.iter().map(|task| task.id.as_str()).collect();
         assert_eq!(ids, ["real-task"], "{template}");
         assert!(outcome.warnings.is_empty(), "{:?}", outcome.warnings);
@@ -124,25 +144,22 @@ fn a_template_is_not_a_task_and_earns_no_warning() {
 #[cfg(unix)]
 #[test]
 fn a_symlinked_typ_file_is_not_loaded() {
-    let dir = setup();
-    write_file(dir.path(), "elsewhere/real.typ", TASK_BODY);
+    let dir = project_with_file(setup(), "elsewhere/real.typ", TASK_BODY);
     std::os::unix::fs::symlink(
         dir.path().join("elsewhere/real.typ"),
         dir.path().join("tasks/link.typ"),
     )
     .unwrap();
 
-    let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(dir.path(), &Config::default());
     assert!(outcome.tasks.is_empty(), "{:?}", outcome.tasks);
     assert!(outcome.warnings.is_empty(), "{:?}", outcome.warnings);
 }
 
 #[test]
 fn loads_multi_unit_estimate_verbatim() {
-    let dir = setup();
-    write_file(
-        dir.path(),
+    let dir = project_with_file(
+        setup(),
         "tasks/est.typ",
         "#metadata((
   marker: \"mindtape.task\",
@@ -161,20 +178,15 @@ fn loads_multi_unit_estimate_verbatim() {
 
 #[test]
 fn records_eval_errors() {
-    let dir = setup();
-    write_file(
-        dir.path(),
+    let dir = project_with_file(
+        setup(),
         "tasks/broken.typ",
         "#import \"@local/nope:9.9.9\": *\n",
     );
 
     let outcome = load_project(dir.path(), &Config::default());
-    assert!(outcome.tasks.is_empty());
-    assert_eq!(outcome.errors.len(), 1);
-    assert_eq!(
-        outcome.errors.first().unwrap().file,
-        Path::new("tasks/broken.typ")
-    );
+    let error = one_error(&outcome);
+    assert_eq!(error.file, Path::new("tasks/broken.typ"));
 }
 
 #[test]
@@ -300,8 +312,7 @@ fn in_tree_local_package_needs_a_local_packages_entry() {
         "#import \"@local/helper:99.99.99\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
     );
     let outcome = load_project(dir.path(), &Config::default());
-    assert!(outcome.tasks.is_empty(), "{:?}", outcome.tasks);
-    assert_eq!(outcome.errors.len(), 1);
+    one_error(&outcome);
 }
 
 #[test]
@@ -324,10 +335,8 @@ fn config_registers_extra_local_package() {
     let config =
         parse_config("[[typst.local-packages]]\nname = \"helper\"\npath = \"vendor/helper\"\n")
             .unwrap();
-    let outcome = load_project(dir.path(), &config);
-    assert_eq!(outcome.errors, Vec::new());
-    assert_eq!(outcome.tasks.len(), 1);
-    assert_eq!(outcome.tasks.first().unwrap().title, "Hi");
+    let task = load_one_task(dir.path(), &config);
+    assert_eq!(task.title, "Hi");
 }
 
 /// The title of the first `mindtape.task` marker in `markers`, if it carries
@@ -362,9 +371,8 @@ fn find_root_returns_none_without_marker() {
 
 #[test]
 fn explicit_id_wins_over_stem() {
-    let dir = setup();
-    write_file(
-        dir.path(),
+    let dir = project_with_file(
+        setup(),
         "tasks/build.typ",
         "#metadata((
   marker: \"mindtape.task\",
@@ -374,16 +382,14 @@ fn explicit_id_wins_over_stem() {
 ",
     );
 
-    let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(dir.path(), &Config::default());
     let task = outcome.tasks.first().unwrap();
     assert_eq!(task.id, "custom", "explicit id: should win over stem");
 }
 
 #[test]
 fn stem_used_when_id_absent() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/my-task.typ", TASK_BODY);
+    let dir = project_with_file(setup(), "tasks/my-task.typ", TASK_BODY);
 
     let outcome = load_project(dir.path(), &Config::default());
     let task = outcome.tasks.first().unwrap();
@@ -443,8 +449,7 @@ fn stamps_graph_ranks_over_the_whole_set() {
     // `crate::graph::dep_rank`), so this is what wires the graph sorts and filters to
     // real files: without it every task would read 0 and `--sort topo` would be
     // a no-op.
-    let dir = setup();
-    write_file(dir.path(), "tasks/root.typ", linked_body("wip", &[]));
+    let dir = project_with_file(setup(), "tasks/root.typ", linked_body("wip", &[]));
     write_file(
         dir.path(),
         "tasks/mid.typ",
@@ -456,8 +461,7 @@ fn stamps_graph_ranks_over_the_whole_set() {
         linked_body("wip", &["mid.typ"]),
     );
 
-    let outcome = load_project(dir.path(), &Config::default());
-    assert_eq!(outcome.errors, Vec::new());
+    let outcome = load_ok(dir.path(), &Config::default());
     let rank = |id: &str| {
         let task = outcome.tasks.iter().find(|t| t.id == id).unwrap();
         (task.topo, task.blocks)

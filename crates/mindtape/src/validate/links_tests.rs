@@ -30,11 +30,18 @@ pub(super) fn check(tasks: &[Task], config: &Config) -> Vec<Violation> {
     out
 }
 
+/// The violations a two-task project earns: `a` carrying `a_links` and `b`
+/// carrying `b_links`, checked against the default config.
+fn check_pair(a_links: Vec<Link>, b_links: Vec<Link>) -> Vec<Violation> {
+    check(
+        &[linked_task("a", a_links), linked_task("b", b_links)],
+        &Config::default(),
+    )
+}
+
 #[test]
 fn resolves_known_edge() {
-    let a = linked_task("a", vec![edge("b.typ", "depends-on")]);
-    let b = bare_task("b");
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(vec![edge("b.typ", "depends-on")], vec![]);
     assert!(violations.is_empty(), "got {violations:?}");
 }
 
@@ -50,11 +57,10 @@ fn flags_unresolved_edge_target() {
 
 #[test]
 fn names_only_an_unresolved_target_as_unresolved() {
-    let a = linked_task(
-        "a",
+    let violations = check_pair(
         vec![edge("missing.typ", "depends-on"), edge("b.typ", "")],
+        vec![],
     );
-    let violations = check(&[a, bare_task("b")], &Config::default());
     let unresolved: Vec<_> = violations
         .iter()
         .filter(|v| super::is_unresolved(v))
@@ -88,9 +94,7 @@ fn is_unresolved_reads_the_kind_and_ignores_the_wording() {
 fn flags_bare_string_edge_as_unknown_kind() {
     // No helper used: `kind` is empty, so it never matches a built-in or
     // configured kind — the escape-hatch rule requires intent be explicit.
-    let a = linked_task("a", vec![edge("b.typ", "")]);
-    let b = bare_task("b");
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(vec![edge("b.typ", "")], vec![]);
     assert!(
         flags(&violations, "links", "has no kind"),
         "got {violations:?}"
@@ -99,9 +103,7 @@ fn flags_bare_string_edge_as_unknown_kind() {
 
 #[test]
 fn flags_unknown_kind_name() {
-    let a = linked_task("a", vec![edge("b.typ", "blocks")]);
-    let b = bare_task("b");
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(vec![edge("b.typ", "blocks")], vec![]);
     assert!(
         flags(&violations, "blocks", "not a configured link kind"),
         "got {violations:?}"
@@ -125,9 +127,7 @@ fn parent_cardinality_one_rejects_two_parents() {
 
 #[test]
 fn single_parent_is_clean() {
-    let a = linked_task("a", vec![edge("b.typ", "parent")]);
-    let b = bare_task("b");
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(vec![edge("b.typ", "parent")], vec![]);
     assert!(!on_field(&violations, "parent"));
 }
 
@@ -145,9 +145,7 @@ fn depends_on_has_no_cardinality_cap() {
 
 #[test]
 fn related_requires_a_note() {
-    let a = linked_task("a", vec![edge("b.typ", "related")]);
-    let b = bare_task("b");
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(vec![edge("b.typ", "related")], vec![]);
     assert!(
         flags(&violations, "related", "requires a note"),
         "got {violations:?}"
@@ -156,17 +154,13 @@ fn related_requires_a_note() {
 
 #[test]
 fn related_with_note_is_clean() {
-    let a = linked_task("a", vec![noted("b.typ", "related", "why it matters")]);
-    let b = bare_task("b");
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(vec![noted("b.typ", "related", "why it matters")], vec![]);
     assert!(!on_field(&violations, "related"));
 }
 
 #[test]
 fn related_with_blank_note_still_fails() {
-    let a = linked_task("a", vec![noted("b.typ", "related", "   ")]);
-    let b = bare_task("b");
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(vec![noted("b.typ", "related", "   ")], vec![]);
     assert!(
         flags(&violations, "related", "requires a note"),
         "got {violations:?}"
@@ -212,9 +206,10 @@ fn custom_kind_cannot_override_builtin_cardinality() {
 
 #[test]
 fn flags_depends_on_cycle() {
-    let a = linked_task("a", vec![edge("b.typ", "depends-on")]);
-    let b = linked_task("b", vec![edge("a.typ", "depends-on")]);
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(
+        vec![edge("b.typ", "depends-on")],
+        vec![edge("a.typ", "depends-on")],
+    );
     assert!(
         flags(&violations, "depends-on", "cycle"),
         "got {violations:?}"
@@ -223,9 +218,7 @@ fn flags_depends_on_cycle() {
 
 #[test]
 fn flags_parent_cycle_separately_from_depends_on() {
-    let a = linked_task("a", vec![edge("b.typ", "parent")]);
-    let b = linked_task("b", vec![edge("a.typ", "parent")]);
-    let violations = check(&[a, b], &Config::default());
+    let violations = check_pair(vec![edge("b.typ", "parent")], vec![edge("a.typ", "parent")]);
     assert!(flags(&violations, "parent", "cycle"), "got {violations:?}");
 }
 
@@ -233,12 +226,10 @@ fn flags_parent_cycle_separately_from_depends_on() {
 fn parent_and_depends_on_cycles_are_independent() {
     // a depends-on b (fine, no cycle there) but a<->b both declare each other
     // as parent: only the parent cycle should be flagged.
-    let a = linked_task(
-        "a",
+    let violations = check_pair(
         vec![edge("b.typ", "depends-on"), edge("b.typ", "parent")],
+        vec![edge("a.typ", "parent")],
     );
-    let b = linked_task("b", vec![edge("a.typ", "parent")]);
-    let violations = check(&[a, b], &Config::default());
     assert!(!on_field(&violations, "depends-on"));
     assert!(on_field(&violations, "parent"));
 }

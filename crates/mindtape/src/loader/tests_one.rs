@@ -9,12 +9,11 @@ use super::tests_visible::{git, git_repo};
 use super::{load_one, load_project};
 use crate::config::Config;
 use crate::parse_config;
-use crate::test_support::write_file;
+use crate::test_support::{project_with_file, write_file};
 
 #[test]
 fn a_valid_task_file_gives_the_task_load_project_gives_it() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
+    let dir = project_with_file(setup(), "tasks/build.typ", TASK_BODY);
     write_file(dir.path(), "tasks/other.typ", TASK_BODY);
     let config = Config::default();
 
@@ -39,17 +38,15 @@ fn a_valid_task_file_gives_the_task_load_project_gives_it() {
 
 #[test]
 fn a_file_with_no_task_call_gives_none() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/notes.typ", "= Just notes\n");
+    let dir = project_with_file(setup(), "tasks/notes.typ", "= Just notes\n");
     let got = load_one(dir.path(), &Config::default(), Path::new("tasks/notes.typ"));
     assert_eq!(got, Ok(None));
 }
 
 #[test]
 fn a_load_failure_gives_the_error_load_project_lists() {
-    let dir = setup();
-    write_file(
-        dir.path(),
+    let dir = project_with_file(
+        setup(),
         "tasks/broken.typ",
         "#import \"@local/nope:9.9.9\": *\n",
     );
@@ -83,8 +80,7 @@ fn a_template_under_a_root_dot_is_not_a_task_source() {
 #[cfg(unix)]
 #[test]
 fn a_symlinked_typ_file_is_not_a_task_source() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/real.typ", TASK_BODY);
+    let dir = project_with_file(setup(), "tasks/real.typ", TASK_BODY);
     std::os::unix::fs::symlink("real.typ", dir.path().join("tasks/link.typ")).unwrap();
 
     let err = load_one(dir.path(), &Config::default(), Path::new("tasks/link.typ")).unwrap_err();
@@ -114,8 +110,7 @@ fn load_one_refuses_an_untracked_ignored_file() {
 
 #[test]
 fn load_one_returns_a_failed_root_listing() {
-    let dir = setup();
-    write_file(dir.path(), ".git", "not a git directory\n");
+    let dir = project_with_file(setup(), ".git", "not a git directory\n");
     write_file(dir.path(), "tasks/a.typ", TASK_BODY);
 
     let err = load_one(dir.path(), &Config::default(), Path::new("tasks/a.typ")).unwrap_err();

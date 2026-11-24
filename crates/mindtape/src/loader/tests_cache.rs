@@ -5,12 +5,12 @@
 //! `PRELUDE_STUB`).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use crate::test_support::{body_marker, write_file};
+use crate::test_support::{body_marker, project_with_file, write_file};
 use std::path::{Path, PathBuf};
 
 use typst_harvest::HVal;
 
-use super::tests::{PRELUDE_STUB, TASK_BODY, lib_config, setup, write_pkg};
+use super::tests::{PRELUDE_STUB, TASK_BODY, lib_config, load_ok, setup, write_pkg};
 use super::{LoadOutcome, load_project};
 use crate::config::Config;
 use crate::model::BodyMarker;
@@ -102,8 +102,7 @@ fn edited_file_misses_and_reevals() {
 
 #[test]
 fn config_change_busts_the_cache() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", TASK_BODY);
+    let dir = project_with_file(setup(), "tasks/build.typ", TASK_BODY);
     let base = parse_config("").unwrap();
     let _ = load_project(dir.path(), &base);
     doctor_cache_title(&sole_cache_entry(dir.path()), "STALE");
@@ -139,8 +138,7 @@ fn corrupt_entry_falls_back_to_eval() {
     let _ = warm_build(dir.path());
 
     std::fs::write(sole_cache_entry(dir.path()), "{ not json").unwrap();
-    let out = load_project(dir.path(), &Config::default());
-    assert_eq!(out.errors, Vec::new());
+    let out = load_ok(dir.path(), &Config::default());
     assert_eq!(out.tasks.first().unwrap().title, "Build");
 }
 
@@ -195,15 +193,13 @@ const MARKED_TASK: &str = "#metadata((
 
 /// The sole task's body markers from a fresh default-config load of `root`.
 fn load_markers(root: &Path) -> Vec<BodyMarker> {
-    let out = load_project(root, &Config::default());
-    assert_eq!(out.errors, Vec::new(), "{:?}", out.errors);
+    let out = load_ok(root, &Config::default());
     out.tasks.first().unwrap().markers.clone()
 }
 
 #[test]
 fn a_heading_marker_reaches_the_task_in_document_order() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", MARKED_TASK);
+    let dir = project_with_file(setup(), "tasks/build.typ", MARKED_TASK);
     let markers = load_markers(dir.path());
     assert_eq!(markers.len(), 2, "{markers:?}");
     assert_eq!(markers[0].label.as_deref(), Some("goals"));
@@ -213,9 +209,8 @@ fn a_heading_marker_reaches_the_task_in_document_order() {
 
 #[test]
 fn a_marker_an_imported_helper_emits_is_kept() {
-    let dir = setup();
-    write_file(
-        dir.path(),
+    let dir = project_with_file(
+        setup(),
         "shared.typ",
         "#let goals() = [#metadata((marker: \"goals\", value: \"helps\")) <goals>]\n",
     );
@@ -255,8 +250,7 @@ const DATED_TASK: &str = "#metadata((
 
 #[test]
 fn a_date_valued_marker_reads_the_same_cold_and_warm() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/dated.typ", DATED_TASK);
+    let dir = project_with_file(setup(), "tasks/dated.typ", DATED_TASK);
     let cold = load_markers(dir.path());
     assert_eq!(
         cold,
@@ -292,8 +286,7 @@ fn doctor_cache_marker_label(entry: &Path, label: &str) {
 
 #[test]
 fn a_warm_hit_reports_the_same_markers_as_the_cold_eval() {
-    let dir = setup();
-    write_file(dir.path(), "tasks/build.typ", MARKED_TASK);
+    let dir = project_with_file(setup(), "tasks/build.typ", MARKED_TASK);
     let cold = load_markers(dir.path());
     assert_eq!(cold.len(), 2, "{cold:?}");
 
@@ -308,8 +301,7 @@ fn a_warm_hit_reports_the_same_markers_as_the_cold_eval() {
 
 #[test]
 fn edited_imported_module_busts_the_entry() {
-    let dir = setup();
-    write_file(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    let dir = project_with_file(setup(), "shared.typ", "#let t = \"Title one\"\n");
     write_file(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
     let first = load_project(dir.path(), &Config::default());
     assert_eq!(first.tasks.first().unwrap().title, "Title one");
@@ -320,8 +312,7 @@ fn edited_imported_module_busts_the_entry() {
 
 #[test]
 fn unchanged_imported_module_still_hits_the_cache() {
-    let dir = setup();
-    write_file(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    let dir = project_with_file(setup(), "shared.typ", "#let t = \"Title one\"\n");
     write_file(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
     let _ = load_project(dir.path(), &Config::default());
     assert_served_from_cache(dir.path());
@@ -329,8 +320,7 @@ fn unchanged_imported_module_still_hits_the_cache() {
 
 #[test]
 fn deleted_imported_module_misses() {
-    let dir = setup();
-    write_file(dir.path(), "shared.typ", "#let t = \"Title one\"\n");
+    let dir = project_with_file(setup(), "shared.typ", "#let t = \"Title one\"\n");
     write_file(dir.path(), "tasks/imp.typ", IMPORTING_TASK);
     let _ = load_project(dir.path(), &Config::default());
     std::fs::remove_file(dir.path().join("shared.typ")).unwrap();
