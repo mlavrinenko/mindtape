@@ -8,6 +8,8 @@ use super::merge_layers_with_packs_using;
 use crate::config::layers::{Layer, LayerSource, load_config_layered_from};
 use crate::config::packs_toml::read_array;
 use crate::test_support::home_and_project;
+use crate::test_support::write_ancestor_defaults;
+use crate::test_support::write_project_config;
 
 fn names_of(rules: &[crate::rules::RuleSpec]) -> Vec<Option<String>> {
     rules.iter().map(|r| r.name.clone()).collect()
@@ -18,17 +20,14 @@ fn names_of(rules: &[crate::rules::RuleSpec]) -> Vec<Option<String>> {
 #[test]
 fn ancestor_rule_survives_when_project_adds_its_own() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
-    std::fs::write(
-        home.join(".mindtape").join("defaults.toml"),
+    write_ancestor_defaults(
+        &home,
         "[[tasks.rules]]\nname = \"ancestor-rule\"\nassert = 'kind == \"bug\"'\n",
-    )
-    .unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
+    );
+    write_project_config(
+        &project,
         "[[tasks.rules]]\nname = \"project-rule\"\nassert = 'kind == \"bug\"'\n",
-    )
-    .unwrap();
+    );
 
     let (config, _sources, _origins) =
         load_config_layered_from(&project, Some(&home), None).unwrap();
@@ -44,17 +43,14 @@ fn ancestor_rule_survives_when_project_adds_its_own() {
 #[test]
 fn same_name_project_rule_replaces_the_ancestors_in_place() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
-    std::fs::write(
-        home.join(".mindtape").join("defaults.toml"),
+    write_ancestor_defaults(
+        &home,
         "[[tasks.rules]]\nname = \"shared\"\nassert = 'kind == \"bug\"'\nmessage = \"from-ancestor\"\n",
-    )
-    .unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
+    );
+    write_project_config(
+        &project,
         "[[tasks.rules]]\nname = \"shared\"\nassert = 'kind == \"bug\"'\nmessage = \"from-project\"\n",
-    )
-    .unwrap();
+    );
 
     let (config, _sources, _origins) =
         load_config_layered_from(&project, Some(&home), None).unwrap();
@@ -68,17 +64,11 @@ fn same_name_project_rule_replaces_the_ancestors_in_place() {
 #[test]
 fn disable_removes_an_inherited_rule() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
-    std::fs::write(
-        home.join(".mindtape").join("defaults.toml"),
+    write_ancestor_defaults(
+        &home,
         "[[tasks.rules]]\nname = \"foo\"\nassert = 'kind == \"bug\"'\n",
-    )
-    .unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
-        "disable = [\"foo\"]\n",
-    )
-    .unwrap();
+    );
+    write_project_config(&project, "disable = [\"foo\"]\n");
 
     let (config, _sources, _origins) =
         load_config_layered_from(&project, Some(&home), None).unwrap();
@@ -88,11 +78,7 @@ fn disable_removes_an_inherited_rule() {
 #[test]
 fn disable_naming_no_rule_anywhere_is_a_config_error() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
-        "disable = [\"nope\"]\n",
-    )
-    .unwrap();
+    write_project_config(&project, "disable = [\"nope\"]\n");
 
     let err = load_config_layered_from(&project, Some(&home), None).unwrap_err();
     assert!(err.to_string().contains("nope"), "{err}");
@@ -124,12 +110,7 @@ const ANCESTOR_CHECK_RULE: &str = "[[tasks.rules]]\nname = \"ancestor-check\"\n\
 #[test]
 fn an_ancestor_layers_check_rule_resolves_against_the_project_root_not_the_ancestors() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
-    std::fs::write(
-        home.join(".mindtape").join("defaults.toml"),
-        ANCESTOR_CHECK_RULE,
-    )
-    .unwrap();
+    write_ancestor_defaults(&home, ANCESTOR_CHECK_RULE);
     // A decoy at the ANCESTOR's own directory that does not export the
     // function — if load ever resolved `typst` against the declaring layer
     // instead of the project root, this is what it would find and fail on.
@@ -149,12 +130,7 @@ fn an_ancestor_layers_check_rule_resolves_against_the_project_root_not_the_ances
 #[test]
 fn an_ancestor_layers_check_rule_still_fails_load_when_absent_at_the_project_root() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
-    std::fs::write(
-        home.join(".mindtape").join("defaults.toml"),
-        ANCESTOR_CHECK_RULE,
-    )
-    .unwrap();
+    write_ancestor_defaults(&home, ANCESTOR_CHECK_RULE);
     // Only at the ancestor's own directory, proving that is not a fallback
     // location and load-time validation genuinely runs for this rule.
     write_file(&home, "checks.typ", "#let check-thing(value) = ()\n");
@@ -292,12 +268,11 @@ fn a_same_file_duplicate_name_is_left_for_validation_not_collapsed_at_merge() {
 #[test]
 fn a_same_file_duplicate_header_rule_name_fails_the_full_load() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
+    write_project_config(
+        &project,
         "[[tasks.body.headers.rules]]\nname = \"dup\"\npath = [\"A\"]\naction = \"require\"\n\n\
          [[tasks.body.headers.rules]]\nname = \"dup\"\npath = [\"B\"]\naction = \"require\"\n",
-    )
-    .unwrap();
+    );
 
     let err = load_config_layered_from(&project, Some(&home), None).unwrap_err();
     assert!(err.to_string().contains("dup"), "{err}");

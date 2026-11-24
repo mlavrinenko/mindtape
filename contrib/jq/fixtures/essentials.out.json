@@ -453,7 +453,6 @@
         "size",
         "mutants",
         "coverage",
-        "repeats",
         "dry",
         "found",
         "tweak"

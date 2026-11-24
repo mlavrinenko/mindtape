@@ -22127,7 +22127,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "derived",
-      "line": 342,
+      "line": 338,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -22136,7 +22136,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "derived_hval",
-      "line": 327,
+      "line": 323,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -22145,7 +22145,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "derived_type",
-      "line": 297,
+      "line": 293,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -22154,7 +22154,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "derived_type_in",
-      "line": 307,
+      "line": 303,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -22163,7 +22163,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "dir_field",
-      "line": 406,
+      "line": 402,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -22172,7 +22172,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "extra",
-      "line": 279,
+      "line": 275,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -22191,18 +22191,18 @@
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "from_extra",
       "line": 262,
-      "cyclomatic": 8.0,
-      "coverage": 80.0,
-      "crap": 8.512,
+      "cyclomatic": 4.0,
+      "coverage": 100.0,
+      "crap": 4.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "from_hval",
-      "line": 355,
+      "line": 351,
       "cyclomatic": 8.0,
-      "coverage": 60.0,
-      "crap": 12.096,
+      "coverage": 70.0,
+      "crap": 9.728000000000002,
       "crate": "mindtape"
     },
     {
@@ -22217,7 +22217,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "held",
-      "line": 376,
+      "line": 372,
       "cyclomatic": 7.0,
       "coverage": 93.75,
       "crap": 7.011962890625,
@@ -22235,7 +22235,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "is_derived",
-      "line": 289,
+      "line": 285,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -22253,7 +22253,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "num_field",
-      "line": 414,
+      "line": 410,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -22262,7 +22262,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "opt_str",
-      "line": 395,
+      "line": 391,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -22271,7 +22271,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "parent_dir",
-      "line": 400,
+      "line": 396,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -22280,7 +22280,7 @@
     {
       "file": "crates/mindtape/src/model/fields.rs",
       "function": "split_derived",
-      "line": 349,
+      "line": 345,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -25475,7 +25475,7 @@
     {
       "file": "crates/mindtape/src/test_support/fs.rs",
       "function": "commit_files",
-      "line": 262,
+      "line": 316,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -25483,8 +25483,17 @@
     },
     {
       "file": "crates/mindtape/src/test_support/fs.rs",
+      "function": "git",
+      "line": 243,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/test_support/fs.rs",
       "function": "git_as_tester",
-      "line": 277,
+      "line": 331,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -25493,7 +25502,7 @@
     {
       "file": "crates/mindtape/src/test_support/fs.rs",
       "function": "git_init",
-      "line": 197,
+      "line": 223,
       "cyclomatic": 1.0,
       "coverage": 90.0,
       "crap": 1.001,
@@ -25502,7 +25511,7 @@
     {
       "file": "crates/mindtape/src/test_support/fs.rs",
       "function": "git_stdout",
-      "line": 215,
+      "line": 269,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -25511,7 +25520,7 @@
     {
       "file": "crates/mindtape/src/test_support/fs.rs",
       "function": "git_tempdir",
-      "line": 231,
+      "line": 285,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -25538,7 +25547,7 @@
     {
       "file": "crates/mindtape/src/test_support/fs.rs",
       "function": "symlink_repo",
-      "line": 244,
+      "line": 298,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -25582,8 +25591,17 @@
     },
     {
       "file": "crates/mindtape/src/test_support/fs.rs",
+      "function": "write_ancestor_defaults",
+      "line": 187,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/test_support/fs.rs",
       "function": "write_bare_project",
-      "line": 178,
+      "line": 204,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -25620,6 +25638,15 @@
       "file": "crates/mindtape/src/test_support/fs.rs",
       "function": "write_package_version",
       "line": 44,
+      "cyclomatic": 1.0,
+      "coverage": 100.0,
+      "crap": 1.0,
+      "crate": "mindtape"
+    },
+    {
+      "file": "crates/mindtape/src/test_support/fs.rs",
+      "function": "write_project_config",
+      "line": 174,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

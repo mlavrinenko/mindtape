@@ -5,10 +5,11 @@
 use std::path::Path;
 
 use super::tests::{TASK_BODY, setup};
-use super::tests_visible::{git, git_repo};
+use super::tests_visible::git_repo;
 use super::{load_one, load_project};
 use crate::config::Config;
 use crate::parse_config;
+use crate::test_support::git;
 use crate::test_support::{project_with_file, write_file};
 
 #[test]

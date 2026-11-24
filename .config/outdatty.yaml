@@ -956,6 +956,9 @@ groups:
       # Shape-checks the skill's eval manifest; README.md describes the arms
       # but restates none of the validation.
       - .just/scripts/skill-evals-check.sh
+      # The short-repeat gate's body. Its bar, gain formula and reasons
+      # sidecar are argued in its own header, and no doc restates them.
+      - .just/scripts/repeats-gate.sh
       # The controls hold fixtures that no doc names. The readers they drive are
       # sources of the groups above.
       - .just/scripts/_script-graph-control.sh
@@ -1000,21 +1003,16 @@ groups:
   # finding there: carve a Rust module, rewrite prose. cargo-mutants
   # and llvm-cov only ever report Rust, so a slot in those templates would have
   # exactly one filler and would hide the prose from the reader for nothing.
-  # sweep-repeats.typ has a `remedy` slot for another reason: the repo's
-  # name-path-in-changes rule wants a path on each Changes bullet, and the path
-  # is the finding's own.
   - name: sweep-templates
     source:
       - .mindtape/templates/sweep-size.typ
     dependents:
       - .mindtape/templates/sweep-mutants.typ
       - .mindtape/templates/sweep-undertested.typ
-      - .mindtape/templates/sweep-repeats.typ
       - .mindtape/templates/sweep-dry.typ
       - contrib/ask-refactoring/size.sh
       - contrib/ask-refactoring/mutants.sh
       - contrib/ask-refactoring/undertested.sh
-      - contrib/ask-refactoring/repeats.sh
       - contrib/ask-refactoring/dry.sh
 
   # The per-file coverage gate and the undertested arm each carry the regex

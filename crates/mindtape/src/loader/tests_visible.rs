@@ -1,39 +1,12 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::Path;
-use std::process::Command;
 
 use super::load_project;
 use super::tests::{TASK_BODY, load_ok, one_error, setup};
 use crate::config::Config;
 use crate::parse_config;
-use crate::test_support::{project_with_file, tempdir, write_file};
-
-/// Run `git <args>` in `dir` with the developer's Git configuration out of
-/// reach, asserting success. A test about ignore semantics must read only the
-/// fixture's own `.gitignore`, never a global `core.excludesFile`.
-pub(super) fn git(dir: &Path, args: &[&str]) {
-    let output = Command::new("git")
-        .args([
-            "-c",
-            "user.name=t",
-            "-c",
-            "user.email=t@t",
-            "-c",
-            "commit.gpgsign=false",
-        ])
-        .args(args)
-        .current_dir(dir)
-        .env("GIT_CONFIG_NOSYSTEM", "1")
-        .env("GIT_CONFIG_GLOBAL", dir.join("no-global-git-config"))
-        .output()
-        .unwrap();
-    assert!(
-        output.status.success(),
-        "git {args:?} failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-}
+use crate::test_support::{git, project_with_file, tempdir, write_file};
 
 /// A fresh tempdir that is an empty Git working tree.
 pub(super) fn git_repo() -> tempfile::TempDir {

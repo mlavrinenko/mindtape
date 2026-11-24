@@ -145,6 +145,13 @@ pub(super) fn assert_round_trips_with(
     );
 }
 
+/// A `wip` task named `id`, the prologue every round-trip test repeats.
+pub(super) fn wip_task(id: &str) -> Task {
+    let mut task = bare_task(id);
+    task.status = Some(status("wip", "2026-06-01"));
+    task
+}
+
 pub(super) fn status(name: &str, date: &str) -> Status {
     Status {
         name: name.to_owned(),
@@ -155,8 +162,7 @@ pub(super) fn status(name: &str, date: &str) -> Status {
 
 #[test]
 fn round_trips_scalar_priority_and_difficulty() {
-    let mut task = bare_task("scalar-priority");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("scalar-priority");
     task.priority = Some(NumValue::Num(4.0));
     task.difficulty = Some(NumValue::Num(6.0));
     assert_round_trips(&task, CONFIG, &[]);
@@ -164,8 +170,7 @@ fn round_trips_scalar_priority_and_difficulty() {
 
 #[test]
 fn round_trips_framework_priority() {
-    let mut task = bare_task("framework-priority");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("framework-priority");
     let mut inputs = BTreeMap::new();
     inputs.insert("impact".to_owned(), InputValue::Num(8.0));
     inputs.insert("confidence".to_owned(), InputValue::Num(0.75));
@@ -179,8 +184,7 @@ fn round_trips_framework_priority() {
 
 #[test]
 fn round_trips_multi_kind_links_with_notes() {
-    let mut task = bare_task("multi-kind-links");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("multi-kind-links");
     task.links = vec![
         Link {
             task: "alpha.typ".to_owned(),
@@ -203,8 +207,7 @@ fn round_trips_multi_kind_links_with_notes() {
 
 #[test]
 fn round_trips_custom_link_kind() {
-    let mut task = bare_task("custom-link-kind");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("custom-link-kind");
     task.links = vec![Link {
         task: "delta.typ".to_owned(),
         kind: "blocks".to_owned(),
@@ -215,8 +218,7 @@ fn round_trips_custom_link_kind() {
 
 #[test]
 fn round_trips_estimate_and_dates() {
-    let mut task = bare_task("estimate-and-dates");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("estimate-and-dates");
     task.estimate = BTreeMap::from([("days".to_owned(), 1.0), ("hours".to_owned(), 2.5)]);
     task.due = Some("2026-07-01".to_owned());
     task.start = Some("2026-06-15".to_owned());
@@ -227,8 +229,7 @@ fn round_trips_estimate_and_dates() {
 
 #[test]
 fn round_trips_waits_on_beside_tags() {
-    let mut task = bare_task("waits-on");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("waits-on");
     task.waits_on = vec!["up:pr-7".to_owned(), "up:a/b#9".to_owned()];
     task.tags = vec!["backend".to_owned()];
     let config = format!("{CONFIG}\n[[tasks.waits]]\nname = \"up\"\nrun = \"exit 0\"\n");
@@ -242,16 +243,14 @@ fn round_trips_waits_on_beside_tags() {
 
 #[test]
 fn round_trips_multi_tag() {
-    let mut task = bare_task("multi-tag");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("multi-tag");
     task.tags = vec!["backend".to_owned(), "cli".to_owned()];
     assert_round_trips(&task, CONFIG, &[]);
 }
 
 #[test]
 fn round_trips_extras_scalars_and_nested() {
-    let mut task = bare_task("extras");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("extras");
     task.extras = BTreeMap::from([
         ("x-str".to_owned(), HVal::Str("hello \"world\"".to_owned())),
         ("x-int".to_owned(), HVal::Int(3)),
@@ -285,24 +284,21 @@ fn round_trips_status_with_note() {
 
 #[test]
 fn round_trips_non_empty_body() {
-    let mut task = bare_task("with-body");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("with-body");
     task.body = "== Summary\n\nSome prose about the task.".to_owned();
     assert_round_trips(&task, CONFIG, &[]);
 }
 
 #[test]
 fn emits_nothing_after_marker_when_body_empty() {
-    let mut task = bare_task("empty-body");
-    task.status = Some(status("wip", "2026-06-01"));
+    let task = wip_task("empty-body");
     let source = emit_task(&task);
     assert!(source.ends_with(")\n"), "{source}");
 }
 
 #[test]
 fn round_trips_kind_and_assignee() {
-    let mut task = bare_task("kind-and-assignee");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("kind-and-assignee");
     task.kind = Some("bug".to_owned());
     task.assignee = Some("ada".to_owned());
     assert_round_trips(&task, CONFIG, &[]);
@@ -310,8 +306,7 @@ fn round_trips_kind_and_assignee() {
 
 #[test]
 fn emits_label_priority_as_a_string() {
-    let mut task = bare_task("label-priority");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("label-priority");
     task.priority = Some(NumValue::Label("high".to_owned()));
     let source = emit_task(&task);
     assert!(source.contains("priority: \"high\""), "{source}");
@@ -321,8 +316,7 @@ fn emits_label_priority_as_a_string() {
 fn emits_moscow_framework_as_a_positional_call() {
     // `moscow(level)` takes one positional argument, not a named one —
     // distinct emission shape from every other named framework.
-    let mut task = bare_task("moscow-priority");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("moscow-priority");
     task.priority = Some(NumValue::Framework {
         name: "moscow".to_owned(),
         inputs: BTreeMap::from([("level".to_owned(), InputValue::Text("must".to_owned()))]),
@@ -333,8 +327,7 @@ fn emits_moscow_framework_as_a_positional_call() {
 
 #[test]
 fn emits_unnamed_framework_via_the_generic_escape_hatch() {
-    let mut task = bare_task("custom-framework-priority");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("custom-framework-priority");
     task.priority = Some(NumValue::Framework {
         name: "custom".to_owned(),
         inputs: BTreeMap::new(),
@@ -348,8 +341,7 @@ fn emits_unnamed_framework_via_the_generic_escape_hatch() {
 
 #[test]
 fn emits_unnamed_framework_with_inputs_via_the_generic_escape_hatch() {
-    let mut task = bare_task("custom-framework-with-inputs");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("custom-framework-with-inputs");
     task.priority = Some(NumValue::Framework {
         name: "custom".to_owned(),
         inputs: BTreeMap::from([
@@ -390,8 +382,7 @@ fn round_trips_a_body_that_calls_a_project_helper() {
 /// list existed: the prelude import, a blank line, then the `#show` header.
 #[test]
 fn an_empty_import_list_writes_the_unchanged_file() {
-    let mut task = bare_task("no-imports");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("no-imports");
     task.body = "== Summary\n\nSome prose.".to_owned();
     let expected = "#import \"@local/mindtape:0.5.0\": *\n\n\
          #show: task.with(\n  title: \"no-imports\",\n  status: wip(2026, 6, 1),\n)\n\n\
@@ -421,8 +412,7 @@ fn emits_configured_imports_in_order_before_the_prelude() {
 
 #[test]
 fn emits_deterministic_field_order() {
-    let mut task = bare_task("deterministic");
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task("deterministic");
     task.priority = Some(NumValue::Num(4.0));
     task.tags = vec!["a".to_owned()];
     let first = emit_task(&task);

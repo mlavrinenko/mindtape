@@ -6,39 +6,30 @@ use std::fs;
 
 use super::current_branch;
 
-#[test]
-fn branch_head_resolves_name() {
+/// A tempdir holding a `.git/HEAD` with `content`, the prologue every
+/// `current_branch` test repeats.
+fn head_dir(content: &str) -> tempfile::TempDir {
     let dir = tempdir();
     fs::create_dir_all(dir.path().join(".git")).unwrap();
-    fs::write(
-        dir.path().join(".git").join("HEAD"),
-        "ref: refs/heads/main\n",
-    )
-    .unwrap();
+    fs::write(dir.path().join(".git").join("HEAD"), content).unwrap();
+    dir
+}
+
+#[test]
+fn branch_head_resolves_name() {
+    let dir = head_dir("ref: refs/heads/main\n");
     assert_eq!(current_branch(dir.path()), Some("main".to_owned()));
 }
 
 #[test]
 fn branch_head_resolves_nested_name() {
-    let dir = tempdir();
-    fs::create_dir_all(dir.path().join(".git")).unwrap();
-    fs::write(
-        dir.path().join(".git").join("HEAD"),
-        "ref: refs/heads/release/1.0\n",
-    )
-    .unwrap();
+    let dir = head_dir("ref: refs/heads/release/1.0\n");
     assert_eq!(current_branch(dir.path()), Some("release/1.0".to_owned()));
 }
 
 #[test]
 fn detached_head_is_none() {
-    let dir = tempdir();
-    fs::create_dir_all(dir.path().join(".git")).unwrap();
-    fs::write(
-        dir.path().join(".git").join("HEAD"),
-        "8f3a1c2b9e0d4f5a6b7c8d9e0f1a2b3c4d5e6f70\n",
-    )
-    .unwrap();
+    let dir = head_dir("8f3a1c2b9e0d4f5a6b7c8d9e0f1a2b3c4d5e6f70\n");
     assert_eq!(current_branch(dir.path()), None);
 }
 
@@ -84,20 +75,12 @@ fn missing_head_file_is_none() {
 
 #[test]
 fn malformed_head_is_none() {
-    let dir = tempdir();
-    fs::create_dir_all(dir.path().join(".git")).unwrap();
-    fs::write(dir.path().join(".git").join("HEAD"), "not a valid head\n").unwrap();
+    let dir = head_dir("not a valid head\n");
     assert_eq!(current_branch(dir.path()), None);
 }
 
 #[test]
 fn ref_to_non_branch_namespace_is_none() {
-    let dir = tempdir();
-    fs::create_dir_all(dir.path().join(".git")).unwrap();
-    fs::write(
-        dir.path().join(".git").join("HEAD"),
-        "ref: refs/tags/v1.0\n",
-    )
-    .unwrap();
+    let dir = head_dir("ref: refs/tags/v1.0\n");
     assert_eq!(current_branch(dir.path()), None);
 }

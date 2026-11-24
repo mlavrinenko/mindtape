@@ -3,15 +3,14 @@
 #![allow(clippy::unwrap_used)]
 
 use super::emit_task;
-use super::tests::{CONFIG, assert_round_trips, setup, status};
+use super::tests::{CONFIG, assert_round_trips, setup, wip_task};
 use crate::model::Task;
 use crate::recur::{PeriodUnit, Recur, Rule};
-use crate::test_support::{bare_task, tempdir};
+use crate::test_support::tempdir;
 
 /// A `wip` task named `id` carrying `recur`.
 fn recurring_task(id: &str, recur: Recur) -> Task {
-    let mut task = bare_task(id);
-    task.status = Some(status("wip", "2026-06-01"));
+    let mut task = wip_task(id);
     task.recur = Some(recur);
     task
 }

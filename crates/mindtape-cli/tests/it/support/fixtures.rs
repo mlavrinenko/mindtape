@@ -101,12 +101,7 @@ pub fn scaffold_config(config: &str, files: &[(&str, &str)]) -> tempfile::TempDi
 
 /// Run `git` in `dir` and assert it succeeded.
 pub fn git(dir: &Path, args: &[&str]) {
-    let status = std::process::Command::new("git")
-        .current_dir(dir)
-        .args(args)
-        .status()
-        .unwrap();
-    assert!(status.success(), "git {args:?} failed");
+    mindtape::test_support::git(dir, args);
 }
 
 /// Write `path` under `dir` with its own name as the content, and stage it.

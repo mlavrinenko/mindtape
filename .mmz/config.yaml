@@ -321,6 +321,15 @@ scopes:
     - ".config/jscpd-baseline.json"
     - ".config/jscpd.json"
 
+  # The short repeats `just lint::repeats` tolerates, and the reasons that
+  # explain each one. Re-minting the baseline or editing a reason changes what
+  # the gate lets through, so both are that gate's input. The two baselines
+  # stay apart: a 15-token fingerprint in the dry file would make the dry gate
+  # tolerate a clone it never measured.
+  repeats-baseline:
+    - ".config/jscpd-repeats-baseline.json"
+    - ".config/jscpd-repeats-reasons.json"
+
   # The .config/outdatty.yaml sources and dependents that no other scope holds,
   # for `just outdatty::check`. The rule compares every listed file to the
   # lock, so a listed file outside its inputs goes false-fresh when it changes.
@@ -589,6 +598,10 @@ scopes:
     - ".just/scripts/positional-args-check.sh"
   script-release-hook:
     - ".just/scripts/release-hook.sh"
+  # The body of `just lint::repeats` and `just lint::repeats-baseline`: it runs
+  # jscpd, groups the `duplicates` pairs and checks the reasons sidecar.
+  script-repeats-gate:
+    - ".just/scripts/repeats-gate.sh"
   script-smoke-flake:
     - ".just/scripts/smoke-flake.sh"
   script-script-attr-check:
@@ -710,6 +723,13 @@ commands:
   - name: just lint::dry
     tags: [gate]
     inputs: [rust, gates-meta, dry-baseline]
+
+  # The short-repeat gate scans the same `crates/` Rust at 15 tokens, so `rust`
+  # and `gates-meta` (the recipe module) are its inputs, `repeats-baseline` the
+  # baseline and reasons it reads, and `script-repeats-gate` its body.
+  - name: just lint::repeats
+    tags: [gate]
+    inputs: [rust, gates-meta, repeats-baseline, script-repeats-gate]
 
   # gitleaks over the whole tree. `secrets-tree` is that tree (minus the one
   # directory a gate-tagged rule may not name, argued on the scope itself) and

@@ -260,17 +260,13 @@ pub fn is_extra(name: &str) -> bool {
 /// presence-only.
 #[must_use]
 pub fn from_extra(value: &HVal) -> Option<FieldValue> {
-    Some(match value {
-        HVal::Null => FieldValue::Missing,
-        HVal::Bool(flag) => FieldValue::Str(flag.to_string()),
-        // An authored integer is far below 2^52, so the conversion is exact.
-        #[allow(clippy::cast_precision_loss)]
-        HVal::Int(num) => FieldValue::Num(*num as f64),
-        HVal::Float(num) => FieldValue::Num(*num),
-        HVal::Str(text) | HVal::Date(text) => FieldValue::Str(text.clone()),
-        HVal::Array(items) => FieldValue::List(items.iter().filter_map(from_extra).collect()),
-        HVal::Dict(_) => return None,
-    })
+    match value {
+        HVal::Dict(_) => None,
+        HVal::Array(items) => Some(FieldValue::List(
+            items.iter().filter_map(from_extra).collect(),
+        )),
+        scalar => Some(from_hval(scalar)),
+    }
 }
 
 /// An `x-<ns>` slot's value on `task`, missing when the task leaves it unset

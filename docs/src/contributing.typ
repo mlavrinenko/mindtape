@@ -199,7 +199,7 @@ it, its hash comes out as zeros. #just.outdatty-check() reports that group
 until you review it and commit the re-record with a `Docs-Unaffected: <group>`
 footer. A group one branch dropped stays dropped, so a split or rename leaves
 no orphan hashes. #just.outdatty-check() fails on one that got in anyway.
-`.config/jscpd-baseline.json` merges fingerprint by fingerprint through
+Both jscpd baselines merge fingerprint by fingerprint through
 `jscpd --merge-baseline`. `.config/crap-baseline.json` merges function by
 function through `.just/scripts/crap-baseline-merge.sh`, which keeps the
 stricter score when both sides re-scored a function.

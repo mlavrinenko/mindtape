@@ -3,7 +3,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use super::{
     NotVisible, project_is_worktree, root_task_sources, visible_task_sources, visible_typ_files,
@@ -11,31 +10,11 @@ use super::{
 };
 use crate::config::Config;
 use crate::parse_config;
-use crate::test_support::{tempdir, write_file};
+use crate::test_support::{git, tempdir, write_file};
 
-/// Run `git <args>` in `dir` with the developer's Git configuration out of
-/// reach, so only the fixture's own `.gitignore` decides visibility.
-fn git(dir: &Path, args: &[&str]) {
-    let output = Command::new("git")
-        .args([
-            "-c",
-            "user.name=t",
-            "-c",
-            "user.email=t@t",
-            "-c",
-            "commit.gpgsign=false",
-        ])
-        .args(args)
-        .current_dir(dir)
-        .env("GIT_CONFIG_NOSYSTEM", "1")
-        .env("GIT_CONFIG_GLOBAL", dir.join("no-global-git-config"))
-        .output()
-        .unwrap();
-    assert!(
-        output.status.success(),
-        "git {args:?} failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
+/// The visibility of `rel` under `dir` with the default config.
+fn visible(dir: &Path, rel: &str) -> Result<(), NotVisible> {
+    would_be_visible(dir, &Config::default(), &abs(dir, rel))
 }
 
 fn git_repo() -> tempfile::TempDir {
@@ -57,14 +36,7 @@ fn a_new_typ_file_under_a_root_would_be_visible() {
     let dir = git_repo();
     std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
 
-    assert_eq!(
-        would_be_visible(
-            dir.path(),
-            &Config::default(),
-            &abs(dir.path(), "tasks/new.typ")
-        ),
-        Ok(())
-    );
+    assert_eq!(visible(dir.path(), "tasks/new.typ"), Ok(()));
 }
 
 #[test]
@@ -151,20 +123,9 @@ fn dot_dot_resolves_before_the_policy_answers() {
     let dir = tempdir();
     std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
 
+    assert_eq!(visible(dir.path(), "tasks/../tasks/new.typ"), Ok(()));
     assert_eq!(
-        would_be_visible(
-            dir.path(),
-            &Config::default(),
-            &abs(dir.path(), "tasks/../tasks/new.typ")
-        ),
-        Ok(())
-    );
-    assert_eq!(
-        would_be_visible(
-            dir.path(),
-            &Config::default(),
-            &abs(dir.path(), "tasks/../elsewhere/new.typ")
-        ),
+        visible(dir.path(), "tasks/../elsewhere/new.typ"),
         Err(NotVisible::OutsideRoots)
     );
 }
@@ -175,19 +136,11 @@ fn a_non_typ_or_directory_destination_is_refused() {
     std::fs::create_dir_all(dir.path().join("tasks/box.typ")).unwrap();
 
     assert_eq!(
-        would_be_visible(
-            dir.path(),
-            &Config::default(),
-            &abs(dir.path(), "tasks/notes.md")
-        ),
+        visible(dir.path(), "tasks/notes.md"),
         Err(NotVisible::NotTyp)
     );
     assert_eq!(
-        would_be_visible(
-            dir.path(),
-            &Config::default(),
-            &abs(dir.path(), "tasks/box.typ")
-        ),
+        visible(dir.path(), "tasks/box.typ"),
         Err(NotVisible::NotAFile)
     );
 }
@@ -200,11 +153,7 @@ fn a_symlink_destination_is_refused() {
     std::os::unix::fs::symlink("real.typ", dir.path().join("tasks/link.typ")).unwrap();
 
     assert_eq!(
-        would_be_visible(
-            dir.path(),
-            &Config::default(),
-            &abs(dir.path(), "tasks/link.typ")
-        ),
+        visible(dir.path(), "tasks/link.typ"),
         Err(NotVisible::Symlink)
     );
 }

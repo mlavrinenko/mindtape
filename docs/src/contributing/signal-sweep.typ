@@ -52,10 +52,6 @@ because a flag shared by two arms would change both at once. The undertested
 arm files a task only for a function that is both complex and undertested. Each number's argument sits beside its constant in the arm
 script that applies it.
 
-The repeats arm reads jscpd's clone classes at 15 tokens, each a snippet with
-every copy listed once, and files the ones whose extraction saves the most
-code.
-
 The dry arm files the clones #just.lint-dry() tolerates. It runs jscpd with
 the gate's flags and keeps the clone classes the baseline already lists. It
 files a class only when extracting it saves `--dry-gain` tokens or more. A
@@ -88,8 +84,8 @@ path outside the tasks root.
 
 - Only a signal that every gate passes qualifies. outdatty, machete and
   clippy already fail a commit, so a task from one would repeat that failure.
-  jscpd fails a new clone only from 50 tokens up. The repeats arm reads it
-  below that, and the dry arm reads the old clones its baseline tolerates.
+  jscpd fails a new clone only from 50 tokens up. The dry arm reads the old
+  clones its baseline tolerates.
 - An arm never reports a measurement it doesn't have. An arm that can
   refresh its input refuses a stale one. An arm that can't, such as the
   hours-long mutation sweep, skips with a message that gives the refresh command.

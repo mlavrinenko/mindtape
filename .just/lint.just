@@ -36,6 +36,11 @@ size:
 # entries. A list of those has no helper to extract, and one more line must not
 # change a fingerprint. A skipped token also ends a clone that straddled it, so
 # a new pattern re-mints the baseline once.
+#
+# The dry gate owns the clones at 50 tokens and up, renamed or similar. The
+# repeats gate below owns the exact tokens from 15 to 49, where a pasted setup
+# line lives. The two baselines stay apart: a 15-token fingerprint in the
+# 50-token file would make the dry gate tolerate a clone it never measured.
 
 DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .config/jscpd-baseline.json"
 
@@ -51,6 +56,21 @@ dry:
 [doc("Re-mint .config/jscpd-baseline.json after extracting a clone or accepting one")]
 dry-baseline:
     jscpd {{ DRY_FLAGS }} --update-baseline -r silent crates
+
+# The short-repeat gate reads jscpd's native `duplicates` pairs at 15 tokens,
+# groups them by fragment, and fails on a group the baseline lacks. The bar,
+# the gain formula and the reasons sidecar are argued in the script's header.
+# `repeats-baseline` re-mints the baseline and refuses a group with no reason
+# in .config/jscpd-repeats-reasons.json.
+
+[doc("Short-repeat gate: fail on a 15-token repeat the baseline lacks")]
+[group("gate")]
+repeats:
+    bash .just/scripts/repeats-gate.sh
+
+[doc("Re-mint .config/jscpd-repeats-baseline.json and require a reason for each tolerated repeat")]
+repeats-baseline:
+    bash .just/scripts/repeats-gate.sh --mint
 
 [doc("Fail on a decorative banner at the end of a Rust, Shell or CSS comment")]
 [group("gate")]

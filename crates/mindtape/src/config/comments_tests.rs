@@ -17,11 +17,18 @@ fn config_with_policy(policy: CommentsPolicy) -> Config {
     config
 }
 
-#[test]
-fn allow_policy_never_scans_even_with_a_comment() {
+/// A tempdir holding task `a`'s file with `body`, the prologue every comment
+/// test repeats.
+fn task_with(body: &str) -> (tempfile::TempDir, crate::model::Task) {
     let dir = tempdir();
     let task = bare_task("a");
-    write_file(dir.path(), &task.file, "// a stray note\n#let x = 1\n");
+    write_file(dir.path(), &task.file, body);
+    (dir, task)
+}
+
+#[test]
+fn allow_policy_never_scans_even_with_a_comment() {
+    let (dir, task) = task_with("// a stray note\n#let x = 1\n");
 
     let violations = check_comments(&[task], &Config::default(), dir.path()).unwrap();
 
@@ -30,13 +37,7 @@ fn allow_policy_never_scans_even_with_a_comment() {
 
 #[test]
 fn forbid_catches_a_line_comment_with_file_line_and_text() {
-    let dir = tempdir();
-    let task = bare_task("a");
-    write_file(
-        dir.path(),
-        &task.file,
-        "#let x = 1\n// no, use in_view() instead\n",
-    );
+    let (dir, task) = task_with("#let x = 1\n// no, use in_view() instead\n");
     let config = config_with_policy(CommentsPolicy::Forbid);
 
     let violations = check_comments(std::slice::from_ref(&task), &config, dir.path()).unwrap();
@@ -51,13 +52,7 @@ fn forbid_catches_a_line_comment_with_file_line_and_text() {
 
 #[test]
 fn forbid_catches_a_block_comment() {
-    let dir = tempdir();
-    let task = bare_task("a");
-    write_file(
-        dir.path(),
-        &task.file,
-        "/* leftover review note */\n#let x = 1\n",
-    );
+    let (dir, task) = task_with("/* leftover review note */\n#let x = 1\n");
     let config = config_with_policy(CommentsPolicy::Forbid);
 
     let violations = check_comments(&[task], &config, dir.path()).unwrap();
@@ -68,13 +63,7 @@ fn forbid_catches_a_block_comment() {
 
 #[test]
 fn forbid_ignores_double_slash_inside_a_string_literal() {
-    let dir = tempdir();
-    let task = bare_task("a");
-    write_file(
-        dir.path(),
-        &task.file,
-        "#let s = \"http://example.com // not a comment\"\n",
-    );
+    let (dir, task) = task_with("#let s = \"http://example.com // not a comment\"\n");
     let config = config_with_policy(CommentsPolicy::Forbid);
 
     let violations = check_comments(&[task], &config, dir.path()).unwrap();
@@ -84,13 +73,7 @@ fn forbid_ignores_double_slash_inside_a_string_literal() {
 
 #[test]
 fn forbid_ignores_double_slash_inside_a_raw_block() {
-    let dir = tempdir();
-    let task = bare_task("a");
-    write_file(
-        dir.path(),
-        &task.file,
-        "```\n// not a comment either\n```\n",
-    );
+    let (dir, task) = task_with("```\n// not a comment either\n```\n");
     let config = config_with_policy(CommentsPolicy::Forbid);
 
     let violations = check_comments(&[task], &config, dir.path()).unwrap();
@@ -100,13 +83,7 @@ fn forbid_ignores_double_slash_inside_a_raw_block() {
 
 #[test]
 fn allow_pattern_permits_a_matching_comment_and_still_rejects_others() {
-    let dir = tempdir();
-    let task = bare_task("a");
-    write_file(
-        dir.path(),
-        &task.file,
-        "// TODO: revisit before release\n// no, use in_view() instead\n",
-    );
+    let (dir, task) = task_with("// TODO: revisit before release\n// no, use in_view() instead\n");
     let mut config = config_with_policy(CommentsPolicy::Forbid);
     config.tasks.comments.allow_pattern = Some("^TODO:".to_owned());
 
@@ -121,9 +98,7 @@ fn allow_pattern_permits_a_matching_comment_and_still_rejects_others() {
 
 #[test]
 fn a_file_with_no_comments_passes() {
-    let dir = tempdir();
-    let task = bare_task("a");
-    write_file(dir.path(), &task.file, "#let x = 1\n");
+    let (dir, task) = task_with("#let x = 1\n");
     let config = config_with_policy(CommentsPolicy::Forbid);
 
     let violations = check_comments(&[task], &config, dir.path()).unwrap();
@@ -133,9 +108,7 @@ fn a_file_with_no_comments_passes() {
 
 #[test]
 fn warn_policy_still_reports_but_does_not_itself_block() {
-    let dir = tempdir();
-    let task = bare_task("a");
-    write_file(dir.path(), &task.file, "// stray note\n");
+    let (dir, task) = task_with("// stray note\n");
     let config = config_with_policy(CommentsPolicy::Warn);
 
     let violations = check_comments(&[task], &config, dir.path()).unwrap();

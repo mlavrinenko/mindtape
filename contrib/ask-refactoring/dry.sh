@@ -22,7 +22,7 @@
 # assert helper as five tasks. Their gains add up. Each class clears the bar
 # on its own first.
 #
-# The bar is `--dry-gain`, 300 by default, the repeats arm's number. With no
+# The bar is `--dry-gain`, 300 by default. With no
 # bar the arm reported 639 families at a median gain of 50 tokens, 510 of them
 # in tests: a batch nobody empties. 100 still left 147. 300 leaves 25, each a
 # block worth a helper.

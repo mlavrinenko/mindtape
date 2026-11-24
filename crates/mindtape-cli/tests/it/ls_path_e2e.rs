@@ -3,38 +3,11 @@
 //! that composes with another program without a `jq` dependency.
 #![allow(clippy::unwrap_used)]
 
-use std::path::Path;
-use std::process::Command;
-
 use crate::support;
+use crate::support::git;
 
 fn scaffold() -> tempfile::TempDir {
     support::project_with_tasks(&[("a.typ", "Alpha"), ("b.typ", "Beta")])
-}
-
-/// Run `git <args>` in `dir` with this fixture's own configuration only, so a
-/// developer's global excludes cannot decide what the test calls ignored.
-fn git(dir: &Path, args: &[&str]) {
-    let output = Command::new("git")
-        .args([
-            "-c",
-            "user.name=t",
-            "-c",
-            "user.email=t@t",
-            "-c",
-            "commit.gpgsign=false",
-        ])
-        .args(args)
-        .current_dir(dir)
-        .env("GIT_CONFIG_NOSYSTEM", "1")
-        .env("GIT_CONFIG_GLOBAL", dir.join("no-global-git-config"))
-        .output()
-        .unwrap();
-    assert!(
-        output.status.success(),
-        "git {args:?} failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
 }
 
 /// The task's working-tree contract end to end. `mt ls` lists a tracked task

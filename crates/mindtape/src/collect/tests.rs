@@ -14,6 +14,13 @@ use crate::sort::{sort_by_specs, validate_sort_spec_with};
 use crate::test_support::{git_tempdir, tempdir, write_file};
 use crate::validate::{ViolationKind, validate};
 
+/// The one empty task, annotated against `config`.
+fn annotated(config: &Config) -> Vec<Task> {
+    let mut tasks = vec![task("")];
+    crate::collect::annotate(&mut tasks, config);
+    tasks
+}
+
 fn config(text: &str) -> Config {
     parse_config(text).unwrap()
 }
@@ -267,8 +274,7 @@ fn ast_project(config: &str, files: &[(&str, &str)]) -> (tempfile::TempDir, Conf
 /// The one task `config` annotates over a git project holding `files`.
 fn collected(config: &str, files: &[(&str, &str)]) -> Task {
     let (_dir, config) = ast_project(config, files);
-    let mut tasks = vec![task("")];
-    crate::collect::annotate(&mut tasks, &config);
+    let mut tasks = annotated(&config);
     let task = tasks.pop().unwrap();
     assert!(
         task.collector_problems.is_empty(),
@@ -329,8 +335,7 @@ fn a_query_the_engine_cannot_run_is_a_collector_problem() {
     let config = load_config_layered_from(dir.path(), Some(dir.path()), None)
         .unwrap()
         .0;
-    let mut tasks = vec![task("")];
-    crate::collect::annotate(&mut tasks, &config);
+    let tasks = annotated(&config);
     assert!(!tasks[0].derived.contains_key("callers"));
     let problem = tasks[0].collector_problems[0].text.clone();
     assert!(problem.contains("derived.callers"), "{problem}");
@@ -395,8 +400,7 @@ fn a_collector_publishes_one_path_per_lossy_spelling() {
         let path = std::path::Path::new("src").join(OsStr::from_bytes(name));
         write_file(dir.path(), &path, "fn a() { parse_task(1); }\n");
     }
-    let mut tasks = vec![task("")];
-    crate::collect::annotate(&mut tasks, &config);
+    let tasks = annotated(&config);
     assert_eq!(strings(&tasks[0], "callers").len(), 1);
 }
 
@@ -421,7 +425,6 @@ fn a_collector_keeps_the_nearest_path_set_name_as_a_hint() {
     let mut config = parse_config(&config).unwrap();
     config.rules_root.set(dir.path());
     assert_nearest_source(&config.validate().unwrap_err());
-    let mut tasks = vec![task("")];
-    crate::collect::annotate(&mut tasks, &config);
+    let tasks = annotated(&config);
     assert_nearest_source(&tasks[0].collector_problems[0]);
 }

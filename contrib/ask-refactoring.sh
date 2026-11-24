@@ -10,8 +10,7 @@
 #   Only advisory signals qualify. A signal that already blocks a commit, such
 #   as jscpd's new clones, outdatty, machete or clippy, never files a task. The
 #   part of jscpd no gate enforces is the baseline `just lint::dry` tolerates,
-#   which the dry arm files, and the snippets under its 50-token floor, which
-#   the repeats arm files.
+#   which the dry arm files.
 #
 #   One task per finding, never one per sweep: each goes to its own agent.
 #
@@ -39,7 +38,7 @@ cd "$repo"
 
 # ── the thresholds ──────────────────────────────────────────────────────────
 #
-# This layer requires all six and supplies no default. The defaults live only
+# This layer requires all five and supplies no default. The defaults live only
 # in the recipe's `[arg(...)]` attributes, which `just --usage`, the generated
 # sweep-flags.json and docs/contributing/signal-sweep.md all read. A fallback
 # here would be a second copy that fails silently at a threshold nobody chose.
@@ -49,18 +48,17 @@ cd "$repo"
 BASELINE=""
 CC_FLOOR=""
 FN_COVERAGE_FLOOR=""
-REPEAT_GAIN=""
 DRY_GAIN=""
 WRITE=""
 
 usage() {
     cat <<'EOF'
 usage: bash contrib/ask-refactoring.sh --write 0|1 --baseline PCT
-           --cc-floor N --fn-coverage-floor PCT --repeat-gain N --dry-gain N
+           --cc-floor N --fn-coverage-floor PCT --dry-gain N
 
 Run it as `just advisory ask-refactoring` — the recipe owns every default and forwards
-all six flags; `just --usage ask-refactoring` prints them with their values.
-All six are required here; there are no defaults at this layer.
+all five flags; `just --usage ask-refactoring` prints them with their values.
+All five are required here; there are no defaults at this layer.
 
 env:
   MT   path to the `mt` binary (default: build and use ./target/debug/mt)
@@ -77,8 +75,6 @@ while [ $# -gt 0 ]; do
         --cc-floor=*) CC_FLOOR="${1#*=}"; shift ;;
         --fn-coverage-floor) FN_COVERAGE_FLOOR="$2"; shift 2 ;;
         --fn-coverage-floor=*) FN_COVERAGE_FLOOR="${1#*=}"; shift ;;
-        --repeat-gain) REPEAT_GAIN="$2"; shift 2 ;;
-        --repeat-gain=*) REPEAT_GAIN="${1#*=}"; shift ;;
         --dry-gain) DRY_GAIN="$2"; shift 2 ;;
         --dry-gain=*) DRY_GAIN="${1#*=}"; shift ;;
         -h | --help) usage; exit 0 ;;
@@ -88,7 +84,7 @@ done
 
 # Refuse a missing or non-numeric flag. The recipe's patterns catch these at
 # dispatch, so this guards a direct `bash contrib/ask-refactoring.sh` call.
-for var in WRITE BASELINE CC_FLOOR FN_COVERAGE_FLOOR REPEAT_GAIN DRY_GAIN; do
+for var in WRITE BASELINE CC_FLOOR FN_COVERAGE_FLOOR DRY_GAIN; do
     flag="--$(printf '%s' "$var" | tr 'A-Z_' 'a-z-')"
     value="${!var}"
     if [ -z "$value" ]; then
@@ -221,7 +217,7 @@ skip_arm() {
 # Each file defines `score_<arm>`, `signal_<arm>` and `emit_<arm>`, with the
 # reasoning behind its numbers. To add an arm, add a file, its name in `ARMS`
 # and a template.
-ARMS=(size undertested mutants repeats dry)
+ARMS=(size undertested mutants dry)
 
 for arm in "${ARMS[@]}"; do
     # shellcheck source=/dev/null
@@ -257,7 +253,7 @@ done
 
 if [ "$findings" -eq 0 ]; then
     echo "ask-refactoring: no findings at --baseline $BASELINE" \
-        "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR / --repeat-gain $REPEAT_GAIN / --dry-gain $DRY_GAIN"
+        "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR / --dry-gain $DRY_GAIN"
 elif [ "$WRITE" -eq 0 ]; then
     echo "ask-refactoring: $findings finding(s); the bodies shown are in ${preview#"$repo"/}/;" \
         "re-run with --write to file them all"

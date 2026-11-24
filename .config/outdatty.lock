@@ -327,12 +327,12 @@ groups:
     source:
       .config/nextest.toml: d1353c6139c6bf51cb8664747c93f2ca9c721bd6c8e54b2c2c646ebefc17d5fc
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
-      .just/advisory.just: 0b275fb06bbdb78c7369b618950d25cb345894e02d2a9df9561d31c895cf429c
+      .just/advisory.just: bd13c2d82c609b797901f58c61d748a062d74e2aac84fc09c2d60678e91f80d5
       .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
       .just/docs.just: 82a3017127b223bd655b6cc9d43e8aa1b84dca3184823eebb4d75b703a71f493
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
-      .just/lint.just: 7f78c9c3832fffecd7241e3668dadfc0bf47deb30746d7775cf711f2535fbff5
+      .just/lint.just: 3bb74e2668e3aa82b072da01add23ecad520f955136814d32bf5e2cb78043b21
       .just/meta.just: 50f81441c79a969597f3538652bcd95391806d272137b9bb5ac16388ca8a45fe
       .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
       .just/outdatty.just: fb95f90850c8179bb3fba01a8ae90e2fe703c1c551cb8181892bd24b03f95866
@@ -340,7 +340,7 @@ groups:
       .just/scripts/clippy.sh: d586661b1bca816bcdf145d4fdd785125624d5b79e78f493b65811c66fb87df4
       .just/scripts/wt-carry-lcov.sh: 97a4ef31a342a808c516133529368b33c6f976f8fb0cf5c573902ff4d0229d28
       .just/session.just: 4ec3006fe2b7e0d475e4cde780ead2e19d61a90ca48847664a3ef03a80955a04
-      Justfile: 80905aaf15ce68b1ef3f828285c31a4b47821199a57213ec22fec2c18af73555
+      Justfile: 87672017289aee53ba7bba6548ca2c84738b7d1016927477360c7d2d8cbb4d20
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
       nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
@@ -348,16 +348,16 @@ groups:
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
     dependents:
-      docs/src/agents.typ: b7324322c37bcfc53b2f7251500e93840c8fad1c1d425671d97ebdba6a590d26
-      docs/src/contributing.typ: ebe7fad4bdac4af756af744619f1f58ffa8d248940638550b0280b5674ebb599
-      docs/src/contributing/coverage-crap.typ: 18dd7e60322c7e971c0544f791f87cbbd931313c979e901855302c10e50139be
+      docs/src/agents.typ: f04cd178f517cae4ca25c3ff57d0c16527fd3440878322ffad873692e6b9f231
+      docs/src/contributing.typ: 39a7318101d7c23b0f619e297b7fc8a68be444a95b14c188afa17b912c98cc36
+      docs/src/contributing/coverage-crap.typ: 0dfdbd3b18326b67df5c6e49743183684befba2fc6a4eaa9eea808ac142ac4a2
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
       docs/src/contributing/docs-site-build.typ: 6dee8629cb4d56d1eebb8b47f07c33859d4a00f1f6855f2f067383e0fd61d918
       docs/src/contributing/documentation.typ: 6f8898dfc7d4af6266a25dbe1d7c1e52dcb2cc51fd77b71121536b7ce531b402
       docs/src/contributing/example-projects.typ: 952534459fb3f06fe43736e8949beffdc296319a3c8ad2a979587f2fcd887ca0
-      docs/src/contributing/gates.typ: 910cbb2bf36604e03db362d3989a0de6b0216e767352124fb6e990b3b0638189
+      docs/src/contributing/gates.typ: 05e017d7a3293b0bb7f79db1ee4a1a1df2ff3d9ea3bd6588e8e32913e9636624
       docs/src/contributing/mutation-testing.typ: f36778b2af5e2af51105d606e374e4ff25e93adc2931244ec788b4d70902ba50
-      docs/src/contributing/signal-sweep.typ: 2f7055fdda91ab1b83dc460a5c8d9a43a5bcf213fb376f5956f8a3ad1cba38ca
+      docs/src/contributing/signal-sweep.typ: aeffb4d15f45d10a673b938344bcbfd2be154a699b19920f32f60abe35ca770f
       docs/src/contributing/windows.typ: d19d7853f501ffaaf49f885c87f657d517d4e475f6683e532983c51441a47022
       www/content/quickstart.typ: 42bbadd7446c9cd2d27f16b44dadf1d9bd57d92cefa0b07cc31d1ca9af1789cb
   dict-words-docs:
@@ -400,10 +400,10 @@ groups:
       www/content/filters.typ: a61b65daa6287bd263dba3be7bdab9784ea8f643b6bdd3b267dba3523c4033db
   filter-fields-docs:
     source:
-      crates/mindtape/src/model/fields.rs: 3cf8869ecdc586a1e81727d35d51dc602cb0f512ead69e8fbcb5e336873ab95f
+      crates/mindtape/src/model/fields.rs: b484ae42e4ec3abefdd9b95067fcbc3cf2a82e737081c445198f689153e587d5
     dependents:
-      skills/mindtape/references/filters.md: 758ed2ac1d6ade5e9ed00202034e5682e302e18a0a1124026f5450ea52a16e9c
-      www/content/cli/ls.typ: 87ebc0c29c9e5d961ce069e7c78b887397e6106dec3d6f9c8c6f9529e1f7c936
+      skills/mindtape/references/filters.md: 4039b152297309de0885d0d98be0a1a0e573a56f5b5de825ac39d73420e555e8
+      www/content/cli/ls.typ: 1a39e72b07ffcc19ede02b58ef5a22a1e2c4abbecdff03cfaa9904d13d460011
       www/utils/filter-field-notes.typ: d43926971752ff2d22eeded008a9e114b0b66c5dc1a2fb94e724a548a497e944
   flow-preset-docs:
     source:
@@ -472,10 +472,10 @@ groups:
       www/utils/link-kind-notes.typ: eae74f74dd232150b4c10e9d90630daa0b3d8ddabe54aa3bfbc404957166f39d
   lock-merge-docs:
     source:
-      .gitattributes: ad5590c630a74d0a06f6ab2873049f3687911e5453513c60e5958751da214803
+      .gitattributes: 82663972e552e90e74a6ca07917caea6abead8cf04c66b3853f43bdaab589488
       .just/scripts/crap-baseline-merge.sh: 5f6a0b33d23648fd3f81ecd903161ca7b1432d1007d97f3c2c1a12db47804251
     dependents:
-      docs/src/contributing.typ: 5bdcac0e3446070384f63e40a67b0dc65e9e6d942a47723416aa1ace608b70bb
+      docs/src/contributing.typ: 39a7318101d7c23b0f619e297b7fc8a68be444a95b14c188afa17b912c98cc36
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 0cace64311948abf5ac8d8454a0f2cf3e4f36ef961c9393c0a6dbee5542bb33a
@@ -534,6 +534,7 @@ groups:
       .just/scripts/_typst-package.sh: 609f6706ec45b0f34c565c7bc2659b337538a27564f52082e64ff7a9c9562828
       .just/scripts/install-bin.sh: 026f51519b2810fb3c61a7b48985df28129f33f1dbb06ed42f23e66a1bddfbe3
       .just/scripts/install-lib.sh: 47c2d84d23750fd0a290331c7f3e58792b50bc761456ce743a011a6e4f0e107e
+      .just/scripts/repeats-gate.sh: 319c665bc4a7b7791a93f44baab91e61a3970a5ae29e9b95ff8c763a1d09ff8b
       .just/scripts/skill-evals-check.sh: 06fd8a3144ddba86d927a30d52aa701cb5f8d4728399cae6a04883dd45f0cf9a
       .just/scripts/smoke-flake.sh: fae58ed9ff16ca1b5835865e19f87cd18dc781460d67eb1177c0467cc946133a
       .just/scripts/uninstall-lib.sh: 37c4a93bd69f7192428ad440fb177e5341c255e4867b7e9389ea86c800d409c1

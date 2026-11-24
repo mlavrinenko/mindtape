@@ -19,10 +19,10 @@ mod process;
 #[cfg(unix)]
 pub use fs::symlink_repo;
 pub use fs::{
-    LIB_ENTRY, PRELUDE, commit_files, git_as_tester, git_init, git_stdout, git_tempdir,
+    LIB_ENTRY, PRELUDE, commit_files, git, git_as_tester, git_init, git_stdout, git_tempdir,
     home_and_project, project_with_file, tempdir, tempdir_with_config, tempdir_with_dirs,
-    tempdir_with_files, write_bare_project, write_file, write_lib_package, write_package,
-    write_package_version,
+    tempdir_with_files, write_ancestor_defaults, write_bare_project, write_file, write_lib_package,
+    write_package, write_package_version, write_project_config,
 };
 pub use process::{
     assert_child_ok, current_test_name, rerun_isolated, rerun_isolated_stderr,

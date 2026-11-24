@@ -163,6 +163,32 @@ pub fn home_and_project() -> (tempfile::TempDir, PathBuf, PathBuf) {
     (tmp, home, project)
 }
 
+/// Write `content` to the project's `.mindtape/config.toml`. The prologue
+/// every layered-config test repeats before it loads the project.
+///
+/// # Panics
+/// Panics if writing under `project` fails. This is a test-only helper, so an
+/// I/O failure against a fresh tempdir is a test-harness bug, not a case to
+/// recover from.
+#[allow(clippy::unwrap_used)]
+pub fn write_project_config(project: &Path, content: &str) {
+    std::fs::write(project.join(".mindtape").join("config.toml"), content).unwrap();
+}
+
+/// Write `content` to the ancestor's `.mindtape/defaults.toml`, creating the
+/// directory first. The prologue every layered-config test repeats before it
+/// writes the project's own layer.
+///
+/// # Panics
+/// Panics if writing under `home` fails. This is a test-only helper, so an I/O
+/// failure against a fresh tempdir is a test-harness bug, not a case to recover
+/// from.
+#[allow(clippy::unwrap_used)]
+pub fn write_ancestor_defaults(home: &Path, content: &str) {
+    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
+    std::fs::write(home.join(".mindtape").join("defaults.toml"), content).unwrap();
+}
+
 /// Write the barebones project scaffold under `dir`. It holds a
 /// `.mindtape/config.toml` declaring a single `tasks` root, plus the empty root
 /// itself. The prologue every test that needs a real project on disk repeats,
@@ -204,6 +230,34 @@ pub fn git_init(dir: &Path) {
             .success(),
         "git init must succeed in a fresh tempdir"
     );
+}
+
+/// Run `git <args>` in `dir` with the developer's Git configuration out of
+/// reach, asserting success. A test about ignore semantics must read only the
+/// fixture's own `.gitignore`, never a global `core.excludesFile`.
+///
+/// # Panics
+/// Panics if git fails. That is a test-harness bug against a fresh tempdir, not
+/// a case to recover from.
+#[allow(clippy::unwrap_used)]
+pub fn git(dir: &Path, args: &[&str]) {
+    let output = Command::new("git")
+        .args([
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "commit.gpgsign=false",
+        ])
+        .args(args)
+        .current_dir(dir)
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", dir.join("no-global-git-config"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(output.status.success(), "git {args:?} failed: {stderr}");
 }
 
 /// Run `git <args>` in `dir` and return its stdout, trimmed.

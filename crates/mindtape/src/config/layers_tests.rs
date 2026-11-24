@@ -6,7 +6,9 @@ use super::{LayerSource, build_config, discover_layers_with_xdg, merged_config_t
 use crate::config::parse_config;
 use crate::test_support::home_and_project;
 use crate::test_support::tempdir;
+use crate::test_support::write_ancestor_defaults;
 use crate::test_support::write_file;
+use crate::test_support::write_project_config;
 
 // The pure precedence-folding tests that used to live here now exercise
 // `crate::config::packs::merge_layers_with_packs_using` instead — see
@@ -32,12 +34,7 @@ fn discover_layers_orders_farthest_ancestor_first_and_respects_home_boundary() {
     .unwrap();
 
     // At $HOME itself: inclusive boundary, must be read (farthest).
-    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
-    std::fs::write(
-        home.join(".mindtape").join("defaults.toml"),
-        "[marker]\nwhich = \"home\"\n",
-    )
-    .unwrap();
+    write_ancestor_defaults(&home, "[marker]\nwhich = \"home\"\n");
 
     // An intermediate ancestor between $HOME and the project.
     std::fs::create_dir_all(parent.join(".mindtape")).unwrap();
@@ -55,11 +52,7 @@ fn discover_layers_orders_farthest_ancestor_first_and_respects_home_boundary() {
         "[marker]\nwhich = \"project-defaults\"\n",
     )
     .unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
-        "[marker]\nwhich = \"project-config\"\n",
-    )
-    .unwrap();
+    write_project_config(&project, "[marker]\nwhich = \"project-config\"\n");
 
     let layers = discover_layers_with_xdg(&project, Some(&home), None);
 
@@ -176,11 +169,7 @@ fn merged_config_table_returns_content_from_project_layer() {
     let tmp = tempdir();
     let project = tmp.path().join("project");
     std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
-        "[mct_marker]\nfound = true\n",
-    )
-    .unwrap();
+    write_project_config(&project, "[mct_marker]\nfound = true\n");
 
     let table = merged_config_table(&project).unwrap();
     assert!(
@@ -322,12 +311,11 @@ fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
 fn a_typst_check_rule_resolves_against_the_project_root() {
     let (_tmp, home, project) = home_and_project();
     write_file(&project, "check.typ", "#let ok(task) = ()\n");
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
+    write_project_config(
+        &project,
         "[tasks]\nroots = [\"tasks\"]\n\n\
          [[tasks.rules]]\ncheck = { typst = \"check.typ\", function = \"ok\" }\n",
-    )
-    .unwrap();
+    );
 
     let (config, _sources, _rule_origins) =
         super::load_config_layered_from(&project, Some(&home), None).unwrap();
@@ -350,11 +338,7 @@ fn parse_failure(defaults: Option<&str>, project_config: &str) -> toml::de::Erro
         std::fs::write(home.join(".mindtape").join("defaults.toml"), defaults).unwrap();
     }
     std::fs::create_dir_all(project.join(".mindtape")).unwrap();
-    std::fs::write(
-        project.join(".mindtape").join("config.toml"),
-        project_config,
-    )
-    .unwrap();
+    write_project_config(&project, project_config);
     match super::load_config_layered_from(&project, Some(&home), None).unwrap_err() {
         crate::config::ConfigError::Parse(error)
         | crate::config::ConfigError::ParseIn { error, .. } => error,
@@ -430,12 +414,7 @@ fn a_reserved_root_in_the_project_config_names_that_file() {
 #[test]
 fn a_reserved_root_in_an_ancestor_defaults_names_that_file() {
     let (_tmp, home, project) = home_and_project();
-    std::fs::create_dir_all(home.join(".mindtape")).unwrap();
-    std::fs::write(
-        home.join(".mindtape").join("defaults.toml"),
-        "[tasks]\nroots = [\".mindtape/templates\"]\n",
-    )
-    .unwrap();
+    write_ancestor_defaults(&home, "[tasks]\nroots = [\".mindtape/templates\"]\n");
 
     let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
     let rendered = err.to_string();
