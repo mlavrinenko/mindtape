@@ -1,7 +1,7 @@
-//! `.config/jscpd-baseline.json` merges through jscpd's own merge driver,
-//! `jscpd --merge-baseline`, which `just install-hooks` registers and
-//! `.gitattributes` assigns. The test merges two branches that each changed
-//! the baseline in a throwaway repo.
+//! `.config/jscpd-baseline.json` merges through the `jq` three-way driver
+//! `just install-hooks` registers and `.gitattributes` assigns, since jscpd
+//! 5.4.3 has no `--merge-baseline`. The test merges two branches that each
+//! changed the baseline in a throwaway repo.
 //!
 //! Unix only: the run needs `bash` and `jscpd`, which the dev shell provides
 //! and the Windows job, which has no dev shell, does not.

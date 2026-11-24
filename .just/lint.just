@@ -45,13 +45,14 @@ size:
 DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .config/jscpd-baseline.json"
 
 # Fix a finding by extracting a shared helper, not by shuffling tokens until the
-# detector stops matching. `--new-only` prints only the clones the baseline
-# lacks.
+# detector stops matching. `--fail-on-new-clones 0` fails on a clone the
+# baseline lacks; the report still lists every clone, so read the new ones by
+# their fingerprint against `.config/jscpd-baseline.json`.
 
 [doc("Copy-paste gate: fail on a duplicated Rust block the baseline lacks")]
 [group("gate")]
 dry:
-    jscpd {{ DRY_FLAGS }} --new-only --fail-on-new-clones 0 -r ai crates
+    jscpd {{ DRY_FLAGS }} --fail-on-new-clones 0 -r ai crates
 
 [doc("Re-mint .config/jscpd-baseline.json after extracting a clone or accepting one")]
 dry-baseline:

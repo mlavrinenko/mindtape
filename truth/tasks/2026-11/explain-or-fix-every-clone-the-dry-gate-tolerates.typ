@@ -19,12 +19,12 @@
 
 == AS-IS
 
-The dry gate tolerates 1,529 clones and explains none of them.
+The dry gate tolerates 1,294 clones and explains none of them.
 
 + Run `jq '.fingerprints | length' .config/jscpd-baseline.json`.
-+ 🔴 It prints 1529: every clone `just lint dry` lets through, and not one carries a reason.
++ 🔴 It prints 1294: every clone `just lint dry` lets through, and none carries a reason.
 + Re-mint the baseline with `just lint dry-baseline`.
-+ 🔴 Ten fingerprints are stale, so 1519 clones remain, 1137 of them test-to-test.
++ 🔴 jscpd 5.4.3 adds 83 clones the fork missed and drops 161 it found. A re-mint moves the set unexplained. 921 are test-to-test.
 + Read `.config/jscpd-baseline.json`.
 + 🔴 It maps a fingerprint to `1` and nothing else, so a reader cannot tell a coincidence from a clone nobody got to.
 + Read the close rule in `docs/src/contributing/signal-sweep.typ`.
@@ -38,7 +38,7 @@ The dry gate tolerates 1,529 clones and explains none of them.
 
 ```
 $ just lint dry
-dry: 1519 clones tolerated, every one explained
+dry: 1294 clones tolerated, every one explained
 
 $ just lint dry
 dry: 1 baseline entry has no reason: 0007733b7e5896df

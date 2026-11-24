@@ -233,7 +233,11 @@ install-hooks:
         git config "merge.$1.mindtape" true
     }
     register outdatty ".config/outdatty.lock, merged key by key" 'outdatty merge-lock %O %A %B'
-    register jscpd-baseline ".config/jscpd-baseline.json, merged by jscpd fingerprint by fingerprint" 'jscpd --merge-baseline %O %A %B'
+    # jscpd 5.4.3 has no `--merge-baseline`, so the driver merges the three
+    # sides key by key: a key only one side changed takes that side, and a key
+    # both changed the same way takes it once. A key both changed differently
+    # takes ours, which a set of fingerprints cannot reach.
+    register jscpd-baseline ".config/jscpd-baseline.json, merged fingerprint by fingerprint" 'jq -s ".[0] as \$o | .[1] as \$a | .[2] as \$b | (\$o.fingerprints // {}) as \$O | (\$a.fingerprints // {}) as \$A | (\$b.fingerprints // {}) as \$B | {version: (\$a.version // \$b.version // \$o.version), fingerprints: (([\$O, \$A, \$B] | map(keys) | add | unique) as \$keys | reduce \$keys[] as \$k ({}; (\$O[\$k]) as \$ov | (\$A[\$k]) as \$av | (\$B[\$k]) as \$bv | (if \$av == \$bv then \$av elif \$av == \$ov then \$bv elif \$bv == \$ov then \$av else \$av end) as \$v | if \$v == null then . else . + {(\$k): \$v} end))}" %O %A %B > %A.tmp && mv %A.tmp %A'
     register crap-baseline ".config/crap-baseline.json, merged entry by entry" 'bash .just/scripts/crap-baseline-merge.sh %O %A %B %P'
     named=$(git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r tree; do
         sed -n 's/^[^#].*[[:space:]]merge=\([^[:space:]]*\).*/\1/p' "$tree/.gitattributes" 2>/dev/null || true

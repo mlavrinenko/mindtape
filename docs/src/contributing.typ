@@ -199,9 +199,10 @@ it, its hash comes out as zeros. #just.outdatty-check() reports that group
 until you review it and commit the re-record with a `Docs-Unaffected: <group>`
 footer. A group one branch dropped stays dropped, so a split or rename leaves
 no orphan hashes. #just.outdatty-check() fails on one that got in anyway.
-Both jscpd baselines merge fingerprint by fingerprint through
-`jscpd --merge-baseline`. `.config/crap-baseline.json` merges function by
-function through `.just/scripts/crap-baseline-merge.sh`, which keeps the
+Both jscpd baselines merge fingerprint by fingerprint through a `jq`
+three-way driver, since 5.4.3 has no `--merge-baseline`.
+`.config/crap-baseline.json` merges function by function through
+`.just/scripts/crap-baseline-merge.sh`, which keeps the
 stricter score when both sides re-scored a function.
 #just.crap-check() decides whether the merged tree passes. The dev shell
 registers all three merge drivers: `outdatty`, `jscpd-baseline` and
