@@ -112,20 +112,41 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 .code-head .copy:hover { color: var(--green-ink); border-color: var(--green); }
 .code pre { margin: 0; border: 0; background: transparent; padding: 20px 24px 22px; font-size: 12.5px; }
 
-.proof-typeset { margin: 0; }
+/* The typeset page is a caption under the file's panel, not a footer bar: a
+   sentence in the reading voice, and an action that names the expansion. The
+   2px top margin lets the focus ring clear the panel above. */
+.proof-typeset { margin: 2px 0 0; }
 .proof-typeset summary { list-style: none; cursor: pointer; }
 .proof-typeset summary::-webkit-details-marker { display: none; }
 .proof-foot {
-  display: flex; align-items: center; gap: 12px;
-  padding: 11px 14px;
-  border: 1px solid var(--line-strong); border-top: 0;
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  padding: 14px 24px 4px;
+  font-family: var(--serif); font-size: 16.5px; line-height: 1.5;
+  color: var(--ink-2);
 }
-.proof-open { margin-left: auto; color: var(--green-ink); }
-.proof-typeset[open] .proof-open { color: var(--green); }
+.proof-note { transition: color 0.15s ease; }
+.proof-open {
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  color: var(--green-ink); text-decoration: underline;
+  text-decoration-thickness: 1px; text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+/* A drawn chevron, the same square-and-borders caret as the nav's
+   disclosure, turned to point at the page that opens below. */
+.proof-open::after {
+  content: ""; width: 6px; height: 6px; flex: none;
+  border-right: 1px solid currentColor; border-bottom: 1px solid currentColor;
+  transform: rotate(45deg); transition: transform 0.15s ease;
+}
+.proof-typeset[open] .proof-open::after { transform: rotate(-135deg); }
+.proof-typeset .proof-hide,
+.proof-typeset[open] .proof-show { display: none; }
+.proof-typeset[open] .proof-hide { display: inline; }
+.proof-foot:hover .proof-note { color: var(--ink); }
+.proof-foot:hover .proof-open { color: var(--green); }
+.proof-foot:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .typeset-card {
-  max-width: 30rem; margin: 0; padding: 16px;
-  border: 1px solid var(--line-strong); border-top: 0;
+  max-width: 690px; margin: 10px 0 0 24px; padding: 16px;
+  border: 1px solid var(--line-strong);
   background: #fff;
 }
 .typeset-card img { width: 100%; height: auto; display: block; }

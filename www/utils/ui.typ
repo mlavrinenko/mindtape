@@ -288,20 +288,27 @@
       })
       raw(_hero-source, lang: "typ", block: true)
     })
-    // The card stays folded: one line says the file typesets, and a click
-    // shows it. Read the SVG bytes rather than `image("…path…")`: the card is
-    // build-time content inlined as a data-uri, not a served asset, so a path
-    // literal would trip tola's asset-link validator (generated/ is never
-    // copied to public/).
+    // The card stays folded: one caption sentence names the file above, and
+    // its action says the page opens here, in place. Read the SVG bytes rather
+    // than `image("…path…")`: the card is build-time content inlined as a
+    // data-uri, not a served asset, so a path literal would trip tola's
+    // asset-link validator (generated/ is never copied to public/).
     html.elem("details", attrs: (class: "proof-typeset"), {
       html.elem("summary", attrs: (class: "proof-foot"), {
-        html.elem("span", "THE SAME FILE ALSO TYPESETS AS A DOCUMENT")
-        html.elem("span", attrs: (class: "proof-open"), "Take a look →")
+        html.elem(
+          "span",
+          attrs: (class: "proof-note"),
+          "The file above also typesets as a document. ",
+        )
+        html.elem("span", attrs: (class: "proof-open"), {
+          html.elem("span", attrs: (class: "proof-show"), "Show the page")
+          html.elem("span", attrs: (class: "proof-hide"), "Hide the page")
+        })
       })
       html.elem("div", attrs: (class: "typeset-card"), image(
         read("../generated/hero-card.svg", encoding: none),
         format: "svg",
-        alt: "The task above, typeset as a document",
+        alt: "The same task typeset as a document page.",
       ))
     })
   })
