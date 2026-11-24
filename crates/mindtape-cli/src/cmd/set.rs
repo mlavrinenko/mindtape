@@ -30,7 +30,7 @@ use mindtape::FieldOp;
 use mindtape::RawValue;
 use mindtape::model::writable::{self, Shape, WritableField};
 
-use crate::cmd::add::tokens::{TokenOp, parse_token};
+use crate::cmd::add::values_ops::field_op;
 use crate::diag::{Command, Diag, Hint, Result, next_line};
 use crate::pre_write;
 use crate::task_edit::rewrite_field;
@@ -85,12 +85,7 @@ pub fn run(args: &SetArgs) -> Result<()> {
 /// A token carrying no operator, an unreadable `@` file, or the `+@` operator
 /// no command line produces.
 fn parse_assignment(token: &str) -> Result<(String, FieldOp), Diag> {
-    let (name, op) = parse_token(token)?;
-    let op = match op {
-        TokenOp::Set(text) | TokenOp::File(text) => FieldOp::Set(RawValue::Str(text)),
-        TokenOp::Append(item) => FieldOp::Append(item),
-    };
-    Ok((name, op))
+    field_op(token)
 }
 
 /// The value as the caller typed it, which a refusal or a no-op quotes back

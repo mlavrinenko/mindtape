@@ -316,12 +316,7 @@ fn due_asc(left: &Task, right: &Task) -> Ordering {
 
 /// Compare numbers descending (higher first). A missing value sorts last.
 fn cmp_num_desc(left: Option<f64>, right: Option<f64>) -> Ordering {
-    match (left, right) {
-        (Some(high), Some(low)) => low.partial_cmp(&high).unwrap_or(Ordering::Equal),
-        (Some(_), None) => Ordering::Less,
-        (None, Some(_)) => Ordering::Greater,
-        (None, None) => Ordering::Equal,
-    }
+    cmp_num_asc(right, left)
 }
 
 /// Compare options ascending with present values first. A missing value sorts

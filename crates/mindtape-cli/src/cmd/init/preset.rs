@@ -217,6 +217,19 @@ pub fn existing_user_preset(dir: &Path, name: &str) -> Option<PathBuf> {
     None
 }
 
+/// Every entry path under `dir`, or none when the directory is missing.
+fn read_dir_paths(dir: &Path) -> Result<Vec<PathBuf>> {
+    if !dir.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut paths = Vec::new();
+    let entries = std::fs::read_dir(dir).map_err(|err| Diag::cannot_read(dir, &err))?;
+    for entry in entries {
+        paths.push(entry.map_err(|err| Diag::cannot_read(dir, &err))?.path());
+    }
+    Ok(paths)
+}
+
 /// Every user preset name under `dir`, from either supported layout, sorted
 /// and deduplicated. A missing directory yields none, so `mt preset ls` works
 /// without a special case for a machine that has never saved one.
@@ -224,13 +237,8 @@ pub fn existing_user_preset(dir: &Path, name: &str) -> Option<PathBuf> {
 /// # Errors
 /// Returns an error when `dir` exists and the read fails.
 pub fn list_user_presets(dir: &Path) -> Result<Vec<String>> {
-    if !dir.is_dir() {
-        return Ok(Vec::new());
-    }
     let mut names = Vec::new();
-    let entries = std::fs::read_dir(dir).map_err(|err| Diag::cannot_read(dir, &err))?;
-    for entry in entries {
-        let path = entry.map_err(|err| Diag::cannot_read(dir, &err))?.path();
+    for path in read_dir_paths(dir)? {
         let name = if path.is_file() && path.extension().is_some_and(|ext| ext == "toml") {
             path.file_stem()
                 .map(|stem| stem.to_string_lossy().into_owned())
@@ -280,13 +288,8 @@ fn read_preset_dir(name: &str, dir: &Path) -> Result<Preset> {
 /// Every `*.typ` directly under `dir`, sorted by file name so a preset writes
 /// the same bytes on every platform. A missing directory yields none.
 pub(crate) fn read_templates(dir: &Path) -> Result<Vec<(String, String)>> {
-    if !dir.is_dir() {
-        return Ok(Vec::new());
-    }
     let mut found = Vec::new();
-    let entries = std::fs::read_dir(dir).map_err(|err| Diag::cannot_read(dir, &err))?;
-    for entry in entries {
-        let path = entry.map_err(|err| Diag::cannot_read(dir, &err))?.path();
+    for path in read_dir_paths(dir)? {
         if path.extension().is_some_and(|ext| ext == "typ") {
             let file = path
                 .file_name()

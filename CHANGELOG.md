@@ -180,6 +180,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every clone the dry gate tolerates carries a reason.** `just lint dry`
+  fails on a baseline fingerprint that `.config/jscpd-baseline-reasons.json`
+  does not explain, and on a reason whose fingerprint left the baseline. The
+  file holds one sentence per tolerated clone, naming its shape and why no
+  helper removes it, or why the match is a coincidence. A clone whose
+  extraction is a separate task says so. `just lint dry-baseline` re-mints the
+  baseline and refuses a fingerprint with no reason, so a new clone cannot
+  enter the baseline silently.
+- **Six source duplicates are gone.** `mt set` calls `mt add`'s `field_op`,
+  `retire_plan` calls `dest_rel`, `target_stem` calls `normalize_link`,
+  `cmp_num_desc` calls `cmp_num_asc`, and `read_dir_paths` and `cell_from`
+  hold the loops and matches they replace. The dry baseline drops the seven
+  fingerprints they held.
 - **Short repeats gate on jscpd's own baseline.** `just lint repeats` runs
   jscpd over `crates/` at a 15-token floor and fails on a group whose
   extraction would remove 100 tokens or more and whose pairs the baseline

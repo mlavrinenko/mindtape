@@ -27,7 +27,7 @@ mod scaffold;
 mod seed;
 pub(crate) mod tokens;
 pub(crate) mod values;
-mod values_ops;
+pub(crate) mod values_ops;
 pub(crate) mod yaml_values;
 
 use std::collections::{BTreeMap, BTreeSet};

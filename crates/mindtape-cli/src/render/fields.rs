@@ -9,7 +9,7 @@ use std::borrow::Cow;
 
 use mindtape::Task;
 use mindtape::config::{Config, Legend};
-use mindtape::model::numeric::{NumValue, NumericField};
+use mindtape::model::numeric::{NumCell, NumValue, NumericField};
 
 use super::color::parse_color;
 use super::field::{CellSpec, Field};
@@ -54,14 +54,20 @@ impl Field for Priority {
 /// string round-trip so framework inputs survive.
 #[must_use]
 pub fn priority_cell_spec(value: &NumValue, config: &Config) -> CellSpec {
-    match config.tasks.priority.cell(value) {
+    cell_from(config.tasks.priority.cell(value), value.as_display())
+}
+
+/// A classified cell, or the value's own display when the field has no band
+/// for it.
+fn cell_from(cell: Option<NumCell>, fallback: String) -> CellSpec {
+    match cell {
         Some(cell) => CellSpec {
             text: cell.label,
             glyph: cell.glyph,
             color: cell.color.as_deref().and_then(parse_color),
         },
         None => CellSpec {
-            text: value.as_display(),
+            text: fallback,
             glyph: None,
             color: None,
         },
@@ -94,18 +100,7 @@ fn numeric_values(value: Option<&NumValue>) -> Vec<Cow<'_, str>> {
 /// Resolve and classify `value` against a numeric `field` into a display cell.
 fn numeric_cell(value: &str, field: &NumericField) -> CellSpec {
     let parsed = NumValue::parse(value);
-    match field.cell(&parsed) {
-        Some(cell) => CellSpec {
-            text: cell.label,
-            glyph: cell.glyph,
-            color: cell.color.as_deref().and_then(parse_color),
-        },
-        None => CellSpec {
-            text: parsed.as_display(),
-            glyph: None,
-            color: None,
-        },
-    }
+    cell_from(field.cell(&parsed), parsed.as_display())
 }
 
 /// Resolve `value` against `legend` into a display cell (label, glyph, colour).

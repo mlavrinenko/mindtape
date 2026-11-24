@@ -18,7 +18,7 @@ The defaults are in the recipe’s `[arg(...)]` attributes and nowhere else. `co
 
 The sweep has four thresholds, one per measurement, because a flag shared by two arms would change both at once. The undertested arm files a task only for a function that is both complex and undertested. Each number’s argument sits beside its constant in the arm script that applies it.
 
-The dry arm files the clones `just lint dry` tolerates. It runs jscpd with the gate’s flags and keeps the clone classes the baseline already lists. It files a class only when extracting it saves `--dry-gain` tokens or more. A task closes by extracting the clone, or by a `jscpd:ignore` marker whose comment says why the match is a coincidence. Either way the commit re-mints the baseline with `just lint dry-baseline`.
+The dry arm files the clones `just lint dry` tolerates. It runs jscpd with the gate’s flags and keeps the clones the baseline already lists. It files a clone only when extracting it saves `--dry-gain` tokens or more. A task closes by extracting the clone, or by a `jscpd:ignore` marker whose comment says why the match is a coincidence. Either way the commit re-mints the baseline with `just lint dry-baseline`. A clone the gate tolerates and nobody fixes carries a reason in `.config/jscpd-baseline-reasons.json`, and `just lint dry` fails on a baseline fingerprint that file does not explain.
 
 The mutants arm has no threshold. It reads `outcomes.json` from whichever sweep ran last: `mutants.out` after a full `just mutants sweep`, or `target/mutants-scoped` after a scoped run. When neither exists, or the one it picked is stale, it skips with a message that gives the command that refreshes it. `just mutants status` reports a running sweep’s progress and ETA.
 

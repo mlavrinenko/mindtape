@@ -117,18 +117,7 @@ pub fn retire_plan(
                     .cause(&err)
             })?
         };
-        let dest = match &rename {
-            Some(dir) => match abs.file_name() {
-                // The archive folder is a sibling of the task file: `tasks/x.typ`
-                // moves into `tasks/.archive/x.typ`, not `<root>/.archive/…`.
-                Some(name) => {
-                    let parent = abs.parent().unwrap_or(Path::new("."));
-                    parent.join(dir).join(name)
-                }
-                None => abs.clone(),
-            },
-            None => abs.clone(),
-        };
+        let dest = dest_rel(&rename, &abs);
         if dest == abs && already {
             continue;
         }

@@ -17,7 +17,7 @@
 //! ([`Task::answers`]) is waiting or unknown. See [`crate::waits`].
 
 use std::collections::{HashMap, HashSet};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
@@ -168,7 +168,10 @@ pub(crate) fn collect_blockers(
                 continue;
             }
             blockers.push(Blocker {
-                stem: dep.map_or_else(|| target_stem(target), |dep| dep.id.clone()),
+                stem: dep.map_or_else(
+                    || crate::model::normalize_link(target),
+                    |dep| dep.id.clone(),
+                ),
                 status: dep.and_then(|dep| dep.status.as_ref().map(|s| s.name.clone())),
                 kind: kind.to_owned(),
             });
@@ -221,15 +224,6 @@ pub(crate) fn list_targets(targets: &[Blocker]) -> String {
         .map(|b| format!("{} ({})", b.stem, b.status.as_deref().unwrap_or("unknown")))
         .collect();
     list.join(", ")
-}
-
-/// The stem an unresolved edge target names: its file stem, else the target
-/// verbatim.
-fn target_stem(target: &str) -> String {
-    Path::new(target).file_stem().map_or_else(
-        || target.to_owned(),
-        |stem| stem.to_string_lossy().into_owned(),
-    )
 }
 
 #[cfg(test)]

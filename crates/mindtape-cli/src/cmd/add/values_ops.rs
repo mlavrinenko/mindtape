@@ -78,7 +78,7 @@ pub fn collect_values(values: &[String], sets: &[String], tokens: &[String]) -> 
 }
 
 /// One token as the library's ordered field operation.
-fn field_op(token: &str) -> Result<(String, FieldOp)> {
+pub(crate) fn field_op(token: &str) -> Result<(String, FieldOp)> {
     let (name, op) = parse_token(token)?;
     let op = match op {
         TokenOp::Set(value) | TokenOp::File(value) => FieldOp::Set(RawValue::Str(value)),

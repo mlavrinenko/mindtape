@@ -719,6 +719,7 @@ groups:
       - .just/scripts/wt-carry-lcov.sh
       - .just/scripts/clippy.sh
       - .just/scripts/check-examples.sh
+      - .just/scripts/dry-reasons.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

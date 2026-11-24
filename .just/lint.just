@@ -41,6 +41,13 @@ size:
 # repeats gate below owns the exact tokens from 15 to 49, where a pasted setup
 # line lives. The two baselines stay apart: a 15-token fingerprint in the
 # 50-token file would make the dry gate tolerate a clone it never measured.
+#
+# A tolerated clone is enforced by nothing, so every fingerprint in the
+# baseline needs a reason in .config/jscpd-baseline-reasons.json. The check
+# after jscpd fails on a fingerprint with no reason and on a reason with no
+# fingerprint, so a re-mint cannot add a clone silently and a fix cannot leave
+# its reason behind. The reasons file's shape and the house style are argued in
+# .just/scripts/dry-reasons.sh.
 
 DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .config/jscpd-baseline.json"
 
@@ -53,10 +60,12 @@ DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --s
 [group("gate")]
 dry:
     jscpd {{ DRY_FLAGS }} --fail-on-new-clones 0 -r ai crates
+    bash .just/scripts/dry-reasons.sh
 
-[doc("Re-mint .config/jscpd-baseline.json after extracting a clone or accepting one")]
+[doc("Re-mint .config/jscpd-baseline.json and require a reason for each tolerated clone")]
 dry-baseline:
     jscpd {{ DRY_FLAGS }} --update-baseline -r silent crates
+    bash .just/scripts/dry-reasons.sh
 
 # The short-repeat gate reads jscpd's native `duplicates` pairs at 15 tokens,
 # groups them by fragment, and fails on a group the baseline lacks. The bar,

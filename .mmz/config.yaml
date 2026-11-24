@@ -314,11 +314,13 @@ scopes:
     - "flake.lock"
     - "nix/dev/**"
 
-  # The clones `just lint::dry` tolerates, and the jscpd config that says which
-  # lines never count toward a clone. Re-minting the baseline or editing the
-  # config changes what the gate lets through, so both are that gate's input.
+  # The clones `just lint::dry` tolerates, the reasons that explain each one,
+  # and the jscpd config that says which lines never count toward a clone.
+  # Re-minting the baseline, editing a reason or editing the config changes
+  # what the gate lets through, so all three are that gate's input.
   dry-baseline:
     - ".config/jscpd-baseline.json"
+    - ".config/jscpd-baseline-reasons.json"
     - ".config/jscpd.json"
 
   # The short repeats `just lint::repeats` tolerates, and the reasons that
@@ -598,6 +600,11 @@ scopes:
     - ".just/scripts/positional-args-check.sh"
   script-release-hook:
     - ".just/scripts/release-hook.sh"
+  # The body of the reasons check `just lint::dry` and `just lint::dry-baseline`
+  # run after jscpd: it compares the baseline's fingerprints to the reasons
+  # sidecar.
+  script-dry-reasons:
+    - ".just/scripts/dry-reasons.sh"
   # The body of `just lint::repeats` and `just lint::repeats-baseline`: it runs
   # jscpd, groups the `duplicates` pairs and checks the reasons sidecar.
   script-repeats-gate:
@@ -719,10 +726,11 @@ commands:
     inputs: [rust, policy, examples, file-size-config, docs, gates-meta, scripts-all]
 
   # jscpd scans `crates/` Rust only; its flags live in .just/lint.just, so a
-  # justfile edit re-runs this gate, and so does a re-minted baseline.
+  # justfile edit re-runs this gate, and so does a re-minted baseline or an
+  # edited reason. `script-dry-reasons` is the reasons check's body.
   - name: just lint::dry
     tags: [gate]
-    inputs: [rust, gates-meta, dry-baseline]
+    inputs: [rust, gates-meta, dry-baseline, script-dry-reasons]
 
   # The short-repeat gate scans the same `crates/` Rust at 15 tokens, so `rust`
   # and `gates-meta` (the recipe module) are its inputs, `repeats-baseline` the
