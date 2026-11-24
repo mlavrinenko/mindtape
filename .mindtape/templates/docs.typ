@@ -21,8 +21,10 @@
 #slot(
   "as-is",
   kind: "raw",
-  prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
+  prompt: "One plain line that carries the essence first, then numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
   example: ```typ
+  A task without a `due` sorts first, above the one due tomorrow.
+
   + Run `mt ls --sort due:asc` in a project where some tasks have no `due`.
   + 🔴 The undated tasks print first, above the one due tomorrow.
   ```,

@@ -75,6 +75,10 @@ Rules:
   rest of the line, and under `[tasks.comments] policy = "forbid"` `mt check`
   rejects the file. `https://…` is safe, because Typst links it. Put
   `file://`, other URL schemes and any literal `//` in backticks.
+- Open `AS-IS` with one plain line that carries the essence, then the numbered
+  steps. The line is not a bullet, not a marker and not a fragment, and it ends
+  with a period or a colon. The `mindtape:tasks` pack refuses an `AS-IS` that
+  opens on a step.
 - After any hand edit, run `mt check`. It reports a wrong-typed value as a
   violation naming its position (`tags[1]`, `estimate.days`, `recur.on[1]`),
   never as an unset field. It names a file that fails to evaluate with its

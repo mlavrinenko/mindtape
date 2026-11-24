@@ -10,6 +10,8 @@
 )
 
 == AS-IS
+The webhook signature check is hand-rolled, and `acme-pay` 2.4.0 fixes the bug it works around.
+
 + Open `src/billing/webhook.rs`.
 + 🔴 It checks each payment webhook's signature by hand, because `acme-pay` 2.3 rejects a valid signature whose timestamp header ends in a space. 2.4.0 fixes that, and our hand-rolled check is one more place to get HMAC wrong.
 

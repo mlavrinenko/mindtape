@@ -11,6 +11,8 @@
 )
 
 == AS-IS
+Login answers as fast as a script can guess, with no limit per IP.
+
 + Run `for i in $(seq 50); do curl -so /dev/null -w '%{http_code} ' -d user=ada -d password=x localhost:8080/login; done`.
 + 🔴 It prints `401` fifty times. A script can guess passwords as fast as the server answers.
 

@@ -12,10 +12,13 @@
 # The set came out of the 2026-09-15 backlog review and the research it was
 # checked against:
 #
-# - AS-IS: numbered steps anyone can follow, commands in backticks, and the
-#   step that shows the defect opening with 🔴. Reproduction scripts raise
-#   agent solve rates while narrative steps add little (arXiv 2607.07593);
-#   developers rank steps to reproduce first (Bettenburg et al., FSE 2008).
+# - AS-IS: one plain line that carries the essence, then numbered steps anyone
+#   can follow, commands in backticks, and the step that shows the defect
+#   opening with 🔴. The line comes first because a reader decides from it
+#   whether the steps are worth running; the steps follow because reproduction
+#   scripts raise agent solve rates while narrative steps add little
+#   (arXiv 2607.07593), and developers rank steps to reproduce first
+#   (Bettenburg et al., FSE 2008).
 # - TO-BE: how it should work, behave and feel once this lands, each bullet
 #   opening with 🟢. A vision, not a test plan — the project's own gates do
 #   the verifying.
@@ -279,6 +282,17 @@ path = ["AS-IS"]
 assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s" }
 when = "!terminal"
 message = "write AS-IS as numbered steps anyone can follow"
+
+# The first line carries the essence: one plain sentence before the steps, so a
+# reader learns what is wrong without running any of them. It is not a bullet,
+# not a marker and not a fragment, and it ends with a period or a colon. The
+# rule above still passes, because the summary line comes before the steps.
+[[tasks.body.content.rules]]
+name = "open-as-is-with-the-essence"
+path = ["AS-IS"]
+assert = { must-match = "(?m)\\A\\s*[A-Z][^\\n]{10,120}[.:]\\s*$" }
+when = "!terminal"
+message = "open AS-IS with one plain line that carries the essence, then the numbered steps"
 
 [[tasks.body.content.rules]]
 name = "mark-defect-step-with-red"

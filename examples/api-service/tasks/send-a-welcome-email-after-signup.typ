@@ -11,6 +11,8 @@
 )
 
 == AS-IS
+Signup sends no welcome email, so a mistyped address goes unnoticed.
+
 + Sign up with a new address.
 + 🔴 No email arrives, so a user who mistyped the address never learns it.
 

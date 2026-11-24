@@ -10,6 +10,8 @@
 )
 
 == AS-IS
+A refresh with an expired session returns `200` and a new access token.
+
 + Log in, then wait 24 hours for the session to expire.
 + Run `curl -X POST -b session=<expired-id> localhost:8080/token/refresh`.
 + 🔴 It returns `200` with a new access token.

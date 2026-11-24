@@ -33,8 +33,10 @@
 #slot(
   "problem",
   kind: "raw",
-  prompt: "Numbered steps that reproduce it. Open the failing step with 🔴.",
+  prompt: "One plain line that carries the essence first, then numbered steps that reproduce it. Open the failing step with 🔴.",
   example: ```typ
+  An expired session still refreshes into a new access token.
+
   + Run `curl -X POST -b session=<expired-id> localhost:8080/token/refresh`.
   + 🔴 It returns `200` with a new access token.
   ```,

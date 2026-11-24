@@ -45,6 +45,8 @@
 
 == AS-IS
 
+One clone predates the dry gate, and extracting it saves tokens.
+
 + Run `just advisory ask-refactoring`.
 #slot(
   "measured",

@@ -52,6 +52,8 @@ mt add -f - <<'EOF'
 title: Sign in with Google and GitHub
 difficulty: 6
 as-is: |
+  Login offers only a password form, so a Google user must make a password first.
+
   + Open `/login`.
   + 🔴 It offers only a password form. A user who signed up with Google has to make a password first.
 to-be: |
@@ -75,6 +77,8 @@ mt add -f - <<'EOF'
 title: Rename the User type to Account
 difficulty: 1
 as-is: |
+  The type is `User`, while the API, the database and the UI say account.
+
   + Grep `src/` for `User`.
   + 🔴 The type is `User`, while the API, the database and the UI say account.
 to-be: |
@@ -123,6 +127,8 @@ capture_prep "$P" "$(
     cat <<'CMD'
 cat >sections.yaml <<'EOF'
 as-is: |
+  Logging in from `/settings` lands on `/`, not back on `/settings`.
+
   + Log in from `/settings`.
   + 🔴 It lands on `/`, not back on `/settings`.
 to-be: |

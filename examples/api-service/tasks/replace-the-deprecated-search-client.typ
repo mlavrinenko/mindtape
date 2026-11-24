@@ -10,6 +10,8 @@
 )
 
 == AS-IS
+The `elasticsearch` crate is deprecated, and only its replacement gets fixes.
+
 + Run `cargo build 2>&1 | grep elasticsearch`.
 + 🔴 It warns that the `elasticsearch` crate is deprecated, and the vendor ships fixes to its replacement only.
 

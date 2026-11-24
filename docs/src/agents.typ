@@ -37,13 +37,13 @@
 #doc-title[#mindtape: AI Agent Context]
 
 \@CONTRIBUTING.md says how work happens here. This file says what #mindtape is
-and where to find each part. Fork parallel work with #just.fork() and land it
-with #just.land().
+and where to find each part. Fork parallel work with #just.fork(), land with
+#just.land().
 
 = Overview
 
 #mindtape is a file-based task tracker. Each task is one Typst file
-(`#show: task.with(...)`), named by its filename stem. Every `mt` command
+(`#show: task.with(...)`), named by its stem. Every `mt` command
 evaluates the task files under its roots through the Typst compiler crates,
 with no daemon or database. A content-hash cache in `.mindtape/cache/` skips
 unchanged files.
@@ -61,26 +61,25 @@ unchanged files.
 
 - `lib/prelude.typ`: the `@local/mindtape` package, which defines the task
   DSL.
-- `crates/mindtape/src/loader/preludes/`: an immutable snapshot of each
-  prelude version this binary reads, `0.2.0` through `0.5.0`.
+- `crates/mindtape/src/loader/preludes/`: a snapshot of each prelude
+  version this binary reads, `0.2.0` through `0.5.0`.
 - `truth/tasks/`: #mindtape's own backlog, a folder per month plus a
   `swept/` inbox, read with the in-tree `lib/`.
 - `truth/*.typ`: the goals above, the goal DSL and the names a task writes.
 - `www/content/*.typ` and `docs/src/*.typ`: the docs site and the sources of
   README.md, AGENTS.md, CONTRIBUTING.md, SKILL.md and the deep dives.
-- `skills/mindtape/`: the agent skill for driving `mt`, with its references
-  and evals.
+- `skills/mindtape/`: the agent skill for driving `mt`, with references and
+  evals.
 - `examples/`: fixtures backing one docs page each. `api-service` is a
-  sample backend backlog. `minimal` is the smallest config. `dsl` is the task
-  quoted on the DSL page. `large` is a 2000-task benchmark. `nix-adopter` is a
-  flake that takes `mt` into its dev shell.
+  sample backend backlog, `minimal` the smallest config, `dsl` the task quoted
+  on the DSL page, `large` a 2000-task benchmark, and `nix-adopter` a flake
+  that takes `mt` into its dev shell.
 
 Before writing about a feature, read its `www/content/` page:
 #page-src("dsl") for task fields, edge kinds and `recur`,
 #page-src("templates") for `mt add` and slots, #page-src("hooks") for hooks,
 #page-src("derived-tags"),
-#page-src("priority"), #page-src("filters"), and #page-src("config") for every
-config key.
+#page-src("priority"), #page-src("filters") and #page-src("config").
 
 = Workspace
 
@@ -136,7 +135,8 @@ version and run `mt schema --write`. `mt schema --check` runs in the gates.
 
 `mt add` writes a task file. `mt` commands change it, as
 `skills/mindtape/SKILL.md` says. `mt config show --resolved` prints this repo's
-shape and `mt templates` the templates it uses. An open task imports
-`truth/prelude/2/lib.typ` and rates every goal under `== Goals` after `Dogfood`
-with `#Helps`, `#Hinders` or `#Neutral`. Edit only the body, a framework
-priority or `estimate` by hand, then run `mt check`.
+shape, `mt templates` the templates. An open task imports
+`truth/prelude/2/lib.typ`, rates every goal under `== Goals` after `Dogfood`
+with `#Helps`, `#Hinders` or `#Neutral`, and opens `AS-IS` on one plain line
+carrying the essence, then the steps. Edit only the body, a framework priority
+or `estimate` by hand, then run `mt check`.

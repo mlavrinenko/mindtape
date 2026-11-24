@@ -20,6 +20,7 @@ wrong and you build the wrong thing.
 = Config
 
 #recipe-config("require-a-task-shape", after: pack-excerpt((
+  "open-as-is-with-the-essence",
   "write-as-is-as-numbered-steps",
   "open-to-be-bullet-with-green",
   "name-path-in-changes",
@@ -74,8 +75,9 @@ and an example. #link(u("/templates/"))[Templates & slots] covers both.
 set of rules that comes with `mt`. Its rules require `AS-IS`, `TO-BE`, Changes
 and Out of scope, in that order. A `fix` also has Environment, a `feat`
 or a `decision` includes Alternatives, a `docs` task has Source of truth,
-and a task tagged `stateful` has Rollback. `AS-IS` must use numbered steps,
-with 🔴 on the step that shows the bug. Each `TO-BE` bullet opens with 🟢, and
+and a task tagged `stateful` has Rollback. `AS-IS` opens with one plain line
+that carries the essence, then numbered steps, with 🔴 on the step that shows
+the bug. Each `TO-BE` bullet opens with 🟢, and
 each Changes bullet starts with one backticked path. Changes is never empty. A question left in `TO-BE`, Changes or Out of
 scope fails, so ask it before you file, while a `?` in code passes. If you edit
 a task by hand, `mt check` runs the same rules on it. #link(u("/packs/"))[Packs]

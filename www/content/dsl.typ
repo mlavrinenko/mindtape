@@ -88,3 +88,7 @@ project you can copy.
 Everything below `task.with(...)` is the body, in Typst markup.
 #link(u("/task-files/"))[Task files] shows what the markup contains and how to
 write a literal `#` in it.
+
+A project's rules can hold the body to a shape. The `mindtape:tasks` pack opens
+every `AS-IS` with one plain line that carries the essence, then the numbered
+steps.

@@ -23,8 +23,10 @@
 #slot(
   "as-is",
   kind: "raw",
-  prompt: "Numbered steps that reproduce it. Open the failing step with 🔴.",
+  prompt: "One plain line that carries the essence first, then numbered steps that reproduce it. Open the failing step with 🔴.",
   example: ```typ
+  Every login attempt reaches the password check, with no slowdown.
+
   + Send 50 wrong passwords for one account from one IP.
   + 🔴 Every attempt reaches the password check, and none is slowed down.
   ```,

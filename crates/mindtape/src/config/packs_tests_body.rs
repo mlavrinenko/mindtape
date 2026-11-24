@@ -108,6 +108,8 @@ fn assert_task_breaches(config: &Config, kind: &str, source: &str, rule: &str) {
 const WELL_FORMED: &str = "\
 == AS-IS
 
+The command does the wrong thing.
+
 + Run the command.
 + 🔴 It does the wrong thing.
 
@@ -223,7 +225,7 @@ fn as_is_takes_the_content_rules() {
     let (_tmp, config) = config_extending_the_real_pack();
     let prose = as_is().replace(
         "+ Run the command.\n+ 🔴 It does the wrong thing.",
-        "The command does the wrong thing.",
+        "The command prints the wrong thing.",
     );
 
     let violations = violations_for(&config, &prose);
@@ -259,7 +261,10 @@ fn a_problem_heading_is_refused() {
 fn as_is_is_unique_and_says_something() {
     let (_tmp, config) = config_extending_the_real_pack();
     let twice = with_section("AS-IS", "+ Again.\n+ 🔴 Again.");
-    let empty = as_is().replace("+ Run the command.\n+ 🔴 It does the wrong thing.", "");
+    let empty = as_is().replace(
+        "The command does the wrong thing.\n\n+ Run the command.\n+ 🔴 It does the wrong thing.",
+        "",
+    );
 
     assert_body_breaches(&config, &twice, "body.headers.rules.keep-one-as-is-section");
     assert_body_breaches(&config, &empty, "body.content.rules.write-as-is-section");
@@ -269,8 +274,8 @@ fn as_is_is_unique_and_says_something() {
 fn as_is_keeps_the_section_order_and_word_cap() {
     let (_tmp, config) = config_extending_the_real_pack();
     let out_of_order = as_is().replace(
-        "== AS-IS\n\n+ Run the command.\n+ 🔴 It does the wrong thing.\n\n== TO-BE\n\n- 🟢 It does the right thing instead.",
-        "== TO-BE\n\n- 🟢 It does the right thing instead.\n\n== AS-IS\n\n+ Run the command.\n+ 🔴 It does the wrong thing.",
+        "== AS-IS\n\nThe command does the wrong thing.\n\n+ Run the command.\n+ 🔴 It does the wrong thing.\n\n== TO-BE\n\n- 🟢 It does the right thing instead.",
+        "== TO-BE\n\n- 🟢 It does the right thing instead.\n\n== AS-IS\n\nThe command does the wrong thing.\n\n+ Run the command.\n+ 🔴 It does the wrong thing.",
     );
     let padded = as_is().replace(
         "+ 🔴 It does the wrong thing.",

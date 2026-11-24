@@ -49,6 +49,11 @@ The template in `examples/api-service/.mindtape/templates/task.typ`:
 
 #raw(read("../generated/api-service-template.typ"), lang: "typ", block: true)
 
+Its `as-is` slot takes one plain line that carries the essence, then the
+numbered steps. The line is not a bullet, not a marker and not a fragment, and
+it ends with a period or a colon. `mt check` refuses an `AS-IS` that opens on a
+step, because the point belongs before the commands.
+
 A slot can stand for a field value, a value inside a call such as a framework
 input, or a section of the body. `slot(name, ...)` takes these optional
 arguments:

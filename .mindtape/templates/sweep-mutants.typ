@@ -45,6 +45,8 @@
 
 == AS-IS
 
+A mutation in this file survived, so nothing asserts on what the line decides.
+
 + Run `cargo mutants` over the file below.
 + 🔴 #raw(slot("function", prompt: "the mutated function", example: "compare_due")) in #raw(slot("path", prompt: "repo-relative path of the mutated file", example: "crates/mindtape/src/sort.rs")) survived a mutation at line #slot("line", kind: "text", prompt: "line number of the mutant", example: "88"): the suite still passed after #raw(slot("mutation", prompt: "cargo-mutants' own wording for the mutation, so it greps against missed.txt", example: "replace compare_due -> Ordering with Ordering::Equal")).
 

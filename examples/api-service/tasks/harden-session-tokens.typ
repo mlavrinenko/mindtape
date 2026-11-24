@@ -14,6 +14,8 @@
 )
 
 == AS-IS
+An expired session still refreshes into a new access token.
+
 + Run `curl -X POST -b session=<expired-id> localhost:8080/token/refresh`.
 + 🔴 It returns `200` with a new access token, signed with a key that is 214 days old.
 

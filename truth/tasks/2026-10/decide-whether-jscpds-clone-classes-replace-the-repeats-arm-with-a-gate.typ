@@ -27,6 +27,8 @@
 
 == AS-IS
 
+The repeats arm is an advisory because a gate at 15 tokens would fail today's tree.
+
 + Read the `jscpd-clone-classes` blocker that `.config/canibump.toml` carried before the commit that dropped it.
 + 🔴 Its plan was to drop the repeats arm of `just ask-refactoring` and gate short repeats in `just lint dry` once jscpd could detect clone classes. The pinned qahq fork includes them, and nothing tracks the plan.
 + Run the repeats arm on its own: `jscpd --no-tips -f rust -k 15 -l 1 -r json -o target/rep crates`, then count `classes` with 300 tokens of gain.

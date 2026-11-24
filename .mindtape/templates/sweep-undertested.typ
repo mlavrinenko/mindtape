@@ -45,6 +45,8 @@
 
 == AS-IS
 
+A function in this file sits inside the undertested band.
+
 + Run `just cover`, then `just advisory ask-refactoring`.
 + 🔴 #raw(slot("function", prompt: "the undertested function", example: "compare_due")) in #raw(slot("path", prompt: "repo-relative path of the file it lives in", example: "crates/mindtape/src/sort.rs")) is #slot("percent", kind: "text", prompt: "the function's covered lines as a percentage", example: "40")% covered at cyclomatic complexity #slot("complexity", kind: "text", prompt: "the function's cyclomatic complexity", example: "9"), inside this arm's band: complexity #slot("cc_floor", kind: "text", prompt: "the complexity floor the band starts at", example: "5") or above, coverage under #slot("cov_floor", kind: "text", prompt: "the coverage floor the band ends at", example: "60")%.
 

@@ -10,6 +10,8 @@
 )
 
 == AS-IS
+The webhook docs never say how often or how long a failed delivery retries.
+
 + Open `docs/webhooks.md`.
 + 🔴 It does not say how often or how long the service retries a failed delivery, so customers ask support.
 

@@ -55,6 +55,8 @@
 
 == AS-IS
 
+A finding records one fact about one path, with the evidence that shows it.
+
 + #slot(
     "context",
     kind: "raw",

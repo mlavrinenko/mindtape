@@ -21,8 +21,10 @@
 #slot(
   "as-is",
   kind: "raw",
-  prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
+  prompt: "One plain line that carries the essence first, then numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
   example: ```typ
+  Only `feat` may carry Alternatives, so a decision is filed as a feature.
+
   + Run `mt config show --resolved` and read which kinds may carry Alternatives.
   + 🔴 Only `feat` may carry Alternatives, so a decision is filed as a feature.
   ```,

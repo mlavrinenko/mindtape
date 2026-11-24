@@ -45,6 +45,8 @@
 
 == AS-IS
 
+The files this sweep measured stand over their line budget.
+
 + Run `linecop --format json`.
 #slot(
   "measured",

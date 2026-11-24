@@ -45,6 +45,8 @@
 
 == AS-IS
 
+One snippet repeats across the tree, and extracting it saves tokens.
+
 + Run `just advisory ask-refactoring`.
 #slot(
   "measured",

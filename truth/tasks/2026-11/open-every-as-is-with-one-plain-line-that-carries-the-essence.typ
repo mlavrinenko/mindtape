@@ -8,10 +8,10 @@
     confidence: 0.8,
     ease: 5,
   ),
-  difficulty: 3,
+  difficulty: 2,
   tags: ("mt", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 24),
+  status: done(2026, 11, 24),
 )
 
 == AS-IS
@@ -41,14 +41,33 @@ The repo has two duplicate checks: a gate at 50 tokens and an advisory at 15.
 == Changes
 
 - `crates/mindtape/src/packs/tasks.toml`: the `open-as-is-with-the-essence` rule, after `write-as-is-as-numbered-steps`.
-- `.mindtape/templates/task.typ`: the `as-is` slot asks for the line first, and its example shows it.
-- `.mindtape/templates/fix.typ`, `fix-stateful.typ`, `feat.typ`, `feat-stateful.typ`, `docs.typ`, `dev.typ`, `dev-stateful.typ`, `decision.typ`: the same `as-is` slot.
+- `.mindtape/templates/task.typ`: the `as-is` slot takes the line first, and its example shows it.
+- `.mindtape/templates/fix.typ`: the same `as-is` slot.
+- `.mindtape/templates/fix-stateful.typ`: the same `as-is` slot.
+- `.mindtape/templates/feat.typ`: the same `as-is` slot.
+- `.mindtape/templates/feat-stateful.typ`: the same `as-is` slot.
+- `.mindtape/templates/docs.typ`: the same `as-is` slot.
+- `.mindtape/templates/dev.typ`: the same `as-is` slot.
+- `.mindtape/templates/dev-stateful.typ`: the same `as-is` slot.
+- `.mindtape/templates/decision.typ`: the same `as-is` slot.
+- `.mindtape/templates/finding.typ`: the summary line its `AS-IS` opens with.
+- `.mindtape/templates/sweep-size.typ`: the summary line its `AS-IS` opens with.
+- `.mindtape/templates/sweep-mutants.typ`: the summary line its `AS-IS` opens with.
+- `.mindtape/templates/sweep-undertested.typ`: the summary line its `AS-IS` opens with.
+- `.mindtape/templates/sweep-repeats.typ`: the summary line its `AS-IS` opens with.
+- `.mindtape/templates/sweep-dry.typ`: the summary line its `AS-IS` opens with.
 - `examples/api-service/.mindtape/templates/task.typ`: the same `as-is` slot.
+- `examples/api-service/.mindtape/templates/milestone.typ`: the same `as-is` slot.
 - `examples/api-service/tasks/`: a summary line on each open task's `AS-IS`.
 - `truth/tasks/2026-10/decide-whether-jscpds-clone-classes-replace-the-repeats-arm-with-a-gate.typ`: the summary line its `AS-IS` lacks.
-- `www/content/templates.typ`, `www/content/dsl.typ`, `www/content/require-a-task-shape.typ`: the convention in the docs.
+- `www/content/templates.typ`: the convention in the docs.
+- `www/content/dsl.typ`: the convention in the docs.
+- `www/content/require-a-task-shape.typ`: the convention in the docs.
 - `skills/mindtape/references/hand-editing.md`: the convention in the skill's reference.
+- `skills/mindtape/evals/evals.json`: the expected `AS-IS` shape.
 - `docs/src/agents.typ`: the convention in AGENTS.md's source.
+- `www/generate-api-service.sh`: the summary line in each captured `as-is`.
+- `www/generate-guides.sh`: the summary line in the captured `as-is`.
 - `CHANGELOG.md`: the pack rule.
 
 == Alternatives

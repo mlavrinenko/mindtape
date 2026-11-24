@@ -22,7 +22,7 @@ fn check(as_is: &str, to_be: &str) -> (Option<i32>, String) {
         format!(
             "#import \"@local/mindtape:0.5.0\": *\n\n\
              #show: task.with(\n  title: \"Cover the board\",\n  kind: \"refactor\",\n  status: wip(2026, 6, 1),\n)\n\n\
-             == AS-IS\n\n+ Run `mt board`.\n+ 🔴 {as_is}\n\n\
+             == AS-IS\n\nThe board lists nothing.\n\n+ Run `mt board`.\n+ 🔴 {as_is}\n\n\
              == TO-BE\n\n- 🟢 It lists the tasks.\n{to_be}\n\n\
              == Changes\n\n- `src/board.rs`: list the tasks.\n\n\
              == Out of scope\n\n- The other views.\n"

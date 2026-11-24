@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Every open task's `AS-IS` opens with one plain line that carries the
+  essence.** The `mindtape:tasks` pack adds `open-as-is-with-the-essence`,
+  which refuses an `AS-IS` whose first line is a bullet, a marker or a
+  fragment, or does not end with a period or a colon. The line comes before
+  the numbered steps, so `write-as-is-as-numbered-steps` still passes. The
+  `as-is` slot in every template takes the line first, and this repository's
+  backlog and the `api-service` fixture carry it.
 - **The prelude keeps the goal mechanism, not a goal policy.** A `check` rule
   with `field = "markers"` still reads the metadata a task body emits, the
   reserved input `@local/mindtape:0.5.0` ships. The goal DSL itself is project

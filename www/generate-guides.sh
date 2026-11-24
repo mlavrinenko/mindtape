@@ -49,6 +49,8 @@ capture api-service-describe "$API" 'mt add --describe'
 cat >"$OUT/api-service-values.yaml" <<'YAML'
 title: Log slow database queries
 as-is: |
+  The monthly report takes 9 seconds, and the log does not say which query was slow.
+
   + Run `curl localhost:8080/reports/monthly`.
   + 🔴 It takes 9 seconds, and the log does not say which query was slow.
 to-be: |

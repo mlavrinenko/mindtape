@@ -9,6 +9,8 @@
 )
 
 == AS-IS
+AppState holds a Postgres pool and nothing else, so no replica shares a counter.
+
 + Open `src/state.rs`.
 + 🔴 `AppState` holds a Postgres pool and nothing else. A handler that needs a counter shared by every replica has nowhere to keep it.
 
