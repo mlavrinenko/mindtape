@@ -561,8 +561,8 @@ update();
 
 // `flatten()` removes one level, and this order nests routes two deep. With
 // a level left unflattened, every entry is an array, no entry equals a page's
-// route string, and every next stop falls back to the start. Fail the build
-// on that shape instead of shipping it.
+// route string, and no page gets a next stop. Fail the build on that shape
+// instead of shipping it.
 #assert(
   _reading-order.len() > 0 and _reading-order.all(r => type(r) == str),
   message: "NAV reading order is not a flat list of routes: "
@@ -697,10 +697,10 @@ update();
 }
 
 // NEXT STOP: the next page in reading order, so an article ends at the line
-// rather than at a dead end. The last page points back to the start.
+// rather than at a dead end. The last page has no next stop.
 #let _next-stop(active) = {
-  let next = _next-route(active)
-  let target = if next == none { "/" } else { next }
+  let target = _next-route(active)
+  if target == none { return none }
   let meta = page-meta(target)
   if meta == none { return none }
   let group = _group-at(_group-index(target))
