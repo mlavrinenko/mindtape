@@ -145,7 +145,7 @@ A paper-and-ink palette with one signal green. The green is the logo's own accen
 
 The page is a single 1360px wrap with 40px gutters. Below the masthead and route strip, a two-column shell holds a fixed 232px line map and a fluid main column, separated by a gap that scales from 1.5rem to 3.5rem. Articles add a second, sticky rail of 210px for calling points, with a fixed 56px gap; the prose itself stops at 690px so the rail never crowds the measure. The home page uses the full main column for the hero and caps each section at 690px, except the rules table, which is allowed to run wide.
 
-Vertical rhythm comes from hairlines and white space: 42px above the shell, 40px before a section head, 34px after an article head, 24px between a section and its first paragraph. The line map’s numbers (01 to 07) are station numbers that mark a real position; section heads in the reading column carry none. At 52rem the sidebar becomes a drawer and the calling points fold into a details block above the prose; at 40rem the masthead wraps to two rows, the search takes the full width, and the display title steps down to `clamp(64px, 17vw, 92px)`.
+Vertical rhythm comes from hairlines and white space: 42px above the shell, 40px before a section head, 34px after an article head, 24px between a section and its first paragraph. The line map’s numbers (01 to 07) are station numbers that mark a real position; section heads in the reading column carry none. The line itself carries no number or name, so no second numbering scheme competes with the stations. At 52rem the sidebar becomes a drawer and the calling points fold into a details block above the prose; at 40rem the masthead wraps to two rows, the search takes the full width, and the display title steps down to `clamp(64px, 17vw, 92px)`.
 
 ## Elevation & Depth
 
@@ -155,7 +155,7 @@ There are no shadows. Depth is drawn with two rules: the 1px hairline inside a r
 
 ## Shapes
 
-Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean without reading as rounded. Borders are 1px, with 3px reserved for the top edge of a code panel and a callout. Dots are the only circular form: 7px stops on the line map and the calling points rail, and the 8px end-of-line mark in the footer. Buttons, inputs, and code panels all keep the same square silhouette.
+Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean without reading as rounded. Borders are 1px, with 3px reserved for the top edge of a code panel and a callout. Dots are the only circular form: 7px stops on the line map and the calling points rail. Buttons, inputs, and code panels all keep the same square silhouette.
 
 **The Squared Rule.** No rounded cards, pills, or floating panels. A circle appears only where a stop on a line is meant.
 

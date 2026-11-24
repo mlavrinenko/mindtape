@@ -663,7 +663,6 @@ update();
   "nav",
   attrs: (class: "line", "aria-label": "Documentation sections"),
   html.elem("div", attrs: (class: "wrap line-inner"), {
-    html.elem("span", attrs: (class: "line-no"), "Line 01")
     for (i, group) in NAV.enumerate() {
       html.elem(
         "a",
@@ -689,7 +688,7 @@ update();
     "aside",
     attrs: (class: "page-rail", "data-pagefind-ignore": ""),
     html.elem("div", attrs: (class: "rail-meta"), {
-      html.elem("span")[Line 01 / #upper(group.title)]
+      html.elem("span")[#upper(group.title)]
       html.elem("span")[#str(group.items.len()) PAGES]
       html.elem("span")[Version #pkg-version]
     }),
@@ -798,10 +797,6 @@ update();
 
   html.elem("footer", attrs: (class: "site-footer"), {
     html.elem("div", attrs: (class: "wrap footer-inner"), {
-      html.elem("span", attrs: (class: "end"), {
-        html.elem("i")
-        "End of line 01"
-      })
       html.elem("span", "MINDTAPE · MIT · 2026")
       html.elem("span", attrs: (class: "right"), {
         link(REPO)[GitHub]
