@@ -56,11 +56,37 @@ fn args(format: GraphFormat, filter: Option<&str>, no_terminal: bool) -> GraphAr
     }
 }
 
+/// An open `a` with one `kind` edge to a `b` in `b_status`.
+fn one_edge(kind: &str, b_status: &str) -> Vec<Task> {
+    let a = linked_task("a", vec![link_edge("b.typ", kind)]);
+    vec![with_status(a, "wip"), with_status(bare_task("b"), b_status)]
+}
+
 /// The graph of an open `a` with one `kind` edge to a done `b`, in `format`.
 fn graph_of_one_edge(format: GraphFormat, kind: &str) -> String {
-    let a = linked_task("a", vec![link_edge("b.typ", kind)]);
-    let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "done")];
-    build(&args(format, None, false), stub_project(tasks)).unwrap()
+    build(
+        &args(format, None, false),
+        stub_project(one_edge(kind, "done")),
+    )
+    .unwrap()
+}
+
+/// A task `name` with one `discharged-by` edge to the external PR URL.
+fn external_task(name: &str) -> Task {
+    linked_task(
+        name,
+        vec![link_edge("https://example.com/pr/7", "discharged-by")],
+    )
+}
+
+/// The graph of one open task pointing at the external PR URL, in `format`.
+fn external_graph(format: GraphFormat) -> String {
+    let a = external_task("a");
+    build(
+        &args(format, None, false),
+        external_project(vec![with_status(a, "wip")], "url"),
+    )
+    .unwrap()
 }
 
 #[test]
@@ -108,11 +134,9 @@ fn dot_renders_a_cycle() {
 #[test]
 fn filter_scopes_to_the_induced_subgraph() {
     // `!terminal` drops the done task b; a's edge to it is not induced.
-    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
-    let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "done")];
     let out = build(
         &args(GraphFormat::Dot, Some("!terminal"), false),
-        stub_project(tasks),
+        stub_project(one_edge("depends-on", "done")),
     )
     .unwrap();
     assert!(out.contains("\"a\""));
@@ -122,9 +146,11 @@ fn filter_scopes_to_the_induced_subgraph() {
 
 #[test]
 fn no_terminal_prunes_settled_tasks() {
-    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
-    let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "done")];
-    let out = build(&args(GraphFormat::Dot, None, true), stub_project(tasks)).unwrap();
+    let out = build(
+        &args(GraphFormat::Dot, None, true),
+        stub_project(one_edge("depends-on", "done")),
+    )
+    .unwrap();
     assert!(out.contains("\"a\""));
     assert!(!out.contains("\"b\" [label"));
 }
@@ -132,20 +158,20 @@ fn no_terminal_prunes_settled_tasks() {
 #[test]
 fn dot_styles_blocked_and_ready_nodes() {
     // a depends on still-open b: a is blocked, b is ready.
-    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
-    let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "wip")];
-    let out = build(&args(GraphFormat::Dot, None, false), stub_project(tasks)).unwrap();
+    let out = build(
+        &args(GraphFormat::Dot, None, false),
+        stub_project(one_edge("depends-on", "wip")),
+    )
+    .unwrap();
     assert!(out.contains("\"a\" [label=\"a [wip]\", fillcolor=\"#fadbd8\"]"));
     assert!(out.contains("\"b\" [label=\"b [wip]\", fillcolor=\"#d5f5e3\"]"));
 }
 
 #[test]
 fn mermaid_renders_nodes_edges_and_classes() {
-    let a = linked_task("a", vec![link_edge("b.typ", "depends-on")]);
-    let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "done")];
     let out = build(
         &args(GraphFormat::Mermaid, None, false),
-        stub_project(tasks),
+        stub_project(one_edge("depends-on", "done")),
     )
     .unwrap();
     assert!(out.starts_with("graph LR"));
@@ -201,15 +227,7 @@ fn mermaid_renders_related_edge() {
 /// never a task node, and never on the readiness palette.
 #[test]
 fn dot_renders_an_external_target_as_a_distinct_node() {
-    let a = linked_task(
-        "a",
-        vec![link_edge("https://example.com/pr/7", "discharged-by")],
-    );
-    let out = build(
-        &args(GraphFormat::Dot, None, false),
-        external_project(vec![with_status(a, "wip")], "url"),
-    )
-    .unwrap();
+    let out = external_graph(GraphFormat::Dot);
     assert!(
         out.contains(
             "\"external:https://example.com/pr/7\" [label=\"https://example.com/pr/7\", shape=note"
@@ -227,11 +245,9 @@ fn dot_renders_an_external_target_as_a_distinct_node() {
 /// that happens to spell a loaded task's stem is still never traversed.
 #[test]
 fn external_kind_is_never_traversed_even_when_it_spells_a_stem() {
-    let a = linked_task("a", vec![link_edge("b.typ", "discharged-by")]);
-    let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "wip")];
     let out = build(
         &args(GraphFormat::Dot, None, false),
-        external_project(tasks, "any"),
+        external_project(one_edge("discharged-by", "wip"), "any"),
     )
     .unwrap();
     assert!(
@@ -248,15 +264,7 @@ fn external_kind_is_never_traversed_even_when_it_spells_a_stem() {
 
 #[test]
 fn mermaid_renders_external_targets_in_their_own_class() {
-    let a = linked_task(
-        "a",
-        vec![link_edge("https://example.com/pr/7", "discharged-by")],
-    );
-    let out = build(
-        &args(GraphFormat::Mermaid, None, false),
-        external_project(vec![with_status(a, "wip")], "url"),
-    )
-    .unwrap();
+    let out = external_graph(GraphFormat::Mermaid);
     assert!(
         out.contains("x0([\"https://example.com/pr/7\"]):::external"),
         "{out}"
@@ -268,14 +276,8 @@ fn mermaid_renders_external_targets_in_their_own_class() {
 /// Two tasks pointing at the same artifact share one node.
 #[test]
 fn repeated_external_target_renders_once() {
-    let a = linked_task(
-        "a",
-        vec![link_edge("https://example.com/pr/7", "discharged-by")],
-    );
-    let b = linked_task(
-        "b",
-        vec![link_edge("https://example.com/pr/7", "discharged-by")],
-    );
+    let a = external_task("a");
+    let b = external_task("b");
     let out = build(
         &args(GraphFormat::Dot, None, false),
         external_project(vec![with_status(a, "wip"), with_status(b, "wip")], "url"),

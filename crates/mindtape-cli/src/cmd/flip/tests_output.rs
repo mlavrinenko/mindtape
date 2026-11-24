@@ -9,10 +9,11 @@
 #![allow(clippy::unwrap_used)]
 
 use super::tests::{
-    ALPHA, BROKEN_RELOAD_CONFIG, GAMMA, LEGEND_CONFIG, REACHABLE_CONFIG, STATELESS, flip_args,
-    read, setup,
+    ALPHA, BROKEN_RELOAD_CONFIG, GAMMA, LEGEND_CONFIG, REACHABLE_CONFIG, STATELESS, flip,
+    flip_args, read, setup,
 };
 use super::{run, run_with};
+use crate::test_util::{with_child_stderr, with_child_stdout};
 
 const FLIP_CHILD_ENV: &str = "_MT_FLIP_CHILD";
 
@@ -22,6 +23,21 @@ fn list_verbs(project: &crate::util::Project) {
     args.status = None;
     args.list = true;
     run_with(project, &args).unwrap();
+}
+
+/// `mt flip --list` over a fresh project under `config_text`.
+fn list(config_text: &str) {
+    let (_dir, project) = setup(&[], config_text);
+    list_verbs(&project);
+}
+
+/// Assert on what `mt flip` prints for `status` over `alpha`, in a child.
+fn assert_flip_prints(status: &str, check: impl FnOnce(&str)) {
+    with_child_stdout(
+        FLIP_CHILD_ENV,
+        || flip(&[("a.typ", ALPHA)], LEGEND_CONFIG, status, "a"),
+        check,
+    );
 }
 
 /// `run` is the thin wrapper that discovers the project from the cwd and hands
@@ -52,35 +68,34 @@ fn run_delegates_to_run_with() {
 /// succeeds. The warning is the whole observable effect, and it goes to stderr.
 #[test]
 fn shadowed_verb_warns_on_stderr() {
-    if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
-        assert!(
-            err.contains("shadows") && err.contains("add"),
-            "expected a shadowed-verb warning naming `add`: {err}"
-        );
-        return;
-    }
-    let shadow_cfg =
-        "[[tasks.status]]\nvalue = \"add\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
-    let (_dir, project) = setup(&[("a.typ", ALPHA)], shadow_cfg);
-    run_with(&project, &flip_args("done", &["a"])).unwrap();
+    with_child_stderr(
+        FLIP_CHILD_ENV,
+        || {
+            let shadow_cfg = "[[tasks.status]]\nvalue = \"add\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
+            flip(&[("a.typ", ALPHA)], shadow_cfg, "done", "a");
+        },
+        |err| {
+            assert!(
+                err.contains("shadows") && err.contains("add"),
+                "expected a shadowed-verb warning naming `add`: {err}"
+            );
+        },
+    );
 }
 
 #[test]
 fn restamp_prints_re_stamped() {
-    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
+    assert_flip_prints("wip", |out| {
         assert!(
             out.contains("re-stamped"),
             "expected 're-stamped' for same-status flip: {out}"
         );
-        return;
-    }
-    let (_dir, project) = setup(&[("a.typ", ALPHA)], LEGEND_CONFIG);
-    run_with(&project, &flip_args("wip", &["a"])).unwrap();
+    });
 }
 
 #[test]
 fn flip_prints_flipped_not_re_stamped() {
-    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
+    assert_flip_prints("done", |out| {
         assert!(
             out.contains("flipped"),
             "expected 'flipped' for diff-status flip: {out}"
@@ -89,23 +104,21 @@ fn flip_prints_flipped_not_re_stamped() {
             !out.contains("re-stamped"),
             "unexpected 're-stamped' for diff-status flip: {out}"
         );
-        return;
-    }
-    let (_dir, project) = setup(&[("a.typ", ALPHA)], LEGEND_CONFIG);
-    run_with(&project, &flip_args("done", &["a"])).unwrap();
+    });
 }
 
 #[test]
 fn terminal_flip_prints_recur_notice() {
-    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
-        assert!(
-            out.contains("recurring"),
-            "expected recurring notice: {out}"
-        );
-        return;
-    }
-    let (_dir, project) = setup(&[("g.typ", GAMMA)], LEGEND_CONFIG);
-    run_with(&project, &flip_args("done", &["g"])).unwrap();
+    with_child_stdout(
+        FLIP_CHILD_ENV,
+        || flip(&[("g.typ", GAMMA)], LEGEND_CONFIG, "done", "g"),
+        |out| {
+            assert!(
+                out.contains("recurring"),
+                "expected recurring notice: {out}"
+            );
+        },
+    );
 }
 
 /// A legend whose entries carry glyphs renders them in the `--list` output,
@@ -113,47 +126,51 @@ fn terminal_flip_prints_recur_notice() {
 /// `LEGEND_CONFIG` never reaches.
 #[test]
 fn list_prints_glyph_verbs() {
-    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
-        assert!(
-            out.contains("🔨 wip") && out.contains("✅ done"),
-            "expected glyph-prefixed legend verbs in --list output: {out}"
-        );
-        return;
-    }
-    let glyph_cfg = "[[tasks.status]]\nvalue = \"wip\"\nglyph = \"🔨\"\n\
+    with_child_stdout(
+        FLIP_CHILD_ENV,
+        || {
+            let glyph_cfg = "[[tasks.status]]\nvalue = \"wip\"\nglyph = \"🔨\"\n\
         [[tasks.status]]\nvalue = \"done\"\nglyph = \"✅\"\nterminal = true\n";
-    let (_dir, project) = setup(&[], glyph_cfg);
-    list_verbs(&project);
+            list(glyph_cfg);
+        },
+        |out| {
+            assert!(
+                out.contains("🔨 wip") && out.contains("✅ done"),
+                "expected glyph-prefixed legend verbs in --list output: {out}"
+            );
+        },
+    );
 }
 
 /// An explicitly emptied legend (`status = []`, which unconstrains the floored
 /// section) hits `list_verbs`' no-legend branch: the hint, not a verb listing.
 #[test]
 fn list_empty_legend_prints_hint() {
-    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
-        assert!(
-            out.contains("no status legend configured")
-                && out.contains("shortcut verbs are unavailable"),
-            "expected the empty-legend hint in --list output: {out}"
-        );
-        return;
-    }
-    let empty_cfg = "[tasks]\nstatus = []\n";
-    let (_dir, project) = setup(&[], empty_cfg);
-    list_verbs(&project);
+    with_child_stdout(
+        FLIP_CHILD_ENV,
+        || list("[tasks]\nstatus = []\n"),
+        |out| {
+            assert!(
+                out.contains("no status legend configured")
+                    && out.contains("shortcut verbs are unavailable"),
+                "expected the empty-legend hint in --list output: {out}"
+            );
+        },
+    );
 }
 
 #[test]
 fn list_prints_verbs() {
-    if let Some(out) = mindtape::test_support::rerun_isolated_stdout(FLIP_CHILD_ENV) {
-        assert!(
-            out.contains("wip"),
-            "expected legend verbs in --list output: {out}"
-        );
-        return;
-    }
-    let (_dir, project) = setup(&[], LEGEND_CONFIG);
-    list_verbs(&project);
+    with_child_stdout(
+        FLIP_CHILD_ENV,
+        || list(LEGEND_CONFIG),
+        |out| {
+            assert!(
+                out.contains("wip"),
+                "expected legend verbs in --list output: {out}"
+            );
+        },
+    );
 }
 
 /// The revalidation violation itself goes to stderr, not to the return value.
@@ -161,16 +178,20 @@ fn list_prints_verbs() {
 /// the field and the reason is only observable on stderr.
 #[test]
 fn revalidate_prints_the_unreachable_violation() {
-    if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
-        assert!(
-            err.contains("s.typ:") && err.contains(": status: `blocked` is unreachable"),
-            "expected the reachability violation prefixed as an error: {err}"
-        );
-        return;
-    }
-    let (_dir, project) = setup(&[("s.typ", STATELESS)], REACHABLE_CONFIG);
-    let err = run_with(&project, &flip_args("blocked", &["s"])).unwrap_err();
-    crate::diag::emit(&err);
+    with_child_stderr(
+        FLIP_CHILD_ENV,
+        || {
+            let (_dir, project) = setup(&[("s.typ", STATELESS)], REACHABLE_CONFIG);
+            let err = run_with(&project, &flip_args("blocked", &["s"])).unwrap_err();
+            crate::diag::emit(&err);
+        },
+        |err| {
+            assert!(
+                err.contains("s.typ:") && err.contains(": status: `blocked` is unreachable"),
+                "expected the reachability violation prefixed as an error: {err}"
+            );
+        },
+    );
 }
 
 /// `mt flip` refuses a rewrite that would not evaluate *before* the write. The
@@ -180,26 +201,30 @@ fn revalidate_prints_the_unreachable_violation() {
 /// rather than a summary, and the child prints it as `main` would.
 #[test]
 fn refuses_a_rewrite_that_would_not_load() {
-    if let Some(err) = mindtape::test_support::rerun_isolated_stderr(FLIP_CHILD_ENV) {
-        assert!(
-            err.contains(&format!(
-                "error: {}:3: did not load:",
-                mindtape::display_path("tasks/alpha.typ")
-            )),
-            "expected the pre-write refusal prefixed as an error: {err}"
-        );
-        assert!(
-            !err.contains("rejected"),
-            "the refusal is the problem, with no summary of its own: {err}"
-        );
-        return;
-    }
-    let (dir, project) = setup(&[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
-    let err = run_with(&project, &flip_args("broken\"done", &["alpha"])).unwrap_err();
-    crate::diag::emit(&err);
-    assert_eq!(
-        std::fs::read_to_string(dir.path().join("tasks/alpha.typ")).unwrap(),
-        ALPHA,
-        "a refused flip must leave the file byte-identical"
+    with_child_stderr(
+        FLIP_CHILD_ENV,
+        || {
+            let (dir, project) = setup(&[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
+            let err = run_with(&project, &flip_args("broken\"done", &["alpha"])).unwrap_err();
+            crate::diag::emit(&err);
+            assert_eq!(
+                std::fs::read_to_string(dir.path().join("tasks/alpha.typ")).unwrap(),
+                ALPHA,
+                "a refused flip must leave the file byte-identical"
+            );
+        },
+        |err| {
+            assert!(
+                err.contains(&format!(
+                    "error: {}:3: did not load:",
+                    mindtape::display_path("tasks/alpha.typ")
+                )),
+                "expected the pre-write refusal prefixed as an error: {err}"
+            );
+            assert!(
+                !err.contains("rejected"),
+                "the refusal is the problem, with no summary of its own: {err}"
+            );
+        },
     );
 }

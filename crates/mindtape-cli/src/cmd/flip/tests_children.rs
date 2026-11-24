@@ -4,12 +4,9 @@
 #![allow(clippy::unwrap_used)]
 
 use super::run_with;
-use super::tests::{flip_args, read, setup};
-
-const CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
-     [[tasks.status]]\nvalue = \"wip\"\nunblocked = true\n\
-     [[tasks.status]]\nvalue = \"done\"\nterminal = true\nunblocked = true\n\
-     [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n";
+use super::tests::{
+    UNBLOCKED_CONFIG, assert_batch_flipped, assert_forced, assert_refused, flip_args, loaded, read,
+};
 
 const EPIC: &str =
     mindtape::typst_task!("(\n  title: \"Epic\",\n  status: proposed(2026, 6, 1),\n)\n");
@@ -19,15 +16,12 @@ const CHILD: &str = mindtape::typst_task!(
 links: parent(\"epic.typ\"),\n)\n"
 );
 
-fn project() -> (tempfile::TempDir, crate::util::Project) {
-    let (dir, project) = setup(&[("epic.typ", EPIC), ("child.typ", CHILD)], CONFIG);
-    assert_eq!(project.outcome.tasks.len(), 2, "fixture must load");
-    (dir, project)
-}
+/// The epic and its child, under [`UNBLOCKED_CONFIG`].
+const FILES: &[(&str, &str)] = &[("epic.typ", EPIC), ("child.typ", CHILD)];
 
 #[test]
 fn refusal_names_the_status_and_every_unfinished_child() {
-    let (_dir, project) = project();
+    let (_dir, project) = loaded(FILES, UNBLOCKED_CONFIG);
     let world = project.outcome.tasks.clone();
     let epic = world.iter().find(|task| task.id == "epic").unwrap();
     let legend = &project.config.tasks.status;
@@ -46,14 +40,12 @@ fn refusal_names_the_status_and_every_unfinished_child() {
 
 #[test]
 fn flip_refuses_closing_a_parent_over_an_unfinished_child() {
-    let (dir, project) = project();
-    assert!(run_with(&project, &flip_args("done", &["epic"])).is_err());
-    assert!(read(dir.path(), "epic.typ").contains("status: proposed("));
+    assert_refused(FILES, UNBLOCKED_CONFIG, "done", "epic");
 }
 
 #[test]
 fn a_parent_starts_and_cancels_over_open_children() {
-    let (dir, project) = project();
+    let (dir, project) = loaded(FILES, UNBLOCKED_CONFIG);
     run_with(&project, &flip_args("wip", &["epic"])).unwrap();
     assert!(read(dir.path(), "epic.typ").contains("status: wip("));
     run_with(&project, &flip_args("cancelled", &["epic"])).unwrap();
@@ -62,16 +54,10 @@ fn a_parent_starts_and_cancels_over_open_children() {
 
 #[test]
 fn force_overrides_the_refusal() {
-    let (dir, project) = project();
-    let mut args = flip_args("done", &["epic"]);
-    args.force = true;
-    run_with(&project, &args).unwrap();
-    assert!(read(dir.path(), "epic.typ").contains("status: done("));
+    assert_forced(FILES, UNBLOCKED_CONFIG, "done", "epic");
 }
 
 #[test]
 fn closing_the_children_first_in_the_batch_lets_the_parent_close() {
-    let (dir, project) = project();
-    run_with(&project, &flip_args("done", &["child", "epic"])).unwrap();
-    assert!(read(dir.path(), "epic.typ").contains("status: done("));
+    assert_batch_flipped(FILES, UNBLOCKED_CONFIG, "done", &["child", "epic"], "epic");
 }

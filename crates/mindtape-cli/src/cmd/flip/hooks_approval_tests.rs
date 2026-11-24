@@ -59,10 +59,16 @@ fn run_unallowed(dir: &Path, config_text: &str, force: bool) -> (HookOutcome, St
     run_in(dir, config_text, "done", mode)
 }
 
+/// [`run_unallowed`] in a fresh tempdir, which the caller keeps alive.
+fn unallowed(config_text: &str, force: bool) -> (tempfile::TempDir, HookOutcome, String) {
+    let dir = tempdir();
+    let (outcome, out) = run_unallowed(dir.path(), config_text, force);
+    (dir, outcome, out)
+}
+
 #[test]
 fn an_unallowed_gate_refuses_without_running() {
-    let dir = tempdir();
-    let (outcome, out) = run_unallowed(dir.path(), MARK_GATE, false);
+    let (dir, outcome, out) = unallowed(MARK_GATE, false);
     assert_eq!(
         plain(&outcome.refusal.unwrap()),
         "error: gate not allowed: 'touch mark'\n\
@@ -76,8 +82,7 @@ fn an_unallowed_gate_refuses_without_running() {
 
 #[test]
 fn force_waives_an_unallowed_gate_and_records_it() {
-    let dir = tempdir();
-    let (outcome, _) = run_unallowed(dir.path(), MARK_GATE, true);
+    let (dir, outcome, _) = unallowed(MARK_GATE, true);
     assert!(outcome.refusal.is_none());
     assert_eq!(outcome.forced, vec!["touch mark".to_owned()]);
     assert!(!dir.path().join("mark").exists());
@@ -85,10 +90,9 @@ fn force_waives_an_unallowed_gate_and_records_it() {
 
 #[test]
 fn an_unallowed_run_without_gate_is_skipped_and_the_walk_goes_on() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
                   actions = [{ run = 'touch mark' }, { run = 'touch other', gate = true }]\n";
-    let (outcome, out) = run_unallowed(dir.path(), config, false);
+    let (dir, outcome, out) = unallowed(config, false);
     assert!(
         out.starts_with("skipped: touch mark (not allowed)\n"),
         "{out}"
@@ -100,10 +104,9 @@ fn an_unallowed_run_without_gate_is_skipped_and_the_walk_goes_on() {
 
 #[test]
 fn a_runless_gate_needs_no_approval() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
                   actions = [{ gate = true, message = \"no\" }]\n";
-    let (outcome, out) = run_unallowed(dir.path(), config, false);
+    let (_dir, outcome, out) = unallowed(config, false);
     assert!(plain(&outcome.refusal.unwrap()).starts_with("error: gate refused"));
     assert!(!out.contains("skipped"), "{out}");
 }

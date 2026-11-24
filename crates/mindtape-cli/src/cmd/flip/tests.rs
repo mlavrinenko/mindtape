@@ -38,6 +38,12 @@ pub(super) const LEGEND_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"blocked\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
+/// A legend where `wip` and `done` are `unblocked`, and `done` is terminal.
+pub(super) const UNBLOCKED_CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
+     [[tasks.status]]\nvalue = \"wip\"\nunblocked = true\n\
+     [[tasks.status]]\nvalue = \"done\"\nterminal = true\nunblocked = true\n\
+     [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n";
+
 /// A legend with a transition graph that declares `blocked` but leaves it
 /// unreachable from the initial state (`wip` → `done` only). Flipping a task to
 /// it must trip `run_with`'s post-flip revalidation.
@@ -88,36 +94,144 @@ pub(super) fn read(dir: &Path, name: &str) -> String {
     std::fs::read_to_string(dir.join("tasks").join(name)).unwrap()
 }
 
+/// A project holding `files` under `config_text`, asserting every file loaded.
+pub(super) fn loaded(files: &[(&str, &str)], config_text: &str) -> (tempfile::TempDir, Project) {
+    let (dir, project) = setup(files, config_text);
+    assert_eq!(
+        project.outcome.tasks.len(),
+        files.len(),
+        "fixture must load"
+    );
+    (dir, project)
+}
+
+/// Flip `name` to `status` in a fresh project holding `files` under
+/// `config_text`, returning the tempdir and the rewritten body.
+pub(super) fn flipped(
+    files: &[(&str, &str)],
+    config_text: &str,
+    status: &str,
+    name: &str,
+) -> (tempfile::TempDir, String) {
+    let (dir, project) = setup(files, config_text);
+    run_with(&project, &flip_args(status, &[name])).unwrap();
+    let body = read(dir.path(), &format!("{name}.typ"));
+    (dir, body)
+}
+
+/// Flip `name` to `status` in a fresh project holding `files` under
+/// `config_text`, asserting the file carries that status.
+pub(super) fn assert_flipped(files: &[(&str, &str)], config_text: &str, status: &str, name: &str) {
+    let (_dir, body) = flipped(files, config_text, status, name);
+    assert!(body.contains(&format!("status: {status}(")), "{body}");
+}
+
+/// [`assert_flipped`] with `--force` on.
+pub(super) fn assert_forced(files: &[(&str, &str)], config_text: &str, status: &str, name: &str) {
+    let (dir, project) = setup(files, config_text);
+    let mut args = flip_args(status, &[name]);
+    args.force = true;
+    run_with(&project, &args).unwrap();
+    let body = read(dir.path(), &format!("{name}.typ"));
+    assert!(body.contains(&format!("status: {status}(")), "{body}");
+}
+
+/// Flip `tasks` in one batch in a fresh project holding `files` under
+/// `config_text`, returning the tempdir and `name`'s rewritten body.
+pub(super) fn batch_flipped(
+    files: &[(&str, &str)],
+    config_text: &str,
+    status: &str,
+    tasks: &[&str],
+    name: &str,
+) -> (tempfile::TempDir, String) {
+    let (dir, project) = setup(files, config_text);
+    run_with(&project, &flip_args(status, tasks)).unwrap();
+    let body = read(dir.path(), &format!("{name}.typ"));
+    (dir, body)
+}
+
+/// [`batch_flipped`], asserting `name`'s file carries `status`.
+pub(super) fn assert_batch_flipped(
+    files: &[(&str, &str)],
+    config_text: &str,
+    status: &str,
+    tasks: &[&str],
+    name: &str,
+) {
+    let (_dir, body) = batch_flipped(files, config_text, status, tasks, name);
+    assert!(body.contains(&format!("status: {status}(")), "{body}");
+}
+
+/// Assert that `body` carries `status`, then `needle`, naming `why` for the
+/// second.
+pub(super) fn assert_flipped_body(body: &str, status: &str, needle: &str, why: &str) {
+    assert!(
+        body.contains(&format!("status: {status}(")),
+        "status not flipped: {body:?}"
+    );
+    assert!(body.contains(needle), "{why}: {body:?}");
+}
+
+/// Flip `name` to `status` in a fresh project holding `files` under
+/// `config_text`, discarding the rewritten body.
+pub(super) fn flip(files: &[(&str, &str)], config_text: &str, status: &str, name: &str) {
+    let (_dir, _body) = flipped(files, config_text, status, name);
+}
+
+/// The refusal `mt flip` gives for `status` over `tasks`, with the tempdir the
+/// refused project sits in.
+pub(super) fn refused(
+    files: &[(&str, &str)],
+    config_text: &str,
+    status: &str,
+    tasks: &[&str],
+) -> (tempfile::TempDir, String) {
+    let (dir, project) = setup(files, config_text);
+    let err = run_with(&project, &flip_args(status, tasks)).unwrap_err();
+    (dir, plain(&err))
+}
+
+/// Assert that `mt flip` refuses `status` over `name` and leaves the file as
+/// authored.
+pub(super) fn assert_refused(files: &[(&str, &str)], config_text: &str, status: &str, name: &str) {
+    let file = format!("{name}.typ");
+    let authored = files.iter().find(|(path, _)| *path == file).unwrap().1;
+    let (dir, project) = setup(files, config_text);
+    assert_eq!(
+        project.outcome.tasks.len(),
+        files.len(),
+        "fixture must load"
+    );
+    assert!(run_with(&project, &flip_args(status, &[name])).is_err());
+    assert_eq!(read(dir.path(), &file), authored);
+}
+
 #[test]
 fn flips_status_by_slug() {
-    let (dir, project) = setup(&[("alpha.typ", ALPHA)], LEGEND_CONFIG);
-    assert_eq!(project.outcome.tasks.len(), 1, "fixture must load");
+    assert_flipped(&[("alpha.typ", ALPHA)], LEGEND_CONFIG, "done", "alpha");
+}
 
-    run_with(&project, &flip_args("done", &["alpha"])).unwrap();
-    assert!(read(dir.path(), "alpha.typ").contains("status: done("));
+/// A task whose body carries `indent` before `drift line`, the deep leading
+/// indentation `mt add` and a surgical edit can leave behind.
+fn drift_task(indent: &str) -> String {
+    format!(
+        "#import \"@local/mindtape:0.5.0\": *\n#show: task.with(\n  \
+         title: \"Drifty\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\n{indent}drift line\n"
+    )
 }
 
 /// A flip canonicalizes a task body carrying deep leading indentation (the
 /// `mt add`/surgical-edit drift) when `[format]` is on (the default).
 #[test]
 fn flip_formats_body_drift_by_default() {
-    let drift = format!(
-        "#import \"@local/mindtape:0.5.0\": *\n#show: task.with(\n  \
-         title: \"Drifty\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\n{}drift line\n",
-        " ".repeat(40)
-    );
-    let (dir, project) = setup(&[("drifty.typ", &drift)], LEGEND_CONFIG);
-
-    run_with(&project, &flip_args("done", &["drifty"])).unwrap();
-
-    let body = read(dir.path(), "drifty.typ");
-    assert!(
-        body.contains("status: done("),
-        "status not flipped: {body:?}"
-    );
-    assert!(
-        body.contains("\ndrift line\n"),
-        "body indentation not canonicalized: {body:?}"
+    let drift = drift_task(&" ".repeat(40));
+    let (_dir, body) = flipped(&[("drifty.typ", &drift)], LEGEND_CONFIG, "done", "drifty");
+    assert_flipped_body(
+        &body,
+        "done",
+        "\ndrift line\n",
+        "body indentation not canonicalized",
     );
 }
 
@@ -126,30 +240,20 @@ fn flip_formats_body_drift_by_default() {
 #[test]
 fn flip_preserves_drift_when_format_disabled() {
     let indent = " ".repeat(40);
-    let drift = format!(
-        "#import \"@local/mindtape:0.5.0\": *\n#show: task.with(\n  \
-         title: \"Drifty\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\n{indent}drift line\n"
-    );
+    let drift = drift_task(&indent);
     let config = format!("{LEGEND_CONFIG}[format]\nenabled = false\n");
-    let (dir, project) = setup(&[("drifty.typ", &drift)], &config);
-
-    run_with(&project, &flip_args("done", &["drifty"])).unwrap();
-
-    let body = read(dir.path(), "drifty.typ");
-    assert!(
-        body.contains("status: done("),
-        "status not flipped: {body:?}"
-    );
-    assert!(
-        body.contains(&format!("{indent}drift line")),
-        "drift should survive with formatting off: {body:?}"
+    let (_dir, body) = flipped(&[("drifty.typ", &drift)], &config, "done", "drifty");
+    assert_flipped_body(
+        &body,
+        "done",
+        &format!("{indent}drift line"),
+        "drift should survive with formatting off",
     );
 }
 
 #[test]
 fn unknown_status_errors() {
-    let (_dir, project) = setup(&[("alpha.typ", ALPHA)], LEGEND_CONFIG);
-    assert!(run_with(&project, &flip_args("nope", &["alpha"])).is_err());
+    assert_refused(&[("alpha.typ", ALPHA)], LEGEND_CONFIG, "nope", "alpha");
 }
 
 #[test]
@@ -163,9 +267,7 @@ fn batch_applies_valid_and_reports_unresolved() {
 
 #[test]
 fn restamp_keeps_same_status() {
-    let (dir, project) = setup(&[("alpha.typ", ALPHA)], LEGEND_CONFIG);
-    run_with(&project, &flip_args("wip", &["alpha"])).unwrap();
-    assert!(read(dir.path(), "alpha.typ").contains("status: wip("));
+    assert_flipped(&[("alpha.typ", ALPHA)], LEGEND_CONFIG, "wip", "alpha");
 }
 
 #[test]
@@ -292,42 +394,27 @@ fn transition_sink_message_names_terminal() {
 #[test]
 fn flip_rejects_illegal_transition_and_keeps_file() {
     // BETA is `blocked`; blocked → done is not a declared edge.
-    let (dir, project) = setup(&[("beta.typ", BETA)], TRANSITION_CONFIG);
-    assert_eq!(project.outcome.tasks.len(), 1, "fixture must load");
-    let result = run_with(&project, &flip_args("done", &["beta"]));
-    assert!(result.is_err(), "illegal transition must surface");
-    assert!(
-        read(dir.path(), "beta.typ").contains("status: blocked("),
-        "file must be left untouched"
-    );
+    assert_refused(&[("beta.typ", BETA)], TRANSITION_CONFIG, "done", "beta");
 }
 
 #[test]
 fn flip_allows_legal_transition() {
     // BETA is `blocked`; blocked → wip is a declared reopen edge.
-    let (dir, project) = setup(&[("beta.typ", BETA)], TRANSITION_CONFIG);
-    run_with(&project, &flip_args("wip", &["beta"])).unwrap();
-    assert!(read(dir.path(), "beta.typ").contains("status: wip("));
+    assert_flipped(&[("beta.typ", BETA)], TRANSITION_CONFIG, "wip", "beta");
 }
 
 #[test]
 fn flip_to_terminal_preserves_recur_field() {
     // `mt done` on a recurring task stays a pure close: it never strips
     // `recur`, so `mt recur` stays callable on the now-done task.
-    let (dir, project) = setup(&[("gamma.typ", GAMMA)], LEGEND_CONFIG);
-    run_with(&project, &flip_args("done", &["gamma"])).unwrap();
-    let out = read(dir.path(), "gamma.typ");
+    let (_dir, out) = flipped(&[("gamma.typ", GAMMA)], LEGEND_CONFIG, "done", "gamma");
     assert!(out.contains("status: done("));
     assert!(out.contains("recur: every(weeks: 1)"));
 }
 
 #[test]
 fn flip_force_bypasses_the_graph() {
-    let (dir, project) = setup(&[("beta.typ", BETA)], TRANSITION_CONFIG);
-    let mut args = flip_args("done", &["beta"]);
-    args.force = true;
-    run_with(&project, &args).unwrap();
-    assert!(read(dir.path(), "beta.typ").contains("status: done("));
+    assert_forced(&[("beta.typ", BETA)], TRANSITION_CONFIG, "done", "beta");
 }
 
 #[test]

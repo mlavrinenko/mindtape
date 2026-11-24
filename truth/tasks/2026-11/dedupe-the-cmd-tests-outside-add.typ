@@ -11,7 +11,11 @@
   kind: "dev",
   tags: ("stateless", "tests", "cli", "repeats"),
   assignee: "agent",
-  status: proposed(2026, 11, 24),
+  status: done(
+    2026,
+    11,
+    24,
+  )[helpers extracted across eval, check, fix, graph and flip. 61 clones left the dry baseline],
 )
 
 == AS-IS

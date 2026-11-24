@@ -11,6 +11,13 @@ fn write_typ(root: &Path, rel: &str) {
     write_file(root, rel, "#import \"@local/mindtape:0.5.0\": *\n");
 }
 
+/// Write each of `rels` as a task source under `root`.
+fn write_typs(root: &Path, rels: &[&str]) {
+    for rel in rels {
+        write_typ(root, rel);
+    }
+}
+
 fn shown(files: &[PathBuf], root: &Path) -> Vec<String> {
     files
         .iter()
@@ -21,6 +28,13 @@ fn shown(files: &[PathBuf], root: &Path) -> Vec<String> {
                 .replace('\\', "/")
         })
         .collect()
+}
+
+/// The default and `--all` listings of `root` under `config`, as shown paths.
+fn scopes(root: &Path, config: &Config) -> (Vec<String>, Vec<String>) {
+    let default = collect(root, config, false).unwrap();
+    let all = collect(root, config, true).unwrap();
+    (shown(&default, root), shown(&all, root))
 }
 
 fn config(roots: &[&str], templates: &[&str]) -> Config {
@@ -50,9 +64,10 @@ fn commit(dir: &Path) {
 fn default_scope_is_task_sources_and_project_template_dirs() {
     let dir = tempdir();
     let root = dir.path();
-    for rel in ["tasks/a.typ", "tasks/nested/b.typ", "templates/c.typ"] {
-        write_typ(root, rel);
-    }
+    write_typs(
+        root,
+        &["tasks/a.typ", "tasks/nested/b.typ", "templates/c.typ"],
+    );
     write_typ(root, "elsewhere/d.typ");
     let outside = tempdir();
     write_typ(outside.path(), "e.typ");
@@ -74,16 +89,17 @@ fn default_scope_is_task_sources_and_project_template_dirs() {
 fn all_lists_every_project_typ_and_still_adds_templates() {
     let dir = tempdir();
     let root = dir.path();
-    for rel in [
-        "tasks/a.typ",
-        "lib/x.typ",
-        "docs/guide.typ",
-        "target/d.typ",
-        ".mindtape/cache/e.typ",
-        ".mindtape/templates/f.typ",
-    ] {
-        write_typ(root, rel);
-    }
+    write_typs(
+        root,
+        &[
+            "tasks/a.typ",
+            "lib/x.typ",
+            "docs/guide.typ",
+            "target/d.typ",
+            ".mindtape/cache/e.typ",
+            ".mindtape/templates/f.typ",
+        ],
+    );
 
     let files = collect(root, &config(&["tasks"], &[".mindtape/templates"]), true).unwrap();
     assert_eq!(
@@ -107,18 +123,9 @@ fn a_tracked_ignored_task_source_is_in_both_scopes() {
     git_as_tester(root, &["add", "-f", "tasks/ignored.typ"]);
     commit(root);
 
-    let config = config(&["tasks"], &[]);
-    let default = collect(root, &config, false).unwrap();
-    assert_eq!(
-        shown(&default, root),
-        ["tasks/ignored.typ", "tasks/visible.typ"]
-    );
-
-    let all = collect(root, &config, true).unwrap();
-    assert_eq!(
-        shown(&all, root),
-        ["tasks/ignored.typ", "tasks/visible.typ"]
-    );
+    let (default, all) = scopes(root, &config(&["tasks"], &[]));
+    assert_eq!(default, ["tasks/ignored.typ", "tasks/visible.typ"]);
+    assert_eq!(all, ["tasks/ignored.typ", "tasks/visible.typ"]);
 }
 
 #[test]
@@ -130,12 +137,9 @@ fn an_untracked_ignored_file_is_in_neither_scope() {
     write_typ(root, "target/ignored.typ");
     commit(root);
 
-    let config = config(&["."], &[]);
-    let default = collect(root, &config, false).unwrap();
-    assert_eq!(shown(&default, root), ["tasks/real.typ"]);
-
-    let all = collect(root, &config, true).unwrap();
-    assert_eq!(shown(&all, root), ["tasks/real.typ"]);
+    let (default, all) = scopes(root, &config(&["."], &[]));
+    assert_eq!(default, ["tasks/real.typ"]);
+    assert_eq!(all, ["tasks/real.typ"]);
 }
 
 #[test]
@@ -147,37 +151,28 @@ fn a_tracked_deleted_file_is_in_neither_scope() {
     commit(root);
     std::fs::remove_file(root.join("tasks/gone.typ")).unwrap();
 
-    let config = config(&["tasks"], &[]);
-    let default = collect(root, &config, false).unwrap();
-    assert_eq!(shown(&default, root), ["tasks/real.typ"]);
-
-    let all = collect(root, &config, true).unwrap();
-    assert_eq!(shown(&all, root), ["tasks/real.typ"]);
+    let (default, all) = scopes(root, &config(&["tasks"], &[]));
+    assert_eq!(default, ["tasks/real.typ"]);
+    assert_eq!(all, ["tasks/real.typ"]);
 }
 
 #[test]
 fn a_non_git_all_skips_target_and_scans_configured_templates() {
     let dir = tempdir();
     let root = dir.path();
-    for rel in [
-        "tasks/real.typ",
-        "target/generated.typ",
-        ".mindtape/templates/task.typ",
-        "notes.typ",
-    ] {
-        write_typ(root, rel);
-    }
-    let config = config(&["tasks"], &[".mindtape/templates"]);
-
-    let default = collect(root, &config, false).unwrap();
-    assert_eq!(
-        shown(&default, root),
-        [".mindtape/templates/task.typ", "tasks/real.typ"]
+    write_typs(
+        root,
+        &[
+            "tasks/real.typ",
+            "target/generated.typ",
+            ".mindtape/templates/task.typ",
+            "notes.typ",
+        ],
     );
-
-    let all = collect(root, &config, true).unwrap();
+    let (default, all) = scopes(root, &config(&["tasks"], &[".mindtape/templates"]));
+    assert_eq!(default, [".mindtape/templates/task.typ", "tasks/real.typ"]);
     assert_eq!(
-        shown(&all, root),
+        all,
         [
             ".mindtape/templates/task.typ",
             "notes.typ",
@@ -193,15 +188,16 @@ fn template_walk_skips_reserved_dirs_and_collects_symlinked_files() {
 
     let dir = tempdir();
     let root = dir.path();
-    for rel in [
-        "templates/a.typ",
-        "templates/sub/b.typ",
-        "templates/.git/c.typ",
-        "templates/target/d.typ",
-        "templates/.mindtape/cache/e.typ",
-    ] {
-        write_typ(root, rel);
-    }
+    write_typs(
+        root,
+        &[
+            "templates/a.typ",
+            "templates/sub/b.typ",
+            "templates/.git/c.typ",
+            "templates/target/d.typ",
+            "templates/.mindtape/cache/e.typ",
+        ],
+    );
     let outside = tempdir();
     write_typ(outside.path(), "shared.typ");
     symlink(
@@ -255,10 +251,7 @@ fn a_symlinked_directory_is_never_followed_and_a_symlinked_file_only_appears_in_
     )
     .unwrap();
 
-    let config = config(&["tasks"], &[]);
-    let default = collect(root, &config, false).unwrap();
-    assert_eq!(shown(&default, root), ["tasks/real.typ"]);
-
-    let all = collect(root, &config, true).unwrap();
-    assert_eq!(shown(&all, root), ["tasks/linked.typ", "tasks/real.typ"]);
+    let (default, all) = scopes(root, &config(&["tasks"], &[]));
+    assert_eq!(default, ["tasks/real.typ"]);
+    assert_eq!(all, ["tasks/linked.typ", "tasks/real.typ"]);
 }

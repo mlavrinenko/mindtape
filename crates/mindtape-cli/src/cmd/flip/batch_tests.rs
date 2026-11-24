@@ -57,15 +57,27 @@ fn landed(ids: &[&str], files: &[&str]) -> Landed {
     }
 }
 
+/// The problems `revalidate` reports for a batch that landed `ids` at
+/// `landed_files`, in a project holding `files` under `config`.
+fn revalidated(
+    files: &[(&str, &str)],
+    config: &str,
+    ids: &[&str],
+    landed_files: &[&str],
+) -> Vec<crate::diag::Diag> {
+    let (_dir, project) = project(files, config);
+    let mut problems = Vec::new();
+    revalidate(&project, &landed(ids, landed_files), &mut problems);
+    problems
+}
+
 #[test]
 fn a_landed_file_that_fails_to_reload_is_reported() {
-    let (_dir, project) = project(&[("broken.typ", BROKEN)], LEGEND);
-
-    let mut problems = Vec::new();
-    revalidate(
-        &project,
-        &landed(&["broken"], &["tasks/broken.typ"]),
-        &mut problems,
+    let problems = revalidated(
+        &[("broken.typ", BROKEN)],
+        LEGEND,
+        &["broken"],
+        &["tasks/broken.typ"],
     );
 
     assert_eq!(problems.len(), 1, "{problems:?}");
@@ -80,10 +92,12 @@ fn a_landed_file_that_fails_to_reload_is_reported() {
 
 #[test]
 fn a_landed_task_with_a_fatal_violation_is_reported() {
-    let (_dir, project) = project(&[("blocked.typ", BLOCKED)], UNREACHABLE_LEGEND);
-
-    let mut problems = Vec::new();
-    revalidate(&project, &landed(&["blocked"], &[]), &mut problems);
+    let problems = revalidated(
+        &[("blocked.typ", BLOCKED)],
+        UNREACHABLE_LEGEND,
+        &["blocked"],
+        &[],
+    );
 
     assert_eq!(problems.len(), 1, "{problems:?}");
     assert!(

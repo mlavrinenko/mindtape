@@ -5,16 +5,12 @@
 
 use mindtape::parse_config;
 
-use super::run_with;
-use super::tests::{ALPHA, LEGEND_CONFIG, flip_args, read, setup};
+use super::tests::{ALPHA, LEGEND_CONFIG, assert_refused, refused};
 use crate::diag::plain;
 
 #[test]
 fn unknown_status_does_not_touch_file() {
-    let before = ALPHA.to_owned();
-    let (dir, project) = setup(&[("a.typ", ALPHA)], LEGEND_CONFIG);
-    assert!(run_with(&project, &flip_args("nope", &["a"])).is_err());
-    assert_eq!(before, read(dir.path(), "a.typ"));
+    assert_refused(&[("a.typ", ALPHA)], LEGEND_CONFIG, "nope", "a");
 }
 
 // --- suggest wiring for the unknown-status / shortcut-verb-miss messages
@@ -22,8 +18,7 @@ fn unknown_status_does_not_touch_file() {
 
 #[test]
 fn unknown_status_near_miss_offers_a_suggestion() {
-    let (_dir, project) = setup(&[("a.typ", ALPHA)], LEGEND_CONFIG);
-    let msg = plain(&run_with(&project, &flip_args("donee", &["a"])).unwrap_err());
+    let (_dir, msg) = refused(&[("a.typ", ALPHA)], LEGEND_CONFIG, "donee", &["a"]);
     assert_eq!(
         msg,
         "error: unknown status: 'donee'\nhint: did you mean done?\n"
@@ -32,8 +27,7 @@ fn unknown_status_near_miss_offers_a_suggestion() {
 
 #[test]
 fn unknown_status_far_miss_omits_the_suggestion() {
-    let (_dir, project) = setup(&[("a.typ", ALPHA)], LEGEND_CONFIG);
-    let msg = plain(&run_with(&project, &flip_args("zzzzzzzz", &["a"])).unwrap_err());
+    let (_dir, msg) = refused(&[("a.typ", ALPHA)], LEGEND_CONFIG, "zzzzzzzz", &["a"]);
     assert_eq!(
         msg,
         "error: unknown status: 'zzzzzzzz'\nhint: run mt flip --list to see the statuses\n"

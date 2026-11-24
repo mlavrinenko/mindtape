@@ -11,6 +11,7 @@ use std::path::Path;
 use mindtape::test_support::TASK_SRC as TASK;
 use mindtape::{Config, LoadOutcome, parse_config};
 
+use crate::test_util::{metadata_task_with, with_child_stderr, with_child_stdout};
 use crate::util;
 
 pub(super) fn make_project(files: &[(&str, &str)]) -> (tempfile::TempDir, util::Project) {
@@ -24,22 +25,44 @@ pub(super) fn make_project_with_config(
     crate::test_util::make_project(files, config)
 }
 
+/// Assert that `mt check` accepts `files` under `config`.
+fn assert_ok(files: &[(&str, &str)], config: Config) {
+    let (_dir, project) = make_project_with_config(files, config);
+    assert_ok_project(&project);
+}
+
+/// Assert that `mt check` refuses `files` under `config`.
+fn assert_err(files: &[(&str, &str)], config: Config) {
+    let (_dir, project) = make_project_with_config(files, config);
+    assert_err_project(&project);
+}
+
+/// Assert that `mt check` accepts `project` under the default args.
+fn assert_ok_project(project: &util::Project) {
+    assert!(super::run_with(project, &super::CheckArgs::default()).is_ok());
+}
+
+/// Assert that `mt check` refuses `project` under the default args.
+fn assert_err_project(project: &util::Project) {
+    assert!(super::run_with(project, &super::CheckArgs::default()).is_err());
+}
+
 #[test]
 fn valid_project_returns_ok() {
-    let (_dir, project) = make_project(&[("x.typ", TASK)]);
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
+    assert_ok(&[("x.typ", TASK)], Config::default());
 }
 
 #[test]
 fn empty_project_returns_ok() {
-    let (_dir, project) = make_project(&[]);
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
+    assert_ok(&[], Config::default());
 }
 
 #[test]
 fn load_error_returns_err() {
-    let (_dir, project) = make_project(&[("broken.typ", "#import \"@local/nope:9.9.9\": *\n")]);
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
+    assert_err(
+        &[("broken.typ", "#import \"@local/nope:9.9.9\": *\n")],
+        Config::default(),
+    );
 }
 
 #[test]
@@ -55,8 +78,7 @@ fn validation_violation_returns_err() {
       extras: (:),
     ))
     ";
-    let (_dir, project) = make_project_with_config(&[("y.typ", body)], config);
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
+    assert_err(&[("y.typ", body)], config);
 }
 
 const QUIET_CLEAN_CHILD: &str = "_MT_CHECK_QUIET_CLEAN_CHILD";
@@ -66,23 +88,27 @@ const QUIET_CLEAN_CHILD: &str = "_MT_CHECK_QUIET_CLEAN_CHILD";
 /// parent's test harness owns stdout.
 #[test]
 fn quiet_suppresses_ok_summary_on_clean_run() {
-    if let Some(stdout) = mindtape::test_support::rerun_isolated_stdout(QUIET_CLEAN_CHILD) {
-        assert!(
-            !stdout.contains("ok:"),
-            "quiet clean run should suppress the ok summary, got: {stdout}"
-        );
-        return;
-    }
-    let (_dir, project) = make_project(&[("x.typ", TASK)]);
-    assert!(
-        super::run_with(
-            &project,
-            &super::CheckArgs {
-                quiet: true,
-                ..Default::default()
-            }
-        )
-        .is_ok()
+    with_child_stdout(
+        QUIET_CLEAN_CHILD,
+        || {
+            let (_dir, project) = make_project(&[("x.typ", TASK)]);
+            assert!(
+                super::run_with(
+                    &project,
+                    &super::CheckArgs {
+                        quiet: true,
+                        ..Default::default()
+                    }
+                )
+                .is_ok()
+            );
+        },
+        |stdout| {
+            assert!(
+                !stdout.contains("ok:"),
+                "quiet clean run should suppress the ok summary, got: {stdout}"
+            );
+        },
     );
 }
 
@@ -92,24 +118,28 @@ const QUIET_VIOLATION_CHILD: &str = "_MT_CHECK_QUIET_VIOLATION_CHILD";
 /// suppresses only the success summary.
 #[test]
 fn quiet_still_reports_violations_on_failing_run() {
-    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(QUIET_VIOLATION_CHILD) {
-        assert!(
-            stderr.contains("priority"),
-            "quiet should still print violation details, got: {stderr}"
-        );
-        return;
-    }
-    let (_dir, project) =
-        make_project_with_config(&[("y.typ", BODY_NO_PRIORITY)], violation_config());
-    assert!(
-        super::run_with(
-            &project,
-            &super::CheckArgs {
-                quiet: true,
-                ..Default::default()
-            }
-        )
-        .is_err()
+    with_child_stderr(
+        QUIET_VIOLATION_CHILD,
+        || {
+            let (_dir, project) =
+                make_project_with_config(&[("y.typ", BODY_NO_PRIORITY)], violation_config());
+            assert!(
+                super::run_with(
+                    &project,
+                    &super::CheckArgs {
+                        quiet: true,
+                        ..Default::default()
+                    }
+                )
+                .is_err()
+            );
+        },
+        |stderr| {
+            assert!(
+                stderr.contains("priority"),
+                "quiet should still print violation details, got: {stderr}"
+            );
+        },
     );
 }
 
@@ -123,7 +153,7 @@ fn multiple_valid_tasks_reports_count() {
     };
     // Confirm two tasks loaded successfully before asserting Ok.
     assert_eq!(outcome.tasks.len(), 2);
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
+    assert_ok_project(&project);
 }
 
 const REPEATED_WARNING_CHILD: &str = "_MT_CHECK_REPEATED_WARNING_CHILD";
@@ -131,16 +161,17 @@ const REPEATED_WARNING_CHILD: &str = "_MT_CHECK_REPEATED_WARNING_CHILD";
 /// Run `mt check` over one task with two Typst warnings, in a child process so
 /// the test can read its stderr. `verbose` sets `-v` in the child.
 fn with_bold_warning(sentinel: &str, verbose: bool, check: impl FnOnce(&str)) {
-    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(sentinel) {
-        check(&stderr);
-        return;
-    }
-    if verbose {
-        util::init_verbose(true);
-    }
-    let body = format!("{TASK}\nSome **bold**.\n");
-    let (_dir, project) = make_project(&[("a.typ", &body)]);
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
+    with_child_stderr(
+        sentinel,
+        || {
+            if verbose {
+                util::init_verbose(true);
+            }
+            let body = format!("{TASK}\nSome **bold**.\n");
+            assert_ok(&[("a.typ", &body)], Config::default());
+        },
+        check,
+    );
 }
 
 /// `mt check` prints a warning Typst repeats in one file once, with its hint,
@@ -233,9 +264,7 @@ fn run_with_prints_violation_and_fails() {
         return;
     }
     // Child: recreate the violation project and call run_with.
-    let (_dir, project) =
-        make_project_with_config(&[("y.typ", BODY_NO_PRIORITY)], violation_config());
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
+    assert_err(&[("y.typ", BODY_NO_PRIORITY)], violation_config());
 }
 
 /// Verify that `run()` loads the project from disk and validates it.
@@ -290,8 +319,7 @@ fn invalid_header_rule_regex_fails_with_config_error() {
         "[[tasks.body.headers.rules]]\npath = [{ match = \"[bad\" }]\naction = \"forbid\"\n",
     )
     .unwrap();
-    let (_dir, project) = make_project_with_config(&[("a.typ", TASK)], config);
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
+    assert_err(&[("a.typ", TASK)], config);
 }
 
 // `[tasks.comments]` review-comment policy
@@ -304,39 +332,28 @@ fn invalid_header_rule_regex_fails_with_config_error() {
 
 /// `TASK` with a trailing line comment dropped after the `task.with(...)`-style
 /// `#metadata(...)` call, the whole file, not only the body.
-const TASK_WITH_COMMENT: &str = "#metadata((
-  marker: \"mindtape.task\",
-  fields: (
-    title: \"Task X\",
-    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: 8,
-  ),
-  extras: (:),
-))
-// no, use in_view() instead
-";
+fn task_with_comment() -> String {
+    metadata_task_with("// no, use in_view() instead\n")
+}
 
-fn comments_project(files: &[(&str, &str)], policy: &str) -> (tempfile::TempDir, util::Project) {
-    let toml = format!("[tasks.comments]\npolicy = \"{policy}\"\n");
-    make_project_with_config(files, parse_config(&toml).unwrap())
+/// The config `[tasks.comments] policy = "<policy>"` makes.
+fn comments_config(policy: &str) -> Config {
+    parse_config(&format!("[tasks.comments]\npolicy = \"{policy}\"\n")).unwrap()
 }
 
 #[test]
 fn default_policy_allow_ignores_a_comment() {
-    let (_dir, project) = make_project(&[("a.typ", TASK_WITH_COMMENT)]);
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
+    assert_ok(&[("a.typ", &task_with_comment())], Config::default());
 }
 
 #[test]
 fn forbid_policy_passes_a_file_with_no_comments() {
-    let (_dir, project) = comments_project(&[("a.typ", TASK)], "forbid");
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
+    assert_ok(&[("a.typ", TASK)], comments_config("forbid"));
 }
 
 #[test]
 fn warn_policy_does_not_fail_the_command() {
-    let (_dir, project) = comments_project(&[("a.typ", TASK_WITH_COMMENT)], "warn");
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
+    assert_ok(&[("a.typ", &task_with_comment())], comments_config("warn"));
 }
 
 const COMMENTS_CHILD: &str = "_MT_CHECK_COMMENTS_CHILD";
@@ -346,17 +363,23 @@ const COMMENTS_CHILD: &str = "_MT_CHECK_COMMENTS_CHILD";
 /// since the parent's test harness owns stdout.
 #[test]
 fn forbid_policy_fails_and_reports_file_line_and_text() {
-    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(COMMENTS_CHILD) {
-        for expected in ["a.typ:10", "comments", "no, use in_view() instead"] {
-            assert!(
-                stderr.contains(expected),
-                "missing {expected:?} in: {stderr}"
+    with_child_stderr(
+        COMMENTS_CHILD,
+        || {
+            assert_err(
+                &[("a.typ", &task_with_comment())],
+                comments_config("forbid"),
             );
-        }
-        return;
-    }
-    let (_dir, project) = comments_project(&[("a.typ", TASK_WITH_COMMENT)], "forbid");
-    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
+        },
+        |stderr| {
+            for expected in ["a.typ:10", "comments", "no, use in_view() instead"] {
+                assert!(
+                    stderr.contains(expected),
+                    "missing {expected:?} in: {stderr}"
+                );
+            }
+        },
+    );
 }
 
 fn breach(severity: mindtape::Severity, line: usize) -> mindtape::Violation {

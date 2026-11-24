@@ -33,14 +33,22 @@ fn scaffold(files: &[(&str, &str)], config: &str) -> (tempfile::TempDir, std::pa
     (dir, root)
 }
 
+/// Commit what `root` holds in its index, with `message`, signing off.
+/// `allow_empty` commits even when the index is empty.
+fn commit(root: &Path, message: &str, allow_empty: bool) {
+    let mut args = vec!["-c", "commit.gpgsign=false", "commit", "-q"];
+    if allow_empty {
+        args.push("--allow-empty");
+    }
+    args.extend(["-m", message]);
+    git(root, &args);
+}
+
 /// Commit the working tree's `tasks/bad.typ` change.
 fn commit_bad(root: &Path, contents: &str, message: &str) {
     write_file(root, "tasks/bad.typ", contents);
     git(root, &["add", "tasks/bad.typ"]);
-    git(
-        root,
-        &["-c", "commit.gpgsign=false", "commit", "-q", "-m", message],
-    );
+    commit(root, message, false);
 }
 
 /// `mt check --commits <range>` in `root`: whether it exited zero, and its
@@ -93,6 +101,11 @@ fn error_repo() -> (tempfile::TempDir, std::path::PathBuf) {
     )
 }
 
+/// A repository whose one task is valid, under `config`.
+fn ok_repo(config: &str) -> (tempfile::TempDir, std::path::PathBuf) {
+    scaffold(&[("tasks/ok.typ", VALID), ("seed.txt", "seed\n")], config)
+}
+
 #[test]
 fn state_load_errors_report_the_commit_without_breaking_the_range() {
     // One state errors: the commit is still reported, and the range passes.
@@ -131,19 +144,8 @@ fn a_warning_breach_does_not_break_the_range() {
         "{NO_RULES}\n[[commits.rules]]\nname = \"warn-me\"\n\
          when = 'matches(subject, \"^warn\")'\nassert = 'matches(subject, \"zzz\")'\nseverity = \"warn\"\n"
     );
-    let (_dir, root) = scaffold(&[("tasks/ok.typ", VALID), ("seed.txt", "seed\n")], &config);
-    git(
-        &root,
-        &[
-            "-c",
-            "commit.gpgsign=false",
-            "commit",
-            "-q",
-            "--allow-empty",
-            "-m",
-            "warn: please look",
-        ],
-    );
+    let (_dir, root) = ok_repo(&config);
+    commit(&root, "warn: please look", true);
 
     let (ok, text) = check(&root, "HEAD~1..HEAD", false);
 
@@ -159,7 +161,7 @@ fn a_warning_breach_does_not_break_the_range() {
 
 #[test]
 fn a_clean_range_prints_the_success_summary() {
-    let (_dir, root) = scaffold(&[("tasks/ok.typ", VALID), ("seed.txt", "seed\n")], NO_RULES);
+    let (_dir, root) = ok_repo(NO_RULES);
 
     let (ok, text) = check(&root, "HEAD", false);
     assert!(ok, "{text}");
@@ -183,30 +185,10 @@ fn an_external_ref_does_not_name_a_later_task_for_tip_rules() {
     let (_dir, root) = scaffold(&[("seed.txt", "seed\n")], &config);
     write_file(&root, "src/lib.rs", "work\n");
     git(&root, &["add", "src/lib.rs"]);
-    git(
-        &root,
-        &[
-            "-c",
-            "commit.gpgsign=false",
-            "commit",
-            "-q",
-            "-m",
-            "feat: work\n\nRefs: abc",
-        ],
-    );
+    commit(&root, "feat: work\n\nRefs: abc", false);
     write_file(&root, "tasks/abc.typ", VALID);
     git(&root, &["add", "tasks/abc.typ"]);
-    git(
-        &root,
-        &[
-            "-c",
-            "commit.gpgsign=false",
-            "commit",
-            "-q",
-            "-m",
-            "task: file abc",
-        ],
-    );
+    commit(&root, "task: file abc", false);
 
     let (ok, text) = check(&root, "HEAD~1..HEAD", false);
     assert!(

@@ -91,6 +91,51 @@ pub fn assert_count(text: &str, needle: &str, expected: usize) {
     assert_eq!(text.matches(needle).count(), expected, "{text}");
 }
 
+/// Assert on what a child process printed: `check` reads its stdout, and
+/// `parent` runs the command in the parent process. `sentinel` names the
+/// environment variable that marks the child.
+pub fn with_child_stdout(sentinel: &str, parent: impl FnOnce(), check: impl FnOnce(&str)) {
+    with_child(
+        sentinel,
+        parent,
+        check,
+        mindtape::test_support::rerun_isolated_stdout,
+    );
+}
+
+/// The stderr half of [`with_child_stdout`].
+pub fn with_child_stderr(sentinel: &str, parent: impl FnOnce(), check: impl FnOnce(&str)) {
+    with_child(
+        sentinel,
+        parent,
+        check,
+        mindtape::test_support::rerun_isolated_stderr,
+    );
+}
+
+/// [`with_child_stdout`] over the stream `rerun` reads.
+fn with_child(
+    sentinel: &str,
+    parent: impl FnOnce(),
+    check: impl FnOnce(&str),
+    rerun: fn(&str) -> Option<String>,
+) {
+    if let Some(text) = rerun(sentinel) {
+        check(&text);
+        return;
+    }
+    parent();
+}
+
+/// A task source in the `#metadata` form: title `Task X`, status `wip`,
+/// priority 8, and no body. It lets a fixture skip the Typst package.
+pub const METADATA_TASK: &str = "#metadata((\n  marker: \"mindtape.task\",\n  fields: (\n    title: \"Task X\",\n    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),\n    priority: 8,\n  ),\n  extras: (:),\n))\n";
+
+/// [`METADATA_TASK`] with `body` after the marker.
+pub fn metadata_task_with(body: &str) -> String {
+    format!("{METADATA_TASK}{body}")
+}
+
 /// A task file in the `#metadata` form, which lets a fixture skip the Typst
 /// package.
 pub fn hook_task_src(title: &str, status: &str) -> String {

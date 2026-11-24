@@ -5,12 +5,9 @@
 use mindtape::Blocker;
 
 use super::run_with;
-use super::tests::{flip_args, read, setup};
-
-const CONFIG: &str = "[[tasks.status]]\nvalue = \"proposed\"\n\
-     [[tasks.status]]\nvalue = \"wip\"\nunblocked = true\n\
-     [[tasks.status]]\nvalue = \"done\"\nterminal = true\nunblocked = true\n\
-     [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n";
+use super::tests::{
+    UNBLOCKED_CONFIG, assert_batch_flipped, assert_flipped, assert_forced, flip_args, loaded, read,
+};
 
 const DEP: &str =
     mindtape::typst_task!("(\n  title: \"Dep\",\n  status: proposed(2026, 6, 1),\n)\n");
@@ -20,11 +17,8 @@ const WAITER: &str = mindtape::typst_task!(
 links: depends-on(\"dep.typ\"),\n)\n"
 );
 
-fn project() -> (tempfile::TempDir, crate::util::Project) {
-    let (dir, project) = setup(&[("dep.typ", DEP), ("waiter.typ", WAITER)], CONFIG);
-    assert_eq!(project.outcome.tasks.len(), 2, "fixture must load");
-    (dir, project)
-}
+/// The dependency and the task waiting on it, under [`UNBLOCKED_CONFIG`].
+const FILES: &[(&str, &str)] = &[("dep.typ", DEP), ("waiter.typ", WAITER)];
 
 #[test]
 fn refusal_names_the_status_and_every_blocker() {
@@ -40,7 +34,10 @@ fn refusal_names_the_status_and_every_blocker() {
             kind: "depends-on".to_owned(),
         },
     ];
-    let legend = mindtape::parse_config(CONFIG).unwrap().tasks.status;
+    let legend = mindtape::parse_config(UNBLOCKED_CONFIG)
+        .unwrap()
+        .tasks
+        .status;
     let err = super::check_unblocked(&legend, "done", &blockers).unwrap_err();
     crate::diag::assert_plain(
         &err,
@@ -54,7 +51,7 @@ fn refusal_names_the_status_and_every_blocker() {
 
 #[test]
 fn flip_refuses_entering_an_unblocked_status_while_blocked() {
-    let (dir, project) = project();
+    let (dir, project) = loaded(FILES, UNBLOCKED_CONFIG);
     for status in ["wip", "done"] {
         assert!(run_with(&project, &flip_args(status, &["waiter"])).is_err());
         assert!(read(dir.path(), "waiter.typ").contains("status: proposed("));
@@ -63,23 +60,21 @@ fn flip_refuses_entering_an_unblocked_status_while_blocked() {
 
 #[test]
 fn flip_allows_a_status_without_the_flag_while_blocked() {
-    let (dir, project) = project();
-    run_with(&project, &flip_args("cancelled", &["waiter"])).unwrap();
-    assert!(read(dir.path(), "waiter.typ").contains("status: cancelled("));
+    assert_flipped(FILES, UNBLOCKED_CONFIG, "cancelled", "waiter");
 }
 
 #[test]
 fn force_overrides_the_refusal() {
-    let (dir, project) = project();
-    let mut args = flip_args("done", &["waiter"]);
-    args.force = true;
-    run_with(&project, &args).unwrap();
-    assert!(read(dir.path(), "waiter.typ").contains("status: done("));
+    assert_forced(FILES, UNBLOCKED_CONFIG, "done", "waiter");
 }
 
 #[test]
 fn an_earlier_flip_in_the_batch_unblocks_a_later_target() {
-    let (dir, project) = project();
-    run_with(&project, &flip_args("done", &["dep", "waiter"])).unwrap();
-    assert!(read(dir.path(), "waiter.typ").contains("status: done("));
+    assert_batch_flipped(
+        FILES,
+        UNBLOCKED_CONFIG,
+        "done",
+        &["dep", "waiter"],
+        "waiter",
+    );
 }

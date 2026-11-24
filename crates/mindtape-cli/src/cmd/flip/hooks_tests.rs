@@ -92,6 +92,36 @@ fn run_visible(dir: &Path, config_text: &str, target: &str) -> (HookOutcome, Str
     run(dir, config_text, target, true, false)
 }
 
+/// [`run_visible`] in a fresh tempdir, with presentation on and `--force` off.
+fn visible(config_text: &str, target: &str) -> (HookOutcome, String) {
+    let dir = tempdir();
+    run_visible(dir.path(), config_text, target)
+}
+
+/// [`visible`] with presentation off.
+fn hidden(config_text: &str, target: &str) -> (HookOutcome, String) {
+    let dir = tempdir();
+    run(dir.path(), config_text, target, false, false)
+}
+
+/// [`visible`] with `--force` on.
+fn forced(config_text: &str, target: &str) -> (HookOutcome, String) {
+    let dir = tempdir();
+    run(dir.path(), config_text, target, true, true)
+}
+
+/// Assert that `--force` waived `config_text`'s gate into `done` and recorded
+/// `recorded` in the note.
+fn assert_forced_gate(config_text: &str, recorded: &str) {
+    let (outcome, out) = forced(config_text, "done");
+    assert!(
+        outcome.refusal.is_none(),
+        "--force must let the flip through"
+    );
+    assert_eq!(outcome.forced, vec![recorded.to_owned()]);
+    assert!(out.contains("--force"), "{out}");
+}
+
 // show
 
 const SHOW_HOOK: &str = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
@@ -99,8 +129,7 @@ const SHOW_HOOK: &str = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
 
 #[test]
 fn show_prints_its_text() {
-    let dir = tempdir();
-    let (outcome, out) = run_visible(dir.path(), SHOW_HOOK, "wip");
+    let (outcome, out) = visible(SHOW_HOOK, "wip");
     assert!(out.contains("pick one thing"), "{out}");
     assert!(outcome.refusal.is_none());
 }
@@ -108,8 +137,7 @@ fn show_prints_its_text() {
 /// `--quiet` or a piped stdout suppresses presentation.
 #[test]
 fn show_is_silent_when_suppressed() {
-    let dir = tempdir();
-    let (_, out) = run(dir.path(), SHOW_HOOK, "wip", false, false);
+    let (_, out) = hidden(SHOW_HOOK, "wip");
     assert_eq!(out, "");
 }
 
@@ -117,8 +145,7 @@ fn show_is_silent_when_suppressed() {
 /// target status doesn't fire at all.
 #[test]
 fn a_non_matching_transition_runs_nothing() {
-    let dir = tempdir();
-    let (_, out) = run_visible(dir.path(), SHOW_HOOK, "done");
+    let (_, out) = visible(SHOW_HOOK, "done");
     assert_eq!(out, "");
 }
 
@@ -129,8 +156,7 @@ const LIST_HOOK: &str = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
 
 #[test]
 fn list_prints_the_matching_tasks_under_its_title() {
-    let dir = tempdir();
-    let (_, out) = run_visible(dir.path(), LIST_HOOK, "wip");
+    let (_, out) = visible(LIST_HOOK, "wip");
     assert!(out.contains("Already in flight"), "{out}");
     assert!(out.contains("Alpha"), "{out}");
     assert!(
@@ -141,17 +167,15 @@ fn list_prints_the_matching_tasks_under_its_title() {
 
 #[test]
 fn list_says_so_when_nothing_matches() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"wip\")'\n\
                   actions = [{ list = 'status == \"cancelled\"' }]\n";
-    let (_, out) = run_visible(dir.path(), config, "wip");
+    let (_, out) = visible(config, "wip");
     assert!(out.contains("no matching tasks"), "{out}");
 }
 
 #[test]
 fn list_is_silent_when_suppressed() {
-    let dir = tempdir();
-    let (_, out) = run(dir.path(), LIST_HOOK, "wip", false, false);
+    let (_, out) = hidden(LIST_HOOK, "wip");
     assert_eq!(out, "");
 }
 
@@ -164,10 +188,9 @@ const FAILING_GATE: &str = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
 
 #[test]
 fn a_passing_gate_allows_the_flip_and_stays_quiet() {
-    let dir = tempdir();
     let config =
         "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ run = \"true\", gate = true }]\n";
-    let (outcome, out) = run_visible(dir.path(), config, "done");
+    let (outcome, out) = visible(config, "done");
     assert!(outcome.refusal.is_none());
     assert!(outcome.forced.is_empty());
     assert_eq!(out, "", "a passing gate prints nothing: {out}");
@@ -175,8 +198,7 @@ fn a_passing_gate_allows_the_flip_and_stays_quiet() {
 
 #[test]
 fn a_failing_gate_refuses_and_surfaces_the_output() {
-    let dir = tempdir();
-    let (outcome, out) = run_visible(dir.path(), FAILING_GATE, "done");
+    let (outcome, out) = visible(FAILING_GATE, "done");
     assert_eq!(
         plain(&outcome.refusal.unwrap()),
         "error: gate failed: 'echo boom && exit 3': exit 3\n\
@@ -193,33 +215,24 @@ fn a_failing_gate_refuses_and_surfaces_the_output() {
 /// it, a scripted flip fails with no reason on screen.
 #[test]
 fn a_failing_gate_prints_its_output_even_when_suppressed() {
-    let dir = tempdir();
-    let (outcome, out) = run(dir.path(), FAILING_GATE, "done", false, false);
+    let (outcome, out) = hidden(FAILING_GATE, "done");
     assert!(outcome.refusal.is_some());
     assert!(out.contains("boom"), "{out}");
 }
 
 #[test]
 fn force_waives_a_failing_gate_and_records_it() {
-    let dir = tempdir();
-    let (outcome, out) = run(dir.path(), FAILING_GATE, "done", true, true);
-    assert!(
-        outcome.refusal.is_none(),
-        "--force must let the flip through"
-    );
-    assert_eq!(outcome.forced, vec!["echo boom && exit 3".to_owned()]);
-    assert!(out.contains("--force"), "{out}");
+    assert_forced_gate(FAILING_GATE, "echo boom && exit 3");
 }
 
 /// Actions run in declaration order, and the first failing gate stops the walk.
 #[test]
 fn a_failed_gate_skips_the_actions_after_it() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [\
          { show = \"before\" }, \
          { run = \"false\", gate = true }, \
          { show = \"after\" }]\n";
-    let (outcome, out) = run_visible(dir.path(), config, "done");
+    let (outcome, out) = visible(config, "done");
     assert!(outcome.refusal.is_some());
     assert!(out.contains("before"), "{out}");
     assert!(
@@ -233,10 +246,9 @@ fn a_failed_gate_skips_the_actions_after_it() {
 /// override changes nothing about a write that goes ahead.
 #[test]
 fn a_failing_run_without_gate_warns_but_allows() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
                   actions = [{ run = 'echo hmm && exit 1' }]\n";
-    let (outcome, out) = run_visible(dir.path(), config, "done");
+    let (outcome, out) = visible(config, "done");
     assert!(outcome.refusal.is_none());
     assert!(
         out.contains(
@@ -251,10 +263,9 @@ fn a_failing_run_without_gate_warns_but_allows() {
 /// A `message` the action declares replaces the default advice.
 #[test]
 fn a_failing_run_without_gate_uses_its_message() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
                   actions = [{ run = \"exit 1\", message = \"notify the team\" }]\n";
-    let (_, out) = run_visible(dir.path(), config, "done");
+    let (_, out) = visible(config, "done");
     assert_eq!(
         out.lines().next_back(),
         Some("warning: exit 1 (exit 1) — notify the team")
@@ -264,12 +275,11 @@ fn a_failing_run_without_gate_uses_its_message() {
 /// A successful non-gate run's output is presentation, so it follows `show`.
 #[test]
 fn a_passing_run_without_gate_prints_only_when_visible() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ run = 'echo hello' }]\n";
-    let (_, shown) = run_visible(dir.path(), config, "done");
+    let (_, shown) = visible(config, "done");
     assert!(shown.contains("hello"), "{shown}");
-    let (_, hidden) = run(dir.path(), config, "done", false, false);
-    assert_eq!(hidden, "");
+    let (_, quiet) = hidden(config, "done");
+    assert_eq!(quiet, "");
 }
 
 /// Passes when the task file exists. `cmd` reads `%VAR%`, not `$VAR`.
@@ -288,15 +298,14 @@ const ECHO_STEM_STATUS: &str = "echo %MINDTAPE_TASK_STEM%/%MINDTAPE_TASK_STATUS%
 /// The command sees the task it is gating.
 #[test]
 fn a_command_receives_the_task_path_and_stem() {
-    let dir = tempdir();
     let config =
         format!("[[on.flip]]\nwhen = ''\nactions = [{{ run = '{FILE_EXISTS}', gate = true }}]\n");
-    let (outcome, out) = run_visible(dir.path(), &config, "done");
+    let (outcome, out) = visible(&config, "done");
     assert!(outcome.refusal.is_none(), "the task file must exist: {out}");
     assert!(out.is_empty(), "a passing gate prints nothing: {out}");
 
     let echo = format!("[[on.flip]]\nwhen = ''\nactions = [{{ run = '{ECHO_STEM_STATUS}' }}]\n");
-    let (_, printed) = run_visible(dir.path(), &echo, "done");
+    let (_, printed) = visible(&echo, "done");
     assert!(printed.contains("alpha/done"), "{printed}");
 }
 
@@ -308,8 +317,7 @@ const RUNLESS_GATE: &str = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
 
 #[test]
 fn a_runless_gate_refuses_a_matching_flip_and_prints_its_message() {
-    let dir = tempdir();
-    let (outcome, out) = run_visible(dir.path(), RUNLESS_GATE, "done");
+    let (outcome, out) = visible(RUNLESS_GATE, "done");
     assert_eq!(
         plain(&outcome.refusal.unwrap()),
         "error: gate refused\n\
@@ -326,8 +334,7 @@ fn a_runless_gate_refuses_a_matching_flip_and_prints_its_message() {
 /// or no run.
 #[test]
 fn a_runless_gate_lets_a_non_matching_transition_through() {
-    let dir = tempdir();
-    let (outcome, out) = run_visible(dir.path(), RUNLESS_GATE, "wip");
+    let (outcome, out) = visible(RUNLESS_GATE, "wip");
     assert!(outcome.refusal.is_none());
     assert_eq!(out, "");
 }
@@ -336,9 +343,8 @@ fn a_runless_gate_lets_a_non_matching_transition_through() {
 /// it.
 #[test]
 fn a_runless_gate_without_a_message_still_offers_force() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ gate = true }]\n";
-    let (outcome, _) = run_visible(dir.path(), config, "done");
+    let (outcome, _) = visible(config, "done");
     assert_eq!(
         plain(&outcome.refusal.unwrap()),
         "error: gate refused\n\
@@ -351,31 +357,22 @@ fn a_runless_gate_without_a_message_still_offers_force() {
 /// command there is none of.
 #[test]
 fn force_waives_a_runless_gate_and_records_its_message() {
-    let dir = tempdir();
-    let (outcome, out) = run(dir.path(), RUNLESS_GATE, "done", true, true);
-    assert!(
-        outcome.refusal.is_none(),
-        "--force must let the flip through"
-    );
-    assert_eq!(outcome.forced, vec!["re-read the scope first".to_owned()]);
-    assert!(out.contains("--force"), "{out}");
+    assert_forced_gate(RUNLESS_GATE, "re-read the scope first");
 }
 
 /// Without a `message`, a waived run-less gate records the gate's own advice in
 /// the status note, as a failing `run` gate records its command.
 #[test]
 fn force_waives_a_runless_gate_and_records_the_gate_advice() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ gate = true }]\n";
-    let (outcome, _) = run(dir.path(), config, "done", true, true);
+    let (outcome, _) = forced(config, "done");
     assert!(outcome.refusal.is_none());
     assert_eq!(outcome.forced, vec![GATE_ADVICE.to_owned()]);
 }
 
 #[test]
 fn no_hooks_means_no_output_and_no_refusal() {
-    let dir = tempdir();
-    let (outcome, out) = run_visible(dir.path(), "[tasks]\nroots = [\"tasks\"]\n", "done");
+    let (outcome, out) = visible("[tasks]\nroots = [\"tasks\"]\n", "done");
     assert!(outcome.refusal.is_none());
     assert_eq!(out, "");
 }

@@ -1,19 +1,9 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::{EvalArgs, locate, run};
+use crate::test_util::METADATA_TASK as TASK;
 use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
-
-const TASK: &str = "#metadata((
-  marker: \"mindtape.task\",
-  fields: (
-    title: \"Task X\",
-    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: 8,
-  ),
-  extras: (:),
-))
-";
 
 /// `mt eval <file>` with the path spelled as the task reference.
 fn eval(file: &std::path::Path, json: bool) -> crate::diag::Result<()> {

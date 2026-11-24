@@ -6,7 +6,7 @@ use mindtape::parse_config;
 
 use super::check_note_required;
 use super::run_with;
-use super::tests::{ALPHA, flip_args, read, setup};
+use super::tests::{ALPHA, assert_refused, flip_args, read, setup};
 use crate::diag::plain;
 
 /// `blocked` declares `note = "required"`. `wip` and `done` keep the
@@ -46,15 +46,11 @@ fn note_required_ok_with_a_filled_note() {
 
 #[test]
 fn flip_refuses_note_required_status_without_a_note() {
-    let (dir, project) = setup(&[("alpha.typ", ALPHA)], NOTE_REQUIRED_CONFIG);
-    let result = run_with(&project, &flip_args("blocked", &["alpha"]));
-    assert!(
-        result.is_err(),
-        "flip into a note-required status without a note must fail"
-    );
-    assert!(
-        read(dir.path(), "alpha.typ").contains("status: wip("),
-        "file must be left untouched"
+    assert_refused(
+        &[("alpha.typ", ALPHA)],
+        NOTE_REQUIRED_CONFIG,
+        "blocked",
+        "alpha",
     );
 }
 

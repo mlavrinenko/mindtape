@@ -50,19 +50,24 @@ fn run_after(
     (outcome, String::from_utf8(out).unwrap())
 }
 
-/// [`run_after`] for a batch that landed `alpha`, with the config's commands
-/// allowed.
-fn after_alpha(dir: &Path, config_text: &str) -> (HookOutcome, String) {
-    run_after(dir, config_text, "done", &["alpha"], true)
+/// [`run_after`] for a batch that landed `landed` at `done`, in a fresh
+/// tempdir the caller keeps alive.
+fn after(
+    config_text: &str,
+    landed: &[&str],
+    allowed: bool,
+) -> (tempfile::TempDir, HookOutcome, String) {
+    let dir = tempdir();
+    let (outcome, out) = run_after(dir.path(), config_text, "done", landed, allowed);
+    (dir, outcome, out)
 }
 
 /// A hook's `after` actions run once for the batch, however many targets it
 /// landed.
 #[test]
 fn after_runs_once_for_the_batch() {
-    let dir = tempdir();
     let config = after_hook("echo after>> marks.txt");
-    let (_, out) = run_after(dir.path(), &config, "done", &["alpha", "beta"], true);
+    let (dir, _, out) = after(&config, &["alpha", "beta"], true);
     assert!(out.contains("$ echo after>> marks.txt"), "{out}");
     let marks = std::fs::read_to_string(dir.path().join("marks.txt")).unwrap();
     assert_eq!(marks.trim(), "after", "one run for two targets: {marks}");
@@ -71,9 +76,8 @@ fn after_runs_once_for_the_batch() {
 /// A hook whose `when` matched no landed target skips its after actions.
 #[test]
 fn after_skips_a_hook_that_did_not_match() {
-    let dir = tempdir();
     let config = after_hook("echo after>> marks.txt").replace("into(\"done\")", "into(\"wip\")");
-    let (_, out) = after_alpha(dir.path(), &config);
+    let (dir, _, out) = after(&config, &["alpha"], true);
     assert_eq!(out, "");
     assert!(!dir.path().join("marks.txt").exists());
 }
@@ -81,8 +85,7 @@ fn after_skips_a_hook_that_did_not_match() {
 /// A failing after command warns and never refuses: the write already landed.
 #[test]
 fn a_failing_after_command_warns_and_does_not_refuse() {
-    let dir = tempdir();
-    let (outcome, out) = after_alpha(dir.path(), &after_hook("exit 3"));
+    let (_dir, outcome, out) = after(&after_hook("exit 3"), &["alpha"], true);
     assert!(outcome.refusal.is_none(), "{out}");
     assert!(out.contains("warning: exit 3 (exit 3)"), "{out}");
     assert!(out.contains(AFTER_ADVICE), "{out}");
@@ -92,10 +95,9 @@ fn a_failing_after_command_warns_and_does_not_refuse() {
 /// command, as it does on a failing pre-write one.
 #[test]
 fn an_after_message_replaces_the_advice() {
-    let dir = tempdir();
     let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ show = \"x\" }]\n\
                   after = [{ run = \"exit 3\", message = \"refresh the arms\" }]\n";
-    let (_, out) = after_alpha(dir.path(), config);
+    let (_dir, _, out) = after(config, &["alpha"], true);
     assert!(out.contains("refresh the arms"), "{out}");
     assert!(!out.contains(AFTER_ADVICE), "{out}");
 }
@@ -104,9 +106,8 @@ fn an_after_message_replaces_the_advice() {
 /// held-back list the one warning reads.
 #[test]
 fn an_after_command_is_held_back_until_allowed() {
-    let dir = tempdir();
     let config = after_hook("echo after>> marks.txt");
-    let (outcome, out) = run_after(dir.path(), &config, "done", &["alpha"], false);
+    let (dir, outcome, out) = after(&config, &["alpha"], false);
     assert!(outcome.refusal.is_none(), "{out}");
     assert!(
         out.contains("skipped: echo after>> marks.txt (not allowed)"),
@@ -123,9 +124,8 @@ fn an_after_command_is_held_back_until_allowed() {
 /// and it runs nothing, so `mt allow` does not gate it.
 #[test]
 fn an_after_show_prints_after_the_write() {
-    let dir = tempdir();
     let config = after_action("{ show = \"refreshed the arms\" }");
-    let (_, out) = after_alpha(dir.path(), &config);
+    let (_dir, _, out) = after(&config, &["alpha"], true);
     assert!(out.contains("refreshed the arms"), "{out}");
 }
 
@@ -133,9 +133,8 @@ fn an_after_show_prints_after_the_write() {
 /// landed, and the flip still exits zero.
 #[test]
 fn an_after_command_that_cannot_spawn_warns() {
-    let dir = tempdir();
     let config = after_action("{ run = [\"no-such-program-for-mt-tests\"] }");
-    let (outcome, out) = after_alpha(dir.path(), &config);
+    let (_dir, outcome, out) = after(&config, &["alpha"], true);
     assert!(outcome.refusal.is_none(), "{out}");
     assert!(out.contains("could not run"), "{out}");
 }

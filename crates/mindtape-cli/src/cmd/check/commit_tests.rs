@@ -6,7 +6,7 @@
 use std::path::Path;
 
 use super::{run, warn_state_errors};
-use crate::test_util::make_project_with_lib;
+use crate::test_util::{make_project_with_lib, with_child_stderr, with_child_stdout};
 
 use mindtape::test_support::PRELUDE;
 
@@ -48,6 +48,20 @@ fn commit_all(dir: &Path) {
     git(dir, &["commit", "--no-gpg-sign", "-q", "-m", "seed"]);
 }
 
+/// A committed project holding `parser.typ` under `config`.
+fn committed(config: &str) -> (tempfile::TempDir, crate::util::Project) {
+    let (dir, project) = make_project_with_lib(PRELUDE, &[("parser.typ", TASK)], config);
+    commit_all(dir.path());
+    (dir, project)
+}
+
+/// Write `message` to a `COMMIT_MSG` file under `dir`, returning its path.
+fn message_file(dir: &Path, message: &str) -> std::path::PathBuf {
+    let path = dir.join("COMMIT_MSG");
+    std::fs::write(&path, message).unwrap();
+    path
+}
+
 /// Stage a new non-task file, so `!tasks_only` holds.
 fn stage(dir: &Path, rel: &str) {
     let path = dir.join(rel);
@@ -61,11 +75,9 @@ fn stage(dir: &Path, rel: &str) {
 /// `+` with `-` would cancel them to zero and report success.
 #[test]
 fn the_failure_count_sums_trailer_problems_and_rule_breaches() {
-    let (dir, project) = make_project_with_lib(PRELUDE, &[("parser.typ", TASK)], RULE_CONFIG);
-    commit_all(dir.path());
+    let (dir, project) = committed(RULE_CONFIG);
     stage(dir.path(), "src/lib.rs");
-    let message = dir.path().join("COMMIT_MSG");
-    std::fs::write(&message, "feat: x\n\nRefs: parsr\n").unwrap();
+    let message = message_file(dir.path(), "feat: x\n\nRefs: parsr\n");
 
     let result = run(&project, &message, true, false);
     assert!(
@@ -81,18 +93,20 @@ const QUIET_CHILD: &str = "_MT_CHECK_COMMIT_QUIET_CHILD";
 /// quiet.
 #[test]
 fn quiet_suppresses_the_ok_line() {
-    if let Some(stdout) = mindtape::test_support::rerun_isolated_stdout(QUIET_CHILD) {
-        assert!(
-            !stdout.contains("ok: commit message valid"),
-            "quiet must print no success line: {stdout}"
-        );
-        return;
-    }
-    let (dir, project) = make_project_with_lib(PRELUDE, &[("parser.typ", TASK)], PASS_CONFIG);
-    commit_all(dir.path());
-    let message = dir.path().join("COMMIT_MSG");
-    std::fs::write(&message, "feat: x\n\nRefs: parser\n").unwrap();
-    run(&project, &message, true, false).unwrap();
+    with_child_stdout(
+        QUIET_CHILD,
+        || {
+            let (dir, project) = committed(PASS_CONFIG);
+            let message = message_file(dir.path(), "feat: x\n\nRefs: parser\n");
+            run(&project, &message, true, false).unwrap();
+        },
+        |stdout| {
+            assert!(
+                !stdout.contains("ok: commit message valid"),
+                "quiet must print no success line: {stdout}"
+            );
+        },
+    );
 }
 
 const WARN_CHILD: &str = "_MT_CHECK_COMMIT_WARN_CHILD";
@@ -102,33 +116,37 @@ const WARN_CHILD: &str = "_MT_CHECK_COMMIT_WARN_CHILD";
 /// silent.
 #[test]
 fn warn_state_errors_reports_each_state() {
-    if let Some(stderr) = mindtape::test_support::rerun_isolated_stderr(WARN_CHILD) {
-        assert!(
-            stderr.contains(&format!(
-                "warning: {} as HEAD: boom",
-                mindtape::display_path("tasks/head.typ")
-            )),
-            "the HEAD state's error must be reported: {stderr}"
-        );
-        assert!(
-            stderr.contains(&format!(
-                "warning: {} as staged: broken",
-                mindtape::display_path("tasks/staged.typ")
-            )),
-            "the staged state's error must be reported: {stderr}"
-        );
-        return;
-    }
-    let mut states = mindtape::CommitStates::default();
-    states.head.errors.push(mindtape::LoadError {
-        file: "tasks/head.typ".into(),
-        message: "boom".to_owned(),
-        ..mindtape::LoadError::default()
-    });
-    states.staged.errors.push(mindtape::LoadError {
-        file: "tasks/staged.typ".into(),
-        message: "broken".to_owned(),
-        ..mindtape::LoadError::default()
-    });
-    warn_state_errors(&states, super::StateLabels::default(), None);
+    with_child_stderr(
+        WARN_CHILD,
+        || {
+            let mut states = mindtape::CommitStates::default();
+            states.head.errors.push(mindtape::LoadError {
+                file: "tasks/head.typ".into(),
+                message: "boom".to_owned(),
+                ..mindtape::LoadError::default()
+            });
+            states.staged.errors.push(mindtape::LoadError {
+                file: "tasks/staged.typ".into(),
+                message: "broken".to_owned(),
+                ..mindtape::LoadError::default()
+            });
+            warn_state_errors(&states, super::StateLabels::default(), None);
+        },
+        |stderr| {
+            assert!(
+                stderr.contains(&format!(
+                    "warning: {} as HEAD: boom",
+                    mindtape::display_path("tasks/head.typ")
+                )),
+                "the HEAD state's error must be reported: {stderr}"
+            );
+            assert!(
+                stderr.contains(&format!(
+                    "warning: {} as staged: broken",
+                    mindtape::display_path("tasks/staged.typ")
+                )),
+                "the staged state's error must be reported: {stderr}"
+            );
+        },
+    );
 }

@@ -14,10 +14,9 @@
 //! reports. Shared fixtures come from `super::tests`.
 #![allow(clippy::unwrap_used)]
 
-use super::run_with;
 use super::tests::{
-    ALPHA, BETA, BROKEN_RELOAD_CONFIG, LEGEND_CONFIG, REACHABLE_CONFIG, STATELESS, flip_args, read,
-    setup,
+    ALPHA, BETA, BROKEN_RELOAD_CONFIG, LEGEND_CONFIG, REACHABLE_CONFIG, STATELESS, flipped, read,
+    refused,
 };
 
 /// A file that fails to evaluate (an unclosed content block), used as a
@@ -33,10 +32,7 @@ const BROKEN_FILE: &str = mindtape::typst_task!(
 /// half.
 #[test]
 fn refuses_a_flip_into_an_unreachable_status() {
-    let (dir, project) = setup(&[("s.typ", STATELESS)], REACHABLE_CONFIG);
-    let err = run_with(&project, &flip_args("blocked", &["s"]))
-        .unwrap_err()
-        .to_string();
+    let (dir, err) = refused(&[("s.typ", STATELESS)], REACHABLE_CONFIG, "blocked", &["s"]);
     assert!(
         err.contains("status: `blocked` is unreachable") && !err.contains("rejected"),
         "expected the target's breach and no summary: {err}"
@@ -54,10 +50,12 @@ fn refuses_a_flip_into_an_unreachable_status() {
 /// itself goes to stderr (see `cmd/flip/tests_output.rs`).
 #[test]
 fn refuses_a_rewrite_that_would_not_load() {
-    let (dir, project) = setup(&[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
-    let err = run_with(&project, &flip_args("broken\"done", &["alpha"]))
-        .unwrap_err()
-        .to_string();
+    let (dir, err) = refused(
+        &[("alpha.typ", ALPHA)],
+        BROKEN_RELOAD_CONFIG,
+        "broken\"done",
+        &["alpha"],
+    );
     assert!(
         err.contains("did not load:") && !err.contains("rejected"),
         "expected the target's refusal and no summary: {err}"
@@ -74,12 +72,13 @@ fn refuses_a_rewrite_that_would_not_load() {
 /// only errors on the touched file to the problem list, and the batch stays Ok.
 #[test]
 fn revalidate_ignores_load_errors_on_untouched_files() {
-    let (dir, project) = setup(
+    let (_dir, body) = flipped(
         &[("alpha.typ", ALPHA), ("broken.typ", BROKEN_FILE)],
         LEGEND_CONFIG,
+        "done",
+        "alpha",
     );
-    run_with(&project, &flip_args("done", &["alpha"])).unwrap();
-    assert!(read(dir.path(), "alpha.typ").contains("status: done("));
+    assert!(body.contains("status: done("));
 }
 
 /// A task whose authored status is unreachable under the declared graph is a
@@ -89,10 +88,11 @@ fn revalidate_ignores_load_errors_on_untouched_files() {
 fn revalidate_ignores_violations_on_untouched_tasks() {
     // BETA's authored `blocked` is unreachable under REACHABLE_CONFIG; only
     // alpha is flipped, so the violation must stay out of the problem list.
-    let (dir, project) = setup(
+    let (_dir, body) = flipped(
         &[("alpha.typ", ALPHA), ("beta.typ", BETA)],
         REACHABLE_CONFIG,
+        "done",
+        "alpha",
     );
-    run_with(&project, &flip_args("done", &["alpha"])).unwrap();
-    assert!(read(dir.path(), "alpha.typ").contains("status: done("));
+    assert!(body.contains("status: done("));
 }
