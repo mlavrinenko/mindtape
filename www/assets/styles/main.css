@@ -383,17 +383,25 @@ main { min-width: 0; padding-bottom: 80px; }
   font-family: var(--mono); font-size: 11px; color: var(--muted);
 }
 
-/* The CLI entry is a <details> so the command list needs no script. */
+/* The CLI entry is a <details> so the command list needs no script. The link
+   fills the whole row, so the caret needs its own hit box: without one, only
+   the 4px glyph toggled the list and every nearby click navigated. The
+   transparent box is 32px wide and 24px tall, over the minimum target size. */
 .nav-nested summary {
-  position: relative; display: block; cursor: pointer; list-style: none;
+  position: relative; display: block; min-height: 24px;
+  cursor: pointer; list-style: none;
 }
 .nav-nested summary::-webkit-details-marker { display: none; }
-.nav-nested summary .stop { padding-right: 14px; }
+.nav-nested summary .stop { padding-right: 38px; }
+.nav-nested summary::before {
+  content: ""; position: absolute; right: 0; top: 0; bottom: 0;
+  width: 32px; z-index: 1;
+}
 .nav-nested summary::after {
   content: ""; position: absolute; right: 2px; top: 9px;
   width: 4px; height: 4px;
   border-right: 1px solid var(--muted); border-bottom: 1px solid var(--muted);
-  transform: rotate(45deg);
+  transform: rotate(45deg); pointer-events: none;
 }
 .nav-nested[open] > summary::after { transform: rotate(-135deg); top: 11px; }
 .sub-stops { margin: 0 0 4px; padding: 0; }
