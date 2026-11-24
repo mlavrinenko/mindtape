@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Report the repeats arm's classes from their real copies",
-  kind: "dev",
+  kind: "decision",
   priority: ice(
     impact: 6,
     confidence: 0.95,
@@ -18,7 +18,11 @@
   ),
   tags: ("found", "stateless", "tooling"),
   assignee: "agent",
-  status: proposed(2026, 11, 24),
+  status: done(
+    2026,
+    11,
+    24,
+  )[The repeats gate replaced the arm, and the removal resolves this finding. The gate groups jscpd's duplicates pairs by fragment text, and jscpd 5.4.3 has no classes array to misread.],
 )
 
 == AS-IS
