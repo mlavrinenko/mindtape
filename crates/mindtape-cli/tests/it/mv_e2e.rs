@@ -87,7 +87,16 @@ fn mv_renames_the_file_and_retargets_every_inbound_edge() {
         .args(["mv", "old", "new"])
         .assert()
         .success()
-        .stdout(predicates::str::contains(shown("tasks/new.typ")))
+        .stdout(predicates::str::contains(support::shown(
+            "tasks/new.typ",
+            &[
+                "tasks/sub/nested.typ",
+                "tasks/referrer.typ",
+                "tasks/taken.typ",
+                "tasks/new.typ",
+                "tasks/old.typ",
+            ],
+        )))
         .stdout(predicates::str::contains("4 links in 2 files"));
 
     assert!(!dir.path().join("tasks/old.typ").exists());
@@ -163,10 +172,17 @@ fn mv_refuses_a_taken_stem_before_moving_anything() {
         .args(["mv", "old", "taken"])
         .assert()
         .failure()
-        .stderr(predicates::str::diff(shown(
+        .stderr(predicates::str::diff(support::shown(
             "error: stem is taken: 'taken'\n\
              hint: pick another stem\n\
              note: held by: tasks/taken.typ\n",
+            &[
+                "tasks/sub/nested.typ",
+                "tasks/referrer.typ",
+                "tasks/taken.typ",
+                "tasks/new.typ",
+                "tasks/old.typ",
+            ],
         )));
 
     assert!(dir.path().join("tasks/old.typ").exists());
@@ -182,7 +198,16 @@ fn mv_dry_run_prints_the_plan_and_leaves_the_tree_untouched() {
         .args(["mv", "old", "new", "--dry-run"])
         .assert()
         .success()
-        .stdout(predicates::str::contains(shown("tasks/referrer.typ")))
+        .stdout(predicates::str::contains(support::shown(
+            "tasks/referrer.typ",
+            &[
+                "tasks/sub/nested.typ",
+                "tasks/referrer.typ",
+                "tasks/taken.typ",
+                "tasks/new.typ",
+                "tasks/old.typ",
+            ],
+        )))
         .stdout(predicates::str::contains("dry run: nothing written"));
 
     assert!(dir.path().join("tasks/old.typ").exists());
@@ -196,24 +221,7 @@ fn mv_refuses_a_stem_carrying_a_path_separator() {
     // of its own; `mv` renames in place and says so rather than guessing.
     let dir = scaffold();
 
-    mt(dir.path())
-        .args(["mv", "old", "sub/new"])
-        .assert()
-        .failure();
+    support::assert_fails(dir.path(), &["mv", "old", "sub/new"]);
 
     assert!(dir.path().join("tasks/old.typ").exists());
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(
-        text,
-        &[
-            "tasks/sub/nested.typ",
-            "tasks/referrer.typ",
-            "tasks/taken.typ",
-            "tasks/new.typ",
-            "tasks/old.typ",
-        ],
-    )
 }

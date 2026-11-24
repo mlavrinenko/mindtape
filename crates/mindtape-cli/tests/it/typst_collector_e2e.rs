@@ -11,7 +11,7 @@ use mindtape::test_support::write_file;
 
 use crate::support;
 
-use support::{mt, run_text, scaffold_project, stdout};
+use support::{run_text, scaffold_project, stdout};
 
 const LIB: &str = r#"
 #let title(task) = task.title
@@ -116,8 +116,6 @@ query = { typst = "lib.typ", function = "nope" }
 returns = "string"
 "#,
     );
-    let out = mt(dir.path()).args(["ls"]).output().unwrap();
-    assert!(!out.status.success());
-    let err = String::from_utf8_lossy(&out.stderr);
+    let err = support::failed(dir.path(), &["ls"], "a query naming no export must fail");
     assert!(err.contains("does not export `nope`"), "{err}");
 }

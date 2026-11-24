@@ -237,14 +237,11 @@ fn gated_preset_installs_its_template() {
 #[test]
 fn gated_preset_blocks_done_straight_from_wip() {
     let dir = support::init_preset("gated");
-    support::run_ok(dir.path(), &["add", "--name", "guard", "--set", "title=T"]);
-    support::run_ok(dir.path(), &["flip", "accepted", "guard"]);
-    support::run_ok(dir.path(), &["flip", "wip", "guard"]);
+    support::add(dir.path(), &["--name", "guard", "--set", "title=T"]);
+    support::flip(dir.path(), "accepted", "guard");
+    support::flip(dir.path(), "wip", "guard");
 
-    support::mt(dir.path())
-        .args(["flip", "done", "guard"])
-        .assert()
-        .failure();
+    support::assert_fails(dir.path(), &["flip", "done", "guard"]);
 }
 
 /// The `gated` preset's own `[[on.flip]]` gate is real. A task still carrying
@@ -254,7 +251,7 @@ fn gated_preset_blocks_done_straight_from_wip() {
 #[test]
 fn gated_preset_gates_done_on_an_unfilled_task() {
     let dir = support::init_preset("gated");
-    support::run_ok(dir.path(), &["add", "--name", "hollow", "--set", "title=T"]);
+    support::add(dir.path(), &["--name", "hollow", "--set", "title=T"]);
     for status in ["accepted", "wip", "needs-review"] {
         support::run_ok(dir.path(), &["flip", status, "hollow"]);
     }

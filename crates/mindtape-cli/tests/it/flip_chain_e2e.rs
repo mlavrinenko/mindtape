@@ -39,7 +39,7 @@ fn project(stems: &[&str], hooks: &str) -> tempfile::TempDir {
             mindtape::typst_task!("(\n  title: \"A task\",\n  status: wip(2026, 6, 1),\n)\n"),
         );
     }
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
     dir
 }
 

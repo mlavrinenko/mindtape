@@ -20,10 +20,10 @@ fn go_prints_opened_message() {
     );
 
     // File a task via `mt add` so it has the right format.
-    support::run_ok(dir.path(), &["add", "--name", "x", "--set", "title=Test"]);
-    support::run_ok(dir.path(), &["allow"]);
+    support::add(dir.path(), &["--name", "x", "--set", "title=Test"]);
+    support::allow(dir.path());
 
-    let output = support::mt(dir.path()).args(["go", "x"]).output().unwrap();
+    let output = support::run(dir.path(), &["go", "x"]);
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("opened"), "mt go should print 'opened ...'");
 }
@@ -31,7 +31,7 @@ fn go_prints_opened_message() {
 /// A project with `config` and one task `x` filed.
 fn project_with_config(config: &str) -> tempfile::TempDir {
     let dir = support::scaffold_project(config);
-    support::run_ok(dir.path(), &["add", "--name", "x", "--set", "title=Test"]);
+    support::add(dir.path(), &["--name", "x", "--set", "title=Test"]);
     dir
 }
 
@@ -40,7 +40,7 @@ fn project_with_editor(editor: &str) -> tempfile::TempDir {
     let dir = project_with_config(&format!(
         "[tasks]\nroots = [\"tasks\"]\n[go]\neditor = \"{editor}\"\n"
     ));
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
     dir
 }
 
@@ -129,7 +129,7 @@ fn a_project_editor_waits_for_mt_allow_and_visual_opens_the_task() {
         "{stderr}"
     );
 
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
     let stderr = go_marking(dir.path(), &visual, None, "visual\nheld\n");
     assert!(!stderr.contains("warning:"), "{stderr}");
 }

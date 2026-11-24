@@ -11,8 +11,15 @@ use mindtape::test_support::write_file;
 use std::path::{Path, PathBuf};
 
 use crate::support;
+use support::scaffold_project;
 
-use support::{mt, scaffold_project};
+/// The four task paths every expected message in this file names.
+const SHOWN: &[&str] = &[
+    "tasks/subject.typ",
+    "tasks/leftover.typ",
+    "tasks/bad.typ",
+    "tasks/good.typ",
+];
 
 /// The repo root, derived from this crate's manifest dir
 /// (`crates/mindtape-cli` -> `../..`). A test finds its own
@@ -59,10 +66,10 @@ fn an_assert_that_holds_leaves_check_green() {
     assert!(ok, "a satisfied rule must not fail the command: {text}");
     // The built-in template's own title may warn; the task's must not breach.
     assert!(
-        !text
-            .lines()
-            .any(|line| line.contains(&shown("tasks/subject.typ"))
-                && line.contains("start-title-with-verb")),
+        !text.lines().any(
+            |line| line.contains(&support::shown("tasks/subject.typ", SHOWN))
+                && line.contains("start-title-with-verb")
+        ),
         "got: {text}"
     );
 }
@@ -76,9 +83,10 @@ fn a_breach_names_the_file_the_rule_and_its_message() {
         "an error-severity breach must fail the command: {text}"
     );
     assert!(
-        text.contains(&shown(
+        text.contains(&support::shown(
             "error: tasks/subject.typ:3: rules.start-title-with-verb: \
-             start the title with an imperative verb"
+             start the title with an imperative verb",
+            SHOWN
         )),
         "a breach reports at the task's marker line, prefixed by its \
          severity: {text}"
@@ -91,8 +99,9 @@ fn a_warn_breach_prints_and_passes() {
     let (ok, text) = check(dir.path());
     assert!(ok, "warn is a report, not a failure: {text}");
     assert!(
-        text.contains(&shown(
-            "warning: tasks/subject.typ:3: rules.start-title-with-verb:"
+        text.contains(&support::shown(
+            "warning: tasks/subject.typ:3: rules.start-title-with-verb:",
+            SHOWN
         )),
         "got: {text}"
     );
@@ -154,7 +163,10 @@ fn a_matches_dir_rule_holds_a_task_to_its_month_folder() {
     let (ok, text) = check(flat.path());
     assert!(!ok, "a task at the root must be refused: {text}");
     assert!(
-        text.contains(&shown("tasks/subject.typ:3: rules.file-tasks-by-month")),
+        text.contains(&support::shown(
+            "tasks/subject.typ:3: rules.file-tasks-by-month",
+            SHOWN
+        )),
         "a breach names the file and the rule: {text}"
     );
 
@@ -215,18 +227,17 @@ fn a_malformed_when_is_one_config_error_at_load() {
 #[test]
 fn mt_add_refuses_a_write_that_breaches_an_error_rule() {
     let dir = project(&imperative_rule("error"), "Refactor the loader");
-    let out = mt(dir.path())
-        .args(["add", "--name", "leftover", "--set", "title=Loader rewrite"])
-        .output()
-        .unwrap();
-    assert!(!out.status.success(), "an error rule must refuse the write");
-    let stderr = String::from_utf8_lossy(&out.stderr);
+    let stderr = support::failed(
+        dir.path(),
+        &["add", "--name", "leftover", "--set", "title=Loader rewrite"],
+        "an error rule must refuse the write",
+    );
     assert!(
         stderr.contains("error: <new task from template 'task'>:3: rules.start-title-with-verb"),
         "a blocking problem reports as an error: {stderr}"
     );
     assert!(
-        !stderr.contains(&shown("warning: tasks/leftover.typ")),
+        !stderr.contains(&support::shown("warning: tasks/leftover.typ", SHOWN)),
         "a refused write is not a warning: {stderr}"
     );
     assert!(
@@ -238,10 +249,10 @@ fn mt_add_refuses_a_write_that_breaches_an_error_rule() {
 #[test]
 fn mt_add_lets_a_warn_rule_through() {
     let dir = project(&imperative_rule("warn"), "Refactor the loader");
-    let out = mt(dir.path())
-        .args(["add", "--name", "leftover", "--set", "title=Loader rewrite"])
-        .output()
-        .unwrap();
+    let out = support::run(
+        dir.path(),
+        &["add", "--name", "leftover", "--set", "title=Loader rewrite"],
+    );
     assert!(out.status.success(), "a warn rule lets the write land");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
@@ -249,7 +260,7 @@ fn mt_add_lets_a_warn_rule_through() {
         "a non-blocking breach reports as a warning: {stderr}"
     );
     assert!(
-        !stderr.contains(&shown("error: tasks/leftover.typ")),
+        !stderr.contains(&support::shown("error: tasks/leftover.typ", SHOWN)),
         "a write that lands is not an error: {stderr}"
     );
     assert!(
@@ -268,12 +279,15 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
                 severity = \"error\"\n";
     let dir = project(rule, "Refactor the loader");
     support::check_ok(dir.path());
-    let out = mt(dir.path()).args(["done", "subject"]).output().unwrap();
-    assert!(!out.status.success(), "an error rule must refuse the flip");
-    let stderr = String::from_utf8_lossy(&out.stderr);
+    let stderr = support::failed(
+        dir.path(),
+        &["done", "subject"],
+        "an error rule must refuse the flip",
+    );
     assert!(
-        stderr.contains(&shown(
-            "error: tasks/subject.typ:3: rules.closed-work-is-owned"
+        stderr.contains(&support::shown(
+            "error: tasks/subject.typ:3: rules.closed-work-is-owned",
+            SHOWN
         )),
         "a blocking problem reports as an error: {stderr}"
     );
@@ -284,7 +298,7 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
 #[test]
 fn mt_flip_lets_a_warn_rule_through() {
     let dir = project(&imperative_rule("warn"), "Loader refactoring");
-    let out = mt(dir.path()).args(["done", "subject"]).output().unwrap();
+    let out = support::run(dir.path(), &["done", "subject"]);
     assert!(
         out.status.success(),
         "a warn rule must not fail the flip: {}",
@@ -292,8 +306,9 @@ fn mt_flip_lets_a_warn_rule_through() {
     );
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains(&shown(
-            "warning: tasks/subject.typ:3: rules.start-title-with-verb"
+        stderr.contains(&support::shown(
+            "warning: tasks/subject.typ:3: rules.start-title-with-verb",
+            SHOWN
         )),
         "the warn breach reports as a warning: {stderr}"
     );
@@ -304,11 +319,8 @@ fn mt_flip_lets_a_warn_rule_through() {
 }
 
 /// The tests above prove the mechanism on a synthetic project. This one checks
-/// the adoption itself
-/// (truth/tasks/2026-09/enforce-an-imperative-verb-at-the-start-of-task-titles.typ).
-/// It checks that `start-title-with-verb` reaches this repo's own backlog at
-/// `error`, loading the committed config rather than a scaffold. A config edit
-/// that drops the rule or loosens its severity fails here too.
+/// the adoption itself: `start-title-with-verb` reaches this repo's own backlog
+/// at `error`, loading the committed config rather than a scaffold.
 fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec {
     config
         .tasks
@@ -318,14 +330,10 @@ fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec 
         .expect("the start-title-with-verb rule must be declared")
 }
 
-/// This repo's own `.mindtape/config.toml`
-/// (`truth/tasks/2026-09/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) does
-/// not declare `start-title-with-verb` itself. It inherits the rule from the
-/// embedded `mindtape:tasks` pack through `extends`. `parse_config` cannot
-/// prove that (it never resolves `extends`/`disable`, see
-/// `crate::config::packs`). This test loads the full layered config against the
-/// real repo root instead, through the real, non-fixture `EMBEDDED_PACKS`
-/// registry. That proves the rule still lands here and the pack carries it.
+/// This repo's own `.mindtape/config.toml` inherits `start-title-with-verb`
+/// from the embedded `mindtape:tasks` pack through `extends`. `parse_config`
+/// cannot prove that (it never resolves `extends`/`disable`), so this test
+/// loads the full layered config against the real repo root instead.
 #[test]
 fn this_repos_own_config_carries_the_rule_at_error() {
     let config = mindtape::load_config(&repo_root()).unwrap();
@@ -389,9 +397,10 @@ fn a_check_breach_names_the_file_the_rule_and_the_functions_own_string() {
         "an error-severity check breach must fail the command: {text}"
     );
     assert!(
-        text.contains(&shown(
+        text.contains(&support::shown(
             "error: tasks/subject.typ:3: rules.no-loader-refactoring: \
-             title must not be exactly this"
+             title must not be exactly this",
+            SHOWN
         )),
         "a check breach reports exactly like an assert breach: {text}"
     );
@@ -400,16 +409,16 @@ fn a_check_breach_names_the_file_the_rule_and_the_functions_own_string() {
 #[test]
 fn mt_add_refuses_a_write_a_check_rule_rejects() {
     let dir = check_project(&check_title_rule("error"), "Refactor the loader");
-    let out = mt(dir.path())
-        .args([
+    let out = support::run(
+        dir.path(),
+        &[
             "add",
             "--name",
             "leftover",
             "--set",
             "title=Loader refactoring",
-        ])
-        .output()
-        .unwrap();
+        ],
+    );
     assert!(
         !out.status.success(),
         "an error-severity check rule must refuse the write"
@@ -479,22 +488,12 @@ fn a_packs_check_file_and_dict_file_resolve_from_the_pack_directory() {
 
     assert!(!ok, "{text}");
     assert!(
-        text.contains(&shown("tasks/bad.typ:3: rules.known-verb")),
+        text.contains(&support::shown("tasks/bad.typ:3: rules.known-verb", SHOWN)),
         "{text}"
     );
     assert!(text.contains("rules.not-banned: title is banned"), "{text}");
-    assert!(!text.contains(&shown("tasks/good.typ")), "{text}");
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(
-        text,
-        &[
-            "tasks/subject.typ",
-            "tasks/leftover.typ",
-            "tasks/bad.typ",
-            "tasks/good.typ",
-        ],
-    )
+    assert!(
+        !text.contains(&support::shown("tasks/good.typ", SHOWN)),
+        "{text}"
+    );
 }

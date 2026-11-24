@@ -23,8 +23,7 @@ fn project() -> tempfile::TempDir {
 
 /// `mt <args>` in `dir` must exit 1 and print `needle`.
 fn refused(dir: &std::path::Path, args: &[&str], needle: &str) {
-    let (code, stderr) = support::run_stderr(dir, args);
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = support::refusal(dir, args);
     assert!(stderr.contains(needle), "{stderr}");
 }
 

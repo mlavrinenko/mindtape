@@ -11,7 +11,7 @@ use std::path::Path;
 
 use crate::support;
 
-use support::{mt, scaffold_project};
+use support::scaffold_project;
 
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.rules]]\nname = \"start-title-with-verb\"\n\
     assert = 'title != \"Loader refactoring\"'\n\
@@ -27,7 +27,7 @@ fn task(title: &str) -> String {
 }
 
 fn check(dir: &Path) -> (Option<i32>, serde_json::Value, String) {
-    let out = mt(dir).args(["check", "--json"]).output().unwrap();
+    let out = support::run(dir, &["check", "--json"]);
     let stdout = String::from_utf8(out.stdout).unwrap();
     let json = serde_json::from_str(&stdout).unwrap_or_else(|err| panic!("{err}: {stdout:?}"));
     (

@@ -47,10 +47,10 @@ fn filed(dir: &Path) -> String {
 fn a_skipped_verification_files_the_slot_call_and_names_check() {
     let dir = project(false);
 
-    let done = support::mt(dir.path())
-        .args(["add", "--name", "incomplete", "--set", "title=Incomplete"])
-        .assert()
-        .success();
+    let done = support::ok(
+        dir.path(),
+        &["add", "--name", "incomplete", "--set", "title=Incomplete"],
+    );
     let stderr = support::stderr_of(&done);
 
     assert!(
@@ -70,17 +70,17 @@ fn a_skipped_verification_files_the_slot_call_and_names_check() {
 fn verify_overrides_a_policy_that_skips_the_check() {
     let dir = project(false);
 
-    let done = support::mt(dir.path())
-        .args([
+    let done = support::assert_fails(
+        dir.path(),
+        &[
             "add",
             "--verify",
             "--name",
             "incomplete",
             "--set",
             "title=Incomplete",
-        ])
-        .assert()
-        .failure();
+        ],
+    );
     let stderr = support::stderr_of(&done);
 
     assert!(

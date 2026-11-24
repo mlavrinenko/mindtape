@@ -17,7 +17,7 @@ const CASES: &[(&str, &str, &str, &str)] = &[
 fn every_scalar_flag_writes_its_field() {
     for (flag, value, expected, name) in CASES {
         let dir = support::scaffold();
-        support::run_ok(dir.path(), &["add", "--name", name, flag, value, "Flagged"]);
+        support::add(dir.path(), &["--name", name, flag, value, "Flagged"]);
         let written =
             std::fs::read_to_string(dir.path().join("tasks").join(format!("{name}.typ"))).unwrap();
         assert!(written.contains(expected), "{flag}: {written}");
@@ -41,8 +41,9 @@ fn a_flag_and_set_naming_one_field_is_refused() {
     for (flag, value, _, name) in CASES {
         let dir = support::scaffold();
         let field = flag.trim_start_matches("--");
-        let output = support::mt(dir.path())
-            .args([
+        let stderr = support::failed(
+            dir.path(),
+            &[
                 "add",
                 "--name",
                 name,
@@ -51,11 +52,9 @@ fn a_flag_and_set_naming_one_field_is_refused() {
                 "--set",
                 &format!("{field}={value}"),
                 "Twice",
-            ])
-            .output()
-            .unwrap();
-        assert!(!output.status.success(), "{flag} should conflict");
-        let stderr = String::from_utf8_lossy(&output.stderr);
+            ],
+            &format!("{flag} should conflict"),
+        );
         assert!(stderr.contains("set twice"), "{flag}: {stderr}");
         assert!(stderr.contains(field), "{flag}: {stderr}");
     }

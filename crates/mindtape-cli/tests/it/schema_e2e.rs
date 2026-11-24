@@ -85,10 +85,7 @@ const NAMES: [&str; 20] = [
 #[test]
 fn recorded_schemas_match_the_binary() {
     let root = repo_root();
-    let out = support::mt(&root)
-        .args(["schema", "--check"])
-        .output()
-        .unwrap();
+    let out = support::run(&root, &["schema", "--check"]);
     assert!(
         out.status.success(),
         "mt schema --check failed: {}",
@@ -159,10 +156,7 @@ fn schema_prints_one_named_schema() {
 #[test]
 fn schema_refuses_an_unknown_name() {
     let root = repo_root();
-    let out = support::mt(&root)
-        .args(["schema", "nope"])
-        .output()
-        .unwrap();
+    let out = support::run(&root, &["schema", "nope"]);
     assert_eq!(out.status.code(), Some(2), "{out:?}");
     let stderr = String::from_utf8(out.stderr).unwrap();
     assert!(stderr.contains("unknown schema"), "{stderr}");

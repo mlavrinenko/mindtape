@@ -10,14 +10,9 @@ use std::path::Path;
 use crate::fix_e2e::{has, lacks, project_with, put, read, task, unchanged};
 use crate::support;
 
-/// Run `mt fix …` and return its exit code, stdout and stderr.
-fn run(dir: &Path, args: &[&str]) -> (Option<i32>, String, String) {
-    support::parts_of(&support::mt(dir).args(args).output().unwrap())
-}
-
 /// Run `mt fix …`, assert it exited `code`, and assert it didn't print.
 fn silent(dir: &Path, args: &[&str], code: i32) {
-    let (got, stdout, stderr) = run(dir, args);
+    let (got, stdout, stderr) = support::parts(dir, args);
     assert_eq!(got, Some(code), "{stderr}");
     assert_eq!(stdout, "", "{args:?} printed: {stdout}");
     assert_eq!(stderr, "", "{args:?} printed: {stderr}");
@@ -28,8 +23,7 @@ fn check_prints_the_rewrites_and_the_summary() {
     let (dir, before) = project_with("0.1.0");
     put(dir.path(), "tasks/kept.typ", "0.2.0", "Kept");
 
-    let (code, stdout, stderr) = run(dir.path(), &["fix", "--check"]);
-    assert_eq!(code, Some(1), "{stderr}");
+    let (stdout, stderr) = support::refusal_parts(dir.path(), &["fix", "--check"]);
     has(
         &stdout,
         &[
@@ -51,8 +45,7 @@ fn verbose_check_adds_a_row_per_kept_import() {
     put(dir.path(), "tasks/kept.typ", "0.2.0", "Kept");
 
     for flag in ["-v", "--verbose"] {
-        let (code, stdout, stderr) = run(dir.path(), &["fix", "--check", flag]);
-        assert_eq!(code, Some(1), "{stderr}");
+        let (stdout, _) = support::refusal_parts(dir.path(), &["fix", "--check", flag]);
         has(
             &stdout,
             &[
@@ -68,7 +61,7 @@ fn verbose_check_adds_a_row_per_kept_import() {
 fn a_clean_check_prints_the_summary_and_a_quiet_one_prints_nothing() {
     let (dir, before) = project_with("0.2.0");
 
-    let (code, stdout, stderr) = run(dir.path(), &["fix", "--check"]);
+    let (code, stdout, stderr) = support::parts(dir.path(), &["fix", "--check"]);
     assert_eq!(code, Some(0), "{stderr}");
     assert_eq!(stdout, "nothing to rewrite; 1 kept\n", "{stdout}");
     silent(dir.path(), &["fix", "--check", "-q"], 0);
@@ -79,8 +72,7 @@ fn a_clean_check_prints_the_summary_and_a_quiet_one_prints_nothing() {
 fn a_quiet_check_still_fails_an_unsupported_pin() {
     let (dir, before) = project_with("0.1.0");
 
-    let (code, stdout, stderr) = run(dir.path(), &["fix", "--check", "-q"]);
-    assert_eq!(code, Some(1), "{stderr}");
+    let (stdout, stderr) = support::refusal_parts(dir.path(), &["fix", "--check", "-q"]);
     assert_eq!(stdout, "", "a quiet check printed a row: {stdout}");
     assert!(
         stderr.contains("error: tasks/old.typ: imports @local/mindtape:0.1.0"),

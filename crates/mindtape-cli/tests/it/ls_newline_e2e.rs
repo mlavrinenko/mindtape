@@ -7,11 +7,7 @@ use crate::support;
 
 fn stdout_of(filter: &str, format: &str) -> Vec<u8> {
     let dir = support::project_with_tasks(&[("a.typ", "Alpha"), ("b.typ", "Beta")]);
-    support::mt(dir.path())
-        .args(["ls", filter, "--format", format])
-        .output()
-        .unwrap()
-        .stdout
+    support::run(dir.path(), &["ls", filter, "--format", format]).stdout
 }
 
 #[test]

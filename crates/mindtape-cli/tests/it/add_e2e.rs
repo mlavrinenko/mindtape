@@ -140,10 +140,7 @@ fn a_directory_pack_ships_its_templates_beneath_the_projects_own() {
         template("from the project"),
     );
 
-    let listed = support::mt(dir.path())
-        .args(["templates"])
-        .assert()
-        .success();
+    let listed = support::ok(dir.path(), &["templates"]);
     let stdout = String::from_utf8_lossy(&listed.get_output().stdout).into_owned();
     let names: Vec<&str> = stdout
         .lines()
@@ -152,10 +149,7 @@ fn a_directory_pack_ships_its_templates_beneath_the_projects_own() {
     assert_eq!(names, ["feat", "shared", "task"], "{stdout}");
 
     let printed = |name: &str| {
-        let out = support::mt(dir.path())
-            .args(["add", "-t", name, "--name", "x", "--print"])
-            .assert()
-            .success();
+        let out = support::ok(dir.path(), &["add", "-t", name, "--name", "x", "--print"]);
         String::from_utf8_lossy(&out.get_output().stdout).into_owned()
     };
     assert!(printed("shared").contains("from the project"));
@@ -166,10 +160,7 @@ fn a_directory_pack_ships_its_templates_beneath_the_projects_own() {
 fn collision_is_a_hard_error() {
     let dir = support::scaffold();
     write_file(dir.path(), "tasks/dup.typ", "existing");
-    support::mt(dir.path())
-        .args(["add", "--name", "dup", "--set", "title=Dup"])
-        .assert()
-        .failure();
+    support::assert_fails(dir.path(), &["add", "--name", "dup", "--set", "title=Dup"]);
 }
 
 /// A `--set` key outside the active template's slots must fail loudly, naming
@@ -202,11 +193,11 @@ fn unknown_set_key_is_a_hard_error() {
 fn end_to_end_files_from_yaml_on_stdin() {
     let dir = support::scaffold();
 
-    support::mt(dir.path())
-        .args(["add", "--name", "wire-yaml", "-f", "-"])
-        .write_stdin("title: Wire YAML\n")
-        .assert()
-        .success();
+    support::ok_stdin(
+        dir.path(),
+        &["add", "--name", "wire-yaml", "-f", "-"],
+        "title: Wire YAML\n",
+    );
 
     let written = std::fs::read_to_string(dir.path().join("tasks/wire-yaml.typ")).unwrap();
     assert!(written.contains("title: \"Wire YAML\""), "{written}");
@@ -309,7 +300,7 @@ fn a_task_that_fails_verification_is_never_written() {
 
 /// `mt check` in `dir` reports breaches, and every one points at a template.
 fn assert_only_the_template_breaches(dir: &std::path::Path) {
-    let output = support::mt(dir).arg("check").output().unwrap();
+    let output = support::run(dir, &["check"]);
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(!output.status.success(), "{stdout}");
     assert!(

@@ -51,12 +51,11 @@ fn a_rejected_edge_leaves_the_file_untouched() {
     let dir = scaffold();
     let before = source(dir.path(), "wire-oauth");
 
-    let output = support::mt(dir.path())
-        .args(["link", "wire-oauth", "depends-on", "wire-oauth"])
-        .output()
-        .unwrap();
-    assert!(!output.status.success(), "a rejected edge must fail");
-    let stderr = String::from_utf8_lossy(&output.stderr);
+    let stderr = support::failed(
+        dir.path(),
+        &["link", "wire-oauth", "depends-on", "wire-oauth"],
+        "a rejected edge must fail",
+    );
     assert!(
         stderr.starts_with("error: ") && stderr.contains("depends-on cycle"),
         "a blocking problem reports as an error: {stderr}"
@@ -93,14 +92,12 @@ fn a_written_edge_leaves_the_project_valid() {
 fn an_adjacency_map_arrives_on_stdin() {
     let dir = scaffold();
 
-    support::mt(dir.path())
-        .args(["link", "--apply", "-"])
-        .write_stdin(
-            "wire-oauth:\n  depends-on: [pick-a-provider]\n  \
+    support::ok_stdin(
+        dir.path(),
+        &["link", "--apply", "-"],
+        "wire-oauth:\n  depends-on: [pick-a-provider]\n  \
              related:\n    - target: write-docs\n      note: same release\n",
-        )
-        .assert()
-        .success();
+    );
 
     let written = source(dir.path(), "wire-oauth");
     assert!(
@@ -118,11 +115,11 @@ fn an_adjacency_map_arrives_on_stdin() {
 fn a_json_adjacency_map_reads_the_same_way() {
     let dir = scaffold();
 
-    support::mt(dir.path())
-        .args(["link", "--apply", "-"])
-        .write_stdin(r#"{"wire-oauth": {"depends-on": ["pick-a-provider"]}}"#)
-        .assert()
-        .success();
+    support::ok_stdin(
+        dir.path(),
+        &["link", "--apply", "-"],
+        r#"{"wire-oauth": {"depends-on": ["pick-a-provider"]}}"#,
+    );
     assert!(
         source(dir.path(), "wire-oauth").contains(r#"depends-on("pick-a-provider.typ")"#),
         "{}",
@@ -135,18 +132,10 @@ fn re_applying_the_same_map_writes_nothing() {
     let dir = scaffold();
     let map = "wire-oauth:\n  depends-on: [pick-a-provider, write-docs]\n";
 
-    support::mt(dir.path())
-        .args(["link", "--apply", "-"])
-        .write_stdin(map)
-        .assert()
-        .success();
+    support::ok_stdin(dir.path(), &["link", "--apply", "-"], map);
     let first = source(dir.path(), "wire-oauth");
 
-    let output = support::mt(dir.path())
-        .args(["link", "--apply", "-"])
-        .write_stdin(map)
-        .assert()
-        .success();
+    let output = support::ok_stdin(dir.path(), &["link", "--apply", "-"], map);
     let stdout = String::from_utf8_lossy(&output.get_output().stdout).into_owned();
     assert!(stdout.contains("unchanged wire-oauth"), "{stdout}");
     assert_eq!(source(dir.path(), "wire-oauth"), first);
@@ -157,16 +146,16 @@ fn dry_run_prints_the_plan_and_writes_nothing() {
     let dir = scaffold();
     let before = source(dir.path(), "wire-oauth");
 
-    let output = support::mt(dir.path())
-        .args([
+    let output = support::ok(
+        dir.path(),
+        &[
             "link",
             "wire-oauth",
             "depends-on",
             "pick-a-provider",
             "--dry-run",
-        ])
-        .assert()
-        .success();
+        ],
+    );
     let stdout = String::from_utf8_lossy(&output.get_output().stdout).into_owned();
     assert!(stdout.contains("would rewrite 1 task:"), "{stdout}");
     assert!(
@@ -181,11 +170,11 @@ fn dry_run_prints_the_plan_and_writes_nothing() {
 fn an_unknown_kind_exits_non_zero_naming_the_configured_kinds() {
     let dir = scaffold();
 
-    let output = support::mt(dir.path())
-        .args(["link", "wire-oauth", "depends-onn", "write-docs"])
-        .assert()
-        .failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(
+        dir.path(),
+        &["link", "wire-oauth", "depends-onn", "write-docs"],
+        "the run must fail",
+    );
     assert!(
         stderr.contains("unknown link kind: 'depends-onn'"),
         "{stderr}"
@@ -201,11 +190,11 @@ fn an_unknown_kind_exits_non_zero_naming_the_configured_kinds() {
 fn a_missing_target_exits_non_zero() {
     let dir = scaffold();
 
-    let output = support::mt(dir.path())
-        .args(["link", "wire-oauth", "depends-on", "no-such-task"])
-        .assert()
-        .failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(
+        dir.path(),
+        &["link", "wire-oauth", "depends-on", "no-such-task"],
+        "the run must fail",
+    );
     assert!(
         stderr.contains("no task: 'no-such-task' of kind 'depends-on'"),
         "{stderr}"
@@ -245,11 +234,11 @@ fn replace_drops_the_edges_the_map_omits() {
         dir.path(),
         &["link", "wire-oauth", "depends-on", "pick-a-provider"],
     );
-    support::mt(dir.path())
-        .args(["link", "--apply", "-", "--replace"])
-        .write_stdin("wire-oauth:\n  depends-on: [write-docs]\n")
-        .assert()
-        .success();
+    support::ok_stdin(
+        dir.path(),
+        &["link", "--apply", "-", "--replace"],
+        "wire-oauth:\n  depends-on: [write-docs]\n",
+    );
 
     let written = source(dir.path(), "wire-oauth");
     assert!(
@@ -274,10 +263,7 @@ fn closing_a_dependency_cycle_is_refused_from_either_end() {
         support::run_ok(dir.path(), &["link", first, "depends-on", second]);
         let before = (source(dir.path(), first), source(dir.path(), second));
 
-        let output = support::mt(dir.path())
-            .args(["link", second, "depends-on", first])
-            .output()
-            .unwrap();
+        let output = support::run(dir.path(), &["link", second, "depends-on", first]);
         let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(!output.status.success(), "{second} -> {first}: {stderr}");
         assert!(stderr.contains("depends-on cycle"), "{stderr}");
@@ -305,7 +291,7 @@ fn a_cycle_already_on_disk_does_not_block_an_unrelated_edge() {
         );
         std::fs::write(dir.path().join("tasks").join(format!("{stem}.typ")), text).unwrap();
     }
-    support::mt(dir.path()).arg("check").assert().failure();
+    support::assert_fails(dir.path(), &["check"]);
 
     support::run_ok(
         dir.path(),
@@ -348,10 +334,10 @@ fn a_refused_write_is_reported_and_leaves_the_task_as_it_was() {
     let tasks = dir.path().join("tasks");
     std::fs::set_permissions(&tasks, std::fs::Permissions::from_mode(0o555)).unwrap();
 
-    let output = support::mt(dir.path())
-        .args(["link", "wire-oauth", "depends-on", "pick-a-provider"])
-        .assert()
-        .failure();
+    let output = support::assert_fails(
+        dir.path(),
+        &["link", "wire-oauth", "depends-on", "pick-a-provider"],
+    );
     std::fs::set_permissions(&tasks, std::fs::Permissions::from_mode(0o755)).unwrap();
 
     let stderr = support::stderr_of(&output);
@@ -368,11 +354,10 @@ fn an_edge_into_an_aliased_task_is_refused_and_leaves_it_untouched() {
     let dir = scaffold();
     let body = support::write_aliased_task(dir.path(), "wire-oauth");
 
-    let (code, stderr) = support::run_stderr(
+    let stderr = support::refusal(
         dir.path(),
         &["link", "wire-oauth", "depends-on", "pick-a-provider"],
     );
-    assert_eq!(code, Some(1), "{stderr}");
     assert!(stderr.contains("no task.with(…) call found"), "{stderr}");
     assert!(stderr.contains("wire-oauth.typ"), "{stderr}");
     assert_eq!(source(dir.path(), "wire-oauth"), body);

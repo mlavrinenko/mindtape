@@ -16,7 +16,7 @@ fn ls_stderr_with_pack(config: &str, pack: Option<&str>) -> String {
     if let Some(pack) = pack {
         std::fs::write(dir.path().join("team.toml"), pack).unwrap();
     }
-    let output = support::mt(dir.path()).arg("ls").output().unwrap();
+    let output = support::run(dir.path(), &["ls"]);
     assert_eq!(output.status.code(), Some(1), "{output:?}");
     String::from_utf8(output.stderr).unwrap()
 }
@@ -28,7 +28,10 @@ fn a_bad_view_sort_is_reported_at_its_line() {
 
     assert_eq!(
         stderr,
-        shown("error: .mindtape/config.toml:5: views.broken.sort: unknown sort field: 'nofield'\n")
+        support::shown(
+            "error: .mindtape/config.toml:5: views.broken.sort: unknown sort field: 'nofield'\n",
+            &[".mindtape/config.toml"]
+        )
     );
 }
 
@@ -37,10 +40,11 @@ fn an_unknown_pack_is_quoted_and_names_the_near_match() {
     let stderr = ls_stderr("extends = [\"mindtape:task\"]\n");
 
     assert!(
-        stderr.starts_with(&shown(
+        stderr.starts_with(&support::shown(
             "error: .mindtape/config.toml:1: extends: unknown pack: 'mindtape:task'\n\
              hint: did you mean mindtape:tasks?\n\
-             hint: use one of: "
+             hint: use one of: ",
+            &[".mindtape/config.toml"]
         )),
         "{stderr}"
     );
@@ -55,8 +59,9 @@ fn a_hook_title_on_a_run_action_says_which_kind_takes_it() {
 
     assert_eq!(
         stderr,
-        shown(
-            "error: .mindtape/config.toml:6: on.flip[0].actions[0]: 'title' applies only to list actions\n"
+        support::shown(
+            "error: .mindtape/config.toml:6: on.flip[0].actions[0]: 'title' applies only to list actions\n",
+            &[".mindtape/config.toml"]
         )
     );
 }
@@ -85,9 +90,4 @@ fn a_bad_value_in_a_pack_is_reported_at_the_pack_line() {
         stderr.starts_with("error: team.toml:2: views.board.filter: "),
         "{stderr}"
     );
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &[".mindtape/config.toml"])
 }

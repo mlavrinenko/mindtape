@@ -87,10 +87,7 @@ fn a_run_that_found_its_project_keeps_its_hints_bare() {
 fn a_global_commands_hint_stays_bare_under_a_worktree_flag() {
     let parent = tempfile::tempdir().unwrap();
     std::fs::create_dir(parent.path().join("new")).unwrap();
-    let out = support::mt(parent.path())
-        .args(["-w", "new", "init", "--preset", "nope"])
-        .output()
-        .unwrap();
+    let out = support::run(parent.path(), &["-w", "new", "init", "--preset", "nope"]);
     let (code, _, stderr) = support::parts_of(&out);
     assert_eq!(code, Some(2), "{stderr}");
     assert!(

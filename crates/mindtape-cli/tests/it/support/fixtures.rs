@@ -273,6 +273,17 @@ pub fn project_with_task(title: &str) -> tempfile::TempDir {
     dir
 }
 
+/// A scaffolded project with a pre-existing `tasks/dup.typ`, the shared
+/// fixture every skipped or suffixed `mt add` outcome collides against.
+pub fn scaffold_with_existing_dup() -> tempfile::TempDir {
+    scaffold_with_dup(TASKS_ROOT_CONFIG)
+}
+
+/// [`scaffold_config`] under `config`, with `tasks/dup.typ` already taken.
+pub fn scaffold_with_dup(config: &str) -> tempfile::TempDir {
+    scaffold_config(config, &[("dup.typ", "original content")])
+}
+
 /// A committed-clean repository holding one `wip` task, `parser`, with `rules`
 /// appended to its config. Every `mt check --commit-msg` test starts there.
 pub fn commit_repo(rules: &str) -> tempfile::TempDir {

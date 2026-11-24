@@ -8,6 +8,12 @@ use crate::support;
 use mindtape::test_support::tempdir;
 use mindtape::test_support::write_file;
 
+/// The two template paths every expected message in this file names.
+const TEMPLATES: &[&str] = &[
+    ".mindtape/templates/bug.typ",
+    ".mindtape/templates/task.typ",
+];
+
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.fields.kind]\nvalues = [\"fix\"]\n";
 
@@ -54,7 +60,10 @@ fn assert_kind_slot_fails_with(config: &str, slot: &str, wanted: &str) {
 fn a_stale_literal_fails_naming_the_template_line() {
     assert_kind_slot_fails(
         "\"bug\"",
-        &shown("error: .mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
+        &support::shown(
+            "error: .mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value",
+            TEMPLATES,
+        ),
     );
 }
 
@@ -62,7 +71,10 @@ fn a_stale_literal_fails_naming_the_template_line() {
 fn a_stale_example_fails() {
     assert_kind_slot_fails(
         "slot(\"kind\", example: \"bug\")",
-        &shown(".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
+        &support::shown(
+            ".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value",
+            TEMPLATES,
+        ),
     );
 }
 
@@ -70,7 +82,10 @@ fn a_stale_example_fails() {
 fn a_stale_default_fails() {
     assert_kind_slot_fails(
         "slot(\"kind\", default: \"bug\")",
-        &shown(".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value"),
+        &support::shown(
+            ".mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value",
+            TEMPLATES,
+        ),
     );
 }
 
@@ -109,7 +124,10 @@ fn defaults_are_filed_only_under_check_defaults() {
     );
     support::assert_check_fails(
         on.path(),
-        &shown(".mindtape/templates/bug.typ:2: rules.names-alpha"),
+        &support::shown(
+            ".mindtape/templates/bug.typ:2: rules.names-alpha",
+            TEMPLATES,
+        ),
     );
 }
 
@@ -118,7 +136,10 @@ fn a_slot_with_neither_example_nor_default_names_the_slot() {
     let dir = scaffold(&template("slot(\"kind\")"));
     support::assert_check_fails(
         dir.path(),
-        &shown(".mindtape/templates/bug.typ:4: template: slot `kind` has no example"),
+        &support::shown(
+            ".mindtape/templates/bug.typ:4: template: slot `kind` has no example",
+            TEMPLATES,
+        ),
     );
 }
 
@@ -130,8 +151,9 @@ fn a_text_slot_example_with_markup_names_the_slot() {
     let dir = scaffold(&format!("{}{body}", template("\"fix\"")));
     support::assert_check_fails(
         dir.path(),
-        &shown(
+        &support::shown(
             ".mindtape/templates/bug.typ:7: template: slot `why` is `text`, so `mt add` files the code span",
+            TEMPLATES,
         ),
     );
 }
@@ -215,7 +237,7 @@ fn a_template_that_fails_to_evaluate_is_one_breach() {
     assert!(!ok, "{text}");
     let breaches: Vec<&str> = text
         .lines()
-        .filter(|line| line.contains(&shown(".mindtape/templates/bug.typ")))
+        .filter(|line| line.contains(&support::shown(".mindtape/templates/bug.typ", TEMPLATES)))
         .collect();
     assert_eq!(breaches.len(), 1, "{text}");
     assert!(
@@ -223,8 +245,9 @@ fn a_template_that_fails_to_evaluate_is_one_breach() {
         "{text}"
     );
     assert!(
-        text.contains(&shown(
-            "error: .mindtape/templates/bug.typ:4:9: unknown variable: no-such-helper"
+        text.contains(&support::shown(
+            "error: .mindtape/templates/bug.typ:4:9: unknown variable: no-such-helper",
+            TEMPLATES
         )),
         "the load failure reads as a task file's does: {text}"
     );
@@ -255,7 +278,10 @@ fn a_body_rule_reads_the_body_s_example() {
     let dir = scaffold_with(&format!("{CONFIG}{rule}"), &body("Context"));
     support::assert_check_fails(
         dir.path(),
-        &shown(".mindtape/templates/bug.typ:8: body.headers.rules.only-problem"),
+        &support::shown(
+            ".mindtape/templates/bug.typ:8: body.headers.rules.only-problem",
+            TEMPLATES,
+        ),
     );
 }
 
@@ -284,7 +310,10 @@ fn a_rule_breach_on_an_example_counts() {
     );
     support::assert_check_fails(
         dir.path(),
-        &shown(".mindtape/templates/bug.typ:2: rules.no-bare-fix"),
+        &support::shown(
+            ".mindtape/templates/bug.typ:2: rules.no-bare-fix",
+            TEMPLATES,
+        ),
     );
 }
 
@@ -460,15 +489,4 @@ fn a_link_to_a_backlog_task_is_not_a_template_breach() {
     add_task(dir.path(), "anchor", "Anchor");
     let (ok, text) = check(dir.path());
     assert!(ok, "{text}");
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(
-        text,
-        &[
-            ".mindtape/templates/bug.typ",
-            ".mindtape/templates/task.typ",
-        ],
-    )
 }

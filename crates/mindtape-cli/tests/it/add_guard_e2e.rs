@@ -170,7 +170,7 @@ fn an_outside_root_destination_still_only_warns() {
         .get_output()
         .clone();
 
-    assert!(outside.path().join("outside-task.typ").exists());
+    support::assert_exists(outside.path(), "outside-task.typ");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("outside the configured roots"), "{stderr}");
 }

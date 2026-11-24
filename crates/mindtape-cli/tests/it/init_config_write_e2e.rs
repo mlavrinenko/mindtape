@@ -39,7 +39,7 @@ fn composed_config_records_answers_and_ships_templates() {
     assert!(config.contains("# answers:"), "{config}");
     assert!(config.contains("workflow = gated"), "{config}");
     assert!(config.contains("headers = spec"), "{config}");
-    assert!(dir.path().join(".mindtape/templates/task.typ").exists());
+    support::assert_exists(dir.path(), ".mindtape/templates/task.typ");
 }
 
 /// `--no-input` with no axis flags falls through to the default preset, the
@@ -176,8 +176,7 @@ fn preset_overlay_composes_a_flattened_valid_config() {
     );
     assert!(config.contains("[[tasks.status]]"), "{config}");
 
-    support::add_then_ls_and_check(dir.path(), "wire-overlay", &[]);
-    support::run_ok(dir.path(), &["flip", "done", "wire-overlay"]);
+    support::add_then_done(dir.path(), "wire-overlay");
     support::check_ok(dir.path());
 }
 
@@ -190,8 +189,7 @@ fn overlay_only_preset_composes_to_the_overlay() {
     assert!(!config.contains("overlay"), "{config}");
     assert!(config.contains("[[tasks.status]]"), "{config}");
 
-    support::add_then_ls_and_check(dir.path(), "wire-overlay-only", &[]);
-    support::run_ok(dir.path(), &["flip", "done", "wire-overlay-only"]);
+    support::add_then_done(dir.path(), "wire-overlay-only");
     support::check_ok(dir.path());
 }
 
@@ -200,10 +198,7 @@ fn overlay_only_preset_composes_to_the_overlay() {
 #[test]
 fn unknown_preset_fails_without_writing() {
     let dir = tempdir();
-    support::mt(dir.path())
-        .args(["init", "--preset", "nope"])
-        .assert()
-        .failure();
+    support::assert_fails(dir.path(), &["init", "--preset", "nope"]);
     assert!(!dir.path().join(".mindtape/config.toml").exists());
 }
 
@@ -271,5 +266,5 @@ fn force_interplay_unchanged() {
     support::run_ok(dir.path(), &["init", "--preset", "gated", "--force"]);
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
     assert!(config.contains("needs-review"), "{config}");
-    assert!(dir.path().join(".mindtape/templates/task.typ").exists());
+    support::assert_exists(dir.path(), ".mindtape/templates/task.typ");
 }

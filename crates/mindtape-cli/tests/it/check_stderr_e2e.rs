@@ -3,7 +3,6 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use mindtape::test_support::write_file;
-use std::path::Path;
 
 use crate::support;
 
@@ -25,21 +24,15 @@ fn broken_project() -> tempfile::TempDir {
     dir
 }
 
-fn run(dir: &Path, args: &[&str]) -> (Option<i32>, String, String) {
-    crate::support::parts_of(&mt(dir).args(args).output().unwrap())
-}
-
 #[test]
 fn a_breach_and_the_count_go_to_stderr_and_stdout_stays_empty() {
     let dir = broken_project();
 
-    let (code, stdout, stderr) = run(dir.path(), &["check"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let (stdout, stderr) = support::refusal_parts(dir.path(), &["check"]);
     assert_eq!(stdout, "", "stdout carries only the ok line");
     assert!(
         stderr.contains(
-            &shown("error: tasks/subject.typ:3: rules.start-title-with-verb: start the title with an imperative verb\n")
+            &support::shown("error: tasks/subject.typ:3: rules.start-title-with-verb: start the title with an imperative verb\n", &["tasks/subject.typ"])
         ),
         "{stderr}"
     );
@@ -51,7 +44,7 @@ fn a_breach_and_the_count_go_to_stderr_and_stdout_stays_empty() {
 fn a_range_git_cannot_read_is_one_error_with_its_reason() {
     let dir = commit_repo("");
 
-    let (code, _, stderr) = run(dir.path(), &["check", "--commits", "HEAD~5..HEAD"]);
+    let (code, _, stderr) = support::parts(dir.path(), &["check", "--commits", "HEAD~5..HEAD"]);
 
     assert_eq!(code, Some(1), "{stderr}");
     assert!(
@@ -89,9 +82,4 @@ fn a_commit_message_problem_goes_to_stderr() {
         stderr.ends_with("error: 1 commit message problem\n"),
         "{stderr}"
     );
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &["tasks/subject.typ"])
 }

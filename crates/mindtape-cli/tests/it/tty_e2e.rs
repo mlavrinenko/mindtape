@@ -295,7 +295,7 @@ fn interactive_add_holds_a_project_editor_until_mt_allow() {
     let first = std::fs::read_to_string(dir.path().join("tasks/first.typ")).unwrap();
     assert!(first.contains("Visual"), "{first}");
 
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
     let out = pty_output(dir.path(), "add --name second --edit", 200, &env);
 
     assert!(out.contains("wrote"), "{out}");

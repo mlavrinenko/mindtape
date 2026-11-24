@@ -34,7 +34,7 @@ fn project() -> tempfile::TempDir {
 }
 
 fn stderr_of(dir: &Path, args: &[&str]) -> String {
-    let out = support::mt(dir).args(args).output().unwrap();
+    let out = support::run(dir, args);
     assert_eq!(out.status.code(), Some(1));
     String::from_utf8(out.stderr).unwrap()
 }
@@ -49,14 +49,17 @@ fn the_breach_on_another_task_is_one_note_for_the_whole_batch() {
 
     assert_eq!(
         stderr,
-        shown(&format!(
-            "error: tasks/bar.typ:3: {BREACH}\n\
+        support::shown(
+            &format!(
+                "error: tasks/bar.typ:3: {BREACH}\n\
              note: tasks/foo.typ:3: {BREACH}\n\
              note: task: bar\n\
              error: tasks/baz.typ:3: {BREACH}\n\
              note: task: baz\n\
              error: flipped 0 of 2 tasks\n"
-        ))
+            ),
+            &["tasks/bar.typ", "tasks/baz.typ", "tasks/foo.typ"]
+        )
     );
 }
 
@@ -68,14 +71,12 @@ fn a_single_refused_target_prints_no_summary_and_no_reported_on() {
 
     assert_eq!(
         stderr,
-        shown(&format!(
-            "error: tasks/bar.typ:3: {BREACH}\n\
+        support::shown(
+            &format!(
+                "error: tasks/bar.typ:3: {BREACH}\n\
              note: tasks/foo.typ:3: {BREACH}\n"
-        ))
+            ),
+            &["tasks/bar.typ", "tasks/baz.typ", "tasks/foo.typ"]
+        )
     );
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &["tasks/bar.typ", "tasks/baz.typ", "tasks/foo.typ"])
 }

@@ -47,10 +47,7 @@ fn set_ok(dir: &Path, token: &str) -> String {
 
 /// `mt set <task> <token>`, asserting refusal and returning stderr.
 fn set_err(dir: &Path, token: &str) -> String {
-    let assert = support::mt(dir)
-        .args(["set", "wire-oauth", token])
-        .assert()
-        .failure();
+    let assert = support::assert_fails(dir, &["set", "wire-oauth", token]);
     String::from_utf8_lossy(&assert.get_output().stderr).into_owned()
 }
 
@@ -201,10 +198,7 @@ fn a_hazardous_string_value_survives_the_round_trip() {
         ],
     );
 
-    let listed = support::mt(dir.path())
-        .args(["ls", "", "--json"])
-        .assert()
-        .success();
+    let listed = support::ok(dir.path(), &["ls", "", "--json"]);
     let stdout = String::from_utf8_lossy(&listed.get_output().stdout).into_owned();
     assert!(stdout.contains(support::MARKUP_HAZARDS), "{stdout}");
 }
@@ -215,7 +209,10 @@ fn a_refused_set_reports_the_file_and_line_of_the_breach() {
     let dir = scaffold();
     let stderr = set_err(dir.path(), "priority=99");
     assert!(
-        stderr.contains(&shown("error: tasks/wire-oauth.typ:")),
+        stderr.contains(&support::shown(
+            "error: tasks/wire-oauth.typ:",
+            &["tasks/wire-oauth.typ"]
+        )),
         "{stderr}"
     );
 }
@@ -228,7 +225,10 @@ fn a_refused_insert_points_at_the_call_on_disk() {
     let dir = scaffold();
     let stderr = set_err(dir.path(), "priority=99");
     assert!(
-        stderr.contains(&shown("error: tasks/wire-oauth.typ:3: priority:")),
+        stderr.contains(&support::shown(
+            "error: tasks/wire-oauth.typ:3: priority:",
+            &["tasks/wire-oauth.typ"]
+        )),
         "{stderr}"
     );
 }
@@ -247,10 +247,10 @@ fn a_refused_replace_points_at_the_field_on_disk() {
     let padded = written.replacen("title:", "// a\n  // b\n  title:", 1);
     mindtape::write_atomic(&dir.path().join("tasks/wire-oauth.typ"), padded.as_bytes()).unwrap();
     let stderr = set_err(dir.path(), "priority=99");
-    let expected = shown(&format!(
-        "error: tasks/wire-oauth.typ:{}: priority:",
-        line + 2
-    ));
+    let expected = support::shown(
+        &format!("error: tasks/wire-oauth.typ:{}: priority:", line + 2),
+        &["tasks/wire-oauth.typ"],
+    );
     assert!(stderr.contains(&expected), "{stderr}\n{padded}");
 }
 
@@ -304,9 +304,4 @@ fn dir_is_refused_with_the_add_or_rename_hint() {
     assert!(stderr.contains("--dir"), "{stderr}");
     assert!(stderr.contains("mt mv only renames"), "{stderr}");
     assert_eq!(read(dir.path()), before, "a refused write must not land");
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &["tasks/wire-oauth.typ"])
 }

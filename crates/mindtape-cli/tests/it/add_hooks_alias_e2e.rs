@@ -108,11 +108,7 @@ fn an_aliased_title_set_mints_the_stem() {
 #[test]
 fn a_piped_title_fills_an_aliased_slot_and_mints_the_stem() {
     let dir = aliased_project("");
-    support::mt(dir.path())
-        .args(["add", "--set", "type=bug"])
-        .write_stdin("Piped title\n")
-        .assert()
-        .success();
+    support::ok_stdin(dir.path(), &["add", "--set", "type=bug"], "Piped title\n");
     let written = read(dir.path(), "tasks/piped-title.typ");
     assert!(written.contains("title: \"Piped title\""), "{written}");
 }

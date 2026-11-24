@@ -53,8 +53,7 @@ fn dangling() -> tempfile::TempDir {
 #[test]
 fn an_error_place_and_the_paths_in_its_message_take_the_separator() {
     let dir = dangling();
-    let (code, stderr) = support::run_stderr(dir.path(), &["--path-separator", "\\", "check"]);
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = support::refusal(dir.path(), &["--path-separator", "\\", "check"]);
     assert!(
         stderr.contains("error: tasks\\a.typ:6: depends-on: link target `tasks\\nope.typ`"),
         "{stderr}"
@@ -64,10 +63,7 @@ fn an_error_place_and_the_paths_in_its_message_take_the_separator() {
 #[test]
 fn check_json_keeps_the_slash_in_its_file_and_place() {
     let dir = dangling();
-    let out = support::mt(dir.path())
-        .args(["--path-separator", "\\", "check", "--json"])
-        .output()
-        .unwrap();
+    let out = support::run(dir.path(), &["--path-separator", "\\", "check", "--json"]);
     let json: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
     let problem = support::at(&json, "/problems/0");
     assert_eq!(support::at(problem, "/file"), "tasks/a.typ", "{json}");

@@ -27,7 +27,7 @@ const LEGEND: &str = "[tasks]\nroots = [\"tasks\"]\n\
 /// the config's commands allowed.
 fn project(hooks: &str) -> tempfile::TempDir {
     let dir = unallowed(hooks);
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
     dir
 }
 
@@ -192,7 +192,7 @@ fn into_scopes_the_hook_to_its_target_status() {
     cmd(dir.path(), &["flip", "done", "alpha"])
         .assert()
         .success();
-    assert!(dir.path().join("fired").exists());
+    support::assert_exists(dir.path(), "fired");
 }
 
 /// Actions run in declaration order, and a failed gate skips the rest.
@@ -230,7 +230,7 @@ fn show_and_list_are_silent_when_piped_but_gates_still_run() {
     let stdout = stdout_of(dir.path(), &["flip", "done", "alpha"]);
     assert!(!stdout.contains("SENTINEL-TEXT"), "{stdout}");
     assert!(!stdout.contains("SENTINEL-TITLE"), "{stdout}");
-    assert!(dir.path().join("fired").exists(), "the gate must still run");
+    support::assert_exists_because(dir.path(), "fired", "the gate must still run");
 }
 
 /// A malformed hook is a config error at load, so it fails every command
@@ -262,9 +262,7 @@ fn an_unallowed_gate_refuses_the_flip_without_running_it() {
     let dir = unallowed(&gate_hook(true));
     let before = task_source(dir.path());
 
-    let (code, stderr) = support::run_stderr(dir.path(), &["flip", "done", "alpha"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = support::refusal(dir.path(), &["flip", "done", "alpha"]);
     assert!(!ran(dir.path()), "an unallowed gate must not run");
     assert!(
         stderr.contains(&format!("error: gate not allowed: '{MARK}'")),

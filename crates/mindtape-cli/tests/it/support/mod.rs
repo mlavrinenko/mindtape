@@ -3,8 +3,8 @@
 //! A module of the one `it` test binary, which declares it in `main.rs`. The
 //! e2e modules reach it with `use crate::support;`. An unused helper is dead
 //! code, and the module-wide allow covers it. The project fixtures live in
-//! `fixtures.rs`, the merge-driver runs in `merge_driver.rs`, and the scrubbed
-//! process builder in `shell.rs`. The `mt` spawns and read-backs stay here.
+//! `fixtures.rs`, the `mt` spawns and read-backs in `run.rs`, the merge-driver
+//! runs in `merge_driver.rs`, and the scrubbed process builder in `shell.rs`.
 //! Only Unix e2e modules use `merge_driver.rs` and `shell.rs`, so both build on
 //! Unix alone.
 #![allow(
@@ -21,16 +21,24 @@ use mindtape::test_support::tempdir;
 mod fixtures;
 #[cfg(unix)]
 mod merge_driver;
+mod run;
 #[cfg(unix)]
 mod shell;
 pub use fixtures::{
     commit, commit_repo, git, git_commit_all, goal_project, init_preset, install_lib, package_root,
     project_with_raw_slot_template, project_with_slot_template, project_with_task,
     project_with_tasks, project_with_template, project_with_template_and_config, scaffold,
-    scaffold_config, scaffold_project, stage_file, write_aliased_task,
+    scaffold_config, scaffold_project, scaffold_with_existing_dup, stage_file, write_aliased_task,
 };
 #[cfg(unix)]
 pub use merge_driver::{merge_branches, run_driver, text_merge_conflicts};
+pub use run::{
+    add, add_and_read, add_then_done, add_then_ls_and_check, add_wired_json, allow,
+    assert_check_fails, assert_exists, assert_exists_because, assert_fails, assert_stderr,
+    check_ok, failed, flip, flip_done, json, listed, ok, ok_stdin, parts, parts_of, refusal,
+    refusal_parts, run, run_at, run_ok, run_stderr, run_text, shown, stderr_of, stdout, stdout_of,
+    text_of,
+};
 #[cfg(unix)]
 pub use shell::{checkout, shell};
 
@@ -110,35 +118,6 @@ pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 5] {
     ]
 }
 
-/// `mt <args>` in `dir`: the exit code and stderr.
-pub fn run_stderr(dir: &Path, args: &[&str]) -> (Option<i32>, String) {
-    let output = mt(dir).args(args).output().unwrap();
-    (
-        output.status.code(),
-        String::from_utf8(output.stderr).unwrap(),
-    )
-}
-
-/// What a finished `mt` (or `git`) run printed, stdout then stderr, with
-/// whether it exited zero: the pair most failure assertions read.
-pub fn text_of(out: &std::process::Output) -> (bool, String) {
-    let text = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    (out.status.success(), text)
-}
-
-/// A finished run's exit code, stdout and stderr, each read as UTF-8.
-pub fn parts_of(out: &std::process::Output) -> (Option<i32>, String, String) {
-    (
-        out.status.code(),
-        String::from_utf8(out.stdout.clone()).unwrap(),
-        String::from_utf8(out.stderr.clone()).unwrap(),
-    )
-}
-
 /// Write `<cfg>/mindtape/at.toml` with one `[at.<name>]` entry per
 /// `(name, projects)`, each including the projects' directories.
 pub fn write_at_toml(cfg: &Path, entries: &[(&str, &[&Path])]) {
@@ -154,29 +133,6 @@ pub fn write_at_toml(cfg: &Path, entries: &[(&str, &[&Path])]) {
         })
         .collect();
     std::fs::write(cfg.join("mindtape/at.toml"), toml).unwrap();
-}
-
-/// `mt <args>` in `dir`, as `(succeeded, stdout then stderr)`.
-pub fn run_text(dir: &Path, args: &[&str]) -> (bool, String) {
-    text_of(&mt(dir).args(args).output().unwrap())
-}
-
-/// `mt check` in `dir` must fail and print `needle`.
-pub fn assert_check_fails(dir: &Path, needle: &str) {
-    let (ok, text) = run_text(dir, &["check"]);
-    assert!(!ok, "check passed, wanted a failure: {text}");
-    assert!(
-        text.contains(needle),
-        "check output lacks {needle:?}: {text}"
-    );
-}
-
-/// `mt <args>` in `dir` must exit with `code` and print exactly `expected` on
-/// stderr: the shape of every error-format test.
-pub fn assert_stderr(dir: &Path, args: &[&str], code: i32, expected: &str) {
-    let (got, stderr) = run_stderr(dir, args);
-    assert_eq!(got, Some(code), "{stderr}");
-    assert_eq!(stderr, expected);
 }
 
 /// `mt`, ready to run in `dir` with the developer's global config out of reach
@@ -299,62 +255,6 @@ pub fn at<'a>(row: &'a serde_json::Value, pointer: &str) -> &'a serde_json::Valu
         .unwrap_or_else(|| panic!("no {pointer} in {row}"))
 }
 
-/// Run `mt` in `dir` and assert it succeeds. Named `run_ok` (not `mt`) so it
-/// sits alongside [`mt`] rather than shadowing it: callers that need the raw
-/// `assert_cmd::Command` (a failure assertion, stdout capture, …) still reach
-/// for [`mt`] directly.
-pub fn run_ok(dir: &Path, args: &[&str]) {
-    mt(dir).args(args).assert().success();
-}
-
-/// Assert `mt check` passes in `dir`: what a command wrote still validates.
-pub fn check_ok(dir: &Path) {
-    run_ok(dir, &["check"]);
-}
-
-/// Run `mt add --name <name> <args…>` in `dir`, assert it succeeds, and
-/// return the task file it wrote, `tasks/<name>.typ`.
-pub fn add_and_read(dir: &Path, name: &str, args: &[&str]) -> String {
-    let mut command = vec!["add", "--name", name];
-    command.extend_from_slice(args);
-    run_ok(dir, &command);
-    std::fs::read_to_string(dir.join("tasks").join(format!("{name}.typ"))).unwrap()
-}
-
-/// Run `mt` in `dir`, assert it succeeds, and parse its stdout as JSON.
-pub fn json(dir: &Path, args: &[&str]) -> serde_json::Value {
-    serde_json::from_str(&stdout(dir, args)).unwrap()
-}
-
-/// Run `mt` in `dir`, assert it succeeds, and return its stdout. This is
-/// [`run_ok`] for the tests that assert on what the run printed rather than only
-/// that it succeeded.
-pub fn stdout(dir: &Path, args: &[&str]) -> String {
-    let out = mt(dir).args(args).output().unwrap();
-    assert!(out.status.success(), "mt {args:?} failed: {out:?}");
-    String::from_utf8_lossy(&out.stdout).into_owned()
-}
-
-/// Run `mt add --name wired --set title=T --json` in `dir`, returning stdout.
-pub fn add_wired_json(dir: &Path) -> String {
-    stdout(
-        dir,
-        &["add", "--name", "wired", "--set", "title=T", "--json"],
-    )
-}
-
-/// File a task in `dir` via `mt add --name <name> --set title=T <extra_set…>`,
-/// then assert `mt ls` and `mt check` both succeed against it. Shared by the
-/// `init` e2e batteries that prove a scaffolded preset or answer set is usable
-/// end to end, not just that `init` wrote *something*.
-pub fn add_then_ls_and_check(dir: &Path, name: &str, extra_set: &[&str]) {
-    let mut args = vec!["add", "--name", name, "--set", "title=T"];
-    args.extend_from_slice(extra_set);
-    run_ok(dir, &args);
-    run_ok(dir, &["ls"]);
-    check_ok(dir);
-}
-
 /// The slot rows from `add --describe=json` run in `dir`.
 pub fn describe_slots(dir: &Path) -> serde_json::Value {
     let document = json_output(dir, &["add", "--describe=json"]);
@@ -406,18 +306,6 @@ pub fn commit_msg_refusal(dir: &Path, message: &str) -> String {
     let (ok, text) = check_commit_msg(dir, message);
     assert!(!ok, "the check must refuse {message:?}: {text}");
     text
-}
-
-/// The stderr of a finished `assert_cmd` run, for the tests that match on a
-/// refusal's text.
-pub fn stderr_of(done: &assert_cmd::assert::Assert) -> String {
-    String::from_utf8_lossy(&done.get_output().stderr).into_owned()
-}
-
-/// The stdout of a finished `assert_cmd` run, for the tests that match on
-/// what a command printed.
-pub fn stdout_of(done: &assert_cmd::assert::Assert) -> String {
-    String::from_utf8_lossy(&done.get_output().stdout).into_owned()
 }
 
 /// `path`, written with `/`, in the separator `mt` shows people on this

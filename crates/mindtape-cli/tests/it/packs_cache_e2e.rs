@@ -35,10 +35,7 @@ fn project(installed: bool) -> tempfile::TempDir {
 }
 
 fn origin(dir: &Path) -> String {
-    let out = support::mt(dir)
-        .args(["config", "show", "--origin"])
-        .output()
-        .unwrap();
+    let out = support::run(dir, &["config", "show", "--origin"]);
     support::text_of(&out).1
 }
 
@@ -58,9 +55,7 @@ fn config_show_origin_names_a_cached_pack_by_its_source() {
 fn a_source_missing_from_the_cache_says_to_install_it() {
     let dir = project(false);
 
-    let (code, stderr) = support::run_stderr(dir.path(), &["check"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
+    let stderr = support::refusal(dir.path(), &["check"]);
     assert!(
         stderr.contains("pack source not installed: 'acme'"),
         "{stderr}"

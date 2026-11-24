@@ -12,7 +12,7 @@ use std::path::Path;
 
 use crate::support;
 
-use support::{commit, git, git_commit_all, mt, project_with_tasks};
+use support::{commit, git, git_commit_all, project_with_tasks};
 
 /// Write `path` under `dir` with `message` as its contents, and commit it.
 fn commit_file(dir: &Path, path: &str, message: &str) {
@@ -23,7 +23,7 @@ fn commit_file(dir: &Path, path: &str, message: &str) {
 
 /// `mt ls <expr> --json`, parsed.
 fn ls_json(dir: &Path, expr: &str) -> serde_json::Value {
-    let out = mt(dir).args(["ls", expr, "--json"]).output().unwrap();
+    let out = support::run(dir, &["ls", expr, "--json"]);
     assert!(
         out.status.success(),
         "{}",
@@ -62,12 +62,11 @@ fn ls_lists_the_tasks_a_paths_commits_name_and_the_retired_stems_met() {
 fn outside_git_touches_fails_and_every_other_listing_works() {
     let dir = project_with_tasks(&[("parser.typ", "Write the parser")]);
     let dir = dir.path();
-    let out = mt(dir)
-        .args(["ls", r#"touches("src/parse.rs")"#])
-        .output()
-        .unwrap();
-    assert!(!out.status.success());
-    let stderr = String::from_utf8_lossy(&out.stderr);
+    let stderr = support::failed(
+        dir,
+        &["ls", r#"touches("src/parse.rs")"#],
+        "touches() outside git must fail",
+    );
     assert!(stderr.contains("can't read git: touches()"), "{stderr}");
-    assert!(mt(dir).args(["ls", ""]).output().unwrap().status.success());
+    assert!(support::run(dir, &["ls", ""]).status.success());
 }

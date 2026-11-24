@@ -30,10 +30,10 @@ fn cli_dump_prints_the_json_to_stdout() {
 /// declared, returning whether `mt` accepted the line and what it said.
 fn check_argv(line: &str) -> (bool, String) {
     let dir = tempdir();
-    let output = support::mt(dir.path())
-        .args(["_cli", "--statuses", "done,wip", "--check-argv", line])
-        .output()
-        .unwrap();
+    let output = support::run(
+        dir.path(),
+        &["_cli", "--statuses", "done,wip", "--check-argv", line],
+    );
     let said = String::from_utf8_lossy(&output.stderr).into_owned();
     (output.status.success(), said)
 }

@@ -58,10 +58,10 @@ fn injects_config_required_assignee_slot() {
     support::check_ok(dir.path());
 
     // Omitting a config-required field is the existing missing-slot hard error.
-    support::mt(dir.path())
-        .args(["add", "--name", "no-assignee", "--set", "title=T"])
-        .assert()
-        .failure();
+    support::assert_fails(
+        dir.path(),
+        &["add", "--name", "no-assignee", "--set", "title=T"],
+    );
 }
 
 /// The required assignee splice reads the environment. A harness that sets

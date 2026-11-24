@@ -36,10 +36,7 @@ fn injects_config_required_priority_slot() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // Omitting a config-required field is the existing missing-slot hard error.
-    support::mt(dir.path())
-        .args(["add", "--name", "no-pri", "--set", "title=T"])
-        .assert()
-        .failure();
+    support::assert_fails(dir.path(), &["add", "--name", "no-pri", "--set", "title=T"]);
 }
 
 /// A config whose `[tasks.priority]` is real-scaled and required. The
@@ -114,8 +111,9 @@ fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
     support::check_ok(dir.path());
 
     // Omitting a leaf is the existing missing-slot hard error, before any write.
-    support::mt(dir.path())
-        .args([
+    support::assert_fails(
+        dir.path(),
+        &[
             "add",
             "--name",
             "no-ease",
@@ -125,9 +123,8 @@ fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
             "impact=9",
             "--set",
             "confidence=0.9",
-        ])
-        .assert()
-        .failure();
+        ],
+    );
     assert!(!dir.path().join("tasks/no-ease.typ").exists());
 }
 

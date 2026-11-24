@@ -135,7 +135,7 @@ fn an_outside_root_destination_still_only_warns() {
         .get_output()
         .clone();
 
-    assert!(outside.path().join("wire-import.typ").exists());
+    support::assert_exists(outside.path(), "wire-import.typ");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("outside the configured roots"), "{stderr}");
 }
@@ -403,8 +403,8 @@ fn a_two_folder_export_imports_back_whole() {
         .assert()
         .success();
 
-    assert!(dir.path().join("tasks/a/alpha.typ").exists());
-    assert!(dir.path().join("tasks/b/beta.typ").exists());
+    support::assert_exists(dir.path(), "tasks/a/alpha.typ");
+    support::assert_exists(dir.path(), "tasks/b/beta.typ");
     support::check_ok(dir.path());
 }
 
@@ -417,14 +417,10 @@ fn an_explicit_destination_overrides_the_record_file_for_the_whole_batch() {
         record("beta", "tasks/b/beta.typ", None),
     );
 
-    support::mt(dir.path())
-        .args(["import", "--dir", "tasks/moved"])
-        .write_stdin(batch)
-        .assert()
-        .success();
+    support::ok_stdin(dir.path(), &["import", "--dir", "tasks/moved"], &batch);
 
-    assert!(dir.path().join("tasks/moved/alpha.typ").exists());
-    assert!(dir.path().join("tasks/moved/beta.typ").exists());
+    support::assert_exists(dir.path(), "tasks/moved/alpha.typ");
+    support::assert_exists(dir.path(), "tasks/moved/beta.typ");
     assert!(!dir.path().join("tasks/a").exists());
     assert!(!dir.path().join("tasks/b").exists());
 }
@@ -467,7 +463,7 @@ fn a_stem_taken_in_another_folder_gets_a_suffix_and_the_report_says_so() {
         .success()
         .stderr(predicates::str::contains("alpha: filed as alpha-2"));
 
-    assert!(dir.path().join("tasks/b/alpha-2.typ").exists());
+    support::assert_exists(dir.path(), "tasks/b/alpha-2.typ");
 }
 
 #[test]

@@ -141,10 +141,7 @@ fn path_is_truncated_without_a_trailing_prose_line() {
 #[test]
 fn path0_is_truncated_and_stays_self_terminated() {
     let dir = scaffold();
-    let out = support::mt(dir.path())
-        .args(["ls", "", "-n", "2", "--format", "path0"])
-        .output()
-        .unwrap();
+    let out = support::run(dir.path(), &["ls", "", "-n", "2", "--format", "path0"]);
     let raw = &out.stdout;
     assert!(
         raw.ends_with(b"\0") && !raw.ends_with(b"\n"),

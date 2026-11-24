@@ -62,12 +62,10 @@ fn eval_resolves_a_stem_like_the_other_task_commands() {
 #[test]
 fn eval_names_the_nearest_stem_on_an_unknown_reference() {
     let dir = support::project_with_task("Evaluate me");
-    let out = support::mt(dir.path())
-        .args(["eval", "tset"])
-        .output()
-        .unwrap();
-
-    assert!(!out.status.success());
-    let err = String::from_utf8_lossy(&out.stderr);
+    let err = support::failed(
+        dir.path(),
+        &["eval", "tset"],
+        "an unknown reference must fail",
+    );
     assert!(err.contains("hint: did you mean test?"), "{err}");
 }

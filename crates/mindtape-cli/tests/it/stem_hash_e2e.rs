@@ -97,7 +97,7 @@ fn a_hash_survives_a_flip_and_a_new_task() {
     let before = listed_hash(dir.path(), &[], "charlie");
 
     support::run_ok(dir.path(), &["wip", "alpha"]);
-    support::run_ok(dir.path(), &["done", "bravo"]);
+    support::flip_done(dir.path(), "bravo");
     // A stem whose code shares no digit prefix with charlie's.
     let added = (0..)
         .map(|n| format!("echo-{n}"))
@@ -125,13 +125,11 @@ fn an_ambiguous_hash_is_refused_naming_each_candidate() {
     let first_hash = listed_hash(dir.path(), &[], &first);
     let second_hash = listed_hash(dir.path(), &[], &second);
 
-    let out = support::mt(dir.path())
-        .args(["eval", &prefix])
-        .output()
-        .unwrap();
-
-    assert!(!out.status.success(), "an ambiguous hash must be refused");
-    let err = String::from_utf8_lossy(&out.stderr);
+    let err = support::failed(
+        dir.path(),
+        &["eval", &prefix],
+        "an ambiguous hash must be refused",
+    );
     for expected in [&first, &second, &first_hash, &second_hash] {
         assert!(err.contains(expected.as_str()), "{expected} missing: {err}");
     }
@@ -156,10 +154,7 @@ fn rm_reads_a_filter_word_before_a_stem_hash() {
         // Every command but `mt rm` takes the word as that task's stem hash.
         assert_eq!(eval_id(dir.path(), word), stem, "fixture: {word} is a hash");
 
-        let out = support::mt(dir.path())
-            .args(["rm", word, "--dry-run", "-y"])
-            .output()
-            .unwrap();
+        let out = support::run(dir.path(), &["rm", word, "--dry-run", "-y"]);
         let stdout = String::from_utf8_lossy(&out.stdout);
         assert!(
             !stdout.contains(stem),

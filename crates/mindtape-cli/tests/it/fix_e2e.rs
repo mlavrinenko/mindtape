@@ -51,9 +51,7 @@ fn fixed(dir: &Path, args: &[&str]) -> String {
 
 /// Run `mt fix …` and assert it failed, returning stderr.
 fn refused(dir: &Path, args: &[&str]) -> String {
-    let (code, stderr) = support::run_stderr(dir, args);
-    assert_eq!(code, Some(1), "{stderr}");
-    stderr
+    support::refusal(dir, args)
 }
 
 /// Every `needle` appears in `text`. The check compares printed paths with `/`

@@ -16,7 +16,7 @@ fn ls_stderr(config: &str, pack: &str) -> String {
         mindtape::typst_task!("(title: slot(\"title\", example: \"T\"))\n"),
     );
     std::fs::write(dir.path().join("team.toml"), pack).unwrap();
-    let out = support::mt(dir.path()).arg("ls").output().unwrap();
+    let out = support::run(dir.path(), &["ls"]);
     assert!(out.status.success());
     String::from_utf8_lossy(&out.stderr).into_owned()
 }
@@ -25,8 +25,9 @@ fn ls_stderr(config: &str, pack: &str) -> String {
 fn a_command_warns_about_an_undeclared_extra_in_a_rule() {
     let stderr = ls_stderr(CONFIG, "");
     assert!(
-        stderr.contains(&shown(
-            "warning: .mindtape/config.toml:7: tasks.rules[0].assert: `x-machnie`"
+        stderr.contains(&support::shown(
+            "warning: .mindtape/config.toml:7: tasks.rules[0].assert: `x-machnie`",
+            &[".mindtape/config.toml"]
         )),
         "{stderr}"
     );
@@ -42,9 +43,4 @@ fn a_warning_from_a_pack_points_into_the_pack() {
         stderr.contains("warning: team.toml:5: tasks.rules[0].assert: `x-machnie`"),
         "{stderr}"
     );
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &[".mindtape/config.toml"])
 }

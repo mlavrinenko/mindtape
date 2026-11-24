@@ -11,7 +11,7 @@ use crate::support;
 fn a_set_title_without_a_title_slot_mints_the_stem() {
     let dir = support::project_with_template(mindtape::typst_task!("(title: \"Placeholder\")\n"));
 
-    support::run_ok(dir.path(), &["add", "--set", "title=Budget"]);
+    support::add(dir.path(), &["--set", "title=Budget"]);
 
     let written = std::fs::read_to_string(dir.path().join("tasks/budget.typ")).unwrap();
     assert!(written.contains("title: \"Budget\""), "{written}");

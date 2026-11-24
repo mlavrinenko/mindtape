@@ -14,10 +14,7 @@ const LEGEND: &str = "[tasks]\nroots = [\"tasks\"]\n\
 #[test]
 fn shortcut_verb_help_prints_help_and_exits_zero() {
     let dir = support::scaffold_project(LEGEND);
-    let output = support::mt(dir.path())
-        .args(["done", "--help"])
-        .output()
-        .unwrap();
+    let output = support::run(dir.path(), &["done", "--help"]);
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
     assert!(
@@ -36,7 +33,7 @@ fn shortcut_verb_help_prints_help_and_exits_zero() {
 #[test]
 fn shortcut_verb_bad_flag_is_a_usage_error_exiting_two() {
     let dir = support::scaffold_project(LEGEND);
-    let run = |args: &[&str]| support::mt(dir.path()).args(args).output().unwrap();
+    let run = |args: &[&str]| support::run(dir.path(), args);
     let shortcut = run(&["done", "--no-such-flag"]);
     let flip = run(&["flip", "done", "--no-such-flag"]);
     assert_eq!(shortcut.status.code(), Some(2));

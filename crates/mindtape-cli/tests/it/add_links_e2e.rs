@@ -29,11 +29,11 @@ fn end_to_end_files_a_links_slot_from_yaml() {
         mindtape::typst_task!(r#"(title: "Origin", status: done(2026, 1, 1))"#),
     );
 
-    support::mt(dir.path())
-        .args(["add", "-t", "links", "--name", "linked", "-f", "-"])
-        .write_stdin("title: Linked\nlinks: [{kind: related, task: origin.typ, note: why}]\n")
-        .assert()
-        .success();
+    support::ok_stdin(
+        dir.path(),
+        &["add", "-t", "links", "--name", "linked", "-f", "-"],
+        "title: Linked\nlinks: [{kind: related, task: origin.typ, note: why}]\n",
+    );
 
     let written = std::fs::read_to_string(dir.path().join("tasks/linked.typ")).unwrap();
     assert!(

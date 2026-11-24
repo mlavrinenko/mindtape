@@ -33,7 +33,7 @@ fn rm_retire_flips_to_first_terminal_status_without_git() {
     run.stdout(predicates::str::contains(
         "would retire 1 task (status → done)",
     ));
-    assert!(dir.path().join("tasks/gone.typ").exists());
+    support::assert_exists(dir.path(), "tasks/gone.typ");
 
     // No git anywhere: the retire report's commit hint must not print either.
     mt(dir.path())
@@ -149,8 +149,13 @@ fn rm_retire_dry_run_previews_the_archive_move_and_writes_nothing() {
     .stdout(predicates::str::contains(
         "would move 1 task into .archive/:",
     ))
-    .stdout(predicates::str::contains(shown(
+    .stdout(predicates::str::contains(support::shown(
         "tasks/gone.typ → tasks/.archive/gone.typ",
+        &[
+            "tasks/.archive/gone.typ",
+            "tasks/gone.typ",
+            "tasks/live.typ",
+        ],
     )))
     .stdout(predicates::str::contains(
         "would rewrite 3 links in 1 file:",
@@ -159,7 +164,7 @@ fn rm_retire_dry_run_previews_the_archive_move_and_writes_nothing() {
 
     // A preview writes nothing: the file stays put, non-terminal, and the
     // survivor's edges still point at the untouched original path.
-    assert!(dir.path().join("tasks/gone.typ").exists());
+    support::assert_exists(dir.path(), "tasks/gone.typ");
     assert!(!dir.path().join("tasks/.archive/gone.typ").exists());
     let gone = std::fs::read_to_string(dir.path().join("tasks/gone.typ")).unwrap();
     assert!(gone.contains("wip("), "flipped despite dry-run:\n{gone}");
@@ -168,16 +173,4 @@ fn rm_retire_dry_run_previews_the_archive_move_and_writes_nothing() {
         live.contains("\"gone.typ\""),
         "retargeted despite dry-run:\n{live}"
     );
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(
-        text,
-        &[
-            "tasks/.archive/gone.typ",
-            "tasks/gone.typ",
-            "tasks/live.typ",
-        ],
-    )
 }

@@ -102,10 +102,20 @@ fn scaffold_files(files: &[(&str, &str)]) -> tempfile::TempDir {
     scaffold_config(CONFIG, files)
 }
 
+/// The `gone`/`live` pair every `mt rm` test starts from.
+fn gone_and_live() -> tempfile::TempDir {
+    scaffold_files(&[("gone.typ", GONE), ("live.typ", LIVE)])
+}
+
+/// The `gone`/`unrelated` pair a test that keeps a bystander starts from.
+fn gone_and_unrelated() -> tempfile::TempDir {
+    scaffold_files(&[("gone.typ", GONE), ("unrelated.typ", UNRELATED)])
+}
+
 /// Scaffold a committed-clean git repo with the config, in-tree lib, and the
 /// referencing task pair.
 fn scaffold() -> tempfile::TempDir {
-    let dir = scaffold_files(&[("gone.typ", GONE), ("live.typ", LIVE)]);
+    let dir = gone_and_live();
     git_commit_all(dir.path());
     dir
 }
@@ -192,11 +202,11 @@ fn rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link() {
 fn rm_deletes_unreferenced_task_outside_git_repo() {
     // No repository anywhere: a task nothing references must be removable
     // anyway — no toplevel discovery, no tombstone, no committed-clean guard.
-    let dir = scaffold_files(&[("gone.typ", GONE), ("unrelated.typ", UNRELATED)]);
+    let dir = gone_and_unrelated();
 
     // --dry-run reports the plan without git and writes nothing.
     support::run_ok(dir.path(), &["rm", "--dry-run", "-y", "gone"]);
-    assert!(dir.path().join("tasks/gone.typ").exists());
+    support::assert_exists(dir.path(), "tasks/gone.typ");
 
     // No git anywhere: the hint would point at a tool the user deliberately
     // does not have, so it must not print.
@@ -217,7 +227,7 @@ fn rm_deletes_unreferenced_task_outside_git_repo() {
 fn rm_deletes_unreferenced_task_inside_git_repo() {
     // The fast path also applies when git exists: nothing references `gone`,
     // so deletion still skips the repository entirely.
-    let dir = scaffold_files(&[("gone.typ", GONE), ("unrelated.typ", UNRELATED)]);
+    let dir = gone_and_unrelated();
     git_commit_all(dir.path());
 
     // A git repository does exist here, so the commit hint belongs.
@@ -228,7 +238,7 @@ fn rm_deletes_unreferenced_task_inside_git_repo() {
         .stdout(predicates::str::contains("review the changes and commit"));
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
-    assert!(dir.path().join("tasks/unrelated.typ").exists());
+    support::assert_exists(dir.path(), "tasks/unrelated.typ");
     support::check_ok(dir.path());
 }
 
@@ -237,7 +247,7 @@ fn rm_defaults_to_reject_without_git_and_lists_surviving_referrers() {
     // No repository, no configured strategy: the default is `reject`, which
     // refuses and names every surviving task that points at `gone` — dry-run
     // included, since reject has no plan to preview.
-    let dir = scaffold_files(&[("gone.typ", GONE), ("live.typ", LIVE)]);
+    let dir = gone_and_live();
 
     mt(dir.path())
         .args(["rm", "--dry-run", "-y", "gone"])
@@ -246,8 +256,9 @@ fn rm_defaults_to_reject_without_git_and_lists_surviving_referrers() {
         .stderr(predicates::str::contains(
             "error: cannot remove tasks that other tasks link to\n",
         ))
-        .stderr(predicates::str::contains(shown(
+        .stderr(predicates::str::contains(support::shown(
             "note: link from: tasks/live.typ to gone\n",
+            &["tasks/live.typ"],
         )));
 
     mt(dir.path())
@@ -258,8 +269,8 @@ fn rm_defaults_to_reject_without_git_and_lists_surviving_referrers() {
             "error: cannot remove tasks that other tasks link to\n",
         ));
 
-    assert!(dir.path().join("tasks/gone.typ").exists());
-    assert!(dir.path().join("tasks/live.typ").exists());
+    support::assert_exists(dir.path(), "tasks/gone.typ");
+    support::assert_exists(dir.path(), "tasks/live.typ");
 }
 
 #[test]
@@ -276,7 +287,7 @@ fn rm_unlink_strips_inbound_edges_and_deletes_without_git() {
         .stdout(predicates::str::contains(
             "would rewrite 3 links in 1 file:",
         ));
-    assert!(dir.path().join("tasks/gone.typ").exists());
+    support::assert_exists(dir.path(), "tasks/gone.typ");
 
     support::run_ok(dir.path(), &["rm", "-y", "gone"]);
 
@@ -336,7 +347,7 @@ fn a_runless_on_rm_gate_refuses_before_the_file_goes() {
         "hint: clean the worktree first\n",
     );
 
-    assert!(dir.path().join("tasks/gone.typ").exists());
+    support::assert_exists(dir.path(), "tasks/gone.typ");
 }
 
 /// A `when` that matches no removed task leaves the removal alone.
@@ -360,7 +371,7 @@ fn a_failing_on_rm_run_gate_refuses_before_the_file_goes() {
         "terminal",
         r#"{ run = "exit 1", gate = true, message = "clean the worktree first" }"#,
     );
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
 
     assert_refused(
         dir.path(),
@@ -368,14 +379,14 @@ fn a_failing_on_rm_run_gate_refuses_before_the_file_goes() {
         "hint: clean the worktree first\n",
     );
 
-    assert!(dir.path().join("tasks/gone.typ").exists());
+    support::assert_exists(dir.path(), "tasks/gone.typ");
 }
 
 /// A `run` without `gate` only warns when it fails, and the removal goes on.
 #[test]
 fn a_failing_on_rm_run_without_gate_only_warns() {
     let dir = scaffold_hook("terminal", r#"{ run = "exit 1" }"#);
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
 
     mt(dir.path())
         .args(["rm", "-y", "gone"])
@@ -386,9 +397,4 @@ fn a_failing_on_rm_run_without_gate_only_warns() {
         ));
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &["tasks/live.typ"])
 }

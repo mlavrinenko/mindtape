@@ -46,19 +46,6 @@ fn config(run: &str) -> String {
     )
 }
 
-/// `mt ls <filter> --columns title,why` in `dir`: stdout and stderr.
-fn listed(dir: &Path, filter: &str) -> (String, String) {
-    let out = support::mt(dir)
-        .args(["ls", filter, "--columns", "title,why"])
-        .output()
-        .unwrap();
-    assert!(out.status.success(), "{out:?}");
-    (
-        String::from_utf8(out.stdout).unwrap(),
-        String::from_utf8(out.stderr).unwrap(),
-    )
-}
-
 fn ran(dir: &Path) -> bool {
     dir.join("runs.txt").exists()
 }
@@ -85,7 +72,7 @@ fn assert_site(value: &serde_json::Value, index: usize, expected: &serde_json::V
 fn no_checker_runs_before_mt_allow_and_the_command_warns_once() {
     let dir = project(RUN);
 
-    let (blocked, stderr) = listed(dir.path(), "blocked");
+    let (blocked, stderr) = support::listed(dir.path(), "blocked");
 
     assert!(!ran(dir.path()));
     assert!(
@@ -105,7 +92,7 @@ fn a_command_that_runs_no_checker_does_not_warn() {
     let dir = project(RUN);
     support::run_ok(dir.path(), &["done", "drop-the-patch", "--force"]);
 
-    let (_, stderr) = listed(dir.path(), "");
+    let (_, stderr) = support::listed(dir.path(), "");
 
     assert!(!stderr.contains("warning:"), "{stderr}");
 }
@@ -115,7 +102,7 @@ fn mt_allow_lists_the_commands_and_checkers_run_after_it() {
     let dir = project(RUN);
 
     let allowed = support::stdout(dir.path(), &["allow"]);
-    let (ready, stderr) = listed(dir.path(), "ready");
+    let (ready, stderr) = support::listed(dir.path(), "ready");
 
     assert!(
         allowed.contains("allowed in this repository and its worktrees:"),
@@ -132,7 +119,7 @@ fn allow_status_lists_the_commands_without_recording_them() {
     let dir = project(RUN);
 
     allow_status(dir.path(), false);
-    let (blocked, stderr) = listed(dir.path(), "blocked");
+    let (blocked, stderr) = support::listed(dir.path(), "blocked");
     assert!(blocked.contains("unknown: not allowed"), "{blocked}");
     assert!(stderr.contains("warning:"), "{stderr}");
     assert!(!ran(dir.path()));
@@ -152,7 +139,7 @@ fn allow_status_json_lists_the_sites_and_the_sets_verdict() {
         &serde_json::json!({"kind": "gate", "moment": "waits", "command": RUN}),
     );
 
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
     let after = support::json(dir.path(), &["allow", "--status", "--json"]);
 
     assert_eq!(after["allowed"], true);
@@ -171,7 +158,7 @@ fn allow_status_json_does_not_record() {
 
     support::assert_schema(&status, "allow-status");
     assert_eq!(status["allowed"], false);
-    let (blocked, _) = listed(dir.path(), "blocked");
+    let (blocked, _) = support::listed(dir.path(), "blocked");
     assert!(blocked.contains("unknown: not allowed"), "{blocked}");
     assert!(!ran(dir.path()));
 }
@@ -231,11 +218,11 @@ fn allow_status_lists_the_editors_bare_allow_records() {
 #[test]
 fn a_changed_run_line_asks_again() {
     let dir = project(RUN);
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
     let changed = "echo again>> runs.txt&& exit 0";
     write_file(dir.path(), ".mindtape/config.toml", config(changed));
 
-    let (blocked, stderr) = listed(dir.path(), "blocked");
+    let (blocked, stderr) = support::listed(dir.path(), "blocked");
 
     assert!(!ran(dir.path()));
     assert!(blocked.contains("unknown: not allowed"), "{blocked}");
@@ -246,10 +233,8 @@ fn a_changed_run_line_asks_again() {
 fn wip_force_still_starts_a_task_whose_checker_is_not_allowed() {
     let dir = project(RUN);
 
-    let (code, stderr) = support::run_stderr(dir.path(), &["wip", "drop-the-patch"]);
+    let stderr = support::refusal(dir.path(), &["wip", "drop-the-patch"]);
     support::run_ok(dir.path(), &["wip", "drop-the-patch", "--force"]);
-
-    assert_eq!(code, Some(1), "{stderr}");
     assert!(stderr.contains("unknown: not allowed"), "{stderr}");
     assert!(!ran(dir.path()));
     let task = support::task_json(dir.path(), "drop-the-patch");

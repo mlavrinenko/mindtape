@@ -42,7 +42,7 @@ fn project(extra: &str, waits_on: &str) -> tempfile::TempDir {
              waits-on: {waits_on},\n)\n"
         ),
     );
-    support::run_ok(dir.path(), &["allow"]);
+    support::allow(dir.path());
     dir
 }
 
@@ -79,10 +79,7 @@ fn an_array_gate_runs_its_program_and_passes_on_exit_zero() {
 fn an_array_argument_reaches_the_program_whole() {
     let dir = project(&gate(&["bogus & exit 0"]), "()");
 
-    let out = support::mt(dir.path())
-        .args(["flip", "done", "alpha"])
-        .output()
-        .unwrap();
+    let out = support::run(dir.path(), &["flip", "done", "alpha"]);
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert_eq!(out.status.code(), Some(1), "{out:?}");

@@ -65,8 +65,7 @@ fn config_show_json_wraps_the_merged_table() {
 fn config_show_outside_a_project_fails_naming_the_reason() {
     let dir = tempdir();
 
-    let output = support::mt(dir.path()).arg("config").assert().failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(dir.path(), &["config"], "the run must fail");
     assert!(
         stderr.contains("no .mindtape/ directory here or above"),
         "{stderr}"
@@ -77,11 +76,7 @@ fn config_show_outside_a_project_fails_naming_the_reason() {
 fn malformed_config_toml_fails_show_with_context() {
     let dir = tempdir_with_config("[project\nbroken toml");
 
-    let output = support::mt(dir.path())
-        .args(["config", "show"])
-        .assert()
-        .failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(dir.path(), &["config", "show"], "the run must fail");
     assert!(stderr.contains("config.toml"), "{stderr}");
 }
 
@@ -89,11 +84,11 @@ fn malformed_config_toml_fails_show_with_context() {
 fn malformed_config_toml_fails_origin_with_context() {
     let dir = tempdir_with_config("[project\nbroken toml");
 
-    let output = support::mt(dir.path())
-        .args(["config", "show", "--origin"])
-        .assert()
-        .failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(
+        dir.path(),
+        &["config", "show", "--origin"],
+        "the run must fail",
+    );
     assert!(stderr.contains("config.toml"), "{stderr}");
 }
 
@@ -152,11 +147,11 @@ fn config_show_resolved_conflicts_with_origin_and_defaults() {
     let dir = tempdir_with_config("[project]\ncode = \"demo\"\n");
 
     for other in ["--origin", "--defaults"] {
-        let output = support::mt(dir.path())
-            .args(["config", "show", "--resolved", other])
-            .assert()
-            .failure();
-        let stderr = support::stderr_of(&output);
+        let stderr = support::failed(
+            dir.path(),
+            &["config", "show", "--resolved", other],
+            "the run must fail",
+        );
         assert!(stderr.contains("cannot be used with"), "{other}: {stderr}");
     }
 }

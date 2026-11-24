@@ -21,7 +21,7 @@ fn find_paths(dir: &Path, terms: &[&str]) -> Vec<String> {
     let mut args: Vec<&str> = vec!["find"];
     args.extend_from_slice(terms);
     args.extend(["--format", "path"]);
-    let out = support::mt(dir).args(&args).output().unwrap();
+    let out = support::run(dir, &args);
     let mut lines: Vec<String> = String::from_utf8_lossy(&out.stdout)
         .lines()
         .map(str::to_owned)
@@ -51,10 +51,7 @@ fn find_several_terms_conjoin() {
 #[test]
 fn find_json_reports_the_desugared_filter_in_applied() {
     let dir = scaffold();
-    let out = support::mt(dir.path())
-        .args(["find", "bug", "--json"])
-        .output()
-        .unwrap();
+    let out = support::run(dir.path(), &["find", "bug", "--json"]);
     let json: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
     assert_eq!(support::at(&json, "/applied/facets/filter/from"), "manual");
     assert_eq!(
@@ -75,10 +72,7 @@ fn find_forwards_limit() {
     let dir = scaffold();
     // An empty needle matches every task (`contains("")` is trivially true),
     // isolating `-n` as the only thing narrowing the result.
-    let out = support::mt(dir.path())
-        .args(["find", "", "--format", "path", "-n", "2"])
-        .output()
-        .unwrap();
+    let out = support::run(dir.path(), &["find", "", "--format", "path", "-n", "2"]);
     let count = String::from_utf8_lossy(&out.stdout).lines().count();
     assert_eq!(count, 2);
 }
@@ -86,10 +80,10 @@ fn find_forwards_limit() {
 #[test]
 fn find_forwards_sort() {
     let dir = scaffold();
-    let out = support::mt(dir.path())
-        .args(["find", "", "--format", "path", "--sort", "title:asc"])
-        .output()
-        .unwrap();
+    let out = support::run(
+        dir.path(),
+        &["find", "", "--format", "path", "--sort", "title:asc"],
+    );
     assert!(out.status.success());
     let lines: Vec<&str> = std::str::from_utf8(&out.stdout).unwrap().lines().collect();
     assert_eq!(lines.len(), 4);
@@ -98,9 +92,9 @@ fn find_forwards_sort() {
 #[test]
 fn find_has_no_in_flag() {
     let dir = scaffold();
-    let out = support::mt(dir.path())
-        .args(["find", "bug", "--in", "title"])
-        .output()
-        .unwrap();
-    assert!(!out.status.success(), "no --in flag exists on find");
+    support::failed(
+        dir.path(),
+        &["find", "bug", "--in", "title"],
+        "no --in flag exists on find",
+    );
 }

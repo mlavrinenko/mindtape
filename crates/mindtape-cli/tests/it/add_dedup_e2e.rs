@@ -79,10 +79,7 @@ fn scaffold_with_dup(config: &str) -> tempfile::TempDir {
 fn dedup_fail_is_the_default_and_errors_on_collision() {
     let dir = scaffold_with_existing_dup();
 
-    support::mt(dir.path())
-        .args(["add", "--name", "dup", "--set", "title=Dup"])
-        .assert()
-        .failure();
+    support::assert_fails(dir.path(), &["add", "--name", "dup", "--set", "title=Dup"]);
     assert_eq!(
         std::fs::read_to_string(dir.path().join("tasks/dup.typ")).unwrap(),
         "original content",
@@ -94,8 +91,9 @@ fn dedup_fail_is_the_default_and_errors_on_collision() {
 fn dedup_fail_flag_is_explicit_too() {
     let dir = scaffold_with_existing_dup();
 
-    support::mt(dir.path())
-        .args([
+    support::assert_fails(
+        dir.path(),
+        &[
             "add",
             "--name",
             "dup",
@@ -103,9 +101,8 @@ fn dedup_fail_flag_is_explicit_too() {
             "title=Dup",
             "--dedup",
             "fail",
-        ])
-        .assert()
-        .failure();
+        ],
+    );
 }
 
 /// Shared assertion for a `--dedup skip` run, bare or templated stem alike:
@@ -210,8 +207,9 @@ fn dedup_flag_overrides_the_config_default() {
     let dir = scaffold_with_dedup_skip_default();
 
     // The project default is `skip`; `--dedup fail` on the CLI wins outright.
-    support::mt(dir.path())
-        .args([
+    support::assert_fails(
+        dir.path(),
+        &[
             "add",
             "--name",
             "dup",
@@ -219,9 +217,8 @@ fn dedup_flag_overrides_the_config_default() {
             "title=Dup",
             "--dedup",
             "fail",
-        ])
-        .assert()
-        .failure();
+        ],
+    );
 }
 
 // -- templated-stem counterparts: the regression matrix
@@ -234,10 +231,7 @@ fn dedup_flag_overrides_the_config_default() {
 fn dedup_fail_errors_on_collision_under_a_templated_stem() {
     let dir = scaffold_with_templated_stem_and_existing_dup();
 
-    support::mt(dir.path())
-        .args(["add", "Dup", "--dedup", "fail"])
-        .assert()
-        .failure();
+    support::assert_fails(dir.path(), &["add", "Dup", "--dedup", "fail"]);
     assert_eq!(
         std::fs::read_to_string(dir.path().join("tasks/dup.typ")).unwrap(),
         "original content",

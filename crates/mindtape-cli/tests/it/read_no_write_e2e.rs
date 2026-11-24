@@ -131,7 +131,7 @@ fn collect_files(root: &Path, dir: &Path, out: &mut Vec<(String, Vec<u8>)>) {
 fn assert_read_untouched(dir: &Path, args: &[&str]) {
     let before = hash_tree(dir);
 
-    support::mt(dir).args(args).assert().success();
+    support::run_ok(dir, args);
 
     let after = hash_tree(dir);
     assert_eq!(

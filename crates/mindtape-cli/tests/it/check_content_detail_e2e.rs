@@ -41,9 +41,7 @@ fn board(config: &str) -> tempfile::TempDir {
 
 /// The stderr of `mt <args>` in [`board`], which must exit 1.
 fn stderr_in(config: &str, args: &[&str]) -> String {
-    let (code, stderr) = support::run_stderr(board(config).path(), args);
-    assert_eq!(code, Some(1), "{stderr}");
-    stderr
+    support::refusal(board(config).path(), args)
 }
 
 #[test]
@@ -72,10 +70,7 @@ fn without_a_message_the_detail_is_the_message_and_no_note_repeats_it() {
 fn json_lists_the_detail_in_notes() {
     let dir = board(&format!("{QUESTIONS}{ADVICE}"));
 
-    let out = support::mt(dir.path())
-        .args(["check", "--json"])
-        .output()
-        .unwrap();
+    let out = support::run(dir.path(), &["check", "--json"]);
     let (_, stdout, _) = support::parts_of(&out);
     let json: serde_json::Value = serde_json::from_str(&stdout).unwrap();
 

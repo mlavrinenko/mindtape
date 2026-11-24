@@ -137,12 +137,7 @@ fn skip_allows_a_tracked_ignored_task() {
 fn spawn_refuses_a_new_sibling_in_an_ignored_directory() {
     let dir = tracked_ignored("water-plants", WEEKLY_SPAWN);
 
-    let output = mt(dir.path())
-        .args(["recur", "water-plants"])
-        .assert()
-        .failure();
-
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(dir.path(), &["recur", "water-plants"], "the run must fail");
     assert!(stderr.contains("would be invisible"), "{stderr}");
     assert!(
         stderr.contains(&mindtape::display_path(dir.path().join("tasks/hidden"))),
@@ -234,10 +229,7 @@ fn double_spawn_guard_refuses_a_second_spawn_without_force() {
     let dir = scaffold(&[("water-plants.typ", WEEKLY_SPAWN)]);
 
     support::run_ok(dir.path(), &["recur", "water-plants"]);
-    mt(dir.path())
-        .args(["recur", "water-plants"])
-        .assert()
-        .failure();
+    support::assert_fails(dir.path(), &["recur", "water-plants"]);
     assert_eq!(tasks_dir_entries(dir.path()).len(), 2);
 
     // --force bypasses the guard and spawns a third file.
@@ -269,11 +261,7 @@ fn assert_recur_refused(recur_override: &str, expect: &str) {
     let body = WEEKLY_SPAWN.replace("recur: every(weeks: 1),", recur_override);
     let dir = scaffold(&[("water-plants.typ", &body)]);
 
-    let output = mt(dir.path())
-        .args(["recur", "water-plants"])
-        .assert()
-        .failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(dir.path(), &["recur", "water-plants"], "the run must fail");
     assert!(stderr.contains(expect), "{stderr}");
     assert_eq!(
         tasks_dir_entries(dir.path()),
@@ -299,10 +287,7 @@ fn until_in_the_past_ends_the_series() {
 fn done_notice_points_at_mt_recur_for_a_spawn_series() {
     let dir = scaffold(&[("water-plants.typ", WEEKLY_SPAWN)]);
 
-    let output = mt(dir.path())
-        .args(["done", "water-plants"])
-        .assert()
-        .success();
+    let output = support::ok(dir.path(), &["done", "water-plants"]);
     let stdout = String::from_utf8_lossy(&output.get_output().stdout).into_owned();
     assert!(stdout.contains("mt recur"), "{stdout}");
 
@@ -317,7 +302,7 @@ fn done_notice_points_at_mt_recur_for_a_spawn_series() {
 fn done_notice_says_mutate_series_ends() {
     let dir = scaffold(&[("standup.typ", WEEKLY_MUTATE)]);
 
-    let output = mt(dir.path()).args(["done", "standup"]).assert().success();
+    let output = support::ok(dir.path(), &["done", "standup"]);
     let stdout = String::from_utf8_lossy(&output.get_output().stdout).into_owned();
     assert!(stdout.contains("ends the series"), "{stdout}");
 }
@@ -378,12 +363,7 @@ recur: every(weeks: 1),\n\
     support::install_lib(dir.path());
     write_file(dir.path(), "tasks/water-plants.typ", body);
 
-    let output = mt(dir.path())
-        .args(["recur", "water-plants"])
-        .assert()
-        .failure();
-
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(dir.path(), &["recur", "water-plants"], "the run must fail");
     assert!(
         stderr.contains("error: <new task>:"),
         "a blocking pre-write problem reports as an error: {stderr}"
@@ -433,7 +413,7 @@ fn no_recur_field_is_a_hard_error() {
     let plain = mindtape::typst_task!("(\n  title: \"Plain\",\n  status: wip(2026, 6, 1),\n)\n");
     let dir = scaffold(&[("plain.typ", plain)]);
 
-    mt(dir.path()).args(["recur", "plain"]).assert().failure();
+    support::assert_fails(dir.path(), &["recur", "plain"]);
 }
 
 #[test]

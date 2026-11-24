@@ -195,11 +195,7 @@ fn unset_falls_back_to_the_system_clock() {
 fn mindtape_now_stamps_the_pinned_date_on_done() {
     let dir = scaffold();
 
-    mt(dir.path())
-        .env("MINDTAPE_NOW", "2026-09-01")
-        .args(["done", "wire-oauth"])
-        .assert()
-        .success();
+    support::run_at(dir.path(), "2026-09-01", &["done", "wire-oauth"]);
 
     let written = std::fs::read_to_string(dir.path().join("tasks/wire-oauth.typ")).unwrap();
     assert!(written.contains("status: done(2026, 9, 1)"), "{written}");
@@ -209,11 +205,7 @@ fn mindtape_now_stamps_the_pinned_date_on_done() {
 fn mindtape_now_stamps_the_pinned_date_on_review() {
     let dir = scaffold();
 
-    mt(dir.path())
-        .env("MINDTAPE_NOW", "2026-09-02")
-        .args(["review", "wire-oauth"])
-        .assert()
-        .success();
+    support::run_at(dir.path(), "2026-09-02", &["review", "wire-oauth"]);
 
     let written = std::fs::read_to_string(dir.path().join("tasks/wire-oauth.typ")).unwrap();
     assert!(written.contains("reviewed: on(2026, 9, 2)"), "{written}");
@@ -223,11 +215,11 @@ fn mindtape_now_stamps_the_pinned_date_on_review() {
 fn mindtape_now_stamps_the_pinned_date_on_add() {
     let dir = scaffold();
 
-    mt(dir.path())
-        .env("MINDTAPE_NOW", "2026-09-03")
-        .args(["add", "--name", "fresh-task", "--set", "title=Fresh task"])
-        .assert()
-        .success();
+    support::run_at(
+        dir.path(),
+        "2026-09-03",
+        &["add", "--name", "fresh-task", "--set", "title=Fresh task"],
+    );
 
     let written = std::fs::read_to_string(dir.path().join("tasks/fresh-task.typ")).unwrap();
     assert!(
@@ -252,11 +244,7 @@ fn mindtape_now_stamps_the_pinned_date_on_recur_spawn() {
         ),
     );
 
-    mt(dir.path())
-        .env("MINDTAPE_NOW", "2026-09-04")
-        .args(["recur", "water-plants"])
-        .assert()
-        .success();
+    support::run_at(dir.path(), "2026-09-04", &["recur", "water-plants"]);
 
     let entries: Vec<String> = std::fs::read_dir(dir.path().join("tasks"))
         .unwrap()

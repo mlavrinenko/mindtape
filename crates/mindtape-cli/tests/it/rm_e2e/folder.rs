@@ -34,9 +34,13 @@ fn rm_dry_run_lists_every_task_under_a_folder_and_writes_nothing() {
     let (dir, out) = rm_in("", &["--dry-run", "tasks/batch"]);
 
     out.success()
-        .stdout(predicates::str::contains(shown("tasks/batch/gone-a.typ")))
-        .stdout(predicates::str::contains(shown(
+        .stdout(predicates::str::contains(support::shown(
+            "tasks/batch/gone-a.typ",
+            &["tasks/batch/deeper/gone-b.typ", "tasks/batch/gone-a.typ"],
+        )))
+        .stdout(predicates::str::contains(support::shown(
             "tasks/batch/deeper/gone-b.typ",
+            &["tasks/batch/deeper/gone-b.typ", "tasks/batch/gone-a.typ"],
         )))
         .stdout(predicates::str::contains("keep.typ").not());
     assert!(batch_left(&dir));
@@ -52,7 +56,7 @@ fn rm_deletes_every_task_under_a_folder_named_by_its_path() {
         out.success()
             .stdout(predicates::str::contains("deleted 2 tasks"));
         assert!(!batch_left(&dir));
-        assert!(dir.path().join("tasks/keep.typ").exists());
+        support::assert_exists(dir.path(), "tasks/keep.typ");
     }
 }
 
@@ -78,12 +82,4 @@ fn rm_of_a_folder_holding_no_task_removes_nothing() {
     out.success()
         .stdout(predicates::str::contains("nothing to remove"));
     assert!(batch_left(&dir));
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(
-        text,
-        &["tasks/batch/deeper/gone-b.typ", "tasks/batch/gone-a.typ"],
-    )
 }

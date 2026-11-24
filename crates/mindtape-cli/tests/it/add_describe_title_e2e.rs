@@ -47,5 +47,5 @@ fn any_other_title_beside_describe_is_refused() {
 #[test]
 fn describe_alone_and_with_a_template_still_describes() {
     let dir = support::scaffold();
-    support::run_ok(dir.path(), &["add", "--describe", "-t", "task"]);
+    support::add(dir.path(), &["--describe", "-t", "task"]);
 }

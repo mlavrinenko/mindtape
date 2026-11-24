@@ -25,13 +25,9 @@ fn scaffold() -> tempfile::TempDir {
 #[test]
 fn refuses_to_review_a_terminal_task() {
     let dir = scaffold();
-    support::run_ok(dir.path(), &["done", "wire-oauth"]);
+    support::flip_done(dir.path(), "wire-oauth");
 
-    let output = support::mt(dir.path())
-        .args(["review", "wire-oauth"])
-        .assert()
-        .failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(dir.path(), &["review", "wire-oauth"], "the run must fail");
     assert!(stderr.contains("terminal status"), "{stderr}");
 
     // A refusal must not touch the file: no `reviewed:` slot appears.
@@ -94,13 +90,12 @@ fn a_rejected_stamp_leaves_the_file_untouched() {
     let file = dir.path().join("tasks/wire-oauth.typ");
     std::fs::write(&file, body).unwrap();
 
-    let output = support::mt(dir.path())
-        .args(["review", "wire-oauth"])
-        .assert()
-        .failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(dir.path(), &["review", "wire-oauth"], "the run must fail");
     assert!(
-        stderr.starts_with(&shown("error: tasks/wire-oauth.typ:6: tags:")),
+        stderr.starts_with(&support::shown(
+            "error: tasks/wire-oauth.typ:6: tags:",
+            &["tasks/wire-oauth.typ"]
+        )),
         "{stderr}"
     );
     assert_eq!(
@@ -114,11 +109,11 @@ fn a_rejected_stamp_leaves_the_file_untouched() {
 fn reviewing_an_unresolvable_id_fails() {
     let dir = scaffold();
 
-    let output = support::mt(dir.path())
-        .args(["review", "does-not-exist"])
-        .assert()
-        .failure();
-    let stderr = support::stderr_of(&output);
+    let stderr = support::failed(
+        dir.path(),
+        &["review", "does-not-exist"],
+        "the run must fail",
+    );
     assert!(stderr.contains("does-not-exist"), "{stderr}");
 }
 
@@ -131,17 +126,10 @@ fn an_aliased_task_call_is_refused_and_left_untouched() {
     let body = support::write_aliased_task(dir.path(), "wire-oauth");
     let file = dir.path().join("tasks/wire-oauth.typ");
 
-    let stderr = support::stderr_of(
-        &support::mt(dir.path())
-            .args(["review", "wire-oauth"])
-            .assert()
-            .failure(),
-    );
+    let stderr = support::stderr_of(&support::assert_fails(
+        dir.path(),
+        &["review", "wire-oauth"],
+    ));
     assert!(stderr.contains("can't find the task.with"), "{stderr}");
     assert_eq!(std::fs::read_to_string(&file).unwrap(), body);
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &["tasks/wire-oauth.typ"])
 }

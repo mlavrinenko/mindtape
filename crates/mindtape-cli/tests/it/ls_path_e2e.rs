@@ -84,10 +84,7 @@ fn ls_lists_tracked_and_untracked_tasks_but_not_untracked_ignored_ones() {
 #[test]
 fn path_format_lists_one_path_per_line_with_no_header_or_trailer() {
     let dir = scaffold();
-    let out = support::mt(dir.path())
-        .args(["ls", "", "--format", "path"])
-        .output()
-        .unwrap();
+    let out = support::run(dir.path(), &["ls", "", "--format", "path"]);
     let stdout = String::from_utf8_lossy(&out.stdout);
     let mut lines: Vec<&str> = stdout.lines().collect();
     lines.sort_unstable();
@@ -101,10 +98,7 @@ fn path_format_lists_one_path_per_line_with_no_header_or_trailer() {
 #[test]
 fn path0_format_is_nul_delimited_and_self_terminated() {
     let dir = scaffold();
-    let out = support::mt(dir.path())
-        .args(["ls", "", "--format", "path0"])
-        .output()
-        .unwrap();
+    let out = support::run(dir.path(), &["ls", "", "--format", "path0"]);
     let raw = &out.stdout;
     assert!(
         !raw.ends_with(b"\n"),
@@ -257,12 +251,11 @@ fn the_file_filter_field_fails_loudly_as_unknown() {
 #[test]
 fn the_file_sort_field_fails_loudly_as_unknown() {
     let dir = scaffold();
-    let out = support::mt(dir.path())
-        .args(["ls", "", "--sort", "file"])
-        .output()
-        .unwrap();
-    assert!(!out.status.success(), "{out:?}");
-    let stderr = String::from_utf8_lossy(&out.stderr);
+    let stderr = support::failed(
+        dir.path(),
+        &["ls", "", "--sort", "file"],
+        "an unknown sort field must fail",
+    );
     assert!(stderr.contains("unknown sort field: 'file'"), "{stderr}");
 }
 
@@ -281,10 +274,10 @@ fn path_format_composes_with_a_real_pipe() {
     // shaped like it — the recipe the spec exists for. xargs reads `\` as an
     // escape, so on Windows the recipe asks for `/` with `--path-separator`.
     let dir = scaffold();
-    let mt_out = support::mt(dir.path())
-        .args(["--path-separator", "/", "ls", "", "--format", "path"])
-        .output()
-        .unwrap();
+    let mt_out = support::run(
+        dir.path(),
+        &["--path-separator", "/", "ls", "", "--format", "path"],
+    );
     assert!(mt_out.status.success());
 
     let mut xargs = std::process::Command::new("xargs")

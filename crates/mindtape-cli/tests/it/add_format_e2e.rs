@@ -6,7 +6,6 @@
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use crate::support;
-use mindtape::test_support::write_file;
 
 /// `mt add`'s reported path is the exact `dest.join(...)` it wrote to. Under
 /// the default destination, that is `<project root>/tasks/<rel>` in full,
@@ -21,17 +20,9 @@ fn shown_path(dir: &std::path::Path, rel: &str) -> String {
     mindtape::display_path(dir.join("tasks").join(rel))
 }
 
-/// A scaffolded project with a pre-existing `tasks/dup.typ`, the shared
-/// fixture every skipped/suffixed outcome test collides against.
-fn scaffold_with_existing_dup() -> tempfile::TempDir {
-    let dir = support::scaffold();
-    write_file(dir.path(), "tasks/dup.typ", "original");
-    dir
-}
-
 /// `mt <args>` in `dir`, which must succeed, with its stdout parsed as JSON.
 fn add_json(dir: &std::path::Path, args: &[&str]) -> serde_json::Value {
-    let output = support::mt(dir).args(args).assert().success();
+    let output = support::ok(dir, args);
     serde_json::from_slice(&output.get_output().stdout).unwrap()
 }
 
@@ -162,7 +153,7 @@ fn json_flag_wins_over_format_path() {
 
 #[test]
 fn json_format_reports_the_skipped_and_suffixed_outcomes() {
-    let dir = scaffold_with_existing_dup();
+    let dir = support::scaffold_with_existing_dup();
 
     for (dedup, rel, outcome) in [
         ("skip", "dup.typ", "skipped"),
@@ -185,7 +176,7 @@ fn json_format_reports_the_skipped_and_suffixed_outcomes() {
 
 #[test]
 fn text_format_names_the_skipped_and_suffixed_outcomes_too() {
-    let dir = scaffold_with_existing_dup();
+    let dir = support::scaffold_with_existing_dup();
 
     let skipped = support::mt(dir.path())
         .args([
@@ -265,7 +256,10 @@ fn text_report_names_the_slug_hash_and_ends_on_the_command_that_reads_it() {
     let hash = reported_hash(&stdout);
     assert!(!hash.is_empty(), "no hash in {stdout}");
     assert!(
-        stdout.starts_with(&shown("wrote tasks/wired.typ (")),
+        stdout.starts_with(&support::shown(
+            "wrote tasks/wired.typ (",
+            &["tasks/wired.typ"]
+        )),
         "path is cwd-relative: {stdout}"
     );
     let next = format!("next: mt eval {hash}");
@@ -332,9 +326,4 @@ fn json_report_carries_the_slug_hash() {
         evaluated.contains("wired") || evaluated.contains('T'),
         "{evaluated}"
     );
-}
-
-/// An expected message, each task path in it in the separator `mt` shows.
-fn shown(text: &str) -> String {
-    support::native_in(text, &["tasks/wired.typ"])
 }
