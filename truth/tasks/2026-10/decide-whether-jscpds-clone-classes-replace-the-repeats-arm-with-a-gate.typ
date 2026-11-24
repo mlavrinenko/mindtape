@@ -12,7 +12,17 @@
   tags: ("tooling", "repeats"),
   estimate: (src-files: 3),
   assignee: "max",
-  status: proposed(2026, 10, 28),
+  status: done(
+    2026,
+    11,
+    24,
+  )[The repeats arm gives way to a gate on jscpd's native `duplicates` and `--baseline`, with no fork, on upstream 5.4.3. The 28 findings are real, and their fixes land before the gate. The baseline holds only false positives, each with a reason],
+  links: related(
+    "../2026-11/gate-short-repeats-on-jscpds-native-duplicates-and-baseline.typ",
+  )[the gate this decision calls for]
+    + related(
+      "../2026-11/explain-or-fix-every-clone-the-dry-gate-tolerates.typ",
+    )[the baseline reasons this decision requires],
 )
 
 == AS-IS
@@ -25,14 +35,15 @@
 
 == TO-BE
 
-- 🟢 The repeats arm either stays as the advisory sweep it is, with its reason in `contrib/ask-refactoring/repeats.sh`. Or it gives way to a gate on classes by copies and size, with a baseline of its own.
+- 🟢 The repeats arm gives way to a gate on jscpd's native `duplicates` and `--baseline`. No fork: upstream 5.4.3 carries both, and `nix/dev/shell.nix` drops qahq's `v5.4.1-nix.2`.
+- 🟢 The 28 findings the arm reports are real, not false positives. The AS-IS quotes 26 from the first run, and the arm reports 28. The fixes land before the gate, and the gate starts green.
+- 🟢 The baseline is only false positives, each with a reason. A clone that is not a false positive gets a fix, not a baseline entry.
+- 🟢 The gate is `feat` task `gate-short-repeats-on-jscpds-native-duplicates-and-baseline`. The fixes are the test-helper dedupe tasks. The baseline's reasons are `dev` task `explain-or-fix-every-clone-the-dry-gate-tolerates`.
 
 
 == Changes
 
-- `contrib/ask-refactoring/repeats.sh`: the reason it stays, or its removal.
-- `.just/lint.just`: a short-repeats gate, if the decision is to gate.
-- `.mmz/config.yaml`: the gate's scope, if the decision adds one.
+- `truth/tasks/2026-10/decide-whether-jscpds-clone-classes-replace-the-repeats-arm-with-a-gate.typ`: records this decision, with no code changes.
 
 
 == Alternatives
