@@ -18,7 +18,11 @@
   ),
   tags: ("found", "tooling", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 25),
+  status: done(
+    2026,
+    11,
+    25,
+  )[27 tasks filed from the 28 debt reasons, which are 27 clones],
 )
 
 == AS-IS
@@ -42,14 +46,14 @@ $ jq 'keys' /tmp/dryrep/jscpd-report.json
 
 == TO-BE
 
-- 🟢 `score_dry` reads the report's `duplicates` pairs, groups them by fragment, and keeps the pairs the baseline tolerates.
-- 🟢 `just advisory ask-refactoring` files the clones the dry gate tolerates, so the 28 debt reasons in `.config/jscpd-baseline-reasons.json` become tasks.
+- 🟢 `score_dry` reads the report's `duplicates` pairs, groups them by fragment, and keeps the groups a debt pair belongs to.
+- 🟢 `just advisory ask-refactoring` files the clones the dry gate tolerates that the reasons file records as debt. The 28 debt reasons become 27 tasks: two fingerprints belong to one clone of three copies.
 
 ```
 $ just advisory ask-refactoring
-dry           28 finding(s)
+dry            27 finding(s)
+  dry-crates-mindtape-src-rules-tests-rs-f159389a  [3 copies, gain 135]
   ...
-ask-refactoring: 28 finding(s); the bodies shown are in target/ask-refactoring/;
 ```
 
 
@@ -67,7 +71,7 @@ ask-refactoring: 28 finding(s); the bodies shown are in target/ask-refactoring/;
 
 == Dogfood
 
-`just advisory ask-refactoring` files the 28 debt reasons as tasks, and the baseline shrinks as they close.
+`just advisory ask-refactoring` files the 27 tasks the reasons file records as debt, and the baseline shrinks as they close.
 
 
 == Goals

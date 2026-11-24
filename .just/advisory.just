@@ -35,14 +35,12 @@ canibump *ARGS:
 
 # Refuses while `mt ls @ask-refactoring` still lists an open sweep task.
 
-[arg('DRY_GAIN', long='dry-gain', pattern='\d+', help='dry arm: report baselined clones whose extraction saves N tokens or more')]
 [arg('WRITE', long='write', pattern='[01]', value='1', help='file the tasks instead of printing what would be filed')]
 [arg('BASELINE', long='baseline', pattern='(100|[1-9]?[0-9])', help='size arm: report files at or above PCT% of their linecop limit')]
 [arg('CC_FLOOR', long='cc-floor', pattern='\d+', help='undertested arm: floor on cyclomatic complexity')]
 [arg('FN_COVERAGE_FLOOR', long='fn-coverage-floor', pattern='(100|[1-9]?[0-9])', help='undertested arm: report functions below PCT% line coverage')]
 [doc("File backlog tasks from advisory quality signals")]
 [group("advisory")]
-ask-refactoring $WRITE='0' $BASELINE='90' $CC_FLOOR='5' $FN_COVERAGE_FLOOR='80' $DRY_GAIN='300':
+ask-refactoring $WRITE='0' $BASELINE='90' $CC_FLOOR='5' $FN_COVERAGE_FLOOR='80':
     bash contrib/ask-refactoring.sh --write "$WRITE" --baseline "$BASELINE" \
-        --cc-floor "$CC_FLOOR" --fn-coverage-floor "$FN_COVERAGE_FLOOR" \
-        --dry-gain "$DRY_GAIN"
+        --cc-floor "$CC_FLOOR" --fn-coverage-floor "$FN_COVERAGE_FLOOR"

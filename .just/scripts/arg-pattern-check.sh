@@ -157,17 +157,15 @@ assert_default_accepted eject
 #
 # `assert_default_accepted` matters more here than anywhere else in this
 # file. `ask-refactoring`'s defaults are the only copy of the sweep's
-# thresholds (contrib/ask-refactoring.sh requires all six and defaults
+# thresholds (contrib/ask-refactoring.sh requires all four and defaults
 # nothing). A default that failed its own pattern would break every plain
 # `just advisory ask-refactoring` run, and there is no fallback to hide it.
 assert_rejected advisory::ask-refactoring --baseline 101
 assert_rejected advisory::ask-refactoring --baseline 'a b'
 assert_rejected advisory::ask-refactoring --cc-floor abc
 assert_rejected advisory::ask-refactoring --fn-coverage-floor 101
-assert_rejected advisory::ask-refactoring --dry-gain abc
 assert_accepted advisory::ask-refactoring --baseline 85
 assert_accepted advisory::ask-refactoring --fn-coverage-floor 92 --cc-floor 12
-assert_accepted advisory::ask-refactoring --dry-gain 100
 assert_accepted advisory::ask-refactoring --write
 # `check` takes stage names, which CI uses to run the cover stage in a job of
 # its own. A name outside the stages must fail at dispatch, not run nothing.

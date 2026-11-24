@@ -73,8 +73,10 @@ The first copy reads:
 )
 
 `just lint::dry` fails a new clone, and `.config/jscpd-baseline.json` lists
-this one as older than the gate. The arm joins jscpd's pairs into a family by
-shared location, so a location may belong to a neighboring window.
+this one as older than the gate. Its reason in
+`.config/jscpd-baseline-reasons.json` names an extraction, so the arm files
+it. The arm joins jscpd's pairs into a family by fragment, so a location may
+belong to a neighboring window.
 
 == TO-BE
 

@@ -52,14 +52,16 @@ because a flag shared by two arms would change both at once. The undertested
 arm files a task only for a function that is both complex and undertested. Each number's argument sits beside its constant in the arm
 script that applies it.
 
-The dry arm files the clones #just.lint-dry() tolerates. It runs jscpd with
-the gate's flags and keeps the clones the baseline already lists. It files a
-clone only when extracting it saves `--dry-gain` tokens or more. A
-task closes by extracting the clone, or by a `jscpd:ignore` marker whose
-comment says why the match is a coincidence. Either way the commit re-mints
-the baseline with #just.lint-dry-baseline(). A clone the gate tolerates and
-nobody fixes carries a reason in `.config/jscpd-baseline-reasons.json`, and
-#just.lint-dry() fails on a baseline fingerprint that file does not explain.
+The dry arm files the clones #just.lint-dry() tolerates that nobody got to.
+Every tolerated clone carries a reason in
+`.config/jscpd-baseline-reasons.json`, and #just.lint-dry() fails on a
+baseline fingerprint that file does not explain. A reason that ends
+`is a separate task` names an extraction, and the arm files that clone. It
+writes those fingerprints to a baseline of its own and runs jscpd with the
+gate's flags against it. jscpd then says which pairs are debt. A task closes
+by extracting the clone, or by a `jscpd:ignore` marker whose comment says why
+the match is a coincidence. Either way the commit re-mints the baseline with
+#just.lint-dry-baseline().
 
 The mutants arm has no threshold. It reads `outcomes.json` from whichever
 sweep ran last: `mutants.out` after a full #just.mutants-sweep(), or
@@ -98,7 +100,9 @@ path outside the tasks root.
   next sweep until both close.
 - The signal sets what the sweep files again, and no ledger records past
   findings. To silence a finding for good, write an override with its reason
-  in the signal's own config.
+  in the signal's own config. The dry arm is the one arm whose signal is a
+  written record. The reasons file says which tolerated clones are debt, and a
+  reason that says no helper removes the clone silences it for good.
 - The remedy is the refactorer's call. Each template offers two correct
   answers: do the work, or write the override that says why not.
 

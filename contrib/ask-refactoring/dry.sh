@@ -1,39 +1,37 @@
-# ask-refactoring: the dry arm: the clones `just lint::dry` tolerates.
+# ask-refactoring: the dry arm: the clones the reasons file records as debt.
 #
 # Sourced by `contrib/ask-refactoring.sh`, not executable on its own. It reads
-# that script's globals (`$repo`, `$MT`, `$WRITE`, `$DRY_GAIN`) and calls its `stem_for` and
+# that script's globals (`$repo`, `$MT`, `$WRITE`) and calls its `stem_for` and
 # `file_finding`. It owns three functions the driver looks up by name:
 # `score_dry`, `signal_dry` and `emit_dry`, reading jscpd's json report.
 #
 # The gate stops a new clone, and `.config/jscpd-baseline.json` lists the ones
 # that predate it. A tolerated clone is not enforced by anything, so it is the
 # part of jscpd this sweep may report (the header of `ask-refactoring.sh` rules
-# out only what a gate still enforces). The arm runs jscpd with the gate's own
-# `DRY_FLAGS` and reads the report's `classes`: jscpd joins the pairs of one
-# block into a class that lists each copy once. It keeps the classes marked
-# `isNew: false`.
+# out only what a gate still enforces). Every tolerated clone carries a reason
+# in `.config/jscpd-baseline-reasons.json`, and a reason that ends `is a
+# separate task` names an extraction nobody got to: the debt. The arm writes
+# those fingerprints to a baseline of its own and runs jscpd with the gate's
+# flags against it, so jscpd itself says which pairs are debt. It reads the
+# report's `duplicates` pairs, groups them by fragment, and keeps the groups a
+# debt pair belongs to.
 #
-# Fold: gain orders the classes, highest first, and one whose copies (half or
-# more) fall on lines a kept class already holds gets dropped. A clone that
+# Fold: gain orders the groups, highest first, and one whose copies (half or
+# more) fall on lines a kept group already holds gets dropped. A clone that
 # slides by one line would otherwise file a task per window.
 #
-# Classes anchored in one file make one task: jscpd reports a pattern's
-# sliding windows as separate classes, and the first sweep filed the same
-# assert helper as five tasks. Their gains add up. Each class clears the bar
-# on its own first.
-#
-# The bar is `--dry-gain`, 300 by default. With no
-# bar the arm reported 639 families at a median gain of 50 tokens, 510 of them
-# in tests: a batch nobody empties. 100 still left 147. 300 leaves 25, each a
-# block worth a helper.
+# No bar: the reasons file is the bar. A clone is debt because a maintainer
+# wrote that its extraction is a separate task, not because its gain cleared a
+# number. The debt's smallest clone is worth 30 tokens and its largest 135, so
+# a threshold would either file nothing or file everything.
 #
 #   gain = (copies - 1) * tokens - 5 * copies - 10.
 #     The tokens an extraction removes, net of a 5-token call per copy and a
-#     10-token helper, with the tokens of the class's largest pair.
+#     10-token helper, with the tokens of the group's smallest pair.
 #
 #   impact = 3 + round(log2(gain / 100)), clamped 1..10
-#     Doubling the gain is worth one point. Most tolerated clones are a pair
-#     of 50 to 100 tokens, so most land at 1 or 2.
+#     Doubling the gain is worth one point. The debt is a pair of 50 to 100
+#     tokens, so most land at 1 or 2.
 #
 #   confidence = 0.6
 #     The detector ignores names and literals, so a match can be a coincidence
@@ -43,31 +41,35 @@
 #     Naming the helper is the one decision, the rest is fan-out.
 
 score_dry() {
-    jq -r --argjson min_gain "$DRY_GAIN" '
+    jq -r '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
       def lines_of($f): [range($f.start; $f.end + 1)] | map("\($f.name):\(.)");
-      [.classes[] | select(.isNew | not)
-       | {tokens, fragment, anchor: (.fragments[0] | {name, start}),
-          frags: [.fragments[] | {name, start, end}], copies: (.fragments | length)}
-       | . + {gain: ((.copies - 1) * .tokens - 5 * .copies - 10)}]
-      | sort_by(-.gain, .anchor.name, .anchor.start)
+      def key($f): "\($f.name):\($f.start):\($f.end)";
+      [.duplicates[]
+       | {fragment, tokens, debt: (.isNew | not),
+          frags: ([.firstFile, .secondFile] | map({name, start, end}))}]
+      | group_by(.fragment)
+      | map({fragment: .[0].fragment,
+             tokens: ([.[].tokens] | min),
+             debt: ([.[].debt] | any),
+             frags: ([.[].frags[]] | unique_by(key(.)) | sort_by(.name, .start))})
+      | map(select(.debt))
+      | map(. + {copies: (.frags | length)})
+      | map(. + {gain: ((.copies - 1) * .tokens - 5 * .copies - 10)})
+      | sort_by(-.gain, .frags[0].name, .frags[0].start)
       | reduce .[] as $g ({kept: [], claimed: {}};
           . as $k
           | ([$g.frags[] | select(any(lines_of(.)[]; $k.claimed[.] == true))] | length) as $hit
           | if $hit * 2 >= $g.copies then .
             else .kept += [$g] | .claimed += ([$g.frags[] | lines_of(.)[] | {(.): true}] | add)
             end)
-      | [.kept[] | select(.gain >= $min_gain)]
-      | group_by(.anchor.name)[]
-      | sort_by(-.gain)
-      | (.[0] + {gain: (map(.gain) | add), copies: (map(.copies) | add),
-                 families: length, frags: (map(.frags[]) | unique)})
+      | .kept[]
       | ([.frags[].name] | unique | length) as $files
       | ((3 + (([.gain, 1] | max / 100 | log2) | round)) | clamp(1; 10)) as $impact
       | ((9 - (($files / 10) | round)) | clamp(1; 10)) as $ease
       | [
-          "crates/\(.anchor.name)",
-          (.anchor.start | tostring),
+          "crates/\(.frags[0].name)",
+          (.frags[0].start | tostring),
           (.copies | tostring),
           (.tokens | tostring),
           (.gain | tostring),
@@ -75,27 +77,55 @@ score_dry() {
           .fragment,
           ([.frags[] | "crates/\(.name):\(.start)"] | join("\n")),
           ($impact | tostring),
-          ($ease | tostring),
-          (.families | tostring)
+          ($ease | tostring)
         ]
       | @tsv
     '
 }
 
 signal_dry() {
-    local out rc flags
+    local out rc flags debt
     out="$(mktemp -d)"
-    # The gate's own flags, so the arm and the gate agree on what a clone is
-    # and which ones the baseline tolerates.
-    flags="$(just --justfile .just/lint.just --evaluate DRY_FLAGS)"
+    debt="$out/debt-baseline.json"
+    # The reasons file records the debt. jscpd keys a clone by a fingerprint of
+    # its tokens, and the report does not carry that fingerprint. The arm hands
+    # jscpd the debt's fingerprints as a baseline. jscpd then says which pairs
+    # they are.
+    jq '{version: 1,
+         fingerprints: (with_entries(select(.value | test("is a separate task$")))
+                        | map_values(1))}' \
+        "$repo/.config/jscpd-baseline-reasons.json" >"$debt"
+    # The gate's own flags, so the arm and the gate agree on what a clone is.
+    # Its baseline is the arm's own: the gate's marks every tolerated clone,
+    # and the reasons file already says which of them are debt.
+    flags="$(just --justfile .just/lint.just --evaluate DRY_FLAGS \
+        | sed 's/--baseline [^ ]*//')"
+    case "$flags" in
+        *--baseline*)
+            rm -rf "$out"
+            echo "ask-refactoring: the gate's flags carry a baseline the arm cannot replace" >&2
+            exit 1
+            ;;
+    esac
     set +e
     # shellcheck disable=SC2086
-    jscpd $flags -r json -o "$out" crates >/dev/null 2>&1
+    jscpd $flags --baseline "$debt" -r json -o "$out" crates >/dev/null 2>&1
     rc=$?
     set -e
     if ! jq -e '.duplicates | type == "array"' "$out/jscpd-report.json" >/dev/null 2>&1; then
         rm -rf "$out"
         echo "ask-refactoring: jscpd failed (exit $rc) or wrote no json report" >&2
+        exit 1
+    fi
+    # Every debt fingerprint matches one pair. A report that tolerates fewer
+    # pairs than the reasons file records means the two disagree about the
+    # clones. The arm refuses rather than file a subset without saying so.
+    local want got
+    want="$(jq '.fingerprints | length' "$debt")"
+    got="$(jq '[.duplicates[] | select(.isNew | not)] | length' "$out/jscpd-report.json")"
+    if [ "$got" -lt "$want" ]; then
+        rm -rf "$out"
+        echo "ask-refactoring: $want debt fingerprints, $got pairs in the report; the reasons file and jscpd disagree" >&2
         exit 1
     fi
     score_dry <"$out/jscpd-report.json"
@@ -104,7 +134,7 @@ signal_dry() {
 
 emit_dry() {
     local path="$1" line="$2" copies="$3" tokens="$4" gain="$5" files="$6"
-    local fragment="$7" locations="$8" impact="$9" ease="${10}" families="${11}"
+    local fragment="$7" locations="$8" impact="$9" ease="${10}"
 
     # @tsv escaped the newlines.
     fragment="$(printf '%b' "$fragment" | head -n 8)"
@@ -122,9 +152,7 @@ emit_dry() {
     [ "$more" -gt 0 ] && listed="$shown
   - and $more more, which \`just advisory ask-refactoring\` lists again on its next run"
 
-    local shape="This clone appears"
-    [ "$families" -gt 1 ] && shape="$families clones anchored in this file appear"
-    local measured="+ 🔴 $shape $copies times across $files $([ "$files" -eq 1 ] && echo file || echo files), $tokens jscpd tokens at most. Extracting it saves about $gain tokens net of the helper and its calls.
+    local measured="+ 🔴 This clone appears $copies times across $files $([ "$files" -eq 1 ] && echo file || echo files), $tokens jscpd tokens at most. Extracting it saves about $gain tokens net of the helper and its calls.
 $listed"
 
     local remedy="- \`$path\` and every other file the AS-IS lists: extract a helper and call it from each copy, or mark the copies as intended with \`// jscpd:ignore-start\` and \`// jscpd:ignore-end\` and a comment saying why the match is a coincidence. Either way, re-mint the baseline with \`just lint::dry-baseline\` in the same commit."
