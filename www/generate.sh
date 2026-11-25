@@ -168,6 +168,10 @@ mkdir -p "$PKGS/local/mindtape"
 ln -s "$REPO/lib" "$PKGS/local/mindtape/$LIBVER"
 typst compile --package-path "$PKGS" \
   "$FIX/tasks/throttle-failed-logins-per-ip.typ" "$OUT/hero-card.svg"
+# The page carries the task render's paper margin, and the docs card frames it
+# again, so the two would read as one huge gutter. Crop most of the page margin
+# in the preview only; the typeset task itself keeps its full page.
+python3 "$SCRIPT_DIR/crop-page-margin.py" "$OUT/hero-card.svg"
 rm -rf "$PKGS"
 
 # The records hold the quickstart's session, the CLI reference's captures, and

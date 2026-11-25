@@ -145,8 +145,11 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 .proof-foot:hover .proof-note { color: var(--ink); }
 .proof-foot:hover .proof-open { color: var(--green); }
 .proof-foot:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+/* The page image is already inset: its compiled margin is cropped by a little
+   over half, so the border alone frames it. Padding here would add the second
+   frame this card exists to avoid. */
 .typeset-card {
-  max-width: 690px; margin: 10px 0 0 24px; padding: 16px;
+  max-width: 30rem; margin: 10px 0 0 24px; padding: 0;
   border: 1px solid var(--line-strong);
   background: #fff;
 }
