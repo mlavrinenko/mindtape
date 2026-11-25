@@ -641,12 +641,8 @@ update();
   "aside",
   attrs: (class: "sidebar", id: "site-nav"),
   {
-    let current = page-meta(active)
     html.elem("div", attrs: (class: "rail-head"), {
       html.elem("span", attrs: (class: "eyebrow"), "Documentation")
-      if current != none {
-        html.elem("strong", [#current.label])
-      }
     })
     html.elem("nav", attrs: ("aria-label": "Documentation"), {
       for (i, group) in NAV.enumerate() {

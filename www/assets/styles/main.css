@@ -323,7 +323,6 @@ main { min-width: 0; padding-bottom: 80px; }
 .sidebar::-webkit-scrollbar { display: none; }
 .rail-head { padding-bottom: 14px; margin-bottom: 23px; border-bottom: 1px solid var(--line-strong); }
 .rail-head .eyebrow { display: block; margin: 0 0 5px; }
-.rail-head strong { font-family: var(--sans); font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
 
 .nav-group { position: relative; margin-bottom: 22px; padding-left: 18px; }
 .nav-group::before {
