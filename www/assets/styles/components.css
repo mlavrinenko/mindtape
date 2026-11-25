@@ -369,13 +369,16 @@ main th, main td {
   padding: 12px 20px 12px 0; border-bottom: 1px solid var(--line);
   text-align: left; vertical-align: top;
 }
-main thead th {
+main thead th,
+.matrix-float-head th {
   padding: 0 20px 9px 0; border-bottom: 1px solid var(--line-strong);
   font-family: var(--sans); font-size: 11px; font-weight: 800;
   letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted);
 }
-main table a { font-family: var(--sans); font-weight: 600; text-decoration: none; letter-spacing: -0.01em; }
-main table a:hover { text-decoration: underline; }
+main table a,
+.matrix-float-head th a { font-family: var(--sans); font-weight: 600; text-decoration: none; letter-spacing: -0.01em; }
+main table a:hover,
+.matrix-float-head th a:hover { text-decoration: underline; }
 main table code { display: inline; font-size: 12px; line-height: 1.7; white-space: normal; }
 
 /* ── Wide comparison matrix ───────────────────────────────────────────────── */
@@ -435,15 +438,13 @@ main table code { display: inline; font-size: 12px; line-height: 1.7; white-spac
 .matrix-float-head {
   position: fixed; overflow: hidden; z-index: 15; display: none;
   border-bottom: 1px solid var(--line-strong);
-  background: var(--paper-2);
+  background: var(--paper);
 }
 .matrix-float-head table { border-collapse: collapse; margin: 0; }
 .matrix-float-head th {
   border-bottom: 1px solid var(--line-strong);
   padding: 0.38rem 0.55rem;
-  text-align: left; background: var(--paper-2);
-  font-family: var(--sans); font-size: 0.78rem;
-  letter-spacing: 0.02em;
+  text-align: left; background: var(--paper);
 }
 .matrix-float-head th:first-child { position: sticky; left: 0; z-index: 1; }
 
