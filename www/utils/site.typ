@@ -14,6 +14,13 @@
 #let pkg-version = json("../generated/crate-map.json").at("typst-lib").version
 #let PKG = "@local/mindtape:" + pkg-version
 
+// The Mindtape release version, the one `mt --version` prints, read from
+// `[workspace.package]` through the same crate map. The site chrome labels it
+// "Version"; `pkg-version` above is the prelude's own and moves apart.
+#let mt-version = (
+  json("../generated/crate-map.json").at("workspace-package").version
+)
+
 #let REPO = "https://github.com/mlavrinenko/mindtape"
 
 // The site's public URL, read out of the tola config rather than retyped

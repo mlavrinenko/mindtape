@@ -2,7 +2,7 @@
 
 #import "../utils/site.typ": (
   NAV, NAV_CHILDREN, REPO, SITE, SITE_URL, md-copy-button, md-path, mindtape,
-  page-meta, pkg-version, render-summary, u,
+  mt-version, page-meta, render-summary, u,
 )
 
 // Set data-theme before first paint (no flash): the stored choice, else the
@@ -662,7 +662,7 @@ update();
       }
     })
     html.elem("div", attrs: (class: "rail-foot"), {
-      html.elem("span", "v" + pkg-version)
+      html.elem("span", "v" + mt-version)
       html.elem("span", "MIT")
     })
   },
@@ -691,7 +691,7 @@ update();
 )
 
 // The rail beside an article: the page's line, its group, the group's page
-// count and the package version. The calling-points list is inserted above
+// count and the release version. The calling-points list is inserted above
 // this block at runtime.
 #let _page-rail(active, here) = {
   let group = _group-at(here)
@@ -701,7 +701,7 @@ update();
     html.elem("div", attrs: (class: "rail-meta"), {
       html.elem("span")[#upper(group.title)]
       html.elem("span")[#str(group.items.len()) PAGES]
-      html.elem("span")[Version #pkg-version]
+      html.elem("span")[Version #mt-version]
     }),
   )
 }
