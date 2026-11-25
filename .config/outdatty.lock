@@ -328,7 +328,7 @@ groups:
       .config/nextest.toml: d1353c6139c6bf51cb8664747c93f2ca9c721bd6c8e54b2c2c646ebefc17d5fc
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/advisory.just: aba945d5469a9c6241742b71cc5dc883f3d746c62015347a7f3c501433220574
-      .just/bench.just: 8d6533a0384bf03982c59d61473243ab98495c59d629277b229a60e639b16de2
+      .just/bench.just: 7c14d9acaa73efb0f35cce4777efbb9325c9c9a56d756ff823354f01621c5596
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
       .just/docs.just: 82a3017127b223bd655b6cc9d43e8aa1b84dca3184823eebb4d75b703a71f493
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
@@ -344,7 +344,7 @@ groups:
       Justfile: 094c204b419641a983410bef0a6bc476c00603230177193a89e62c9437f5eb35
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 3a6c8d63c68c359eb3726d984a94958ea3c4e3b18b3a2f72295320da2a1452ab
+      nix/dev/shell.nix: 5c7c68707fb69907286a08887f8ea7dfb63d027ae29d331bf904e12625c809c6
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
@@ -360,6 +360,7 @@ groups:
       docs/src/contributing/mutation-testing.typ: f36778b2af5e2af51105d606e374e4ff25e93adc2931244ec788b4d70902ba50
       docs/src/contributing/signal-sweep.typ: 3c4373901bfa452c8df97e4ea4fcba14d52a64e2507030cfe406eb2a494ba7f2
       docs/src/contributing/windows.typ: d19d7853f501ffaaf49f885c87f657d517d4e475f6683e532983c51441a47022
+      www/content/internals.typ: c5980b364335fd949cf7b435e075292d982ac1ae1e11730933e10d2c89c5d9c9
       www/content/quickstart.typ: 42bbadd7446c9cd2d27f16b44dadf1d9bd57d92cefa0b07cc31d1ca9af1789cb
   dict-words-docs:
     source:
@@ -702,7 +703,7 @@ groups:
       .just/scripts/check-vale-levels.sh: 1556070fa5376083821b9c081dda93ee5d76a90491e1cdb69181462460ac6067
       nix/dev/flake.lock: 95b8736f1552c1f635ab4a885052697c46002bfcae208b1a84caf4f3dae566b3
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 3a6c8d63c68c359eb3726d984a94958ea3c4e3b18b3a2f72295320da2a1452ab
+      nix/dev/shell.nix: 5c7c68707fb69907286a08887f8ea7dfb63d027ae29d331bf904e12625c809c6
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale-styles.nix: 29e99a1a3a59dbb1d7629fe039249566a9f9da0641fdfb7b4bb7ff4faf7826d8
     dependents:

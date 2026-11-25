@@ -41,6 +41,11 @@
       # Windows cross-check toolchain (see `devShells.windows`).
       mingw = pkgs.pkgsCross.mingwW64;
       mingwBin = "${mingw.stdenv.cc}/bin/${mingw.stdenv.cc.targetPrefix}";
+
+      # The binary `just bench::instructions` shells out to. Built from the
+      # crates.io release because no package carries it; see the file's header
+      # for why the version tracks the dev-dependency.
+      iaiCallgrindRunner = pkgs.callPackage ./iai-callgrind-runner.nix { };
     in
     {
       # For `nix develop`:
@@ -123,6 +128,10 @@
             # a sampler.
             valgrind
             strace
+            # `just bench::instructions` counts the CPU-bound cases under
+            # callgrind and fails a case that retires more instructions than its
+            # ceiling. The harness shells out to this runner by name.
+            iaiCallgrindRunner
             # `just skill-evals` runs each eval in its own sandbox. bwrap is
             # the boundary that keeps the repo, the home and the installed
             # skill out of the executor.

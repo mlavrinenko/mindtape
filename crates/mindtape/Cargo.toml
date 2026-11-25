@@ -108,6 +108,11 @@ tempfile = "3"
 # The benchmark harness (`benches/load.rs`). `html_reports` writes the
 # `target/criterion/report/` page that shows a run against its baseline.
 criterion = { version = "0.8", features = ["html_reports"] }
+# The instruction-count gate (`benches/instructions.rs`). It runs the case once
+# under callgrind and compares the retired-instruction count with a ceiling, so
+# the number is the same on a shared CI runner as on a laptop. The runner binary
+# it shells out to comes from `nix/dev/iai-callgrind-runner.nix`.
+iai-callgrind = "0.16.1"
 # Already in the tree at this version, under `typst-harvest`. The harvest
 # evaluates and never lays out, so `loader/tests_prelude.rs` compiles a task
 # file itself to prove the prelude's card lays a count estimate out.
@@ -117,6 +122,12 @@ typst-layout = "0.15"
 # is nightly-only.
 [[bench]]
 name = "load"
+harness = false
+
+# `harness = false` for the same reason: iai-callgrind's `main!` macro writes
+# the entry point.
+[[bench]]
+name = "instructions"
 harness = false
 
 [lints]

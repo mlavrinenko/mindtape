@@ -11,7 +11,7 @@
   difficulty: 4,
   tags: ("tooling", "gating", "stateless"),
   assignee: "agent",
-  status: proposed(2026, 11, 25),
+  status: done(2026, 11, 25),
 )
 
 == AS-IS
@@ -30,22 +30,31 @@ A load-path change lands with no CI signal on what it costs.
 
 ```
 $ just bench::instructions
-filter/match/2000      Instructions:  12,345,678  (no change)
-sort/default/2000      Instructions:  98,765,432  (+41.2%)  FAIL
+instructions::cpu_bound::filter_match n2000:loaded_with_filter()
+  Instructions:                    81128339|81269623             (-0.17385%)
+instructions::cpu_bound::sort_default n2000:loaded()
+  Instructions:                  1168167802|1165512108           (+0.22786%)
+
+Iai-Callgrind result: Ok. 2 without regressions; 0 regressed
 ```
+
+A case over its ceiling prints `Performance has regressed: Instructions (80690451)
+exceeds limit by 79690451 (>1000000)`, and `cargo bench` exits non-zero.
 
 == Changes
 
-- `crates/mindtape/benches/instructions.rs`: the `callgrind` target over `filter/match` and `sort/default`.
+- `crates/mindtape/benches/instructions.rs`: the `callgrind` target over `filter/match` and `sort/default`, each with an absolute instruction ceiling beside it. A ceiling rather than a percentage against a saved baseline, because `iai-callgrind` stores a baseline as 1.1 MB of `callgrind` profiles and a fresh CI checkout has none.
 - `crates/mindtape/Cargo.toml`: the `iai-callgrind` dev-dependency and the `harness = false` target.
-- `nix/dev/shell.nix`: `valgrind`, which `callgrind` needs.
-- `.github/workflows/ci.yml`: the job, on the Linux runner.
-- `CHANGELOG.md`: an entry under `[Unreleased]`.
+- `nix/dev/`: the runner derivation the harness shells out to, which no package carries, and the shell entry that puts it and `valgrind` on PATH.
+- `.just/bench.just`: the `instructions` recipe.
+- `.github/workflows/`: the push job that gates on the counts, and the nightly job that saves a criterion baseline for the cold path.
+- `www/content/internals.typ` and `CHANGELOG.md`: the paragraph that documents the gate, and the entry under `[Unreleased]`.
 
 == Out of scope
 
 - A wall-clock threshold in CI. A shared runner is too noisy for one, and the cold path spends its time blocked, which instruction counts cannot see.
 - The cold path's shape. `warm_load_serves_cache_and_skips_eval` and its neighbours already gate it.
+- The sort's cost. `sort/default/2000` retires 1.165 G instructions, 582 k per task, which is the expensive half of `mt ls`. The gate bounds it. Making it cheaper is its own task.
 
 == Dogfood
 

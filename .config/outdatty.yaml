@@ -724,6 +724,7 @@ groups:
       - docs/src/contributing.typ
       - docs/src/agents.typ
       - www/content/quickstart.typ
+      - www/content/internals.typ
       - docs/src/contributing/gates.typ
       - docs/src/contributing/example-projects.typ
       - docs/src/contributing/windows.typ

@@ -1,0 +1,59 @@
+name: Nightly
+
+# The wall-clock half of the benchmark suite, which no pull request gates on: a
+# shared runner is too noisy for a threshold, and the cold path spends its time
+# blocked, which an instruction count cannot see. This job saves a criterion
+# baseline and uploads it, so a regression shows up as a difference between two
+# nights' artifacts rather than as a red build.
+#
+# The CPU-bound half is gated on every push instead, in ci.yml's
+# `Bench (instructions)` job.
+on:
+  schedule:
+    # 03:17 UTC, off the hour so it does not queue behind every other project's
+    # midnight job.
+    - cron: "17 3 * * *"
+  workflow_dispatch: ~
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  baseline:
+    name: Criterion baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+      - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/flake.lock', '**/*.nix') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 5G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
+      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: mlavrinenko
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          extraPullNames: qahq
+          pushFilter: "-deps-"
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
+        with:
+          key: nightly-${{ hashFiles('flake.lock', 'rust-toolchain.toml') }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      # `--save-baseline nightly` writes target/criterion/<case>/nightly/, so a
+      # later run compares against this one with `just bench::compare nightly`.
+      - name: Criterion suite
+        run: nix develop --command just bench::save nightly
+      - uses: actions/upload-artifact@v4
+        with:
+          name: criterion-nightly
+          path: target/criterion
+          retention-days: 90

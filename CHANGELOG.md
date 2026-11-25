@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `examples/large` and its
   shell generator are gone: the fixture lives with the benchmarks now.
 
+- **A CI gate on instruction counts for the CPU-bound benchmarks.**
+  `crates/mindtape/benches/instructions.rs` runs `filter/match/2000` and
+  `sort/default/2000` once each under callgrind and compares the retired
+  instruction count with a ceiling in that file, so the verdict is the same on
+  a shared runner as on a laptop. `just bench::instructions` runs it, and
+  `ci.yml`'s `Bench (instructions)` job gates every push on it. The wall-clock
+  suite stays a local tool, and a new nightly workflow saves a criterion
+  baseline artifact for the cold path, which spends its time blocked and so
+  stays invisible to an instruction count. `nix/dev/iai-callgrind-runner.nix`
+  builds the runner binary the harness shells out to.
+
 - **Every open task's `AS-IS` opens with one plain line that carries the
   essence.** The `mindtape:tasks` pack adds `open-as-is-with-the-essence`,
   which refuses an `AS-IS` whose first line is a bullet, a marker or a

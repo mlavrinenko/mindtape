@@ -61,10 +61,23 @@ does not track the cache. On a generated backlog of 2000 tasks:
 // Measured by hand: `just bench::run` prints hyperfine's report and saves nothing a
 // page could read, so the date and machine below let a reader judge the
 // figures.
-These figures come from one run on 2026-11-25 on one Linux machine with an
-i7-12700H, and nothing regenerates them. Run #just.bench-run() on your
+These figures come from one run on 2026-11-25 on one Linux machine, and
+nothing regenerates them. Run #just.bench-run() on your
 machine for the warm column. For the cold column, set `MINDTAPE_NO_CACHE=1` to
 make `mt` skip the cache.
+
+To see where the time goes rather than how much, #just.bench-profile()
+attributes the warm path's CPU to functions with `callgrind`, and
+#just.bench-syscalls() attributes a cold run to syscalls with `strace`. Both
+run as a normal user.
+
+#just.bench-instructions() is the gate rather than a tool: it counts the
+CPU-bound cases under `callgrind` and fails a case that retires more
+instructions than the ceiling beside it in
+`crates/mindtape/benches/instructions.rs`. An instruction count is the same on
+a shared runner as on a laptop, so CI gates every push on it. The cold path
+stays out, because it spends its time blocked and an instruction count cannot
+see that. A nightly job saves a criterion baseline for it instead.
 
 A cache entry is a copy of what evaluation produced, so you lose nothing by
 deleting the directory. The next run rebuilds it. A change to the config, the

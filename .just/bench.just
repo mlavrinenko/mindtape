@@ -68,6 +68,19 @@ save NAME *ARGS:
 compare NAME *ARGS:
     cargo bench -p mindtape --bench load -- --baseline {{ NAME }} {{ ARGS }}
 
+# The gate. `benches/instructions.rs` runs each CPU-bound case once under
+# callgrind and compares the retired-instruction count with a ceiling in that
+# file, so the verdict is the same on a shared runner as on a laptop. The
+# fixture is generated first: building 2000 files under valgrind would take
+# minutes, and the setup is excluded from the count anyway.
+
+[arg('N', pattern='\d+', help='number of task files')]
+[doc("Count the CPU-bound cases under callgrind and fail past a ceiling")]
+[script('bash')]
+instructions N=BENCH_N *ARGS:
+    just bench::gen {{ N }}
+    cargo bench -p mindtape --bench instructions -- {{ ARGS }}
+
 # Attribution runs no sampler. callgrind counts instructions and strace counts
 # syscalls, and both run unprivileged, so a recipe built on either works for a
 # normal user. They also answer the two questions this repo has: the warm path
