@@ -344,7 +344,7 @@ main { min-width: 0; padding-bottom: 80px; }
 .js-nav .nav-group.is-here.line-drawn::after { transform: scaleY(1); }
 .nav-title {
   position: relative; display: flex; gap: 7px; align-items: baseline;
-  margin: 0 0 7px -18px; padding-left: 1px;
+  margin: 0 0 7px -18px; padding-left: 2px;
   font-family: var(--sans); font-size: 11px; font-weight: 800;
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink);
 }
@@ -370,12 +370,12 @@ main { min-width: 0; padding-bottom: 80px; }
   background: var(--green); border-color: var(--green);
   box-shadow: 0 0 0 2px var(--paper);
 }
-.stop.sub { padding-left: 14px; font-family: var(--mono); font-size: 11px; }
+.stop.sub { padding-left: 14px; font-family: var(--mono); font-size: 12px; }
 .stop.sub::before { left: -17px; width: 5px; height: 5px; }
 .rail-foot {
   margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--line);
   display: flex; justify-content: space-between;
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
 }
 
 /* The CLI entry is a <details> so the command list needs no script. The link
@@ -409,13 +409,13 @@ main { min-width: 0; padding-bottom: 80px; }
   font-size: clamp(46px, 5vw, 62px); line-height: 0.96;
   letter-spacing: -0.055em; margin: 0 0 14px;
 }
-.article-lede { display: flex; align-items: center; gap: 24px; justify-content: space-between; }
+.article-lede { display: flex; align-items: start; gap: 24px; justify-content: space-between; }
 .lede {
   margin: 0;
   font-size: 21px; line-height: 1.42; letter-spacing: -0.012em;
 }
 .article-head .lede {
-  max-width: 60ch; color: var(--ink-2);
+  color: var(--ink-2);
   font-size: 19px; line-height: 1.5; letter-spacing: 0;
 }
 
@@ -456,10 +456,10 @@ main { min-width: 0; padding-bottom: 80px; }
 }
 .prose p { font-size: 16.5px; line-height: 1.68; margin: 0 0 14px; }
 .prose ul > li { font-size: 14px; }
-.prose code { font-size: max(11px, 0.8em); }
+.prose code { font-size: max(12px, 0.8em); }
 .prose pre code { font-size: inherit; }
-.prose pre, .prose .code pre { font-size: 11.5px; }
-.prose .terminal pre { font-size: 11px; }
+.prose pre, .prose .code pre { font-size: 12px; }
+.prose .terminal pre { font-size: 12px; }
 .page-rail { align-self: start; position: sticky; top: 88px; }
 
 /* ── Prose ────────────────────────────────────────────────────────────────── */
@@ -492,7 +492,7 @@ blockquote {
 }
 
 code {
-  font-family: var(--mono); font-size: max(11px, 0.82em);
+  font-family: var(--mono); font-size: max(12px, 0.82em);
   color: var(--code-fg); background: var(--code-bg);
   border: 1px solid var(--code-border); padding: 0.08em 0.3em;
   border-radius: 1px;
@@ -544,7 +544,7 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
   border-top: 1px solid var(--line-strong);
   padding: 28px 0 36px; margin-top: 64px;
 }
-.footer-inner { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.footer-inner { display: flex; align-items: center; gap: 20px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .footer-inner .right { margin-left: auto; display: flex; gap: 18px; }
 .footer-inner a { color: var(--muted); text-decoration: none; }
 .footer-inner a:hover { color: var(--green-ink); text-decoration: underline; }

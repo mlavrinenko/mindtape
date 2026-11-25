@@ -85,12 +85,13 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   border: 1px solid var(--line-strong);
   border-top: 3px solid var(--green);
   background: var(--code-bg);
+  margin: 20px 0;
 }
 .code-head {
   display: flex; align-items: center; gap: 9px;
-  height: 36px; padding: 0 12px; overflow: hidden;
+  height: 40px; padding: 0 12px; overflow: hidden;
   border-bottom: 1px solid var(--line); background: var(--paper);
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
   color: var(--ink-2);
 }
 .code-head .sq { width: 7px; height: 7px; background: var(--green); flex: none; }
@@ -106,7 +107,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 .code-head .copy { flex: none;
   margin-left: auto; padding: 3px 6px;
   border: 1px solid var(--line); background: var(--paper-2);
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
   color: var(--muted); cursor: pointer;
 }
 .code-head .copy:hover { color: var(--green-ink); border-color: var(--green); }
@@ -154,12 +155,12 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 /* ── Terminal ─────────────────────────────────────────────────────────────── */
 
 .mt-list { margin-top: 46px; }
-.terminal { width: 100%; background: var(--term-bg); color: var(--term-fg); border: 1px solid var(--line-strong); }
+.terminal { width: 100%; background: var(--term-bg); color: var(--term-fg); border: 1px solid var(--line-strong); margin: 20px 0; }
 .terminal-head {
   display: flex; align-items: center; gap: 9px;
-  height: 34px; padding: 0 12px;
+  height: 40px; padding: 0 12px;
   border-bottom: 1px solid #26332c;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em;
   color: #8fa398;
 }
 .terminal-head i { width: 7px; height: 7px; background: var(--green); flex: none; }
@@ -171,7 +172,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 .terminal pre {
   margin: 0; padding: 18px 22px 22px;
   background: transparent; color: var(--term-fg); border: 0;
-  font-size: 11.5px; line-height: 1.7;
+  font-size: 12px; line-height: 1.7;
   overflow-x: auto;
 }
 .terminal code { background: none; border: 0; color: inherit; font-size: inherit; }
@@ -180,8 +181,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 
 .page-toc { margin: 0 0 26px; }
 .page-rail .page-toc .eyebrow {
-  display: block; padding-top: 12px; margin: 0 0 10px;
-  border-top: 1px solid var(--line-strong);
+  display: block; margin: 0 0 10px;
 }
 .page-toc ul { position: relative; list-style: none; margin: 0; padding: 0 0 0 18px; }
 .page-toc ul::before {
@@ -306,7 +306,7 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   border: 1px solid var(--line-strong); background: var(--paper);
 }
 .lsp figcaption {
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
   padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--line);
   background: var(--paper-2); letter-spacing: 0.04em;
 }
@@ -344,13 +344,13 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
 }
 .lsp-menu li { display: flex; gap: 0.7rem; align-items: baseline; padding: 0.05rem 0.7rem; margin: 0; }
 .lsp-menu li:first-child { background: var(--green-wash); }
-.lsp-kind { color: var(--green); font-size: 0.7rem; min-width: 2.6rem; }
-.lsp-problems { list-style: none; margin: 0; padding: 0.4rem 0; border-top: 1px solid var(--line); }
+.lsp-kind { color: var(--green); font-size: 0.75rem; min-width: 2.6rem; }
+.lsp-problems { list-style: none; margin: 0; padding: 0.3rem 0 0.4rem; border-top: 1px solid var(--line); }
 .lsp-problems li {
   display: flex; flex-wrap: wrap; gap: 0.2rem 0.7rem; align-items: baseline;
   margin: 0; padding: 0.3rem 0.9rem; font-size: 0.88rem;
 }
-.lsp-severity { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.lsp-severity { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
 .lsp-error .lsp-severity { color: var(--lsp-error); }
 .lsp-warning .lsp-severity { color: var(--lsp-warning); }
 .lsp-message { flex: 1 1 18rem; }
@@ -373,7 +373,7 @@ main thead th {
 }
 main table a { font-family: var(--sans); font-weight: 600; text-decoration: none; letter-spacing: -0.01em; }
 main table a:hover { text-decoration: underline; }
-main table code { display: inline; font-size: 11px; line-height: 1.7; white-space: normal; }
+main table code { display: inline; font-size: 12px; line-height: 1.7; white-space: normal; }
 
 /* ── Wide comparison matrix ───────────────────────────────────────────────── */
 
@@ -402,7 +402,7 @@ main table code { display: inline; font-size: 11px; line-height: 1.7; white-spac
 .matrix th, .matrix td { padding: 0.38rem 0.55rem; }
 .matrix tbody th, .matrix tbody td:first-child {
   position: sticky; left: 0; z-index: 1; background: var(--paper);
-  font-weight: 600; font-family: var(--mono); font-size: 0.74rem;
+  font-weight: 600; font-family: var(--mono); font-size: 0.75rem;
 }
 .matrix thead th:first-child { position: sticky; left: 0; z-index: 2; }
 
@@ -469,7 +469,7 @@ main table code { display: inline; font-size: 11px; line-height: 1.7; white-spac
 #search .pagefind-ui__form:before { width: 14px; height: 14px; top: 11px; left: 11px; }
 #search .pagefind-ui__search-clear {
   height: 26px; top: 4px; right: 8px;
-  font-size: 11px; padding: 0 0.4rem;
+  font-size: 12px; padding: 0 0.4rem;
 }
 /* Pagefind hides Clear with opacity alone, which leaves an invisible tab
    stop. Hidden means hidden to the keyboard and the accessibility tree. */
@@ -488,7 +488,7 @@ main table code { display: inline; font-size: 11px; line-height: 1.7; white-spac
 }
 #search.search--closed .pagefind-ui__drawer { display: none; }
 #search .pagefind-ui__results-area { margin-top: 0; }
-#search .pagefind-ui__message { padding: 0.6rem 0; height: auto; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+#search .pagefind-ui__message { padding: 0.6rem 0; height: auto; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
 #search .pagefind-ui__result { padding: 0.7rem 0; border-top: 1px solid var(--line); }
 #search .pagefind-ui__result-title { font-family: var(--sans); font-size: 0.9rem; font-weight: 700; }
 #search mark { background: var(--green-wash); color: inherit; font-weight: 600; }
@@ -541,6 +541,6 @@ main table code { display: inline; font-size: 11px; line-height: 1.7; white-spac
   main.home .table-scroll tbody td:nth-child(3) code {
     display: block; padding: 10px 12px;
     background: var(--code-bg); border: 1px solid var(--code-border);
-    font-size: 11px; line-height: 1.6; overflow-wrap: break-word;
+    font-size: 12px; line-height: 1.6; overflow-wrap: break-word;
   }
 }

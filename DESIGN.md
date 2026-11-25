@@ -134,12 +134,12 @@ A paper-and-ink palette with one signal green. The green is the logo's own accen
 - **Display** (800, clamp(72px, 7.6vw, 107px), 0.84, -0.075em): the home page title only, set across the full hero width with the cassette mark at its right edge.
 - **Headline** (800, clamp(46px, 5vw, 62px), 0.96, -0.055em): article titles. Distinct from display so a long page name still fits.
 - **Title** (700, 30px, 1.1, -0.035em): section heads on the home page and inside prose. H2s inside prose carry a hairline above them; the first one does not.
-- **Lede** (400, 21px, 1.42): the home summary in Literata; article ledes drop to 19px/1.5 and cap at 60ch.
+- **Lede** (400, 21px, 1.42): the home summary in Literata; article ledes drop to 19px/1.5 and fill the article head.
 - **Body** (400, 18px, 1.65): default prose. Article prose reads at 16.5px/1.68 in a 690px column.
 - **Label** (500, 11px, 0.08 to 0.16em, uppercase): station numbers, route labels, panel headers, and metadata. Uppercase comes from CSS, never from the source string.
-- **Code** (400, 12.5px, 1.62): panels on the home page; 11.5px inside article prose.
+- **Code** (400, 12.5px, 1.62): panels on the home page; 12px inside article prose.
 
-**The Measured Column Rule.** Reading text stays between 60 and 72 characters. Display type may exceed the column, reading text may not. **The Legibility Floor.** No type role is set below 11px; labels separate themselves by family, weight, tracking and color, and inline code keeps its parent's size.
+**The Measured Column Rule.** Reading text stays between 60 and 72 characters. Display type may exceed the column, reading text may not. **The Legibility Floor.** No reading or data role is set below 12px; inline code keeps its parent's size. The uppercase label role and the one-character `/` search hint may stay at 11px, because they separate themselves by family, weight, tracking and color rather than by size.
 
 ## Layout
 
@@ -175,7 +175,7 @@ Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean
 - **Hero:** the same mark fills a square the size of the display title at the right edge of the hero's title row. The h1 already names the product, so the hero mark is decorative, and it hides below 40rem.
 
 ### Code Panel
-- **Style:** 1px strong border with a 3px green top edge. A 36px paper header carries a 7px green square, the language label, the file path in muted mono, and a COPY control. The body is code on light paper in light mode and on a raised night panel (#1a261e) in dark mode.
+- **Style:** 1px strong border with a 3px green top edge. A 40px paper header carries a 7px green square, the language label, the file path in muted mono, and a COPY control. The body is code on light paper in light mode and on a raised night panel (#1a261e) in dark mode. The panel sits on a 20px vertical margin.
 - **Behavior:** COPY copies the block and says "Copied" for two seconds. Article panels take the language label from the first line or the fence, never a hand-written guess.
 
 ### Line Map (signature)
@@ -183,7 +183,7 @@ Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean
 - **Behavior:** the rail is sticky at 22px on wide screens; below 52rem it becomes a drawer with the same line and stops.
 
 ### Calling Points
-- **Style:** a 210px sticky rail under a 1px strong rule. Each entry is a bordered cell on the vertical line, with a 7px stop centred on its label. The current entry is green and bold, every stop above it is filled, and a green segment runs from the list top to the current stop; later stops stay hollow. Narrow screens fold the list into a `<details>` block above the prose.
+- **Style:** a 210px sticky rail under the article head's rule. Each entry is a bordered cell on the vertical line, with a 7px stop centred on its label. The current entry is green and bold, every stop above it is filled, and a green segment runs from the list top to the current stop; later stops stay hollow. Narrow screens fold the list into a `<details>` block above the prose.
 - **Behavior:** the rail follows the heading under the masthead on scroll and moves at once on a click. A page with fewer than three headings has no rail.
 
 ## Do's and Don'ts
