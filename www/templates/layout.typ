@@ -708,7 +708,7 @@ update();
   )
 }
 
-// NEXT STOP: the next page in reading order, so an article ends at the line
+// NEXT STOP: the next page in reading order, so a page ends at the line
 // rather than at a dead end. The last page has no next stop.
 #let _next-stop(active) = {
   let target = _next-route(active)
@@ -801,6 +801,7 @@ update();
             })
           } else {
             body
+            _next-stop(active)
           }
         },
       )
