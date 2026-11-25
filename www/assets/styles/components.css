@@ -407,7 +407,7 @@ main table code { display: inline; font-size: 12px; line-height: 1.7; white-spac
   position: sticky; left: 0; z-index: 1; background: var(--paper);
   font-weight: 600; font-family: var(--mono); font-size: 0.75rem;
 }
-.matrix thead th:first-child { position: sticky; left: 0; z-index: 2; }
+.matrix thead th:first-child { position: sticky; left: 0; z-index: 2; background: var(--paper); }
 
 /* Capability heatmap tokens. Green means the capability exists, amber means
    partial, grey means none. Both fg/bg pairs keep 4.5:1 contrast. */
