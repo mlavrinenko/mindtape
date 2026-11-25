@@ -167,9 +167,8 @@ scopes:
   # The example projects `just check-examples` validates. Keep this list and
   # that recipe in step: a fixture outside the scope goes false-fresh and stops
   # being gated without anyone noticing. It is not an `examples/*` glob,
-  # because examples/large/ is a generated, gitignored benchmark fixture that
-  # the recipe does not check, and its 2000 task files would churn this rule
-  # for nothing.
+  # because the benchmark fixture under target/bench/ is generated and
+  # gitignored, and its 2000 task files would churn this rule for nothing.
   # www/capture.sh joins because it declares the api-service clock, which
   # crates/mindtape-cli/tests/it/eval_fixture_e2e.rs reads, so a clock edit re-runs
   # the test.
@@ -250,8 +249,7 @@ scopes:
   # correctness must not rest on the glob never gaining a wildcard, and a scope
   # whose whole subject is ignored paths should say so. The key sits on the
   # scope because a top-level `gitignore: false` would walk all of `target/` and
-  # the 2000 generated files under `examples/large/` that the `examples` scope
-  # keeps out of every rule.
+  # the 2000 generated files under `target/bench/` that no scope lists.
   #
   # A glob matching nothing is legal and intended: absent and present are
   # different input states, so a `just crap::check` record goes stale the moment
@@ -386,7 +384,6 @@ scopes:
   # over every `#` comment of those files.
   comment-sources:
     - ".github/**"
-    - "examples/large/generate.sh"
 
   # Every Vale config, which `just lint::vale-levels` reads in full. The glob
   # makes a new `.config/vale-*.ini` an input on arrival, so a level line in it

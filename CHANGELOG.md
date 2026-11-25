@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A benchmark harness for the load path.** `crates/mindtape/benches/` holds a
+  criterion suite over `load_project` (cold and warm, at 100, 1000 and 2000
+  tasks), filter parsing, filter matching and the default sort, plus the
+  fixture generator that writes a deterministic N-task Git repository under
+  `target/bench/`. `just bench::suite` runs it, `just bench::save <name>` and
+  `just bench::compare <name>` turn it into an A/B against a saved baseline,
+  `just bench::run` times the real binary end to end with hyperfine (warm,
+  cold and no-cache), and `just bench::profile` records a samply profile of a
+  `[profile.bench]` build that keeps its symbols. `examples/large` and its
+  shell generator are gone: the fixture lives with the benchmarks now.
+
 - **Every open task's `AS-IS` opens with one plain line that carries the
   essence.** The `mindtape:tasks` pack adds `open-as-is-with-the-essence`,
   which refuses an `AS-IS` whose first line is a bullet, a marker or a

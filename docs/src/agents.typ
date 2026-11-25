@@ -72,8 +72,8 @@ unchanged files.
   evals.
 - `examples/`: fixtures backing one docs page each. `api-service` is a
   sample backend backlog, `minimal` the smallest config, `dsl` the task quoted
-  on the DSL page, `large` a 2000-task benchmark, and `nix-adopter` a flake
-  that takes `mt` into its dev shell.
+  on the DSL page, and `nix-adopter` a flake that takes `mt` into its dev
+  shell.
 
 Before writing about a feature, read its `www/content/` page:
 #page-src("dsl") for task fields, edge kinds and `recur`,

@@ -113,7 +113,13 @@
             # network at build time, so a Typst Universe renderer such as
             # diagraph would make the docs build depend on packages.typst.org.
             graphviz
+            # `just bench::run` times the binary; `just bench::suite` runs the
+            # criterion suite. Both are pinned here so a number measured in CI
+            # and one measured locally come from the same tools.
             hyperfine
+            # `just bench::profile` records a sampling profile. Linux needs
+            # `kernel.perf_event_paranoid` at 1 or lower; the recipe says so.
+            samply
             # `just skill-evals` runs each eval in its own sandbox. bwrap is
             # the boundary that keeps the repo, the home and the installed
             # skill out of the executor.

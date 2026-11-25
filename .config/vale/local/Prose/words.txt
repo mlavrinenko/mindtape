@@ -188,6 +188,7 @@ quickstart's
 rasterised
 reentrant
 relinks
+samply
 selftest
 sk
 strace

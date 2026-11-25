@@ -19,6 +19,15 @@ strip = true
 lto = "thin"
 codegen-units = 1
 
+# Benchmarks inherit release's optimizations, so a number measured here is the
+# number a user gets. Line tables only: enough for `samply` and `perf` to name a
+# source line, cheap enough not to change codegen.
+[profile.bench]
+inherits = "release"
+debug = 1
+# Release strips, which would leave a profiler with no names to show.
+strip = false
+
 # Fast profile for cargo-mutants (`--profile mutants`): drop debuginfo to cut
 # per-mutant compile + link time. Never used by normal builds.
 [profile.mutants]

@@ -54,17 +54,17 @@ does not track the cache. On a generated backlog of 2000 tasks:
 #table(
   columns: 3,
   table.header([Command], [Cold cache], [Warm cache]),
-  [`mt ls`], [0.44 s], [0.18 s],
-  [`mt check`], [0.33 s], [0.08 s],
+  [`mt ls`], [13.9 s], [0.17 s],
+  [`mt check`], [15.9 s], [0.10 s],
 )
 
 // Measured by hand: `just bench::run` prints hyperfine's report and saves nothing a
 // page could read, so the date and machine below let a reader judge the
 // figures.
-These figures come from one run on 2026-08-16 on one Linux machine with an
-i7-12700H, and nothing regenerates them. Run #just.bench-run() on your machine for
-the warm column. For the cold column, set `MINDTAPE_NO_CACHE=1` to make `mt`
-skip the cache.
+These figures come from one run on 2026-11-25 on one Linux machine with an
+i7-12700H, and nothing regenerates them. Run #just.bench-run() on your
+machine for the warm column. For the cold column, set `MINDTAPE_NO_CACHE=1` to
+make `mt` skip the cache.
 
 A cache entry is a copy of what evaluation produced, so you lose nothing by
 deleting the directory. The next run rebuilds it. A change to the config, the

@@ -328,7 +328,7 @@ groups:
       .config/nextest.toml: d1353c6139c6bf51cb8664747c93f2ca9c721bd6c8e54b2c2c646ebefc17d5fc
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/advisory.just: aba945d5469a9c6241742b71cc5dc883f3d746c62015347a7f3c501433220574
-      .just/bench.just: 537461a4aecca375d05e7cd460ec36d1eaaff5167e5a698f065a9c8f61e976c1
+      .just/bench.just: 956b55194bea4ca91b12ca600d6d698744ff17e9bb8ab65c9591851000d56348
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
       .just/docs.just: 82a3017127b223bd655b6cc9d43e8aa1b84dca3184823eebb4d75b703a71f493
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
@@ -341,15 +341,15 @@ groups:
       .just/scripts/dry-reasons.sh: 19303aece1984ca396bf9711775eb1d210c1bdf7d9be765dfd82e34e94b9374a
       .just/scripts/wt-carry-lcov.sh: 97a4ef31a342a808c516133529368b33c6f976f8fb0cf5c573902ff4d0229d28
       .just/session.just: 4ec3006fe2b7e0d475e4cde780ead2e19d61a90ca48847664a3ef03a80955a04
-      Justfile: 9c19eb6738b8542ef0d821c6bc158a3f0555e882768b31061aa2e8080718aa6e
+      Justfile: 094c204b419641a983410bef0a6bc476c00603230177193a89e62c9437f5eb35
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
+      nix/dev/shell.nix: 17eedde0b90f4a76fe79fd16bf77de1fab82e7b3587e80868c4c9cb308240ed4
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
     dependents:
-      docs/src/agents.typ: f04cd178f517cae4ca25c3ff57d0c16527fd3440878322ffad873692e6b9f231
+      docs/src/agents.typ: 6de09921bd72d722537616b2270fc4c5884f7bcb2dfc4bbbec2a2ca716a813f6
       docs/src/contributing.typ: 42c03688be4906026b144893e749c642ab3fd13b0fcf1b62ca835666a526da7b
       docs/src/contributing/coverage-crap.typ: 0dfdbd3b18326b67df5c6e49743183684befba2fc6a4eaa9eea808ac142ac4a2
       docs/src/contributing/crap-baseline.typ: 07406188acce4909e9a893d47453e4b54547f0a98035e8ec37955420be958c61
@@ -358,7 +358,7 @@ groups:
       docs/src/contributing/example-projects.typ: 952534459fb3f06fe43736e8949beffdc296319a3c8ad2a979587f2fcd887ca0
       docs/src/contributing/gates.typ: 05e017d7a3293b0bb7f79db1ee4a1a1df2ff3d9ea3bd6588e8e32913e9636624
       docs/src/contributing/mutation-testing.typ: f36778b2af5e2af51105d606e374e4ff25e93adc2931244ec788b4d70902ba50
-      docs/src/contributing/signal-sweep.typ: 1865cb451cd0302bf2f4f85ca200f0c515a6bd793c82ffcb986febe9d0bf287e
+      docs/src/contributing/signal-sweep.typ: 3c4373901bfa452c8df97e4ea4fcba14d52a64e2507030cfe406eb2a494ba7f2
       docs/src/contributing/windows.typ: d19d7853f501ffaaf49f885c87f657d517d4e475f6683e532983c51441a47022
       www/content/quickstart.typ: 42bbadd7446c9cd2d27f16b44dadf1d9bd57d92cefa0b07cc31d1ca9af1789cb
   dict-words-docs:
@@ -517,9 +517,9 @@ groups:
       docs/src/contributing/release.typ: d800b97a88da256e68bfa606e27f4f5dc2bbd745f531d1c3758fa05cfa4352bc
   release-notes:
     source:
-      Cargo.toml: 028ecd8833f86a620e2275b87a20ec2d74030ca7ca8bbc173df400997f707a65
+      Cargo.toml: c7ac9028783cc1c4c45901e7793a1c208fedd412c949ddb22d0f52fd1d7a06ee
     dependents:
-      CHANGELOG.md: 93181b9fe98446f32bed26b37071c42f6c09c6d7c90c4969322128161c996354
+      CHANGELOG.md: de16c4878ffb0cf1e0d1f003543a551acaebd016a709be9b6c2bb79701f96b6f
   schema-url-docs:
     source:
       .just/scripts/check-schema-urls.sh: 8e0b3828908dad08239963dee8d7dc534fabb1c54f063dbf267aab1da18d49ee
@@ -688,7 +688,7 @@ groups:
       .config/vale/local/Prose/ProductName.yml: 4010ddd31b30d18ad80acbd10b98cd5d45b8d7895a77709b803ff9afeaa95900
       .config/vale/local/Prose/Shouting.yml: ebe002358549c9c30d34331990219dc035b4c5c7a83e029708c1045301a8ef35
       .config/vale/local/Prose/Spelling.yml: e4bb507f460b884814fe3d551e2494e35966014ad1ddf9839c8d53c3a50afa35
-      .config/vale/local/Prose/words.txt: 49d09c4760ceb52585593168b08aaf04cfa753cb99bdb658ad225160fbb35be5
+      .config/vale/local/Prose/words.txt: 916082c0fd8f3756dd6fbc7a9c45ad60ba22a760757aa477222d3729958bd467
       .config/vale/local/Sep/Banner.yml: 112d8b3a26d91b9e84013e7de0169b7f575a85e6a5ce4b8168f23cbab2f2d52a
       .config/vale/local/config/scripts/Imperative.body.tengo: 330da4cada8db114b0e69d371f69490a2830c3e9681edfb5edd7de6f015a4b25
       .config/vale/local/config/scripts/SubjectLength.tengo: ceefdf3aca14edc8d992cbfad994c8247d95b0c907ba11a2b01b67d1d5734b20
@@ -702,7 +702,7 @@ groups:
       .just/scripts/check-vale-levels.sh: 1556070fa5376083821b9c081dda93ee5d76a90491e1cdb69181462460ac6067
       nix/dev/flake.lock: 95b8736f1552c1f635ab4a885052697c46002bfcae208b1a84caf4f3dae566b3
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 55b4a0287f43456778ec597c1921ffd9f4ceffaf248be6d6569fc1f8fa53d720
+      nix/dev/shell.nix: 17eedde0b90f4a76fe79fd16bf77de1fab82e7b3587e80868c4c9cb308240ed4
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale-styles.nix: 29e99a1a3a59dbb1d7629fe039249566a9f9da0641fdfb7b4bb7ff4faf7826d8
     dependents:

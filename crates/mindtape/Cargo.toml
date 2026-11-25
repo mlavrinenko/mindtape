@@ -8,6 +8,9 @@ repository.workspace = true
 license.workspace = true
 keywords = ["typst", "task-tracker", "productivity"]
 categories = ["development-tools"]
+# `benches/fixture.rs` is a module the suite includes, not a target of its own.
+# Autodiscovery would build it as one, so the one bench target is declared.
+autobenches = false
 
 [features]
 # Expose shared task fixtures (`test_support`) to dependent crates' tests.
@@ -102,10 +105,19 @@ tempfile = { version = "3", optional = true }
 
 [dev-dependencies]
 tempfile = "3"
+# The benchmark harness (`benches/load.rs`). `html_reports` writes the
+# `target/criterion/report/` page that shows a run against its baseline.
+criterion = { version = "0.8", features = ["html_reports"] }
 # Already in the tree at this version, under `typst-harvest`. The harvest
 # evaluates and never lays out, so `loader/tests_prelude.rs` compiles a task
 # file itself to prove the prelude's card lays a count estimate out.
 typst-layout = "0.15"
+
+# `harness = false`: criterion brings its own runner, since libtest's `#[bench]`
+# is nightly-only.
+[[bench]]
+name = "load"
+harness = false
 
 [lints]
 workspace = true

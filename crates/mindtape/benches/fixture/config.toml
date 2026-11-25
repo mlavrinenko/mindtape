@@ -1,8 +1,8 @@
-# examples/large/.mindtape/config.toml — a self-contained benchmark fixture.
-# Deliberately simple: one flat root, the full
-# status legend, strict ICE priority, no body-shape rules. Generated tasks
-# live under tasks/ (gitignored; see examples/large/generate.sh) and this
-# config is what `mt -w examples/large ls|check` runs against.
+# The benchmark project's config, copied into every generated fixture by
+# crates/mindtape/benches/fixture.rs. Deliberately simple: one flat root, the
+# full status legend, strict ICE priority, no body-shape rules. The generated
+# tasks live under target/bench/tasks-<n>/tasks/ and this config is what
+# `just bench::run` times `mt ls` and `mt check` against.
 
 [tasks]
 [[tasks.roots]]
