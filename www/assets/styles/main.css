@@ -578,6 +578,9 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
   .js-nav .sidebar {
     position: fixed; z-index: 19;
     top: var(--header-bottom, 64px); bottom: 0; left: 0;
+    /* The base rule's align-self: start also shrink-wraps this fixed box to its
+       content, so bottom is ignored and overflow-y has nothing to scroll. */
+    align-self: auto;
     width: min(20rem, 85vw); margin: 0;
     padding: 20px 20px 40px;
     overflow-y: auto; overscroll-behavior: contain;
