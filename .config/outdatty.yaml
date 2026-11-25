@@ -888,6 +888,8 @@ groups:
       - .just/scripts/mmz-arm.sh
       - .just/scripts/check-secrets.sh
       - .just/scripts/check-conflict-markers.sh
+      - .just/scripts/check-host-details.sh
+      - .just/scripts/_host-details-control.sh
       - .just/scripts/check-gate-drift.sh
       - .just/scripts/_gate-drift-lib.sh
       - .just/scripts/script-scope-check.sh

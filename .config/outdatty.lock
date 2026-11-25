@@ -328,11 +328,11 @@ groups:
       .config/nextest.toml: d1353c6139c6bf51cb8664747c93f2ca9c721bd6c8e54b2c2c646ebefc17d5fc
       .config/wt.toml: 42ef5556bc09dbab09afa42cbf04d8d090bd6519e1e22fcb34bf700e67591004
       .just/advisory.just: aba945d5469a9c6241742b71cc5dc883f3d746c62015347a7f3c501433220574
-      .just/bench.just: 7c14d9acaa73efb0f35cce4777efbb9325c9c9a56d756ff823354f01621c5596
+      .just/bench.just: 452301734ca0fc52c8cc901396e2d9bbc96985bd4f0cecb656f687bfcb140453
       .just/crap.just: bbd5c5afd5c0949810cb7647c8dc495836f5b3ea3edd1d2ddba77703317caa6c
       .just/docs.just: 82a3017127b223bd655b6cc9d43e8aa1b84dca3184823eebb4d75b703a71f493
       .just/install.just: d5b6fa1381014bf12de6551f5356a832667bd0d107998cbe86c03ce7eee16989
-      .just/lint.just: d58d31f51264cac62b6eae3dbdc1bc23de821b4511b93c972a546a73f68dd48b
+      .just/lint.just: 2fd578706f3ecd189d88b7054060f38410c8c646790ef0a0a6edb8001fb1f468
       .just/meta.just: 50f81441c79a969597f3538652bcd95391806d272137b9bb5ac16388ca8a45fe
       .just/mutants.just: 2fc963a8cf93ea6a7ddea17132d68ae6a349489af89a4a83455fdd99386dd6d0
       .just/outdatty.just: fb95f90850c8179bb3fba01a8ae90e2fe703c1c551cb8181892bd24b03f95866
@@ -341,10 +341,10 @@ groups:
       .just/scripts/dry-reasons.sh: 19303aece1984ca396bf9711775eb1d210c1bdf7d9be765dfd82e34e94b9374a
       .just/scripts/wt-carry-lcov.sh: 97a4ef31a342a808c516133529368b33c6f976f8fb0cf5c573902ff4d0229d28
       .just/session.just: 4ec3006fe2b7e0d475e4cde780ead2e19d61a90ca48847664a3ef03a80955a04
-      Justfile: 094c204b419641a983410bef0a6bc476c00603230177193a89e62c9437f5eb35
+      Justfile: 40a38f64149d7946136c6c989f852f286df1d071180e888172de5dd2da96a24b
       flake.nix: 325112feb8cc629198bd6721f88d54efc933a1aebbf80d9a2e32f5f5ffc3cbc0
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 5c7c68707fb69907286a08887f8ea7dfb63d027ae29d331bf904e12625c809c6
+      nix/dev/shell.nix: 214af59be55d13ced848501d53e2a5c50932d3042ba92ac6c1f217c84dc246c5
       nix/dev/typst2vast.nix: bb7f1223d483e31fc74b9d60b595dbff4e6f7d4fcac59e8cda787f0a96a91359
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale.nix: 86aa6e042b719684294a2533b6f2f7dcd0b1bdd53906e58ebacbe6bf0f285bac
@@ -360,7 +360,7 @@ groups:
       docs/src/contributing/mutation-testing.typ: f36778b2af5e2af51105d606e374e4ff25e93adc2931244ec788b4d70902ba50
       docs/src/contributing/signal-sweep.typ: 3c4373901bfa452c8df97e4ea4fcba14d52a64e2507030cfe406eb2a494ba7f2
       docs/src/contributing/windows.typ: d19d7853f501ffaaf49f885c87f657d517d4e475f6683e532983c51441a47022
-      www/content/internals.typ: c5980b364335fd949cf7b435e075292d982ac1ae1e11730933e10d2c89c5d9c9
+      www/content/internals.typ: 9ce5cbbca7de5217276c83ec84a54539a40fda7d7818dd598be3460cb0dc941e
       www/content/quickstart.typ: 42bbadd7446c9cd2d27f16b44dadf1d9bd57d92cefa0b07cc31d1ca9af1789cb
   dict-words-docs:
     source:
@@ -416,12 +416,14 @@ groups:
   gate-scripts-docs:
     source:
       .just/scripts/_gate-drift-lib.sh: 4c5fec64bd82a393863aeef4400e836131e85021c01a24f766a2d8fb76fa2f13
+      .just/scripts/_host-details-control.sh: 48ba035107a519e7ef9b9ed53487ed327b1da594b24d400de7839a272760e424
       .just/scripts/_script-graph-lib.sh: 2d5ef56d1c3380a858f29508405d54b4b0302347ab85f756cdfafa98a459002a
       .just/scripts/_script-graph.sh: a0a5854f68b78e176217a9b4dcefc0bc25a56320fd16440654e74f751df937d0
       .just/scripts/_script-reach.sh: b2003b6e1fa7ca9812115868fd82c4887a387b83eca42c5fb4da7641afdb3ff1
       .just/scripts/arg-pattern-check.sh: c71cc5f669cead97d5402f617899464bf5db2d79fffabf071852c896367bacd9
       .just/scripts/check-conflict-markers.sh: 6b4d4202e6ee43f5b66680df15598ca8b87f262d2cfadaa12f7007f892dc9f87
       .just/scripts/check-gate-drift.sh: 5cfb23413c33749e9063cad261064f63a34c4c295c4598ce0a0b6c013bb3295b
+      .just/scripts/check-host-details.sh: b25c1697050837f8469297893d0a901fbc788c893d360f113b457de81f778784
       .just/scripts/check-secrets.sh: 517cb3750fb909ef219f8c7f68541dc6a5031dd23dd04b85c98fa18f392a7bae
       .just/scripts/check.sh: 812f6c0cd901c49c16f1311b05067b7d8879f09069dec47fbb65ec079c5beec0
       .just/scripts/fmt-fixture-check.sh: 058a6984d0c1e78e7c868982f36b31889f5f398a7d6d8c1daa5c926cd1e48f88
@@ -703,7 +705,7 @@ groups:
       .just/scripts/check-vale-levels.sh: 1556070fa5376083821b9c081dda93ee5d76a90491e1cdb69181462460ac6067
       nix/dev/flake.lock: 95b8736f1552c1f635ab4a885052697c46002bfcae208b1a84caf4f3dae566b3
       nix/dev/flake.nix: 7dc39578b41326c6c8c2e129756bcdfea195de702f7ac254a7649bec47467734
-      nix/dev/shell.nix: 5c7c68707fb69907286a08887f8ea7dfb63d027ae29d331bf904e12625c809c6
+      nix/dev/shell.nix: 214af59be55d13ced848501d53e2a5c50932d3042ba92ac6c1f217c84dc246c5
       nix/dev/vale-grammars.nix: 85993191fcba292d43062397720bc1990089d62a986529daa3bd9936e1166738
       nix/dev/vale-styles.nix: 29e99a1a3a59dbb1d7629fe039249566a9f9da0641fdfb7b4bb7ff4faf7826d8
     dependents:

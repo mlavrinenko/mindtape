@@ -112,6 +112,12 @@ conflict-markers:
     bash .just/scripts/_conflict-markers-control.sh
     bash .just/scripts/check-conflict-markers.sh
 
+[doc("Fail on a tracked file that names a setting on the reader's machine")]
+[group("gate")]
+host-details:
+    bash .just/scripts/_host-details-control.sh
+    bash .just/scripts/check-host-details.sh
+
 [doc("Refuse a #[path] attribute that names anything but a test sibling")]
 [group("gate")]
 path-attr:

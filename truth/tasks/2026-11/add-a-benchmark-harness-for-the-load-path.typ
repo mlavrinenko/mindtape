@@ -51,7 +51,7 @@ sort/default/2000       time:   [74.458 ms 74.798 ms 75.190 ms]
 - Divan: a nicer API and allocation counters, but no baseline comparison, and the point here is a measurement that moves between runs.
 - iai-callgrind: deterministic instruction counts, which suit a CPU-bound hot loop. The cold path is 13.9 s of which 2 s is user CPU, so instruction counting cannot see the cost.
 - Keeping the shell generator: it wrote files Git ignores, so the fixture didn't load a single task.
-- `samply`: a sampling profiler with a better report, but it needs a privilege a normal user lacks, so a recipe built on it fails where it ships.
+- `samply`: a sampling profiler with a better report, but it needs a privilege a normal user lacks.
 
 == Out of scope
 
