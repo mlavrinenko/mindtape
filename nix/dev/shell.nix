@@ -117,9 +117,12 @@
             # criterion suite. Both are pinned here so a number measured in CI
             # and one measured locally come from the same tools.
             hyperfine
-            # `just bench::profile` records a sampling profile. Linux needs
-            # `kernel.perf_event_paranoid` at 1 or lower; the recipe says so.
-            samply
+            # `just bench::profile` attributes the warm path's CPU to a
+            # function with callgrind, and `just bench::syscalls` attributes a
+            # cold run to a syscall with strace. Both run unprivileged, unlike
+            # a sampler.
+            valgrind
+            strace
             # `just skill-evals` runs each eval in its own sandbox. bwrap is
             # the boundary that keeps the repo, the home and the installed
             # skill out of the executor.

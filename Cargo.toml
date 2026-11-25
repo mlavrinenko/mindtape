@@ -20,7 +20,7 @@ lto = "thin"
 codegen-units = 1
 
 # Benchmarks inherit release's optimizations, so a number measured here is the
-# number a user gets. Line tables only: enough for `samply` and `perf` to name a
+# number a user gets. Line tables only: enough for `callgrind_annotate` to name a
 # source line, cheap enough not to change codegen.
 [profile.bench]
 inherits = "release"

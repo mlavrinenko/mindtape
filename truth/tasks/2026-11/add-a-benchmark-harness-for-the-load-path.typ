@@ -11,7 +11,7 @@
   difficulty: 4,
   tags: ("mt", "tooling", "gating", "stateless"),
   assignee: "agent",
-  status: wip(2026, 11, 25),
+  status: done(2026, 11, 25),
 )
 
 == AS-IS
@@ -28,7 +28,7 @@ A backlog of 2000 tasks loads in 13.9 s cold and 0.17 s warm, and nothing in the
 - 🟢 `just bench::suite` runs a criterion suite over the load path and prints a time per case.
 - 🟢 `just bench::save main` then `just bench::compare main` reports the change against a saved baseline.
 - 🟢 `just bench::run` times the real binary warm, cold and with the cache off.
-- 🟢 `just bench::profile` records a samply profile of a build that keeps its symbols.
+- 🟢 `just bench::profile` attributes the warm path's CPU to a function with `callgrind`, and `just bench::syscalls` attributes a cold run to a syscall with `strace`.
 
 ```
 $ just bench::suite
@@ -44,13 +44,14 @@ sort/default/2000       time:   [74.458 ms 74.798 ms 75.190 ms]
 - `crates/mindtape/benches/fixture/config.toml`: the benchmark project's config, moved from `examples/large`.
 - `crates/mindtape/benches/load.rs`: the criterion suite over load, filter and sort.
 - `crates/mindtape/Cargo.toml`: the criterion dev-dependency and the `harness = false` bench target.
-- `Cargo.toml`, `.just/bench.just` and `nix/dev/shell.nix`: the bench profile, the recipes and samply.
+- `Cargo.toml`, `.just/bench.just` and `nix/dev/shell.nix`: the bench profile, the recipes, `valgrind` and `strace`.
 
 == Alternatives
 
 - Divan: a nicer API and allocation counters, but no baseline comparison, and the point here is a measurement that moves between runs.
 - iai-callgrind: deterministic instruction counts, which suit a CPU-bound hot loop. The cold path is 13.9 s of which 2 s is user CPU, so instruction counting cannot see the cost.
 - Keeping the shell generator: it wrote files Git ignores, so the fixture didn't load a single task.
+- `samply`: a sampling profiler with a better report, but it needs a privilege a normal user lacks, so a recipe built on it fails where it ships.
 
 == Out of scope
 

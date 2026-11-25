@@ -68,22 +68,43 @@ save NAME *ARGS:
 compare NAME *ARGS:
     cargo bench -p mindtape --bench load -- --baseline {{ NAME }} {{ ARGS }}
 
-# samply needs `perf_event_paranoid` at 1 or lower on Linux; the check below
-# says so instead of letting the profiler fail with a sysctl lecture. macOS
-# needs nothing.
+# Attribution runs no sampler. callgrind counts instructions and strace counts
+# syscalls, and both run unprivileged, so a recipe built on either works for a
+# normal user. They also answer the two questions this repo has: the warm path
+# is CPU, which callgrind attributes to a function, and the cold path is
+# blocked, which strace attributes to a syscall.
 
 [arg('N', pattern='\d+', help='number of task files')]
-[doc("Record a samply profile of `mt ls` and open it in the Firefox Profiler")]
+[doc("Attribute the warm path's CPU to functions with callgrind")]
 [script('bash')]
 profile N=BENCH_N:
-    if [ "$(uname -s)" = Linux ] && [ "$(cat /proc/sys/kernel/perf_event_paranoid)" -gt 1 ]; then
-        echo "samply needs kernel.perf_event_paranoid <= 1:" >&2
-        echo "    echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid" >&2
-        exit 1
-    fi
     cargo build --profile bench -p mindtape-cli --target-dir target/bench-build
     just bench::gen {{ N }}
     export MINDTAPE_NOW=2026-07-16
-    samply record --save-only -o target/bench/mt-ls.json -- \
-        {{ BENCH_BIN }} -w target/bench/tasks-{{ N }} ls
-    echo "wrote target/bench/mt-ls.json — open it at https://profiler.firefox.com"
+    mkdir -p target/bench
+    # callgrind runs the binary about 200x slower, so 2000 tasks take about 40 s.
+    valgrind --tool=callgrind --callgrind-out-file=target/bench/callgrind.out \
+        {{ BENCH_BIN }} -w target/bench/tasks-{{ N }} ls > /dev/null
+    # `--auto=no` keeps the report to the function list; auto-annotation prints
+    # every source file it can reach before the numbers. The distribution is
+    # flat, so 80% of the instructions spans thousands of functions: the whole
+    # report goes to a file and the top of it to the terminal.
+    callgrind_annotate --auto=no --threshold=80 target/bench/callgrind.out \
+        > target/bench/callgrind.txt
+    awk '/file:function/{seen=1} seen && n++ < 25' target/bench/callgrind.txt
+    echo "full report: target/bench/callgrind.txt"
+
+[arg('N', pattern='\d+', help='number of task files')]
+[doc("Attribute a cold run's time to syscalls with strace")]
+[script('bash')]
+syscalls N=BENCH_N:
+    cargo build --profile bench -p mindtape-cli --target-dir target/bench-build
+    just bench::gen {{ N }}
+    export MINDTAPE_NOW=2026-07-16
+    mkdir -p target/bench
+    # `-c` totals each syscall, and `-f` follows the threads. The cold arm is
+    # the one worth reading: a warm run makes too few calls to attribute.
+    rm -rf target/bench/tasks-{{ N }}/.mindtape/cache
+    strace -c -f -o target/bench/strace-cold.txt \
+        {{ BENCH_BIN }} -w target/bench/tasks-{{ N }} ls > /dev/null
+    cat target/bench/strace-cold.txt

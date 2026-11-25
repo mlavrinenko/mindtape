@@ -16,8 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `target/bench/`. `just bench::suite` runs it, `just bench::save <name>` and
   `just bench::compare <name>` turn it into an A/B against a saved baseline,
   `just bench::run` times the real binary end to end with hyperfine (warm,
-  cold and no-cache), and `just bench::profile` records a samply profile of a
-  `[profile.bench]` build that keeps its symbols. `examples/large` and its
+  cold and no-cache), `just bench::profile` attributes the warm path's CPU to
+  a function with callgrind, and `just bench::syscalls` attributes a cold run
+  to a syscall with strace. Both run unprivileged, unlike a sampler.
+  `examples/large` and its
   shell generator are gone: the fixture lives with the benchmarks now.
 
 - **Every open task's `AS-IS` opens with one plain line that carries the
