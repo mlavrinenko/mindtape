@@ -6035,7 +6035,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "apply_cli_overrides",
-      "line": 327,
+      "line": 328,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -6044,7 +6044,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "apply_explicit_filter",
-      "line": 113,
+      "line": 114,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -6053,7 +6053,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "apply_import_entry",
-      "line": 279,
+      "line": 280,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -6062,7 +6062,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "bare_view_ref",
-      "line": 148,
+      "line": 149,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -6080,7 +6080,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "bundle_of",
-      "line": 138,
+      "line": 139,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -6089,7 +6089,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "compose_rule",
-      "line": 244,
+      "line": 245,
       "cyclomatic": 9.0,
       "coverage": 100.0,
       "crap": 9.0,
@@ -6098,7 +6098,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "condition_holds",
-      "line": 212,
+      "line": 213,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -6107,7 +6107,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "default_view_bundle",
-      "line": 189,
+      "line": 190,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -6116,7 +6116,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "match_rule",
-      "line": 199,
+      "line": 200,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -6125,7 +6125,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "resolve",
-      "line": 95,
+      "line": 96,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -6134,7 +6134,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "resolve_bare",
-      "line": 81,
+      "line": 82,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -6143,7 +6143,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "resolve_columns",
-      "line": 352,
+      "line": 353,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -6152,7 +6152,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "rule_label",
-      "line": 225,
+      "line": 226,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -6161,7 +6161,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "source_if_nonempty",
-      "line": 179,
+      "line": 180,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -6170,7 +6170,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "splice_view_refs",
-      "line": 304,
+      "line": 305,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -6179,7 +6179,7 @@
     {
       "file": "crates/mindtape-cli/src/cmd/ls/rules.rs",
       "function": "view_bundle",
-      "line": 160,
+      "line": 161,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,
@@ -18338,7 +18338,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "Condition::matches",
-      "line": 113,
+      "line": 118,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -18347,7 +18347,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "Condition::parse",
-      "line": 94,
+      "line": 99,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -18356,7 +18356,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "ConditionValue::display",
-      "line": 233,
+      "line": 243,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -18365,7 +18365,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "column_fact",
-      "line": 182,
+      "line": 192,
       "cyclomatic": 5.0,
       "coverage": 100.0,
       "crap": 5.0,
@@ -18374,7 +18374,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "compare_values",
-      "line": 241,
+      "line": 251,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -18383,7 +18383,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "comparison",
-      "line": 209,
+      "line": 219,
       "cyclomatic": 3.0,
       "coverage": 75.0,
       "crap": 3.140625,
@@ -18392,7 +18392,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "eval_bool",
-      "line": 121,
+      "line": 126,
       "cyclomatic": 7.0,
       "coverage": 100.0,
       "crap": 7.0,
@@ -18401,7 +18401,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "literal_value",
-      "line": 282,
+      "line": 292,
       "cyclomatic": 4.0,
       "coverage": 100.0,
       "crap": 4.0,
@@ -18410,7 +18410,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "no_args",
-      "line": 351,
+      "line": 361,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -18419,7 +18419,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "on_branch",
-      "line": 195,
+      "line": 205,
       "cyclomatic": 2.0,
       "coverage": 100.0,
       "crap": 2.0,
@@ -18428,16 +18428,16 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "predicate",
-      "line": 153,
-      "cyclomatic": 9.0,
+      "line": 159,
+      "cyclomatic": 11.0,
       "coverage": 100.0,
-      "crap": 9.0,
+      "crap": 11.0,
       "crate": "mindtape"
     },
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "resolve_function",
-      "line": 290,
+      "line": 300,
       "cyclomatic": 12.0,
       "coverage": 100.0,
       "crap": 12.0,
@@ -18446,7 +18446,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "resolve_value",
-      "line": 259,
+      "line": 269,
       "cyclomatic": 6.0,
       "coverage": 100.0,
       "crap": 6.0,
@@ -18455,7 +18455,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "single_literal",
-      "line": 334,
+      "line": 344,
       "cyclomatic": 3.0,
       "coverage": 70.0,
       "crap": 3.2430000000000003,
@@ -18464,7 +18464,7 @@
     {
       "file": "crates/mindtape/src/filter/condition.rs",
       "function": "weekday_number",
-      "line": 328,
+      "line": 338,
       "cyclomatic": 3.0,
       "coverage": 100.0,
       "crap": 3.0,
@@ -18473,7 +18473,7 @@
     {
       "file": "crates/mindtape/src/filter/condition_env.rs",
       "function": "ConditionEnv::probe",
-      "line": 63,
+      "line": 69,
       "cyclomatic": 1.0,
       "coverage": 100.0,
       "crap": 1.0,

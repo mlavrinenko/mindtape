@@ -64,6 +64,7 @@ pub(crate) fn build_env(project: &util::Project, format: &str) -> ConditionEnv {
         today: mindtape::today_iso(),
         env: std::env::vars().collect(),
         tty: std::io::stdout().is_terminal(),
+        stdin_tty: std::io::stdin().is_terminal(),
         format: format.to_owned(),
         column: mindtape::ColumnFacts::default(),
     }

@@ -15,6 +15,10 @@
 //! - `tty()` -> bool. Whether stdout is a terminal, that is, whether a human
 //!   reads this output directly. Boolean like `on_branch`, so it appears bare
 //!   (`!tty()`) rather than in a comparison.
+//! - `stdin_tty()` -> bool. Whether stdin is a terminal, that is, whether a
+//!   human can type an answer. The two differ on a harness that shows output
+//!   on a pty and hands its shell `/dev/null`, so a policy about a person at a
+//!   terminal reads both (`!tty() || !stdin_tty()`).
 //! - `env("NAME")` -> string (`""` when unset).
 //! - `weekday()` -> int `1..7` (Mon..Sun), derived from [`ConditionEnv::today`].
 //! - `now()` -> [`ConditionEnv::today`] verbatim (an ISO date string).
@@ -71,8 +75,9 @@ pub enum ConditionError {
     /// by mistake.
     #[error("a condition can't read the task field '{0}'")]
     TaskField(String),
-    /// A function name outside `on_branch` / `tty` / `env` / `weekday` /
-    /// `now` / `format` / `nonempty` / `contested` / `named` / `blocked`.
+    /// A function name outside `on_branch` / `tty` / `stdin_tty` / `env` /
+    /// `weekday` / `now` / `format` / `nonempty` / `contested` / `named` /
+    /// `blocked`.
     #[error("unknown predicate in condition: {0}")]
     UnknownPredicate(String),
     /// A structurally invalid expression (wrong arity, bad glob, ...).
@@ -147,9 +152,10 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: &ConditionEnv) -> Result<boo
     }
 }
 
-/// A function call in boolean position: `on_branch(...)`, `tty()` and the four
-/// [`ColumnFacts`] predicates are boolean. `env` / `weekday` / `now` /
-/// `format` are value-producers and belong in a comparison.
+/// A function call in boolean position: `on_branch(...)`, `tty()`,
+/// `stdin_tty()` and the four [`ColumnFacts`] predicates are boolean. `env` /
+/// `weekday` / `now` / `format` are value-producers and belong in a
+/// comparison.
 fn predicate(
     name: &str,
     node: &Node<DefaultNumericTypes>,
@@ -163,6 +169,10 @@ fn predicate(
         "tty" => {
             no_args(node.children(), "tty")?;
             Ok(env.tty)
+        }
+        "stdin_tty" => {
+            no_args(node.children(), "stdin_tty")?;
+            Ok(env.stdin_tty)
         }
         "nonempty" | "contested" | "named" | "blocked" => {
             no_args(node.children(), name)?;
@@ -314,7 +324,7 @@ fn resolve_function(
             no_args(node.children(), "format")?;
             Ok(ConditionValue::Str(env.format.clone()))
         }
-        "on_branch" | "tty" | "nonempty" | "contested" | "named" | "blocked" => {
+        "on_branch" | "tty" | "stdin_tty" | "nonempty" | "contested" | "named" | "blocked" => {
             Err(ConditionError::Invalid(format!(
                 "'{name}(...)' is a yes or no; it can't be compared"
             )))

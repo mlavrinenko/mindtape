@@ -36,6 +36,12 @@ pub struct ConditionEnv {
     /// probed here for the same reason as every other field: this module
     /// never touches the process or the filesystem.
     pub tty: bool,
+    /// Whether stdin is a terminal, backing `stdin_tty()`. A run can have one
+    /// without the other. A harness that captures output through a pipe still
+    /// reads keys from a terminal. An agent terminal that shows output on a
+    /// pty hands its shell `/dev/null` for input. `tty()` answers whether a
+    /// human reads the output. This answers whether one can type an answer.
+    pub stdin_tty: bool,
     /// The active output format, backing `format()`. Empty when the caller
     /// has no format to speak of (a condition evaluated outside a rendering
     /// command), which compares unequal to every real format name.
@@ -66,6 +72,7 @@ impl ConditionEnv {
             today: "1970-01-01".to_owned(),
             env: BTreeMap::new(),
             tty: false,
+            stdin_tty: false,
             format: String::new(),
             column: ColumnFacts::default(),
         }

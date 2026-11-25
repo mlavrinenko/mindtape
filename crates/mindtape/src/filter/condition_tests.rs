@@ -12,6 +12,7 @@ fn env(branch: Option<&str>, today: &str) -> ConditionEnv {
         today: today.to_owned(),
         env: BTreeMap::new(),
         tty: false,
+        stdin_tty: false,
         format: String::new(),
         column: ColumnFacts::default(),
     }
@@ -204,6 +205,29 @@ fn boolean_literals_compose_with_operators() {
     let mut tty_env = env(None, "2026-07-12");
     tty_env.tty = true;
     assert!(!condition.matches(&tty_env).unwrap());
+}
+
+#[test]
+fn stdin_tty_reads_its_own_stream() {
+    let condition = Condition::parse("!tty() || !stdin_tty()").unwrap();
+    let mut half = env(None, "2026-07-12");
+    half.tty = true;
+    assert!(
+        condition.matches(&half).unwrap(),
+        "a terminal on stdout with /dev/null on stdin still verifies"
+    );
+    let mut full = env(None, "2026-07-12");
+    full.tty = true;
+    full.stdin_tty = true;
+    assert!(
+        !condition.matches(&full).unwrap(),
+        "a person at a terminal files leniently"
+    );
+}
+
+#[test]
+fn stdin_tty_takes_no_arguments() {
+    assert_invalid("stdin_tty(true)");
 }
 
 #[test]

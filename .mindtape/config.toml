@@ -458,10 +458,12 @@ header = ""
 comments = false
 
 # A person at a terminal files an incomplete task and gets a note naming
-# `mt check`; an agent, whose run has no terminal, still gets the refusal. The
-# policy is one condition, so a project that wants the old behavior everywhere
-# deletes this line, and one that wants it nowhere writes `false`.
-verify-when = "!tty()"
+# `mt check`; an agent, whose run has no terminal, still gets the refusal. Both
+# streams are read because a harness can show output on a terminal while
+# handing its shell `/dev/null`, and `tty()` alone would call that a person.
+# The policy is one condition, so a project that wants the old behavior
+# everywhere deletes this line, and one that wants it nowhere writes `false`.
+verify-when = "!tty() || !stdin_tty()"
 
 # The project's actors and roles: who works tasks, and under which hats.
 # Identity-only — a role carries no payload; what a role can do lives in each

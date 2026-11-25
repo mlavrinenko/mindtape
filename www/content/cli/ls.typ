@@ -146,6 +146,9 @@ about the run instead of task fields:
   [Whether the current git branch matches the glob. `false` outside a git repository or on a detached `HEAD`.],
 
   [`tty()`], [Whether stdout is a terminal.],
+
+  [`stdin_tty()`], [Whether stdin is a terminal.],
+
   [`env("NAME")`], [The environment variable, or `""` when it's unset.],
   [`weekday()`], [Today's ISO weekday, from `1` (Monday) to `7` (Sunday).],
   [`now()`], [Today's ISO date, the same date the filter language reads.],
@@ -169,9 +172,13 @@ about the run instead of task fields:
 `mt` is deciding. In an `[[ls.rules]]` condition `mt` isn't deciding a column,
 so they're `false` there, and a rule can't pick its columns from `named()`.
 
-`on_branch()`, `tty()`, the four column functions, `true` and `false` are
-booleans, written bare (`!tty()`). `env()`, `weekday()`, `now()` and
-`format()` are values, so they go in a comparison. Either side of a
+`tty()` and `stdin_tty()` answer different questions. A harness can show output
+on a terminal and still hand its shell `/dev/null`. A policy about a person who
+can answer a prompt reads both: `!tty() || !stdin_tty()`.
+
+`on_branch()`, `tty()`, `stdin_tty()`, the four column functions, `true` and
+`false` are booleans, written bare (`!tty()`). `env()`, `weekday()`, `now()`
+and `format()` are values, so they go in a comparison. Either side of a
 comparison may be a value or a literal, as in `weekday() >= 6` or
 `"review" == env("MODE")`. You can't compare `true` or `false`.
 

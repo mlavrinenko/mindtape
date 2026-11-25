@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`stdin_tty()` in the condition language.** `tty()` reads stdout alone, so a
+  harness that shows output on a terminal and hands its shell `/dev/null` was
+  treated as a person: `verify-when = "!tty()"` skipped both the check and the
+  `[[on.add]]` hooks there. `stdin_tty()` exposes the other stream, so a
+  project writes `verify-when = "!tty() || !stdin_tty()"`. `tty()` keeps
+  meaning stdout, so column visibility, colour and hyperlinks are unchanged.
+
 - **A benchmark harness for the load path.** `crates/mindtape/benches/` holds a
   criterion suite over `load_project` (cold and warm, at 100, 1000 and 2000
   tasks), filter parsing, filter matching and the default sort, plus the

@@ -334,19 +334,20 @@ an instruction.
 `mt add` checks the task against your project's rules before it writes. A
 refused add doesn't write a file. `[add] verify-when` decides whether a run
 checks, as a #link(u("/cli/ls/#conditional-rules"))[condition] over the run's
-own facts: `tty()`, `env("NAME")`, `on_branch("glob")`, `now()` and
-`weekday()`. Absent, every run checks. A project that says nothing keeps the
-refusal.
+own facts: `tty()`, `stdin_tty()`, `env("NAME")`, `on_branch("glob")`, `now()`
+and `weekday()`. Absent, every run checks. A project that says nothing keeps
+the refusal.
 
 // docs:hand-typed the one-line policy a project copies, not a fixture
 ```toml
 [add]
-verify-when = "!tty()"
+verify-when = "!tty() || !stdin_tty()"
 ```
 
-`!tty()` checks only a run without a terminal. A person at a terminal files an
-incomplete task, and a script or an agent still gets the refusal. `--verify`
-and `--no-verify` override the expression for one call.
+A person at a terminal files an incomplete task, and a script or an agent still
+gets the refusal. `mt` reads both streams because a harness can show output on a
+terminal while handing its shell `/dev/null`, and `tty()` alone would call that
+a person. `--verify` and `--no-verify` override the expression for one call.
 
 A run that skips the check leaves an unfilled required slot as its `slot(...)`
 call, runs no `[[on.add]]` hook, and writes the file. It ends on a note naming
