@@ -47,3 +47,12 @@ if [ -n "$no_rail" ]; then
   printf '%s\n' "$no_rail" >&2
   exit 1
 fi
+
+# The rail names the section and the version, and counts nothing: a page count
+# comes back only if someone adds it to the rail's meta block again.
+counted=$(grep -rlE '<span>[0-9]+ PAGES</span>' --include='*.html' "$out" || true)
+if [ -n "$counted" ]; then
+  echo "post-build: these pages count pages in the article rail:" >&2
+  printf '%s\n' "$counted" >&2
+  exit 1
+fi

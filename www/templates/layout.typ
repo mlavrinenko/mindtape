@@ -694,9 +694,8 @@ update();
   }),
 )
 
-// The rail beside an article: the page's line, its group, the group's page
-// count and the release version. The calling-points list is inserted above
-// this block at runtime.
+// The rail beside an article: the page's line, its group and the release
+// version. The calling-points list is inserted above this block at runtime.
 #let _page-rail(active, here) = {
   let group = _group-at(here)
   html.elem(
@@ -704,7 +703,6 @@ update();
     attrs: (class: "page-rail", "data-pagefind-ignore": ""),
     html.elem("div", attrs: (class: "rail-meta"), {
       html.elem("span")[#upper(group.title)]
-      html.elem("span")[#str(group.items.len()) PAGES]
       html.elem("span")[Version #mt-version]
     }),
   )
