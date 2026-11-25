@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::PriorityConfig;
 use crate::config::merge::deep_merge;
-use crate::framework::eval::{eval_predicate, eval_score};
+use crate::framework::eval::ParsedFormula;
 use crate::framework::validate::Scope;
 use crate::model::numeric::{InputValue, NumCell, NumValue, format_num};
 
@@ -54,6 +54,10 @@ pub struct Framework {
     /// category's `when` must be true. Doesn't combine with `score`.
     #[serde(rename = "category")]
     pub categories: Vec<Category>,
+    /// The parsed `score` formula, built on first use.
+    #[serde(skip)]
+    #[schemars(skip)]
+    parsed: ParsedFormula,
 }
 
 /// Holds one declared input: its type and bounds (numbers) or allowed values
@@ -108,6 +112,10 @@ pub struct Category {
     /// Optional color: a named ANSI color or `#RRGGBB`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
+    /// The parsed `when` predicate, built on first use.
+    #[serde(skip)]
+    #[schemars(skip)]
+    parsed: ParsedFormula,
 }
 
 impl Framework {
@@ -130,7 +138,7 @@ impl Framework {
             .score
             .as_deref()
             .ok_or_else(|| "framework has no score formula".to_owned())?;
-        eval_score(formula, inputs)
+        self.parsed.score(formula, inputs)
     }
 
     /// The display cell for a categorical framework's inputs.
@@ -165,7 +173,7 @@ impl Framework {
 
     fn match_category(&self, inputs: &BTreeMap<String, InputValue>) -> Result<&Category, String> {
         for category in &self.categories {
-            if eval_predicate(&category.when, inputs)? {
+            if category.parsed.predicate(&category.when, inputs)? {
                 return Ok(category);
             }
         }

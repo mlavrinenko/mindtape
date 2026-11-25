@@ -9,10 +9,11 @@
 //! rejecting (never clamping) any framework that overflows.
 
 use std::collections::BTreeMap;
+use std::sync::OnceLock;
 
 use evalexpr::{
-    ContextWithMutableVariables, DefaultNumericTypes, HashMapContext, Node, Operator, Value,
-    build_operator_tree,
+    ContextWithMutableVariables, DefaultNumericTypes, EvalexprError, HashMapContext, Node,
+    Operator, Value, build_operator_tree,
 };
 
 use crate::framework::{Input, InputKind};
@@ -38,8 +39,11 @@ impl Interval {
 
 type Tree = Node<DefaultNumericTypes>;
 
+/// The input values a formula evaluates against, by input name.
+pub(crate) type InputValues = BTreeMap<String, InputValue>;
+
 /// Build an evaluation context binding each input name to its typed value.
-fn context_of(inputs: &BTreeMap<String, InputValue>) -> HashMapContext {
+fn context_of(inputs: &InputValues) -> HashMapContext {
     let mut ctx = HashMapContext::<DefaultNumericTypes>::new();
     for (name, value) in inputs {
         let value = match value {
@@ -53,28 +57,94 @@ fn context_of(inputs: &BTreeMap<String, InputValue>) -> HashMapContext {
     ctx
 }
 
-/// Evaluate a scalar `score` formula against `inputs`, returning the number.
+/// A formula parsed once and evaluated many times.
 ///
-/// # Errors
-/// Returns a message if the formula fails to parse or evaluate.
-pub fn eval_score(formula: &str, inputs: &BTreeMap<String, InputValue>) -> Result<f64, String> {
-    let tree = build_operator_tree::<DefaultNumericTypes>(formula)
-        .map_err(|err| format!("invalid score formula '{formula}': {err}"))?;
-    let ctx = context_of(inputs);
-    tree.eval_number_with_context(&ctx)
-        .map_err(|err| format!("score '{formula}' failed: {err}"))
+/// `build_operator_tree` tokenizes the text and builds a tree on every call,
+/// which is the expensive half of scoring. A sort that resolves a priority per
+/// comparison parses the same formula thousands of times. This holds the tree
+/// and parses once.
+///
+/// It takes no part in equality or serialization. It derives from the formula
+/// text, and two frameworks with the same formula are the same framework
+/// whether either has scored a task yet.
+#[derive(Debug, Default)]
+pub(crate) struct ParsedFormula(OnceLock<(String, Tree)>);
+
+impl ParsedFormula {
+    /// The parsed tree for `source`, parsing it on first use. `what` labels the
+    /// text in a parse error, so a score formula and a category predicate each
+    /// report what failed.
+    ///
+    /// An instance keeps the text it parsed. A second source trips a debug
+    /// assertion rather than returning a silent wrong answer.
+    fn tree(&self, source: &str, what: &str) -> Result<&Tree, String> {
+        if let Some((parsed, tree)) = self.0.get() {
+            debug_assert!(parsed == source, "a ParsedFormula is bound to one source");
+            return Ok(tree);
+        }
+        let tree = build_operator_tree::<DefaultNumericTypes>(source)
+            .map_err(|err| format!("invalid {what} '{source}': {err}"))?;
+        Ok(&self.0.get_or_init(|| (source.to_owned(), tree)).1)
+    }
+
+    /// Evaluate `source` against `inputs` with `eval`. `what` labels the text
+    /// in an error, so a score formula and a category predicate each report
+    /// what failed.
+    fn evaluate<T>(
+        &self,
+        source: &str,
+        what: &str,
+        inputs: &InputValues,
+        eval: impl FnOnce(&Tree, &HashMapContext) -> Result<T, EvalexprError>,
+    ) -> Result<T, String> {
+        let tree = self.tree(source, what)?;
+        eval(tree, &context_of(inputs)).map_err(|err| format!("{what} '{source}' failed: {err}"))
+    }
+
+    /// Evaluate `source` as a scalar score against `inputs`.
+    ///
+    /// # Errors
+    /// Returns a message if the formula fails to parse or evaluate.
+    pub(crate) fn score(&self, source: &str, inputs: &InputValues) -> Result<f64, String> {
+        self.evaluate(
+            source,
+            "score formula",
+            inputs,
+            Tree::eval_number_with_context,
+        )
+    }
+
+    /// Evaluate `source` as a category predicate against `inputs`.
+    ///
+    /// # Errors
+    /// Returns a message if the predicate fails to parse or evaluate to a
+    /// boolean.
+    pub(crate) fn predicate(&self, source: &str, inputs: &InputValues) -> Result<bool, String> {
+        self.evaluate(source, "predicate", inputs, Tree::eval_boolean_with_context)
+    }
 }
 
-/// Evaluate a category `when` predicate against `inputs`.
+impl Clone for ParsedFormula {
+    /// A clone starts empty. The cache derives from the formula text, so
+    /// rebuilding it costs one parse.
+    fn clone(&self) -> Self {
+        Self::default()
+    }
+}
+
+impl PartialEq for ParsedFormula {
+    /// Always equal. The cache holds derived state, not part of the formula.
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+/// Evaluate a category `when` predicate against `inputs`, parsing it each call.
 ///
 /// # Errors
 /// Returns a message if the predicate fails to parse or evaluate to a boolean.
-pub fn eval_predicate(when: &str, inputs: &BTreeMap<String, InputValue>) -> Result<bool, String> {
-    let tree = build_operator_tree::<DefaultNumericTypes>(when)
-        .map_err(|err| format!("invalid predicate '{when}': {err}"))?;
-    let ctx = context_of(inputs);
-    tree.eval_boolean_with_context(&ctx)
-        .map_err(|err| format!("predicate '{when}' failed: {err}"))
+pub fn eval_predicate(when: &str, inputs: &InputValues) -> Result<bool, String> {
+    ParsedFormula::default().predicate(when, inputs)
 }
 
 /// Parse-check a formula or predicate without evaluating it.

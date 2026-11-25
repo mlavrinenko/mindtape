@@ -2,7 +2,7 @@
 //! (when the caller gives no `--sort`) and the sort field definitions used by
 //! the `--sort` flag. [`default_order_with`] honours `config.ls.default_sort`.
 
-use std::cmp::Ordering;
+use std::cmp::{Ordering, Reverse};
 
 use crate::config::{CollectorSpec, Config};
 use crate::graph::ready::{Readiness, ReadyState};
@@ -208,10 +208,10 @@ fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {
 /// Compare two resolved field values for `--sort`, ascending: numbers
 /// numerically, strings lexicographically (ISO-correct for dates), and a
 /// missing value after every present one. That is the missing-last convention
-/// [`cmp_num_asc`] and [`cmp_opt_asc`] already use, and every field orders
-/// missing values the same way. `sort_by_specs` reverses the whole comparison
-/// for `:desc`. There a missing value sorts first, the same as `priority` and
-/// `difficulty`, whose `cmp_num_asc` arms follow the identical rule.
+/// [`cmp_num_asc`] already uses, and every field orders missing values the same
+/// way. `sort_by_specs` reverses the whole comparison for `:desc`. There a
+/// missing value sorts first, the same as `priority` and `difficulty`, whose
+/// `cmp_num_asc` arms follow the identical rule.
 ///
 /// Both values come from the same field name, and a core field's values hold
 /// the same variant when both are present. An `x-<ns>` slot may hold a number
@@ -259,16 +259,69 @@ pub fn default_order_with(tasks: &mut [Task], config: &Config, readiness: &Readi
         let _ = sort_by_specs(tasks, &config.ls.default_sort, config, readiness);
         return;
     }
-    tasks.sort_by(|left, right| compare_default(left, right, config, readiness));
+    // Decorate: resolve one key per task, then order the keys. Resolving a key
+    // inside the comparator instead re-evaluates a framework's score formula on
+    // every comparison, which is `n log n` evaluations where `n` will do.
+    tasks.sort_by_cached_key(|task| DefaultKey::of(task, config, readiness));
 }
 
-fn compare_default(left: &Task, right: &Task, config: &Config, readiness: &Readiness) -> Ordering {
-    ready_rank(left, readiness)
-        .cmp(&ready_rank(right, readiness))
-        .then_with(|| priority_desc(left, right, config))
-        .then_with(|| status_index(left, config).cmp(&status_index(right, config)))
-        .then_with(|| due_asc(left, right))
-        .then_with(|| left.id.cmp(&right.id))
+/// One task's place in the default order, resolved once.
+///
+/// The fields are the chain's keys in order: readiness band, priority
+/// descending, status lifecycle, due ascending, id. Each pair's leading `u8`
+/// carries that key's missing-value rule, so the derived `Ord` reproduces the
+/// comparator the chain ran per comparison.
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+struct DefaultKey {
+    ready: u8,
+    /// `0` for a missing priority, `1` for a present one, then the value
+    /// descending.
+    priority: (u8, Option<Reverse<SortF64>>),
+    status: usize,
+    /// `0` for a present due date, `1` for a missing one, then the date
+    /// ascending.
+    due: (u8, Option<String>),
+    id: String,
+}
+
+impl DefaultKey {
+    fn of(task: &Task, config: &Config, readiness: &Readiness) -> Self {
+        Self {
+            ready: ready_rank(task, readiness),
+            priority: match priority_value(task, config) {
+                Some(value) => (1, Some(Reverse(SortF64(value)))),
+                None => (0, None),
+            },
+            status: status_index(task, config),
+            due: match task.due.as_deref() {
+                Some(text) => (0, Some(text.to_owned())),
+                None => (1, None),
+            },
+            id: task.id.clone(),
+        }
+    }
+}
+
+/// An `f64` ordered by `partial_cmp`, with a NaN comparing equal to everything.
+///
+/// That is the rule the sort's numeric comparators already used. Config
+/// validation rejects a formula whose range spans a division by zero, so a
+/// score cannot be NaN in practice.
+#[derive(Clone, Copy, PartialEq)]
+struct SortF64(f64);
+
+impl Eq for SortF64 {}
+
+impl PartialOrd for SortF64 {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for SortF64 {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.partial_cmp(&other.0).unwrap_or(Ordering::Equal)
+    }
 }
 
 /// Sort rank for a task's readiness: ready (0) before blocked (1) before settled
@@ -304,30 +357,6 @@ pub fn priority_value(task: &Task, config: &Config) -> Option<f64> {
     task.priority
         .as_ref()
         .and_then(|value| config.tasks.priority.resolve(value))
-}
-
-fn priority_desc(left: &Task, right: &Task, config: &Config) -> Ordering {
-    cmp_num_desc(priority_value(left, config), priority_value(right, config))
-}
-
-fn due_asc(left: &Task, right: &Task) -> Ordering {
-    cmp_opt_asc(left.due.as_deref(), right.due.as_deref())
-}
-
-/// Compare numbers descending (higher first). A missing value sorts last.
-fn cmp_num_desc(left: Option<f64>, right: Option<f64>) -> Ordering {
-    cmp_num_asc(right, left)
-}
-
-/// Compare options ascending with present values first. A missing value sorts
-/// last.
-fn cmp_opt_asc<T: Ord>(left: Option<T>, right: Option<T>) -> Ordering {
-    match (left, right) {
-        (Some(early), Some(late)) => early.cmp(&late),
-        (Some(_), None) => Ordering::Less,
-        (None, Some(_)) => Ordering::Greater,
-        (None, None) => Ordering::Equal,
-    }
 }
 
 #[cfg(test)]

@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use super::{eval_predicate, eval_score, parse_check, score_interval};
+use super::{ParsedFormula, eval_predicate, parse_check, score_interval};
 use crate::framework::{Input, InputKind};
 use crate::model::numeric::InputValue;
 
@@ -30,25 +30,41 @@ fn boolean() -> Input {
 
 const ICE: &str = "round(impact * confidence * ease * 0.09)";
 
+/// The ICE inputs for one set of values.
+fn ice_inputs(impact: f64, confidence: f64, ease: f64) -> BTreeMap<String, InputValue> {
+    BTreeMap::from([
+        ("impact".to_owned(), num(impact)),
+        ("confidence".to_owned(), num(confidence)),
+        ("ease".to_owned(), num(ease)),
+    ])
+}
+
+/// The ICE score for one set of inputs, through a fresh cache.
+fn score_ice(impact: f64, confidence: f64, ease: f64) -> f64 {
+    ParsedFormula::default()
+        .score(ICE, &ice_inputs(impact, confidence, ease))
+        .unwrap()
+}
+
 #[test]
 fn eval_score_computes_ice() {
-    let inputs = BTreeMap::from([
-        ("impact".to_owned(), num(10.0)),
-        ("confidence".to_owned(), num(0.9)),
-        ("ease".to_owned(), num(10.0)),
-    ]);
-    assert_eq!(eval_score(ICE, &inputs).unwrap(), 8.0);
+    assert_eq!(score_ice(10.0, 0.9, 10.0), 8.0);
 }
 
 #[test]
 fn eval_score_handles_low_inputs() {
-    let inputs = BTreeMap::from([
-        ("impact".to_owned(), num(5.0)),
-        ("confidence".to_owned(), num(0.5)),
-        ("ease".to_owned(), num(8.0)),
-    ]);
     // 5 * 0.5 * 8 * 0.09 = 1.8 -> round 2.
-    assert_eq!(eval_score(ICE, &inputs).unwrap(), 2.0);
+    assert_eq!(score_ice(5.0, 0.5, 8.0), 2.0);
+}
+
+#[test]
+fn a_parsed_formula_answers_a_second_evaluation_from_the_cache() {
+    let parsed = ParsedFormula::default();
+    let score = |inputs: &BTreeMap<String, InputValue>| parsed.score(ICE, inputs).unwrap();
+    // The second call reads the tree the first one parsed, and still evaluates
+    // it against its own inputs.
+    assert_eq!(score(&ice_inputs(10.0, 0.9, 10.0)), 8.0);
+    assert_eq!(score(&ice_inputs(5.0, 0.5, 8.0)), 2.0);
 }
 
 #[test]

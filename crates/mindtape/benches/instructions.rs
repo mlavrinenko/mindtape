@@ -6,8 +6,8 @@
 //! CI runner as on a laptop. Each case carries an absolute ceiling: a run that
 //! retires more instructions than its ceiling fails.
 //!
-//! The ceilings are not a target. Each sits about 2% above the measured cost,
-//! which is 30 times the run-to-run spread. A change that makes the sort or the
+//! The ceilings are not a target. Each sits about 5% above the measured cost,
+//! and the run-to-run spread is under 1%. A change that makes the sort or the
 //! filter meaningfully more expensive fails here instead of waiting for someone
 //! to run the wall-clock suite. A change that makes them cheaper should lower
 //! the ceiling in the same commit, which ratchets the gate down.
@@ -41,14 +41,13 @@ const N: usize = 2000;
 /// The filter `filter/match` matches, parsed once in setup.
 const FILTER: &str = "!terminal && priority >= 3 && has_tag(\"bench\")";
 
-/// The instruction ceiling for `filter/match/2000`. Measured at 81.2 M on
-/// 2026-11-25, and the ceiling leaves 2% of headroom over that.
-const FILTER_MATCH_CEILING: u64 = 86_000_000;
+/// The instruction ceiling for `filter/match/2000`. Measured at 32.1 M on
+/// 2026-11-25, and the ceiling leaves 6% of headroom over that.
+const FILTER_MATCH_CEILING: u64 = 34_000_000;
 
-/// The instruction ceiling for `sort/default/2000`. Measured at 1.165 G on
-/// 2026-11-25, which is 582 k instructions per task: the sort is the expensive
-/// half of `mt ls` by an order of magnitude.
-const SORT_DEFAULT_CEILING: u64 = 1_235_000_000;
+/// The instruction ceiling for `sort/default/2000`. Measured at 18.3 M on
+/// 2026-11-25, which is 9.1 k instructions per task.
+const SORT_DEFAULT_CEILING: u64 = 19_500_000;
 
 /// The loaded set and its config, built once per case and excluded from the
 /// count: iai-callgrind zeroes the counters after setup returns.

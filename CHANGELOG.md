@@ -204,6 +204,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The default sort resolves each task's key once, not once per comparison.**
+  `default_order_with` built its comparator from `priority_value`, which
+  re-parsed a framework's score formula through `evalexpr` on every comparison:
+  a 2000-task sort parsed the same formula about 44,000 times. The sort
+  resolves one key per task and orders the keys, and `Framework` keeps the
+  parsed tree in a `ParsedFormula`, so a formula parses once per framework.
+  `sort/default/2000` falls from 1.176 G instructions to 18.3 M. The filter
+  resolves a priority per task as well, and `filter/match/2000` falls from
+  81.2 M to 32.1 M. Both ceilings in
+  `crates/mindtape/benches/instructions.rs` drop with them. `Framework` and
+  `Category` each carry a private cache field, so a struct literal built by
+  hand no longer compiles. Serde fills the field.
 - **Every clone the dry gate tolerates carries a reason.** `just lint dry`
   fails on a baseline fingerprint that `.config/jscpd-baseline-reasons.json`
   does not explain, and on a reason whose fingerprint left the baseline. The

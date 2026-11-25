@@ -54,7 +54,7 @@ does not track the cache. On a generated backlog of 2000 tasks:
 #table(
   columns: 3,
   table.header([Command], [Cold cache], [Warm cache]),
-  [`mt ls`], [13.9 s], [0.17 s],
+  [`mt ls`], [13.9 s], [0.14 s],
   [`mt check`], [15.9 s], [0.10 s],
 )
 
