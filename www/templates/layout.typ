@@ -285,6 +285,7 @@ var rail=main.querySelector('.page-rail');
 var narrow=window.matchMedia('(max-width:52rem)').matches;
 var flow=narrow||!rail;
 var list=document.createElement('ul');
+list.className='page-toc-list';
 heads.forEach(function(h){
 var li=document.createElement('li');
 var a=document.createElement('a');

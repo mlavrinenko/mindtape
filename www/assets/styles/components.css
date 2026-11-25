@@ -236,8 +236,10 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   display: flex; position: relative; padding: 10px 0 10px 16px;
   border-left: 1px solid var(--line);
 }
+/* The 1px border sits outside the li's padding box, so -4px centres the 7px
+   ring on the line. */
 .page-rail .page-toc li::before {
-  content: ""; position: absolute; left: -5px; top: 50%;
+  content: ""; position: absolute; left: -4px; top: 50%;
   width: 7px; height: 7px; border-radius: 50%;
   border: 1px solid var(--line); background: var(--paper);
   transform: translateY(-50%);
@@ -267,7 +269,8 @@ main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
   height: max(0px, calc(var(--toc-here, 0px) - 12px));
 }
 .page-toc-flow a { padding: 4px 0; font-size: 13px; }
-.page-toc-flow a::before { left: -18px; }
+
+.page-toc-flow a::before { left: -20px; }
 
 .rail-meta {
   display: flex; flex-direction: column; gap: 4px;
