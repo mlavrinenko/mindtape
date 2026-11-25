@@ -404,12 +404,15 @@ main { min-width: 0; padding-bottom: 80px; }
 /* ── Article head ─────────────────────────────────────────────────────────── */
 
 .article-head { padding: 0 0 26px; border-bottom: 1px solid var(--line-strong); margin-bottom: 34px; }
+.article-title {
+  display: flex; align-items: flex-start; gap: 24px; justify-content: space-between;
+}
+.article-title h1 { flex: 1 1 auto; min-width: 0; }
 .article-head h1 {
   font-weight: 800;
   font-size: clamp(46px, 5vw, 62px); line-height: 0.96;
-  letter-spacing: -0.055em; margin: 0 0 14px;
+  letter-spacing: -0.055em; margin: 0;
 }
-.article-lede { display: flex; align-items: start; gap: 24px; justify-content: space-between; }
 .lede {
   margin: 0;
   font-size: 21px; line-height: 1.42; letter-spacing: -0.012em;
@@ -417,9 +420,10 @@ main { min-width: 0; padding-bottom: 80px; }
 .article-head .lede {
   color: var(--ink-2);
   font-size: 19px; line-height: 1.5; letter-spacing: 0;
+  margin-top: 14px;
 }
 
-/* Copy page as Markdown: a squared outline button beside the lede. */
+/* Copy page as Markdown: a squared outline button beside the title. */
 .md-copy {
   flex: none; display: inline-flex; align-items: center; gap: 6px;
   margin-left: auto; padding: 4px 7px;
@@ -568,8 +572,7 @@ pre span[style*="color: #74747c"] { color: #6d6d72 !important; }
   .article-body { grid-template-columns: 1fr; }
   .page-rail { display: none; }
   .article-head h1 { font-size: clamp(38px, 11vw, 54px); }
-  .article-lede { display: block; }
-  .md-copy { margin: 14px 0 0; }
+  .article-title { gap: 16px; }
 
   /* The drawer: fixed under the masthead, with the page behind it inert. */
   .js-nav .nav-toggle { display: inline-grid; }

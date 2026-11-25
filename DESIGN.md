@@ -134,7 +134,7 @@ A paper-and-ink palette with one signal green. The green is the logo's own accen
 - **Display** (800, clamp(72px, 7.6vw, 107px), 0.84, -0.075em): the home page title only, set across the full hero width with the cassette mark at its right edge.
 - **Headline** (800, clamp(46px, 5vw, 62px), 0.96, -0.055em): article titles. Distinct from display so a long page name still fits.
 - **Title** (700, 30px, 1.1, -0.035em): section heads on the home page and inside prose. H2s inside prose carry a hairline above them; the first one does not.
-- **Lede** (400, 21px, 1.42): the home summary in Literata; article ledes drop to 19px/1.5 and fill the article head.
+- **Lede** (400, 21px, 1.42): the home summary in Literata; article ledes drop to 19px/1.5 under the title row, and a page without a summary has no lede.
 - **Body** (400, 18px, 1.65): default prose. Article prose reads at 16.5px/1.68 in a 690px column.
 - **Label** (500, 11px, 0.08 to 0.16em, uppercase): station numbers, route labels, panel headers, and metadata. Uppercase comes from CSS, never from the source string.
 - **Code** (400, 12.5px, 1.62): panels on the home page; 12px inside article prose.
@@ -165,6 +165,7 @@ Everything is squared. Corners use a 1px radius, which keeps anti-aliasing clean
 - **Shape:** square (1px radius), 46px tall, 20px side padding, 11px uppercase label at 700 with 0.08em tracking.
 - **Primary:** signal green ground, white text, a 16px arrow. Hover deepens to deep green.
 - **Ghost:** transparent ground, 1px ink border, ink text; hover inverts to ink ground and paper text. Focus is a 2px offset ring in the accent color.
+- **Copy as Markdown:** a squared 1px ruled button in the article title row, right-aligned with the h1: an 11px uppercase mono label and a Markdown mark. Hover names it, a click copies the page's Markdown and says "Copied" for 1.5 seconds, and the home page has no copy control.
 
 ### Search Field
 - **Style:** 36px tall, paper-sunk ground, 1px rule, 12px sans placeholder, a 14px drawn magnifier, and a monospace `/` key hint at the right.

@@ -786,13 +786,13 @@ update();
         {
           if title != none and not home {
             html.elem("div", attrs: (class: "article-head"), {
-              html.elem("h1", title)
-              html.elem("div", attrs: (class: "article-lede"), {
-                if summary != none {
-                  html.elem("p", attrs: (class: "lede"))[#summary]
-                }
+              html.elem("div", attrs: (class: "article-title"), {
+                html.elem("h1", title)
                 md-copy-button(active)
               })
+              if summary != none {
+                html.elem("p", attrs: (class: "lede"))[#summary]
+              }
             })
             html.elem("div", attrs: (class: "article-body"), {
               html.elem("div", attrs: (class: "prose"), {
