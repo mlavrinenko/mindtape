@@ -445,6 +445,7 @@ main table code { display: inline; font-size: 12px; line-height: 1.7; white-spac
   font-family: var(--sans); font-size: 0.78rem;
   letter-spacing: 0.02em;
 }
+.matrix-float-head th:first-child { position: sticky; left: 0; z-index: 1; }
 
 /* ── Search (Pagefind UI) ─────────────────────────────────────────────────── */
 

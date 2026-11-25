@@ -150,7 +150,10 @@ requestAnimationFrame(function(){g.classList.add('line-drawn')});
 // A floating <thead> clone. Plain CSS `position: sticky` on `thead th` can't
 // work there: the `.matrix` wrapper is a horizontal scroll container
 // (`overflow-x: auto`), and that clips block-axis sticky positioning for its
-// descendants. No-op on pages without a `.matrix table thead`.
+// descendants. The fixed wrapper scrolls its cloned table rather than
+// translating it, so the clone's first header cell can stay sticky at left 0.
+// A focus move can scroll the wrapper itself, so its scroll listener restores
+// the table's offset. No-op on pages without a `.matrix table thead`.
 #let _matrix-script = "document.addEventListener('DOMContentLoaded',function(){
 document.querySelectorAll('.matrix').forEach(function(box){
 var frame=box.parentNode;
@@ -175,6 +178,7 @@ var floatThead=thead.cloneNode(true);
 floatTable.appendChild(floatThead);
 floatWrap.appendChild(floatTable);
 document.body.appendChild(floatWrap);
+floatWrap.addEventListener('scroll',function(){floatWrap.scrollLeft=wrapper.scrollLeft;},{passive:true});
 var liveCells=thead.querySelectorAll('th');
 var cloneCells=floatThead.querySelectorAll('th');
 function sizeCols(){
@@ -197,7 +201,7 @@ if(show){
 sizeCols();
 floatWrap.style.top=headerH+'px';
 floatWrap.style.display='block';
-floatTable.style.transform='translateX(-'+wrapper.scrollLeft+'px)';
+floatWrap.scrollLeft=wrapper.scrollLeft;
 }else{
 floatWrap.style.display='none';
 }
