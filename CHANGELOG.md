@@ -211,6 +211,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A config with no `param()` never builds the config schema.** `param()` is a
+  pack feature, and finding the keys that hold expressions meant generating the
+  whole `Config` JSON Schema at runtime and walking it. A project without a
+  pack parameter skips both, which is most of a small project's config load.
 - **A warm load hashes each dependency once, not once per task, and replays a
   task's call spans instead of re-parsing its file.** Two costs dominated a
   warm `mt ls`, and neither was the query. `TaskCache::deps_unchanged` read and

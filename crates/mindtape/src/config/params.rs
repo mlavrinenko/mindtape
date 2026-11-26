@@ -229,7 +229,15 @@ type RewriteAt<'f> = dyn FnMut(&str, &str) -> Result<String, ConfigError> + 'f;
 
 /// Run `rewrite` over every string at one of the [`expression_keys`] in
 /// `table`.
+///
+/// A table that never spells `param` has nothing to rewrite, and the guard is
+/// worth its walk. [`expression_keys`] builds the whole `Config` JSON Schema to
+/// learn which keys hold expressions, and that costs more than parsing the
+/// config it describes. A project without a pack parameter skips both.
 fn rewrite_expressions(table: &mut toml::Table, rewrite: &mut Rewrite) -> Result<(), ConfigError> {
+    if !mentions_param(table) {
+        return Ok(());
+    }
     for expression in expression_keys() {
         let Some((step, rest)) = expression.path.split_first() else {
             continue;
@@ -239,6 +247,23 @@ fn rewrite_expressions(table: &mut toml::Table, rewrite: &mut Rewrite) -> Result
         visit_table(table, step, rest, "", &mut at_key)?;
     }
     Ok(())
+}
+
+/// Whether any string in `table` contains `param`, the name every `param()`
+/// call starts with. A superset of the calls [`rewrite_calls`] finds, so a
+/// false positive only costs the walk it guards.
+fn mentions_param(table: &toml::Table) -> bool {
+    table.values().any(mentions_param_in)
+}
+
+/// [`mentions_param`] for one value.
+fn mentions_param_in(value: &toml::Value) -> bool {
+    match value {
+        toml::Value::String(text) => text.contains("param"),
+        toml::Value::Array(items) => items.iter().any(mentions_param_in),
+        toml::Value::Table(table) => mentions_param(table),
+        _ => false,
+    }
 }
 
 /// Visit each entry of `table` that `step` matches, `key` being the table's
