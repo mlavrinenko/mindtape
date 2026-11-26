@@ -41,9 +41,16 @@ const N: usize = 2000;
 /// The filter `filter/match` matches, parsed once in setup.
 const FILTER: &str = "!terminal && priority >= 3 && has_tag(\"bench\")";
 
-/// The instruction ceiling for `filter/match/2000`. Measured at 32.1 M on
-/// 2026-11-25, and the ceiling leaves 6% of headroom over that.
-const FILTER_MATCH_CEILING: u64 = 34_000_000;
+/// The instruction ceiling for `filter/match/2000`. Measured at 36.0 M on
+/// 2026-11-27, and the ceiling leaves 5% of headroom over that.
+///
+/// `0fb64102` minted this from 32.1 M, and that figure does not reproduce. The
+/// commit itself measures 36.3 M here. Its predecessor measures 86.4 M against
+/// a minted 81.2 M, while `sort/default/2000` still matches its 18.3 M at
+/// both. The case has not grown since. A third of what it counts is dropping
+/// the loaded set rather than matching, and the allocator is most of the rest.
+/// The number follows the heap the setup leaves behind as much as the loop.
+const FILTER_MATCH_CEILING: u64 = 37_800_000;
 
 /// The instruction ceiling for `sort/default/2000`. Measured at 18.3 M on
 /// 2026-11-25, which is 9.1 k instructions per task.
