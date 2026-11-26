@@ -7,6 +7,8 @@
 //! them into its own error type (`FilterError`, `ConditionError`) so the two
 //! languages keep independent error surfaces while sharing the walk logic.
 
+use std::borrow::Cow;
+
 use evalexpr::{DefaultNumericTypes, Node, Operator, Value};
 
 /// The stand-in a kebab-case name's `-` travels through `evalexpr` as.
@@ -15,10 +17,16 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, Value};
 /// name back out of the tree restores it with [`restore_name`].
 pub(crate) const NAME_HYPHEN: char = '\u{E000}';
 
-/// A name as written: [`NAME_HYPHEN`] back to `-`.
+/// A name as written: [`NAME_HYPHEN`] back to `-`. Borrows `name` when it holds
+/// no [`NAME_HYPHEN`], which is every name spelled without a `-`, so a per-task
+/// field read doesn't allocate.
 #[must_use]
-pub(crate) fn restore_name(name: &str) -> String {
-    name.replace(NAME_HYPHEN, "-")
+pub(crate) fn restore_name(name: &str) -> Cow<'_, str> {
+    if name.contains(NAME_HYPHEN) {
+        Cow::Owned(name.replace(NAME_HYPHEN, "-"))
+    } else {
+        Cow::Borrowed(name)
+    }
 }
 
 /// The pre-lex pass keeps a kebab-case name one token. A `-` between two name
@@ -77,16 +85,27 @@ pub(crate) fn unwrap_root(node: &Node<DefaultNumericTypes>) -> &Node<DefaultNume
     node
 }
 
+/// Read a bare identifier (a field or predicate name in comparison position),
+/// or `None` for any other node. Unlike [`extract_identifier`] it never formats
+/// an error, so a caller that only asks which field a node reads pays for a
+/// match alone.
+#[must_use]
+pub(crate) fn identifier_of(node: &Node<DefaultNumericTypes>) -> Option<Cow<'_, str>> {
+    match unwrap_root(node).operator() {
+        Operator::VariableIdentifierRead { identifier } => Some(restore_name(identifier)),
+        _ => None,
+    }
+}
+
 /// Read a bare identifier (a field or predicate name in comparison
 /// position).
 ///
 /// # Errors
 /// Returns a message if `node` is not a variable-identifier read.
 pub(crate) fn extract_identifier(node: &Node<DefaultNumericTypes>) -> Result<String, String> {
-    match unwrap_root(node).operator() {
-        Operator::VariableIdentifierRead { identifier } => Ok(restore_name(identifier)),
-        _ => Err(format!("expected a field, got {}", describe(node))),
-    }
+    identifier_of(node)
+        .map(Cow::into_owned)
+        .ok_or_else(|| format!("expected a field, got {}", describe(node)))
 }
 
 /// A node as the user wrote it, for an error that reports what it found: a

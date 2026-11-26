@@ -1,10 +1,12 @@
 #![allow(clippy::unwrap_used)]
 
+use std::borrow::Cow;
+
 use evalexpr::{DefaultNumericTypes, Operator, build_operator_tree};
 
 use super::{
     NAME_HYPHEN, call_args, compare_ordering, connective, extract_identifier, extract_literal,
-    join_kebab_names, resolve_now_or_literal,
+    identifier_of, join_kebab_names, resolve_now_or_literal, restore_name,
 };
 
 fn tree(expr: &str) -> evalexpr::Node<DefaultNumericTypes> {
@@ -149,4 +151,32 @@ fn join_kebab_names_keeps_a_run_going_across_a_digit() {
 fn join_kebab_names_does_not_start_a_name_on_a_digit() {
     // A run beginning with a digit is not a name, so `1-b` stays subtraction.
     assert_eq!(join_kebab_names("1-b"), "1-b");
+}
+
+#[test]
+fn identifier_of_reads_a_bare_name() {
+    assert_eq!(
+        identifier_of(&tree("priority")).as_deref(),
+        Some("priority")
+    );
+}
+
+#[test]
+fn identifier_of_ignores_a_literal() {
+    assert!(identifier_of(&tree("3")).is_none());
+}
+
+#[test]
+fn restore_name_borrows_a_name_without_a_hyphen() {
+    // The per-task read of `priority` must not allocate.
+    assert!(matches!(
+        restore_name("priority"),
+        Cow::Borrowed("priority")
+    ));
+}
+
+#[test]
+fn restore_name_restores_a_kebab_name() {
+    let name = format!("x{NAME_HYPHEN}machine");
+    assert_eq!(restore_name(&name), "x-machine");
 }

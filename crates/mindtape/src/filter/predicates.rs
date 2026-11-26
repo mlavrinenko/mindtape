@@ -14,7 +14,7 @@ use typst_harvest::HVal;
 
 use crate::config::Config;
 use crate::filter::compare::compare;
-use crate::filter::expr::{call_args, extract_identifier, extract_literal};
+use crate::filter::expr::{call_args, extract_identifier, extract_literal, identifier_of};
 use crate::filter::{Ctx, FilterError, field_value};
 use crate::git::state::{PathFilter, PathSetError, StateSet};
 use crate::model::Task;
@@ -426,7 +426,7 @@ pub(crate) fn refuse_derived_collection(
     node: &Node<DefaultNumericTypes>,
     config: &Config,
 ) -> Result<(), FilterError> {
-    let Ok(name) = extract_identifier(node) else {
+    let Some(name) = identifier_of(node) else {
         return Ok(());
     };
     if !fields::is_derived(&name) {

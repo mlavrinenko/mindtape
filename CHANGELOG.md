@@ -211,6 +211,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The filter reads a field name without allocating it.** `restore_name` built a
+  `String` for every name it read, and one comparison read its left side four
+  times: `priority >= 3` allocated `priority` four times per task, and the
+  literal side formatted an error message that `refuse_derived_collection`
+  threw away. `restore_name` now borrows a name that needs no rewriting, and
+  `identifier_of` answers which field a node reads without formatting anything.
+  `filter/match/2000` falls from 35.8 M instructions to 32.1 M, and its ceiling
+  drops from 37.8 M to 34 M.
 - **A config with no `param()` never builds the config schema.** `param()` is a
   pack feature, and finding the keys that hold expressions meant generating the
   whole `Config` JSON Schema at runtime and walking it. A project without a

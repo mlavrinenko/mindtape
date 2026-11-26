@@ -143,7 +143,7 @@ impl CommitExpr {
         self.tree
             .iter()
             .flat_map(Node::iter_variable_identifiers)
-            .map(restore_name)
+            .map(|name| restore_name(name).into_owned())
             .collect()
     }
 
@@ -193,7 +193,7 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fil
             if let Some(flag) = commit_flag(&name, env.commit) {
                 return Ok(flag);
             }
-            match name.as_str() {
+            match name.as_ref() {
                 "named" => Ok(env.task("`named`")?.named(env.commit)),
                 "retires_other" => Ok(env.task("`retires_other`")?.retires_other()),
                 "records_other" => Ok(env.task("`records_other`")?.records_other(env.commit)),
@@ -236,7 +236,7 @@ fn side(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<Option<FieldVa
             scope.value(identifier, node.children()).map(Some)
         }
         Operator::VariableIdentifierRead { identifier } => {
-            match restore_name(identifier).as_str() {
+            match restore_name(identifier).as_ref() {
                 "subject" => Ok(Some(FieldValue::Str(env.commit.subject.clone()))),
                 field @ ("refs" | "files" | "trailers") => Err(FilterError::Invalid(format!(
                     "'{field}' is a list; test it with has({field}) or matches({field}, \"regex\")"

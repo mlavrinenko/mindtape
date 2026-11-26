@@ -390,16 +390,16 @@ groups:
   filter-docs:
     source:
       crates/mindtape/src/filter/aggregate.rs: 0ea9e56f5018a073064effec60d77dee11680bb697be79cdf793f1ace9cdbab5
-      crates/mindtape/src/filter/compare.rs: 55658758393d4a9252c6832417e10b4bf2ca0f87d08e609a457b4a048eb5119f
+      crates/mindtape/src/filter/compare.rs: 6ae65f575e48ca77564c11d3c7026c4520485bb2a5aac903de3331545643faf4
       crates/mindtape/src/filter/eval.rs: 6139381649bf42385e177800f0dd3688ebbca911285f4352f80f05ebfa0208f7
       crates/mindtape/src/filter/links.rs: c038f3656e2df37f03ed14c9752bb68c5ffbfafb9ffc9395f5e65bbf20a37c39
-      crates/mindtape/src/filter/mod.rs: e31b44ff81cf2db3a998010920a78e65ee4db09714618620ddad1303c1b149ca
-      crates/mindtape/src/filter/predicates.rs: f4a686a8ea42f3c423bb403bb3d31b35a8c77fa1fb02d603410c8069e5478d7d
+      crates/mindtape/src/filter/mod.rs: cc5cf711ec8b3df7e768deb98f52332d4c92f932432bce08de6328a642c7eebf
+      crates/mindtape/src/filter/predicates.rs: 21c1f3c604adac78705aa0e5a146a1b792772073a2a87e2afe5237996d48dfeb
       crates/mindtape/src/filter/strings.rs: 1a98654b8a6738b38efa68c211608a483c624aef97007cf7c7b35ba0ec44036b
       crates/mindtape/src/filter/views.rs: 0ea8fb660b977206e584c56bd0ef810d4ad5068f12e3831a3b727d011e22aab6
     dependents:
-      skills/mindtape/references/filters.md: 758ed2ac1d6ade5e9ed00202034e5682e302e18a0a1124026f5450ea52a16e9c
-      www/content/filters.typ: a61b65daa6287bd263dba3be7bdab9784ea8f643b6bdd3b267dba3523c4033db
+      skills/mindtape/references/filters.md: 4039b152297309de0885d0d98be0a1a0e573a56f5b5de825ac39d73420e555e8
+      www/content/filters.typ: 9e58b0ec69be023ee3b5d57350024c2d6b5f465d11c1be629f72ba1df1db8a57
   filter-fields-docs:
     source:
       crates/mindtape/src/model/fields.rs: b484ae42e4ec3abefdd9b95067fcbc3cf2a82e737081c445198f689153e587d5

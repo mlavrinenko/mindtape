@@ -212,7 +212,7 @@ impl Filter {
         self.tree
             .iter()
             .flat_map(Node::iter_variable_identifiers)
-            .map(restore_name)
+            .map(|name| restore_name(name).into_owned())
             .collect()
     }
 
@@ -222,7 +222,7 @@ impl Filter {
     pub fn calls(&self) -> BTreeSet<String> {
         let mut calls = BTreeSet::new();
         for name in self.tree.iter().flat_map(Node::iter_function_identifiers) {
-            calls.insert(restore_name(name));
+            calls.insert(restore_name(name).into_owned());
         }
         calls
     }

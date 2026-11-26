@@ -3,12 +3,14 @@
 //! count, a literal or `now()`) and orders the two under the missing-field
 //! rule.
 
+use std::borrow::Cow;
+
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
 use crate::config::{Config, Legend};
 use crate::filter::expr::{
-    call_args, compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal,
-    restore_name, unwrap_root,
+    call_args, compare_ordering, extract_identifier, extract_literal, identifier_of,
+    resolve_now_or_literal, restore_name, unwrap_root,
 };
 use crate::filter::predicates::changed_count;
 use crate::filter::{Ctx, FilterError, eval_bool, field_value};
@@ -30,7 +32,7 @@ pub(crate) fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<
     }
     let literal = resolve_now_or_literal(rhs).map_err(FilterError::Invalid)?;
     check_status(lhs, &literal, &ctx.config.tasks.status)?;
-    let value = if extract_identifier(lhs).is_ok_and(|field| field == "role") {
+    let value = if identifier_of(lhs).is_some_and(|field| field == "role") {
         role_field(ctx.task, ctx.config, &literal)
     } else {
         left_operand(lhs, ctx)?
@@ -65,16 +67,16 @@ fn check_status(
 
 /// The field a comparison side reads: a bare identifier, or the literal field
 /// name of an `old("field")` call.
-fn comparison_field(node: &Node<DefaultNumericTypes>) -> Option<String> {
+fn comparison_field(node: &Node<DefaultNumericTypes>) -> Option<Cow<'_, str>> {
     let node = unwrap_root(node);
     if let Operator::FunctionIdentifier { identifier } = node.operator()
         && identifier == "old"
         && let [arg] = call_args(node.children())[..]
         && let Ok(field) = extract_literal(arg)
     {
-        return Some(field);
+        return Some(Cow::Owned(field));
     }
-    extract_identifier(node).ok()
+    identifier_of(node)
 }
 
 /// [`check_status`] over every comparison under `node`.
