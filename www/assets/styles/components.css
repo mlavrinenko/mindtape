@@ -1,164 +1,394 @@
-/* Mindtape docs — components: hero, its panels, terminal, language server, cards, pills. */
+/* Mindtape docs — components: hero, panels, terminal, article rail. */
 
-/* Hero */
-.hero { padding: 1.2rem 0 0.5rem; }
-/* The lede takes the hero's full width. main.home already caps the hero at
-   60rem, the width of the panels and tables below it, so the lede's lines stay
-   readable without a cap of their own. */
-.hero h1 { font-size: clamp(2rem, 5vw, 2.9rem); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 0.8rem; }
-.hero-sub { font-size: 1.15rem; color: var(--muted); margin: 0; }
-.hero-cta { display: flex; flex-wrap: wrap; gap: 0.7rem; margin: 1.4rem 0 2.2rem; }
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+
+.hero {
+  --hero-display: clamp(72px, 7.6vw, 107px);
+  padding-bottom: 46px;
+}
+.hero h1 {
+  font-size: var(--hero-display);
+  font-weight: 800;
+  line-height: 0.84;
+  letter-spacing: -0.075em;
+  margin: 0;
+}
+.hero-title {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 32px; margin: 0 0 25px;
+}
+/* Typst wraps the mark in a <p>; unwrap it so the span itself is the flex item. */
+.hero-title p { display: contents; }
+.hero-mark {
+  width: var(--hero-display); height: var(--hero-display); flex: none;
+  background: var(--green);
+  -webkit-mask: url("../images/logo.svg") center / contain no-repeat;
+  mask: url("../images/logo.svg") center / contain no-repeat;
+  transition: transform 0.2s ease;
+}
+.hero-mark:hover{
+    transform: rotate(-3deg);
+}
+.hero .lede { margin: 0 0 14px; }
+.pitch { color: var(--ink-2); font-size: 14.5px; line-height: 1.55; margin: 0; }
+.hero-cta { display: flex; gap: 10px; margin: 24px 0 0; }
 
 .btn {
-  display: inline-block; font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600;
-  padding: 0.5rem 1.05rem; border-radius: 9px; text-decoration: none;
-  background: var(--accent); color: #ffffff; border: 1px solid var(--accent);
+  display: inline-flex; align-items: center; justify-content: center; gap: 16px;
+  height: 46px; padding: 0 20px;
+  background: var(--green); border: 1px solid var(--green); color: #fff;
+  font-family: var(--sans); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  text-decoration: none; border-radius: 1px;
 }
+.btn span { font-size: 15px; line-height: 1; }
+.btn:hover { background: var(--green-ink); border-color: var(--green-ink); color: #fff; }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+.btn-ghost:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 [data-theme="dark"] .btn { color: #06231a; }
-.btn:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
 [data-theme="dark"] .btn:hover { color: #06231a; }
-.btn.ghost { background: transparent; color: var(--accent); }
-.btn.ghost:hover { background: var(--accent-wash); color: var(--accent-strong); }
+[data-theme="dark"] .btn-ghost { color: var(--ink); }
+[data-theme="dark"] .btn-ghost:hover { color: var(--paper); }
 
-.faces-intro { margin: 0 0 0.8rem; }
-.face {
-  display: flex; flex-direction: column; overflow: hidden;
-  border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
-  margin: 0 0 20px;
-}
-.face figcaption {
-  font-family: var(--font-mono); font-size: 0.66rem; text-transform: uppercase;
-  letter-spacing: 0.12em; color: var(--muted);
-  padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); background: var(--bg-soft);
-}
-.face-body { flex: 1; display: flex; min-width: 0; }
-.face-body > pre, .face-body > .terminal, .face-body > img {
-  margin: 0; border: none; border-radius: 0; flex: 1; box-shadow: none; min-width: 0;
-}
-.face-source .face-body pre { font-size: 0.7rem; }
+/* ── Section heads ────────────────────────────────────────────────────────── */
 
-/* The typeset card, folded under one line. The card is the hero task compiled
-   to SVG and inlined as a data-uri <img>. Opened, it stays a small card, not a
-   full-width page. */
-.typeset { margin: 0 0 1.2rem; }
-.typeset summary { cursor: pointer; color: var(--fg); }
-.typeset summary:hover { color: var(--accent); }
+.section-head {
+  display: flex; align-items: baseline; gap: 14px;
+  padding-top: 14px; border-top: 1px solid var(--line-strong);
+  margin-bottom: 22px;
+}
+.section-head p { display: contents; }
+.section-head h2 {
+  font-size: 30px; font-weight: 700; letter-spacing: -0.035em;
+  line-height: 1.1; margin: 0;
+}
+/* Inline code keeps its paper and border in a title; only the size steps down. */
+.section-head h2 code { font-size: 0.78em; letter-spacing: 0; }
+
+.proof { margin-top: 8px; }
+
+/* Sections the home page adds after the comp's first screen keep the same
+   rule-and-number furniture, spaced off the block above. */
+main.home > .section-head { margin-top: 52px; }
+main.home .table-scroll table { table-layout: fixed; }
+main.home .table-scroll th:nth-child(1),
+main.home .table-scroll td:nth-child(1) { width: 23%; }
+main.home .table-scroll th:nth-child(2),
+main.home .table-scroll td:nth-child(2) { width: 38%; }
+main.home .table-scroll th:nth-child(3),
+main.home .table-scroll td:nth-child(3) { width: 39%; padding-right: 0; }
+main.home .table-scroll td { padding-top: 15px; padding-bottom: 15px; }
+
+/* ── Code panel ───────────────────────────────────────────────────────────── */
+
+.code {
+  border: 1px solid var(--line-strong);
+  border-top: 3px solid var(--green);
+  background: var(--code-bg);
+  margin: 20px 0;
+}
+.code-head {
+  display: flex; align-items: center; gap: 9px;
+  height: 40px; padding: 0 12px; overflow: hidden;
+  border-bottom: 1px solid var(--line); background: var(--paper);
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+  color: var(--ink-2);
+}
+.code-head .sq { width: 7px; height: 7px; background: var(--green); flex: none; }
+/* Typst wraps the header's inline spans in a <p>; unwrap it so the path can
+   shrink and COPY stays on screen at every width. */
+.code-head p { display: contents; }
+.code-head .code-lang { letter-spacing: 0.08em; }
+.code-head .path {
+  flex: 1; min-width: 0;
+  color: var(--muted); letter-spacing: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.code-head .copy { flex: none;
+  margin-left: auto; padding: 3px 6px;
+  border: 1px solid var(--line); background: var(--paper-2);
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+  color: var(--muted); cursor: pointer;
+}
+.code-head .copy:hover { color: var(--green-ink); border-color: var(--green); }
+.code pre { margin: 0; border: 0; background: transparent; padding: 20px 24px 22px; font-size: 12.5px; }
+
+/* The typeset page is a caption under the file's panel, not a footer bar: a
+   sentence in the reading voice, and an action that names the expansion. The
+   2px top margin lets the focus ring clear the panel above. */
+.proof-typeset { margin: 2px 0 0; }
+.proof-typeset summary { list-style: none; cursor: pointer; }
+.proof-typeset summary::-webkit-details-marker { display: none; }
+.proof-foot {
+  padding: 14px 24px 4px;
+  font-family: var(--serif); font-size: 16.5px; line-height: 1.5;
+  color: var(--ink-2);
+}
+.proof-note { transition: color 0.15s ease; }
+.proof-open {
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  color: var(--green-ink); text-decoration: underline;
+  text-decoration-thickness: 1px; text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+/* A drawn chevron, the same square-and-borders caret as the nav's
+   disclosure, turned to point at the page that opens below. */
+.proof-open::after {
+  content: ""; width: 6px; height: 6px; flex: none;
+  border-right: 1px solid currentColor; border-bottom: 1px solid currentColor;
+  transform: rotate(45deg); transition: transform 0.15s ease;
+}
+.proof-typeset[open] .proof-open::after { transform: rotate(-135deg); }
+.proof-typeset .proof-hide,
+.proof-typeset[open] .proof-show { display: none; }
+.proof-typeset[open] .proof-hide { display: inline; }
+.proof-foot:hover .proof-note { color: var(--ink); }
+.proof-foot:hover .proof-open { color: var(--green); }
+.proof-foot:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+/* The page image is already inset: its compiled margin is cropped by a little
+   over half, so the border alone frames it. Padding here would add the second
+   frame this card exists to avoid. */
 .typeset-card {
-  max-width: 30rem; margin: 0.8rem 0 0; padding: 0.8rem;
-  border: 1px solid var(--border); border-radius: 12px; background: #ffffff;
+  max-width: 30rem; margin: 10px 0 0 24px; padding: 0;
+  border: 1px solid var(--line-strong);
+  background: #fff;
 }
 .typeset-card img { width: 100%; height: auto; display: block; }
 
-/* Terminal panel (dark in both themes). A transcript renders as selectable
-   `pre` text; terminal-ansi (ui.typ) puts the coloured runs in inline spans. */
-.terminal { background: var(--term-bg); width: 100%; }
-.terminal pre {
-  background: transparent; color: var(--term-fg); border: none; border-radius: 0;
-  margin: 0; box-shadow: none; font-size: 0.78rem; padding: 0.9rem 1rem;
-}
-.terminal code { background: none; border: none; color: inherit; }
+/* ── Terminal ─────────────────────────────────────────────────────────────── */
 
-/* Callouts */
+.mt-list { margin-top: 46px; }
+.terminal { width: 100%; background: var(--term-bg); color: var(--term-fg); border: 1px solid var(--line-strong); margin: 20px 0; }
+.terminal-head {
+  display: flex; align-items: center; gap: 9px;
+  height: 40px; padding: 0 12px;
+  border-bottom: 1px solid #26332c;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em;
+  color: #8fa398;
+}
+.terminal-head i { width: 7px; height: 7px; background: var(--green); flex: none; }
+.terminal-head .terminal-path {
+  min-width: 0; margin-left: auto;
+  letter-spacing: 0; color: var(--term-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.terminal pre {
+  margin: 0; padding: 18px 22px 22px;
+  background: transparent; color: var(--term-fg); border: 0;
+  font-size: 12px; line-height: 1.7;
+  overflow-x: auto;
+}
+.terminal code { background: none; border: 0; color: inherit; font-size: inherit; }
+
+/* ── Calling points ───────────────────────────────────────────────────────── */
+
+.page-toc { margin: 0 0 26px; }
+.page-rail .page-toc .eyebrow {
+  display: block; margin: 0 0 10px;
+}
+.page-toc ul { position: relative; list-style: none; margin: 0; padding: 0 0 0 18px; }
+.page-toc ul::before {
+  content: ""; position: absolute; left: 3px; top: 6px; bottom: 6px;
+  width: 1px; background: var(--line);
+}
+/* The green segment ends at the current stop's dot. --toc-here is that dot's
+   centre, measured from the list top by the page script. */
+.page-toc ul::after {
+  content: ""; position: absolute; left: 3px; top: 6px; width: 1px;
+  height: max(0px, calc(var(--toc-here, 0px) - 6px));
+  background: var(--green); pointer-events: none;
+}
+.page-toc li { margin: 0; }
+.page-toc a {
+  position: relative; display: block; padding: 7px 0;
+  color: var(--ink-2); text-decoration: none;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  line-height: 1.35; letter-spacing: -0.01em;
+}
+.page-toc a::before {
+  content: ""; position: absolute; left: -18px; top: 50%;
+  width: 7px; height: 7px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--paper);
+  transform: translateY(-50%);
+}
+.page-toc a:hover { color: var(--green-ink); }
+.page-toc li.is-passed a::before,
+.page-toc li.is-current a::before {
+  background: var(--green); border-color: var(--green);
+}
+.page-toc li.is-current a { color: var(--green-ink); font-weight: 700; }
+.page-toc li.is-current a::before { box-shadow: 0 0 0 2px var(--paper); }
+/* Without the page script the list would stop at its first stop, which is the
+   only one that can be known before a scroll. */
+.page-toc:not(.page-toc-live) li:first-child a {
+  color: var(--green-ink); font-weight: 700;
+}
+.page-toc:not(.page-toc-live) li:first-child a::before {
+  background: var(--green); border-color: var(--green);
+  box-shadow: 0 0 0 2px var(--paper);
+}
+
+/* The rail's stops sit on the line itself, one bordered cell each. */
+.page-rail .page-toc ul { padding-left: 0; }
+.page-rail .page-toc ul::before { display: none; }
+.page-rail .page-toc ul::after { left: 0; top: 0; height: var(--toc-here, 0px); }
+.page-rail .page-toc li {
+  display: flex; position: relative; padding: 10px 0 10px 16px;
+  border-left: 1px solid var(--line);
+}
+/* The 1px border sits outside the li's padding box, so -4px centres the 7px
+   ring on the line. */
+.page-rail .page-toc li::before {
+  content: ""; position: absolute; left: -4px; top: 50%;
+  width: 7px; height: 7px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--paper);
+  transform: translateY(-50%);
+}
+.page-rail .page-toc li.is-passed::before,
+.page-rail .page-toc li.is-current::before {
+  background: var(--green); border-color: var(--green);
+}
+.page-rail .page-toc li.is-current::before { box-shadow: 0 0 0 2px var(--paper); }
+.page-rail .page-toc a { display: inline; padding: 0; }
+.page-rail .page-toc a::before { display: none; }
+
+.page-toc-flow {
+  margin: 0 0 1.8rem;
+  border: 1px solid var(--line); background: var(--paper-2);
+}
+.page-toc-flow summary {
+  cursor: pointer; padding: 10px 14px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.page-toc-flow summary:hover { color: var(--green-ink); }
+.page-toc-flow ul { padding: 0 14px 12px 34px; }
+.page-toc-flow ul::before { left: 18px; top: 12px; bottom: 12px; }
+.page-toc-flow ul::after {
+  left: 18px; top: 12px;
+  height: max(0px, calc(var(--toc-here, 0px) - 12px));
+}
+.page-toc-flow a { padding: 4px 0; font-size: 13px; }
+
+.page-toc-flow a::before { left: -20px; }
+
+.rail-meta {
+  display: flex; flex-direction: column; gap: 4px;
+  padding-top: 14px; border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--muted); text-transform: uppercase;
+}
+
+/* ── Callouts ─────────────────────────────────────────────────────────────── */
+
 .callout {
-  border: 1px solid var(--border); border-left: 3px solid var(--accent);
-  background: var(--bg-soft); border-radius: 0 10px 10px 0;
-  padding: 0.7rem 1rem; margin: 1.3rem 0; font-size: 0.95rem;
+  border: 1px solid var(--line); border-top: 3px solid var(--green);
+  background: var(--paper-2); padding: 0.8rem 1rem; margin: 1.4rem 0;
+  font-size: 0.95rem;
 }
 .callout p { margin: 0.3rem 0; }
 .callout p:first-child { margin-top: 0; }
 .callout p:last-child { margin-bottom: 0; }
-.callout-warn { border-left-color: #d98b00; }
-.callout-note { border-left-color: var(--muted); }
+.callout-warn { border-top-color: var(--amber); }
+.callout-note { border-top-color: var(--muted); }
 
-/* Diagrams */
-/* An inline Graphviz SVG (diagram() in ui.typ), scaled to the text column.
-   Graphviz writes its default colour as "black" and leaves the fill off text
-   in that colour, so those take the theme's colours. A colour `mt graph` chose
-   stays. A label on a filled node stays dark, because the fills are light in
-   both themes. */
-.diagram { margin: 1.3rem 0; }
+/* ── Diagrams ─────────────────────────────────────────────────────────────── */
+
+.diagram { margin: 1.4rem 0; }
 .diagram svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
-.diagram [stroke="black"] { stroke: var(--fg); }
+.diagram [stroke="black"] { stroke: var(--ink); }
 .diagram .edge [stroke="black"] { stroke: var(--muted); }
 .diagram .edge [fill="black"] { fill: var(--muted); }
-.diagram text:not([fill]) { fill: var(--fg); }
-.diagram .node:has(> [fill]:not([fill="none"])) text:not([fill]) { fill: #1f2328; }
+.diagram text:not([fill]) { fill: var(--ink); }
+.diagram .node:has(> [fill]:not([fill="none"])) text:not([fill]) { fill: #101512; }
 .diagram figcaption { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; }
 
-/* Language server */
-/* What tinymist returned on a task file (lsp-demo in ui.typ). The listings
-   keep the light code paper in both themes, because Typst bakes the highlight
-   colours. The frame, the menu and the problems take the theme. --lsp-column
-   is the cursor's column, in characters, so the caret and the menu use the
-   listing's monospace font and size. */
-:root { --lsp-error: #c0362c; --lsp-warning: #9a6700; }
-[data-theme="dark"] { --lsp-error: #ff8278; --lsp-warning: #e5b03f; }
+/* ── Language server ──────────────────────────────────────────────────────── */
+
+:root { --lsp-error: #b3261e; --lsp-warning: #9a6200; }
+[data-theme="dark"] { --lsp-error: #e0867d; --lsp-warning: #e2c06e; }
 .lsp {
-  margin: 1.3rem 0; overflow: hidden;
-  border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
+  margin: 1.4rem 0; overflow: hidden;
+  border: 1px solid var(--line-strong); background: var(--paper);
 }
 .lsp figcaption {
-  font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted);
-  padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--border); background: var(--bg-soft);
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--line);
+  background: var(--paper-2); letter-spacing: 0.04em;
 }
 .lsp figcaption code { font-size: 1em; }
+.lsp-caption { display: flex; align-items: baseline; }
+.lsp-caption .lsp-server { flex: none; }
+.lsp-caption .lsp-file {
+  min-width: 0; margin-left: auto; text-align: right; letter-spacing: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .lsp-code { background: var(--code-bg); padding: 0.8rem 0; }
 .lsp-code pre {
   margin: 0; padding: 0 1.1rem; border: none; border-radius: 0; box-shadow: none;
   background: transparent;
 }
-.lsp-cursor, .lsp-menu { font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; }
+.lsp-cursor, .lsp-menu { font-family: var(--mono); font-size: 0.82rem; line-height: 1.55; }
 .lsp-cursor { padding-left: 1.1rem; height: 1.55em; }
 .lsp-caret {
   display: inline-block; width: 2px; height: 1.3em; vertical-align: text-bottom;
   margin-left: calc(var(--lsp-column) * 1ch); background: var(--code-fg);
 }
-/* The squiggle row follows the listing that ends on the problem's line. It
-   takes no height, and its span repeats the marked text in a transparent
-   colour one line up, so the wavy underline lands under those characters. The
-   colour is the light-theme one, because the code paper is light in both. */
-.lsp-squiggle { height: 0; padding-left: 1.1rem; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; white-space: pre; }
+.lsp-squiggle { height: 0; padding-left: 1.1rem; font-family: var(--mono); font-size: 0.82rem; line-height: 1.55; white-space: pre; }
 .lsp-squiggle span {
   position: relative; top: -1.55em; margin-left: calc(var(--lsp-column) * 1ch);
-  color: transparent; text-decoration: underline wavy #c0362c;
+  color: transparent; text-decoration: underline wavy var(--lsp-error);
   text-decoration-skip-ink: none; text-underline-offset: 0.2em; pointer-events: none;
 }
-.lsp-squiggle .lsp-warning { text-decoration-color: #9a6700; }
+.lsp-squiggle .lsp-warning { text-decoration-color: var(--lsp-warning); }
 .lsp-menu {
   list-style: none; width: max-content; min-width: 14rem; padding: 0.25rem 0;
   margin: 0.1rem 0 0.4rem calc(1.1rem + var(--lsp-column) * 1ch);
-  background: var(--bg); color: var(--fg);
-  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--line-strong);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
 }
 .lsp-menu li { display: flex; gap: 0.7rem; align-items: baseline; padding: 0.05rem 0.7rem; margin: 0; }
-.lsp-menu li:first-child { background: var(--accent-wash); }
-.lsp-kind { color: var(--accent); font-size: 0.7rem; min-width: 2.6rem; }
-.lsp-problems { list-style: none; margin: 0; padding: 0.4rem 0; border-top: 1px solid var(--border); }
+.lsp-menu li:first-child { background: var(--green-wash); }
+.lsp-kind { color: var(--green); font-size: 0.75rem; min-width: 2.6rem; }
+.lsp-problems { list-style: none; margin: 0; padding: 0.3rem 0 0.4rem; border-top: 1px solid var(--line); }
 .lsp-problems li {
   display: flex; flex-wrap: wrap; gap: 0.2rem 0.7rem; align-items: baseline;
   margin: 0; padding: 0.3rem 0.9rem; font-size: 0.88rem;
 }
-.lsp-severity { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+.lsp-severity { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
 .lsp-error .lsp-severity { color: var(--lsp-error); }
 .lsp-warning .lsp-severity { color: var(--lsp-warning); }
 .lsp-message { flex: 1 1 18rem; }
-.lsp-where { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+.lsp-where { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
 
-/* Native Typst tables */
-main table { border-collapse: collapse; width: 100%; margin: 0 0 1.3rem; font-size: 0.9rem; }
-main th, main td { border: 1px solid var(--border); padding: 0.42rem 0.62rem; text-align: left; vertical-align: top; }
-main thead th { background: var(--bg-soft); font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.02em; }
-main td code { font-size: 0.82em; }
+/* ── Tables ───────────────────────────────────────────────────────────────── */
 
-/* Wide comparison matrix: too many columns for the 46rem text column, so it
-   scrolls sideways instead of squishing, and the row-label column sticks.
-   The frame shades each edge the table can scroll past: the right edge of the
-   frame, and the right side of the sticky column once the table has scrolled.
-   layout.typ's _matrix-script sets the two classes. */
-:root { --matrix-shadow: rgba(31, 35, 40, 0.16); }
+main table {
+  width: 100%; border-collapse: collapse; margin: 0 0 1.4rem;
+  font-size: 13px; line-height: 1.5;
+}
+main th, main td {
+  padding: 12px 20px 12px 0; border-bottom: 1px solid var(--line);
+  text-align: left; vertical-align: top;
+}
+main thead th,
+.matrix-float-head th {
+  padding: 0 20px 9px 0; border-bottom: 1px solid var(--line-strong);
+  font-family: var(--sans); font-size: 11px; font-weight: 800;
+  letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted);
+}
+main table a,
+.matrix-float-head th a { font-family: var(--sans); font-weight: 600; text-decoration: none; letter-spacing: -0.01em; }
+main table a:hover,
+.matrix-float-head th a:hover { text-decoration: underline; }
+main table code { display: inline; font-size: 12px; line-height: 1.7; white-space: normal; }
+
+/* ── Wide comparison matrix ───────────────────────────────────────────────── */
+
+:root { --matrix-shadow: rgba(16, 21, 18, 0.16); }
 [data-theme="dark"] { --matrix-shadow: rgba(0, 0, 0, 0.5); }
-.matrix-frame { position: relative; margin: 0 0 1.3rem; }
+.matrix-frame { position: relative; margin: 0 0 1.4rem; }
 .matrix-frame::after,
 .matrix tbody th::after,
 .matrix tbody td:first-child::after,
@@ -177,23 +407,16 @@ main td code { font-size: 0.82em; }
 .matrix-more-left .matrix tbody td:first-child::after,
 .matrix-more-left .matrix thead th:first-child::after { opacity: 1; }
 .matrix { overflow-x: auto; }
-.matrix table { min-width: 46rem; margin: 0; font-size: 0.82rem; }
+.matrix table { min-width: 68rem; margin: 0; font-size: 0.82rem; }
 .matrix th, .matrix td { padding: 0.38rem 0.55rem; }
 .matrix tbody th, .matrix tbody td:first-child {
-  position: sticky; left: 0; z-index: 1; background: var(--bg);
-  font-weight: 600; font-family: var(--font-mono); font-size: 0.74rem;
+  position: sticky; left: 0; z-index: 1; background: var(--paper);
+  font-weight: 600; font-family: var(--mono); font-size: 0.75rem;
 }
-.matrix thead th:first-child { position: sticky; left: 0; z-index: 2; }
+.matrix thead th:first-child { position: sticky; left: 0; z-index: 2; background: var(--paper); }
 
-/* Capability heatmap tokens
-   Pastel, low-saturation fills for the comparison matrix's objectively-
-   scoreable rows (comparison.typ's `cap()`): green = has the capability /
-   strong, amber = partial or indirect, grey = none — the SAME rubric for
-   every column, including Mindtape. Kept next to the site-wide tokens in
-   main.css but scoped to this file (its `:root` / `[data-theme="dark"]`
-   merge with main.css's, loaded first) since components.css is the only
-   stylesheet this feature touches. Both fg/bg pairs hold >= 4.5:1 contrast in
-   light and dark (verified against the effective blended background). */
+/* Capability heatmap tokens. Green means the capability exists, amber means
+   partial, grey means none. Both fg/bg pairs keep 4.5:1 contrast. */
 :root {
   --cap-green-bg: #e2f3ea;
   --cap-green-fg: #1f6844;
@@ -205,141 +428,87 @@ main td code { font-size: 0.82em; }
 [data-theme="dark"] {
   --cap-green-bg: rgba(69, 208, 160, 0.16);
   --cap-green-fg: #8fe9c8;
-  --cap-amber-bg: rgba(229, 176, 63, 0.18);
+  --cap-amber-bg: rgba(226, 192, 110, 0.18);
   --cap-amber-fg: #f0cf7a;
   --cap-grey-bg: rgba(255, 255, 255, 0.06);
   --cap-grey-fg: #b7c0c7;
 }
-
-/* Capability heatmap cells
-   Typst's HTML export bakes `text(fill:)`/`table.cell(fill:)` as one static
-   colour that cannot react to `[data-theme="dark"]`, so `cap()` instead wraps
-   the cell body in a classed <span>, and this stylesheet paints the `<td>`
-   that holds it, so the tile fills the cell however tall its row. */
 .matrix td:has(> .cap-green) { background: var(--cap-green-bg); color: var(--cap-green-fg); }
 .matrix td:has(> .cap-amber) { background: var(--cap-amber-bg); color: var(--cap-amber-fg); }
 .matrix td:has(> .cap-grey) { background: var(--cap-grey-bg); color: var(--cap-grey-fg); }
 
-/* Floating header clone for the comparison matrix
-   `.matrix` is a horizontal scroll container, which stops a plain CSS
-   `position: sticky` on `thead th` from working for vertical scroll (a
-   scroll-container ancestor clips block-axis sticky). A small script in
-   layout.typ (_matrix-script) clones the <thead> into this
-   fixed-position element once the table has scrolled past the site header,
-   sizing its cells to match the live header and re-syncing horizontal
-   offset with the wrapper's scrollLeft. Hidden by default; toggled via
-   inline `display` from the script. Styling mirrors `main thead th` /
-   `.matrix th` so the clone is indistinguishable from the real header. */
+/* Floating header clone for the comparison matrix (see layout.typ). */
 .matrix-float-head {
-  position: fixed;
-  overflow: hidden;
-  z-index: 15;
-  display: none;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-soft);
+  position: fixed; overflow: hidden; z-index: 15; display: none;
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--paper);
 }
 .matrix-float-head table { border-collapse: collapse; margin: 0; }
 .matrix-float-head th {
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--line-strong);
   padding: 0.38rem 0.55rem;
-  text-align: left;
-  background: var(--bg-soft);
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
+  text-align: left; background: var(--paper);
 }
+.matrix-float-head th:first-child { position: sticky; left: 0; z-index: 1; }
 
-/* Search (Pagefind UI)
-   A header-mounted search input whose results render as a floating popup.
-   Pagefind ships pagefind-ui.css; the --pagefind-ui-* custom properties re-skin
-   it to the site tokens (dark mode inherited, since they reference theme vars).
-   Overrides are keyed off the #search id so they outrank pagefind's own scoped
-   `.pagefind-ui__*` class rules regardless of stylesheet load order — the UI CSS
-   is injected at runtime, after this file. --pagefind-ui-scale governs the popup
-   result sizing; the input is sized independently to fit the header bar. */
+/* ── Search (Pagefind UI) ─────────────────────────────────────────────────── */
+
 #search {
   --pagefind-ui-scale: 0.75;
-  --pagefind-ui-primary: var(--accent);
-  --pagefind-ui-text: var(--fg);
-  --pagefind-ui-background: var(--bg);
-  --pagefind-ui-border: var(--border);
-  --pagefind-ui-tag: var(--bg-soft);
+  --pagefind-ui-primary: var(--green);
+  --pagefind-ui-text: var(--ink);
+  --pagefind-ui-background: var(--paper-2);
+  --pagefind-ui-border: var(--line);
+  --pagefind-ui-tag: var(--paper);
   --pagefind-ui-border-width: 1px;
-  --pagefind-ui-border-radius: 8px;
-  --pagefind-ui-font: var(--font-mono);
+  --pagefind-ui-border-radius: 0;
+  --pagefind-ui-font: var(--mono);
   position: relative;
-  width: clamp(8rem, 24vw, 15rem);
+  width: 100%; height: 36px;
 }
-/* Compact input to the header height (independent of --pagefind-ui-scale). */
 #search .pagefind-ui__search-input {
-  height: 34px; font-size: 0.85rem; font-weight: 500;
-  padding: 0 1.9rem 0 2rem;
+  height: 36px; width: 100%;
+  padding: 0 44px 0 31px;
+  font-family: var(--sans); font-size: 12px; font-weight: 400;
+  letter-spacing: 0.01em;
+  background: var(--paper-2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 0;
 }
-#search .pagefind-ui__form:before { width: 14px; height: 14px; top: 10px; left: 10px; }
-#search .pagefind-ui__search-clear { height: 28px; top: 3px; right: 3px; font-size: 0.68rem; padding: 0 0.5rem; }
+#search .pagefind-ui__form:before { width: 14px; height: 14px; top: 11px; left: 11px; }
+#search .pagefind-ui__search-clear {
+  height: 26px; top: 4px; right: 8px;
+  font-size: 12px; padding: 0 0.4rem;
+}
+/* Pagefind hides Clear with opacity alone, which leaves an invisible tab
+   stop. Hidden means hidden to the keyboard and the accessibility tree. */
+#search .pagefind-ui__search-clear.pagefind-ui__suppressed { visibility: hidden; }
+.search-wrap:focus-within .search-key,
+.search-wrap:has(input:not(:placeholder-shown)) .search-key { display: none; }
+#search .pagefind-ui__search-input::placeholder { opacity: 0.7; color: var(--muted); }
 
-/* Results drawer -> popup anchored under the input, hidden until it has a query
-   (pagefind toggles pagefind-ui__hidden) and dismissable (search--closed). */
 #search .pagefind-ui__drawer {
   position: absolute; top: calc(100% + 0.55rem); right: 0;
-  width: min(30rem, 92vw); max-height: min(70vh, 30rem); overflow-y: auto;
+  width: min(32rem, 92vw); max-height: min(70vh, 30rem); overflow-y: auto;
   padding: 0.2rem 1.1rem 0.9rem;
-  background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+  background: var(--paper); border: 1px solid var(--line-strong);
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
-  font-family: var(--font-serif); z-index: 40;
+  font-family: var(--serif); z-index: 40;
 }
 #search.search--closed .pagefind-ui__drawer { display: none; }
 #search .pagefind-ui__results-area { margin-top: 0; }
-#search .pagefind-ui__message { padding: 0.6rem 0; height: auto; }
-#search .pagefind-ui__result { padding: 0.7rem 0; }
-/* pagefind resets <mark> to the browser-default yellow; tint it to the accent. */
-#search mark { background: var(--accent-wash); color: inherit; border-radius: 3px; padding: 0 1px; font-weight: 600; }
-#search .pagefind-ui__search-input::placeholder { opacity: 0.55; }
-/* On phones the header wraps; search drops to its own full-width row. */
+#search .pagefind-ui__message { padding: 0.6rem 0; height: auto; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+#search .pagefind-ui__result { padding: 0.7rem 0; border-top: 1px solid var(--line); }
+#search .pagefind-ui__result-title { font-family: var(--sans); font-size: 0.9rem; font-weight: 700; }
+#search mark { background: var(--green-wash); color: inherit; font-weight: 600; }
+
+/* ── Narrow tables and code ───────────────────────────────────────────────── */
+
 @media (max-width: 40rem) {
-  .header-inner { flex-wrap: wrap; row-gap: 0.55rem; }
-  #search { order: 3; width: 100%; }
+  .hero { --hero-display: clamp(64px, 17vw, 92px); }
+  .hero-mark { display: none; }
+  .hero-cta { flex-wrap: wrap; }
 }
 
-/* Lede paragraph under an h1 */
-.lede { font-size: 1.12rem; color: var(--muted); margin-bottom: 1.6rem; }
-
-/* Copy page as Markdown: an icon button beside the page title, its tooltip drawn
-   from data-tip, which the script in layout.typ sets to "Copied" for a moment
-   after a copy. */
-.page-title { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 1.6rem; }
-.page-title h1 { margin: 0; }
-.hero .page-title { margin: 0 0 0.8rem; }
-.md-copy {
-  position: relative; flex: none; width: 34px; height: 28px; padding: 0;
-  border: 1px solid var(--border); border-radius: 7px; background: var(--bg-soft);
-  color: var(--muted); cursor: pointer; display: inline-grid; place-items: center;
-}
-.md-copy::before {
-  content: ""; width: 20px; height: 13px; background: currentColor;
-  -webkit-mask: url("../images/markdown.svg") center / contain no-repeat;
-  mask: url("../images/markdown.svg") center / contain no-repeat;
-}
-.md-copy:hover, .md-copy:focus-visible { color: var(--accent); border-color: var(--accent); }
-.md-copy::after {
-  content: attr(data-tip); position: absolute; top: calc(100% + 6px); left: 50%;
-  transform: translateX(-50%); white-space: nowrap; pointer-events: none;
-  font: 500 0.72rem/1 var(--font-mono); padding: 0.35rem 0.5rem; border-radius: 6px;
-  background: var(--fg); color: var(--bg); opacity: 0; transition: opacity 0.12s;
-  z-index: 5;
-}
-.md-copy:hover::after, .md-copy:focus-visible::after, .md-copy.md-copy-said::after { opacity: 1; }
-
-/* Nothing widens a narrow page
-   In prose a code span or a URL may break anywhere, and a wrapped span draws
-   its chip on each line. In a table cell it breaks only when the token alone
-   is wider than the cell: `break-word` keeps a column's minimum width at its
-   longest word, where `anywhere` would shrink it below a short one. A table
-   that still cannot fit scrolls in its `table-scroll` box (base.typ), except
-   the comparison matrix, whose own box scrolls already. A listing in a cell
-   sizes to the cell and scrolls inside it. The copy button's tooltip shows
-   only "Copied": the longer hover tip, hidden or not, would reach past the
-   screen's right edge. */
 @media (max-width: 52rem) {
   main :not(pre) > code, main a { overflow-wrap: anywhere; }
   main :not(pre) > code { -webkit-box-decoration-break: clone; box-decoration-break: clone; }
@@ -348,4 +517,38 @@ main td code { font-size: 0.82em; }
   .matrix .table-scroll { overflow-x: visible; }
   main td pre { contain: inline-size; }
   .md-copy:not(.md-copy-said)::after { display: none; }
+}
+
+/* The home recipe table stacks at phone width. The fixed three-column layout
+   splits words and code tokens at 390px, so each row becomes its own block:
+   recipe, effect, then the full refusal on a code panel. Explicit roles in
+   the nav script keep the table semantics when the display changes. */
+@media (max-width: 40rem) {
+  main.home .table-scroll { overflow-x: visible; }
+  main.home .table-scroll table,
+  main.home .table-scroll tbody { display: block; table-layout: auto; }
+  main.home .table-scroll thead {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap; border: 0;
+  }
+  main.home .table-scroll tbody tr {
+    display: block; padding: 16px 0 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  main.home .table-scroll tbody td:nth-child(n) {
+    display: block; width: auto; padding: 0; border: 0;
+  }
+  main.home .table-scroll tbody td + td { margin-top: 7px; }
+  main.home .table-scroll tbody td:first-child a {
+    display: inline-block; font-size: 15px; line-height: 1.25;
+  }
+  main.home .table-scroll tbody td:nth-child(2) {
+    color: var(--ink-2); font-size: 14px;
+  }
+  main.home .table-scroll tbody td:nth-child(3) code {
+    display: block; padding: 10px 12px;
+    background: var(--code-bg); border: 1px solid var(--code-border);
+    font-size: 12px; line-height: 1.6; overflow-wrap: break-word;
+  }
 }

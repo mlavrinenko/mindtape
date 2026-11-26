@@ -32,6 +32,11 @@
 // The line that introduces the showcase task, in README and on the site root.
 #let showcase-intro = "Here's a real task."
 
+// Where the showcase task lives, for a code panel's header and a section note.
+#let fixture-root = _fact.root
+#let showcase-path = _fact.root + "/" + _slices.at("showcase").file
+#let showcase-file = _slices.at("showcase").file.split("/").last()
+
 // What a capture printed, without its color.
 #let _plain(out) = out.replace(regex("\u{1b}\[[0-9;]*m"), "")
 
@@ -95,8 +100,16 @@
 // The Recipes nav group's routes, in nav order.
 #let recipe-routes = NAV.find(group => group.title == "Recipes").items
 
-#let recipe-table(link) = {
-  heading(level: 1)[Bring your own rules]
+// `head` is the site's section-head; README leaves it out and gets the plain
+// heading it has always had.
+#let recipe-table(link, head: none) = {
+  if head == none {
+    heading(level: 1)[Bring your own rules]
+  } else {
+    head(
+      [Bring your own rules.],
+    )
+  }
   [
     No rule is hardcoded in #mindtape. Every check is a few lines of config,
     either yours or from the `mindtape:tasks` pack that ships alongside.
@@ -118,8 +131,14 @@
   )
 }
 
-#let typst-section(link) = {
-  heading(level: 1)[The elephant in the room: Typst vs Markdown + frontmatter]
+#let typst-section(link, head: none) = {
+  if head == none {
+    heading(level: 1)[The elephant in the room: Typst vs Markdown + frontmatter]
+  } else {
+    head(
+      [Why Typst, not Markdown.],
+    )
+  }
   [
     Why pick #std.link("https://typst.app/")[Typst] over Markdown to power a
     local task tracker? Here are a few reasons.

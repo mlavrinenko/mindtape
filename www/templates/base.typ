@@ -5,8 +5,8 @@
 // resolve.
 //
 // Each table sits in a `table-scroll` div, which components.css turns into a
-// sideways scroll box on narrow screens, so a table too wide for a phone
-// scrolls in place rather than widening the page.
+// sideways scroll box on narrow screens. The home recipe table is the
+// exception: at phone width its rows stack, so its words and code stay whole.
 
 #import "../utils/tola.typ": to-string
 

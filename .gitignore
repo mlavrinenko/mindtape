@@ -29,3 +29,7 @@
 .mmz/cache/
 # Python bytecode from the repo's scripts; regenerate on import.
 __pycache__/
+# Generated asset mirror (www/capture-mirror.sh) for Impeccable's static
+# capture, which serves the repo root while pages link /mindtape/... .
+/mindtape/
+.impeccable/

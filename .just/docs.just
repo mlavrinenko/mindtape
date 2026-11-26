@@ -20,6 +20,7 @@ gen:
 [working-directory("www")]
 build: gen
     out=$(tola build --clean 2>&1) || { printf '%s\n' "$out"; exit 1; }
+    bash post-build.sh
     pagefind --site public/mindtape --silent
     bash generate-md.sh
 
@@ -38,6 +39,7 @@ check:
     cd .. && mkdir -p target && flock target/www-generated.lock env MINDTAPE_GENERATED_LOCK=1 mmz just docs::gen
     cd .. && bash .just/scripts/check-schema-urls.sh
     out=$(tola build --clean 2>&1) || { printf '%s\n' "$out"; exit 1; }
+    bash post-build.sh
     pagefind --site public/mindtape --silent
     bash generate-md.sh
     out=$(tola validate 2>&1) || { printf '%s\n' "$out"; exit 1; }

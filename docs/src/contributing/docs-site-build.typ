@@ -28,6 +28,15 @@ build.
 #just.docs-serve() keeps the incremental build. It isn't a gate, and a full
 rebuild on each keystroke would make hot reload useless.
 
+= The hidden enhance stylesheet
+
+tola writes its own `enhance-*.css` under `.tola/` and links it from every page.
+`www/post-build.sh` removes that link from the built HTML and deletes the
+directory. The rules the site depends on live at the end of
+`www/assets/styles/main.css`. Both build recipes run the script after
+`tola build` and before pagefind indexes the pages. A static capture tool that
+refuses hidden paths can then read the page.
+
 = The Markdown copies and llms.txt
 
 After `tola build`, `www/generate-md.sh` renders every page a second time with

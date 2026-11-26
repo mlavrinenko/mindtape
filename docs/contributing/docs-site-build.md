@@ -10,6 +10,10 @@ Both recipes pass `--clean` to `tola build`. tola doesn’t track a `json()` rea
 
 `just docs serve` keeps the incremental build. It isn’t a gate, and a full rebuild on each keystroke would make hot reload useless.
 
+## The hidden enhance stylesheet
+
+tola writes its own `enhance-*.css` under `.tola/` and links it from every page. `www/post-build.sh` removes that link from the built HTML and deletes the directory. The rules the site depends on live at the end of `www/assets/styles/main.css`. Both build recipes run the script after `tola build` and before pagefind indexes the pages. A static capture tool that refuses hidden paths can then read the page.
+
 ## The Markdown copies and llms.txt
 
 After `tola build`, `www/generate-md.sh` renders every page a second time with typlite and `--input markdown=1`, into `index.md` beside the page’s `index.html`. An agent reads the copy at a fraction of the HTML’s bytes. The same script writes `llms.txt` at the site root, in the [llmstxt.org](https://llmstxt.org) format: each `NAV` group’s pages with their summaries, and a command page under the CLI entry. The Pages workflow deploys what `just docs check` builds. That deployment includes the copies beside the HTML.

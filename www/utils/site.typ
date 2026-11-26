@@ -11,8 +11,15 @@
 // bump reaches the site with no hand edit. The site builds under `--root www`,
 // where Typst refuses a read of lib/typst.toml. www/generate.sh writes
 // crate-map.json before anything imports this file.
-#let PKG_VERSION = json("../generated/crate-map.json").at("typst-lib").version
-#let PKG = "@local/mindtape:" + PKG_VERSION
+#let pkg-version = json("../generated/crate-map.json").at("typst-lib").version
+#let PKG = "@local/mindtape:" + pkg-version
+
+// The Mindtape release version, the one `mt --version` prints, read from
+// `[workspace.package]` through the same crate map. The site chrome labels it
+// "Version"; `pkg-version` above is the prelude's own and moves apart.
+#let mt-version = (
+  json("../generated/crate-map.json").at("workspace-package").version
+)
 
 #let REPO = "https://github.com/mlavrinenko/mindtape"
 
@@ -59,19 +66,38 @@
 // A button beside a page's title that copies the page at `route` as Markdown,
 // the copy www/generate-md.sh writes beside its HTML. The script in
 // www/templates/layout.typ copies it, and CSS shows `data-tip` on hover.
-#let md-copy-button(route) = html.elem("button", attrs: (
-  class: "md-copy",
-  type: "button",
-  "aria-label": "Copy page as Markdown",
-  "data-tip": "Copy page as Markdown",
-  "data-md": PREFIX + md-path(route),
-))
+#let md-copy-button(route) = html.elem(
+  "button",
+  attrs: (
+    class: "md-copy",
+    type: "button",
+    "aria-label": "Copy page as Markdown",
+    "data-tip": "Copy page as Markdown",
+    "data-md": PREFIX + md-path(route),
+  ),
+  {
+    html.elem("span", attrs: (class: "md-copy-icon"))
+    html.elem("span", attrs: (class: "md-copy-label"), "Copy as Markdown")
+  },
+)
 
 #let SITE = (
   title: mindtape,
   tagline: "Tasks as code. A tracker in your repo, one Typst file per task, checked against your own rules.",
   pitch: "Write rules in `.mindtape/config.toml`, and `mt check` runs them over every task and commit.",
 )
+
+// A section head: the line's marker for a new stretch of a page. The line's
+// numbers live in the rail, never in the heading. In the Markdown copy it is
+// an ordinary heading, and `md-title` lets the site carry a shorter sign than
+// the long title README already uses.
+#let section-head(title, md-title: none) = if MARKDOWN {
+  heading(level: 1, if md-title != none { md-title } else { title })
+} else {
+  html.elem("div", attrs: (class: "section-head"), {
+    html.elem("h2", title)
+  })
+}
 
 // Grouped sidebar: group title, and its members' reading order as routes.
 // A group is named for the reader's job, not for the page's origin, so a
