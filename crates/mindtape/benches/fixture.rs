@@ -8,6 +8,14 @@
 //!
 //! The project config is `fixture/config.toml`, read at compile time: one
 //! benchmark project, one source of truth.
+//!
+//! Each fixture also carries a copy of this checkout's `lib/` as a local
+//! package, and its config overrides `@local/mindtape` to resolve there. The
+//! real backlog does the same. It makes a warm load pay for its dependencies:
+//! the loader records every project-local file an evaluation read and
+//! re-hashes it on the next load. A fixture that imported the installed
+//! package instead recorded an empty dependency list. The dominant cost of a
+//! warm `mt ls` then never appeared in any number this harness reported.
 #![allow(clippy::disallowed_methods, clippy::unwrap_used)]
 
 use std::fs;
@@ -16,6 +24,14 @@ use std::process::Command;
 
 /// The benchmark project's config.
 const CONFIG: &str = include_str!("fixture/config.toml");
+
+/// The prelude the fixture's local package serves, from this checkout's own
+/// `lib/`. A task that imports `@local/mindtape` then reads a project-local
+/// file, which the loader records as a dependency.
+const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+
+/// The local package's manifest, beside [`PRELUDE`].
+const PRELUDE_MANIFEST: &str = include_str!("../../../lib/typst.toml");
 
 /// The workspace `target/` directory, honoring `CARGO_TARGET_DIR`.
 fn target_dir() -> PathBuf {
@@ -39,17 +55,25 @@ pub fn fixture(n: usize) -> PathBuf {
     dir
 }
 
-/// Whether `dir` already holds the `n`-task fixture.
+/// Whether `dir` already holds the `n`-task fixture, built against the prelude
+/// this checkout carries. A prelude edit rebuilds it, and a number measured
+/// after one then describes the current prelude.
 fn is_built(dir: &Path, n: usize) -> bool {
-    dir.join(".git").is_dir() && dir.join("tasks").join(stem(n)).is_file()
+    dir.join(".git").is_dir()
+        && dir.join("tasks").join(stem(n)).is_file()
+        && fs::read_to_string(dir.join("lib/prelude.typ")).is_ok_and(|text| text == PRELUDE)
 }
 
-/// Write the fixture from scratch: config, `n` task files, one index.
+/// Write the fixture from scratch: config, local package, `n` task files, one
+/// index.
 fn build(dir: &Path, n: usize) {
     let _ = fs::remove_dir_all(dir);
     fs::create_dir_all(dir.join("tasks")).unwrap();
+    fs::create_dir_all(dir.join("lib")).unwrap();
     fs::create_dir_all(dir.join(".mindtape")).unwrap();
     fs::write(dir.join(".mindtape/config.toml"), CONFIG).unwrap();
+    fs::write(dir.join("lib/prelude.typ"), PRELUDE).unwrap();
+    fs::write(dir.join("lib/typst.toml"), PRELUDE_MANIFEST).unwrap();
     for index in 1..=n {
         let path = dir.join("tasks").join(stem(index));
         fs::write(path, task_source(index)).unwrap();

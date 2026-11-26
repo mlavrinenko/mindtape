@@ -49,6 +49,12 @@ const FILTER_MATCH_CEILING: u64 = 34_000_000;
 /// 2026-11-25, which is 9.1 k instructions per task.
 const SORT_DEFAULT_CEILING: u64 = 19_500_000;
 
+/// The instruction ceiling for `load/warm/2000`: a whole warm load, the region
+/// `mt ls` pays before it filters anything. Measured at 173.1 M on 2026-11-27.
+/// The dependency-hash memo and the cached call spans took it down from 2.5 G
+/// on the flagship's own backlog. The ceiling leaves 5% of headroom.
+const LOAD_WARM_CEILING: u64 = 182_000_000;
+
 /// The loaded set and its config, built once per case and excluded from the
 /// count: iai-callgrind zeroes the counters after setup returns.
 fn loaded() -> (Config, Vec<Task>) {
@@ -56,6 +62,15 @@ fn loaded() -> (Config, Vec<Task>) {
     let config = load_config(&root).unwrap();
     let outcome = load_project(&root, &config);
     (config, outcome.tasks)
+}
+
+/// The fixture's root and config, with its cache primed so the measured load is
+/// the steady state rather than the cold one.
+fn warm_fixture() -> (std::path::PathBuf, Config) {
+    let root = fixture::fixture(N);
+    let config = load_config(&root).unwrap();
+    let _ = load_project(&root, &config);
+    (root, config)
 }
 
 /// The loaded set plus the parsed filter. The measured region is the match loop
@@ -100,9 +115,19 @@ fn sort_default((config, mut tasks): (Config, Vec<Task>)) -> Vec<Task> {
     black_box(tasks)
 }
 
+// A whole warm load: re-stat and re-hash every file, read each entry from the
+// cache, and assemble the set. This is the region `mt ls` pays before it
+// filters, sorts or renders anything, and the one the dependency-hash memo and
+// the cached call spans made four and a half times cheaper.
+#[library_benchmark(config = ceiling(LOAD_WARM_CEILING))]
+#[bench::n2000(setup = warm_fixture)]
+fn load_warm((root, config): (std::path::PathBuf, Config)) -> usize {
+    black_box(load_project(&root, &config).tasks.len())
+}
+
 library_benchmark_group!(
     name = cpu_bound;
-    benchmarks = filter_match, sort_default
+    benchmarks = filter_match, sort_default, load_warm
 );
 
 main!(
