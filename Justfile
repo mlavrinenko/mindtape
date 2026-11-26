@@ -236,8 +236,12 @@ install-hooks:
     # jscpd 5.4.3 has no `--merge-baseline`, so the driver merges the three
     # sides key by key: a key only one side changed takes that side, and a key
     # both changed the same way takes it once. A key both changed differently
-    # takes ours, which a set of fingerprints cannot reach.
-    register jscpd-baseline ".config/jscpd-baseline.json, merged fingerprint by fingerprint" 'jq -s ".[0] as \$o | .[1] as \$a | .[2] as \$b | (\$o.fingerprints // {}) as \$O | (\$a.fingerprints // {}) as \$A | (\$b.fingerprints // {}) as \$B | {version: (\$a.version // \$b.version // \$o.version), fingerprints: (([\$O, \$A, \$B] | map(keys) | add | unique) as \$keys | reduce \$keys[] as \$k ({}; (\$O[\$k]) as \$ov | (\$A[\$k]) as \$av | (\$B[\$k]) as \$bv | (if \$av == \$bv then \$av elif \$av == \$ov then \$bv elif \$bv == \$ov then \$av else \$av end) as \$v | if \$v == null then . else . + {(\$k): \$v} end))}" %O %A %B > %A.tmp && mv %A.tmp %A'
+    # takes ours, which a set of fingerprints cannot reach. The `jscpd` key,
+    # the version that minted them, follows the same rule: a side that bumped
+    # it takes the merge, and two sides that bumped it differently take ours,
+    # because no merge reconciles two fingerprint sets. The gate names the
+    # mismatch until someone re-mints.
+    register jscpd-baseline ".config/jscpd-baseline.json, merged fingerprint by fingerprint" 'jq -s ".[0] as \$o | .[1] as \$a | .[2] as \$b | (\$o.fingerprints // {}) as \$O | (\$a.fingerprints // {}) as \$A | (\$b.fingerprints // {}) as \$B | (if \$a.jscpd == \$b.jscpd then \$a.jscpd elif \$a.jscpd == \$o.jscpd then \$b.jscpd elif \$b.jscpd == \$o.jscpd then \$a.jscpd else \$a.jscpd end) as \$j | {version: (\$a.version // \$b.version // \$o.version)} + (if \$j then {jscpd: \$j} else {} end) + {fingerprints: (([\$O, \$A, \$B] | map(keys) | add | unique) as \$keys | reduce \$keys[] as \$k ({}; (\$O[\$k]) as \$ov | (\$A[\$k]) as \$av | (\$B[\$k]) as \$bv | (if \$av == \$bv then \$av elif \$av == \$ov then \$bv elif \$bv == \$ov then \$av else \$av end) as \$v | if \$v == null then . else . + {(\$k): \$v} end))}" %O %A %B > %A.tmp && mv %A.tmp %A'
     register crap-baseline ".config/crap-baseline.json, merged entry by entry" 'bash .just/scripts/crap-baseline-merge.sh %O %A %B %P'
     named=$(git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r tree; do
         sed -n 's/^[^#].*[[:space:]]merge=\([^[:space:]]*\).*/\1/p' "$tree/.gitattributes" 2>/dev/null || true

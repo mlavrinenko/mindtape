@@ -48,6 +48,12 @@ size:
 # fingerprint, so a re-mint cannot add a clone silently and a fix cannot leave
 # its reason behind. The reasons file's shape and the house style are argued in
 # .just/scripts/dry-reasons.sh.
+#
+# jscpd's fingerprints move between its own releases: 5.4.3 dropped 161 that
+# 5.4.1 found in the same tree, and the gate reported them as new clones. So
+# each baseline records the version that minted it, and the gate names both
+# versions before it runs the detector. A shell on another jscpd re-enters the
+# dev shell; a deliberate bump re-mints the baseline.
 
 DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --similarity=0.8 --ignore '**/tests/it/main.rs' --baseline .config/jscpd-baseline.json"
 
@@ -58,13 +64,36 @@ DRY_FLAGS := "--no-tips -f rust -k 50 --ignore-identifiers --ignore-literals --s
 
 [doc("Copy-paste gate: fail on a duplicated Rust block the baseline lacks")]
 [group("gate")]
+[script]
 dry:
+    baseline=.config/jscpd-baseline.json
+    if [ ! -f "$baseline" ]; then
+        echo "error: $baseline is missing" >&2
+        echo "hint: mint it: \`just lint dry-baseline\`" >&2
+        exit 1
+    fi
+    minted=$(jq -r '.jscpd // empty' "$baseline")
+    if [ -z "$minted" ]; then
+        echo "error: $baseline names no jscpd version" >&2
+        echo "hint: re-mint it: \`just lint dry-baseline\`" >&2
+        exit 1
+    fi
+    running=$(jscpd --version | awk '{print $NF}')
+    if [ "$running" != "$minted" ]; then
+        echo "error: jscpd $running is not the $minted that minted $baseline" >&2
+        echo "hint: re-enter the dev shell: \`direnv reload\`" >&2
+        exit 1
+    fi
     jscpd {{ DRY_FLAGS }} --fail-on-new-clones 0 -r ai crates
     bash .just/scripts/dry-reasons.sh
 
 [doc("Re-mint .config/jscpd-baseline.json and require a reason for each tolerated clone")]
+[script]
 dry-baseline:
     jscpd {{ DRY_FLAGS }} --update-baseline -r silent crates
+    version=$(jscpd --version | awk '{print $NF}')
+    jq --arg v "$version" '{version, jscpd: $v, fingerprints}' .config/jscpd-baseline.json > .config/jscpd-baseline.json.tmp
+    mv .config/jscpd-baseline.json.tmp .config/jscpd-baseline.json
     bash .just/scripts/dry-reasons.sh
 
 # The short-repeat gate reads jscpd's native `duplicates` pairs at 15 tokens,

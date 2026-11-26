@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "jscpd": "5.4.3",
   "fingerprints": {
     "0007733b7e5896df": 1,
     "0017d5888c87a520": 1,

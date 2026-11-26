@@ -33,13 +33,16 @@
 # scores about 85 and waits for the dry gate's 50-token floor.
 #
 # The baseline is jscpd's native `--baseline`, one fingerprint per pair, in
-# `.config/jscpd-repeats-baseline.json`. A selected group fails when any of
-# its pairs is new. A group the baseline tolerates needs a reason in
+# `.config/jscpd-repeats-baseline.json`. It records the jscpd version that
+# minted it. The gate refuses a baseline another binary minted. 5.4.3 dropped
+# 161 fingerprints that 5.4.1 found in the same tree, and a mismatch would
+# report every pair as new. A selected group fails when any of its pairs is
+# new. A group the baseline tolerates needs a reason in
 # `.config/jscpd-repeats-reasons.json`, keyed by the first 16 hex digits of
 # the fragment's SHA-1. The reasons are the audit trail for every repeat the
-# gate lets through. `--mint` rewrites the baseline and lists each selected
-# group that still lacks a reason. A new repeat then cannot enter the baseline
-# silently.
+# gate lets through. `--mint` rewrites the baseline, stamps the running
+# version into it, and lists each selected group that still lacks a reason. A
+# new repeat then cannot enter the baseline silently.
 #
 # The reasons are per group, not per pair. The baseline holds thousands of
 # pair fingerprints, and a reason per pair would be a file nobody reads. The
@@ -71,6 +74,24 @@ if [ ! -f "$REASONS" ]; then
     exit 1
 fi
 
+# The gate reads the baseline the running jscpd minted. Another version stops
+# it before the detector runs, and the message states both versions. `--mint`
+# adopts the running version instead.
+if [ "$mint" -eq 0 ]; then
+    minted=$(jq -r '.jscpd // empty' "$BASELINE")
+    if [ -z "$minted" ]; then
+        echo "error: $BASELINE names no jscpd version" >&2
+        echo "hint: re-mint it: \`just lint repeats-baseline\`" >&2
+        exit 1
+    fi
+    running=$(jscpd --version | awk '{print $NF}')
+    if [ "$running" != "$minted" ]; then
+        echo "error: jscpd $running is not the $minted that minted $BASELINE" >&2
+        echo "hint: re-enter the dev shell: \`direnv reload\`" >&2
+        exit 1
+    fi
+fi
+
 report=$(mktemp -d)
 trap 'rm -rf "$report"' EXIT
 
@@ -79,6 +100,13 @@ trap 'rm -rf "$report"' EXIT
 if [ "$mint" -eq 1 ]; then
     jscpd "${FLAGS[@]}" --baseline "$BASELINE" --update-baseline \
         -r json -o "$report" crates >/dev/null 2>&1 || true
+    # jscpd rewrites the baseline with `version` and `fingerprints` alone.
+    # The minting version goes back in after it writes.
+    if [ -f "$BASELINE" ]; then
+        version=$(jscpd --version | awk '{print $NF}')
+        jq --arg v "$version" '{version, jscpd: $v, fingerprints}' "$BASELINE" >"$BASELINE.tmp"
+        mv "$BASELINE.tmp" "$BASELINE"
+    fi
 else
     jscpd "${FLAGS[@]}" --baseline "$BASELINE" \
         -r json -o "$report" crates >/dev/null 2>&1 || true

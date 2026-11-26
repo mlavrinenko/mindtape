@@ -306,6 +306,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The dry gate refuses a baseline another jscpd minted.** jscpd's
+  fingerprints move between its own releases: 5.4.3 dropped 161 that 5.4.1
+  found in the same tree, and `just lint dry` reported them as new clones.
+  Each baseline now records the version that minted it in a `jscpd` key, and
+  `just lint dry` and `just lint repeats` name both versions and stop before
+  the detector runs. `just lint dry-baseline` and `just lint repeats-baseline`
+  stamp the running version after jscpd writes, and the merge driver carries
+  the key through a merge.
 - **`mt config show --resolved` prints a pack's paths as they resolve.** A
   rule's `check.typst`, a collector's `query.typst` and a dictionary's `path`
   load from the pack's own directory, and the resolved view printed the
