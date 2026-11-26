@@ -19,7 +19,11 @@ const TASK: &str = "task";
 /// A source with no such call, such as a task authored as a bare
 /// `#metadata((…))` or one built without a source, yields the default spans.
 /// Such a source has no line to point at and no body to slice.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+///
+/// The spans are a pure function of the source's bytes. The loader stores them
+/// in the content-hash cache entry and replays them on a hit, which skips the
+/// Typst parse of the file.
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct TaskCallSpans {
     /// One-based line the call opens on.
     call_line: Option<usize>,

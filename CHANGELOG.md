@@ -211,6 +211,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A warm load hashes each dependency once, not once per task, and replays a
+  task's call spans instead of re-parsing its file.** Two costs dominated a
+  warm `mt ls`, and neither was the query. `TaskCache::deps_unchanged` read and
+  SHA-1'd every project-local file an entry imported, for every entry: a
+  backlog whose tasks all import one 30 KB prelude hashed that prelude 1129
+  times, 56% of the command's instructions. The cache now memoizes a
+  dependency's content hash for the length of one load, and an entry names each
+  dependency once. `assemble_task` also ran `TaskCallSpans::parse` on every
+  cache hit, a full Typst parse of the file to find its `task.with(…)` call,
+  for 24% more. The spans are a pure function of the bytes the entry is keyed
+  by, so the entry stores them and a hit replays them. The warm path then runs
+  on one thread per core instead of one, and `hex` renders a digest with a
+  digit lookup rather than a `write!` per byte. On this repository's own backlog
+  `mt ls` falls from 262 ms to 100 ms, and the 2000-task fixture from 170 ms to
+  83 ms. The cache entry format is version 5, so the first run after upgrading
+  re-evaluates every file.
 - **The default sort resolves each task's key once, not once per comparison.**
   `default_order_with` built its comparator from `priority_value`, which
   re-parsed a framework's score formula through `evalexpr` on every comparison:

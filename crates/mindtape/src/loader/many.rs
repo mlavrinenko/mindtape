@@ -47,6 +47,37 @@ pub fn map_parallel<T: Send, R: Send>(items: Vec<T>, work: impl Fn(T) -> R + Syn
     })
 }
 
+/// Run `work` over `items` split into at most `shards` contiguous chunks, one
+/// scoped thread each, and return the results in chunk order. A thread that
+/// panics resumes its panic here.
+///
+/// [`map_parallel`] spawns one thread per item, which is right for a handful of
+/// projects and wrong for a backlog of thousands of files. This splits the work
+/// into one chunk per core instead. The thread count then stays bounded however
+/// long the list is.
+pub(crate) fn map_chunks<'a, T: Sync, R: Send>(
+    items: &'a [T],
+    shards: usize,
+    work: impl Fn(&'a [T]) -> R + Sync,
+) -> Vec<R> {
+    let size = items.len().div_ceil(shards.max(1)).max(1);
+    map_parallel(items.chunks(size).collect(), work)
+}
+
+/// How many chunks to split `len` items into: one per core, and one chunk below
+/// `MIN_PARALLEL`, where spawning threads costs more than the work they share.
+pub(crate) fn shards(len: usize) -> usize {
+    /// Below this many items a load is a few milliseconds, and the threads that
+    /// would split it cost about as much as it does.
+    const MIN_PARALLEL: usize = 128;
+    if len < MIN_PARALLEL {
+        return 1;
+    }
+    std::thread::available_parallelism()
+        .map_or(1, std::num::NonZeroUsize::get)
+        .min(len)
+}
+
 /// The config of `root`, then its tasks under that config.
 fn load_root(root: &Path) -> Result<Loaded, ConfigError> {
     let config = load_config(root)?;

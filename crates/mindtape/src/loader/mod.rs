@@ -38,6 +38,7 @@ pub use embedded::{
 };
 pub use errors::{LoadError, LoadWarning};
 pub use many::{Loaded, load_many, map_parallel};
+pub(crate) use many::{map_chunks, shards};
 pub(crate) use packages::with_packages_and;
 pub use packages::{package_overrides, with_packages};
 pub use pins::unsupported_prelude_version;
@@ -56,6 +57,7 @@ use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, b
 use crate::config::Config;
 use crate::loader::derive::RootDeriver;
 use crate::model::Task;
+use crate::model::task_spans::TaskCallSpans;
 use crate::slash_path;
 use crate::task_source::{TaskPath, TaskSource};
 
@@ -204,46 +206,59 @@ pub fn load_one(root: &Path, config: &Config, path: &Path) -> Result<Option<Task
 fn harvest_items(items: &[LoadItem], root: &Path, config: &Config) -> LoadOutcome {
     let overrides = package_overrides(root, config);
     let cache = TaskCache::open(root, config, &overrides);
-    let mut outcome = LoadOutcome::default();
-    let misses = split_hits(items, &cache, &mut outcome);
+    let (mut outcome, misses) = split_hits(items, &cache);
     harvest_misses(&misses, root, &overrides, &cache, &mut outcome);
     outcome
 }
 
-/// Serve every cache hit into `outcome` and return the misses to harvest. The
-/// loader reads each file once here: its bytes key the cache, and its source
-/// builds the task body on a hit (no second read).
-fn split_hits<'a>(
-    items: &'a [LoadItem],
-    cache: &TaskCache,
-    outcome: &mut LoadOutcome,
-) -> Vec<Miss<'a>> {
-    let mut misses = Vec::new();
-    for item in items {
-        let source = std::fs::read_to_string(&item.file).ok();
-        let hash = source
-            .as_deref()
-            .map(|src| TaskCache::content_hash(src.as_bytes()));
-        match hash.as_deref().and_then(|key| cache.get(key)) {
-            Some(hit) => replay(item, source.as_deref(), hit, outcome),
-            None => misses.push(Miss {
-                item,
-                source: source.unwrap_or_default(),
-                hash,
-            }),
+/// Serve every cache hit into the returned outcome and return the misses to
+/// harvest. The loader reads each file once here: its bytes key the cache, and
+/// its source builds the task body on a hit (no second read).
+///
+/// The work is per file and independent, so it runs on one thread per core. The
+/// chunks are contiguous and merged in order. The tasks and warnings then come
+/// out in the order a serial pass would leave them.
+fn split_hits<'a>(items: &'a [LoadItem], cache: &TaskCache) -> (LoadOutcome, Vec<Miss<'a>>) {
+    let parts = map_chunks(items, shards(items.len()), |chunk| {
+        let mut outcome = LoadOutcome::default();
+        let mut misses = Vec::new();
+        for item in chunk {
+            let source = std::fs::read_to_string(&item.file).ok();
+            let hash = source
+                .as_deref()
+                .map(|src| TaskCache::content_hash(src.as_bytes()));
+            match hash.as_deref().and_then(|key| cache.get(key)) {
+                Some(hit) => replay(item, source.as_deref(), hit, &mut outcome),
+                None => misses.push(Miss {
+                    item,
+                    source: source.unwrap_or_default(),
+                    hash,
+                }),
+            }
         }
+        (outcome, misses)
+    });
+    let mut outcome = LoadOutcome::default();
+    let mut misses = Vec::new();
+    for (part, part_misses) in parts {
+        outcome.tasks.extend(part.tasks);
+        outcome.errors.extend(part.errors);
+        outcome.warnings.extend(part.warnings);
+        misses.extend(part_misses);
     }
-    misses
+    (outcome, misses)
 }
 
 /// Serve one cache hit: replay its warnings against this file, and assemble
-/// its task when it holds a marker. The hit's body markers come back with it,
-/// the same list the cold eval cached.
+/// its task when it holds a marker. The hit's body markers and the spans of its
+/// `task.with(…)` call come back with it, the same ones the cold eval cached. A
+/// hit then never parses the file through Typst.
 fn replay(item: &LoadItem, source: Option<&str>, hit: Cached, outcome: &mut LoadOutcome) {
     let Cached {
         outcome: cached,
         markers,
         warnings,
+        spans,
     } = hit;
     outcome
         .warnings
@@ -255,7 +270,7 @@ fn replay(item: &LoadItem, source: Option<&str>, hit: Cached, outcome: &mut Load
         let body = source.unwrap_or_default();
         outcome
             .tasks
-            .push(assemble_task(item, &marker, &markers, body));
+            .push(assemble_task(item, &marker, &markers, body, spans));
     }
 }
 
@@ -371,6 +386,9 @@ fn record_miss(
                 .with_marker("mindtape.task")
                 .next()
                 .map(|found| &found.value);
+            // Parsed once here, then stored and reused: a later hit replays
+            // these spans instead of parsing the file again.
+            let spans = TaskCallSpans::parse(&miss.source);
             if let Some(hash) = &miss.hash {
                 let cached = Cached {
                     outcome: marker.map_or(CachedOutcome::NoMarker, |value| {
@@ -378,13 +396,18 @@ fn record_miss(
                     }),
                     markers: markers.clone(),
                     warnings: warnings.clone(),
+                    spans: spans.clone(),
                 };
                 cache.put(hash, &cached, &harvested.dependencies);
             }
             if let Some(marker) = marker {
-                outcome
-                    .tasks
-                    .push(assemble_task(miss.item, marker, &markers, &miss.source));
+                outcome.tasks.push(assemble_task(
+                    miss.item,
+                    marker,
+                    &markers,
+                    &miss.source,
+                    spans,
+                ));
             }
             outcome.warnings.extend(warnings);
         }

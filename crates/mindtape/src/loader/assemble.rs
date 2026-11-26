@@ -23,23 +23,30 @@ pub(super) struct LoadItem {
     pub(super) depth: u8,
 }
 
-/// Build a [`Task`] from a harvested marker and the file's source. Identity
-/// comes from the stem (an explicit `id:` still wins), the folder-derived tags
-/// come from the item, and the builder slices the prose body from the source.
-/// `markers` is every other marker the body emitted, in document order. Both a
-/// cache hit and a fresh harvest funnel through this path, so they agree.
+/// Build a [`Task`] from a harvested marker, the file's source and the spans
+/// of its `task.with(…)` call. Identity comes from the stem (an explicit `id:`
+/// still wins), the folder-derived tags come from the item, and the builder
+/// slices the prose body from the source. `markers` is every other marker the
+/// body emitted, in document order. Both a cache hit and a fresh harvest funnel
+/// through this path, so they agree.
+///
+/// The caller supplies `spans` rather than letting this parse them. A cache hit
+/// replays the spans the cold evaluation stored, and a warm load then never
+/// parses a task file through Typst. A caller whose source has no entry parses
+/// it itself ([`TaskCallSpans::parse`]).
 pub(super) fn assemble_task(
     item: &LoadItem,
     marker: &HVal,
     markers: &[BodyMarker],
     source: &str,
+    spans: TaskCallSpans,
 ) -> Task {
     let id = file_stem(&item.file);
     let mut task = Task::from_marker(id, item.rel.clone(), marker);
     task.derived_tags = item.folder_tags.clone();
     task.markers = markers.to_vec();
     task.depth = item.depth;
-    task.spans = TaskCallSpans::parse(source);
+    task.spans = spans;
     task.body = task.spans.body(source);
     task
 }
@@ -74,6 +81,7 @@ pub(crate) fn task_at(
         markers.task,
         markers.body,
         source,
+        TaskCallSpans::parse(source),
     )
 }
 

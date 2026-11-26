@@ -17,12 +17,13 @@ fn open(root: &std::path::Path) -> TaskCache {
 }
 
 /// The payload [`TaskCache::put`] stores and [`TaskCache::get`] returns: one
-/// outcome, its body markers, and no warnings.
+/// outcome, its body markers, no warnings and no spans.
 fn cached(outcome: CachedOutcome, markers: Vec<BodyMarker>) -> Cached {
     Cached {
         outcome,
         markers,
         warnings: Vec::new(),
+        spans: crate::model::task_spans::TaskCallSpans::default(),
     }
 }
 
@@ -223,12 +224,24 @@ fn ensure_ignored_writes_self_ignoring_gitignore() {
 }
 
 #[test]
-fn disabled_checks_env_var_semantics() {
+fn disabled_serves_nothing_and_checks_env_var_semantics() {
     // Self-dual pattern: children spawned below run the env-var assertions.
     if std::env::var_os("MINDTAPE_DISABLED_CHILD").is_some() {
         let val = std::env::var_os("MINDTAPE_NO_CACHE");
         match val.as_deref().and_then(|v| v.to_str()) {
-            Some("1") => assert!(disabled()),
+            Some("1") => {
+                assert!(disabled());
+                // A switched-off cache serves nothing and creates no directory.
+                let dir = tempdir();
+                let cache = open(dir.path());
+                assert!(cache.get("anything").is_none());
+                cache.put(
+                    "anything",
+                    &cached(CachedOutcome::NoMarker, Vec::new()),
+                    &[],
+                );
+                assert!(!dir.path().join(".mindtape").exists());
+            }
             Some("") => assert!(!disabled()),
             _ => panic!("unexpected MINDTAPE_NO_CACHE value: {val:?}"),
         }

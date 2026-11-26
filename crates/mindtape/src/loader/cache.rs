@@ -44,8 +44,9 @@
 //! Typst warnings of a clean evaluation beside the marker and replays them on
 //! every hit. A warning then shows on each run, not only the first.
 
-use std::fmt::Write as _;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, PoisonError};
 
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
@@ -54,10 +55,11 @@ use typst_harvest::HVal;
 use super::LoadWarning;
 use crate::config::Config;
 use crate::model::BodyMarker;
+use crate::model::task_spans::TaskCallSpans;
 
 /// On-disk entry format. Bump when the entry shape or the marker reconstruction
 /// changes. The build key folds it in, and a bump busts every entry.
-const FORMAT_VERSION: u32 = 4;
+const FORMAT_VERSION: u32 = 5;
 
 /// Set this env var to a non-empty value to bypass the cache entirely (always
 /// eval). For benchmarking the cold path and as an escape hatch.
@@ -73,6 +75,10 @@ pub(crate) struct Cached {
     pub(crate) markers: Vec<BodyMarker>,
     /// The Typst warnings the evaluation raised, replayed on every hit.
     pub(crate) warnings: Vec<LoadWarning>,
+    /// Where the file's `task.with(…)` call sits. It is a pure function of the
+    /// bytes that key the entry. A hit replays it and skips the Typst parse of
+    /// the file.
+    pub(crate) spans: TaskCallSpans,
 }
 
 /// What a cached evaluation yielded.
@@ -91,6 +97,12 @@ pub(crate) struct TaskCache {
     /// `<root>/.mindtape/cache/<build_key>`, or `None` when disabled or the
     /// directory creation failed (the cache degrades to a no-op).
     dir: Option<PathBuf>,
+    /// The content hash of each dependency this load has opened, under its
+    /// root-relative path. A prelude that every task imports costs one read and
+    /// one hash, not one per task. On a backlog of 1129 tasks that is the
+    /// difference between 8 reads and 9032, and it was the single largest cost
+    /// of a warm `mt ls`.
+    deps: Mutex<HashMap<PathBuf, Option<String>>>,
 }
 
 impl TaskCache {
@@ -98,23 +110,22 @@ impl TaskCache {
     /// and package `overrides`. Best-effort: a filesystem failure disables the
     /// cache rather than failing the load.
     pub(crate) fn open(root: &Path, config: &Config, overrides: &[(String, PathBuf)]) -> Self {
-        if disabled() {
-            return Self {
-                root: root.to_path_buf(),
-                dir: None,
-            };
-        }
-        let cache_root = root.join(".mindtape").join("cache");
-        let key = build_key(config, overrides, crate::package_root().as_deref());
-        prune_stale(&cache_root, &key);
-        let dir = cache_root.join(&key);
-        let dir = std::fs::create_dir_all(&dir).is_ok().then(|| {
-            ensure_ignored(&cache_root);
-            dir
-        });
+        let dir = if disabled() {
+            None
+        } else {
+            let cache_root = root.join(".mindtape").join("cache");
+            let key = build_key(config, overrides, crate::package_root().as_deref());
+            prune_stale(&cache_root, &key);
+            let dir = cache_root.join(&key);
+            std::fs::create_dir_all(&dir).is_ok().then(|| {
+                ensure_ignored(&cache_root);
+                dir
+            })
+        };
         Self {
             root: root.to_path_buf(),
             dir,
+            deps: Mutex::new(HashMap::new()),
         }
     }
 
@@ -142,35 +153,66 @@ impl TaskCache {
             outcome,
             markers: entry.markers,
             warnings: entry.warnings,
+            spans: entry.spans,
         })
     }
 
     /// Whether every recorded dependency still hashes to what the entry saw.
     fn deps_unchanged(&self, deps: &[Dep]) -> bool {
         deps.iter().all(|dep| {
-            std::fs::read(self.root.join(&dep.path))
-                .is_ok_and(|bytes| Self::content_hash(&bytes) == dep.hash)
+            self.dep_hash(&dep.path)
+                .is_some_and(|hash| hash == dep.hash)
         })
+    }
+
+    /// The content hash of the dependency at root-relative `rel`, read and
+    /// hashed at most once per load. `None` when the file will not open, and
+    /// every entry naming it is then a miss.
+    ///
+    /// The code locks twice, around the read rather than across it, and a
+    /// parallel load never serializes on one dependency's bytes. Two threads
+    /// racing on the same unseen path hash it twice, which is still one read
+    /// per thread rather than one per task.
+    fn dep_hash(&self, rel: &Path) -> Option<String> {
+        if let Some(known) = self
+            .deps
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .get(rel)
+        {
+            return known.clone();
+        }
+        let hash = std::fs::read(self.root.join(rel))
+            .ok()
+            .map(|bytes| Self::content_hash(&bytes));
+        self.deps
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .insert(rel.to_path_buf(), hash.clone());
+        hash
     }
 
     /// Record a clean harvest outcome for `content_hash`, the payload a later
     /// [`Self::get`] returns. It holds the [`CachedOutcome`] (a task marker or
-    /// a file without one), every other body marker the file emitted, and the
-    /// warnings its evaluation raised. The entry also holds the project-local
-    /// `deps` (relative to the root) that it imported. The write is
-    /// best-effort and atomic (write-temp-then-rename). A write failure, or a
-    /// dependency that the loader cannot read, leaves the entry a miss.
+    /// a file without one), every other body marker the file emitted, the
+    /// warnings its evaluation raised, and the spans of its `task.with(…)`
+    /// call. The entry also holds the project-local `deps` (relative to the
+    /// root) that it imported, each named once however many times the
+    /// evaluation read it. The write is best-effort and atomic
+    /// (write-temp-then-rename). A write failure, or a dependency that the
+    /// loader cannot read, leaves the entry a miss.
     pub(crate) fn put(&self, content_hash: &str, cached: &Cached, deps: &[PathBuf]) {
         let Some(path) = self.entry_path(content_hash) else {
             return;
         };
+        let mut seen = std::collections::HashSet::new();
         let Some(deps) = deps
             .iter()
+            .filter(|rel| seen.insert(rel.as_path()))
             .map(|rel| {
-                let bytes = std::fs::read(self.root.join(rel)).ok()?;
                 Some(Dep {
                     path: rel.clone(),
-                    hash: Self::content_hash(&bytes),
+                    hash: self.dep_hash(rel)?,
                 })
             })
             .collect::<Option<Vec<_>>>()
@@ -186,6 +228,7 @@ impl TaskCache {
             markers: cached.markers.clone(),
             warnings: cached.warnings.clone(),
             deps,
+            spans: cached.spans.clone(),
         };
         let Ok(json) = serde_json::to_string(&entry) else {
             return;
@@ -220,7 +263,8 @@ impl TaskCache {
 
 /// One on-disk cache entry. It holds the format tag, the harvested marker as
 /// JSON (`null` when the file had no task marker), and the Typst warnings the
-/// evaluation raised. The other body markers the file emitted sit beside them.
+/// evaluation raised. The other body markers the file emitted sit beside them,
+/// and so do the spans of the file's `task.with(…)` call.
 #[derive(Serialize, Deserialize)]
 struct Entry {
     format: u32,
@@ -233,6 +277,10 @@ struct Entry {
     /// Imported project files and their hashes at the time of the write.
     #[serde(default)]
     deps: Vec<Dep>,
+    /// Where the `task.with(…)` call sits. A hit slices the body from it and
+    /// skips the Typst parse of the file.
+    #[serde(default)]
+    spans: TaskCallSpans,
 }
 
 /// One imported file an entry depends on.
@@ -351,11 +399,14 @@ pub(crate) fn ensure_ignored(cache_root: &Path) {
     }
 }
 
-/// Lowercase hex of a digest.
+/// Lowercase hex of a digest. Two `char::from_digit` lookups per byte, not a
+/// `write!` per byte: the formatting machinery cost more than the hash it
+/// rendered.
 pub(crate) fn hex(bytes: &[u8]) -> String {
     let mut out = String::with_capacity(bytes.len() * 2);
     for &byte in bytes {
-        let _ = write!(out, "{byte:02x}");
+        out.push(char::from_digit(u32::from(byte >> 4), 16).unwrap_or('0'));
+        out.push(char::from_digit(u32::from(byte & 0x0f), 16).unwrap_or('0'));
     }
     out
 }
