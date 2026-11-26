@@ -54,14 +54,14 @@ does not track the cache. On a generated backlog of 2000 tasks:
 #table(
   columns: 3,
   table.header([Command], [Cold cache], [Warm cache]),
-  [`mt ls`], [13.9 s], [0.14 s],
-  [`mt check`], [15.9 s], [0.10 s],
+  [`mt ls`], [13.7 s], [0.09 s],
+  [`mt check`], [12.8 s], [0.08 s],
 )
 
 // Measured by hand: `just bench::run` prints hyperfine's report and saves nothing a
 // page could read, so the date and machine below let a reader judge the
 // figures.
-These figures come from one run on 2026-11-25 on one Linux machine, and
+These figures come from one run on 2026-11-27 on one Linux machine, and
 nothing regenerates them. Run #just.bench-run() on your
 machine for the warm column. For the cold column, set `MINDTAPE_NO_CACHE=1` to
 make `mt` skip the cache.
@@ -84,6 +84,12 @@ deleting the directory. The next run rebuilds it. A change to the config, the
 prelude or the `mt` version starts a new cache and removes the old one. A read
 command such as `mt ls` may write the cache, but it never changes a task
 file.
+
+A warm run reads and hashes each imported module once, however many tasks
+import it. An entry also carries the spans of its file's `task.with(…)` call. A
+hit slices the body from those spans and skips the Typst parse of the file. The
+files are then served on one thread per core. On this repository's own backlog
+that took `mt ls` from 262 ms to 100 ms.
 
 = Platform support
 
